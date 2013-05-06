@@ -33,6 +33,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.UserDataReader;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -106,11 +107,18 @@ public class DisplayTag extends PwmAbstractTag {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final UserDataReader userDataReader;
+            if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                userDataReader = pwmSession.getSessionManager().getUserDataReader();
+            } else {
+                userDataReader = null;
+            }
             final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
 
             final Class bundle = readBundle();
             final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);
-            final String expandedMessage = MacroMachine.expandMacros(displayMessage, pwmApplication, uiBean);
+            final String expandedMessage = MacroMachine.expandMacros(displayMessage, pwmApplication, uiBean, userDataReader);
 
             pageContext.getOut().write(expandedMessage);
         } catch (PwmUnrecoverableException e) { {

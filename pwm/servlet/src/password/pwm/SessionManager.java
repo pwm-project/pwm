@@ -34,6 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.UserDataReader;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
@@ -62,6 +63,7 @@ public class SessionManager implements Serializable {
     final Lock providerLock = new ReentrantLock();
 
     private transient ConcurrentMap<Serializable,Serializable> lruTypingCache;
+    private transient UserDataReader userDataReader;
 
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -209,4 +211,31 @@ public class SessionManager implements Serializable {
         }
         getLruTypingCache().put(key,value);
     }
+
+    public ChaiUser getProxiedActor()
+            throws PwmUnrecoverableException, ChaiUnavailableException {
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+        }
+        final String userDN = pwmSession.getUserInfoBean().getUserDN();
+
+
+        return ChaiFactory.createChaiUser(userDN, ContextManager.getPwmApplication(session).getProxyChaiProvider());
+    }
+
+    public UserDataReader getUserDataReader() throws PwmUnrecoverableException, ChaiUnavailableException {
+        if (pwmSession == null || !pwmSession.getSessionStateBean().isAuthenticated()) {
+            return null;
+        }
+
+        if (userDataReader == null) {
+            userDataReader = new UserDataReader(this.getProxiedActor());
+        }
+        return userDataReader;
+    }
+
+    public void clearUserDataReader() {
+        userDataReader = null;
+    }
+
 }

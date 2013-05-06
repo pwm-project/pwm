@@ -22,29 +22,58 @@
 
 package password.pwm.health;
 
+import password.pwm.config.Configuration;
+import password.pwm.i18n.Config;
+import password.pwm.i18n.LocaleHelper;
+
 import java.io.Serializable;
+import java.util.Locale;
 
 public class HealthRecord implements Serializable,Comparable<HealthRecord> {
     private final HealthStatus status;
+    private final HealthTopic topicEnum;
+    private final HealthMessage message;
     private final String topic;
     private final String detail;
+    private final String[] fields;
 
+    @Deprecated
     public HealthRecord(final HealthStatus status, final String topic, final String detail) {
         this.status = status;
         this.topic = topic;
         this.detail = detail;
+
+        this.topicEnum = null;
+        this.message = null;
+        this.fields = null;
+    }
+
+    public HealthRecord(HealthStatus status, HealthTopic topicEnum, HealthMessage message, String[] fields) {
+        this.status = status;
+        this.topicEnum = topicEnum;
+        this.message = message;
+        this.fields = fields;
+
+        this.topic = null;
+        this.detail = null;
     }
 
     public HealthStatus getStatus() {
         return status;
     }
 
-    public String getTopic() {
-        return topic;
+    public String getTopic(final Locale locale, final Configuration config) {
+        if (topic != null) {
+            return topic;
+        }
+        return LocaleHelper.getLocalizedMessage(locale,"ConfigTopic_" + topicEnum.toString(),config,Config.class);
     }
 
-    public String getDetail() {
-        return detail;
+    public String getDetail(final Locale locale, final Configuration config) {
+        if (detail != null) {
+            return detail;
+        }
+        return LocaleHelper.getLocalizedMessage(locale,"ConfigMessage_" + message.toString(),config,Config.class,fields);
     }
 
     public int compareTo(final HealthRecord otherHealthRecord) {

@@ -110,15 +110,25 @@ public abstract class X509Utils {
 
         @Override
         public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+            if (x509Certificates == null) {
+                return;
+            }
+
+
             for (X509Certificate loopCert : x509Certificates) {
-                for (X509Certificate storedCert : certificates) {
+                boolean certTrusted = false;
+                for (int i = 0; i < certificates.length && certTrusted == false; i++) {
+                    X509Certificate storedCert = certificates[i];
                     if (loopCert.equals(storedCert)) {
-                        loopCert.checkValidity();
-                        return;
+                        //loopCert.checkValidity();
+                        certTrusted = true;
                     }
                 }
+                if (!certTrusted) {
+                    final String errorMsg = "server certificate {subject=" + loopCert.getSubjectDN().getName() + "} does not match a certificate in the configuration trust store.";
+                    throw new CertificateException(errorMsg);
+                }
             }
-            throw new CertificateException("server certificate chain not trusted by any configured certificate");
         }
 
         @Override

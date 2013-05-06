@@ -54,8 +54,8 @@ public class LdapValueTag extends TagSupport {
     {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
-            final String ldapValue = uiBean.getAllUserAttributes().get(name);
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final String ldapValue = pwmSession.getSessionManager().getUserDataReader().readStringAttribute(name);
             if (ldapValue != null && ldapValue.length() > 0) {
                 pageContext.getOut().write(ldapValue);
             }

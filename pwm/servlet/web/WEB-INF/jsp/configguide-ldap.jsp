@@ -104,7 +104,7 @@
                 <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" style="padding-left: 5px; padding-top: 5px">
                     <b>Secure (SSL) Connection</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input type="hidden" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
+                    <input type="hidden" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE)%>"/>
                     <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -119,8 +119,12 @@
                                             getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="true";
                                             registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','636');
                                         } else {
-                                            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="false";
-                                            registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','389');
+                                            showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', function(){
+                                                getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="false";
+                                                registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','389');
+                                            },function(){
+                                                registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked',true);
+                                            });
                                         }
                                         handleFormActivity();
                                     },
@@ -137,7 +141,7 @@
             <div id="outline_ldap-user" class="configDiv">
                 <div id="titlePaneHeader-ldap-user" style="width:580px" data-dojo-type="dijit/TitlePane" title="Admin/Proxy Account" data-dojo-props="open:false">
                     Please enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
-                    admin account here.  In most cases, you should use an account created specially for this purpose, with enough rights to
+                    admin account here.  In most cases, you should use an account created specially for this purpose, with sufficient rights to
                     administer the users that will be logging into this system.
                 </div>
                 <br/>

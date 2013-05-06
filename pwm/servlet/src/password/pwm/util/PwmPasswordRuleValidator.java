@@ -341,7 +341,7 @@ public class PwmPasswordRuleValidator {
         if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
             final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
             if (uiBean != null) {
-                final Map<String,String> userValues = uiBean.getAllUserAttributes();
+                final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
                 final String lcasePwd = password.toLowerCase();
                 for (final Object paramConfig : paramConfigs) {
                     final String attr = (String) paramConfig;
@@ -450,8 +450,8 @@ public class PwmPasswordRuleValidator {
     ) {
         final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
 
-        if (userInfoBean != null && userInfoBean.getAllUserAttributes() != null) {
-            final Map<String,String> userAttrs = userInfoBean.getAllUserAttributes();
+        if (userInfoBean != null && userInfoBean.getCachedPasswordRuleAttributes() != null) {
+            final Map<String,String> userAttrs = userInfoBean.getCachedPasswordRuleAttributes();
             final String samAccountName = userAttrs.get("sAMAccountName");
             if (samAccountName != null
                     && samAccountName.length() > 2

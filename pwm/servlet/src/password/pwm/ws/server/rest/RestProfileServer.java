@@ -54,18 +54,21 @@ public class RestProfileServer {
                 throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
             }
 
-            final FormMap formData = new FormMap();
+            final Map<String,String> profileData = new HashMap<String,String>();
             {
-                final Map<FormConfiguration,String> formConfigs = new HashMap<FormConfiguration,String>();
-                UpdateProfileServlet.populateFormFromLdap(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),formConfigs);
-                for (FormConfiguration formConfig : formConfigs.keySet()) {
-                    formData.put(formConfig.getName(),formConfigs.get(formConfig));
+                final Map<FormConfiguration,String> formData = new HashMap<FormConfiguration,String>();
+                for (final FormConfiguration formConfiguration : restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
+                    formData.put(formConfiguration,"");
+                }
+                UpdateProfileServlet.populateFormFromLdap(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader());
+                for (FormConfiguration formConfig : formData.keySet()) {
+                    profileData.put(formConfig.getName(),formData.get(formConfig));
                 }
             }
 
             final RestResultBean restResultBean = new RestResultBean();
             JsonProfileData outputData = new JsonProfileData();
-            outputData.profile = formData;
+            outputData.profile = profileData;
             outputData.formDefinition = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
             restResultBean.setData(outputData);
             return restResultBean.toJson();

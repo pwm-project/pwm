@@ -32,7 +32,8 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+<% final NumberFormat numberFormat = NumberFormat.getInstance(locale); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -268,7 +269,7 @@
             <td>
                 <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
                 <% for (HealthRecord loopRecord : healthRecords) { %>
-                <%= loopRecord.getTopic() %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail() %>
+                <%= loopRecord.getTopic(locale,pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,pwmApplication.getConfig()) %>
                 <br/>
                 <% } %>
                 <% } else { %>

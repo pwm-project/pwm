@@ -233,7 +233,7 @@ public enum PwmSetting {
     SMS_GATEWAY_AUTHMETHOD(
             "sms.gatewayAuthMethod", PwmSettingSyntax.SELECT, Category.SMS),
     SMS_REQUEST_DATA(
-            "sms.requestData", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.SMS),
+            "sms.requestData", PwmSettingSyntax.TEXT_AREA, Category.SMS),
     SMS_REQUEST_CONTENT_TYPE(
             "sms.requestContentType", PwmSettingSyntax.STRING, Category.SMS),
     SMS_REQUEST_CONTENT_ENCODING(
@@ -510,8 +510,6 @@ public enum PwmSetting {
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, Category.RECOVERY),
     CHALLENGE_REQUIRE_RESPONSES(
             "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
-    CHALLENGE_TOKEN_ENABLE(
-            "challenge.token.enable", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
     CHALLENGE_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
     FORGOTTEN_PASSWORD_ACTION(
@@ -580,8 +578,8 @@ public enum PwmSetting {
     // activation settings
     ACTIVATE_USER_ENABLE(
             "activateUser.enable", PwmSettingSyntax.BOOLEAN, Category.ACTIVATION),
-    ACTIVATE_USER_TOKEN_VERIFICATION(
-            "activateUser.token.verification", PwmSettingSyntax.BOOLEAN, Category.ACTIVATION),
+    ACTIVATE_TOKEN_SEND_METHOD(
+            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, Category.ACTIVATION),
     ACTIVATE_AGREEMENT_MESSAGE(
             "display.activateUser.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.ACTIVATION),
     ACTIVATE_USER_FORM(
@@ -594,8 +592,6 @@ public enum PwmSetting {
             "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, Category.ACTIVATION),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
             "activateUser.writePostAttributes", PwmSettingSyntax.ACTION, Category.ACTIVATION),
-    ACTIVATE_TOKEN_SEND_METHOD(
-            "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, Category.ACTIVATION),
 
     // update profile
     UPDATE_PROFILE_ENABLE(
@@ -944,7 +940,8 @@ public enum PwmSetting {
         }
     }
 
-    public enum SmsPriority {
+    public enum TokenSendMethod {
+        NONE,
         EMAILONLY,
         BOTH,
         EMAILFIRST,
@@ -953,21 +950,18 @@ public enum PwmSetting {
     }
 
     public enum Template {
-        NOVL("Novell eDirectory"),
-        ADDB("Active Directory - Store responses in a database"),
-        AD("Active Directory - Store responses in Active Directory"),
-        DEFAULT("OpenLDAP, DirectoryServer389, Others"),
+        NOVL,
+        ADDB,
+        AD,
+        DEFAULT,
         ;
 
-        private final String description;
-
-        Template(final String description) {
-            this.description = description;
+        public String getLabel(final Locale locale) {
+            Element categoryElement = readTemplateXml(this);
+            Element labelElement = categoryElement.getChild("label");
+            return labelElement.getText();
         }
 
-        public String getDescription() {
-            return description;
-        }
     }
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByFilter(final Template template, final Category.Type categoryType, final int level) {
@@ -1019,6 +1013,12 @@ public enum PwmSetting {
     private static Element readCategoryXml(final Category category) {
         final XPathFactory xpfac = XPathFactory.instance();
         final XPathExpression xp = xpfac.compile("/settings/category[@key=\"" + category.toString() + "\"]");
+        return (Element)xp.evaluateFirst(readXml());
+    }
+
+    private static Element readTemplateXml(final Template template) {
+        final XPathFactory xpfac = XPathFactory.instance();
+        final XPathExpression xp = xpfac.compile("/settings/template[@key=\"" + template.toString() + "\"]");
         return (Element)xp.evaluateFirst(readXml());
     }
 

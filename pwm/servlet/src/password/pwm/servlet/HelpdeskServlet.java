@@ -36,6 +36,7 @@ import password.pwm.bean.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -48,10 +49,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.CrUtility;
-import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
@@ -305,7 +303,7 @@ public class HelpdeskServlet extends TopServlet {
             final HelpdeskBean helpdeskBean,
             final String userDN
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());
         if (!theUser.isValid()) {
@@ -314,9 +312,7 @@ public class HelpdeskServlet extends TopServlet {
 
         final UserInfoBean uiBean = new UserInfoBean();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final List<FormConfiguration> detailForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
-        final Set<String> attributes = UserSearchEngine.UserSearchResults.fromFormConfiguration(detailForm,pwmSession.getSessionStateBean().getLocale()).keySet();
-        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider(), attributes);
+        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider());
         helpdeskBean.setUserInfoBean(uiBean);
         HelpdeskBean.AdditionalUserInfo additionalUserInfo = new HelpdeskBean.AdditionalUserInfo();
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);
@@ -370,6 +366,18 @@ public class HelpdeskServlet extends TopServlet {
             additionalUserInfo.setResponseSet(CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading user response set for user '" + userDN + "', " + e.getMessage());
+        }
+
+        {
+            final Configuration config = pwmApplication.getConfig();
+            final UserDataReader userDataReader = new UserDataReader(theUser);
+            final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
+            final Map<FormConfiguration,String> formData = new LinkedHashMap<FormConfiguration,String>();
+            for (final FormConfiguration formConfiguration : detailFormConfig) {
+                formData.put(formConfiguration,"");
+            }
+            UpdateProfileServlet.populateFormFromLdap(pwmApplication, pwmSession, formData, userDataReader);
+            helpdeskBean.getAdditionalUserInfo().setSearchDetails(formData);
         }
     }
 

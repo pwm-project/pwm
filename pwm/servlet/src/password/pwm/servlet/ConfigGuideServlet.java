@@ -37,6 +37,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.LDAPStatusChecker;
+import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PwmLogger;
@@ -265,8 +266,19 @@ public class ConfigGuideServlet extends TopServlet {
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
         final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
-        final List<HealthRecord> records = ldapStatusChecker.doHealthCheck(tempApplication);
+        final List<HealthRecord> records = new ArrayList<HealthRecord>();
+        if (configGuideBean.getStep() == STEP.LDAP) {
+            records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,false));
+            if (records.isEmpty()) {
+                records.add(new HealthRecord(
+                        HealthStatus.GOOD,
+                        "LDAP",
+                        LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
+                ));
+           }
+        }
         if (configGuideBean.getStep() == STEP.LDAP2) {
+            records.addAll(ldapStatusChecker.doHealthCheck(tempApplication));
             if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
                 final int maxSearchSize = 500;
                 final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
@@ -297,7 +309,7 @@ public class ConfigGuideServlet extends TopServlet {
         }
 
         RestHealthServer.JsonOutput jsonOutput = new RestHealthServer.JsonOutput();
-        jsonOutput.records = records;
+        jsonOutput.records = RestHealthServer.HealthRecordBean.fromHealthRecords(records,pwmSession.getSessionStateBean().getLocale(),tempConfiguration);
         jsonOutput.timestamp = new Date();
         jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus(records).toString();
         final RestResultBean restResultBean = new RestResultBean();
@@ -357,8 +369,7 @@ public class ConfigGuideServlet extends TopServlet {
                 return;
             }
             final HashMap<String,String> resultData = new HashMap<String,String>();
-            resultData.put("delayTime","15000");
-            resultData.put("redirectLocation", req.getContextPath());
+            resultData.put("serverRestart","true");
             ServletHelper.outputJsonResult(resp, new RestResultBean(resultData));
             pwmSession.invalidate();
         } else {
@@ -446,7 +457,9 @@ public class ConfigGuideServlet extends TopServlet {
         ConfigurationReader configReader = contextManager.getConfigReader();
 
         try {
+            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
             configReader.saveConfiguration(storedConfiguration);
+
             contextManager.reinitialize();
         } catch (PwmException e) {
             throw new PwmOperationalException(e.getErrorInformation());

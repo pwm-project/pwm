@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.bean.ActivateUserBean" %>
+<%@ page import="password.pwm.util.operations.UserDataReader" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/
@@ -23,6 +25,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<% final ActivateUserBean activateUserBean = PwmSession.getPwmSession(session).getActivateUserBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();updateContinueButton()" class="nihilo">
@@ -46,7 +49,7 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = MacroMachine.expandMacros(agreementText, ContextManager.getPwmApplication(session), PwmSession.getPwmSession(session).getUserInfoBean()); %>
+        <% final String expandedText = MacroMachine.expandMacros(agreementText, pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), new UserDataReader(activateUserBean.getTheUser())); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">

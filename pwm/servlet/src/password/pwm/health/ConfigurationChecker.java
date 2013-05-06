@@ -145,7 +145,7 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-                if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_TOKEN_ENABLE)) {
+                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == PwmSetting.TokenSendMethod.NONE) {
                     final Collection<String> formSettings = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
                     if (formSettings == null || formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoRecoveryEnabled")));

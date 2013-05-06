@@ -64,7 +64,7 @@ public class UserInfoBean implements PwmSessionBean {
     /**
      * A listing of all readable attributes on the ldap user object
      */
-    private Map<String,String> allUserAttributes = Collections.emptyMap();
+    private Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
     private PasswordStatus passwordState = new PasswordStatus();
     private long authTime;
@@ -85,12 +85,12 @@ public class UserInfoBean implements PwmSessionBean {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public Map<String,String> getAllUserAttributes() {
-        return this.allUserAttributes;
+    public Map<String,String> getCachedPasswordRuleAttributes() {
+        return this.cachedPasswordRuleAttributes;
     }
 
-    public void setAllUserAttributes(final Map<String,String> userAttributes) {
-        allUserAttributes = userAttributes;
+    public void setCachedPasswordRuleAttributes(final Map<String, String> userAttributes) {
+        cachedPasswordRuleAttributes = userAttributes;
     }
 
     public long getAuthTime() {

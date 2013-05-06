@@ -47,6 +47,7 @@ import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.stats.Statistic;
@@ -270,18 +271,6 @@ public class PwmApplication {
         return applicationMode;
     }
 
-    public ChaiUser getProxyChaiUserActor(final PwmSession pwmSession)
-            throws PwmUnrecoverableException, ChaiUnavailableException {
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
-        }
-        final String userDN = pwmSession.getUserInfoBean().getUserDN();
-
-
-        return ChaiFactory.createChaiUser(userDN, this.getProxyChaiProvider());
-    }
-
-
     public synchronized DatabaseAccessor getDatabaseAccessor()
             throws PwmUnrecoverableException
     {
@@ -487,7 +476,7 @@ public class PwmApplication {
         return (StatisticsManager)pwmServices.get(StatisticsManager.class);
     }
 
-    public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean) {
+    public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
         final EmailQueueManager emailQueue = this.getEmailQueue();
         if (emailQueue == null) {
             LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
@@ -495,11 +484,11 @@ public class PwmApplication {
         }
 
         final EmailItemBean expandedEmailItem = new EmailItemBean(
-                MacroMachine.expandMacros(emailItem.getTo(), this, uiBean),
-                MacroMachine.expandMacros(emailItem.getFrom(), this, uiBean),
-                MacroMachine.expandMacros(emailItem.getSubject(), this, uiBean),
-                MacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean),
-                MacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean)
+                MacroMachine.expandMacros(emailItem.getTo(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getFrom(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getSubject(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean, userDataReader)
         );
 
         try {
@@ -509,7 +498,7 @@ public class PwmApplication {
         }
     }
 
-    public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean) {
+    public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
         final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
             LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
@@ -517,11 +506,10 @@ public class PwmApplication {
         }
 
         final SmsItemBean rewrittenSmsItem = new SmsItemBean(
-                MacroMachine.expandMacros(smsItem.getTo(), this, uiBean),
-                MacroMachine.expandMacros(smsItem.getFrom(), this, uiBean),
-                MacroMachine.expandMacros(smsItem.getMessage(), this, uiBean),
-                smsItem.getPartlength(),
-                smsItem.getLocale()
+                MacroMachine.expandMacros(smsItem.getTo(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(smsItem.getFrom(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(smsItem.getMessage(), this, uiBean, userDataReader),
+                smsItem.getPartlength()
         );
 
         try {

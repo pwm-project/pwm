@@ -92,25 +92,6 @@ public class Configuration implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public Set<String> getAllUsedLdapAttributes() {
-        final Set<String> returnSet = new HashSet<String>();
-        for (final PwmSetting formSetting : new PwmSetting[] { PwmSetting.ACTIVATE_USER_FORM, PwmSetting.NEWUSER_FORM, PwmSetting.UPDATE_PROFILE_FORM}) {
-            for (final FormConfiguration formItem : readSettingAsForm(formSetting)) {
-                returnSet.add(formItem.getName());
-            }
-        }
-        returnSet.add(this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.EVENTS_LDAP_ATTRIBUTE));
-        returnSet.addAll(this.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE).getRuleHelper().getDisallowedAttributes());
-        returnSet.add(this.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE));
-        returnSet.add(this.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE));
-        returnSet.remove("");
-        return returnSet;
-    }
-
     public List<FormConfiguration> readSettingAsForm(final PwmSetting setting) {
         if (PwmSettingSyntax.FORM != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read FORM value for setting: " + setting.toString());
@@ -133,6 +114,10 @@ public class Configuration implements Serializable {
         final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
+    }
+
+    public PwmSetting.TokenSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
+        return PwmSetting.TokenSendMethod.valueOf(readSettingAsString(setting));
     }
 
 

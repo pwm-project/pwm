@@ -454,7 +454,10 @@ public class ChangePasswordServlet extends TopServlet {
         }
     }
 
-    private static void sendChangePasswordEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    private static void sendChangePasswordEmailNotice(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    ) throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
@@ -471,7 +474,7 @@ public class ChangePasswordServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean());
+        ), pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
     }
 
     private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)

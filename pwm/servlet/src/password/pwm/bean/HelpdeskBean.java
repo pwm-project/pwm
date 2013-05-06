@@ -23,6 +23,7 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.cr.ResponseSet;
+import password.pwm.config.FormConfiguration;
 import password.pwm.event.AuditRecord;
 import password.pwm.util.operations.UserSearchEngine;
 
@@ -46,6 +47,7 @@ public class HelpdeskBean implements PwmSessionBean {
         private boolean accountEnabled;
         private Date lastLoginTime;
         private List<AuditRecord> userHistory;
+        private Map<FormConfiguration, String> searchDetails;
 
         public ResponseSet getResponseSet() {
             return responseSet;
@@ -93,6 +95,14 @@ public class HelpdeskBean implements PwmSessionBean {
 
         public void setUserHistory(List<AuditRecord> userHistory) {
             this.userHistory = userHistory;
+        }
+
+        public Map<FormConfiguration,String> getSearchDetails() {
+            return searchDetails;
+        }
+
+        public void setSearchDetails(Map<FormConfiguration,String> searchDetails) {
+            this.searchDetails = searchDetails;
         }
     }
 

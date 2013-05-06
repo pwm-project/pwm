@@ -22,7 +22,6 @@
 
 package password.pwm.util.operations;
 
-import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -176,28 +175,6 @@ public class UserStatusHelper {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        populateUserInfoBean(
-                pwmSession,
-                uiBean,
-                pwmApplication,
-                userLocale,
-                userDN,
-                userCurrentPassword,
-                provider,
-                Collections.<String>emptySet());
-    }
-     public static void populateUserInfoBean(
-           final PwmSession pwmSession,
-            final UserInfoBean uiBean,
-            final PwmApplication pwmApplication,
-            final Locale userLocale,
-            final String userDN,
-            final String userCurrentPassword,
-            final ChaiProvider provider,
-            final Set<String> additionalAttributes
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
         final Configuration config = pwmApplication.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
@@ -211,6 +188,7 @@ public class UserStatusHelper {
         uiBean.setUserCurrentPassword(userCurrentPassword);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);
+        final UserDataReader userDataReader = new UserDataReader(theUser);
 
         try {
             uiBean.setUserDN(theUser.readCanonicalDN());
@@ -227,16 +205,20 @@ public class UserStatusHelper {
 
         //populate all user attributes.
         try {
-            final Set<String> interestingUserAttributes = figureInterestingAttributes(config,uiBean,additionalAttributes);
-            final Map<String,String> allUserAttrs = theUser.readStringAttributes(interestingUserAttributes);
-            uiBean.setAllUserAttributes(allUserAttrs);
+            final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(uiBean);
+            final Map<String,String> allUserAttrs = userDataReader.readStringAttributes(interestingUserAttributes);
+            uiBean.setCachedPasswordRuleAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
         }
 
         {// set userID
             final String uIDattr = config.getUsernameAttribute();
-            uiBean.setUserID(uiBean.getAllUserAttributes().get(uIDattr));
+            try {
+                uiBean.setUserID(userDataReader.readStringAttribute(uIDattr));
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession,"error reading userID attribute: " + e.getMessage());
+            }
         }
 
         { // set guid
@@ -246,12 +228,20 @@ public class UserStatusHelper {
 
         { // set email address
             final String ldapEmailAttribute = config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-            uiBean.setUserEmailAddress(uiBean.getAllUserAttributes().get(ldapEmailAttribute));
+            try {
+                uiBean.setUserEmailAddress(userDataReader.readStringAttribute(ldapEmailAttribute));
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "error reading email address attribute: " + e.getMessage());
+            }
         }
 
         { // set SMS number
             final String ldapSmsAttribute = config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-            uiBean.setUserSmsNumber(uiBean.getAllUserAttributes().get(ldapSmsAttribute));
+            try {
+                uiBean.setUserSmsNumber(userDataReader.readStringAttribute(ldapSmsAttribute));
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "error reading sms number attribute: " + e.getMessage());
+            }
         }
 
         // read password expiration time
@@ -283,26 +273,17 @@ public class UserStatusHelper {
         LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
-    private static Set<String> figureInterestingAttributes(
-            final Configuration config,
-            final UserInfoBean uiBean,
-            final Collection additionalReadAttributes
+    private static Set<String> figurePasswordRuleAttributes(
+            final UserInfoBean uiBean
     )
     {
-        final Set<String> interestingUserAttributes = new HashSet<String>(config.getAllUsedLdapAttributes());
+        final Set<String> interestingUserAttributes = new HashSet<String>();
         interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
-        interestingUserAttributes.add(ChaiConstant.ATTR_LDAP_PASSWORD_EXPIRE_TIME);
-        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
-        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE));
-        interestingUserAttributes.add(config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE));
         if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
             interestingUserAttributes.add("sAMAccountName");
             interestingUserAttributes.add("displayName");
             interestingUserAttributes.add("fullname");
             interestingUserAttributes.add("cn");
-        }
-        if (additionalReadAttributes != null) {
-            interestingUserAttributes.addAll(additionalReadAttributes);
         }
         return interestingUserAttributes;
     }

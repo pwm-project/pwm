@@ -22,9 +22,11 @@
 
 package password.pwm.util;
 
+import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.util.operations.UserDataReader;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -59,7 +61,7 @@ public class MacroMachine {
 
     private interface MacroImplementation {
         public Pattern getRegExPattern();
-        public String replaceValue(final String input, final PwmApplication pwmApplication, final UserInfoBean uiBean);
+        public String replaceValue(final String input, final PwmApplication pwmApplication, final UserInfoBean uiBean, final UserDataReader userDataReader);
     }
 
     private static class LdapMacro implements MacroImplementation {
@@ -67,25 +69,31 @@ public class MacroMachine {
             return Pattern.compile("@LDAP:.*?@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
-            if (uiBean == null) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
+            if (dataReader == null) {
                 return "";
             }
 
             final String ldapAttr = matchValue.substring(6,matchValue.length() -1);
-            final String ldapValue = uiBean.getAllUserAttributes().get(ldapAttr);
+
+            if (ldapAttr.equalsIgnoreCase("dn")) {
+                return dataReader.getUserDN();
+            }
+
+            final String ldapValue;
+            try {
+                ldapValue = dataReader.readStringAttribute(ldapAttr);
+            } catch (ChaiException e) {
+                LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
+                return "";
+            }
 
             if (ldapValue == null || ldapValue.length() < 1) {
                 LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
                 return "";
-            } else if (uiBean.getAllUserAttributes().containsKey(ldapAttr)) {
-                return ldapValue;
-            } else if (ldapAttr.equalsIgnoreCase("dn")) {
-                return uiBean.getUserDN();
-            } else {
-                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
-                return "";
             }
+
+            return ldapValue;
         }
     }
 
@@ -94,7 +102,7 @@ public class MacroMachine {
             return Pattern.compile("@InstanceID@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
             if (pwmApplication == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', pwmApplication is null");
                 return "";
@@ -109,7 +117,7 @@ public class MacroMachine {
             return Pattern.compile("@CurrentTime:.*?@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
             final String datePattern = matchValue.substring(17,matchValue.length() -1);
 
             if (datePattern != null && datePattern.length() > 0) {
@@ -132,7 +140,7 @@ public class MacroMachine {
             return Pattern.compile("@CurrentTime@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         }
     }
@@ -142,7 +150,7 @@ public class MacroMachine {
             return Pattern.compile("@User:PwExpireTime:.*?@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
             if (uiBean == null) {
                 return "";
             }
@@ -173,7 +181,7 @@ public class MacroMachine {
             return Pattern.compile("@User:PwExpireTime@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
             if (uiBean == null) {
                 return "";
             }
@@ -192,7 +200,7 @@ public class MacroMachine {
             return Pattern.compile("@User:DaysUntilPwExpire@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
             if (uiBean == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
@@ -212,7 +220,7 @@ public class MacroMachine {
             return Pattern.compile("@User:ID@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
             if (uiBean == null || uiBean.getUserID() == null) {
                 return "";
             }
@@ -226,7 +234,7 @@ public class MacroMachine {
             return Pattern.compile("@User:Password@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
             if (uiBean == null || uiBean.getUserCurrentPassword() == null) {
                 return "";
             }
@@ -240,7 +248,7 @@ public class MacroMachine {
             return Pattern.compile("@SiteURL@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
             return pwmApplication.getSiteURL();
         }
     }
@@ -250,7 +258,7 @@ public class MacroMachine {
             return Pattern.compile("@SiteHost@");
         }
 
-        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean) {
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader dataReader) {
             try {
                 final URL url = new URL(pwmApplication.getSiteURL());
                 return url.getHost();
@@ -261,14 +269,20 @@ public class MacroMachine {
         }
     }
 
-    public static String expandMacros(final String input, final PwmApplication pwmApplication, final UserInfoBean uiBean) {
-        return  expandMacros(input, pwmApplication, uiBean, null);
+    public static String expandMacros(
+            final String input,
+            final PwmApplication pwmApplication,
+            final UserInfoBean uiBean,
+            final UserDataReader userDataReader
+    ) {
+        return expandMacros(input, pwmApplication, uiBean, userDataReader, null);
     }
 
     public static String expandMacros(
             final String input,
             final PwmApplication pwmApplication,
             final UserInfoBean uiBean,
+            final UserDataReader userDataReader,
             final StringReplacer stringReplacer
     )
     {
@@ -288,7 +302,7 @@ public class MacroMachine {
                 final Pattern pattern = pwmMacro.getRegExPattern();
                 final Matcher matcher = pattern.matcher(workingString);
                 if (matcher.find()) {
-                    workingString = doReplace(workingString, pwmMacro, matcher, pwmApplication, uiBean, stringReplacer);
+                    workingString = doReplace(workingString, pwmMacro, matcher, pwmApplication, uiBean, userDataReader, stringReplacer);
                 } else {
                     matched = false;
                 }
@@ -304,6 +318,7 @@ public class MacroMachine {
             final Matcher matcher,
             final PwmApplication pwmApplication,
             final UserInfoBean uiBean,
+            final UserDataReader userDataReader,
             final StringReplacer stringReplacer
     ) {
         final String matchedStr = matcher.group();
@@ -311,7 +326,7 @@ public class MacroMachine {
         final int endPos = matcher.end();
         String replaceStr = "";
         try {
-            replaceStr = configVar.replaceValue(matchedStr,pwmApplication,uiBean);
+            replaceStr = configVar.replaceValue(matchedStr,pwmApplication,uiBean,userDataReader);
         }  catch (Exception e) {
             LOGGER.error("error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }

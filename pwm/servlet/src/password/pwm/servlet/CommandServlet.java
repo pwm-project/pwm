@@ -22,6 +22,7 @@
 
 package password.pwm.servlet;
 
+import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
@@ -268,7 +269,11 @@ public class CommandServlet extends TopServlet {
             // populate the map with attribute values from the uiBean, which was populated through ldap.
             final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
             for (final FormConfiguration formItem : updateFormFields) {
-                formValues.put(formItem, uiBean.getAllUserAttributes().get(formItem.getName()));
+                try {
+                    formValues.put(formItem, pwmSession.getSessionManager().getUserDataReader().readStringAttribute(formItem.getName()));
+                } catch (ChaiOperationException e) {
+                    LOGGER.error(pwmSession,"error reading attribute while executing checkProfile, attribute=" + formItem.getName() + ", error: " + e.getMessage());
+                }
             }
 
             try {

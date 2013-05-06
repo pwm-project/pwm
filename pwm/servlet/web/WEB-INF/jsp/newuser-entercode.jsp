@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.bean.NewUserBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -31,9 +32,9 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-<% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase().toString().equals("EMAIL")) { %>
+<% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
         <p><pwm:Display key="Display_RecoverEnterCode"/></p>
-<% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase().toString().equals("SMS")) { %>
+<% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
         <p><pwm:Display key="Display_RecoverEnterCodeSMS"/></p>
 <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"

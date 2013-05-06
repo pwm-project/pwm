@@ -22,12 +22,24 @@
 
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.MacroMachine" %>
+<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final Locale userLocaleFooter = PwmSession.getPwmSession(request).getSessionStateBean().getLocale(); %>
+<%
+    PwmSession pwmSessionFooter = null;
+    PwmApplication pwmApplicationFooter = null;
+    try {
+        pwmApplicationFooter = ContextManager.getPwmApplication(session);
+        pwmSessionFooter = PwmSession.getPwmSession(session);
+    } catch (PwmUnrecoverableException e) {
+        /* application must be unavailable */
+    }
+%>
+<% final Locale userLocaleFooter = pwmSessionFooter.getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
 <div id="footer">
     <br/>
@@ -37,8 +49,8 @@
     </span>
     <br/>
     <div>
-        <% if (PwmSession.getPwmSession(request).getSessionStateBean().isAuthenticated()) { %>
-        <%= PwmSession.getPwmSession(request).getUserInfoBean().getUserID()%>
+        <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
+        <%= pwmSessionFooter.getUserInfoBean().getUserID()%>
         &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
         <% } %>
     <span id="idle_status">
@@ -46,14 +58,14 @@
     </span>
     <span id="localeSelectionMenu" style="white-space: nowrap">
         &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
-        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=ContextManager.getPwmApplication(session).getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
+        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
         &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
     </span>
     </div>
-    <% final String customScript = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
+    <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
-        <%=MacroMachine.expandMacros(customScript,ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean())%>
+        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
     </script>
     <% } %>
 </div>

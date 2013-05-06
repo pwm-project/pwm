@@ -390,6 +390,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
     PWM_GLOBAL['showPwmHealthOptions'] = options;
     var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
     var showRefresh = inputOpts['showRefresh'];
+    var showTimestamp = inputOpts['showTimestamp'];
     var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
     var finishFunction = inputOpts['finishFunction'];
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
@@ -436,13 +437,16 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                     htmlBody += healthData['detail'];
                     htmlBody += "</td></tr>";
                 }
-
-                htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-                htmlBody += new Date(data['data']['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
-                if (showRefresh) {
-                    htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
+                if (showTimestamp || showRefresh) {
+                    htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+                    if (showTimestamp) {
+                        htmlBody += new Date(data['data']['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
+                    }
+                    if (showRefresh) {
+                        htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
+                    }
+                    htmlBody += "</td></tr>";
                 }
-                htmlBody += "</td></tr>";
 
                 htmlBody += '</table>';
                 parentDiv.innerHTML = htmlBody;

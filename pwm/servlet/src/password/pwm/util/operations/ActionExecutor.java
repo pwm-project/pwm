@@ -119,11 +119,12 @@ public class ActionExecutor {
         String url = actionConfiguration.getUrl();
         String body = actionConfiguration.getBody();
         final UserInfoBean userInfoBean = settings.getUserInfoBean();
+        final UserDataReader userDataReader = new UserDataReader(settings.getUser());
 
         try {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
-                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, new MacroMachine.StringReplacer() {
+                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, userDataReader, new MacroMachine.StringReplacer() {
                     public String replace(String matchedMacro, String newValue) {
                         try {
                             return URLEncoder.encode(newValue, "UTF8"); // make sure replacement values are properly encoded
@@ -133,7 +134,7 @@ public class ActionExecutor {
                         return newValue;
                     }
                 });
-                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean);
+                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean, userDataReader);
             }
 
             LOGGER.debug("sending HTTP request: " + url);
@@ -165,7 +166,7 @@ public class ActionExecutor {
             if (actionConfiguration.getHeaders() != null) {
                 for (final String headerName : actionConfiguration.getHeaders().keySet()) {
                     String headerValue = actionConfiguration.getHeaders().get(headerName);
-                    headerValue = headerValue == null ? "" : MacroMachine.expandMacros(headerValue, pwmApplication, userInfoBean);
+                    headerValue = headerValue == null ? "" : MacroMachine.expandMacros(headerValue, pwmApplication, userInfoBean, userDataReader);
                     httpRequest.setHeader(headerName,headerValue);
                 }
             }

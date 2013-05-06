@@ -2077,6 +2077,7 @@
             <value><![CDATA[EMAILONLY]]></value>
         </default>
         <options>
+            <option value="NONE">None - Token verification will not be performed</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
             <option value="BOTH">Both - Send token to both email and SMS</option>
@@ -2326,10 +2327,16 @@
             <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
         </default>
     </setting>
-    <setting key="helpdesk.filter" level="1">
+    <setting key="helpdesk.filter" level="0">
         <label>Helpdesk Search Filter</label>
         <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
         <default>
+            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
+        </default>
+        <default template="AADDB">
             <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
         </default>
     </setting>
@@ -2672,4 +2679,16 @@
         <label>Helpdesk</label>
         <description><![CDATA[Configurations for administrative helpdesk.]]></description>
     </category>
+    <template key="NOVL">
+        <label>Novell eDirectory</label>
+    </template>
+    <template key="ADDB">
+        <label>Active Directory - Store responses in a database</label>
+    </template>
+    <template key="AD">
+        <label>Active Directory - Store responses in Active Directory</label>
+    </template>
+    <template key="DEFAULT">
+        <label>OpenLDAP, DirectoryServer389, Others</label>
+    </template>
 </settings>

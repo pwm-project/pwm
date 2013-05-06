@@ -30,10 +30,7 @@ import password.pwm.util.Helper;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -290,5 +287,16 @@ public class FormConfiguration implements Serializable {
                 throw new PwmDataValidationException(error);
             }
         }
+    }
+
+    public static List<String> convertToListOfNames(final Collection<FormConfiguration> formConfigurations) {
+        if (formConfigurations == null) {
+            return Collections.emptyList();
+        }
+        final ArrayList<String> returnList = new ArrayList<String>();
+        for (final FormConfiguration formConfiguration : formConfigurations) {
+            returnList.add(formConfiguration.getName());
+        }
+        return returnList;
     }
 }

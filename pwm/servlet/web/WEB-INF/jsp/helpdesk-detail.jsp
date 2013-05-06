@@ -34,6 +34,7 @@
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
+<%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -77,13 +78,13 @@
             </tr>
         </table>
         <table>
-            <% for (FormConfiguration formItem : pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM)) { %>
+            <% for (FormConfiguration formItem : helpdeskBean.getAdditionalUserInfo().getSearchDetails().keySet()) { %>
             <tr>
                 <td class="key">
                     <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                 </td>
                 <td>
-                    <% final String loopValue = searchedUserInfo.getAllUserAttributes().get(formItem.getName()); %>
+                    <% final String loopValue = helpdeskBean.getAdditionalUserInfo().getSearchDetails().get(formItem); %>
                     <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
                 </td>
             </tr>
@@ -92,7 +93,7 @@
         <table>
             <tr>
                 <td class="key">
-                    PWM <pwm:Display key="Field_UserGUID"/>
+                    <%=PwmConstants.PWM_APP_NAME%> <pwm:Display key="Field_UserGUID"/>
                 </td>
                 <td>
                     <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>

@@ -45,7 +45,7 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = MacroMachine.expandMacros(agreementText, ContextManager.getPwmApplication(session), PwmSession.getPwmSession(session).getUserInfoBean()); %>
+        <% final String expandedText = MacroMachine.expandMacros(agreementText, pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader()); %>
         <div class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='UpdateProfile'/>" method="post"

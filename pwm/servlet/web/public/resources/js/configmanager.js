@@ -98,8 +98,8 @@ function waitForRestart(startTime, oldEpoch) {
                 var diff = currentTime - startTime;
                 console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
                 if (diff > 4 * 60 * 1000) { // timeout
-                    alert('Configuration save successful.   Unable to restart PWM, please restart the java application server.');
-                    showError('PWM Server has not restarted (timeout)');
+                    alert('Configuration save successful.   Unable to restart, please restart the java application server.');
+                    showError('Server has not restarted (timeout)');
                 } else {
                     showError('Waiting for server restart, server has not yet restarted (' + (diff) + ' ms)');
                     setTimeout(function() {

@@ -49,7 +49,7 @@ public abstract class AlertHandler {
             body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 
@@ -67,7 +67,7 @@ public abstract class AlertHandler {
             body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 
@@ -92,7 +92,7 @@ public abstract class AlertHandler {
             }
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 
@@ -116,7 +116,7 @@ public abstract class AlertHandler {
             body.append("message: ").append(pwmLogEvent.getMessage()).append("\n");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 
@@ -136,7 +136,7 @@ public abstract class AlertHandler {
             body.append(config.toDebugString());
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 
@@ -227,8 +227,8 @@ public abstract class AlertHandler {
 
                 htmlBody.append("<table border='1'>");
                 for (final HealthRecord record : healthRecords) {
-                    textBody.append("topic='").append(record.getTopic()).append("'");
-                    htmlBody.append("<tr><td class='key'>").append(record.getTopic()).append("</td>");
+                    textBody.append("topic='").append(record.getTopic(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("'");
+                    htmlBody.append("<tr><td class='key'>").append(record.getTopic(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td>");
 
                     textBody.append(", status=").append(record.getStatus());
                     {
@@ -249,8 +249,8 @@ public abstract class AlertHandler {
                         htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getStatus()).append("</td>");
                     }
 
-                    textBody.append(", detail='").append(record.getDetail()).append("'").append("\n");
-                    htmlBody.append("<td>").append(record.getDetail()).append("</td></tr>");
+                    textBody.append(", detail='").append(record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("'").append("\n");
+                    htmlBody.append("<td>").append(record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td></tr>");
                 }
                 htmlBody.append("</table>");
             }
@@ -274,7 +274,7 @@ public abstract class AlertHandler {
             htmlBody.append("</body></html>");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
-            pwmApplication.sendEmailUsingQueue(emailItem,null);
+            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
         }
     }
 

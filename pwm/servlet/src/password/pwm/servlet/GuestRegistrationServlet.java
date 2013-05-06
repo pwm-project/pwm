@@ -42,10 +42,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
-import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -193,7 +190,7 @@ public class GuestRegistrationServlet extends TopServlet {
                     null,
                     theGuest.getChaiProvider()
             );
-            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, guestUserInfoBean);
+            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, theGuest, guestUserInfoBean);
 
             //everything good so forward to confirmation page.
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
@@ -212,7 +209,12 @@ public class GuestRegistrationServlet extends TopServlet {
         forwardToUpdateJSP(req,resp);
     }
 
-    private void sendUpdateGuestEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean guestUserInfoBean)
+    private void sendUpdateGuestEmailConfirmation(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theGuest,
+            final UserInfoBean guestUserInfoBean
+    )
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
@@ -231,7 +233,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), guestUserInfoBean);
+        ), guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     protected void handleSearchRequest(
@@ -398,7 +400,7 @@ public class GuestRegistrationServlet extends TopServlet {
             }
 
             //everything good so forward to success page.
-            this.sendGuestUserEmailConfirmation(pwmSession, pwmApplication, guestUserInfoBean);
+            this.sendGuestUserEmailConfirmation(pwmSession, pwmApplication, theUser, guestUserInfoBean);
             ssBean.setSessionSuccess(Message.SUCCESS_CREATE_GUEST, null);
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
@@ -473,7 +475,14 @@ public class GuestRegistrationServlet extends TopServlet {
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
     }
 
-    private void sendGuestUserEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean guestUserInfoBean) throws PwmUnrecoverableException {
+    private void sendGuestUserEmailConfirmation(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theGuest,
+            final UserInfoBean guestUserInfoBean
+    )
+            throws PwmUnrecoverableException
+    {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -492,7 +501,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), guestUserInfoBean);
+        ), guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     private void forwardToJSP(

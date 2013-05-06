@@ -337,7 +337,7 @@ public class PasswordUtility {
         }
 
         // send email notification
-        sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean);
+        sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean, proxiedUser);
 
         performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
     }
@@ -714,7 +714,12 @@ public class PasswordUtility {
         }
     }
 
-    private static void sendChangePasswordHelpdeskEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication, final UserInfoBean userInfoBean)
+    private static void sendChangePasswordHelpdeskEmailNotice(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final UserInfoBean userInfoBean,
+            final ChaiUser user
+    )
             throws PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
@@ -733,6 +738,6 @@ public class PasswordUtility {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), userInfoBean);
+        ), userInfoBean, new UserDataReader(user));
     }
 }

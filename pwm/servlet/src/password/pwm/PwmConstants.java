@@ -136,6 +136,7 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String CONTEXT_ATTR_RESOURCE_CACHE = "ResourceFileServlet-Cache";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
+    public static final String REQUEST_ATTR_PWM_REQUEST = "PwmRequest";
     public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";

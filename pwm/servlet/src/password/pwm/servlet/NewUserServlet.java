@@ -47,6 +47,7 @@ import password.pwm.util.*;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserAuthenticator;
+import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -100,7 +101,7 @@ public class NewUserServlet extends TopServlet {
 
         final List<HealthRecord> healthIssues = checkConfiguration(config,ssBean.getLocale());
         if (healthIssues != null && !healthIssues.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,healthIssues.get(0).getDetail());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,healthIssues.get(0).getDetail(pwmSession.getSessionStateBean().getLocale(),pwmApplication.getConfig()));
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -218,7 +219,7 @@ public class NewUserServlet extends TopServlet {
             verifyFormAttributes(userValues, pwmSession, pwmApplication);
             { // no form errors, so check the password
                 final UserInfoBean uiBean = new UserInfoBean();
-                uiBean.setAllUserAttributes(userValues);
+                uiBean.setCachedPasswordRuleAttributes(userValues);
                 uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,locale));
                 PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                         pwmApplication,
@@ -274,14 +275,14 @@ public class NewUserServlet extends TopServlet {
             final NewUserBean newUserBean = pwmSession.getNewUserBean();
             newUserBean.setFormData(formData);
 
-            if (newUserBean.getVerificationPhase().equals(NewUserBean.NewUserVerificationPhase.EMAIL)) {
-                LOGGER.debug("Email token");
+            if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
+                LOGGER.debug("Email token passed");
                 newUserBean.setEmailTokenIssued(true);
                 newUserBean.setEmailTokenPassed(true);
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
             }
-            if (newUserBean.getVerificationPhase().equals(NewUserBean.NewUserVerificationPhase.SMS)) {
-                LOGGER.debug("SMS token");
+            if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
+                LOGGER.debug("SMS token passed");
                 newUserBean.setSmsTokenIssued(true);
                 newUserBean.setSmsTokenPassed(true);
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
@@ -397,8 +398,8 @@ public class NewUserServlet extends TopServlet {
         }
 
         // add AD-specific attributes
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
         if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == pwmApplication.getProxyChaiProvider().getDirectoryVendor()) {
-            final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
             try {
                 proxiedUser.writeStringAttribute("userAccountControl", "512");
             } catch (ChaiOperationException e) {
@@ -423,7 +424,7 @@ public class NewUserServlet extends TopServlet {
         }
 
         //everything good so forward to change password page.
-        sendNewUserEmailConfirmation(pwmSession, pwmApplication);
+        sendNewUserEmailConfirmation(pwmSession, new UserDataReader(proxiedUser), pwmApplication);
 
         // add audit record
         pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
@@ -519,7 +520,13 @@ public class NewUserServlet extends TopServlet {
         return namingAttribute + "=" + rdnValue + "," + newUserContextDN;
     }
 
-    private static void sendNewUserEmailConfirmation(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    private static void sendNewUserEmailConfirmation(
+            final PwmSession pwmSession,
+            final UserDataReader userDataReader,
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -539,7 +546,7 @@ public class NewUserServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean());
+        ), pwmSession.getUserInfoBean(), userDataReader);
     }
 
     private void forwardToJSP(
@@ -706,7 +713,11 @@ public class NewUserServlet extends TopServlet {
         }
     }
 
-    private void sendEmailToken(final PwmSession pwmSession, final PwmApplication pwmApplication, final String tokenKey)
+    private void sendEmailToken(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final String tokenKey
+    )
             throws PwmUnrecoverableException {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
@@ -726,12 +737,16 @@ public class NewUserServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
                 configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
-        ), pwmSession.getUserInfoBean());
+        ), pwmSession.getUserInfoBean(), null);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
     }
 
-    private void sendSmsToken(final PwmSession pwmSession, final PwmApplication pwmApplication, final String tokenKey)
+    private void sendSmsToken(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final String tokenKey
+    )
             throws PwmUnrecoverableException {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
@@ -750,7 +765,7 @@ public class NewUserServlet extends TopServlet {
         message = message.replace("%TOKEN%", tokenKey);
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen), null, null);
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         LOGGER.debug(pwmSession, "token sms added to send queue for " + toSmsNumber);

@@ -219,7 +219,7 @@
 
             drawNextSprite();
 
-            showPwmHealth('healthBody', {});
+            showPwmHealth('healthBody', {showTimestamp:true});
 
             showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
             setInterval(function(){

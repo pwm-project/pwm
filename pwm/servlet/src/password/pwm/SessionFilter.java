@@ -111,6 +111,9 @@ public class SessionFilter implements Filter {
         // increment the page counter
         ssBean.incrementRequestCounter();
 
+        // clear cached user data reader
+        pwmSession.getSessionManager().clearUserDataReader();
+
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
 

@@ -47,6 +47,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.ActionExecutor;
+import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
@@ -179,7 +180,7 @@ public class UpdateProfileServlet extends TopServlet {
 
         if (!updateProfileBean.isFormSubmitted()) {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
-            populateFormFromLdap(pwmApplication, pwmSession, formMap);
+            populateFormFromLdap(pwmApplication, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader());
             forwardToJSP(req,resp);
             return;
         }
@@ -228,20 +229,24 @@ public class UpdateProfileServlet extends TopServlet {
     public static void populateFormFromLdap(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final Map<FormConfiguration, String> formMap
+            final Map<FormConfiguration, String> formMap,
+            final UserDataReader userDataReader
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
         final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<String,String> currentUserAttributes = pwmSession.getUserInfoBean().getAllUserAttributes();
-
+        final Map<String,String> userData = new LinkedHashMap<String,String>();
+        try {
+            userData.putAll(userDataReader.readStringAttributes(FormConfiguration.convertToListOfNames(formFields)));
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmSession, "unexpected error reading profile data attributes: " + e.getMessage());
+        }
 
         for (final FormConfiguration formItem : formFields) {
             final String attrName = formItem.getName();
             if (!formMap.containsKey(attrName)) {
-                final String userCurrentValue = currentUserAttributes.get(attrName);
-                if (userCurrentValue != null) {
-                    formMap.put(formItem, userCurrentValue);
+                if (userData.containsKey(attrName)) {
+                    formMap.put(formItem, userData.get(attrName));
                 }
             }
         }
@@ -340,7 +345,7 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         // send email
-        sendProfileUpdateEmailNotice(pwmSession, pwmApplication);
+        sendProfileUpdateEmailNotice(new UserDataReader(pwmSession.getSessionManager().getProxiedActor()), pwmSession, pwmApplication);
 
         // mark the event log
         pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.UPDATE_PROFILE, pwmSession.getUserInfoBean(), pwmSession);
@@ -381,9 +386,12 @@ public class UpdateProfileServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES_CONFIRM).forward(req, resp);
     }
 
-    private static void sendProfileUpdateEmailNotice(final PwmSession pwmSession, final PwmApplication pwmApplication)
-            throws PwmUnrecoverableException
-    {
+    private static void sendProfileUpdateEmailNotice(
+            final UserDataReader userDataReader,
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
@@ -400,7 +408,7 @@ public class UpdateProfileServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean());
+        ), pwmSession.getUserInfoBean(),userDataReader);
     }
 
 }

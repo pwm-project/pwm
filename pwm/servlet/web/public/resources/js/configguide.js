@@ -31,7 +31,7 @@ function selectTemplate(template) {
                 },
                 load: function(result) {
                     if (!result['error']) {
-                        window.location = "ConfigGuide";
+                        closeWaitDialog();
                     } else {
                         showError(result['errorDetail']);
                     }
@@ -79,20 +79,13 @@ function gotoStep(step) {
                 showError("error while selecting step: " + errorObj);
             },
             load: function(result) {
-                var redirectLocation = "ConfigGuide";
-                if (result['data'] && result['data']['redirectLocation']) {
-                    redirectLocation = result['data']['redirectLocation'];
-                }
-
                 if (result['data']) {
-                    if (result['data']['delayTime']) {
-                        var delayTime = result['data']['delayTime'];
-                        setTimeout(function(){
-                            location = redirectLocation;
-                        },delayTime);
+                    if (result['data']['serverRestart']) {
+                        waitForRestart(new Date().getTime(),"none");
                         return;
                     }
                 }
+                var redirectLocation = "ConfigGuide";
                 location = redirectLocation;
             }
         });

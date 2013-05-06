@@ -348,7 +348,6 @@ public class ConfigManagerServlet extends TopServlet {
                     returnValue = storedConfig.readSetting(theSetting).toNativeObject();
             }
             returnMap.put("key", key);
-            returnMap.put("options",theSetting.getOptions());
             returnMap.put("category", theSetting.getCategory().toString());
             returnMap.put("syntax", theSetting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
@@ -356,6 +355,7 @@ public class ConfigManagerServlet extends TopServlet {
         returnMap.put("value", returnValue);
         final Gson gson = new Gson();
         final String outputString = gson.toJson(returnMap);
+        System.out.println("read---" + outputString);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -370,6 +370,7 @@ public class ConfigManagerServlet extends TopServlet {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String key = Validator.readStringFromRequest(req, "key");
         final String bodyString = ServletHelper.readRequestBody(req);
+        System.out.println("write---" + bodyString);
         final Gson gson = new Gson();
         final PwmSetting setting = PwmSetting.forKey(key);
         final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();

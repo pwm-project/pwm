@@ -64,7 +64,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final Configuration config = pwmApplication.getConfig();
 
         { // check ldap server
-            returnRecords.addAll(checkBasicLdapConnectivity(pwmApplication,config));
+            returnRecords.addAll(checkBasicLdapConnectivity(pwmApplication,config,true));
 
             if (returnRecords.isEmpty()) {
                 returnRecords.addAll(checkLdapServerUrls(config));
@@ -218,7 +218,7 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
 
-    private static List<HealthRecord> checkLdapServerUrls(final Configuration config)
+    public List<HealthRecord> checkLdapServerUrls(final Configuration config)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         final List<String> serverURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
@@ -246,7 +246,7 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config) {
+    public List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config, final boolean testContextlessRoot) {
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         ChaiProvider chaiProvider = null;
@@ -254,6 +254,12 @@ public class LDAPStatusChecker implements HealthChecker {
             try {
                 final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
                 final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+                if (proxyDN == null || proxyDN.length() < 1) {
+                    return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"LDAP","Missing Proxy User DN"));
+                }
+                if (proxyPW == null || proxyPW.length() < 1) {
+                    return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"LDAP","Missing Proxy User Password"));
+                }
                 chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW,30*1000);
                 final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),chaiProvider);
                 adminEntry.isValid();
@@ -276,13 +282,13 @@ public class LDAPStatusChecker implements HealthChecker {
                 pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
             } catch (Exception e) {
-                final String errorString = "error connecting to ldap directory: " + e.getMessage();
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
-                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString));
+                HealthRecord record = new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, HealthMessage.LDAP_No_Connection, new String[]{e.getMessage()});
+                returnRecords.add(record);
+                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
                 return returnRecords;
             }
 
-
+            if (testContextlessRoot) {
             for (final String loopContext : config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
                 try {
                     final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
@@ -296,6 +302,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
                     returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
                 }
+            }
             }
         } finally {
             if (chaiProvider != null) {

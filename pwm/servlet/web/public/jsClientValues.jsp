@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmSession" %>
         <%@ page import="password.pwm.config.ActionConfiguration"%><%@ page import="password.pwm.config.FormConfiguration"%><%@ page import="password.pwm.config.PwmSetting"%><%@ page import="password.pwm.i18n.Display"%><%@ page import="password.pwm.i18n.Message"%><%@ page import="password.pwm.util.MacroMachine"%><%@ page import="password.pwm.util.stats.Statistic"%><%@ page import="java.util.Collections"%><%@ page import="java.util.Locale"%><%@ page import="java.util.ResourceBundle"%><%@ page import="java.util.TreeSet"%>
-        <% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
+<% final PwmSession pwmSession = PwmSession.getPwmSession(session); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% response.setHeader("Cache-Control","private, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/javascript; charset=UTF-8" %>
@@ -43,7 +43,10 @@ PWM_STRINGS['Message_SuccessUnknown'] = "<%=Message.getLocalizedMessage(pwmSessi
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
     PWM_STRINGS['<%=key%>']='<%=StringEscapeUtils.escapeJavaScript(Display.getLocalizedMessage(userLocale,key,pwmApplication.getConfig()))%>';
 <% } %>
-    <% final String passwordGuideText = MacroMachine.expandMacros(ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,PwmSession.getPwmSession(session).getSessionStateBean().getLocale()),ContextManager.getPwmApplication(session),PwmSession.getPwmSession(session).getUserInfoBean()); %>
+    <%
+        String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());
+        passwordGuideText = MacroMachine.expandMacros(passwordGuideText,pwmApplication,pwmSession.getUserInfoBean(),pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getSessionManager().getUserDataReader() : null);
+    %>
     PWM_STRINGS['passwordGuideText'] = '<%=StringEscapeUtils.escapeJavaScript(passwordGuideText)%>';
 }
 

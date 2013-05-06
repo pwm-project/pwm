@@ -45,10 +45,10 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <pwm:Display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
-        <select onchange="selectTemplate(this.value);">
+        <select id="templateSelect" onchange="selectTemplate(this.value);">
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
             <option value="<%=template.toString()%>"<% if (template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
-               <%=template.getDescription()%>
+               <%=template.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
             </option>
             <% } %>
         </select>
@@ -64,6 +64,7 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         getObject('localeSelectionMenu').style.display = 'none';
+        selectTemplate(getObject('templateSelect').value);
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

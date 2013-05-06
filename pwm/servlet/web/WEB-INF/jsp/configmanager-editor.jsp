@@ -261,7 +261,7 @@ function buildMenuBar() {
             <% final boolean isCurrentTemplate = configManagerBean.getConfiguration().getTemplate() == template; %>
             var confirmText = 'Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.';
             templateMenu.addChild(new CheckedMenuItem({
-                label: "<%=template.getDescription()%>",
+                label: "<%=template.getLabel(locale)%>",
                 checked: <%=isCurrentTemplate ? "true" : "false"%>,
                 onClick: function() {
                     showConfirmDialog(null,confirmText,function(){

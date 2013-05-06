@@ -22,10 +22,8 @@
 
 package password.pwm.bean;
 
-import password.pwm.util.Helper;
 
 import java.io.Serializable;
-import java.util.Locale;
 
 public class SmsItemBean implements Serializable {
     private String to;
@@ -33,24 +31,18 @@ public class SmsItemBean implements Serializable {
     private String message;
     private Integer partlength;
     private Integer pos = 0;
-    private String localeString;
 
     // --------------------------- CONSTRUCTORS ---------------------------
-    private SmsItemBean() {
-    }
-
     public SmsItemBean(
             final String to,
             final String from,
             final String message,
-            final Integer partlength,
-            final Locale locale
+            final Integer partlength
     ) {
         this.to = to;
         this.from = from;
         this.message = message;
         this.partlength = partlength;
-        this.localeString = locale == null ? "" : locale.toString();
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -93,13 +85,9 @@ public class SmsItemBean implements Serializable {
         pos = 0;
     }
 
-    public Locale getLocale() {
-    	return Helper.parseLocaleString(localeString);
-    }
-
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("from: ").append(from).append(", to: ").append(to).append(", locale: ").append(getLocale());
+        sb.append("from: ").append(from).append(", to: ").append(to);
         return sb.toString();
     }
 

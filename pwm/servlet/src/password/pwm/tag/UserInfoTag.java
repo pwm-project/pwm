@@ -54,9 +54,9 @@ public class UserInfoTag extends TagSupport {
     {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
-            final String attributeValue = uiBean.getAllUserAttributes().get(attribute);
-            pageContext.getOut().write(attributeValue == null ? "" : attributeValue);
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final String ldapValue = pwmSession.getSessionManager().getUserDataReader().readStringAttribute(attribute);
+            pageContext.getOut().write(ldapValue == null ? "" : ldapValue);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

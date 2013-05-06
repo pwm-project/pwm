@@ -36,13 +36,11 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.UserAuthenticator;
-import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -192,11 +190,12 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        final boolean tokenRequired = config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_TOKEN_VERIFICATION);
+        final boolean tokenRequired = PwmSetting.TokenSendMethod.NONE != PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         if (tokenRequired) {
             if (!activateUserBean.isTokenIssued()) {
                 try {
-                    initializeToken(pwmSession, pwmApplication, activateUserBean.getTheUser());
+                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
+                    initializeToken(pwmSession, pwmApplication, locale, activateUserBean.getTheUser());
                 } catch (PwmOperationalException e) {
                     pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                     forwardToJSP(req, resp);
@@ -372,25 +371,31 @@ public class ActivateUserServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER_AGREEMENT).forward(req, resp);
     }
 
-    private void sendActivationMessage(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser) throws PwmUnrecoverableException {
+    private void sendActivationMessage(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         final Configuration config = pwmApplication.getConfig();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-        final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final boolean success;
         switch (pref) {
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
-                final boolean suc1 = sendActivationEmail(pwmSession, pwmApplication);
+                final boolean suc1 = sendActivationEmail(pwmSession, pwmApplication, theUser);
                 final boolean suc2 = sendActivationSms(pwmSession, pwmApplication, theUser);
                 success = suc1 || suc2;
                 break;
             case EMAILFIRST:
                 // Send email first, try SMS if email is not available
-                success = sendActivationEmail(pwmSession, pwmApplication) || sendActivationSms(pwmSession, pwmApplication, theUser);
+                success = sendActivationEmail(pwmSession, pwmApplication, theUser) || sendActivationSms(pwmSession, pwmApplication, theUser);
                 break;
             case SMSFIRST:
                 // Send SMS first, try email if SMS is not available
-                success = sendActivationSms(pwmSession, pwmApplication, theUser) || sendActivationEmail(pwmSession, pwmApplication);
+                success = sendActivationSms(pwmSession, pwmApplication, theUser) || sendActivationEmail(pwmSession, pwmApplication, theUser);
                 break;
             case SMSONLY:
                 // Only try SMS
@@ -399,7 +404,7 @@ public class ActivateUserServlet extends TopServlet {
             case EMAILONLY:
             default:
                 // Only try email
-                success = sendActivationEmail(pwmSession, pwmApplication);
+                success = sendActivationEmail(pwmSession, pwmApplication, theUser);
                 break;
         }
         if (!success) {
@@ -407,7 +412,13 @@ public class ActivateUserServlet extends TopServlet {
         }
     }
 
-    private Boolean sendActivationEmail(final PwmSession pwmSession, final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+    private Boolean sendActivationEmail(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -426,12 +437,16 @@ public class ActivateUserServlet extends TopServlet {
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain(),
                 configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean());
+        ), pwmSession.getUserInfoBean(), new UserDataReader(theUser));
         return true;
     }
 
-    private Boolean sendActivationSms(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser) throws PwmUnrecoverableException {
-        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+    private Boolean sendActivationSms(
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final ChaiUser theUser
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
@@ -443,24 +458,25 @@ public class ActivateUserServlet extends TopServlet {
         try {
             toSmsNumber = theUser.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
         } catch (Exception e) {
-            LOGGER.debug("error reading SMS attribute from user '" + userInfoBean.getUserDN() + "': " + e.getMessage());
+            LOGGER.debug("error reading SMS attribute from user '" + theUser.getEntryDN() + "': " + e.getMessage());
             return false;
         }
 
         if (toSmsNumber == null || toSmsNumber.length() < 1) {
-            LOGGER.debug(pwmSession, "skipping send activation SMS for '" + userInfoBean.getUserDN() + "' no SMS number configured");
+            LOGGER.debug(pwmSession, "skipping send activation SMS for '" + theUser.getEntryDN() + "' no SMS number configured");
             return false;
         }
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, senderId, message, maxlen, locale);
-        pwmApplication.sendSmsUsingQueue(smsItem, userInfoBean);
+        final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, senderId, message, maxlen);
+        pwmApplication.sendSmsUsingQueue(smsItem, null, new UserDataReader(theUser));
         return true;
     }
 
     public static void initializeToken(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
+            final Locale locale,
             final ChaiUser theUser
 
     )
@@ -519,7 +535,7 @@ public class ActivateUserServlet extends TopServlet {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-        sendToken(pwmSession, pwmApplication, toAddress, toSmsNumber, tokenKey);
+        sendToken(pwmApplication, theUser, locale, toAddress, toSmsNumber, tokenKey);
         activateUserBean.setTokenSendAddress(tokenSendDisplay.toString());
         activateUserBean.setTokenIssued(true);
     }
@@ -607,98 +623,33 @@ public class ActivateUserServlet extends TopServlet {
         this.forwardToEnterCodeJSP(req, resp);
     }
 
-    private static void sendToken(final PwmSession pwmSession, final PwmApplication pwmApplication,
-                                  final String toAddress, final String toSmsNumber, final String tokenKey)
-            throws PwmUnrecoverableException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.SmsPriority pref = PwmSetting.SmsPriority.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
-        final boolean success;
-        switch (pref) {
-            case BOTH:
-                // Send both email and SMS, success if one of both succeeds
-                final boolean suc1 = sendEmailToken(pwmSession, pwmApplication, toAddress, tokenKey);
-                final boolean suc2 = sendSmsToken(pwmSession, pwmApplication, toSmsNumber, tokenKey);
-                success = suc1 || suc2;
-                break;
-            case EMAILFIRST:
-                // Send email first, try SMS if email is not available
-                success = sendEmailToken(pwmSession, pwmApplication, toAddress, tokenKey) || sendSmsToken(pwmSession, pwmApplication, toSmsNumber, tokenKey);
-                break;
-            case SMSFIRST:
-                // Send SMS first, try email if SMS is not available
-                success = sendSmsToken(pwmSession, pwmApplication, toSmsNumber, tokenKey) || sendEmailToken(pwmSession, pwmApplication, toAddress, tokenKey);
-                break;
-            case SMSONLY:
-                // Only try SMS
-                success = sendSmsToken(pwmSession, pwmApplication, toSmsNumber, tokenKey);
-                break;
-            case EMAILONLY:
-            default:
-                // Only try email
-                success = sendEmailToken(pwmSession, pwmApplication, toAddress, tokenKey);
-                break;
-        }
-        if (!success) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
-        }
-    }
-
-    private static Boolean sendEmailToken(
-            final PwmSession pwmSession,
+    private static void sendToken(
             final PwmApplication pwmApplication,
+            final ChaiUser theUser,
+            final Locale userLocale,
             final String toAddress,
-            final String tokenKey
-    )
-            throws PwmUnrecoverableException
-    {
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final Configuration config = pwmApplication.getConfig();
-        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
-
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send activate user token email; no email address available in form");
-            return false;
-        }
-
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
-                configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
-        ), pwmSession.getUserInfoBean());
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug(pwmSession, "token email added to send queue for " + toAddress);
-        return true;
-    }
-
-    private static Boolean sendSmsToken(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
             final String toSmsNumber,
             final String tokenKey
     )
-            throws PwmUnrecoverableException
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
-        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-        if (senderId == null) { senderId = ""; }
-        String message = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
+        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
+        final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
+        final UserDataReader userDataReader = new UserDataReader(theUser);
 
-        if (toSmsNumber == null || toSmsNumber.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send activate user token SMS; no SMS number available in form");
-            return false;
-        }
-
-        message = message.replaceAll("%TOKEN%", tokenKey);
-
-        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toSmsNumber, senderId, message, maxlen, userLocale), pwmSession.getUserInfoBean());
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug(pwmSession, "token SMS added to send queue for " + toSmsNumber);
-        return true;
+        Helper.TokenSender.sendToken(
+                pwmApplication,
+                null,
+                userDataReader,
+                emailItemBean,
+                pref,
+                toAddress,
+                toSmsNumber,
+                smsMessage,
+                tokenKey
+        );
     }
 }
 

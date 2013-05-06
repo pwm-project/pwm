@@ -178,7 +178,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         
         final List<String> extraHeaders = config.readSettingAsStringArray(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
 
-        String requestData = config.readSettingAsLocalizedString(PwmSetting.SMS_REQUEST_DATA, smsItemBean.getLocale());
+        String requestData = config.readSettingAsString(PwmSetting.SMS_REQUEST_DATA);
 
         // Replace strings in requestData
         {
