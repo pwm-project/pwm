@@ -50,14 +50,14 @@
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
 <% } else { %>
 <h1>
-    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %></label>
+    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
 </h1>
 <% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
 <p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
 <% } %>
 <% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
 <% if (readonly) { %>
-<span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;<%= currentValue %></span>
+<span id="<%=loopConfiguration.getName()%>">&nbsp;<%="\u00bb"%>&nbsp;&nbsp;<%= currentValue %></span>
 <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
 <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px">
     <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
@@ -75,7 +75,7 @@
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
 <h1>
-    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %></label>
+    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
 </h1>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>_confirm" value="<%= ssBean.getLastParameterValues().get(loopConfiguration.getName() + "confirm","")%>"
