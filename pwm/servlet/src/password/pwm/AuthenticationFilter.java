@@ -162,6 +162,7 @@ public class AuthenticationFilter implements Filter {
         if (authInfo != null) {
             try {
                 authUserUsingBasicHeader(req, authInfo);
+                ServletHelper.recycleSessions(pwmSession, req);
                 chain.doFilter(req, resp);
                 return;
             } catch (ChaiUnavailableException e) {
@@ -184,6 +185,7 @@ public class AuthenticationFilter implements Filter {
                 LOGGER.trace(pwmSession, "checking for authentication via CAS");
                 if (CASAuthenticationHelper.authUserUsingCASClearPass(req,clearPassUrl)) {
                     LOGGER.debug(pwmSession, "login via CAS successful");
+                    ServletHelper.recycleSessions(pwmSession, req);
                     chain.doFilter(req,resp);
                     return;
                 }

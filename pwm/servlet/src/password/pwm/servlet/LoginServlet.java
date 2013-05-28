@@ -79,6 +79,7 @@ public class
 
             try {
                 UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
+                ServletHelper.recycleSessions(pwmSession, req);
             } catch (PwmOperationalException e) {
                 ssBean.setSessionError(e.getErrorInformation());
                 this.forwardToJSP(req, resp);

@@ -22,6 +22,8 @@
 
 package password.pwm.util;
 
+import org.apache.catalina.Session;
+import org.apache.catalina.authenticator.SavedRequest;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -40,13 +42,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ServletHelper {
 
@@ -461,4 +462,33 @@ public class ServletHelper {
         return sb.toString();
     }
 
+    public static void recycleSessions(final PwmSession pwmSession, HttpServletRequest req)
+            throws IOException, ServletException
+    {
+        if (!PwmConstants.HTTP_RECYCLE_SESSIONS_ON_AUTH) {
+            return;
+        }
+
+        LOGGER.debug(pwmSession,"forcing new http session due to authentication");
+
+        // read the old session data
+        final HttpSession oldSession = req.getSession(true);
+        final Map<String,Object> sessionAttributes = new HashMap<String,Object>();
+        final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
+        while (oldSessionAttrNames.hasMoreElements()) {
+            final String attrName = (String)oldSessionAttrNames.nextElement();
+            sessionAttributes.put(attrName,oldSession.getAttribute(attrName));
+        }
+
+        //invalidate the old session
+        oldSession.invalidate();
+
+        // make a new session
+        final HttpSession newSession = req.getSession(true);
+
+        // write back all the session data
+        for (final String attrName : sessionAttributes.keySet()) {
+            newSession.setAttribute(attrName, sessionAttributes.get(attrName));
+        }
+    }
 }
