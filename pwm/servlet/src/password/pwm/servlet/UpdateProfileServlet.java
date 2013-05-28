@@ -126,20 +126,26 @@ public class UpdateProfileServlet extends TopServlet {
     {
         boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UPDATE_FORM, pwmApplication.getConfig());
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
 
         try {
             // read in the responses from the request
             readFromJsonRequest(pwmApplication, pwmSession, updateProfileBean, req);
 
-            // see if the values meet requirements.
-            Validator.validateParmValuesMeetRequirements(
-                    updateProfileBean.getFormData(),
-                    pwmSession.getSessionStateBean().getLocale()
+            // verify form meets the form requirements
+            verifyFormAttributes(
+                    formValues,
+                    pwmSession,
+                    pwmApplication
             );
         } catch (PwmDataValidationException e) {
             success = false;
             userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
-        }
+        } catch (PwmOperationalException e) {
+            success = false;
+            userMessage = e.getErrorInformation().toUserStr(pwmSession, pwmApplication);
+	}
 
         final Map<String, String> outputMap = new HashMap<String, String>();
         outputMap.put("version", "1");
@@ -171,6 +177,9 @@ public class UpdateProfileServlet extends TopServlet {
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         final String newUserAgreementText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
+
         if (newUserAgreementText != null && newUserAgreementText.length() > 0) {
             if (!updateProfileBean.isAgreementPassed()) {
                 this.forwardToAgreementJSP(req,resp);
@@ -193,8 +202,18 @@ public class UpdateProfileServlet extends TopServlet {
 
         // validate the form data.
         try {
-            Validator.validateParmValuesMeetRequirements(updateProfileBean.getFormData(), pwmSession.getSessionStateBean().getLocale());
+            // verify form meets the form requirements
+            verifyFormAttributes(
+                    formValues,
+                    pwmSession,
+                    pwmApplication
+            );
         } catch (PwmDataValidationException e) {
+            LOGGER.error(pwmSession, e.getMessage());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+            this.forwardToJSP(req,resp);
+            return;
+        } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             this.forwardToJSP(req,resp);
@@ -208,7 +227,6 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         try {
-            final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
             doProfileUpdate(pwmApplication, pwmSession, formValues);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
             ServletHelper.forwardToSuccessPage(req, resp);
@@ -317,9 +335,14 @@ public class UpdateProfileServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException, PwmOperationalException
     {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
-        Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
+        verifyFormAttributes(
+                formValues,
+                pwmSession,
+                pwmApplication
+        );
 
         // write values.
         LOGGER.info("updating profile for " + pwmSession.getUserInfoBean().getUserDN());
@@ -358,6 +381,37 @@ public class UpdateProfileServlet extends TopServlet {
 
         // success, so forward to success page
         pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATE_ATTRIBUTES);
+    }
+
+    private static void verifyFormAttributes(
+            final Map<FormConfiguration, String> formValues,
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws PwmOperationalException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+
+        //read current values from user.
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+
+        // see if the values meet form requirements.
+        Validator.validateParmValuesMeetRequirements(formValues, userLocale);
+
+        // check unique fields against ldap
+        try {
+            Validator.validateAttributeUniqueness(
+                    pwmApplication,
+                    pwmApplication.getProxyChaiProvider(),
+                    formValues,
+                    userLocale,
+                    pwmSession.getSessionManager()
+            );
+        } catch (ChaiOperationException e) {
+            final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UPDATE_ATTRS_FAILURE,userMessage));
+        }
     }
 
     private void forwardToJSP(
