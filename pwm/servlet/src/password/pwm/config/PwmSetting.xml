@@ -255,6 +255,13 @@
             <value />
         </default>
     </setting>
+    <setting key="password.allowChange.queryMatch" level="1" required="true">
+        <label>Change Password Query Match</label>
+        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this ldap query or else the user will not be permitted to change the password.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
         <label>Logout After Password Change</label>
         <description><![CDATA[Force user to logout (and be sent to logoutURL) after a password change.<br/><br/>In most cases, this should be left on (default), especially if using some type of single sign on service.]]></description>
@@ -448,13 +455,6 @@
             <value />
         </default>
     </setting>
-    <setting key="password.allowChange.queryMatch" level="1" required="true">
-        <label>Change Password Query Match</label>
-        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this ldap query or else the user will not be permitted to change the password.]]></description>
-        <default>
-            <value><![CDATA[(objectClass=*)]]></value>
-        </default>
-    </setting>
     <setting key="passwordLastUpdateAttribute" level="1">
         <label>Last Password Update Attribute</label>
         <description><![CDATA[This attribute is used to mark when the password is updated, and is used during replication checks, and other processes.]]></description>
@@ -644,14 +644,14 @@
             <value>{"from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
-    <setting key="email.guest" level="1">
+    <setting key="email.guest" level="1" hidden="true">
         <label>Guest Registration Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
             <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.updateguest" level="1">
+    <setting key="email.updateguest" level="1" hidden="true">
         <label>Guest Registration Update Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
@@ -1782,7 +1782,7 @@
         </default>
     </setting>
     <setting key="challenge.token.sendMethod" level="0" required="true">
-        <label>Token or Password Send Method</label>
+        <label>Token Send Method</label>
         <description><![CDATA[Set the method(s) used for sending the token code or new password to the user.]]></description>
         <default>
             <value><![CDATA[EMAILONLY]]></value>
@@ -1803,7 +1803,9 @@
         </default>
         <options>
             <option value="RESETPW">Allow user to reset password</option>
-            <option value="SENDNEW">Email new password to user</option>
+            <option value="SENDNEWPW_EMAIL">Email new password to user</option>
+            <option value="SENDNEWPW_SMS">SMS new password to user</option>
+            <option value="SENDNEWPW_BOTH">Email and SMS new password to user</option>
         </options>
     </setting>
     <setting key="forgottenUsername.enable" level="0" required="true">
@@ -1834,6 +1836,12 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
+        </default>
+        <default template="AD">
+            <value>sAMAccountName</value>
+        </default>
+        <default template="ADDB">
+            <value>sAMAccountName</value>
         </default>
     </setting>
     <setting key="newUser.enable" level="0" required="true">

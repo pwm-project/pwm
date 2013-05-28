@@ -31,7 +31,8 @@ function readSetting(keyName, valueWriter) {
             dataType: "json",
             handleAs: "json",
             error: function(errorObj) {
-                showError("error loading " + keyName + ", reason: " + errorObj)
+                showError("Unable to communicate with server.  Please refresh page.");
+                console.log("error loading " + keyName + ", reason: " + errorObj);
             },
             load: function(data) {
                 console.log('read data for setting ' + keyName);
@@ -61,7 +62,8 @@ function writeSetting(keyName, valueData) {
             handleAs: "json",
             preventCache: true,
             error: function(errorObj) {
-                showError("error writing setting " + keyName + ", reason: " + errorObj)
+                showError("Unable to communicate with server.  Please refresh page.");
+                console.log("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
                 console.log('wrote data for setting ' + keyName);

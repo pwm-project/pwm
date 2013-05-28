@@ -43,6 +43,10 @@
 <% final boolean showDesc = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().isShowDescr(); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory(); %>
+<%
+    String configFilePath = PwmConstants.CONFIG_FILE_FILENAME;
+    try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
+%>
 
 <body class="nihilo" onload="pwmPageLoadHandler()">
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
@@ -308,6 +312,12 @@ function buildMenuBar() {
                 label: "<pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>",
                 onClick: function() {
                     window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                }
+            }));
+            actionsMenu.addChild(new MenuItem({
+                label: "<pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>",
+                onClick: function() {
+                    showConfirmDialog(null,'<pwm:Display key="MenuDisplay_UploadConfig" bundle="Config" value1="<%=configFilePath%>"/>',function(){uploadConfigDialog()},null);
                 }
             }));
             actionsMenu.addChild(new MenuSeparator());

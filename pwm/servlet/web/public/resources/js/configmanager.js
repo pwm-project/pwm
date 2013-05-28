@@ -283,3 +283,60 @@ function clearLdapCertificates() {
     });
 }
 
+function uploadConfigDialog() {
+    var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
+    body += '<div id="fileList"></div>';
+    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
+    body += '<input type="submit" id="uploadButton" name="Upload"/>';
+    body += '</form></div>';
+
+    var uploadUrl = window.location.pathname + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+    console.log('uploading config file to url ' + uploadUrl);
+
+    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/FileList","dojox/form/uploader/plugins/HTML5"],function(
+        dojo,Dialog,Uploader,FileList,Button,FileList){
+        var idName = 'dialogPopup';
+        clearDijitWidget(idName);
+        var theDialog = new Dialog({
+            id: idName,
+            title: 'Upload Configuration',
+            style: "width: 300px",
+            content: body
+        });
+        theDialog.show();
+        var fileMask = [
+            ["XML File", 	"*.xml"],
+            ["TXT File", 	"*.txt"]
+        ];
+        var uploader = new dojox.form.Uploader({
+            multiple: false,
+            name: "uploadFile",
+            label: 'Select File',
+            required:true,
+            fileMask: fileMask,
+            url: uploadUrl,
+            isDebug: true,
+            devMode: true
+        },'uploadFile');
+        uploader.startup();
+        var uploadButton = new Button({
+            label: 'Upload',
+            type: 'submit'
+        },"uploadButton");
+        uploadButton.startup();
+        new FileList({
+            uploaderId: 'uploadFile'
+        },"fileList")
+        dojo.connect(uploader, "onComplete", function(data){
+            if (data['error'] == true) {
+                showDialog('Upload Error', data['errorDetail']);
+            } else {
+                showWaitDialog(null,null,function(){
+                    setTimeout(function(){
+                        location = PWM_GLOBAL['url-context'];
+                    },10 * 1000);
+                });
+            }
+        });
+    });
+}

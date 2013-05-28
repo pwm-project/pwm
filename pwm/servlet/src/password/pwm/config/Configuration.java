@@ -67,7 +67,7 @@ public class Configuration implements Serializable {
 
     public enum STORAGE_METHOD { DB, LDAP, LOCALDB}
 
-    public enum RECOVERY_ACTION { RESETPW, SENDNEW }
+    public enum RECOVERY_ACTION { RESETPW, SENDNEWPW_EMAIL, SENDNEWPW_SMS, SENDNEWPW_BOTH }
 
     public enum TokenStorageMethod {STORE_LOCALDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
 
@@ -587,7 +587,12 @@ public class Configuration implements Serializable {
 
     public RECOVERY_ACTION getRecoveryAction() {
         final String stringValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_ACTION);
-        return RECOVERY_ACTION.valueOf(stringValue);
+        try {
+            return RECOVERY_ACTION.valueOf(stringValue);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("unknown recovery action value: " + stringValue);
+            return RECOVERY_ACTION.RESETPW;
+        }
     }
 
     public TokenStorageMethod getTokenStorageMethod() {

@@ -58,8 +58,10 @@ import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -172,32 +174,32 @@ public class PwmApplication {
     private static ChaiProvider openProxyChaiProvider(final Configuration config, final StatisticsManager statsMangager)
             throws PwmUnrecoverableException
     {
-            final StringBuilder debugLogText = new StringBuilder();
-            debugLogText.append("opening new ldap proxy connection");
-            LOGGER.trace(debugLogText.toString());
+        final StringBuilder debugLogText = new StringBuilder();
+        debugLogText.append("opening new ldap proxy connection");
+        LOGGER.trace(debugLogText.toString());
 
-            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+        final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+        final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-            try {
-                final int idleTimeoutMs = PwmConstants.LDAP_PROXY_CONNECTION_TIMEOUT;
-                return Helper.createChaiProvider(config, proxyDN, proxyPW, idleTimeoutMs);
-            } catch (ChaiUnavailableException e) {
-                if (statsMangager != null) {
-                    statsMangager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                }
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(" error connecting as proxy user: ");
-                final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
-                if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
-                    errorMsg.append(new ErrorInformation(pwmError,e.getMessage()).toDebugStr());
-                } else {
-                    errorMsg.append(e.getMessage());
-                }
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg.toString());
-                LOGGER.fatal("check ldap proxy settings: " + errorInformation.toDebugStr());
-                throw new PwmUnrecoverableException(errorInformation);
+        try {
+            final int idleTimeoutMs = PwmConstants.LDAP_PROXY_CONNECTION_TIMEOUT;
+            return Helper.createChaiProvider(config, proxyDN, proxyPW, idleTimeoutMs);
+        } catch (ChaiUnavailableException e) {
+            if (statsMangager != null) {
+                statsMangager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             }
+            final StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(" error connecting as proxy user: ");
+            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
+            if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
+                errorMsg.append(new ErrorInformation(pwmError,e.getMessage()).toDebugStr());
+            } else {
+                errorMsg.append(e.getMessage());
+            }
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg.toString());
+            LOGGER.fatal("check ldap proxy settings: " + errorInformation.toDebugStr());
+            throw new PwmUnrecoverableException(errorInformation);
+        }
     }
 
     public WordlistManager getWordlistManager() {
@@ -727,9 +729,23 @@ public class PwmApplication {
                 final URL url = new URL(request.getRequestURL().toString());
 
                 final String hostname = url.getHost();
+
+                //ignore localhost;
                 if (hostname.equalsIgnoreCase("localhost") || hostname.equalsIgnoreCase("127.0.0.1")) {
                     //LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
                     return;
+                }
+
+                { //ignore if numeric
+                    try {
+                        InetAddress inetAddress = InetAddress.getByName(hostname);
+                        if (hostname.equals(inetAddress.getHostAddress())) {
+                            return;
+                        }
+                    } catch (UnknownHostException e) {
+                        /* noop */
+                        //LOGGER.debug("exception examining hostname as siteURL candidate: " + e.getMessage());
+                    }
                 }
 
                 final StringBuilder sb = new StringBuilder();

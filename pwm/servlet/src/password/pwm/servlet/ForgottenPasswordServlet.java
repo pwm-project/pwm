@@ -388,7 +388,15 @@ public class
 
                 final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
 
-                final boolean responsesSatisfied = responseSet.test(crMap);
+                final boolean responsesSatisfied;
+                try {
+                    responsesSatisfied = responseSet.test(crMap);
+                } catch (ChaiUnavailableException e) {
+                    if (e.getCause() instanceof PwmUnrecoverableException) {
+                        throw (PwmUnrecoverableException)e.getCause();
+                    }
+                    throw e;
+                }
                 forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
 
                 if (responsesSatisfied) {
@@ -492,7 +500,7 @@ public class
         forgottenPasswordBean.setAllPassed(true);
         LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
 
-        if (config.getRecoveryAction() == Configuration.RECOVERY_ACTION.SENDNEW) {
+        if (config.getRecoveryAction() != Configuration.RECOVERY_ACTION.RESETPW) {
             this.processSendNewPassword(req,resp);
             return;
         }
@@ -812,38 +820,24 @@ public class
             throws PwmOperationalException
     {
         final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final Configuration.RECOVERY_ACTION recoveryAction = config.getRecoveryAction();
         ErrorInformation error = null;
-        switch (pref) {
-            case BOTH:
+        switch (recoveryAction) {
+            case SENDNEWPW_BOTH:
                 // Send both email and SMS, success if one of both succeeds
                 final ErrorInformation err1 = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
                 final ErrorInformation err2 = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
                 if (err1 != null) {
-                  error = err1;
+                    error = err1;
                 } else if (err2 != null) {
-                  error = err2;
+                    error = err2;
                 }
                 break;
-            case EMAILFIRST:
-                // Send email first, try SMS if email is not available
-                error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
-                if (error != null) {
-                  error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
-                }
-                break;
-            case SMSFIRST:
-                // Send SMS first, try email if SMS is not available
-                error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
-                if (error != null) {
-                  error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
-                }
-                break;
-            case SMSONLY:
+            case SENDNEWPW_SMS:
                 // Only try SMS
                 error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
                 break;
-            case EMAILONLY:
+            case SENDNEWPW_EMAIL:
             default:
                 // Only try email
                 error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
@@ -852,7 +846,7 @@ public class
         if (error != null) {
             throw new PwmOperationalException(error);
         }
-        
+
     }
 
     private ErrorInformation sendNewPasswordSms(
@@ -884,7 +878,7 @@ public class
         LOGGER.debug(pwmSession, String.format("password SMS added to send queue for %s", toNumber));
         return null;
     }
-    
+
     private ErrorInformation sendNewPasswordEmail(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,

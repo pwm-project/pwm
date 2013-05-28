@@ -71,7 +71,7 @@
 <% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
-<% final boolean showSetting = loopSetting.getCategory() == category && ((level >= loopSetting.getLevel()) || !configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
+<% final boolean showSetting = loopSetting.showSetting(category,level,!configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
 <% if (showSetting) { %>
 <div id="outline_<%=loopSetting.getKey()%>" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
 <%

@@ -128,6 +128,9 @@ public class ConfigManagerServlet extends TopServlet {
             } else if ("manageLdapCerts".equalsIgnoreCase(processActionParam)) {
                 restManageLdapCerts(req, resp, pwmApplication, pwmSession);
                 return;
+            } else if ("uploadConfig".equalsIgnoreCase(processActionParam)) {
+                ConfigGuideServlet.restUploadConfig(req, resp, pwmApplication, pwmSession);
+                return;
             }
         }
 
@@ -355,7 +358,6 @@ public class ConfigManagerServlet extends TopServlet {
         returnMap.put("value", returnValue);
         final Gson gson = new Gson();
         final String outputString = gson.toJson(returnMap);
-        System.out.println("read---" + outputString);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -370,7 +372,6 @@ public class ConfigManagerServlet extends TopServlet {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String key = Validator.readStringFromRequest(req, "key");
         final String bodyString = ServletHelper.readRequestBody(req);
-        System.out.println("write---" + bodyString);
         final Gson gson = new Gson();
         final PwmSetting setting = PwmSetting.forKey(key);
         final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();

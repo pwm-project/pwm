@@ -158,8 +158,8 @@
     }
     PWM_GLOBAL['startupFunctions'].push(function(){
         startupPage();
-        if (initUserGrid) initUserGrid();
-        if (initAddressGrid) initAddressGrid();
+        try { initUserGrid(); } catch (e) { /* noop */ }
+        try { initAddressGrid(); } catch (e) { /* noop */ }
     });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

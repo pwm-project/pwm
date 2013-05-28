@@ -50,8 +50,8 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
                 <br/>
             <div id="password" class="configDiv">
-                To protect the this system, you will need to set a configuration password.  The configuration password is required whenever
-                you wish to edit the configuration using the web based configuration manager.
+                To protect this system, you will need to set a configuration password.  The configuration password will be required whenever
+                you wish to modify the configuration using the web based configuration manager.
                 <br/>
                 <br/>
                 <div style="padding-left: 10px; padding-bottom: 5px">

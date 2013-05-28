@@ -556,10 +556,15 @@ public class IntruderManager implements Serializable, PwmService {
 
         public RecordIterator(final PwmDBRecordStore recordStore) throws PwmOperationalException {
             this.recordStore = recordStore;
-            this.keyIterator = recordStore.keyIterator();
+            if (recordStore != null) {
+                this.keyIterator = recordStore.keyIterator();
+            }
         }
 
         public boolean hasNext() {
+            if (recordStore == null) {
+                return false;
+            }
             boolean hasNext =  keyIterator.hasNext();
             if (!hasNext) {
                 close();
@@ -568,10 +573,17 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         public void close() {
+            if (recordStore == null) {
+                return;
+            }
             keyIterator.close();
         }
 
         public IntruderRecord next() {
+            if (recordStore == null) {
+                return null;
+            }
+
             final InternalRecord internalRecord = recordStore.readKey(keyIterator.next());
             if (internalRecord != null) {
                 return internalRecord.asIntruderRecord(IntruderRecord.Type.userDN); //@todo dont hardcode type

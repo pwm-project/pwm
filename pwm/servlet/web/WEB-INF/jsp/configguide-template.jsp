@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -46,8 +47,15 @@
         <pwm:Display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
         <select id="templateSelect" onchange="selectTemplate(this.value);">
+            <%
+                boolean noTemplateYet = false;
+                if (configGuideBean.getStoredConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE) == null) {
+                    noTemplateYet = true;
+            %>
+            <option value="NOTSELECTED" selected="selected"><pwm:Display key="Display_SelectionIndicator"/></option>
+            <% } %>
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-            <option value="<%=template.toString()%>"<% if (template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
+            <option value="<%=template.toString()%>"<% if (!noTemplateYet && template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
                <%=template.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
             </option>
             <% } %>
@@ -64,6 +72,9 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         getObject('localeSelectionMenu').style.display = 'none';
+        <% if (noTemplateYet) { %>
+        getObject('button_next').disabled = true;
+        <% } %>
         selectTemplate(getObject('templateSelect').value);
     });
 </script>

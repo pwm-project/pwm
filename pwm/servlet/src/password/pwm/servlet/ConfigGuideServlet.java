@@ -111,7 +111,7 @@ public class ConfigGuideServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
 
-        req.getSession().setMaxInactiveInterval(30 * 60);
+        req.getSession().setMaxInactiveInterval(15 * 60);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
@@ -164,7 +164,7 @@ public class ConfigGuideServlet extends TopServlet {
 
 
 
-    private void restUploadConfig(
+    public static void restUploadConfig(
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
@@ -226,6 +226,9 @@ public class ConfigGuideServlet extends TopServlet {
             throws PwmUnrecoverableException, IOException
     {
         final String requestedTemplate = Validator.readStringFromRequest(req, "template");
+        if ("NOTSELECTED".equals(requestedTemplate)) {
+            return;
+        }
         PwmSetting.Template template;
         if (requestedTemplate == null || requestedTemplate.length() <= 0) {
             final String errorMsg = "missing template value in template set request";
@@ -275,7 +278,7 @@ public class ConfigGuideServlet extends TopServlet {
                         "LDAP",
                         LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
                 ));
-           }
+            }
         }
         if (configGuideBean.getStep() == STEP.LDAP2) {
             records.addAll(ldapStatusChecker.doHealthCheck(tempApplication));
@@ -328,8 +331,8 @@ public class ConfigGuideServlet extends TopServlet {
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
         final Map<String,String> incomingFormData = new Gson().fromJson(bodyString,new TypeToken<Map<String, String>>() {}.getType());        if (incomingFormData != null) {
-            configGuideBean.getFormData().putAll(incomingFormData);
-        }
+        configGuideBean.getFormData().putAll(incomingFormData);
+    }
         final RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp, restResultBean);
         updateLdapInfo(storedConfiguration, configGuideBean.getFormData(), incomingFormData);
@@ -433,7 +436,13 @@ public class ConfigGuideServlet extends TopServlet {
             final ConfigGuideBean configGuideBean
     ) throws PwmOperationalException {
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
-        storedConfiguration.setPassword(configGuideBean.getFormData().get(PARAM_CONFIG_PASSWORD));
+        final String configPassword = configGuideBean.getFormData().get(PARAM_CONFIG_PASSWORD);
+        if (configPassword != null && configPassword.length() > 0) {
+            storedConfiguration.setPassword(configPassword);
+        } else {
+            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH,null);
+        }
+
 
         { //determine promiscuous ssl setting
             if ("true".equalsIgnoreCase(configGuideBean.getFormData().get(PARAM_LDAP_SECURE))) {
@@ -450,7 +459,7 @@ public class ConfigGuideServlet extends TopServlet {
         writeConfig(contextManager, storedConfiguration);
     }
 
-    private void writeConfig(
+    private static void writeConfig(
             final ContextManager contextManager,
             final StoredConfiguration storedConfiguration
     ) throws PwmOperationalException {

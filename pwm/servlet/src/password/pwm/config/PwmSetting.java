@@ -108,6 +108,8 @@ public enum PwmSetting {
             "display.custom.logoImage", PwmSettingSyntax.STRING, Category.USER_INTERFACE),
 
     // change password
+    QUERY_MATCH_CHANGE_PASSWORD(
+            "password.allowChange.queryMatch", PwmSettingSyntax.STRING, Category.CHANGE_PASSWORD),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD),
     PASSWORD_REQUIRE_FORM(
@@ -156,8 +158,6 @@ public enum PwmSetting {
             "ldap.readPasswordPolicies", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    QUERY_MATCH_CHANGE_PASSWORD(
-            "password.allowChange.queryMatch", PwmSettingSyntax.STRING, Category.LDAP),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP),
     LDAP_NAMING_ATTRIBUTE(
@@ -782,6 +782,26 @@ public enum PwmSetting {
 
     public Set<Template> getTemplates() {
         return templates;
+    }
+
+    public boolean showSetting(Category category, int level, boolean isModified) {
+        if (category != this.getCategory()) {
+            return false;
+        }
+
+        if (isModified) {
+            return true;
+        }
+
+        if (getLevel() > level) {
+            return false;
+        }
+
+        if (isHidden()) {
+            return false;
+        }
+
+        return true;
     }
 
     // -------------------------- OTHER METHODS --------------------------
