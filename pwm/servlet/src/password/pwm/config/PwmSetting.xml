@@ -1785,9 +1785,10 @@
         <label>Token Send Method</label>
         <description><![CDATA[Set the method(s) used for sending the token code or new password to the user.]]></description>
         <default>
-            <value><![CDATA[EMAILONLY]]></value>
+            <value><![CDATA[NONE]]></value>
         </default>
         <options>
+            <option value="NONE">None - Token verification will not be performed</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
             <option value="BOTH">Both - Send token to both email and SMS</option>
@@ -2082,7 +2083,7 @@
         <label>Token Send Method</label>
         <description><![CDATA[Set the method(s) used for sending the token code to the user.]]></description>
         <default>
-            <value><![CDATA[EMAILONLY]]></value>
+            <value><![CDATA[NONE]]></value>
         </default>
         <options>
             <option value="NONE">None - Token verification will not be performed</option>
