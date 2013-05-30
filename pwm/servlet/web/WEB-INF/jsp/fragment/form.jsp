@@ -6,6 +6,9 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.i18n.Display" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -37,8 +40,9 @@
 %>
 <%
     final PwmSession pwmSession = PwmSession.getPwmSession(session);
+    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
     final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-    final List<FormConfiguration> formConfigurationList = ContextManager.getPwmApplication(session).getConfig().readSettingAsForm(formSetting);
+    final List<FormConfiguration> formConfigurationList = pwmApplication.getConfig().readSettingAsForm(formSetting);
     for (FormConfiguration loopConfiguration : formConfigurationList) {
         String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : ssBean.getLastParameterValues().get(loopConfiguration.getName(),"");
         currentValue = currentValue == null ? "" : currentValue;
@@ -50,7 +54,22 @@
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
 <% } else { %>
 <h1>
-    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
+    <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %>
+        <%if(loopConfiguration.isRequired()){%>
+        <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dijit/Tooltip"],function(Tooltip){
+                    new Tooltip({
+                        connectId: ["label_required_<%=loopConfiguration.getName()%>"],
+                        label: '<%=PwmError.getLocalizedMessage(ssBean.getLocale(),PwmError.ERROR_FIELD_REQUIRED,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
+                        position: ['above']
+                    });
+                });
+            });
+        </script>
+        <%}%>
+    </label>
 </h1>
 <% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
 <p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
@@ -99,7 +118,20 @@
 
 <% if (showPasswordFields) { %>
 <h1>
-    <label for="password1"><pwm:Display key="Field_NewPassword"/></label>
+    <label for="password1"><pwm:Display key="Field_NewPassword"/>
+    <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dijit/Tooltip"],function(Tooltip){
+                new Tooltip({
+                    connectId: ["label_required_password"],
+                    label: '<%=PwmError.getLocalizedMessage(ssBean.getLocale(),PwmError.ERROR_FIELD_REQUIRED,pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
+                    position: ['above']
+                });
+            });
+        });
+    </script>
+        </label>
 </h1>
 <div id="PasswordRequirements">
     <ul>

@@ -465,7 +465,8 @@ public class NewUserServlet extends TopServlet {
                     pwmApplication.getProxyChaiProvider(),
                     formValues,
                     userLocale,
-                    pwmSession.getSessionManager()
+                    pwmSession.getSessionManager(),
+                    Collections.<String>emptyList()
             );
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();

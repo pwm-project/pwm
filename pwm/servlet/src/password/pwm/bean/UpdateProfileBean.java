@@ -24,7 +24,7 @@ package password.pwm.bean;
 
 import password.pwm.config.FormConfiguration;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class UpdateProfileBean implements PwmSessionBean {
@@ -33,7 +33,7 @@ public class UpdateProfileBean implements PwmSessionBean {
     private boolean confirmationPassed;
     private boolean formSubmitted;
 
-    private final Map<FormConfiguration,String> formData = new HashMap<FormConfiguration,String>();
+    private final Map<FormConfiguration,String> formData = new LinkedHashMap<FormConfiguration,String>();
 
     public boolean isAgreementPassed() {
         return agreementPassed;

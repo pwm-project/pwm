@@ -120,7 +120,6 @@ public class GuestRegistrationServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final GuestRegistrationBean guBean = pwmSession.getGuestRegistrationBean();
-        final Properties notifyAttrs = new Properties();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
 
@@ -139,44 +138,24 @@ public class GuestRegistrationServlet extends TopServlet {
             //read current values from user.
             final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
 
-            final Map<String, String> updateAttrs = new HashMap<String, String>();
-            for (final FormConfiguration formItem : formValues.keySet()) {
-                if ( !formItem.isReadonly()) {
-                    final String attrName = formItem.getName();
-                    updateAttrs.put(attrName, formValues.get(formItem));
-                    notifyAttrs.put(attrName, formValues.get(formItem));
-                }
-            }
-
-            // strip out non-changing values
-            final Map<String, String> currentValues = theGuest.readStringAttributes(updateAttrs.keySet());
-            for (Iterator<FormConfiguration> iterator = formValues.keySet().iterator(); iterator.hasNext(); ) {
-                FormConfiguration formItem = iterator.next();
-                final String attrName = formItem.getName();
-                if (updateAttrs.get(attrName) == null || updateAttrs.get(attrName).equals(currentValues.get(attrName))) {
-                    updateAttrs.remove(attrName);
-                    iterator.remove();
-                }
-            }
-
             // check unique fields against ldap
             Validator.validateAttributeUniqueness(
                     pwmApplication,
                     pwmApplication.getProxyChaiProvider(),
                     formValues,
                     ssBean.getLocale(),
-                    pwmSession.getSessionManager()
+                    pwmSession.getSessionManager(),
+                    Collections.singletonList(guBean.getUpdateUserDN())
             );
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
 
             // Update user attributes
-            Helper.writeMapToLdap(pwmApplication, theGuest, updateAttrs, pwmSession.getUserInfoBean(), false);
+            Helper.writeFormValuesToLdap(pwmApplication, pwmSession, theGuest, formValues, false);
 
             // Write expirationDate
             if (expirationDate != null) {
                 theGuest.writeDateAttribute(expirationAttribute, expirationDate);
-                notifyAttrs.put(expirationAttribute, expirationDate.toString());
             }
 
             // send email.

@@ -316,7 +316,8 @@ public class Validator {
             final ChaiProvider chaiProvider,
             final Map<FormConfiguration,String> formValues,
             final Locale locale,
-            final SessionManager sessionManager
+            final SessionManager sessionManager,
+            final Collection<String> excludeDN
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
@@ -324,12 +325,14 @@ public class Validator {
         final Map<String,String> labelMap = new HashMap<String,String>();
         final List<String> uniqueAttributes = new ArrayList();
         for (final FormConfiguration formItem : formValues.keySet()) {
-            if (formItem.isUnique()) {
-                uniqueAttributes.add(formItem.getName());
-                final String value = formValues.get(formItem);
-                if (value != null && value.length() > 0) {
-                    filterClauses.put(formItem.getName(), value);
-                    labelMap.put(formItem.getName(), formItem.getLabel(locale));
+            if (formItem.isUnique() && !formItem.isReadonly()) {
+                if (formItem.getType() != FormConfiguration.Type.hidden) {
+                    uniqueAttributes.add(formItem.getName());
+                    final String value = formValues.get(formItem);
+                    if (value != null && value.length() > 0) {
+                        filterClauses.put(formItem.getName(), value);
+                        labelMap.put(formItem.getName(), formItem.getLabel(locale));
+                    }
                 }
             }
         }
@@ -380,9 +383,23 @@ public class Validator {
         searchConfiguration.setFilter(filter.toString());
         searchConfiguration.setChaiProvider(chaiProvider);
 
+        int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
+
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration,2,Collections.<String>emptyList());
+            final Map<ChaiUser,Map<String,String>> results = new LinkedHashMap<ChaiUser, Map<String, String>>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+
+            if (excludeDN != null && !excludeDN.isEmpty()) {
+                for (final String loopDN : excludeDN) {
+                    for (final Iterator<ChaiUser> iterator = results.keySet().iterator(); iterator.hasNext(); ) {
+                        final ChaiUser loopUser = iterator.next();
+                        if (loopDN.equals(loopUser.getEntryDN())) {
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+
             if (!results.isEmpty()) {
                 if (labelMap.size() == 1) { // since only one value searched, it must be that one value
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.values().iterator().next()});

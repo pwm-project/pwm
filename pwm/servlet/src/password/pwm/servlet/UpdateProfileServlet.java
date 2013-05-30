@@ -394,7 +394,6 @@ public class UpdateProfileServlet extends TopServlet {
 
         //read current values from user.
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
 
         // see if the values meet form requirements.
         Validator.validateParmValuesMeetRequirements(formValues, userLocale);
@@ -406,7 +405,8 @@ public class UpdateProfileServlet extends TopServlet {
                     pwmApplication.getProxyChaiProvider(),
                     formValues,
                     userLocale,
-                    pwmSession.getSessionManager()
+                    pwmSession.getSessionManager(),
+                    Collections.singletonList(pwmSession.getUserInfoBean().getUserDN())
             );
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();

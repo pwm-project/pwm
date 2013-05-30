@@ -34,8 +34,9 @@
     </jsp:include>
     <div id="centerbody">
         <p id="registration-menu-bar" style="text-align:center;">
-            <a href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a> |
-            <a href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a>
+            &nbsp;&nbsp;&nbsp;
+            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
         </p>
         <br/>
         <p><pwm:Display key="Display_GuestUpdate"/></p>
@@ -53,7 +54,7 @@
                     long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
                     Date maxValidDate = new Date(new Date().getTime() + (futureMS));
                     String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
-                    String selectedDate = PwmSession.getPwmSession(session).getSessionStateBean().getLastParameterValue("__expirationDate__");
+                    String selectedDate = PwmSession.getPwmSession(session).getSessionStateBean().getLastParameterValues().get("__expirationDate__");
                     if (selectedDate == null || selectedDate.length() <= 0) {
                         Date currentDate = PwmSession.getPwmSession(session).getGuestRegistrationBean().getUpdateUserExpirationDate();
                         if (currentDate == null) {

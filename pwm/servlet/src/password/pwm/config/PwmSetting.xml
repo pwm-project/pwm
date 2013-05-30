@@ -280,7 +280,7 @@
         <label>Require Current Password during change</label>
         <description><![CDATA[If true, the user's current password will be required on the change password page for most change password scenarios.  In most cases this is not required because the user just authenticated prior to the seeing the change password page.  The major exception is when using SSO, in that case you will probably what to set "Only when not expired" so that the current password must be supplied when the user attempts a password change during a session, but not when forced to change immediately upon authentication.]]></description>
         <default>
-            <value><![CDATA[false]]></value>
+            <value><![CDATA[FALSE]]></value>
         </default>
         <options>
             <option value="TRUE">True</option>

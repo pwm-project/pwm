@@ -32,8 +32,9 @@
     </jsp:include>
     <div id="centerbody">
         <p id="registration-menu-bar" style="text-align:center;">
-            <a href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a> |
-            <a href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a>
+            &nbsp;&nbsp;&nbsp;
+            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
         </p>
         <br/>
         <p><pwm:Display key="Display_GuestUpdate"/></p>
