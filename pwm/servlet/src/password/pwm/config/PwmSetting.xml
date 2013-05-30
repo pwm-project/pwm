@@ -1960,7 +1960,7 @@
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"unique":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <options>
@@ -1974,9 +1974,12 @@
             <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"unique":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="unique">show</option>
+        </options>
     </setting>
     <setting key="guest.creationUniqueAttributes" level="0">
         <label>Unique Attributes</label>
