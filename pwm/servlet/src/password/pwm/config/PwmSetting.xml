@@ -869,7 +869,7 @@
     </setting>
     <setting key="password.policy.source" level="1" required="true">
         <label>Password Policy Source</label>
-        <description><![CDATA[This setting determines where password policy settings should be read from.  If <b>LDAP</b> is selected, an attempt to read the policy out of the ldap directory will be made, and many of the following settings are ignored.  If <b>Local Config</b> is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If <b>Merge</b> is selected, both policies are read, and where there is any conflict, PWM will chose the <i>most restrictive</i> value of the policy.]]></description>
+        <description><![CDATA[This setting determines where password policy settings should be read from.  If <b>LDAP</b> is selected, an attempt to read the policy out of the ldap directory will be made, and many of the following settings are ignored.  If <b>Local Config</b> is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If <b>Merge</b> is selected, both policies are read, and where there is any conflict, The application will chose the <i>most restrictive</i> value of the policy.<br/><br/>The capability to read policy from LDAP is only available with some LDAP implementations.]]></description>
         <default>
             <value><![CDATA[MERGE]]></value>
         </default>
@@ -1074,8 +1074,8 @@
         </default>
     </setting>
     <setting key="password.policy.ADComplexity" level="0" required="true">
-        <label>Enforce Microsoft-AD Password Complexity</label>
-        <description><![CDATA[Enforce MS-ActiveDirectory style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
+        <label>Enforce Microsoft-AD 2003 Password Complexity</label>
+        <description><![CDATA[Enforce Microsoft ActiveDirectory 2003 style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2342,7 +2342,7 @@
     </setting>
     <setting key="helpdesk.filter" level="0">
         <label>Helpdesk Search Filter</label>
-        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username]]></description>
         <default>
             <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
         </default>

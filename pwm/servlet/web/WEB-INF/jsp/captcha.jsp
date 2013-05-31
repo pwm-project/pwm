@@ -28,6 +28,24 @@
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();try {document.forms.verifyCaptcha.recaptcha_response_field.focus()} catch (e) {}"
       class="nihilo">
+<%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
+<% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
+<% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
+<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+<script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js">
+</script>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        Recaptcha.create("<%=reCaptchaPublicKey%>",
+                "recaptchaDiv",
+                {
+                    theme: "blackglass",
+                    lang: '<%=locale%>',
+                    callback: Recaptcha.focus_response_field
+                }
+        );
+    });
+</script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
@@ -39,20 +57,11 @@
 
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false">
-            <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
-            <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
-            <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
-            <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-            <% final String country = pwmApplicationHeader.getConfig().getKnownLocaleFlagMap().get(locale); %>            <script type="text/javascript">
-                var RecaptchaOptions = { theme : 'white', lang : '<%=locale%>' };
-            </script>
-            <div style="margin-left: auto; margin-right: auto; width: 322px">
-                <script type="text/javascript"
-                        src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/challenge?k=<%=reCaptchaPublicKey%>&hl=<%=locale%>_<%=country%>">
-                </script>
+            <div style="margin-left: auto; margin-right: auto; width: 322px" id="recaptchaDiv">
+                <div id="WaitDialogBlank"></div>
             </div>
             <noscript>
-                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaProtocol%>&hl=<%=locale%>_<%=country%>"
+                <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaPublicKey%>&hl=<%=locale%>"
                         height="300" width="500" frameborder="0"></iframe>
                 <br>
                 <textarea name="recaptcha_challenge_field" rows="3" cols="40">
