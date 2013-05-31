@@ -1560,6 +1560,22 @@
             <value><![CDATA[What is your least favorite film of all time?::4::200]]></value>
             <value><![CDATA[Who was your least favorite teacher?::4::200]]></value>
             <value><![CDATA[What food do you dislike the most?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est le nom du personnage principal de votre livre préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est le nom de votre professeur préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est le nom de votre animal préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel était le nom de votre meilleur ami d'enfance?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel a été votre émission préférée comme un enfant?::4::200]]></value>
+            <value locale="fr"><![CDATA[Qui est votre auteur préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est votre plat préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est le surnom de votre partenaire?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quelle est votre équipe préférée?::4::200]]></value>
+            <value locale="fr"><![CDATA[Dans quelle rue avez-vous grandi?::4::200]]></value>
+            <value locale="fr"><![CDATA[Dans quelle ville / ville êtes-vous né?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est votre véhicule préféré?::4::200]]></value>
+            <value locale="fr"><![CDATA[Si vous pouviez rencontrer quelqu'un de l'histoire, ce serait qui?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quel est ton film préféré moins de tous les temps?::4::200]]></value>
+            <value locale="fr"><![CDATA[Qui était votre professeur préféré moins?::4::200]]></value>
+            <value locale="fr"><![CDATA[Quels sont les aliments que vous aimez le plus?::4::200]]></value>
         </default>
     </setting>
     <setting key="challenge.requiredChallenges" level="0">

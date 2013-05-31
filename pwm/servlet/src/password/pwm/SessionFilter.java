@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -141,6 +142,13 @@ public class SessionFilter implements Filter {
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
                 LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
                 ssBean.setLocale(new Locale(langReqParamter.equalsIgnoreCase("default") ? "" : langReqParamter));
+                if (ssBean.isAuthenticated()) {
+                    try {
+                        UserStatusHelper.populateLocaleSpecificUserInfoBean(pwmSession, pwmSession.getUserInfoBean(), pwmApplication, ssBean.getLocale());
+                    } catch (ChaiUnavailableException e) {
+                        LOGGER.warn("unable to refresh locale-specific user data, error:" + e.getLocalizedMessage());
+                    }
+                }
             } else {
                 LOGGER.error(pwmSession, "ignoring unknown value for 'pwmLocale' request parameter: " + langReqParamter);
             }

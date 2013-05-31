@@ -200,11 +200,7 @@ public class UserStatusHelper {
             uiBean.setUserDN(userDN);
         }
 
-        //populate password policy
-        uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
-
-        //populate c/r challenge set. 
-        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, config, theUser, uiBean.getPasswordPolicy(), userLocale));
+        populateLocaleSpecificUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale);
 
         //populate all user attributes.
         try {
@@ -274,6 +270,27 @@ public class UserStatusHelper {
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+    }
+
+    public static void populateLocaleSpecificUserInfoBean(
+            final PwmSession pwmSession,
+            final UserInfoBean uiBean,
+            final PwmApplication pwmApplication,
+            final Locale userLocale
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        if (uiBean == null || uiBean.getUserDN() == null) {
+            return;
+        }
+
+        final ChaiUser theUser = ChaiFactory.createChaiUser(uiBean.getUserDN(), pwmApplication.getProxyChaiProvider());
+
+        //populate password policy
+        uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
+
+        //populate c/r challenge set.
+        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, pwmApplication.getConfig(), theUser, uiBean.getPasswordPolicy(), userLocale));
     }
 
     private static Set<String> figurePasswordRuleAttributes(

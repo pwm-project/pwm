@@ -84,9 +84,6 @@ public class SetupResponsesServlet extends TopServlet {
             return;
         }
 
-        // read the action request parameter
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
-
         // check to see if the user is permitted to setup responses
         if (!Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
@@ -94,7 +91,17 @@ public class SetupResponsesServlet extends TopServlet {
             return;
         }
 
-        final SetupResponsesBean setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+        // read the action request parameter
+        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+
+        SetupResponsesBean setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+
+        // check if the locale has changed since first seen.
+        if (pwmSession.getSessionStateBean().getLocale() != setupResponsesBean.getUserLocale()) {
+            pwmSession.clearUserBean(SetupResponsesBean.class);
+            setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+            setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
+        }
         initializeBean(pwmSession, pwmApplication, setupResponsesBean);
 
         // check to see if the user has any challenges assigned
@@ -145,7 +152,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         if (!setupResponsesBean.isHelpdeskResponsesSatisfied()) {
             if (setupResponsesBean.getHelpdeskResponseData().getChallengeSet() == null ||
-                setupResponsesBean.getHelpdeskResponseData().getChallengeSet().getChallenges().isEmpty())
+                    setupResponsesBean.getHelpdeskResponseData().getChallengeSet().getChallenges().isEmpty())
             {
                 setupResponsesBean.setHelpdeskResponsesSatisfied(true);
             } else {

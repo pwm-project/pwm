@@ -27,6 +27,7 @@ import com.novell.ldapchai.cr.ChallengeSet;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 
 public class SetupResponsesBean implements PwmSessionBean {
@@ -35,6 +36,7 @@ public class SetupResponsesBean implements PwmSessionBean {
     private boolean responsesSatisfied;
     private boolean helpdeskResponsesSatisfied;
     private boolean confirmed;
+    private Locale userLocale;
 
     public SetupResponsesBean() {
     }
@@ -77,6 +79,14 @@ public class SetupResponsesBean implements PwmSessionBean {
 
     public void setConfirmed(boolean confirmed) {
         this.confirmed = confirmed;
+    }
+
+    public Locale getUserLocale() {
+        return userLocale;
+    }
+
+    public void setUserLocale(Locale userLocale) {
+        this.userLocale = userLocale;
     }
 
     public static class SetupData implements Serializable {
