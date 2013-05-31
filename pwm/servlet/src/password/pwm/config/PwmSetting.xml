@@ -1576,6 +1576,22 @@
             <value locale="fr"><![CDATA[Quel est ton film préféré moins de tous les temps?::4::200]]></value>
             <value locale="fr"><![CDATA[Qui était votre professeur préféré moins?::4::200]]></value>
             <value locale="fr"><![CDATA[Quels sont les aliments que vous aimez le plus?::4::200]]></value>
+            <value locale="nl"><![CDATA[Hoe heet de hoofdpersoon in uw favoriete boek?::4::200]]></value>
+            <value locale="nl"><![CDATA[Hoe heet uw favoriete leraar?::4::200]]></value>
+            <value locale="nl"><![CDATA[Hoe heet uw favoriete huisdier?::4::200]]></value>
+            <value locale="nl"><![CDATA[Hoe heette uw beste vriend(in) uit uw jeugd?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat was uw favoriete TV-programma in uw jeugd?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wie is uw favoriete schrijver?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat is uw lievelingseten?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat is de bijnaam van uw partner?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat is uw favoriete team?::4::200]]></value>
+            <value locale="nl"><![CDATA[In welke straat bent u opgegroeid?::4::200]]></value>
+            <value locale="nl"><![CDATA[In welke stad of plaats bent u geboren?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat is uw favoriete voertuig?::4::200]]></value>
+            <value locale="nl"><![CDATA[Als u een historisch persoon zou kunnen ontmoeten, wie zou dat zijn?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wat is uw favoriete film aller tijden?::4::200]]></value>
+            <value locale="nl"><![CDATA[Wie was uw minst geliefde leraar?::4::200]]></value>
+            <value locale="nl"><![CDATA[Van welk eten houdt u het minst?::4::200]]></value>
         </default>
     </setting>
     <setting key="challenge.requiredChallenges" level="0">
