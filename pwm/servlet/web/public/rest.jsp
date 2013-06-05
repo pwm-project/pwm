@@ -24,45 +24,19 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<head>
-    <title>REST Web Services Reference</title>
-    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="<%=request.getContextPath()%>/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
-    <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%>/public/resources/dojo/dojo/dojo.js"></script>
-    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/resources/js/main.js"></script>
-    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/jsClientValues.jsp"></script>
-</head>
+<%@ include file="../WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
 <div id="centerbody">
-<% if ("true".equals(request.getParameter("forwardedFromRestServer"))) { %>
+    <% if ("true".equals(request.getParameter("forwardedFromRestServer"))) { %>
 <div class="message message-info">
     It appears you have attempted to request a web service url, however the <i>Accept</i> header was not specified or included a value of <i>html</i>, so you are
     being shown this page instead.
 </div>
-<br/>
-<% } %>
-<div style="padding-left: 30px">
-    <a name="toc"/>
-    <ol>
-        <li><a href="#introduction">introduction</a></li>
-        <br/>
-        <li><a href="#challenges">challenges</a></li>
-        <li><a href="#checkpassword">checkpassword</a></li>
-        <li><a href="#health">health</a></li>
-        <li><a href="#profile">profile</a></li>
-        <li><a href="#randompassword">randompassword</a></li>
-        <li><a href="#setpassword">setpassword</a></li>
-        <li><a href="#statistics">statistics</a></li>
-        <li><a href="#status">status</a></li>
-        <li><a href="#verifyresponses">verifyresponses</a></li>
-    </ol>
-</div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="introduction" href="#toc">introduction</a></h1>
-    <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to faciliate 3rd party application development.</p>
+    <% } %>
+<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+<div data-dojo-type="dijit.layout.ContentPane" title="Introduction">
+    <p>This system has a set of <a href="https://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_APIs">RESTful web APIs</a> to facilitate 3rd party application development.</p>
     <h2>Authentication</h2>
     <p>All web services are authenticated using <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">basic access authentication</a> utilizing the standard <i>Authorization</i> header.</p>
     <p>The username portion of the authentication can either be a fully qualified LDAP DN of the user, or a username string value which the application will search for the user</p>
@@ -93,9 +67,7 @@
         <tr><td>data</td><td>object</td><td>Requested data</td></tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-<h1 style="text-align: center"><a name="challenges" href="#toc">challenges</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="challenges">
 <table >
 <tr>
     <td class="key" style="width:50px">url</td>
@@ -550,9 +522,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 </tr>
 </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="checkpassword" href="#toc">checkpassword</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="checkpassword">
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -687,9 +657,7 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="health" href="#toc">health</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="health">
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -827,56 +795,54 @@ GOOD
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-<h1 style="text-align: center"><a name="profile" href="#toc">profile</a></h1>
-<table >
-<tr>
-    <td class="key" style="width:50px">url</td>
-    <td><a href="<%=request.getContextPath()%>/public/rest/profile"><%=request.getContextPath()%>/public/rest/profile</a></td>
-</tr>
-<tr>
-<td class="key" style="width:50px">GET Method</td>
-<td>
-<table>
-    <tr>
-        <td class="key">Description</td>
-        <td>Retrieve users profile data</td>
-    </tr>
-    <tr>
-        <td class="key">Authentication</td>
-        <td>Required</td>
-    </tr>
-    <tr>
-        <td class="key">Accept-Language Header</td>
-        <td>en
-            <br/>
-            <i>The request will be processed in the context of the specified language</i>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Accept Header</td>
-        <td>application/json</td>
-    </tr>
-</table>
-<table style="max-width: 100%">
-    <tr>
-        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-    </tr>
-    <tr>
-        <td class="key">Request</td>
-        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+<div data-dojo-type="dijit.layout.ContentPane" title="profile">
+    <table >
+        <tr>
+            <td class="key" style="width:50px">url</td>
+            <td><a href="<%=request.getContextPath()%>/public/rest/profile"><%=request.getContextPath()%>/public/rest/profile</a></td>
+        </tr>
+        <tr>
+            <td class="key" style="width:50px">GET Method</td>
+            <td>
+                <table>
+                    <tr>
+                        <td class="key">Description</td>
+                        <td>Retrieve users profile data</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Authentication</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept-Language Header</td>
+                        <td>en
+                            <br/>
+                            <i>The request will be processed in the context of the specified language</i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept Header</td>
+                        <td>application/json</td>
+                    </tr>
+                </table>
+                <table style="max-width: 100%">
+                    <tr>
+                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Request</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 GET <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
 Accept: application/json
 Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                                     </pre>
-        </td>
-    </tr>
-    <tr>
-        <td class="key">Response</td>
-        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Response</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 {
   "error": false,
@@ -955,46 +921,46 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
   }
 }
                                     </pre>
-        </td>
-    </tr>
-</table>
-</td>
-</tr>
-<tr>
-    <td class="key" style="width:50px">POST Method</td>
-    <td>
-        <table>
-            <tr>
-                <td class="key">Description</td>
-                <td>Set profile data</td>
-            </tr>
-            <tr>
-                <td class="key">Authentication</td>
-                <td>Required</td>
-            </tr>
-            <tr>
-                <td class="key">Accept-Language Header</td>
-                <td>en
-                    <br/>
-                    <i>The request will be processed in the context of the specified language</i>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Accept Header</td>
-                <td>application/json</td>
-            </tr>
-            <tr>
-                <td class="key">Content-Type Header</td>
-                <td>application/json</td>
-            </tr>
-        </table>
-        <table style="max-width: 100%">
-            <tr>
-                <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
-            </tr>
-            <tr>
-                <td class="key">Request</td>
-                <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td class="key" style="width:50px">POST Method</td>
+            <td>
+                <table>
+                    <tr>
+                        <td class="key">Description</td>
+                        <td>Set profile data</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Authentication</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept-Language Header</td>
+                        <td>en
+                            <br/>
+                            <i>The request will be processed in the context of the specified language</i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept Header</td>
+                        <td>application/json</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Content-Type Header</td>
+                        <td>application/json</td>
+                    </tr>
+                </table>
+                <table style="max-width: 100%">
+                    <tr>
+                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Request</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 POST <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
 Accept-Language: en
@@ -1009,11 +975,11 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
       "telephoneNumber":"555-1212"
    }
 }                                    </pre>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">Response</td>
-                <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Response</td>
+                        <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                     <pre>
 {
    "error":false,
@@ -1021,16 +987,14 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
    "successMessage":"Your user information has been successfully updated."
 }
                                     </pre>
-                </td>
-            </tr>
-        </table>
-    </td>
-</tr>
-</table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="randompassword" href="#toc">randompassword</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="randompassword">
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1224,9 +1188,7 @@ Content-Type: application/json
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="setpassword" href="#toc">setpassword</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="setpassword">
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1317,9 +1279,7 @@ cLi2mbers
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="statistics" href="#toc">statistics</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="statistics">
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1456,9 +1416,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="status" href="#toc">status</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="status">
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1578,9 +1536,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         </tr>
     </table>
 </div>
-<br/>
-<div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf; padding: 10px">
-    <h1 style="text-align: center"><a name="verifyresponses" href="#toc">verifyresponses</a></h1>
+<div data-dojo-type="dijit.layout.ContentPane" title="verifyresponses">
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
@@ -1633,7 +1589,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                             challenges=[list of challenges]
                             <br/>
                             <i>List of challenge objects including answers with an answerText property.  Retrieve challenge objects using
-                            the <a href="#challenges">challenges</a> service to discover the proper object formatting.</i>
+                                the challenges service to discover the proper object formatting.</i>
                         </td>
                     </tr>
                 </table>
@@ -1699,11 +1655,13 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     </table>
 </div>
 </div>
-</div>
 </body>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
+        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
+            dojoParser.parse();
+        });
         require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
             dojoParser.parse();
         });

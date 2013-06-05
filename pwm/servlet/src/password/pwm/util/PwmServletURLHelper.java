@@ -30,6 +30,10 @@ import java.net.URISyntaxException;
 
 public abstract class PwmServletURLHelper {
 
+    public static boolean isLoginServlet(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_LOGIN);
+    }
+
     public static boolean isResourceURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/public/resources/") ||
                 checkIfMatchesURL(req, "/public/jsClientValues.jsp");
@@ -42,6 +46,11 @@ public abstract class PwmServletURLHelper {
 
     public static boolean isAdminUrl(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/admin/");
+    }
+
+    public static boolean isCommandServletURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_COMMAND) ||
+                checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_COMMAND);
     }
 
     public static boolean isConfigManagerURL(final HttpServletRequest req) {

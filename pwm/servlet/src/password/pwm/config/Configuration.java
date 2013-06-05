@@ -65,9 +65,9 @@ public class Configuration implements Serializable {
     private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
-    public enum STORAGE_METHOD { DB, LDAP, LOCALDB}
+    public enum STORAGE_METHOD { DB, LDAP, LOCALDB, NMAS, NMASUAWS }
 
-    public enum RECOVERY_ACTION { RESETPW, SENDNEWPW_EMAIL, SENDNEWPW_SMS, SENDNEWPW_BOTH }
+    public enum RECOVERY_ACTION { RESETPW, SENDNEWPW }
 
     public enum TokenStorageMethod {STORE_LOCALDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
 
@@ -116,8 +116,8 @@ public class Configuration implements Serializable {
         return availableLocaleMap.get(matchedLocale);
     }
 
-    public PwmSetting.TokenSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
-        return PwmSetting.TokenSendMethod.valueOf(readSettingAsString(setting));
+    public PwmSetting.MessageSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
+        return PwmSetting.MessageSendMethod.valueOf(readSettingAsString(setting));
     }
 
 

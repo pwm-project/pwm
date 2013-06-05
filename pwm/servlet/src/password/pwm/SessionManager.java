@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -38,6 +39,8 @@ import password.pwm.util.operations.UserDataReader;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
@@ -65,6 +68,12 @@ public class SessionManager implements Serializable {
     private transient ConcurrentMap<Serializable,Serializable> lruTypingCache;
     private transient UserDataReader userDataReader;
 
+    private List<CloseConnectionListener> closeConnectionListeners = new ArrayList<CloseConnectionListener>();
+
+    public interface CloseConnectionListener {
+        void connectionsClosed();
+    }
+
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -90,7 +99,6 @@ public class SessionManager implements Serializable {
             providerLock.unlock();
         }
     }
-
 
     public ChaiProvider getChaiProvider()
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -126,9 +134,13 @@ public class SessionManager implements Serializable {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         LOGGER.trace(pwmSession, "attempting to open new ldap connection for " + userDN);
-        final int idleTimeoutMs = (int) config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
+        final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
-        if (pwmSession.getUserInfoBean().isMustUseLdapProxy()) {
+        final boolean authIsFromForgottenPw = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN;
+        final boolean alwaysUseProxyIsEnabled = config.readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
+        final boolean passwordNotPresent = userPassword == null || userPassword.length() < 1;
+
+        if (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent)) {
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             return Helper.createChaiProvider(config, proxyDN, proxyPassword, idleTimeoutMs);
@@ -151,6 +163,19 @@ public class SessionManager implements Serializable {
     }
 
     private void closeConnectionImpl() {
+        if (!closeConnectionListeners.isEmpty()) {
+            try {
+                LOGGER.debug(pwmSession, "closing user ldap connection");
+                for (CloseConnectionListener closeConnectionListener : closeConnectionListeners) {
+                    closeConnectionListener.connectionsClosed();
+                }
+                closeConnectionListeners.clear();
+            } catch (Throwable e) {
+                LOGGER.error(pwmSession, "error while calling close connection listeners: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         try {
             providerLock.lock();
             if (chaiProvider != null) {
@@ -236,6 +261,10 @@ public class SessionManager implements Serializable {
 
     public void clearUserDataReader() {
         userDataReader = null;
+    }
+
+    public void addCloseConnectionListener(CloseConnectionListener closeConnectionListener) {
+        this.closeConnectionListeners.add(closeConnectionListener);
     }
 
 }

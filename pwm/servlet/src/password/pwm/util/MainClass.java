@@ -27,7 +27,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChaiResponseSet;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import org.apache.log4j.*;
@@ -35,12 +34,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.TokenManager;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
-import password.pwm.util.operations.CrUtility;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.localdb.*;
 import password.pwm.util.stats.StatisticsManager;
@@ -208,7 +207,7 @@ public class MainClass {
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;
         for (final ChaiUser user : results.keySet()) {
-            final ResponseSet responseSet = CrUtility.readUserResponseSet(null, pwmApplication, user);
+            final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(null, user);
             if (responseSet != null) {
                 counter++;
                 out("found responses for '" + user.getEntryDN() + "', writing to output.");
@@ -266,10 +265,10 @@ public class MainClass {
             if (user.isValid()) {
                 out("writing responses to user '" + user.getEntryDN() + "'");
                 try {
-                    final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(null, pwmApplication.getConfig(), user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                    final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
                     final String userGuid = Helper.readLdapGuidValue(pwmApplication, user.getEntryDN());
-                    final ChaiResponseSet chaiResponseSet = inputData.toResponseSet(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
-                    CrUtility.writeResponses(null,pwmApplication,user,userGuid,chaiResponseSet);
+                    final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
+                    pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
                 } catch (Exception e) {
                     out("error writing responses to user '" + user.getEntryDN() + "', error: " + e.getMessage());
                     return;

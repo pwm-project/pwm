@@ -35,7 +35,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
-import password.pwm.util.operations.CrUtility;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -116,7 +115,7 @@ public class RestVerifyResponsesServer {
                 chaiUser = ChaiFactory.createChaiUser(userDN, actorProvider);
             }
 
-            final ResponseSet responseSet = CrUtility.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getPwmApplication(),chaiUser);
+            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession(), chaiUser);
             final boolean verified = responseSet.test(jsonInput.toCrMap());
 
             final String successMsg = Message.SUCCESS_UNKNOWN.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());

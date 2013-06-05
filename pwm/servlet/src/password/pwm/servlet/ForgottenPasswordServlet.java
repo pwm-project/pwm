@@ -31,10 +31,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.ForgottenPasswordBean;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PasswordStatus;
@@ -44,6 +41,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
 import password.pwm.util.operations.*;
+import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -106,7 +104,7 @@ public class
         if (processAction != null && processAction.length() > 0) {
             Validator.validatePwmFormID(req);
 
-            final boolean tokenEnabled = PwmSetting.TokenSendMethod.NONE != PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+            final boolean tokenEnabled = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
             final boolean tokenNeeded = tokenEnabled && !forgottenPasswordBean.isTokenSatisfied();
             final boolean responsesEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES) || !config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES).isEmpty();
             final boolean responsesNeeded = responsesEnabled && !forgottenPasswordBean.isResponsesSatisfied();
@@ -281,7 +279,7 @@ public class
     {
         // retrieve the responses for the user from ldap
         final ChaiUser theUser = forgottenPasswordBean.getProxiedUser();
-        final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser);
+        final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(pwmSession, theUser);
         final ChallengeSet presentableChallengeSet;
 
         if (responseSet != null) {
@@ -305,7 +303,7 @@ public class
             }
 
             // read the user's assigned response set.
-            final ChallengeSet challengeSet = CrUtility.readUserChallengeSet(pwmSession, pwmApplication.getConfig(), theUser, null, responseSetLocale);
+            final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(theUser, null, responseSetLocale);
 
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
@@ -399,6 +397,12 @@ public class
                 }
                 forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
 
+                // special case for nmas, clear out existing challenges and input fields.
+                if (!responsesSatisfied && responseSet instanceof NMASCrOperator.NMASCRResponseSet) {
+                    forgottenPasswordBean.setChallengeSet(responseSet.getPresentableChallengeSet());
+                    pwmSession.getSessionStateBean().setLastParameterValues(Collections.<String,String>emptyMap());
+                }
+
                 if (responsesSatisfied) {
                     // update the status bean
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
@@ -483,7 +487,7 @@ public class
         }
 
         // process for token-enabled recovery
-        final boolean tokenEnabled = PwmSetting.TokenSendMethod.NONE != PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final boolean tokenEnabled = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         if (tokenEnabled) {
             if (!forgottenPasswordBean.isTokenSatisfied()) {
                 this.initializeToken(pwmSession, pwmApplication, forgottenPasswordBean.getProxiedUser());
@@ -500,7 +504,7 @@ public class
         forgottenPasswordBean.setAllPassed(true);
         LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
 
-        if (config.getRecoveryAction() != Configuration.RECOVERY_ACTION.RESETPW) {
+        if (config.getRecoveryAction() == Configuration.RECOVERY_ACTION.SENDNEWPW) {
             this.processSendNewPassword(req,resp);
             return;
         }
@@ -573,7 +577,7 @@ public class
         }
 
         try {
-            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure(), UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
@@ -621,7 +625,7 @@ public class
         }
 
         try {
-            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure());
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, req.isSecure(), UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
             final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
             final String toSmsNumber = pwmSession.getUserInfoBean().getUserSmsNumber();
 
@@ -790,7 +794,7 @@ public class
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
         final UserDataReader userDataReader = new UserDataReader(theUser);
@@ -820,24 +824,40 @@ public class
             throws PwmOperationalException
     {
         final Configuration config = pwmApplication.getConfig();
-        final Configuration.RECOVERY_ACTION recoveryAction = config.getRecoveryAction();
+
+        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_SENDNEWPW_METHOD));
+
         ErrorInformation error = null;
-        switch (recoveryAction) {
-            case SENDNEWPW_BOTH:
+        switch (pref) {
+            case BOTH:
                 // Send both email and SMS, success if one of both succeeds
                 final ErrorInformation err1 = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
                 final ErrorInformation err2 = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
                 if (err1 != null) {
-                    error = err1;
+                  error = err1;
                 } else if (err2 != null) {
-                    error = err2;
+                  error = err2;
                 }
                 break;
-            case SENDNEWPW_SMS:
+            case EMAILFIRST:
+                // Send email first, try SMS if email is not available
+                error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
+                if (error != null) {
+                  error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
+                }
+                break;
+            case SMSFIRST:
+                // Send SMS first, try email if SMS is not available
+                error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
+                if (error != null) {
+                  error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
+                }
+                break;
+            case SMSONLY:
                 // Only try SMS
                 error = sendNewPasswordSms(pwmSession, pwmApplication, userDataReader, newPassword, toNumber);
                 break;
-            case SENDNEWPW_EMAIL:
+            case EMAILONLY:
             default:
                 // Only try email
                 error = sendNewPasswordEmail(pwmSession, pwmApplication, userDataReader, newPassword, toAddress);
@@ -926,7 +946,7 @@ public class
 
             try {
                 LOGGER.trace(pwmSession, "performing bad-password login attempt against ldap directory as a result of forgotten password recovery invalid attempt against " + userDN);
-                UserAuthenticator.testCredentials(userDN, PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT, pwmSession, pwmApplication);
+                UserAuthenticator.testCredentials(userDN, PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT, pwmSession);
                 LOGGER.warn(pwmSession, "bad-password login attempt succeeded for " + userDN + "! (this should always fail)");
             } catch (PwmOperationalException e) {
                 if (e.getError() == PwmError.ERROR_WRONGPASSWORD) {

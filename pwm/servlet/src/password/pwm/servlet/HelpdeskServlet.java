@@ -192,12 +192,10 @@ public class HelpdeskServlet extends TopServlet {
                     action.getName()
             ));
             ServletHelper.outputJsonResult(resp, restResultBean);
-            return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession,e.getErrorInformation().toDebugStr());
             final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(), pwmApplication, pwmSession);
             ServletHelper.outputJsonResult(resp, restResultBean);
-            return;
         }
     }
 
@@ -316,19 +314,6 @@ public class HelpdeskServlet extends TopServlet {
         helpdeskBean.setUserInfoBean(uiBean);
         HelpdeskBean.AdditionalUserInfo additionalUserInfo = new HelpdeskBean.AdditionalUserInfo();
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);
-        {
-            final ResponseSet responseSet = CrUtility.readUserResponseSet(pwmSession,pwmApplication,theUser);
-            if (responseSet != null) {
-                final Map<Challenge,String> helpdeskResponseSet = responseSet.getHelpdeskResponses();
-                if (helpdeskResponseSet != null) {
-                    final Map<String,String> helpdeskResponses = new LinkedHashMap<String, String>();
-                    for (final Challenge challenge : helpdeskResponseSet.keySet()) {
-                        helpdeskResponses.put(challenge.getChallengeText(), helpdeskResponseSet.get(challenge));
-                    }
-                    helpdeskBean.setHelpdeskResponses(helpdeskResponses);
-                }
-            }
-        }
 
         try {
             additionalUserInfo.setIntruderLocked(theUser.isLocked());
@@ -350,7 +335,7 @@ public class HelpdeskServlet extends TopServlet {
 
         try {
             additionalUserInfo.setPwmIntruder(false);
-            pwmApplication.getIntruderManager().check(null,userDN,pwmSession);
+            pwmApplication.getIntruderManager().check(uiBean.getUserID(),userDN,pwmSession);
         } catch (Exception e) {
             additionalUserInfo.setPwmIntruder(true);
         }
@@ -360,12 +345,6 @@ public class HelpdeskServlet extends TopServlet {
             additionalUserInfo.setUserHistory(pwmApplication.getAuditManager().readUserAuditRecords(uiBean));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
-        }
-
-        try {
-            additionalUserInfo.setResponseSet(CrUtility.readUserResponseSet(pwmSession, pwmApplication, theUser));
-        } catch (Exception e) {
-            LOGGER.error(pwmSession,"unexpected error reading user response set for user '" + userDN + "', " + e.getMessage());
         }
 
         {

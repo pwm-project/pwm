@@ -44,7 +44,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
@@ -211,7 +211,7 @@ public class SetupResponsesServlet extends TopServlet {
             // read in the responses from the request
             final Map<Challenge, String> responseMap = readResponsesFromJsonRequest(req, pwmApplication, setupData);
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
-            CrUtility.validateResponses(pwmApplication, setupData.getChallengeSet(), responseMap, minRandomRequiredSetup);
+            pwmApplication.getCrService().validateResponses(setupData.getChallengeSet(), responseMap, minRandomRequiredSetup);
             generateResponseInfoBean(pwmSession, setupData.getChallengeSet(), responseMap, Collections.<Challenge,String>emptyMap());
         } catch (PwmDataValidationException e) {
             success = false;
@@ -248,7 +248,7 @@ public class SetupResponsesServlet extends TopServlet {
 
             // test the responses.
             final int minRandomRequiredSetup = setupData.getMinRandomSetup();
-            CrUtility.validateResponses(pwmApplication, challengeSet, responseMap, minRandomRequiredSetup);
+            pwmApplication.getCrService().validateResponses(challengeSet, responseMap, minRandomRequiredSetup);
         } catch (PwmDataValidationException e) {
             LOGGER.debug(pwmSession, "error with new " + (helpdeskMode ? "helpdesk" : "user") + " responses: " + e.getErrorInformation().toDebugStr());
             ssBean.setSessionError(e.getErrorInformation());
@@ -272,7 +272,7 @@ public class SetupResponsesServlet extends TopServlet {
     {
         final ChaiUser theUser = pwmSession.getSessionManager().getActor();
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
-        CrUtility.writeResponses(pwmSession, pwmApplication, theUser, userGUID, responseInfoBean);
+        pwmApplication.getCrService().writeResponses(theUser, userGUID, responseInfoBean);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
@@ -408,7 +408,7 @@ public class SetupResponsesServlet extends TopServlet {
             responseSet.meetsChallengeSetRequirements(challengeSet);
 
             final int minRandomRequiredSetup = pwmSession.getSetupResponseBean().getResponseData().getMinRandomSetup();
-            if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponses must be supplied at this point.
+            if (minRandomRequiredSetup == 0) { // if using recover style, then all readResponseSet must be supplied at this point.
                 if (responseSet.getChallengeSet().getRandomChallenges().size() < challengeSet.getRandomChallenges().size()) {
                     throw new ChaiValidationException("too few random responses", ChaiError.CR_TOO_FEW_RANDOM_RESPONSES);
                 }

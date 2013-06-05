@@ -35,6 +35,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.util.operations.UserSearchEngine" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
+<%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -44,6 +46,7 @@
 <% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
 <% final HelpdeskServlet.SETTING_PW_UI_MODE SETTING_PW_UI_MODE = HelpdeskServlet.SETTING_PW_UI_MODE.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
 <% final HelpdeskServlet.SETTING_CLEAR_RESPONSES SETTING_CLEAR_RESPONSES = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES)); %>
+<% final ResponseInfoBean responseInfoBean = helpdeskBean.getUserInfoBean().getResponseInfoBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler()" class="nihilo">
@@ -213,7 +216,7 @@
                 <pwm:Display key="Field_ResponsesStored"/>
             </td>
             <td>
-                <% if (helpdeskBean.getAdditionalUserInfo().getResponseSet() != null) { %>
+                <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
                 <pwm:Display key="Value_True"/>
                 <% } else { %>
                 <pwm:Display key="Value_False"/>
@@ -237,7 +240,7 @@
                 <pwm:Display key="Field_ResponsesTimestamp"/>
             </td>
             <td>
-                <%= helpdeskBean.getAdditionalUserInfo().getResponseSet() != null && helpdeskBean.getAdditionalUserInfo().getResponseSet().getTimestamp() != null ? dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getResponseSet().getTimestamp()) : "n/a" %>
+                <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : "n/a" %>
             </td>
         </tr>
     </table>
@@ -306,16 +309,16 @@
         </table>
     </div>
 </div>
-<% if (!helpdeskBean.getHelpdeskResponses().isEmpty()) { %>
+<% if (responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null && !responseInfoBean.getHelpdeskCrMap().isEmpty()) { %>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_SecurityResponses"/>">
     <table>
-        <% for (final String challenge : helpdeskBean.getHelpdeskResponses().keySet()) { %>
+        <% for (final Challenge challenge : responseInfoBean.getHelpdeskCrMap().keySet()) { %>
         <tr>
             <td class="key">
-                <%=challenge%>
+                <%=challenge.getChallengeText()%>
             </td>
             <td>
-                <%=helpdeskBean.getHelpdeskResponses().get(challenge)%>
+                <%=responseInfoBean.getHelpdeskCrMap().get(challenge)%>
             </td>
         </tr>
         <% } %>

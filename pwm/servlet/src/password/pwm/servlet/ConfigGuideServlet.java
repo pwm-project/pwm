@@ -41,6 +41,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.X509Utils;
 import password.pwm.util.operations.UserSearchEngine;
@@ -466,6 +467,9 @@ public class ConfigGuideServlet extends TopServlet {
         ConfigurationReader configReader = contextManager.getConfigReader();
 
         try {
+            // add a random security key
+            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)));
+
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
             configReader.saveConfiguration(storedConfiguration);
 

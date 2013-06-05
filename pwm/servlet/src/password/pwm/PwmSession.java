@@ -320,7 +320,7 @@ public class PwmSession implements Serializable {
                 sb.append(", ");
                 sb.append("dn=").append(getUserInfoBean().getUserDN());
                 sb.append(", ");
-                sb.append("forceLdapProxy=").append(!getUserInfoBean().isMustUseLdapProxy());
+                sb.append("authType=").append(getUserInfoBean().getAuthenticationType());
                 sb.append(", ");
                 sb.append("needsNewPW=").append(getUserInfoBean().isRequiresNewPassword());
                 sb.append(", ");

@@ -103,21 +103,22 @@ public class Helper {
             final String userPassword,
             final int idleTimeoutMs
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException
+    {
         final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword, idleTimeoutMs);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
 
-    private static ChaiConfiguration createChaiConfiguration(
+    public static ChaiConfiguration createChaiConfiguration(
             final Configuration config,
             final List<String> ldapURLs,
             final String userDN,
             final String userPassword,
             final int idleTimeoutMs
     )
-            throws ChaiUnavailableException {
+    {
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
@@ -1109,7 +1110,7 @@ public class Helper {
                 final UserInfoBean userInfoBean,
                 final UserDataReader userDataReader,
                 final EmailItemBean configuredEmailSetting,
-                final PwmSetting.TokenSendMethod tokenSendMethod,
+                final PwmSetting.MessageSendMethod tokenSendMethod,
                 final String emailAddress,
                 final String smsNumber,
                 final String smsMessage,

@@ -67,7 +67,7 @@ public class ConfigurationChecker implements HealthChecker {
             final String value = PwmSetting.PWM_URL.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
                     + " -> " + PwmSetting.PWM_URL.getLabel(PwmConstants.DEFAULT_LOCALE);
 
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoSiteURL",value)));
+            records.add(new HealthRecord(HealthStatus.WARN, TOPIC, localizedString(pwmApplication,"Health_Config_NoSiteURL",value)));
         }
 
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
@@ -145,8 +145,8 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == PwmSetting.TokenSendMethod.NONE) {
-                    final Collection<String> formSettings = config.readSettingAsLocalizedStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES, null);
+                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == PwmSetting.MessageSendMethod.NONE) {
+                    final Collection<String> formSettings = config.readSettingAsStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
                     if (formSettings == null || formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoRecoveryEnabled")));
                     }

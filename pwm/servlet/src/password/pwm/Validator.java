@@ -401,27 +401,27 @@ public class Validator {
             }
 
             if (!results.isEmpty()) {
+                final ChaiUser theUser = results.keySet().iterator().next();
                 if (labelMap.size() == 1) { // since only one value searched, it must be that one value
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{labelMap.values().iterator().next()});
-                    //System.out.println("----size=1," + (new Gson().toJson(error)));
+                    final String attributeName = labelMap.values().iterator().next();
+                    LOGGER.trace("found duplicate value for attribute '" + attributeName + "' on entry " + theUser.getEntryDN());
+                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{attributeName});
                     throw new PwmDataValidationException(error);
                 }
 
                 // do a compare on a user values to find one that matches.
-                final ChaiUser theUser = results.keySet().iterator().next();
                 for (final String name : filterClauses.keySet()) {
                     final String value = filterClauses.get(name);
                     if (theUser.compareStringAttribute(name,value)) {
                         final String label = labelMap.get(name);
+                        LOGGER.trace("found duplicate value for attribute '" + label + "' on entry " + theUser.getEntryDN());
                         final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{label});
-                        //System.out.println("----compare-loop-name=," + name + ", value=" + value + ", label=" + label + ", " + (new Gson().toJson(error)));
                         throw new PwmDataValidationException(error);
                     }
                 }
 
                 // user didn't match on the compare.. shouldn't get here but just in case
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
-                //System.out.println("----failsafe, " + (new Gson().toJson(error)));
                 throw new PwmDataValidationException(error);
             }
         } catch (PwmOperationalException e) {

@@ -38,24 +38,14 @@ public class HelpdeskBean implements PwmSessionBean {
     private UserInfoBean userInfoBean = new UserInfoBean();
     private UserSearchEngine.UserSearchResults searchResults;
     private AdditionalUserInfo additionalUserInfo = new AdditionalUserInfo();
-    private Map<String,String> helpdeskResponses = Collections.emptyMap();
 
     public static class AdditionalUserInfo implements Serializable {
-        private transient ResponseSet responseSet;
         private boolean intruderLocked;
         private boolean pwmIntruder;
         private boolean accountEnabled;
         private Date lastLoginTime;
         private List<AuditRecord> userHistory;
         private Map<FormConfiguration, String> searchDetails;
-
-        public ResponseSet getResponseSet() {
-            return responseSet;
-        }
-
-        public void setResponseSet(ResponseSet responseSet) {
-            this.responseSet = responseSet;
-        }
 
         public boolean isIntruderLocked() {
             return intruderLocked;
@@ -138,11 +128,4 @@ public class HelpdeskBean implements PwmSessionBean {
         this.additionalUserInfo = additionalUserInfo;
     }
 
-    public Map<String, String> getHelpdeskResponses() {
-        return helpdeskResponses;
-    }
-
-    public void setHelpdeskResponses(Map<String, String> helpdeskResponses) {
-        this.helpdeskResponses = helpdeskResponses;
-    }
 }

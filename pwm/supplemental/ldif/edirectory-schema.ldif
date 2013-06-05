@@ -8,7 +8,7 @@
 #-- To update directories with a pre-existing pwm schema
 #-- import using a "continue after error" option.
 #--
-#-- Last updated - 1/16/2011
+#-- Last updated - 5/31/2013
 #--
 #-- ASN Private Enterprise Number registered to PWM Project:
 #-- 35015
@@ -72,6 +72,20 @@ attributeTypes: (
  )
 
 #------------------------------------------------------
+#-- Attribute:  	pwmToken
+#-- Syntax:      	STRING
+#-- Description:	Storage of validation token
+#------------------------------------------------------
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.5
+  NAME 'pwmToken'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+#------------------------------------------------------
 #-- Class:        pwmUser
 #-- Description:  Aux class
 #-- Req:          none
@@ -86,7 +100,7 @@ objectClasses: (
   1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
   AUXILIARY
-  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID )
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken )
  )
 
 # The following section handles the add/delete operations neccessary to
@@ -148,6 +162,20 @@ attributeTypes: (
 
 dn: cn=schema
 changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmToken'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.5
+  NAME 'pwmToken'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+dn: cn=schema
+changetype: modify
 delete: objectClasses
 objectClasses: (
   1.3.6.1.4.1.35015.1.1.1
@@ -159,5 +187,5 @@ objectClasses: (
   1.3.6.1.4.1.35015.1.1.1
   NAME 'pwmUser'
   AUXILIARY
-  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID )
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken )
  )

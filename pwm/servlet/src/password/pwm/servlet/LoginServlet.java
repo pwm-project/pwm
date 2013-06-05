@@ -65,70 +65,70 @@ public class
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
+        final boolean passwordOnly = ssBean.isAuthenticated() && pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD;
+
         if (actionParam != null && actionParam.equalsIgnoreCase("login")) {
             Validator.validatePwmFormID(req);
             final String username = Validator.readStringFromRequest(req, "username");
             final String password = Validator.readStringFromRequest(req, "password");
             final String context = Validator.readStringFromRequest(req, "context");
 
-            if (username.length() < 1 || password.length() < 1) {
+            if (!passwordOnly && (username.length() < 1)) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
-                this.forwardToJSP(req, resp);
+                this.forwardToJSP(req, resp, passwordOnly);
+                return;
+            }
+
+            if (password.length() < 1) {
+                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
+                this.forwardToJSP(req, resp, passwordOnly);
                 return;
             }
 
             try {
-                UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
+                if (passwordOnly) {
+                    final String userDN = pwmSession.getUserInfoBean().getUserDN();
+                    UserAuthenticator.testCredentials(userDN, password, pwmSession);
+                    UserAuthenticator.authenticateUser(userDN, password, null, pwmSession,pwmApplication, req.isSecure());
+                } else {
+                    UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
+                }
+
+                // recycle the session to prevent session fixation attack.
                 ServletHelper.recycleSessions(pwmSession, req);
+
+                // see if there is a an original request url
+                final String originalURL = ssBean.getOriginalRequestURL();
+
+                if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
+                    resp.sendRedirect(SessionFilter.rewriteRedirectURL(ssBean.getOriginalRequestURL(), req, resp));
+                } else {
+                    resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
+                }
+                return;
             } catch (PwmOperationalException e) {
                 ssBean.setSessionError(e.getErrorInformation());
-                this.forwardToJSP(req, resp);
-                return;
-            }
-
-            //if there is a basic auth header, make sure its the same, otherwise, kill the session.
-            final BasicAuthInfo basic = BasicAuthInfo.parseAuthHeader(req);
-            if (basic != null) {
-                boolean mismatch = false;
-                final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-                if (!basic.getUsername().equalsIgnoreCase(uiBean.getUserID()) && !basic.getUsername().equalsIgnoreCase(uiBean.getUserDN())) {
-                    LOGGER.info(pwmSession, "user " + uiBean.getUserDN() + " username mismatch between supplied username and username in basic auth header");
-                    mismatch = true;
-                }
-                if (!basic.getPassword().equalsIgnoreCase(password)) {
-                    LOGGER.info(pwmSession, "user " + uiBean.getUserDN() + " password mismatch between supplied password and password in basic auth header");
-                    mismatch = true;
-                }
-                if (mismatch) {
-                    pwmSession.unauthenticateUser();
-                    ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_USER_MISMATCH));
-                    ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-                    return;
-                }
             }
         }
 
         // if user is already authenticated then redirect them elsewhere.
-        if (ssBean.isAuthenticated()) {
-            // see if there is a an original request url
-            final String originalURL = ssBean.getOriginalRequestURL();
-
-            if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(ssBean.getOriginalRequestURL(), req, resp));
-            } else {
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
-            }
-        } else {
-            forwardToJSP(req, resp);
-        }
+        this.forwardToJSP(req, resp, passwordOnly);
     }
 
     private void forwardToJSP(
             final HttpServletRequest req,
-            final HttpServletResponse resp
+            final HttpServletResponse resp,
+            final boolean passwordOnly
     )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final String url;
+        if (passwordOnly) {
+            url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN_PW_ONLY, req, resp);
+        } else {
+            url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
+        }
+
         this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 }

@@ -471,6 +471,10 @@ public class IntruderManager implements Serializable, PwmService {
 
         public void markSubject(final String subject)
         {
+            if (subject == null || subject.length() < 1) {
+                return;
+            }
+
             InternalRecord record = recordStore.read(subject);
             if (record == null) {
                 record = new InternalRecord(subject);

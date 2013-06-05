@@ -34,7 +34,7 @@ import password.pwm.config.PasswordStatus;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.operations.CrUtility;
+import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.operations.UserStatusHelper;
 
@@ -90,7 +90,7 @@ public class UserReport {
         userInformation.setPasswordStatus(uiBean.getPasswordState());
 
         try {
-            final ResponseSet responseSet = CrUtility.readUserResponseSet(null, pwmApplication, theUser);
+            final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(null, theUser);
             userInformation.setResponseSetTime(responseSet == null ? null : responseSet.getTimestamp());
         } catch (ChaiOperationException e) {
             LOGGER.debug("error reading response set for " + theUser.getEntryDN() + " : " + e.getMessage());

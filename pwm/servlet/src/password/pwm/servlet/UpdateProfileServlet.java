@@ -355,6 +355,9 @@ public class UpdateProfileServlet extends TopServlet {
         // re-populate the uiBean because we have changed some values.
         UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
 
+        // clear cached read attributes.
+        pwmSession.getSessionManager().clearUserDataReader();
+
         {  // execute configured actions
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(actor.getEntryDN(), pwmApplication.getProxyChaiProvider());
             LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());

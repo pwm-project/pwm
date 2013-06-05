@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.util.operations.CrUtility" %>
+<%@ page import="password.pwm.util.operations.CrService" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
@@ -34,6 +34,7 @@
 <%@ page import="java.util.Collections" %>
 <%@ page import="password.pwm.event.AuditRecord" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -130,16 +131,7 @@
         </table>
         <br/>
         <table>
-            <%
-                ResponseSet userResponses = null;
-                try {
-                    userResponses = CrUtility.readUserResponseSet(pwmSession, ContextManager.getPwmApplication(session), pwmSession.getSessionManager().getActor());
-                } catch (ChaiUnavailableException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                } catch (PwmUnrecoverableException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-            %>
+            <% ResponseInfoBean responseInfoBean = pwmSession.getUserInfoBean().getResponseInfoBean(); %>
             <tr>
                 <td class="key">
                     <pwm:Display key="Field_ResponsesStored"/>
@@ -153,7 +145,7 @@
                     <pwm:Display key="Field_ResponsesTimestamp"/>
                 </td>
                 <td>
-                    <%= userResponses != null && userResponses.getTimestamp() != null ? dateFormatter.format(userResponses.getTimestamp()) : "n/a" %>
+                    <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : "n/a" %>
                 </td>
             </tr>
         </table>

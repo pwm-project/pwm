@@ -1658,7 +1658,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
             clearDijitWidget(inputID + "body");
             new dijit.form.Textarea({
                 value: clientSettingCache[keyName][iteration]['body'],
-                onChange: function(){clientSettingCache[keyName][iteration]['body'] = this.checked;ActionHandler.writeFormSetting(keyName)}
+                onChange: function(){clientSettingCache[keyName][iteration]['body'] = this.value;ActionHandler.writeFormSetting(keyName)}
             },inputID + "body");
 
         } else if (clientSettingCache[keyName][iteration]['type'] == 'ldap') {

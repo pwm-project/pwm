@@ -161,7 +161,7 @@ public class ActivateUserServlet extends TopServlet {
                 final String errorMsg = "user " + theUser.getEntryDN() + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
                 pwmApplication.getIntruderManager().mark(null, theUser.getEntryDN(), pwmSession);
-                throw new PwmOperationalException(errorInformation);
+                throw new PwmUnrecoverableException(errorInformation);
             }
 
             final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
@@ -190,7 +190,7 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        final boolean tokenRequired = PwmSetting.TokenSendMethod.NONE != PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final boolean tokenRequired = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         if (tokenRequired) {
             if (!activateUserBean.isTokenIssued()) {
                 try {
@@ -256,7 +256,7 @@ public class ActivateUserServlet extends TopServlet {
             }
 
             //authenticate the pwm session
-            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true);
+            UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true, UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
 
             // mark the event log
             pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(),pwmSession);
@@ -380,7 +380,7 @@ public class ActivateUserServlet extends TopServlet {
     {
         final Configuration config = pwmApplication.getConfig();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final boolean success;
         switch (pref) {
             case BOTH:
@@ -634,7 +634,7 @@ public class ActivateUserServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.TokenSendMethod pref = PwmSetting.TokenSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
         final UserDataReader userDataReader = new UserDataReader(theUser);

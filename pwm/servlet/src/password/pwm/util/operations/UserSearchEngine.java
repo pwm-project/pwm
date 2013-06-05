@@ -132,6 +132,7 @@ public class UserSearchEngine {
     public ChaiUser performSingleUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
+        final long startTime = System.currentTimeMillis();
         final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
         final List<ChaiUser> results = searchResults == null ? Collections.<ChaiUser>emptyList() : new ArrayList<ChaiUser>(searchResults.keySet());
         if (results.isEmpty()) {
@@ -145,7 +146,7 @@ public class UserSearchEngine {
         } else if (results.size() == 1) {
             final ChaiUser theUser = results.get(0);
             final String userDN = theUser.getEntryDN();
-            LOGGER.debug(pwmSession, "found userDN: " + userDN);
+            LOGGER.debug(pwmSession, "found userDN: " + userDN + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
             return theUser;
         } else {
             final String errorMessage = "multiple user matches found";
@@ -266,7 +267,9 @@ public class UserSearchEngine {
             final int maxResults,
             final ChaiProvider chaiProvider
     )
-            throws ChaiUnavailableException, PwmOperationalException, ChaiOperationException {
+            throws ChaiUnavailableException, PwmOperationalException, ChaiOperationException
+    {
+        final long startTime = System.currentTimeMillis();
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(maxResults);
         searchHelper.setFilter(searchFilter);
@@ -281,7 +284,7 @@ public class UserSearchEngine {
             return Collections.emptyMap();
         }
 
-        LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context);
+        LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
 
         final Map<ChaiUser,Map<String,String>> returnMap = new LinkedHashMap<ChaiUser, Map<String, String>>();
         for (final String userDN : results.keySet()) {

@@ -66,6 +66,7 @@ public abstract class PwmConstants {
     public static final int MAX_EMAIL_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxEmailQueueSize"));
     public static final int MAX_SMS_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxSmsQueueSize"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
+    public static final int MAX_NMAS_THREAD_COUNT = Integer.parseInt(readPwmConstantsBundle("maxNmasThreadCount"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
 
@@ -145,6 +146,7 @@ public abstract class PwmConstants {
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
 
     public static final String URL_JSP_LOGIN = "WEB-INF/jsp/login.jsp";
+    public static final String URL_JSP_LOGIN_PW_ONLY = "WEB-INF/jsp/login-passwordonly.jsp";
     public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
     public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";

@@ -49,7 +49,7 @@
                 if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
             %>
             <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context">
+            <select name="context" id="context" class="inputfield">
                 <pwm:DisplayLocationOptions name="context"/>
             </select>
             <% } %>

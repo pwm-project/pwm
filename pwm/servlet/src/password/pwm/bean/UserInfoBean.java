@@ -46,20 +46,12 @@ public class UserInfoBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private String userDN;
-
-    /**
-     * The logged in user's password,
-     */
     private String userCurrentPassword;
-
     private String userID;
-
     private String userEmailAddress;
     private String userSmsNumber;
-
     private String userGuid;
 
-    private boolean mustUseLdapProxy;
 
     /**
      * A listing of all readable attributes on the ldap user object
@@ -67,21 +59,31 @@ public class UserInfoBean implements PwmSessionBean {
     private Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
     private PasswordStatus passwordState = new PasswordStatus();
-    private long authTime;
 
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
     private ChallengeSet challengeSet = null;
+    private ResponseInfoBean responseInfoBean = null;
 
     private Date passwordExpirationTime;
     private Date passwordLastModifiedTime;
+    private Date authTime;
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<Permission, Permission.PERMISSION_STATUS>();
 
-    private boolean requiresNewPassword = false;
-    private boolean requiresResponseConfig = false;
-    private boolean requiresUpdateProfile = false;
+    private boolean requiresNewPassword;
+    private boolean requiresResponseConfig;
+    private boolean requiresUpdateProfile;
+    
+    private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
 
     private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<String, PostChangePasswordAction>();
+
+    public enum AuthenticationType {
+        UNAUTHENTICATED,
+        AUTHENTICATED,
+        AUTH_FROM_FORGOTTEN,
+        AUTH_WITHOUT_PASSWORD
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -93,11 +95,11 @@ public class UserInfoBean implements PwmSessionBean {
         cachedPasswordRuleAttributes = userAttributes;
     }
 
-    public long getAuthTime() {
+    public Date getAuthTime() {
         return authTime;
     }
 
-    public void setAuthTime(final long authTime) {
+    public void setAuthTime(final Date authTime) {
         this.authTime = authTime;
     }
 
@@ -259,12 +261,20 @@ public class UserInfoBean implements PwmSessionBean {
         this.postChangePasswordActions = postChangePasswordActions;
     }
 
-    public boolean isMustUseLdapProxy() {
-        return mustUseLdapProxy;
+    public ResponseInfoBean getResponseInfoBean() {
+        return responseInfoBean;
     }
 
-    public void setMustUseLdapProxy(boolean mustUseLdapProxy) {
-        this.mustUseLdapProxy = mustUseLdapProxy;
+    public void setResponseInfoBean(ResponseInfoBean responseInfoBean) {
+        this.responseInfoBean = responseInfoBean;
+    }
+
+    public AuthenticationType getAuthenticationType() {
+        return authenticationType;
+    }
+
+    public void setAuthenticationType(AuthenticationType authenticationType) {
+        this.authenticationType = authenticationType;
     }
 }
 

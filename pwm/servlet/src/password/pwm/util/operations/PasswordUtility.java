@@ -174,8 +174,8 @@ public class PasswordUtility {
         // clear the "requires new password flag"
         uiBean.setRequiresNewPassword(false);
 
-        // uibean
-        uiBean.setMustUseLdapProxy(false);
+        // mark the auth type as authenticated now that we have the user's natural password.
+        uiBean.setAuthenticationType(UserInfoBean.AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
         uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(),uiBean));
@@ -319,7 +319,7 @@ public class PasswordUtility {
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
             final String userGUID = Helper.readLdapGuidValue(pwmApplication, proxiedUser.getEntryDN());
-            CrUtility.clearResponses(pwmSession, pwmApplication, proxiedUser, userGUID);
+            pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log
             final AuditRecord auditRecord = new AuditRecord(

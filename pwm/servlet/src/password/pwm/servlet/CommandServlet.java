@@ -38,7 +38,6 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.UserReport;
-import password.pwm.util.operations.CrUtility;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -118,15 +117,12 @@ public class CommandServlet extends TopServlet {
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-
         if (!preCheckUser(req, resp)) {
             return;
         }
 
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
-        final boolean responseConfigNeeded = CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet());
+        final boolean responseConfigNeeded = pwmSession.getUserInfoBean().isRequiresResponseConfig();
 
         if (responseConfigNeeded) {
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_SETUP_RESPONSES, req, resp));
@@ -302,7 +298,7 @@ public class CommandServlet extends TopServlet {
 
         if (checkIfPasswordExpired(pwmSession) || checkPasswordWarn(pwmSession)) {
             processCheckExpire(req, resp);
-        } else if (!CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, pwmSession.getSessionManager().getActor(), pwmSession.getUserInfoBean().getChallengeSet())) {
+        } else if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
             processCheckResponses(req, resp);
         } else if (checkProfile(pwmSession, pwmApplication, pwmSession.getUserInfoBean())) {
             processCheckProfile(req, resp);

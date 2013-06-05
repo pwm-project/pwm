@@ -28,10 +28,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.i18n.Display;
-import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.CASAuthenticationHelper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.*;
 import password.pwm.util.operations.UserAuthenticator;
 import password.pwm.util.stats.Statistic;
 
@@ -39,6 +36,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -87,9 +85,6 @@ public class AuthenticationFilter implements Filter {
         }
     }
 
-    /**
-     * Method requird to implement filterservlet
-     */
     public void destroy() {
     }
 
@@ -103,6 +98,13 @@ public class AuthenticationFilter implements Filter {
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        // check if authenticated without password, then send to login servlet anyway
+        final boolean authWithoutPassword = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD;
+        if (authWithoutPassword && !PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req)) {
+            ServletHelper.forwardToLoginPage(req, resp);
+            return;
+        }
 
         // get the basic auth info out of the header (if it exists);
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(req);
@@ -127,10 +129,21 @@ public class AuthenticationFilter implements Filter {
             // send en error to user.
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserDN() + "', session will be logged out"));
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
-        } else {
-            // user session is authed, and session and auth header match, so forward request on.
-            chain.doFilter(req, resp);
+            return;
         }
+
+        try {
+            if (forceRequiredRedirects(req,resp,ContextManager.getPwmApplication(req),pwmSession)) {
+                return;
+            }
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error("unexpected ldap error when checking for user redirects: " + e.getMessage());
+        }
+
+
+
+        // user session is authed, and session and auth header match, so forward request on.
+            chain.doFilter(req, resp);
     }
 
     private void processUnAuthenticatedSession(
@@ -138,84 +151,77 @@ public class AuthenticationFilter implements Filter {
             final HttpServletResponse resp,
             final FilterChain chain
     )
-            throws IOException, ServletException, PwmUnrecoverableException {
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        String requestedURL = req.getRequestURI();
-
-        if (requestedURL.contains(";")) {
-            requestedURL = requestedURL.substring(0, requestedURL.indexOf(";"));
-        }
-
-        // check if current request is actually for the login servlet url, if it is, just do nothing.
-        if (requestedURL.equals(loginServletURL)) {
-            LOGGER.trace(pwmSession, "permitting unauthenticated request of login page");
-            chain.doFilter(req, resp);
+        // attempt external methods;
+        if (processExternalAuthMethods(pwmApplication,pwmSession,req,resp)) {
             return;
         }
 
         //try to authenticate user with basic auth
-        final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(req);
-        if (authInfo != null) {
-            try {
-                authUserUsingBasicHeader(req, authInfo);
-                ServletHelper.recycleSessions(pwmSession, req);
-                chain.doFilter(req, resp);
-                return;
-            } catch (ChaiUnavailableException e) {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
-                ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
-                ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
-                return;
-            } catch (PwmException e) {
-                ssBean.setSessionError(e.getErrorInformation());
-                ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(req);
+            if (authInfo != null) {
+                try {
+                    authUserUsingBasicHeader(req, authInfo);
+                    ServletHelper.recycleSessions(pwmSession, req);
+                    chain.doFilter(req,resp);
+                    return;
+                } catch (ChaiUnavailableException e) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                    pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+                    ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return;
+                } catch (PwmException e) {
+                    ssBean.setSessionError(e.getErrorInformation());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return;
+                }
+            }
+        }
+
+        // attempt sso header authentication
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (processAuthHeader(pwmApplication, pwmSession, req, resp)) {
                 return;
             }
         }
 
         // try to authenticate user with CAS
-        try {
-            final String clearPassUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
-            if (clearPassUrl != null && clearPassUrl.length() > 0) {
-                LOGGER.trace(pwmSession, "checking for authentication via CAS");
-                if (CASAuthenticationHelper.authUserUsingCASClearPass(req,clearPassUrl)) {
-                    LOGGER.debug(pwmSession, "login via CAS successful");
-                    ServletHelper.recycleSessions(pwmSession, req);
-                    chain.doFilter(req,resp);
-                    return;
-                }
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (processCASAuthentication(pwmApplication, pwmSession, req, resp)) {
+                return;
             }
-        } catch (ChaiUnavailableException e) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
-            ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
-            return;
-        } catch (PwmException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+        }
+
+        //store the original requested url
+        final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
+        ssBean.setOriginalRequestURL(originalRequestedUrl);
+
+        // handle if authenticated during filter process.
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            ServletHelper.recycleSessions(pwmSession,req);
+            LOGGER.debug(pwmSession,"session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl);
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(originalRequestedUrl,req,resp));
             return;
         }
 
-        // user is not logged in, and should be (otherwise this filter would not be invoked).
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
             final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmApplication.getConfig());
-
             resp.setHeader("WWW-Authenticate", "Basic realm=\"" + displayMessage + "\"");
             resp.setStatus(401);
             return;
         }
 
-        // therefore, redirect to logged in page.
-
-        //store the original requested url
-        final String urlToStore = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-        ssBean.setOriginalRequestURL(urlToStore);
+        if (PwmServletURLHelper.isLoginServlet(req)) {
+            chain.doFilter(req, resp);
+            return;
+        }
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace(pwmSession, "user requested resource requiring authentication (" + req.getRequestURI() + "), but is not authenticated; redirecting to LoginServlet");
@@ -246,6 +252,238 @@ public class AuthenticationFilter implements Filter {
         UserAuthenticator.authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, pwmSession, pwmApplication, req.isSecure());
 
         pwmSession.getSessionStateBean().setOriginalBasicAuthInfo(basicAuthInfo);
+    }
+
+    private static boolean processExternalAuthMethods(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+
+    )
+            throws IOException, ServletException
+    {
+
+        final List<String> externalWebAuthMethods = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_WEB_AUTH_METHODS);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        for (final String classNameString : externalWebAuthMethods) {
+            if (classNameString != null && classNameString.length() > 0) {
+                try {
+                    // load up the class and get an instance.
+                    final Class<?> theClass = Class.forName(classNameString);
+                    final ExternalWebAuthMethod eWebAuthMethod = (ExternalWebAuthMethod) theClass.newInstance();
+                    eWebAuthMethod.authenticate(req, resp, pwmSession);
+                }
+                catch(ClassNotFoundException classNotFoundEx)
+                {
+                    LOGGER.error("Error loading external interface login class" + classNotFoundEx.getMessage());
+                    ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return true;
+                }
+                catch(ClassCastException classCastEx)
+                {
+                    classCastEx.printStackTrace();
+                    LOGGER.error("Error loading external interface login class" + classCastEx.getMessage());
+                    ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return true;
+                }
+                catch(IllegalAccessException iLLex)
+                {
+                    LOGGER.error("Error loading external interface login class" + iLLex.getMessage());
+                    ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return true;
+                } catch (InstantiationException instEx)
+                {
+                    LOGGER.error("Error loading external interface login class" + instEx.getMessage());
+                    ssBean.setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+                    ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    final static boolean processAuthHeader(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+
+    {
+        final String headerName = pwmApplication.getConfig().readSettingAsString(PwmSetting.SSO_AUTH_HEADER_NAME);
+        if (req == null || headerName == null || headerName.length() < 1) {
+            return false;
+        }
+
+        final String headerValue = Validator.sanatizeInputValue(pwmApplication.getConfig(), req.getHeader(headerName), 1024);
+        if (headerValue == null || headerValue.length() < 1) {
+            return false;
+        }
+        LOGGER.debug(pwmSession, "SSO Authentication header present in request, will search for user value of '" + headerValue + "'");
+        try {
+            UserAuthenticator.authUserWithUnknownPassword(
+                    headerValue,
+                    pwmSession,
+                    pwmApplication,
+                    req.isSecure(),
+                    UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD
+            );
+            return false;
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error(pwmSession, "unable to reach ldap server during SSO auth header authentication attempt: " + e.getMessage());
+            pwmSession.getSessionStateBean().setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            return true;
+        } catch (PwmException e) {
+            LOGGER.error(pwmSession, "error during SSO auth header authentication attempt: " + e.getMessage());
+            pwmSession.getSessionStateBean().setSessionError(PwmError.ERROR_UNKNOWN.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            return true;
+        }
+    }
+
+    final static boolean processCASAuthentication(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+
+    )
+            throws IOException, ServletException
+
+    {
+        try {
+            final String clearPassUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.CAS_CLEAR_PASS_URL);
+            if (clearPassUrl != null && clearPassUrl.length() > 0) {
+                LOGGER.trace(pwmSession, "checking for authentication via CAS");
+                if (CASAuthenticationHelper.authUserUsingCASClearPass(req,clearPassUrl)) {
+                    LOGGER.debug(pwmSession, "login via CAS successful");
+                    return false;
+                }
+            }
+        } catch (ChaiUnavailableException e) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+            pwmSession.getSessionStateBean().setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            return true;
+        } catch (PwmException e) {
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+            ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean forceRequiredRedirects(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException
+    {
+        if (PwmServletURLHelper.isResourceURL(req) || PwmServletURLHelper.isConfigManagerURL(req) || PwmServletURLHelper.isLogoutURL(req) || PwmServletURLHelper.isLoginServlet(req)) {
+            return false;
+        }
+
+        switch (pwmSession.getUserInfoBean().getAuthenticationType()) {
+            case AUTH_FROM_FORGOTTEN:
+                if (!PwmServletURLHelper.isChangePasswordURL(req)) {
+                    LOGGER.debug(pwmSession, "user is authenticated via forgotten password mechanism, redirecting to change password servlet");
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    return true;
+                }
+                break;
+
+            case AUTH_WITHOUT_PASSWORD:
+                if (!PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req)) {
+                    LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
+                    return true;
+                }
+                break;
+        }
+
+        // high priority password changes.
+        if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+            if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN) {
+                if (!PwmServletURLHelper.isChangePasswordURL(req)) {
+                    LOGGER.debug(pwmSession, "user password is unknown to application, redirecting to change password servlet");
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+                    if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
+                        if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
+                            LOGGER.debug(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");
+                            resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
+                            return true;
+                        }
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+
+        if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
+                    if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+                        if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
+                            LOGGER.debug(pwmSession, "user is required to update profile, redirecting to profile update servlet");
+                            resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
+                            return true;
+                        }
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+
+        if (!PwmServletURLHelper.isChangePasswordURL(req)) {
+            if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+                boolean doRedirect = false;
+                if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
+                    LOGGER.debug(pwmSession, "user password is expired, redirecting to change password servlet");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().getPasswordState().isPreExpired() ) {
+                    LOGGER.debug(pwmSession, "user password is pre-expired, redirecting to change password servlet ");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().getPasswordState().isViolatesPolicy() ) {
+                    LOGGER.debug(pwmSession, "user password violates policy, redirecting to change password servlet ");
+                    doRedirect = true;
+                } else if (pwmSession.getUserInfoBean().isRequiresNewPassword()) {
+                    LOGGER.debug(pwmSession, "user password requires changing due to a previous operation, redirecting to change password servlet");
+                    doRedirect = true;
+                }
+
+                if (doRedirect) {
+                    resp.sendRedirect(req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return false;
     }
 
 }

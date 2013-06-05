@@ -689,12 +689,12 @@ public class TokenManager implements PwmService {
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE) &&
-                PwmSetting.TokenSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD)) {
+                PwmSetting.MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD)) {
             return true;
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE) &&
-                PwmSetting.TokenSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD)) {
+                PwmSetting.MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD)) {
             return true;
         }
 

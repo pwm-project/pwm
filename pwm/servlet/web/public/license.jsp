@@ -165,15 +165,6 @@
             <br/>
         </div>
         <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
-            <h2>Oracle Berkeley DB Java Edition</h2>
-            <a href="http://www.oracle.com/technetwork/products/berkeleydb/overview/index-093405.html">http://www.oracle.com/technetwork/products/berkeleydb/overview/index-093405.html</a>
-            <br/><br/>
-            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
-                <pre><jsp:include page="license/berkelyDbJava_license.txt"/></pre>
-            </div>
-            <br/>
-        </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
             <h2>Syslog4j</h2>
             <a href="http://www.syslog4j.org/">http://www.syslog4j.org/</a>
             <br/><br/>

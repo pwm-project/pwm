@@ -41,14 +41,13 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords(null);"
               onsubmit="handleFormSubmit('change_button',this);return false"
               onreset="setInputFocus()" name="changePasswordForm" id="changePasswordForm">
             <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
             <h1>
                 <label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label>
             </h1>
-            <input style="" id="currentPassword" type="password" class="inputfield" name="currentPassword"/>
+            <input id="currentPassword" type="password" class="inputfield" name="currentPassword"/>
             <br/>
 
             <% } %>

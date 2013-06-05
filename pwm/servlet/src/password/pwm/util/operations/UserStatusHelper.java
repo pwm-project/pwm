@@ -24,12 +24,14 @@ package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
+import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
@@ -202,7 +204,7 @@ public class UserStatusHelper {
 
         populateLocaleSpecificUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale);
 
-        //populate all user attributes.
+        //populate cached password rule attributes
         try {
             final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(uiBean);
             final Map<String,String> allUserAttrs = userDataReader.readStringAttributes(interestingUserAttributes);
@@ -259,9 +261,6 @@ public class UserStatusHelper {
         // read password state
         uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
 
-        // read response state
-        uiBean.setRequiresResponseConfig(CrUtility.checkIfResponseConfigNeeded(pwmSession, pwmApplication, theUser, uiBean.getChallengeSet()));
-
         // check if responses need to be updated
         uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));
 
@@ -280,6 +279,8 @@ public class UserStatusHelper {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final long startTime = System.currentTimeMillis();
+
         if (uiBean == null || uiBean.getUserDN() == null) {
             return;
         }
@@ -290,7 +291,16 @@ public class UserStatusHelper {
         uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
 
         //populate c/r challenge set.
-        uiBean.setChallengeSet(CrUtility.readUserChallengeSet(pwmSession, pwmApplication.getConfig(), theUser, uiBean.getPasswordPolicy(), userLocale));
+        {
+            final CrService crService = pwmApplication.getCrService();
+            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, theUser);
+            final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
+            uiBean.setChallengeSet(challengeSet);
+            uiBean.setResponseInfoBean(responseInfoBean);
+            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession,theUser,challengeSet,responseInfoBean));
+        }
+
+        LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime));
     }
 
     private static Set<String> figurePasswordRuleAttributes(

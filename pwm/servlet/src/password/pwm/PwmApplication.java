@@ -47,6 +47,7 @@ import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
@@ -112,7 +113,8 @@ public class PwmApplication {
             UrlShortenerService.class,
             TokenManager.class,
             VersionChecker.class,
-            IntruderManager.class
+            IntruderManager.class,
+            CrService.class
     ));
 
 
@@ -476,6 +478,10 @@ public class PwmApplication {
 
     public StatisticsManager getStatisticsManager() {
         return (StatisticsManager)pwmServices.get(StatisticsManager.class);
+    }
+
+    public CrService getCrService() {
+        return (CrService)pwmServices.get(CrService.class);
     }
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {

@@ -412,7 +412,7 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         final PasswordStatus passwordStatus = pwmSession.getUserInfoBean().getPasswordState();
-        if (currentSetting == REQUIRE_CURRENT_SETTING.NOTEXPIRED && !passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) {
+        if (currentSetting == REQUIRE_CURRENT_SETTING.NOTEXPIRED && !passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy() && !pwmSession.getUserInfoBean().isRequiresNewPassword()) {
             return true;
         }
 
@@ -503,7 +503,6 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        /*
         final boolean enforceFromForgotten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME);
         if (!enforceFromForgotten) {
             if (userInfoBean.isRequiresNewPassword()) {
@@ -511,7 +510,6 @@ public class ChangePasswordServlet extends TopServlet {
                 return;
             }
         }
-        */
 
         final Date allowedChangeDate = new Date(System.currentTimeMillis() + (minimumLifetime * 1000));
         final String errorMsg = "last password change is too recent, password cannot be changed until after " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(allowedChangeDate);

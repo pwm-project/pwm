@@ -41,10 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.IOException;
@@ -168,6 +165,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     }
 
     private boolean sendSmsPart(final SmsItemBean smsItemBean) {
+        final long startTime = System.currentTimeMillis();
         final Configuration config = pwmApplication.getConfig();
 
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
@@ -200,7 +198,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
         final String gatewayMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_METHOD);
         final String gatewayAuthMethod = config.readSettingAsString(PwmSetting.SMS_GATEWAY_AUTHMETHOD);
-        LOGGER.trace("SMS data: " + requestData);        
+        LOGGER.trace("preparing to send SMS data: " + requestData);
         try {
             final HttpRequestBase httpRequest;
             if (gatewayMethod.equalsIgnoreCase("POST")) {
@@ -233,8 +231,7 @@ public class SmsQueueManager extends AbstractQueueManager {
 
             if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
             	LOGGER.debug("Using Basic Authentication");
-            	BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
-            	//LOGGER.trace("Adding authentication header: "+ba.toAuthHeader());
+            	final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
                 httpRequest.addHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH, ba.toAuthHeader());
             }
 
@@ -244,13 +241,16 @@ public class SmsQueueManager extends AbstractQueueManager {
 
             final List<String> okMessages = config.readSettingAsStringArray(PwmSetting.SMS_RESPONSE_OK_REGEX);
             if (okMessages == null || okMessages.size() == 0 || matchExpressions(responseBody, okMessages)) {
+                LOGGER.debug("SMS send successful, HTTP status: " + httpResponse.getStatusLine()  + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
                 return true;
             }
+
+            LOGGER.error("SMS send failure, HTTP status: " + httpResponse.getStatusLine() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
+            return false;
         } catch (IOException e) {
             LOGGER.error("unexpected exception while sending SMS: " + e.getMessage(), e);
+            return false;
         }
-
-        return false;
     }
 
     private String smsDataEncode(final String data, final SmsDataEncoding encoding) {

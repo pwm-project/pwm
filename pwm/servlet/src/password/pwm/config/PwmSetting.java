@@ -401,6 +401,8 @@ public enum PwmSetting {
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     DISPLAY_SHOW_DETAILED_ERRORS(
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
+    SSO_AUTH_HEADER_NAME(
+            "security.sso.authHeaderName", PwmSettingSyntax.STRING, Category.SECURITY),
 
 
     // token settings
@@ -514,7 +516,8 @@ public enum PwmSetting {
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
     FORGOTTEN_PASSWORD_ACTION(
             "recovery.action", PwmSettingSyntax.SELECT, Category.RECOVERY),
-
+    CHALLENGE_SENDNEWPW_METHOD(
+            "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
 
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
@@ -642,6 +645,8 @@ public enum PwmSetting {
             "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
     EDIRECTORY_STORE_NMAS_RESPONSES(
             "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+    EDIRECTORY_USE_NMAS_RESPONSES(
+            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
     EDIRECTORY_READ_USER_PWD(
             "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
     EDIRECTORY_READ_CHALLENGE_SET(
@@ -960,7 +965,7 @@ public enum PwmSetting {
         }
     }
 
-    public enum TokenSendMethod {
+    public enum MessageSendMethod {
         NONE,
         EMAILONLY,
         BOTH,

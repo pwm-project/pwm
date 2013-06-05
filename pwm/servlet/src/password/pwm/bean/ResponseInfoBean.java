@@ -25,6 +25,7 @@ package password.pwm.bean;
 import com.novell.ldapchai.cr.Challenge;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -32,8 +33,9 @@ public class ResponseInfoBean implements Serializable {
     final private Map<Challenge,String> crMap;
     final private Map<Challenge,String> helpdeskCrMap;
     final private Locale locale;
-    final int minRandoms;
-    final String csIdentifier;
+    final private int minRandoms;
+    final private String csIdentifier;
+    private Date timestamp;
 
     public ResponseInfoBean(Map<Challenge, String> crMap, Map<Challenge,String> helpdeskCrMap, Locale locale, int minRandoms, String csIdentifier) {
         this.crMap = crMap;
@@ -61,5 +63,13 @@ public class ResponseInfoBean implements Serializable {
 
     public Map<Challenge, String> getHelpdeskCrMap() {
         return helpdeskCrMap;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 }

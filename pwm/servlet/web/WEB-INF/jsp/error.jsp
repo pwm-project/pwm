@@ -39,7 +39,7 @@
     </jsp:include>
     <div id="centerbody">
         <br/>
-        <h2>PWM <%=errorInfo == null ? "" : errorInfo.getError().getErrorCode()%></h2>
+        <h2><%=PwmConstants.PWM_APP_NAME%>&nbsp;<%=errorInfo == null ? "" : errorInfo.getError().getErrorCode()%></h2>
         <br/>
         <br/>
         <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
