@@ -102,22 +102,17 @@
             <td class="key">
                 <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
             </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.MINUTE).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
             </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.HOUR).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
             </td>
-            <td style="text-align: center">
-                <%= pwmApplication.getStatisticsManager().readEps(loopEpsType, Statistic.EpsDuration.DAY).multiply(BigDecimal.valueOf(60)).setScale(3, RoundingMode.UP) %>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
             </td>
         </tr>
         <% } %>
-        <tr>
-            <td colspan="10" style="text-align: center">
-                <a onclick="location.reload()" href="#">refresh</a>
-            </td>
-        </tr>
     </table>
     <br/>
     <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
@@ -172,7 +167,7 @@
             showStatChart('PASSWORD_CHANGES',14,'statsChart');
             setInterval(function(){
                 showStatChart('PASSWORD_CHANGES',14,'statsChart');
-            }, 61 * 1000);
+            }, 11 * 1000);
         });
     }
 

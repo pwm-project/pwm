@@ -798,6 +798,7 @@ function showStatChart(statName,days,divName) {
                 },
                 load: function(data) {
                     {// gauges
+                        console.log('Beginning stats update process...');
                         data = data['data'];
                         var activityCount = 0;
                         for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
@@ -805,23 +806,27 @@ function showStatChart(statName,days,divName) {
                             for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
                                 var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                                 var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                                var loopFieldEpsID = "FIELD_" + loopEpsName + "_" + loopEpsDuration;
                                 var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
-                                var loopEphValue = loopEpsValue * 60;
-                                var loopTop = data['EPS'][loopEpsName + "_TOP"];
+                                var loopEpmValue = (loopEpsValue * 60).toFixed(3);
+                                var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
                                 if (loopEpsDuration == "HOURLY") {
                                     activityCount += loopEpsValue;
                                 }
+                                if (getObject(loopFieldEpsID) != null) {
+                                    getObject(loopFieldEpsID).innerHTML = loopEpmValue;
+                                }
                                 if (getObject(loopEpsID) != null) {
-                                    console.log('loopEpsID=' + loopEpsID + ', ' + 'loopEpsValue=' + loopEpsValue + ', ' + 'loopEphValue=' + loopEphValue);
+                                    console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
                                     if (registry.byId(loopEpsID)) {
-                                        registry.byId(loopEpsID).setAttribute('value',loopEpsValue);
+                                        registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
                                         registry.byId(loopEpsID).setAttribute('max',loopTop);
                                     } else {
                                         var glossyCircular = new dojox.gauges.GlossyCircularGauge({
                                             background: [255, 255, 255, 0],
                                             noChange: true,
-                                            value: Math.abs(loopEphValue),
-                                            max: Math.abs(loopTop),
+                                            value: loopEpmValue,
+                                            max: loopTop,
                                             needleColor: '#FFDC8B',
                                             majorTicksInterval: Math.abs(loopTop / 10),
                                             minorTicksInterval: Math.abs(loopTop / 10),

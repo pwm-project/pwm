@@ -167,46 +167,8 @@ public class RestStatisticsServer {
                 final BigDecimal outputValue = loopValue.setScale(3, RoundingMode.UP);
                 outputMap.put(loopEps.toString() + "_" + loopDuration.toString(),outputValue.toString());
             }
-            outputMap.put(loopEps.toString() + "_TOP",String.valueOf(figureTopValue(loopEps, statisticsManager)));
         }
 
         return outputMap;
-    }
-
-    private int figureTopValue(final Statistic.EpsType epsType, final StatisticsManager statisticsManager) {
-        final int dailyReduceFactor = (24 * 10);
-        final int epsMultiplier = 60 * 60; // hour
-
-        int counter = 100; // minimum
-
-        final Statistic relatedStatistic = epsType.getRelatedStatistic();
-        if (relatedStatistic != null) {
-            final Map<String, String> statistics = statisticsManager.getStatHistory(relatedStatistic, 30);
-            for (final String key : statistics.keySet()) {
-                final int loopValue = Integer.valueOf(statistics.get(key)) / dailyReduceFactor;
-                if (loopValue > counter) {
-                    counter = loopValue;
-                }
-            }
-        }
-
-        for (final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values()) {
-            final BigDecimal loopEps = statisticsManager.readEps(epsType, loopDuration);
-            if (loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).compareTo(BigDecimal.valueOf(counter)) > 0) {
-                counter = loopEps.multiply(BigDecimal.valueOf(epsMultiplier)).intValue();
-            }
-        }
-
-        if (counter < 200) {
-            while(counter % 20 != 0) {
-                counter++;
-            }
-        } else {
-            while(counter % 200 != 0) {
-                counter++;
-            }
-        }
-
-        return counter;
     }
 }

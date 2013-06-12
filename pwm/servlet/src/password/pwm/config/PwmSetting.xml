@@ -2119,10 +2119,10 @@
             <value><![CDATA[(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(lastLogonTimestamp=*))(|(lastLogon=0)(!(lastLogon=*)))]]></value>
+            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))]]></value>
         </default>
         <default template="ADDB">
-            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(!(lastLogonTimestamp=*))(|(lastLogon=0)(!(lastLogon=*)))]]></value>
+            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))]]></value>
         </default>
     </setting>
     <setting key="activateUser.writePreAttributes" level="0">
@@ -2252,7 +2252,7 @@
         </default>
     </setting>
     <setting key="peopleSearch.searchFilter" level="0" required="true">
-        <label>Search filter</label>
+        <label>Search Filter</label>
         <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
         <default>
             <value><![CDATA[(&(objectClass=Person)(|((givenName=*%USERNAME%*)(sn=*%USERNAME%*)(mail=*%USERNAME%*)(telephoneNumber=*%USERNAME%*))))]]></value>

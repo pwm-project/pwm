@@ -224,7 +224,7 @@
             showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
             setInterval(function(){
                 showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
-            }, 61 * 1000);
+            }, 31 * 1000);
 
             verticalCenter('centerbody');
             setInterval(function(){

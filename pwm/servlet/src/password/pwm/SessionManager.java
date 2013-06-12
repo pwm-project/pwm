@@ -137,10 +137,11 @@ public class SessionManager implements Serializable {
         final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
         final boolean authIsFromForgottenPw = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN;
+        final boolean authIsBindInhibit = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         final boolean alwaysUseProxyIsEnabled = config.readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
         final boolean passwordNotPresent = userPassword == null || userPassword.length() < 1;
 
-        if (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent)) {
+        if (authIsBindInhibit || (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent))) {
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             return Helper.createChaiProvider(config, proxyDN, proxyPassword, idleTimeoutMs);

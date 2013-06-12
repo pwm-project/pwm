@@ -62,6 +62,7 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['url-setupresponses'] = '<%=request.getContextPath()%><pwm:url url='/private/SetupResponses'/>';
     PWM_GLOBAL['client.ajaxTypingTimeout'] = <%=PwmConstants.CLIENT_AJAX_TYPING_TIMEOUT%>
     PWM_GLOBAL['client.ajaxTypingWait'] = <%=PwmConstants.CLIENT_AJAX_TYPING_WAIT%>
+    PWM_GLOBAL['client.activityMaxEpsRate'] = <%=PwmConstants.CLIENT_ACTIVITY_MAX_EPS_RATE%>
     PWM_GLOBAL['formTypeOptions'] = [];
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');

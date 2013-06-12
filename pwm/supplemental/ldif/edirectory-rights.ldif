@@ -7,6 +7,9 @@
 #
 # Search and replace the values as appropriate for your environment.
 #
+# This file is not intended as a direct script to configure rights in your environment, it
+@ is just useful as a template or sample to get you started.  It is up to the directory owner
+# to determine the entries and ACLs needed to run this software optimally.
 
 # Grant users rights for users to configure responses
 dn: ou=USERS,o=O

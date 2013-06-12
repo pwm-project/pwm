@@ -81,6 +81,7 @@ public class UserInfoBean implements PwmSessionBean {
     public enum AuthenticationType {
         UNAUTHENTICATED,
         AUTHENTICATED,
+        AUTH_BIND_INHIBIT,
         AUTH_FROM_FORGOTTEN,
         AUTH_WITHOUT_PASSWORD
     }

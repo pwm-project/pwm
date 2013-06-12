@@ -104,9 +104,9 @@ public class UserAuthenticator {
         statisticsManager.updateEps(Statistic.EpsType.AUTHENTICATION, 1);
 
         postAuthenticationSequence(pwmApplication, pwmSession, userDN, password, allowBindAsUser, methodStartTime);
-        final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN;
+        final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
-        LOGGER.info(pwmSession, "user authenticated with authentication type: " + authenticationType);
+        LOGGER.debug(pwmSession, "user authenticated with authentication type: " + authenticationType);
     }
 
     public static void authUserWithUnknownPassword(
@@ -179,7 +179,8 @@ public class UserAuthenticator {
                 final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
                 LOGGER.error(errorStr);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
-            } } else {
+            }
+        } else {
             LOGGER.trace(pwmSession, "skipping attempt to read user password, option disabled");
         }
 
@@ -236,7 +237,7 @@ public class UserAuthenticator {
         postAuthenticationSequence(pwmApplication, pwmSession, theUser.getEntryDN(), null, false, startAuthenticationTimestamp);
 
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
-        LOGGER.info(pwmSession,"user authenticated with authentication type: " + authenticationType);
+        LOGGER.debug(pwmSession,"user authenticated with authentication type: " + authenticationType);
     }
 
     private static String resolveUsername(

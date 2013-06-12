@@ -103,6 +103,7 @@ public abstract class PwmConstants {
 
     public static final int CLIENT_AJAX_TYPING_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingTimeout"));
     public static final int CLIENT_AJAX_TYPING_WAIT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingWait"));
+    public static final int CLIENT_ACTIVITY_MAX_EPS_RATE = Integer.parseInt(readPwmConstantsBundle("client.activityMaxEpsRate"));
     public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
 
     public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
