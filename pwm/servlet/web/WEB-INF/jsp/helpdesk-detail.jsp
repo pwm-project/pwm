@@ -381,9 +381,20 @@
     function initiateChangePasswordDialog() {
         <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
         generatePasswordPopup();
+        <% } else if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.sendpassword) { %>
+        setRandomPasswordPopup();
         <% } else { %>
         changePasswordPopup();
         <% } %>
+    }
+
+    function setRandomPasswordPopup() {
+        var title = '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserID())%>';
+        var body = PWM_STRINGS['Display_SetRandomPasswordPrompt'];
+        var yesAction = function() {
+            doPasswordChange('[' + PWM_STRINGS['Display_Random'] +  ']',true);
+        }
+        showConfirmDialog(title,body,yesAction);
     }
 
     function changePasswordPopup() {
@@ -437,12 +448,17 @@
         randomConfig['finishAction'] = "clearDijitWidget('randomPasswordDialog');doPasswordChange(PWM_GLOBAL['SelectedRandomPassword'])";
         doRandomGeneration(randomConfig);
     }
-    function doPasswordChange(password) {
+
+    function doPasswordChange(password, random) {
         require(["dojo","dijit/Dialog"],function(dojo,Dialog){
             showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
             var inputValues = {};
             inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUserDN())%>';
-            inputValues['password'] = password;
+            if (random) {
+                inputValues['random'] = true;
+            } else {
+                inputValues['password'] = password;
+            }
             setTimeout(function(){
                 dojo.xhrPost({
                     url: PWM_GLOBAL['url-restservice'] + "/setpassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],

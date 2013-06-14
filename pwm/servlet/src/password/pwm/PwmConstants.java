@@ -88,6 +88,7 @@ public abstract class PwmConstants {
     public static final boolean INCLUDE_X_AMB_HEADER = Boolean.parseBoolean(readPwmConstantsBundle("includeXAmbHeader"));
     public static final boolean INCLUDE_X_VERSION_HEADER = Boolean.parseBoolean(readPwmConstantsBundle("includeXVersionHeader"));
     public static final boolean HTTP_RECYCLE_SESSIONS_ON_AUTH = Boolean.parseBoolean(readPwmConstantsBundle("httpRecycleSessionsOnAuthentication"));
+    public static final boolean ENABLE_AUDIT_AUTHENTICATION_TYPE = Boolean.parseBoolean(readPwmConstantsBundle("enableAuditAuthenticationType"));
 
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));

@@ -46,6 +46,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.Serializable;
+import java.net.URISyntaxException;
 import java.util.*;
 
 @Path("/status")
@@ -57,6 +58,10 @@ public class RestStatusServer {
         public String userEmailAddress;
         public Date passwordExpirationTime;
         public Date passwordLastModifiedTime;
+        public boolean requiresNewPassword;
+        public boolean requiresResponseConfig;
+        public boolean requiresUpdateProfile;
+
         public PasswordStatus passwordStatus;
         public Map<String,String> passwordPolicy;
         public List<String> passwordRules;
@@ -69,6 +74,10 @@ public class RestStatusServer {
             jsonStatusData.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
             jsonStatusData.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
             jsonStatusData.passwordStatus = userInfoBean.getPasswordState();
+
+            jsonStatusData.requiresNewPassword = userInfoBean.isRequiresNewPassword();
+            jsonStatusData.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
+            jsonStatusData.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
 
             jsonStatusData.passwordPolicy = new HashMap<String,String>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
@@ -88,6 +97,11 @@ public class RestStatusServer {
     @Context
     HttpServletRequest request;
 
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
+        return RestServerHelper.doHtmlRedirect();
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

@@ -32,6 +32,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
@@ -40,6 +41,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
+import password.pwm.servlet.ForgottenPasswordServlet;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -52,6 +54,130 @@ import java.util.*;
  */
 public class PasswordUtility {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordUtility.class);
+
+    public static String sendNewPassword(
+            final UserInfoBean userInfoBean,
+            final PwmApplication pwmApplication,
+            final UserDataReader userDataReader,
+            final String newPassword,
+            final Locale userLocale
+    )
+            throws PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+
+        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_SENDNEWPW_METHOD));
+        final String emailAddress = userInfoBean.getUserEmailAddress();
+        final String smsNumber = userInfoBean.getUserSmsNumber();
+        String returnToAddress = emailAddress;
+
+        ErrorInformation error = null;
+        switch (pref) {
+            case BOTH:
+                // Send both email and SMS, success if one of both succeeds
+                final ErrorInformation err1 = sendNewPasswordEmail(userInfoBean, pwmApplication, userDataReader, newPassword, emailAddress, userLocale);
+                final ErrorInformation err2 = sendNewPasswordSms(userInfoBean, pwmApplication, userDataReader, newPassword, smsNumber, userLocale);
+                if (err1 != null) {
+                    error = err1;
+                    returnToAddress = smsNumber;
+                } else if (err2 != null) {
+                    error = err2;
+                }
+                break;
+            case EMAILFIRST:
+                // Send email first, try SMS if email is not available
+                error = sendNewPasswordEmail(userInfoBean, pwmApplication, userDataReader, newPassword, emailAddress, userLocale);
+                if (error != null) {
+                    error = sendNewPasswordSms(userInfoBean, pwmApplication, userDataReader, newPassword, smsNumber, userLocale);
+                    returnToAddress = smsNumber;
+                }
+                break;
+            case SMSFIRST:
+                // Send SMS first, try email if SMS is not available
+                error = sendNewPasswordSms(userInfoBean, pwmApplication, userDataReader, newPassword, smsNumber, userLocale);
+                if (error != null) {
+                    error = sendNewPasswordEmail(userInfoBean, pwmApplication, userDataReader, newPassword, emailAddress, userLocale);
+                } else {
+                    returnToAddress = smsNumber;
+                }
+                break;
+            case SMSONLY:
+                // Only try SMS
+                error = sendNewPasswordSms(userInfoBean, pwmApplication, userDataReader, newPassword, smsNumber, userLocale);
+                returnToAddress = smsNumber;
+                break;
+            case EMAILONLY:
+            default:
+                // Only try email
+                error = sendNewPasswordEmail(userInfoBean, pwmApplication, userDataReader, newPassword, emailAddress, userLocale);
+                break;
+        }
+        if (error != null) {
+            throw new PwmOperationalException(error);
+        }
+        return returnToAddress;
+    }
+
+    private static ErrorInformation sendNewPasswordSms(
+            final UserInfoBean userInfoBean,
+            final PwmApplication pwmApplication,
+            final UserDataReader userDataReader,
+            final String newPassword,
+            final String toNumber,
+            final Locale userLocale
+    )
+            throws PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
+        if (senderId == null) { senderId = ""; }
+        String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_NEW_PASSWORD_TEXT, userLocale);
+
+        if (toNumber == null || toNumber.length() < 1) {
+            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserDN());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            return errorInformation;
+        }
+
+        message = message.replace("%TOKEN%", newPassword);
+
+        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, senderId, message, maxlen), userInfoBean, userDataReader);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug(String.format("password SMS added to send queue for %s", toNumber));
+        return null;
+    }
+
+    private static ErrorInformation sendNewPasswordEmail(
+            final UserInfoBean userInfoBean,
+            final PwmApplication pwmApplication,
+            final UserDataReader userDataReader,
+            final String newPassword,
+            final String toAddress,
+            final Locale userLocale
+    )
+            throws PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_SENDPASSWORD, userLocale);
+
+        if (toAddress == null || toAddress.length() < 1) {
+            final String errorMsg = "unable to send new password email for '" + userInfoBean.getUserDN() + "' no email address available in ldap";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            return errorInformation;
+        }
+
+        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+                toAddress,
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain().replace("%TOKEN%", newPassword),
+                configuredEmailSetting.getBodyHtml().replace("%TOKEN%", newPassword)
+        ), userInfoBean, userDataReader);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+        LOGGER.debug("new password email to " + userInfoBean.getUserDN() + " added to send queue for " + toAddress);
+        return null;
+    }
 
 
     enum PasswordPolicySource {
@@ -237,7 +363,6 @@ public class PasswordUtility {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final long passwordSetTimestamp = System.currentTimeMillis();
         try {
             chaiUser.setPassword(newPassword);
         } catch (ChaiPasswordPolicyException e) {
@@ -338,8 +463,6 @@ public class PasswordUtility {
 
         // send email notification
         sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean, proxiedUser);
-
-        performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
     }
 
     private static void performReplicaSyncCheck(
@@ -660,7 +783,7 @@ public class PasswordUtility {
 
     private static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(final boolean caseSensitive, final String password1, final String password2) {
         final PasswordCheckInfo.MATCH_STATUS matchStatus;
-        if (password2.length() < 1) {
+        if (password2 == null || password2.length() < 1) {
             matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;
         } else {
             if (caseSensitive) {

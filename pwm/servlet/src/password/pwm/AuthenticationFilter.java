@@ -168,9 +168,6 @@ public class AuthenticationFilter implements Filter {
             if (authInfo != null) {
                 try {
                     authUserUsingBasicHeader(req, authInfo);
-                    ServletHelper.recycleSessions(pwmSession, req);
-                    chain.doFilter(req,resp);
-                    return;
                 } catch (ChaiUnavailableException e) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
                     pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));

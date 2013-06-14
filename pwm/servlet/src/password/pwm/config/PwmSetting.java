@@ -94,6 +94,8 @@ public enum PwmSetting {
             "display.showLoginPageOptions", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_LOGOUT_BUTTON(
             "display.logoutButton", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
+    DISPLAY_IDLE_TIMEOUT(
+            "display.idleTimeout", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", PwmSettingSyntax.STRING, Category.USER_INTERFACE),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(

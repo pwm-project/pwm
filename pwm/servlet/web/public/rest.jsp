@@ -1245,6 +1245,14 @@ Content-Type: application/json
                             <i>Required value of new password.</i>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="key">Parameter random</td>
+                        <td>
+                            random=true
+                            <br/>
+                            <i>Generate a random password (when random=true, no value for 'password' should be supplied.</i>
+                        </td>
+                    </tr>
                 </table>
                 <table style="max-width: 100%">
                     <tr>

@@ -131,10 +131,16 @@ public class RestCheckPasswordServer {
             return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
         }
 
+        if (jsonInput.password1 == null || jsonInput.password1.length() < 1) {
+            final String errorMessage = "missing field 'password1'";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMessage, new String[]{"password1"});
+            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+        }
+
         try {
             final String userDN;
             final UserInfoBean uiBean;
-            if (jsonInput.username != null && jsonInput.username.length() > 0) { // check for another user
+            if (restRequestBean.getUserDN() != null && restRequestBean.getUserDN().length() > 0) { // check for another user
                 userDN = restRequestBean.getUserDN();
                 uiBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(

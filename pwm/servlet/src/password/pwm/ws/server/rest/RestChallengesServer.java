@@ -104,8 +104,7 @@ public class RestChallengesServer {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
-        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
+        return RestServerHelper.doHtmlRedirect();
     }
 
     @GET
@@ -134,12 +133,17 @@ public class RestChallengesServer {
             final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, actorProvider);
             final CrService crService = restRequestBean.getPwmApplication().getCrService();
             final ResponseSet responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(), chaiUser);
-            final JsonChallengesData jsonData = new JsonChallengesData();
-            jsonData.username = chaiUser.getEntryDN();
-            jsonData.challenges = responseSet.asChallengeBeans(answers);
-            jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
-            if (helpdesk) {
-                jsonData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(answers);
+            final JsonChallengesData jsonData;
+            if (responseSet != null) {
+                jsonData = new JsonChallengesData();
+                jsonData.username = chaiUser.getEntryDN();
+                jsonData.challenges = responseSet.asChallengeBeans(answers);
+                jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
+                if (helpdesk && responseSet.getChallengeSet() != null) {
+                    jsonData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(answers);
+                }
+            } else {
+                jsonData = null;
             }
 
             if (!restRequestBean.isExternal()) {

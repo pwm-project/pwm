@@ -213,6 +213,13 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="display.idleTimeout" level="0" required="true">
+        <label>Show Idle Timeout Counter</label>
+        <description><![CDATA[Show the user's remaining idle time, and when that time reaches zero, redirect the user to the logout page.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="display.css.customStyleLocation" level="1">
         <label>Custom CSS Stylesheet Location.</label>
         <description><![CDATA[URL Location (and name) of the pwmStyle.css.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
@@ -356,7 +363,7 @@
             <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
         </default>
     </setting>
-    <setting key="ldap.serverCerts" level="2" required="true" hidden="true">
+    <setting key="ldap.serverCerts" level="2" required="true">
         <label>LDAP Certificates</label>
         <description><![CDATA[LDAP Server Certificates]]></description>
         <default/>
@@ -597,9 +604,9 @@
     </setting>
     <setting key="email.changePassword.helpdesk" level="0">
         <label>Helpdesk Change Password Email</label>
-        <description><![CDATA[Email sent to user when the helpdesk changes the user's password.]]></description>
+        <description><![CDATA[Email sent to user when the helpdesk changes the user's password.  Macros used for this setting will be expanded based on the user who's password is being changed, not the helpdesk user.]]></description>
         <default>
-            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your help desk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your help desk."}</value>
+            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
         </default>
     </setting>
     <setting key="email.updateProfile" level="0">
@@ -660,9 +667,9 @@
     </setting>
     <setting key="email.sendpassword" level="1">
         <label>Send Password Email Subject</label>
-        <description><![CDATA[Email sent during new user verification process if send password functionality is enabled.]]></description>
+        <description><![CDATA[Email sent during forgotten password reset process if send password functionality is enabled.]]></description>
         <default>
-            <value>{"from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n%PASSWORD%\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e%PASSWORD%\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003eThank you for requesting a password reset.  Your new password is:\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e \u003c/b\u003e\u003c/font\u003e"}</value>
+            <value>{"from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
@@ -1342,7 +1349,7 @@
         </default>
     </setting>
     <setting key="security.sso.authHeaderName" level="0">
-        <label>SSO Username Authentication Header Name</label>
+        <label>SSO Authentication Header Name</label>
         <description><![CDATA[With this setting enabled, an upstream server can be configured to allow autologin with a only a username, a password is not required.  This setting controls the name of the HTTP header.  When used, a user will likely be prompted for their password to access certain functionality.]]></description>
         <default>
             <value/>
@@ -1719,7 +1726,7 @@
     </setting>
     <setting key="recovery.searchFilter" level="0" required="true">
         <label>Forgotten Password User Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(mail=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotten Password User Search Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotten Password User Search Form included the attributes <i>mail</i> and <i>sn</i>, then the filter <b>(&(objectClass=person)(mail=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
         <default>
             <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
         </default>
@@ -2497,9 +2504,10 @@
         </default>
         <options>
             <option value="none">None</option>
-            <option value="type">Type</option>
-            <option value="autogen">Auto Generate</option>
-            <option value="both">Both</option>
+            <option value="type">Type new password</option>
+            <option value="autogen">Auto generate a list of random passwords to choose from</option>
+            <option value="both">Auto generate a list of random passwords and allow typing of new password</option>
+            <option value="sendpassword">Send a random password to the user</option>
         </options>
     </setting>
     <setting key="helpdesk.setPassword.writeAttributes" level="1">

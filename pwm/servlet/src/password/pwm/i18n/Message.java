@@ -55,6 +55,7 @@ public enum Message {
     SUCCESS_PASSWORDSEND("Success_PasswordSend"),
     SUCCESS_ACTION("Success_Action"),
 
+    EVENT_LOG_AUTHENTICATE("EventLog_Authenticate"),
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
     EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),

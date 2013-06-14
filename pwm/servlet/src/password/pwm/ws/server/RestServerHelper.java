@@ -42,11 +42,18 @@ import password.pwm.util.operations.UserSearchEngine;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
 
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
+
+    public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
+        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
+        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
+    }
 
     public static RestRequestBean initializeRestRequest(
             final HttpServletRequest request,

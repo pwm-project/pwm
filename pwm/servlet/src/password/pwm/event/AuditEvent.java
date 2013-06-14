@@ -28,6 +28,7 @@ import password.pwm.i18n.Message;
 import java.util.Locale;
 
 public enum AuditEvent {
+    AUTHENTICATE(Message.EVENT_LOG_AUTHENTICATE),
     CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD),
     RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD),
     SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES),

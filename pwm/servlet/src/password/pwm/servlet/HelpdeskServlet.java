@@ -74,7 +74,8 @@ public class HelpdeskServlet extends TopServlet {
         none,
         type,
         autogen,
-        both
+        both,
+        sendpassword,
     }
 
     public static enum SETTING_CLEAR_RESPONSES {
