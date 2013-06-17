@@ -221,17 +221,17 @@
         </default>
     </setting>
     <setting key="display.css.customStyleLocation" level="1">
-        <label>Custom CSS Stylesheet Location.</label>
-        <description><![CDATA[URL Location (and name) of the pwmStyle.css.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <label>Custom CSS Stylesheet Location</label>
+        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
-            <value><![CDATA[/public/resources/custom/pwmStyle.css]]></value>
+            <value><![CDATA[/public/resources/custom/style.css]]></value>
         </default>
     </setting>
     <setting key="display.css.customMobileStyleLocation" level="1">
         <label>Custom Mobile CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the pwmMobileStyle.css.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
-            <value><![CDATA[/public/resources/custom/pwmStyleMobile.css]]></value>
+            <value><![CDATA[/public/resources/custom/mobileStyle.css]]></value>
         </default>
     </setting>
     <setting key="display.css.customStyle" level="1">
@@ -432,7 +432,7 @@
         </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="1" required="true">
-        <label>Username search filter</label>
+        <label>Username Search Filter</label>
         <description><![CDATA[Used to for contextless login and other functions to find users in ldap using usernames.  The value <i>%USERNAME%</i> is replaced with the actual username value.]]></description>
         <default>
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
@@ -498,7 +498,7 @@
     </setting>
     <setting key="ldap.guid.autoAddValue" level="1" required="true">
         <label>Auto-Add GUID Value</label>
-        <description><![CDATA[If true, A unique GUID value will be created and assigned for any user attempting to authenticate that does not have a value.  The value will be written to the attribute nameed in the LDAP GUID Attribute setting.]]></description>
+        <description><![CDATA[If true, A unique GUID value will be created and assigned for any user attempting to authenticate that does not have a value.  The value will be written to the attribute named in the LDAP GUID Attribute setting.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -567,7 +567,7 @@
         <description><![CDATA[Any emails generated will be sent by logging into server with this password.  A blank value will here will send SMTP messages without authentication.]]></description>
     </setting>
     <setting key="email.userMailAttribute" level="1" required="true">
-        <label>User Email attribute</label>
+        <label>User Email Attribute</label>
         <description><![CDATA[User LDAP attribute containing the user's email address.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
@@ -753,12 +753,12 @@
     </setting>
     <setting key="sms.requestContentEncoding" level="1" required="true">
         <label>SMS Data Content Encoding</label>
-        <description><![CDATA[Data for fields in the SMS data may need encoding or escaping.</br>See <a href="http://commons.apache.org/lang/api-release/org/apache/commons/lang/StringEscapeUtils.html" target="_new">Apache Commons JavaDocs</a> for detailed information.]]></description>
+        <description><![CDATA[Data for fields in the SMS data may need encoding or escaping.]]></description>
         <default>
             <value><![CDATA[URL]]></value>
         </default>
         <options>
-            <option value="NONE">None - no encoding (use at your own risk)</option>
+            <option value="NONE">None - no encoding</option>
             <option value="CSV">CSV - Escape for comma separated values</option>
             <option value="HTML">HTML - for HTML data</option>
             <option value="JAVA">Java - for Java String representations</option>
@@ -819,15 +819,15 @@
         </default>
     </setting>
     <setting key="sms.requestId.characters" level="1" required="true">
-        <label>Request Id Characters</label>
-        <description><![CDATA[Available characters SMS request id]]></description>
+        <label>Request ID Characters</label>
+        <description><![CDATA[Available characters SMS request ID.]]></description>
         <default>
             <value><![CDATA[0123456789abcdef]]></value>
         </default>
     </setting>
     <setting key="sms.requestId.length" level="1" required="true">
-        <label>Request Id Length</label>
-        <description><![CDATA[Length of the SMS request id]]></description>
+        <label>Request ID Length</label>
+        <description><![CDATA[Length of the SMS request ID.]]></description>
         <default>
             <value>6</value>
         </default>
@@ -1182,7 +1182,7 @@
         </default>
     </setting>
     <setting key="password.wordlist.wordSize" level="1" required="true">
-        <label>Wordlist word size check</label>
+        <label>Wordlist Word Size Check</label>
         <description><![CDATA[Number of characters in a word that is checked against the wordlist dictionary.  For example, if the word to be checked is "wordlist" and this setting is set to 6, then the combinations "wordli", "ordlis" and "rdlist" would all be checked against the configured dictionary.  If any of these values match, then the entire value is considered to match the wordlist.  If this value is set to zero or the word to check is smaller then the value specified here, then only the entire word ist checked.]]></description>
         <default>
             <value>0</value>
@@ -1255,7 +1255,7 @@
     </setting>
     <setting key="captcha.skip.param" level="1">
         <label>Captcha Skip Parameter Value</label>
-        <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request paramater with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause PWM to skip the captcha check.]]></description>
+        <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request parameter with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause captcha to be bypassed.]]></description>
         <default>
             <value />
         </default>
@@ -1276,7 +1276,7 @@
     </setting>
     <setting key="security.formNonce.enable" level="1" required="true">
         <label>Enable Form Nonce</label>
-        <description><![CDATA[Require a form nonce for each form in PWM to prevent certain types of cross-site scripting (XSS) attacks.]]></description>
+        <description><![CDATA[Require a nonce (or unique key) for each form to prevent certain types of cross-site scripting (XSS) attacks.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1308,7 +1308,7 @@
     </setting>
     <setting key="pwm.requireHTTPS" level="0" required="true">
         <label>Require HTTPS</label>
-        <description><![CDATA[Require HTTPS (instead of cleartext HTTP) traffic to the application server server.  While non-secure connections are useful during testing, production servers should always have this setting set to true.]]></description>
+        <description><![CDATA[Require HTTPS (instead of cleartext HTTP) traffic to the application server.  While non-secure connections are useful during testing, production servers should always have this setting set to true.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -1357,7 +1357,7 @@
     </setting>
     <setting key="audit.syslog.servers" level="0" required="false">
         <label>Syslog Audit Servers</label>
-        <description><![CDATA[Syslog audit servers]]></description>
+        <description><![CDATA[Syslog audit servers.  When configured, all audit events will be forwarded to the specified syslog servers.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
         <default>
             <value/>
         </default>
@@ -1492,7 +1492,7 @@
     </setting>
     <setting key="events.alert.startup.enable" level="0" required="true">
         <label>Startup Alerts</label>
-        <description><![CDATA[If true, send an during application startup.]]></description>
+        <description><![CDATA[If true, send an alert during application startup.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1884,7 +1884,7 @@
     </setting>
     <setting key="forgottenUsername.searchFilter" level="0" required="true">
         <label>Forgotten Username Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotton Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(cn=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
+        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotten Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(cn=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
         <default>
             <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
         </default>
@@ -1926,7 +1926,7 @@
     </setting>
     <setting key="newUser.form" level="0" required="true">
         <label>New User Form</label>
-        <description><![CDATA[New User form creation attributes/fields.]]></description>
+        <description><![CDATA[<p>New User form creation attributes/fields.</p><p>To control the LDAP entry name of the newly created user, the <i>LDAP Naming Attribute</i> must be included as a form value and the settings <i>Random Username Characters (Advanced)</i> and <i>Random Username Length (Advanced)</i> must be set to blank and 0.  If this is not the case, then the LDAP entry name will be randomly generated.</p>]]></description>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -1950,14 +1950,14 @@
     </setting>
     <setting key="newUser.username.characters" level="1">
         <label>Random Username Characters</label>
-        <description><![CDATA[Available characters for the new username.  If blank, a random username will not be generated and the ldap naming attribute must be included in the form.]]></description>
+        <description><![CDATA[Available characters for the new username.  If blank, a random LDAP entry name will not be generated and the <i>LDAP Naming Attribute</i> must be included in the form.]]></description>
         <default>
             <value><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]]></value>
         </default>
     </setting>
     <setting key="newUser.username.length" level="1">
         <label>Random Username Length</label>
-        <description><![CDATA[Length of the new username.  If set to 0, a random username username will not be generated and the ldap naming attribute must be included in the form.]]></description>
+        <description><![CDATA[Length of the new username.  If set to 0, a random LDAP entry name will not be generated and the <i>LDAP Naming Attribute</i> must be included in the form.]]></description>
         <default>
             <value>16</value>
         </default>
@@ -2387,14 +2387,14 @@
         </default>
     </setting>
     <setting key="ldap.ad.allowAuth.requireNewPassword" level="0" required="true">
-        <label>Allow authentication when "must change password on next login" is set</label>
+        <label>Allow Authentication When "Must Change Password On Next Login" Is Set</label>
         <description><![CDATA[Active Directory will fail an ldap login attempt when the user's "must change password on next login" flag is set.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
         <default>
             <value>true</value>
         </default>
     </setting>
     <setting key="ldap.ad.allowAuth.expired" level="0" required="true">
-        <label>Allow authentication when password expired</label>
+        <label>Allow Authentication When Password Expired</label>
         <description><![CDATA[Active Directory will fail an ldap login attempt when the current date is after the user's password expiration date.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
         <default>
             <value>false</value>

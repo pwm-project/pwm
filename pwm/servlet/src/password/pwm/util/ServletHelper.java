@@ -22,8 +22,6 @@
 
 package password.pwm.util;
 
-import org.apache.catalina.Session;
-import org.apache.catalina.authenticator.SavedRequest;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;

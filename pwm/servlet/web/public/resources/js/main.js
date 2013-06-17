@@ -74,7 +74,9 @@ function pwmPageLoadHandler() {
     }
 
     require(["dojo/domReady!"],function(){
-        IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
+        if (PWM_GLOBAL['enableIdleTimeout']) {
+            IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
+        }
         initLocaleSelectorMenu('localeSelectionMenu');
     });
 

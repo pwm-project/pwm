@@ -64,6 +64,7 @@ function initPwmGlobalValues() {
     PWM_GLOBAL['client.ajaxTypingWait'] = <%=PwmConstants.CLIENT_AJAX_TYPING_WAIT%>
     PWM_GLOBAL['client.activityMaxEpsRate'] = <%=PwmConstants.CLIENT_ACTIVITY_MAX_EPS_RATE%>
     PWM_GLOBAL['formTypeOptions'] = [];
+    PWM_GLOBAL['enableIdleTimeout'] = <%=pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)%>;
 <% for (final FormConfiguration.Type type : FormConfiguration.Type.values()) { %>
     PWM_GLOBAL['formTypeOptions'].push('<%=type.toString()%>');
 <%}%>
