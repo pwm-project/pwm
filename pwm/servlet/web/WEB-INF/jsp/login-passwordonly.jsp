@@ -34,13 +34,11 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_LoginPasswordOnly"/></p>
-
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
               onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
             <input type="password" name="password" id="password" class="inputfield" re/>
-
             <div id="buttonbar">
                 <input type="submit" class="btn"
                        name="button"
@@ -58,6 +56,7 @@
         </form>
         <br/>
     </div>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -42,30 +42,29 @@
 <% final Locale userLocaleFooter = pwmSessionFooter.getSessionStateBean().getLocale(); %>
 <%-- begin pwm footer --%>
 <div id="footer">
-    <br/>
-    <br/>
-    <span class="infotext">
-        <pwm:Display key="Display_FooterInfoText"/>&nbsp;
-    </span>
-    <br/>
-    <div>
-        <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
-        <%= pwmSessionFooter.getUserInfoBean().getUserID()%>
-        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
+    <div id="footer-content">
+        <span class="infotext">
+            <pwm:Display key="Display_FooterInfoText"/>&nbsp;
+        </span>
+        <div>
+            <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
+            <%= pwmSessionFooter.getUserInfoBean().getUserID()%>
+            &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
+            <% } %>
+            <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
+            <span id="idle_status">&nbsp;</span>
+            &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
+            <% } %>
+        <span id="localeSelectionMenu" style="white-space: nowrap">
+            <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
+            &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
+        </span>
+        </div>
+        <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
+        <% if (customScript != null && customScript.length() > 0) { %>
+        <script type="text/javascript">
+            <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
+        </script>
         <% } %>
-        <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
-        <span id="idle_status">&nbsp;</span>
-        &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
-        <% } %>
-    <span id="localeSelectionMenu" style="white-space: nowrap">
-        <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
-        &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
-    </span>
     </div>
-    <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
-    <% if (customScript != null && customScript.length() > 0) { %>
-    <script type="text/javascript">
-        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
-    </script>
-    <% } %>
 </div>

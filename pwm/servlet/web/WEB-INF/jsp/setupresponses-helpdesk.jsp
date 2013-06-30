@@ -42,7 +42,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupHelpdeskResponses"/></p>
-
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
               enctype="application/x-www-form-urlencoded" id="setupResponses"
               onsubmit="handleFormSubmit('setresponses_button',this);return false">
@@ -70,7 +69,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -32,7 +32,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ForgottenUsername"/></p>
-
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
@@ -48,7 +47,6 @@
             <% } %>
             <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
-
             <div id="buttonbar">
                 <input type="hidden"
                        name="processAction"
@@ -71,7 +69,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

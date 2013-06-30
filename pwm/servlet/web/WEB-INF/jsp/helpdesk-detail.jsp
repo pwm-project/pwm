@@ -53,329 +53,330 @@
 <script type="text/javascript"
         src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
-</jsp:include>
-<div id="centerbody">
-<% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
-<h1><%=searchedUserInfo.getUserID()%></h1>
-<div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
-    <div style="max-height: 400px; overflow: auto;">
-        <table>
-            <tr>
-                <td class="key">
-                    <pwm:Display key="Field_Username"/>
-                </td>
-                <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    <pwm:Display key="Field_UserDN"/>
-                </td>
-                <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserDN()) %>
-                </td>
-            </tr>
-        </table>
-        <table>
-            <% for (FormConfiguration formItem : helpdeskBean.getAdditionalUserInfo().getSearchDetails().keySet()) { %>
-            <tr>
-                <td class="key">
-                    <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
-                </td>
-                <td>
-                    <% final String loopValue = helpdeskBean.getAdditionalUserInfo().getSearchDetails().get(formItem); %>
-                    <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
-                </td>
-            </tr>
-            <%  } %>
-        </table>
-        <table>
-            <tr>
-                <td class="key">
-                    <%=PwmConstants.PWM_APP_NAME%> <pwm:Display key="Field_UserGUID"/>
-                </td>
-                <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Status">
-    <table>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_Username"/>
-            </td>
-            <td>
-                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_AccountEnabled"/>
-            </td>
-            <td>
-                <%if (helpdeskBean.getAdditionalUserInfo().isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_LastLoginTime"/>
-            </td>
-            <td>
-                <%= helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()) : ""%>
-            </td>
-        </tr>
-        <% if (helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null) { %>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_LastLoginTimeDelta"/>
-            </td>
-            <td>
-                <%= TimeDuration.fromCurrent(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) %>
-            </td>
-        </tr>
-        <% } %>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordExpired"/>
-            </td>
-            <td>
-                <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordPreExpired"/>
-            </td>
-            <td>
-                <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
-            </td>
-            <td>
-                <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordViolatesPolicy"/>
-            </td>
-            <td>
-                <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordSetTime"/>
-            </td>
-            <td>
-                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordSetTimeDelta"/>
-            </td>
-            <td>
-                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) : "n/a"%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordExpirationTime"/>
-            </td>
-            <td>
-                <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_PasswordLocked"/>
-            </td>
-            <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
-            <td class="health-WARN">
-                <pwm:Display key="Value_True"/>
-            </td>
-            <% } else { %>
-            <td>
-                <pwm:Display key="Value_False"/>
-            </td>
-            <% } %>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_ResponsesStored"/>
-            </td>
-            <td>
-                <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
-                <pwm:Display key="Value_True"/>
-                <% } else { %>
-                <pwm:Display key="Value_False"/>
-                <% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_ResponsesNeeded"/>
-            </td>
-            <td>
-                <% if (helpdeskBean.getUserInfoBean().isRequiresResponseConfig()) { %>
-                <pwm:Display key="Value_True"/>
-                <% } else { %>
-                <pwm:Display key="Value_False"/>
-                <% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <pwm:Display key="Field_ResponsesTimestamp"/>
-            </td>
-            <td>
-                <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : "n/a" %>
-            </td>
-        </tr>
-    </table>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
-    <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().isEmpty()) { %>
-    <div style="max-height: 400px; overflow: auto;">
-        <table>
-            <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
-            <tr>
-                <td class="key">
-                    <%= dateFormatter.format(record.getTimestamp()) %>
-                </td>
-                <td>
-                    <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
-                    <%= record.getMessage() != null && record.getMessage().length() > 1 ? " (" + record.getMessage() + ") " : "" %>
-                </td>
-            </tr>
-            <% } %>
-        </table>
-    </div>
-    <% } else { %>
-    <div style="width:100%; text-align: center">
-        <pwm:Display key="Display_SearchResultsNone"/>
-    </div>
-    <% } %>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
-    <div style="max-height: 400px; overflow: auto;">
-        <table>
-            <tr>
-                <td class="key">
-                    Policy DN
-                </td>
-                <td>
-                    <% if ((searchedUserInfo.getPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
-                    <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>n/a
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
+    </jsp:include>
+    <div id="centerbody">
+        <% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
+        <h1><%=searchedUserInfo.getUserID()%></h1>
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
+                <div style="max-height: 400px; overflow: auto;">
+                    <table>
+                        <tr>
+                            <td class="key">
+                                <pwm:Display key="Field_Username"/>
+                            </td>
+                            <td>
+                                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">
+                                <pwm:Display key="Field_UserDN"/>
+                            </td>
+                            <td>
+                                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserDN()) %>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <% for (FormConfiguration formItem : helpdeskBean.getAdditionalUserInfo().getSearchDetails().keySet()) { %>
+                        <tr>
+                            <td class="key">
+                                <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
+                            </td>
+                            <td>
+                                <% final String loopValue = helpdeskBean.getAdditionalUserInfo().getSearchDetails().get(formItem); %>
+                                <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
+                            </td>
+                        </tr>
+                        <%  } %>
+                    </table>
+                    <table>
+                        <tr>
+                            <td class="key">
+                                <%=PwmConstants.PWM_APP_NAME%> <pwm:Display key="Field_UserGUID"/>
+                            </td>
+                            <td>
+                                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Status">
+                <table>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_Username"/>
+                        </td>
+                        <td>
+                            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserID()) %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_AccountEnabled"/>
+                        </td>
+                        <td>
+                            <%if (helpdeskBean.getAdditionalUserInfo().isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_LastLoginTime"/>
+                        </td>
+                        <td>
+                            <%= helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()) : ""%>
+                        </td>
+                    </tr>
+                    <% if (helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null) { %>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_LastLoginTimeDelta"/>
+                        </td>
+                        <td>
+                            <%= TimeDuration.fromCurrent(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) %>
+                        </td>
+                    </tr>
                     <% } %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Display
-                </td>
-                <td>
-                    <ul>
-                        <%
-                            final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
-                        <% for (final String requirementLine : requirementLines) { %>
-                        <li><%=requirementLine%>
-                        </li>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordExpired"/>
+                        </td>
+                        <td>
+                            <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordPreExpired"/>
+                        </td>
+                        <td>
+                            <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
+                        </td>
+                        <td>
+                            <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordViolatesPolicy"/>
+                        </td>
+                        <td>
+                            <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordSetTime"/>
+                        </td>
+                        <td>
+                            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : "n/a"%>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordSetTimeDelta"/>
+                        </td>
+                        <td>
+                            <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) : "n/a"%>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordExpirationTime"/>
+                        </td>
+                        <td>
+                            <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : "n/a"%>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_PasswordLocked"/>
+                        </td>
+                        <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
+                        <td class="health-WARN">
+                            <pwm:Display key="Value_True"/>
+                        </td>
+                        <% } else { %>
+                        <td>
+                            <pwm:Display key="Value_False"/>
+                        </td>
                         <% } %>
-                    </ul>
-                </td>
-            </tr>
-            <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
-            <tr>
-                <td class="key">
-                    <%= rule.name() %>
-                </td>
-                <td>
-                    <%= searchedUserInfo.getPasswordPolicy().getValue(rule) != null ? StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) : "" %>
-                </td>
-            </tr>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_ResponsesStored"/>
+                        </td>
+                        <td>
+                            <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
+                            <pwm:Display key="Value_True"/>
+                            <% } else { %>
+                            <pwm:Display key="Value_False"/>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_ResponsesNeeded"/>
+                        </td>
+                        <td>
+                            <% if (helpdeskBean.getUserInfoBean().isRequiresResponseConfig()) { %>
+                            <pwm:Display key="Value_True"/>
+                            <% } else { %>
+                            <pwm:Display key="Value_False"/>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Field_ResponsesTimestamp"/>
+                        </td>
+                        <td>
+                            <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : "n/a" %>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
+                <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().isEmpty()) { %>
+                <div style="max-height: 400px; overflow: auto;">
+                    <table>
+                        <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
+                        <tr>
+                            <td class="key">
+                                <%= dateFormatter.format(record.getTimestamp()) %>
+                            </td>
+                            <td>
+                                <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()) %>
+                                <%= record.getMessage() != null && record.getMessage().length() > 1 ? " (" + record.getMessage() + ") " : "" %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                </div>
+                <% } else { %>
+                <div style="width:100%; text-align: center">
+                    <pwm:Display key="Display_SearchResultsNone"/>
+                </div>
+                <% } %>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
+                <div style="max-height: 400px; overflow: auto;">
+                    <table>
+                        <tr>
+                            <td class="key">
+                                Policy DN
+                            </td>
+                            <td>
+                                <% if ((searchedUserInfo.getPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
+                                <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>n/a
+                                <% } %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="key">
+                                Display
+                            </td>
+                            <td>
+                                <ul>
+                                    <%
+                                        final List<String> requirementLines = PasswordRequirementsTag.getPasswordRequirementsStrings(searchedUserInfo.getPasswordPolicy(), ContextManager.getPwmApplication(session).getConfig(), pwmSession.getSessionStateBean().getLocale()); %>
+                                    <% for (final String requirementLine : requirementLines) { %>
+                                    <li><%=requirementLine%>
+                                    </li>
+                                    <% } %>
+                                </ul>
+                            </td>
+                        </tr>
+                        <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
+                        <tr>
+                            <td class="key">
+                                <%= rule.name() %>
+                            </td>
+                            <td>
+                                <%= searchedUserInfo.getPasswordPolicy().getValue(rule) != null ? StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) : "" %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                </div>
+            </div>
+            <% if (responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null && !responseInfoBean.getHelpdeskCrMap().isEmpty()) { %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_SecurityResponses"/>">
+                <table>
+                    <% for (final Challenge challenge : responseInfoBean.getHelpdeskCrMap().keySet()) { %>
+                    <tr>
+                        <td class="key">
+                            <%=challenge.getChallengeText()%>
+                        </td>
+                        <td>
+                            <%=responseInfoBean.getHelpdeskCrMap().get(challenge)%>
+                        </td>
+                    </tr>
+                    <% } %>
+                </table>
+            </div>
             <% } %>
-        </table>
+        </div>
+        <div id="buttonbar">
+            <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
+            <button class="btn" onclick="initiateChangePasswordDialog()"><pwm:Display key="Button_ChangePassword"/></button>
+            <% } %>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
+            <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
+            <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
+            <% } else { %>
+            <button id="unlockBtn" class="btn" disabled="disabled">Unlock</button>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+                        new Tooltip({
+                            connectId: ["unlockBtn"],
+                            label: 'User is not locked'
+                        });
+                    });
+                });
+            </script>
+            <% } %>
+            <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
+            <% } %>
+            <br/>
+            <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
+            <% for (final ActionConfiguration loopAction : actions) { %>
+            <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
+                        new Tooltip({
+                            connectId: ["action-<%=loopAction.getName()%>"],
+                            position: 'above',
+                            label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
+                        });
+                    });
+                });
+            </script>
+            <% } %>
+        
+        
+            <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
+                <input type="hidden" name="processAction" value="continue"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('unlockBtn', this)">
+                <input type="hidden" name="processAction" value="doUnlock"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+        </div>
     </div>
-</div>
-<% if (responseInfoBean != null && responseInfoBean.getHelpdeskCrMap() != null && !responseInfoBean.getHelpdeskCrMap().isEmpty()) { %>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_SecurityResponses"/>">
-    <table>
-        <% for (final Challenge challenge : responseInfoBean.getHelpdeskCrMap().keySet()) { %>
-        <tr>
-            <td class="key">
-                <%=challenge.getChallengeText()%>
-            </td>
-            <td>
-                <%=responseInfoBean.getHelpdeskCrMap().get(challenge)%>
-            </td>
-        </tr>
-        <% } %>
-    </table>
-</div>
-<% } %>
-</div>
-<div id="buttonbar">
-    <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
-    <button class="btn" onclick="initiateChangePasswordDialog()"><pwm:Display key="Button_ChangePassword"/></button>
-    <% } %>
-    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
-    <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
-    <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
-    <% } else { %>
-    <button id="unlockBtn" class="btn" disabled="disabled">Unlock</button>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-                new Tooltip({
-                    connectId: ["unlockBtn"],
-                    label: 'User is not locked'
-                });
-            });
-        });
-    </script>
-    <% } %>
-    <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
-    <% } %>
-    <br/>
-    <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
-    <% for (final ActionConfiguration loopAction : actions) { %>
-    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-                new Tooltip({
-                    connectId: ["action-<%=loopAction.getName()%>"],
-                    position: 'above',
-                    label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
-                });
-            });
-        });
-    </script>
-    <% } %>
-
-
-    <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
-        <input type="hidden" name="processAction" value="continue"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('unlockBtn', this)">
-        <input type="hidden" name="processAction" value="doUnlock"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-</div>
-</div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function initiateChangePasswordDialog() {

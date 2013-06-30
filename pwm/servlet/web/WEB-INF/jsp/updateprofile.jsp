@@ -33,7 +33,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_UpdateProfile"/></p>
-
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
@@ -59,7 +58,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function validateForm() {

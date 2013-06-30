@@ -32,7 +32,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ForgottenPassword"/></p>
-
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
@@ -72,7 +71,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

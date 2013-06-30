@@ -38,8 +38,8 @@
         <div id="buttonbar">
             <div id="WaitDialogBlank"></div>
         </div>
-        <br class="clear"/>
     </div>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

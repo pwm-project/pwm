@@ -66,7 +66,7 @@
             </form>
         </div>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>

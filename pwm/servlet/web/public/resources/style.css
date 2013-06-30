@@ -25,7 +25,7 @@ html, body {
     color: #333333;
     font-size: 12px;
     height: 100%;
-    margin: 0
+    margin: 0;
 }
 
 a {
@@ -161,7 +161,8 @@ table td.key {
     min-height: 100%;
     height: auto !important;
     height: 100%;
-    margin: 0;
+    margin: 0 auto -60px;
+    position: relative;
 }
 
 /* main content section, all content should be inside a centerbody div */
@@ -169,12 +170,11 @@ table td.key {
     width: 600px;
     min-width: 600px;
     padding: 0;
-    position: relative;;
+    position: relative;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
     clear: both;
-    padding-bottom: 60px;
 }
 
 /* all forms use a buttonbar div containing the action buttons */
@@ -297,23 +297,32 @@ div.progress-container > div {
     background-color: #EFEFEF;
 }
 
+
+.push, #footer {
+    height: 60px;
+}
+
 #footer {
-    position: relative;;
+    position: relative;
     text-align: center;
-    bottom: 0;
     width: 100%;
     color: #555555;
     font-size: 11px;
-    height: 60px;
     margin: 0;
-    margin-top: -60px
 }
+
+#footer-content {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  padding-bottom: 5px;
+}
+
 
 #footer .infotext {
     font-family: Arial, Helvetica, sans-serif;
     color: #333333;
     font-size: 12px;
-    padding-bottom: 10px;
 }
 
 #capslockwarning {

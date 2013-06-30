@@ -35,7 +35,7 @@
         <%@ include file="fragment/message.jsp" %>
         <p><pwm:Display key="Display_Logout"/></p>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['idle_suspendTimeout'] = true;

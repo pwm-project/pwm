@@ -85,8 +85,6 @@
                     <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
                 </td>
             </tr>
-
-
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <tr style="border:0">
@@ -119,8 +117,9 @@
             </tr>
             <% } %>
         </table>
+        <% } %>
     </div>
-    <% } %>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

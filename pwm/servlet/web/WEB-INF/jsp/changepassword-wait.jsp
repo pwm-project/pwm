@@ -38,7 +38,7 @@
         <div id="buttonbar"></div>
         <div id="WaitDialogBlank"></div>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 </body>
 </html>

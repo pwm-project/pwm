@@ -97,7 +97,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

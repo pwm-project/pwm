@@ -35,58 +35,58 @@
     </jsp:include>
     <table id="mastertable">
     </table>
-    <script type="text/javascript">
-        var cellCount = 0;
-        function makeTable() {
-            require(["dojo","dojo/window"],function(dojo){
-                var vs = dojo.window.getBox();
-                var cellHeight = 20;
-                var cellWidth = 150;
-
-                var rows = Math.floor(vs.w / cellWidth);
-                var columns = Math.floor((vs.h - 70 - 20) / cellHeight); //70 for header, 50 for footer
-
-                var innerHtmlText = "";
-                var position = 0;
-                var fetchList = new Array();
-                for (var columnCounter = 0; columnCounter < columns; columnCounter++) {
-                    innerHtmlText = innerHtmlText + '<tr>';
-                    for (var rowCounter = 0; rowCounter < rows; rowCounter++) {
-                        position = position + 1;
-                        var idString = "randomGen" + position;
-                        fetchList[position] = idString;
-                        innerHtmlText = innerHtmlText + '<td id="' + idString + '" style="text-align: center;" width="'+cellWidth+'">&nbsp;</td>';
-                    }
-                    innerHtmlText = innerHtmlText + '</tr>';
-                }
-                getObject('mastertable').innerHTML = innerHtmlText;
-                initFetchProcess(fetchList);
-                cellCount = position;
-            });
-        }
-
-        function initFetchProcess(fetchList) {
-            for (var i = 0; i < fetchList.length; i++) {
-                fetchList.sort(function() {
-                    return 0.5 - Math.random()
-                });
-            }
-            var randomConfig = {};
-            randomConfig['fetchList'] = fetchList;
-            fetchRandoms(randomConfig);
-        }
-
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/ready"],function(){
-                makeTable();
-                window.onresize = function(event) {
-                    makeTable();
-                }
-            });
-        });
-    </script>
+    <div class="push"></div>
 </div>
+<script type="text/javascript">
+    var cellCount = 0;
+    function makeTable() {
+        require(["dojo","dojo/window"],function(dojo){
+            var vs = dojo.window.getBox();
+            var cellHeight = 20;
+            var cellWidth = 150;
+
+            var rows = Math.floor(vs.w / cellWidth);
+            var columns = Math.floor((vs.h - 70 - 20) / cellHeight); //70 for header, 50 for footer
+
+            var innerHtmlText = "";
+            var position = 0;
+            var fetchList = new Array();
+            for (var columnCounter = 0; columnCounter < columns; columnCounter++) {
+                innerHtmlText = innerHtmlText + '<tr>';
+                for (var rowCounter = 0; rowCounter < rows; rowCounter++) {
+                    position = position + 1;
+                    var idString = "randomGen" + position;
+                    fetchList[position] = idString;
+                    innerHtmlText = innerHtmlText + '<td id="' + idString + '" style="text-align: center;" width="'+cellWidth+'">&nbsp;</td>';
+                }
+                innerHtmlText = innerHtmlText + '</tr>';
+            }
+            getObject('mastertable').innerHTML = innerHtmlText;
+            initFetchProcess(fetchList);
+            cellCount = position;
+        });
+    }
+
+    function initFetchProcess(fetchList) {
+        for (var i = 0; i < fetchList.length; i++) {
+            fetchList.sort(function() {
+                return 0.5 - Math.random()
+            });
+        }
+        var randomConfig = {};
+        randomConfig['fetchList'] = fetchList;
+        fetchRandoms(randomConfig);
+    }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/ready"],function(){
+            makeTable();
+            window.onresize = function(event) {
+                makeTable();
+            }
+        });
+    });
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
-

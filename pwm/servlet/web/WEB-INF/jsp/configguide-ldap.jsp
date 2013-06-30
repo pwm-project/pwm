@@ -78,7 +78,6 @@
                         });
                     </script>
                 </div>
-
                 <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" style="padding-left: 5px; padding-top: 5px">
                     <b>LDAP Port</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
@@ -136,7 +135,6 @@
                 </div>
                 </div>
             </div>
-
             <br class="clear"/>
             <div id="outline_ldap-user" class="configDiv">
                 <div id="titlePaneHeader-ldap-user" style="width:580px" data-dojo-type="dijit/TitlePane" title="Admin/Proxy Account" data-dojo-props="open:false">
@@ -168,7 +166,6 @@
                         });
                     </script>
                 </div>
-
                 <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
                     <b>Password</b>
                     <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
@@ -207,6 +204,7 @@
             <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT')"><pwm:Display key="Button_Next" bundle="Config"/></button>
         </div>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function handleFormActivity() {

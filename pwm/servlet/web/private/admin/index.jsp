@@ -37,7 +37,7 @@
            <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>"> Loading... </a>
         </div>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

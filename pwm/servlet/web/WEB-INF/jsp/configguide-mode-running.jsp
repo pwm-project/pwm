@@ -102,6 +102,7 @@
         </p>
         <% } %>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     require(["dojo/parser","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){

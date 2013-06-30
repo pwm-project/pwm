@@ -33,19 +33,19 @@ html, body {
 #centerbody {
     width: auto;
     min-width: inherit;
-    margin-left: 3px;
-    margin-right: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
 #header-page {
-    width: 100%;
-    margin-left: 3px;
+    width: auto;
+    padding-left: 3px;
     text-align: center;
 }
 
 #header-title {
-    width: 100%;
-    margin-left: 3px;
+    width: auto;
+    padding-left: 3px;
     text-align: center;
 }
 

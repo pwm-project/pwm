@@ -116,7 +116,13 @@
             </tr>
             <% } %>
         </table>
+        <div id="buttonbar">
+            <button type="button" onclick="downloadCsv()"name="button" class="btn">
+                Download Statistics CSV File
+            </button>
+        </div>
     </div>
+    <div class="push"></div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dijit/registry","dijit/form/Select","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser,registry){
@@ -139,12 +145,6 @@
         }
     </script>
 </div>
-<div id="buttonbar">
-    <button type="button" onclick="downloadCsv()"name="button" class="btn">
-        Download Statistics CSV File
-    </button>
-</div>
-<br/><br/><br/>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

@@ -67,7 +67,6 @@
         </p>
         <% } %>
         <br/>
-
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
                   enctype="application/x-www-form-urlencoded"
@@ -92,7 +91,7 @@
             </form>
         </div>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

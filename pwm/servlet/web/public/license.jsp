@@ -24,6 +24,7 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
+<%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <head>
     <title>Licenses</title>
     <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
@@ -35,6 +36,9 @@
 </head>
 <body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
+    <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Software License Reference"/>
+    </jsp:include>
     <div id="centerbody">
         <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
             <h1>PWM License</h1>
@@ -174,13 +178,16 @@
             <br/>
         </div>
     </div>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_GLOBAL['idle_suspendTimeout'] = true;
-            require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
-                dojoParser.parse();
-            });
+    <div class="push"></div> 
+</div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['idle_suspendTimeout'] = true;
+        require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
+            dojoParser.parse();
         });
-    </script>
+    });
+</script>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

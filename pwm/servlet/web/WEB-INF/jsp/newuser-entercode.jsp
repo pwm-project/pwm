@@ -32,18 +32,17 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-<% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
+        <% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
         <p><pwm:Display key="Display_RecoverEnterCode"/></p>
-<% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
+        <% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
         <p><pwm:Display key="Display_RecoverEnterCodeSMS"/></p>
-<% } %>
+        <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-            <textarea style="height: 130px; width: 500px; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
-
+            <textarea style="height: 130px; width: 80%; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
             <div id="buttonbar">
                 <input type="submit" class="btn"
                        name="search"
@@ -64,8 +63,7 @@
             </form>
         </div>
     </div>
-</div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -33,7 +33,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_UpdateProfileConfirm"/></p>
-
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
@@ -43,7 +42,6 @@
             <% request.setAttribute("form-readonly","true"); %>
             <jsp:include page="fragment/form.jsp"/>
         </form>
-
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
                   onsubmit="handleFormSubmit('confirmBtn',this);return false">
@@ -65,7 +63,7 @@
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

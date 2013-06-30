@@ -147,6 +147,7 @@
             <% } %>
         </table>
     </div>
+    <div class="push"></div>
 </div>
 <%@ include file="../WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

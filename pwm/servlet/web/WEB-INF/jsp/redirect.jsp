@@ -42,7 +42,7 @@
         <div id="buttonbar"></div>
         <%--<div id="WaitDialogBlank"></div>--%>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
         showWaitDialog(null,null,function(){

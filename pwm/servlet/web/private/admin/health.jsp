@@ -28,29 +28,30 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler();">
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Status"/>
-</jsp:include>
-<div id="centerbody">
-<%@ include file="admin-nav.jsp" %>
-<div data-dojo-type="dijit.layout.ContentPane" title="Health">
-    <div id="healthBody">
-        <div id="WaitDialogBlank"></div>
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Status"/>
+    </jsp:include>
+    <div id="centerbody">
+        <%@ include file="admin-nav.jsp" %>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Health">
+            <div id="healthBody">
+                <div id="WaitDialogBlank"></div>
+            </div>
+            <script type="text/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dojo/domReady!"],function(){
+                    showPwmHealth('healthBody', {showRefresh:true});
+                });
+                });
+            </script>
+            <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
+                public health page at
+                <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
+                , this content is dynamically refreshed
+            </div>
+        </div>
     </div>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/domReady!"],function(){
-            showPwmHealth('healthBody', {showRefresh:true});
-        });
-        });
-    </script>
-    <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
-        public health page at
-        <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
-        , this content is dynamically refreshed
-    </div>
-</div>
-</div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function startupPage() {

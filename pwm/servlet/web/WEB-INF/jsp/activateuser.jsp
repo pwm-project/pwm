@@ -33,7 +33,6 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_ActivateUser"/></p>
-
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
               enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('submitBtn',this);return false">
             <%@ include file="fragment/message.jsp" %>
@@ -69,7 +68,7 @@
             </div>
         </form>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

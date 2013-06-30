@@ -26,13 +26,13 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-<span id="message" class="message message-error"><pwm:ErrorMessage/></span>
+    <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); %>
 <% } else if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) { %>
-<span id="message" class="message message-success"><pwm:SuccessMessage/></span>
+    <span id="message" class="message message-success"><pwm:SuccessMessage/></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); %>
 <% } else { %>
-<span style="display:none" id="message" class="message">&nbsp;</span>
+    <span style="display:none" id="message" class="message">&nbsp;</span>
 <% } %>
-<div id="capslockwarning" style="display:none;"><pwm:Display key="Display_CapsLockIsOn"/></div>
+    <div id="capslockwarning" style="display:none;"><pwm:Display key="Display_CapsLockIsOn"/></div>
 </div>

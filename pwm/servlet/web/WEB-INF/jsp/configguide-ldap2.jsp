@@ -151,6 +151,7 @@
             <button class="btn" id="button_next" onclick="gotoStep('PASSWORD')"><pwm:Display key="Button_Next"  bundle="Config"/></button>
         </div>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function handleFormActivity() {

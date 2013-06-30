@@ -107,14 +107,14 @@
                     </div>
                 </div>
             </div>
+        </form>
+        <br/>
+        <div id="buttonbar">
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_next" onclick="gotoStep('END')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+        </div>
     </div>
-    </form>
-    <br/>
-    <div id="buttonbar">
-        <button class="btn" id="button_previous" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-        <button class="btn" id="button_next" onclick="gotoStep('END')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
-    </div>
-</div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function handleFormActivity() {

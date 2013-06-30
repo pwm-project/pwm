@@ -48,13 +48,13 @@
         <i>Save Configuration</i> to save the configuration and restart the application.</p>
         <br/>
         <br/>
-
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="gotoStep('PASSWORD')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next" onclick="gotoStep('FINISH')"> Save Configuration </button>
         </div>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

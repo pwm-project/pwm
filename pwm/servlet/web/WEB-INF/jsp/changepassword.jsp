@@ -112,7 +112,6 @@
                     <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
             </table>
-
             <div id="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
                 <input type="submit" name="change" class="btn"
@@ -136,6 +135,7 @@
             </div>
         </form>
     </div>
+    <div class="push"></div>
     <script type="text/javascript">
     </script>
 </div>

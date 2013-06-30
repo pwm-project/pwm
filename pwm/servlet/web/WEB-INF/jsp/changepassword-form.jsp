@@ -49,7 +49,6 @@
             </h1>
             <input id="currentPassword" type="password" class="inputfield" name="currentPassword"/>
             <br/>
-
             <% } %>
             <% request.setAttribute("form",PwmSetting.PASSWORD_REQUIRE_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -76,6 +75,7 @@
             </div>
         </form>
     </div>
+    <div class="push"></div>
     <script type="text/javascript">
     </script>
 </div>

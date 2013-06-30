@@ -78,9 +78,8 @@
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
-
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

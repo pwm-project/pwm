@@ -115,6 +115,7 @@
             <button class="btn" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

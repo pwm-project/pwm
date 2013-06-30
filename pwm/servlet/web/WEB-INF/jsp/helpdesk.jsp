@@ -117,6 +117,7 @@
         </div>
         <% } %>
     </div>
+    <div class="push"></div>
 </div>
 <form id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

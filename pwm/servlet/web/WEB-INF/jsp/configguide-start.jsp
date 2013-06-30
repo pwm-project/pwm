@@ -73,6 +73,7 @@
             </tr>
             </table>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function skipWizard() {

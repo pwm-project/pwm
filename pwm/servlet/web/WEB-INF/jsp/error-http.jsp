@@ -49,7 +49,7 @@
         <br/>
         <br/>
         <% if (500 == statusCode) { %>
-        <textarea rows="10" style="width: 600px; font-size:small;" readonly="true">
+        <textarea rows="10" style="width: 90%; font-size:small;" readonly="true">
             <%=StringEscapeUtils.escapeHtml(pageContext.getErrorData().getThrowable().toString())%>
             <% for (final StackTraceElement stElement : pageContext.getErrorData().getThrowable().getStackTrace()) { %>
             <%=StringEscapeUtils.escapeHtml(stElement.toString())%>
@@ -76,7 +76,7 @@
         <br/>
         <br/>
     </div>
-    <br class="clear"/>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

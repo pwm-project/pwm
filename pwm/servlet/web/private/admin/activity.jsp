@@ -39,125 +39,126 @@
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Activity"/>
 </jsp:include>
-<div id="centerbody">
-<%@ include file="admin-nav.jsp" %>
-    <table class="tablemain">
-        <tr>
-            <td class="key">
-                <a href="<pwm:url url='activesessions.jsp'/>">
-                    Active HTTP Sessions
-                </a>
-            </td>
-            <td>
-                <a href="<pwm:url url='activesessions.jsp'/>">
-                    <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
-                </a>
-            </td>
-            <td class="key">
-                Active LDAP Connections
-            </td>
-            <td>
-                <%= Helper.figureLdapConnectionCount(pwmApplication,ContextManager.getContextManager(session)) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                <a href="<pwm:url url='intruders.jsp'/>">
-                    Locked Users
-                </a>
-            </td>
-            <td>
-                <a href="<pwm:url url='intruders.jsp'/>">
-                    <%= numberFormat.format(pwmApplication.getIntruderManager().userRecordCount()) %>
-                </a>
-            </td>
-            <td class="key">
-                <a href="<pwm:url url='intruders.jsp'/>">
-                    Locked Addresses
-                </a>
-            </td>
-            <td>
-                <a href="<pwm:url url='intruders.jsp'/>">
-                    <%= numberFormat.format(pwmApplication.getIntruderManager().addressRecordCount()) %>
-                </a>
-            </td>
-        </tr>
-    </table>
-    <table class="tablemain">
-        <tr>
-            <td>
-            </td>
-            <td style="text-align: center; font-weight: bold;">
-                Last Minute
-            </td>
-            <td style="text-align: center; font-weight: bold;">
-                Last Hour
-            </td>
-            <td style="text-align: center; font-weight: bold;">
-                Last Day
-            </td>
-        </tr>
-        <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
-        <tr>
-            <td class="key">
-                <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
-            </td>
-            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
-            </td>
-            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
-            </td>
-            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
-            </td>
-        </tr>
-        <% } %>
-    </table>
-    <br/>
-    <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-        <div data-dojo-type="dijit.layout.ContentPane" title="Authentications">
-            <table class="tablemain">
-                <tr>
-                    <td colspan="10" style="margin:0; padding:0">
-                        <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Last Minute</div>
-                            <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Last Hour</div>
-                            <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Last Day</div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+    <div id="centerbody">
+    <%@ include file="admin-nav.jsp" %>
+        <table class="tablemain">
+            <tr>
+                <td class="key">
+                    <a href="<pwm:url url='activesessions.jsp'/>">
+                        Active HTTP Sessions
+                    </a>
+                </td>
+                <td>
+                    <a href="<pwm:url url='activesessions.jsp'/>">
+                        <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
+                    </a>
+                </td>
+                <td class="key">
+                    Active LDAP Connections
+                </td>
+                <td>
+                    <%= Helper.figureLdapConnectionCount(pwmApplication,ContextManager.getContextManager(session)) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    <a href="<pwm:url url='intruders.jsp'/>">
+                        Locked Users
+                    </a>
+                </td>
+                <td>
+                    <a href="<pwm:url url='intruders.jsp'/>">
+                        <%= numberFormat.format(pwmApplication.getIntruderManager().userRecordCount()) %>
+                    </a>
+                </td>
+                <td class="key">
+                    <a href="<pwm:url url='intruders.jsp'/>">
+                        Locked Addresses
+                    </a>
+                </td>
+                <td>
+                    <a href="<pwm:url url='intruders.jsp'/>">
+                        <%= numberFormat.format(pwmApplication.getIntruderManager().addressRecordCount()) %>
+                    </a>
+                </td>
+            </tr>
+        </table>
+        <table class="tablemain">
+            <tr>
+                <td>
+                </td>
+                <td style="text-align: center; font-weight: bold;">
+                    Last Minute
+                </td>
+                <td style="text-align: center; font-weight: bold;">
+                    Last Hour
+                </td>
+                <td style="text-align: center; font-weight: bold;">
+                    Last Day
+                </td>
+            </tr>
+            <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
+            <tr>
+                <td class="key">
+                    <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
+                </td>
+                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
+                    <span style="font-size: smaller; font-style: italic">Loading...</span>
+                </td>
+                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
+                    <span style="font-size: smaller; font-style: italic">Loading...</span>
+                </td>
+                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
+                    <span style="font-size: smaller; font-style: italic">Loading...</span>
+                </td>
+            </tr>
+            <% } %>
+        </table>
+        <br/>
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Authentications">
+                <table class="tablemain">
+                    <tr>
+                        <td colspan="10" style="margin:0; padding:0">
+                            <div style="max-width: 600px; text-align: center">
+                                <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                                <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Last Hour</div>
+                                <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Last Day</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Password Changes">
+                <table class="tablemain">
+                    <tr>
+                        <td colspan="10" style="margin:0; padding:0">
+                            <div style="max-width: 600px; text-align: center">
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Last Hour</div>
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Last Day</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Intruder Attempts">
+                <table class="tablemain">
+                    <tr>
+                        <td colspan="10" style="margin:0; padding:0">
+                            <div style="max-width: 600px; text-align: center">
+                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Last Hour</div>
+                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Last Day</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per minute, this content is dynamically refreshed</div>
         </div>
-        <div data-dojo-type="dijit.layout.ContentPane" title="Password Changes">
-            <table class="tablemain">
-                <tr>
-                    <td colspan="10" style="margin:0; padding:0">
-                        <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Last Minute</div>
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Last Hour</div>
-                            <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Last Day</div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div data-dojo-type="dijit.layout.ContentPane" title="Intruder Attempts">
-            <table class="tablemain">
-                <tr>
-                    <td colspan="10" style="margin:0; padding:0">
-                        <div style="max-width: 600px; text-align: center">
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Last Minute</div>
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Last Hour</div>
-                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Last Day</div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per minute, this content is dynamically refreshed</div>
     </div>
-</div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     function startupPage() {

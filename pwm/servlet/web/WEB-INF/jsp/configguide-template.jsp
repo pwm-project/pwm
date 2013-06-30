@@ -68,6 +68,7 @@
             <button class="btn" id="button_next" onclick="gotoStep('LDAP')"><pwm:Display key="Button_Next" bundle="Config"/></button>
         </div>
     </div>
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
