@@ -22,6 +22,7 @@
 
 package password.pwm.i18n;
 
+import password.pwm.util.*;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
@@ -31,6 +32,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 public class LocaleHelper {
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocaleHelper.class);
+
     public static String getLocalizedMessage(final String key, final Configuration config, final Class bundleClass) {
         return getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,key,config,bundleClass);
     }
@@ -40,16 +44,21 @@ public class LocaleHelper {
     }
 
     public static String getLocalizedMessage(final Locale locale, final String key, final Configuration config, final Class bundleClass, final String[] values) {
+        String returnValue = null;
         if (config != null) {
-            final Map<Locale,String> configuredBundle = config.readLocalizedBundle(Display.class.getName(),key);
+            final Map<Locale,String> configuredBundle = config.readLocalizedBundle(bundleClass.getName(),key);
             if (configuredBundle != null) {
                 final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
-                return configuredBundle.get(resolvedLocale);
+                returnValue = configuredBundle.get(resolvedLocale);
             }
         }
-        final ResourceBundle bundle = getMessageBundle(locale, bundleClass);
-        final String rawValue = bundle.getString(key);
-        String returnValue = rawValue;
+
+        if (returnValue == null || returnValue.isEmpty()) {
+            final ResourceBundle bundle = getMessageBundle(locale, bundleClass);
+            final String rawValue = bundle.getString(key);
+            returnValue = rawValue;
+        }
+
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 if (values[i] != null) {
