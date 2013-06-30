@@ -340,4 +340,8 @@ public class PwmSession implements Serializable {
 
         return sb.toString();
     }
+
+    public void setHttpSession(HttpSession httpSession) {
+        this.httpSession = httpSession;
+    }
 }

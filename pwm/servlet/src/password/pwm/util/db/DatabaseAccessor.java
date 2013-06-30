@@ -53,7 +53,7 @@ public class DatabaseAccessor implements PwmService {
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
 
-    private static final int KEY_COLUMN_LENGTH = 512;
+    private static final int KEY_COLUMN_LENGTH = PwmConstants.DATABASE_ACCESSOR_KEY_LENGTH;
 
     private static final String KEY_TEST = "write-test-key";
     private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
@@ -86,7 +86,10 @@ public class DatabaseAccessor implements PwmService {
                 config.readSettingAsString(PwmSetting.DATABASE_CLASS),
                 config.readSettingAsString(PwmSetting.DATABASE_URL),
                 config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                config.readSettingAsString(PwmSetting.DATABASE_PASSWORD));
+                config.readSettingAsString(PwmSetting.DATABASE_PASSWORD),
+                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
+                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE)
+                );
 
         this.instanceID = pwmApplication.getInstanceID();
 
@@ -168,7 +171,7 @@ public class DatabaseAccessor implements PwmService {
 
         connection = openDB(dbConfiguration);
         for (final TABLE table : TABLE.values()) {
-            initTable(connection, table);
+            initTable(connection, table, dbConfiguration);
         }
 
         status = PwmService.STATUS.OPEN;
@@ -197,7 +200,7 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    private static void initTable(final Connection connection, final TABLE table) throws PwmUnrecoverableException {
+    private static void initTable(final Connection connection, final TABLE table, final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
         try {
             checkIfTableExists(connection, table);
             LOGGER.trace("table " + table + " appears to exist");
@@ -205,10 +208,12 @@ public class DatabaseAccessor implements PwmService {
             {
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
-                sqlString.append("  " + KEY_COLUMN + " VARCHAR(").append(KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
-                sqlString.append("  " + VALUE_COLUMN + " TEXT ");
+                sqlString.append("  " + KEY_COLUMN + " " + dbConfiguration.getColumnTypeKey() + "(").append(KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
+                sqlString.append("  " + VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " ");
                 sqlString.append("\n");
                 sqlString.append(")").append("\n");
+
+                LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
 
                 Statement statement = null;
                 try {
@@ -229,12 +234,15 @@ public class DatabaseAccessor implements PwmService {
                 sqlString.append(" ON ").append(table.toString());
                 sqlString.append(" (").append(KEY_COLUMN).append(")");
                 Statement statement = null;
+
+                LOGGER.trace("attempting to execute the following sql statement:\n " + sqlString.toString());
+
                 try {
                     statement = connection.createStatement();
                     statement.execute(sqlString.toString());
                     LOGGER.debug("created index " + indexName);
                 } catch (SQLException ex) {
-                    LOGGER.error("error creating new index " + indexName + ex.getMessage());
+                    LOGGER.error("error creating new index " + indexName + ": " + ex.getMessage());
                 } finally {
                     close(statement);
                 }
@@ -557,12 +565,23 @@ public class DatabaseAccessor implements PwmService {
         private final String connectionString;
         private final String username;
         private final String password;
+        private final String columnTypeKey;
+        private final String columnTypeValue;
 
-        public DBConfiguration(final String driverClassname, final String connectionString, final String username, final String password) {
+        public DBConfiguration(
+                final String driverClassname,
+                final String connectionString,
+                final String username,
+                final String password,
+                final String columnTypeKey,
+                final String columnTypeValue
+        ) {
             this.driverClassname = driverClassname;
             this.connectionString = connectionString;
             this.username = username;
             this.password = password;
+            this.columnTypeKey = columnTypeKey;
+            this.columnTypeValue = columnTypeValue;
         }
 
         public String getDriverClassname() {
@@ -579,6 +598,14 @@ public class DatabaseAccessor implements PwmService {
 
         public String getPassword() {
             return password;
+        }
+
+        public String getColumnTypeKey() {
+            return columnTypeKey;
+        }
+
+        public String getColumnTypeValue() {
+            return columnTypeValue;
         }
 
         public boolean isEmpty() {

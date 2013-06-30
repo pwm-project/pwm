@@ -710,6 +710,10 @@ public enum PwmSetting {
             "db.username", PwmSettingSyntax.STRING, Category.DATABASE),
     DATABASE_PASSWORD(
             "db.password", PwmSettingSyntax.PASSWORD, Category.DATABASE),
+    DATABASE_COLUMN_TYPE_KEY(
+            "db.columnType.key", PwmSettingSyntax.STRING, Category.DATABASE),
+    DATABASE_COLUMN_TYPE_VALUE(
+            "db.columnType.value", PwmSettingSyntax.STRING, Category.DATABASE),
 
     // misc
     EXTERNAL_CHANGE_METHODS(

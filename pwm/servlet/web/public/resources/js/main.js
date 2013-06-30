@@ -367,6 +367,32 @@ function showDialog(title, text, nextAction) {
     showWaitDialog(titleText,bodyText);
 }
 
+function showEula(requireAgreement, agreeFunction) {
+    if (agreeFunction && PWM_GLOBAL['eulaAgreed']) {
+        agreeFunction();
+        return;
+    }
+    var eulaLocation = PWM_GLOBAL['url-context'] + '/public/resources/eula.html';
+    PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
+    var bodyText = '<iframe width="600" height="400" src="' + eulaLocation + '">';
+    bodyText += '</iframe>';
+    bodyText += '<div style="width: 100%; text-align: center">';
+    if (requireAgreement) {
+        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_Agree'] + '" onclick="PWM_GLOBAL[\'eulaAgreed\']=true;clearDijitWidget(\'dialogPopup\');PWM_GLOBAL[\'dialog_agreeAction\']()"/>';
+        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_Cancel'] + '" onclick="closeWaitDialog()"/>';
+    } else {
+        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_OK'] + '" onclick="closeWaitDialog()"/>';
+    }
+    bodyText += '</div>'
+    require(["dijit/Dialog"], function(Dialog){
+        new Dialog({
+            title: "End User License Agreement",
+            id: 'dialogPopup',
+            content: bodyText
+        }).show();
+    });
+}
+
 function showConfirmDialog(title, text, trueAction, falseAction) {
     var titleText = title == null ? PWM_STRINGS['Button_Confirm'] : title;
     PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};

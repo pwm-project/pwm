@@ -133,6 +133,14 @@
                                 showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/public/license.jsp";});
                             }
                         }));
+                        <% if (PwmConstants.ENABLE_EULA_DISPLAY) { %>
+                        exitMenu.addChild(new MenuItem({
+                            label: 'View EULA',
+                            onClick: function() {
+                                showEula(false,null);
+                            }
+                        }));
+                        <% } %>
                         topMenuBar.addChild(new PopupMenuBarItem({
                             label: "Navigation",
                             popup: exitMenu

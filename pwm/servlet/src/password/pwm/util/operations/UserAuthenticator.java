@@ -109,17 +109,19 @@ public class UserAuthenticator {
         final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
         LOGGER.debug(pwmSession, "user authenticated with authentication type: " + authenticationType);
-        pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
-                AuditEvent.AUTHENTICATE,
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
-                new Date(),
-                authenticationType.toString(),
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
-                pwmSession.getSessionStateBean().getSrcAddress(),
-                pwmSession.getSessionStateBean().getSrcHostname()
-        ));
+        if (PwmConstants.ENABLE_AUDIT_AUTHENTICATION_TYPE) {
+            pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
+                    AuditEvent.AUTHENTICATE,
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    new Date(),
+                    authenticationType.toString(),
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+            ));
+        }
     }
 
     public static void authUserWithUnknownPassword(
@@ -252,17 +254,19 @@ public class UserAuthenticator {
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
         LOGGER.debug(pwmSession,"user authenticated with authentication type: " + authenticationType);
 
-        pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
-                AuditEvent.AUTHENTICATE,
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
-                new Date(),
-                authenticationType.toString(),
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
-                pwmSession.getSessionStateBean().getSrcAddress(),
-                pwmSession.getSessionStateBean().getSrcHostname()
-        ));
+        if (PwmConstants.ENABLE_AUDIT_AUTHENTICATION_TYPE) {
+            pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
+                    AuditEvent.AUTHENTICATE,
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    new Date(),
+                    authenticationType.toString(),
+                    pwmSession.getUserInfoBean().getUserID(),
+                    pwmSession.getUserInfoBean().getUserDN(),
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+            ));
+        }
     }
 
     private static String resolveUsername(

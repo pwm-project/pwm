@@ -424,7 +424,7 @@ public class AuthenticationFilter implements Filter {
 
         if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
-                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP)) {
                     if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
                         if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
                             LOGGER.debug(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");

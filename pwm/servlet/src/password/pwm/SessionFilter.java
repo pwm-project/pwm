@@ -99,10 +99,14 @@ public class SessionFilter implements Filter {
         pwmApplication.setAutoSiteURL(req);
 
         // mark the user's IP address in the session bean
-        ssBean.setSrcAddress(ServletHelper.readUserIPAddress(req, pwmSession));
+        if (ssBean.getSrcAddress() == null) {
+            ssBean.setSrcAddress(ServletHelper.readUserIPAddress(req, pwmSession));
+        }
 
         // mark the user's hostname in the session bean
-        ssBean.setSrcHostname(ServletHelper.readUserHostname(req, pwmSession));
+        if (ssBean.getSrcHostname() == null) {
+            ssBean.setSrcHostname(ServletHelper.readUserHostname(req, pwmSession));
+        }
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {

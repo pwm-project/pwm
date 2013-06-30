@@ -488,5 +488,7 @@ public class ServletHelper {
         for (final String attrName : sessionAttributes.keySet()) {
             newSession.setAttribute(attrName, sessionAttributes.get(attrName));
         }
+
+        pwmSession.setHttpSession(newSession);
     }
 }

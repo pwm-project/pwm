@@ -61,6 +61,7 @@
                     rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "");
                     rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUserID() : "");
                     rowData.put("srcAddress", loopSsBean.getSrcAddress());
+                    rowData.put("srcHost", loopSsBean.getSrcHostname());
                     gridData.add(rowData);
                 } catch (IllegalStateException e) { /* ignore */ }
                 if (gridData.size() >= maxResults) {
@@ -76,7 +77,7 @@
                         function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
 
                             var headers = {"createTime":"Create Time","label":"Label","idle":"Idle","srcAddress":"Address","locale":"Locale",
-                                "userID":"User ID","userDN":"User DN"};
+                                "userID":"User ID","userDN":"User DN","srcHost":"Host"};
 
                             var data = <%=gson.toJson(gridData)%>;
                             var columnHeaders = headers;
@@ -91,6 +92,12 @@
                             }, "grid");
                             grid.renderArray(data);
                             grid.set("sort","createTime");
+
+                            // unclick superfluous fields
+                            getObject('grid-hider-menu-check-label').click();
+                            getObject('grid-hider-menu-check-userDN').click();
+                            getObject('grid-hider-menu-check-srcHost').click();
+                            getObject('grid-hider-menu-check-locale').click();
                         });
             });
         </script>

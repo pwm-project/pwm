@@ -413,7 +413,7 @@
     </setting>
     <setting key="ldap.testuser.username" level="0">
         <label>LDAP Test User</label>
-        <description><![CDATA[The LDAP test user is used to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. This account will periodically be usedt to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
+        <description><![CDATA[The LDAP test user is used to test functionality and access to the ldap directory. This user should be configured similar to a normal user account with normal access privileges. This account will periodically be used to perform a health check, including changing the password of the account. <br/><br/><b>Using a test user account will greatly increase the ability to detect and alert configuration and health issues.</b><br/><br/>The following functionality (if enabled) will be tested using the test user account.<ul><li>Authentication</li><li>Password policy reading</li><li>Set password</li><li>Set challenge/responses</li><li>Load challenge/responses</li></ul>]]></description>
         <default>
             <value />
         </default>
@@ -2601,9 +2601,23 @@
         <label>Database Password</label>
         <description><![CDATA[Database password]]></description>
     </setting>
+    <setting key="db.columnType.key" level="1" required="true">
+        <label>Database Key Column Type</label>
+        <description><![CDATA[Database column type for key columns.  The column type is used only during schema creation.  All tables are two columns, a key and a value column.  For most databases the standard VARCHAR column format is appropriate for the key column.  Data stored in the key column will generally be US-ASCII keys.]]></description>
+        <default>
+            <value>VARCHAR</value>
+        </default>
+    </setting>
+    <setting key="db.columnType.value" level="1" required="true">
+        <label>Database Value Column Type</label>
+        <description><![CDATA[Database column type for value columns.  The column type is used only during schema creation.  All tables are two columns, a key and a value column.  For most databases the standard TEXT column format is appropriate for the value column.  Data stored in the value column will generally be UTF-8 formatted XML, json or other text-based value data.]]></description>
+        <default>
+            <value>TEXT</value>
+        </default>
+    </setting>
     <setting key="externalChangeMethod" level="0">
         <label>External Change Method</label>
-        <description><![CDATA[Java classes to call after a successful password change.  These classes may take such actions as updating passwords in other systems or updating eDirectory.  External password classes must implement the interface <i>password.pwm.ExternalChangeMethod</i>.<br/><br/>Unless your adding custom Java code to PWM, you should leave this blank.]]></description>
+        <description><![CDATA[Java classes to call after a successful password change.  These classes may take such actions as updating passwords in other systems or updating eDirectory.  External password classes must implement the interface <i>password.pwm.ExternalChangeMethod</i>.<br/><br/>Unless your adding custom Java code to this system, you should leave this blank.]]></description>
         <default>
             <value />
         </default>
