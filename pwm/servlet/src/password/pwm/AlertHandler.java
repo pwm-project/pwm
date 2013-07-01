@@ -42,7 +42,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Alert - Startup";
+            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Startup";
             final StringBuilder body = new StringBuilder();
             body.append("event: Startup\n");
             body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
@@ -60,7 +60,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Alert - Shutdown";
+            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Shutdown";
             final StringBuilder body = new StringBuilder();
             body.append("event: Shutdown\n");
             body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
@@ -78,7 +78,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Admin Alert - Intruder Detection";
+            final String subject = PwmConstants.PWM_APP_NAME + " Admin Alert - Intruder Detection";
             final StringBuilder body = new StringBuilder();
             body.append("event: Intruder Detection\n");
             body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
@@ -103,7 +103,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Alert - Fatal Event";
+            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Fatal Event";
             final StringBuilder body = new StringBuilder();
             body.append("event: Fatal Event\n");
             body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
@@ -127,7 +127,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
             final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = "PWM Alert - Configuration Modification";
+            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Configuration Modification";
             final StringBuilder body = new StringBuilder();
             body.append("event: Configuration Modification\n");
             body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
@@ -208,7 +208,7 @@ public abstract class AlertHandler {
                             "");
             htmlBody.append("</style></head><body>");
 
-            htmlBody.append("<h2>PWM Daily Statistics</h2>");
+            htmlBody.append("<h2>Daily Statistics</h2>");
             htmlBody.append("<p>InstanceID: ").append(pwmApplication.getInstanceID()).append("</p>");
             htmlBody.append("<br/>");
 
@@ -220,8 +220,8 @@ public abstract class AlertHandler {
                 final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords();
                 final java.util.Date lastHeathCheckDate = pwmApplication.getHealthMonitor().getLastHealthCheckDate();
 
-                textBody.append("-- PWM Health Check Results --\n");
-                htmlBody.append("<h2>PWM Health Check Results</h2>");
+                textBody.append("-- Health Check Results --\n");
+                htmlBody.append("<h2>Health Check Results</h2>");
                 textBody.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
                 htmlBody.append("HealthCheck Timestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("<br/>");
 

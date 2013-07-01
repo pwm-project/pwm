@@ -137,12 +137,12 @@ public class SessionFilter implements Filter {
         }
 
         //override session locale due to parameter
-        final String langReqParamter = Validator.readStringFromRequest(req, "pwmLocale");
+        final String langReqParamter = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOCALE);
         if (langReqParamter != null && langReqParamter.length() > 0) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
             if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
-                LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to 'pwmLocale' request parameter");
+                LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to '" + PwmConstants.PARAM_LOCALE + "' request parameter");
                 ssBean.setLocale(new Locale(langReqParamter.equalsIgnoreCase("default") ? "" : langReqParamter));
                 if (ssBean.isAuthenticated()) {
                     try {
@@ -152,12 +152,12 @@ public class SessionFilter implements Filter {
                     }
                 }
             } else {
-                LOGGER.error(pwmSession, "ignoring unknown value for 'pwmLocale' request parameter: " + langReqParamter);
+                LOGGER.error(pwmSession, "ignoring unknown value for '" + PwmConstants.PARAM_LOCALE + "' request parameter: " + langReqParamter);
             }
         }
 
         //set the session's theme
-        final String themeReqParamter = Validator.readStringFromRequest(req, "pwmTheme");
+        final String themeReqParamter = Validator.readStringFromRequest(req, PwmConstants.PARAM_THEME);
         if (themeReqParamter != null && themeReqParamter.length() > 0) {
             ssBean.setTheme(themeReqParamter);
         }
@@ -217,7 +217,7 @@ public class SessionFilter implements Filter {
             }
         }
 
-        if (Validator.readBooleanFromRequest(req, "passwordExpired")) {
+        if (Validator.readBooleanFromRequest(req, PwmConstants.PARAM_PASSWORD_EXPIRED)) {
             pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
         }
 

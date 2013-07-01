@@ -221,6 +221,9 @@ public abstract class PwmConstants {
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
     public static final String PARAM_FORWARD_URL = readPwmConstantsBundle("paramName.forwardURL");
     public static final String PARAM_LOGOUT_URL = readPwmConstantsBundle("paramName.logoutURL");
+    public static final String PARAM_THEME = readPwmConstantsBundle("paramName.theme");
+    public static final String PARAM_LOCALE = readPwmConstantsBundle("paramName.locale");
+    public static final String PARAM_PASSWORD_EXPIRED = readPwmConstantsBundle("paramName.passwordExpired");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 

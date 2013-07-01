@@ -25,22 +25,24 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<head>
-    <title>Licenses</title>
-    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
-    <link href="<%=request.getContextPath()%>/public/resources/dojo/dijit/themes/nihilo/nihilo.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
-    <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%>/public/resources/dojo/dojo/dojo.js"></script>
-    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/resources/js/main.js"></script>
-    <script defer type="text/javascript" src="<%=request.getContextPath()%>/public/jsClientValues.jsp"></script>
-</head>
 <body onload="pwmPageLoadHandler()" class="nihilo">
+<style type="text/css">
+    <!--
+    .licenseBlock {
+        background-color: #F5F5F5;
+        border-radius: 5px;
+        box-shadow: 2px 2px 1px 1px #bfbfbf;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+    -->
+</style>
 <div id="wrapper">
     <jsp:include page="../WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
     </jsp:include>
     <div id="centerbody">
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h1>PWM License</h1>
             <a href="http://code.google.com/p/pwm">http://code.google.com/p/pwm</a>
             <br/><br/>
@@ -49,7 +51,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Apache Commons</h2>
             <a href="http://commons.apache.org/">http://commons.apache.org/</a>
             <br/><br/>
@@ -58,7 +60,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Apache Derby</h2>
             <a href="http://db.apache.org/derby/">http://db.apache.org/derby/</a>
             <br/><br/>
@@ -67,7 +69,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Apache HttpComponents</h2>
             <a href="http://hc.apache.org/">http://hc.apache.org/</a>
             <br/><br/>
@@ -76,7 +78,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Apache Log4j</h2>
             <a href="http://logging.apache.org/log4j/1.2/">http://logging.apache.org/log4j/1.2/</a>
             <br/><br/>
@@ -85,7 +87,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>CAS</h2>
             <a href="http://www.jasig.org/cas">http://www.jasig.org/cas</a>
             <br/><br/>
@@ -94,7 +96,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Dojo</h2>
             <a href="http://dojotoolkit.org/">http://dojotoolkit.org/</a>
             <br/><br/>
@@ -103,7 +105,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>dgrid</h2>
             <a href="http://dojofoundation.org/packages/dgrid/">http://dojofoundation.org/packages/dgrid/</a>
             <br/><br/>
@@ -112,7 +114,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Gson</h2>
             <a href="http://code.google.com/p/google-gson/">http://code.google.com/p/google-gson/</a>
             <br/><br/>
@@ -121,7 +123,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>jBcrypt</h2>
             <a href="http://www.mindrot.org/projects/jBCrypt/">http://www.mindrot.org/projects/jBCrypt/</a>
             <br/><br/>
@@ -130,7 +132,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>JDOM</h2>
             <a href="http://www.jdom.org/">http://www.jdom.org/</a>
             <br/><br/>
@@ -139,7 +141,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Jersey</h2>
             <a href="http://jersey.java.net/">http://jersey.java.net/</a>
             <br/><br/>
@@ -148,7 +150,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>LDAPChai</h2>
             <a href="https://code.google.com/p/ldapchai/">https://code.google.com/p/ldapchai/</a>
             <br/><br/>
@@ -157,7 +159,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>OpenLDAP</h2>
             <a href="http://www.opeldap.org/jldap/">http://www.openldap.org/jldap/</a>
             <br/>
@@ -168,7 +170,7 @@
             </div>
             <br/>
         </div>
-        <div style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+        <div class="licenseBlock">
             <h2>Syslog4j</h2>
             <a href="http://www.syslog4j.org/">http://www.syslog4j.org/</a>
             <br/><br/>
@@ -178,11 +180,11 @@
             <br/>
         </div>
     </div>
-    <div class="push"></div> 
+    <div class="push"></div>
 </div>
 <script type="text/javascript">
+    PWM_GLOBAL['idle_suspendTimeout'] = true;
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_GLOBAL['idle_suspendTimeout'] = true;
         require(["dojo/parser","dijit/TitlePane"],function(dojoParser){
             dojoParser.parse();
         });

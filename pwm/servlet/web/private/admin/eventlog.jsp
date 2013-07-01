@@ -43,7 +43,7 @@
     </jsp:include>
     <br/>
     <%@ include file="admin-nav.jsp" %>
-    <div style="width: 96%; margin-left: 2%; margin-right: 2%">
+    <div style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
         <form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" onsubmit="handleFormSubmit('submit_button',this)">
             <table style="">

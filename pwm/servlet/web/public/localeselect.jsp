@@ -36,7 +36,7 @@
         <% final String flagCode = pwmApplicationHeader.getConfig().getKnownLocaleFlagMap().get(locale); %>
         <div style="text-align: center; width: 100%">
             <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
-            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?pwmLocale=<%=locale.toString()%>">
+            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?locale=<%=locale.toString()%>">
                 <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
             </a>
         </div>
@@ -45,6 +45,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('localeSelectionMenu').style.display = 'none';
+    });
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

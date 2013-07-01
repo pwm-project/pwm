@@ -258,6 +258,10 @@ public class ActivateUserServlet extends TopServlet {
             //authenticate the pwm session
             UserAuthenticator.authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, true, UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
 
+            //ensure a change password is triggered
+            pwmSession.getUserInfoBean().setAuthenticationType(UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            pwmSession.getUserInfoBean().setRequiresNewPassword(true);
+
             // mark the event log
             pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(),pwmSession);
 

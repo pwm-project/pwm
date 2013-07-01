@@ -213,7 +213,7 @@
                     <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
                         <% for (final AuditRecord record : auditRecords) { %>
                         <tr>
-                            <td class="key">
+                            <td class="key" style="width:50%">
                                 <%= dateFormatter.format(record.getTimestamp()) %>
                             </td>
                             <td>

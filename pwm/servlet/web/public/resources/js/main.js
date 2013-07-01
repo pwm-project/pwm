@@ -288,7 +288,7 @@ function initLocaleSelectorMenu(attachNode) {
                     iconClass: localeIconClass,
                     onClick: function() {
                         showWaitDialog();
-                        var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&pwmLocale=" + localeKey;
+                        var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&locale=" + localeKey;
                         dojo.xhrGet({
                             url: pingURL,
                             sync: false,
