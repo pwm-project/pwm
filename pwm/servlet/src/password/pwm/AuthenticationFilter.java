@@ -99,13 +99,6 @@ public class AuthenticationFilter implements Filter {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        // check if authenticated without password, then send to login servlet anyway
-        final boolean authWithoutPassword = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD;
-        if (authWithoutPassword && !PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req)) {
-            ServletHelper.forwardToLoginPage(req, resp);
-            return;
-        }
-
         // get the basic auth info out of the header (if it exists);
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(req);
 
@@ -143,7 +136,7 @@ public class AuthenticationFilter implements Filter {
 
 
         // user session is authed, and session and auth header match, so forward request on.
-            chain.doFilter(req, resp);
+        chain.doFilter(req, resp);
     }
 
     private void processUnAuthenticatedSession(
@@ -401,7 +394,7 @@ public class AuthenticationFilter implements Filter {
                 break;
 
             case AUTH_WITHOUT_PASSWORD:
-                if (!PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req)) {
+                if (!PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req) && !PwmServletURLHelper.isMenuURL(req)) {
                     LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
                     resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
                     return true;

@@ -251,7 +251,7 @@
                     <table>
                         <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
                         <tr>
-                            <td class="key">
+                            <td class="key" style="width:50%">
                                 <%= dateFormatter.format(record.getTimestamp()) %>
                             </td>
                             <td>

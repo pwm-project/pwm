@@ -60,7 +60,8 @@ public class RestProfileServer {
                 for (final FormConfiguration formConfiguration : restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
                     formData.put(formConfiguration,"");
                 }
-                UpdateProfileServlet.populateFormFromLdap(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader());
+                final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader());
                 for (FormConfiguration formConfig : formData.keySet()) {
                     profileData.put(formConfig.getName(),formData.get(formConfig));
                 }

@@ -43,7 +43,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (PwmConstants.INCLUDE_X_VERSION_HEADER){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.PWM_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7" />
+    <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/style.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/mobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>

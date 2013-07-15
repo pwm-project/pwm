@@ -1954,7 +1954,7 @@ EmailTableHandler.popupEditor = function(keyName, localeName) {
                 style: 'width: 470px',
                 onChange: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')},
                 onKeyUp: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')}
-            },idValue);
+            },idValue).startup();
         });
 };
 

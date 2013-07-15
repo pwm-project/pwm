@@ -46,8 +46,7 @@
                        id="submitBtn"/>
                 <input type="hidden" name="processAction" value="login">
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="handleFormCancel()">
+                <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

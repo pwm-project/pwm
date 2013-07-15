@@ -300,7 +300,7 @@ public class IntruderManager implements Serializable, PwmService {
     }
 
     public int userRecordCount() {
-        return addressManager.recordCount();
+        return userManager.recordCount();
     }
 
     public RecordIterator userRecordIterator() throws PwmOperationalException {

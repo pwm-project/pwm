@@ -58,7 +58,7 @@ public class StatisticsBundle {
         final Map<Statistic, String> srcMap = new HashMap<Statistic,String>();
         try {
             final Gson gson = new Gson();
-            final HashMap<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {
+            final Map<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {
             }.getType());
             for (final String key : loadedMap.keySet()) {
                 try {

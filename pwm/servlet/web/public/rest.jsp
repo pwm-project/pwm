@@ -1561,7 +1561,8 @@
                             <table>
                                 <tr>
                                     <td class="key">Description</td>
-                                    <td>Validate supplied challenge response answers against a user's stored responses.</td>
+                                    <td>Validate supplied challenge response answers against a user's stored responses.  <i>Note this service will
+                                    not work properly if the user's responses are stored only in the NMAS repository.</i></td>
                                 </tr>
                                 <tr>
                                     <td class="key">Authentication</td>
@@ -1612,7 +1613,7 @@
                                     <td class="key">Request</td>
                                     <td style="overflow: auto; display: block; max-width:400px; max-height:200px;">
                                                 <pre>
-            GET <%=request.getContextPath()%>/public/rest/verifyresponses HTTP/1.1
+            POST <%=request.getContextPath()%>/public/rest/verifyresponses HTTP/1.1
             Accept-Language: en
             Accept: application/json
             Content-Type: application/json

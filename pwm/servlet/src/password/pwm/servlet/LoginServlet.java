@@ -88,7 +88,7 @@ public class
             try {
                 if (passwordOnly) {
                     final String userDN = pwmSession.getUserInfoBean().getUserDN();
-                    UserAuthenticator.testCredentials(userDN, password, pwmSession);
+                    //UserAuthenticator.testCredentials(userDN, password, pwmSession);
                     UserAuthenticator.authenticateUser(userDN, password, null, pwmSession,pwmApplication, req.isSecure());
                 } else {
                     UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());

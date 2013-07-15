@@ -356,7 +356,7 @@ public class HelpdeskServlet extends TopServlet {
             for (final FormConfiguration formConfiguration : detailFormConfig) {
                 formData.put(formConfiguration,"");
             }
-            UpdateProfileServlet.populateFormFromLdap(pwmApplication, pwmSession, formData, userDataReader);
+            UpdateProfileServlet.populateFormFromLdap(detailFormConfig, pwmSession, formData, userDataReader);
             helpdeskBean.getAdditionalUserInfo().setSearchDetails(formData);
         }
     }

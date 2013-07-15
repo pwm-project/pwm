@@ -189,7 +189,8 @@ public class UpdateProfileServlet extends TopServlet {
 
         if (!updateProfileBean.isFormSubmitted()) {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
-            populateFormFromLdap(pwmApplication, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader());
+            final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
+            populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader());
             forwardToJSP(req,resp);
             return;
         }
@@ -245,14 +246,13 @@ public class UpdateProfileServlet extends TopServlet {
 
 
     public static void populateFormFromLdap(
-            final PwmApplication pwmApplication,
+            final List<FormConfiguration> formFields,
             final PwmSession pwmSession,
             final Map<FormConfiguration, String> formMap,
             final UserDataReader userDataReader
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
         final Map<String,String> userData = new LinkedHashMap<String,String>();
         try {
             userData.putAll(userDataReader.readStringAttributes(FormConfiguration.convertToListOfNames(formFields)));

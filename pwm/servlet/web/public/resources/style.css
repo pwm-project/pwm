@@ -139,6 +139,11 @@ table td.key {
     width: 90%;
 }
 
+
+.menubutton_key {
+    text-align: right;
+}
+
 .menubutton {
     padding: 4px 11px;
     white-space: nowrap;

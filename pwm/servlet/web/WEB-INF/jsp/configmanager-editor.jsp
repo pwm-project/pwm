@@ -393,8 +393,6 @@
     </div>
     <div class="push"></div>
 </div>
-<br/>
-<br/>
-<div style="background:  black; color: white;"><%@ include file="fragment/footer.jsp" %></div>
+<div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

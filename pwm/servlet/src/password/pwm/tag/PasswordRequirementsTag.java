@@ -229,13 +229,15 @@ public class PasswordRequirementsTag extends TagSupport {
     }
 
     private static String getLocalString(final Message message, final int size, final Locale locale, final Configuration config) {
-        try {
+        if (size > 1) {
             try {
-                final Message pluralMessage = Message.valueOf(message.getResourceKey() + "Plural");
-                return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
-            } catch (IllegalArgumentException e) {/*noop*/ }
-        } catch (MissingResourceException e) {
-            //LOGGER.trace("unable to display requirement tag for message '" + message.toString() + "': " + e.getMessage());
+                try {
+                    final Message pluralMessage = Message.valueOf(message.toString() + "PLURAL");
+                    return Message.getLocalizedMessage(locale, pluralMessage, config, String.valueOf(size));
+                } catch (IllegalArgumentException e) {/*noop*/ }
+            } catch (MissingResourceException e) {
+                LOGGER.error("unable to display requirement tag for message '" + message.toString() + "PLURAL': " + e.getMessage());
+            }
         }
 
         try {

@@ -48,6 +48,10 @@ public abstract class PwmServletURLHelper {
         return checkIfStartsWithURL(req, "/admin/");
     }
 
+    public static boolean isMenuURL(final HttpServletRequest req) {
+        return checkIfMatchesURL(req, "/", "/private/" , "/public/");
+    }
+
     public static boolean isCommandServletURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_COMMAND) ||
                 checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_COMMAND);

@@ -88,7 +88,6 @@ public class UserAuthenticator {
                 allowBindAsUser = false;
             } else {
                 // auth failed, presumably due to wrong password.
-                ssBean.setAuthenticated(false);
                 LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
                 intruderManager.mark(username, userDN, pwmSession);
@@ -187,13 +186,15 @@ public class UserAuthenticator {
             }
 
             // actually do the authentication since we have user pw.
-            try {
-                authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
-                return;
-            } catch (PwmOperationalException e) {
-                final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
-                LOGGER.error(errorStr);
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
+            if (currentPass != null && currentPass.length() > 0) {
+                try {
+                    authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
+                    return;
+                } catch (PwmOperationalException e) {
+                    final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
+                    LOGGER.error(errorStr);
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
+                }
             }
         } else {
             LOGGER.trace(pwmSession, "skipping attempt to read user password, option disabled");

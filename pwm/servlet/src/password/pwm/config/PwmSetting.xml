@@ -1555,7 +1555,7 @@
     </setting>
     <setting key="challenge.randomChallenges" level="0">
         <label>Random Questions</label>
-        <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses.  This is controlled by the "Force All Random Response Completion" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses, this is controlled by the "Minimum Random Challenges Required During Setup" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
         <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value><![CDATA[What is the name of the main character in your favorite book?::4::200]]></value>
@@ -1667,7 +1667,7 @@
     </setting>
     <setting key="challenge.helpdesk.randomChallenges" level="0">
         <label>Helpdesk Random Questions</label>
-        <description><![CDATA[Helpdesk Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses.  This is controlled by the "Force All Random Response Completion" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <description><![CDATA[The user may be required to supply answers to all or some of these questions when setting up their responses, as controlled by the "Minimum Helpdesk Random Challenges Required During Setup" setting.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
         <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value />
@@ -1675,7 +1675,7 @@
     </setting>
     <setting key="challenge.helpdesk.requiredChallenges" level="0">
         <label>Helpdesk Required Questions</label>
-        <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be suppled during forgotten password.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
+        <description><![CDATA[The user must supply answers for all of these questions when setting up their responses.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
         <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value />
@@ -1683,7 +1683,7 @@
     </setting>
     <setting key="challenge.helpdesk.minRandomsSetup" level="0" required="true">
         <label>Minimum Helpdesk Random Challenges Required During Setup</label>
-        <description><![CDATA[The minimum number of random questions the user is required to complete during Response Setup.  If this number is higher then the available randoms, or lower then the minimum required, it will be adjusted accordingly.  Set to zero to force all available randoms to be configured at time of setup.]]></description>
+        <description><![CDATA[The minimum number of helpdesk random questions the user is required to complete during Response Setup.  If this number is higher then the available randoms, or lower then the minimum required, it will be adjusted accordingly.  Set to zero to force all available randoms to be configured at time of setup.]]></description>
         <default>
             <value>4</value>
         </default>
@@ -2562,7 +2562,7 @@
     </setting>
     <setting key="pwmDb.implementation" level="1" required="true">
         <label>LocalDB Implementation Class</label>
-        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.localdb.Berkeley_LocalDB</td><td>Default Implementation based on BerekelyDB Java Edition</td></tr><tr><td>password.pwm.util.localdb.Derby_LocalDB</td><td>Based on Apache Derby java embedded SQL database</td></tr><tr><td>password.pwm.util.localdb.JDBM_LocalDB</td><td>Uses JDBM2 as the embedded key store</td></tr><tr><td>password.pwm.util.localdb.Memory_LocalDB</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
+        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.localdb.Berkeley_LocalDB</td><td>Default Implementation based on BerekelyDB Java Edition</td></tr><tr><td>password.pwm.util.localdb.Derby_LocalDB</td><td>Based on Apache Derby java embedded SQL database</td></tr><tr><td>password.pwm.util.localdb.MapDB_LocalDB</td><td>Uses JDBM2 as the embedded key store</td></tr><tr><td>password.pwm.util.localdb.Memory_LocalDB</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
         <default>
             <value><![CDATA[password.pwm.util.localdb.Berkeley_LocalDB]]></value>
         </default>
