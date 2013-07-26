@@ -28,10 +28,7 @@ import password.pwm.util.PwmLogger;
 
 import java.io.File;
 import java.sql.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -54,11 +51,12 @@ public class Derby_LocalDB implements LocalDBProvider {
     private final static int ITERATOR_LIMIT = 100;
 
     private static final String WIDTH_KEY = String.valueOf(LocalDB.MAX_KEY_LENGTH);
-    
+
     private static final String DERBY_CLASSPATH = "org.apache.derby.jdbc.EmbeddedDriver";
 
     //private Connection connection;
-    private String baseConnectionURL;
+    //private String baseConnectionURL;
+    private Driver driver;
     private File dbDirectory;
 
     // cache of dbIterators
@@ -181,13 +179,7 @@ public class Derby_LocalDB implements LocalDBProvider {
                 try {
 
                     dbConnection.close();
-                    final String connectionURL = baseConnectionURL + ";shutdown=true";
-
-                    try {
-                        DriverManager.getConnection(connectionURL);
-                    } catch (Throwable e) {
-                        throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.toString()));
-                    }
+                    DriverManager.getConnection("jdbc:derby:;shutdown=true");
                 } catch (Exception e) {
                     LOGGER.debug("error while closing DB: " + e.getMessage());
                 }
@@ -198,13 +190,15 @@ public class Derby_LocalDB implements LocalDBProvider {
 
         try {
             LOCK.writeLock().lock();
-            final Driver driver = DriverManager.getDriver(baseConnectionURL);
             DriverManager.deregisterDriver(driver);
+            driver = null;
         } catch (SQLException e) {
-            LOGGER.error("unable to de-register sql driver: " + e.getMessage(),e);
+            LOGGER.error("unable to de-register sql driver: " + e.getMessage());
         } finally {
             LOCK.writeLock().unlock();
         }
+
+        LOGGER.debug("closed");
     }
 
     public LocalDB.Status getStatus() {
@@ -459,7 +453,7 @@ public class Derby_LocalDB implements LocalDBProvider {
 
     private Connection openDB(final File databaseDirectory) throws LocalDBException {
         final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "derby-db";
-        baseConnectionURL = "jdbc:derby:" + filePath;
+        final String baseConnectionURL = "jdbc:derby:" + filePath;
         final String connectionURL = baseConnectionURL + ";create=true";
 
         try {

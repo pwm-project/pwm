@@ -36,7 +36,7 @@
         <table style="border:0">
             <% if (Permission.checkPermission(Permission.CHANGE_PASSWORD, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='ChangePassword'/>"><pwm:Display key="Title_ChangePassword"/></a>
                 </td>
                 <td style="border: 0">
@@ -59,7 +59,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='UpdateProfile'/>"><pwm:Display key="Title_UpdateProfile"/></a>
                 </td>
                 <td style="border: 0">
@@ -70,7 +70,7 @@
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='Shortcuts'/>"><pwm:Display key="Title_Shortcuts"/></a>
                 </td>
                 <td style="border: 0">
@@ -81,7 +81,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PEOPLE_SEARCH, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='PeopleSearch'/>"><pwm:Display key="Title_PeopleSearch"/></a>
                 </td>
                 <td style="border: 0">
@@ -92,7 +92,7 @@
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>"><pwm:Display key="Title_UserInformation"/></a>
                 </td>
                 <td style="border: 0">
@@ -103,7 +103,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.HELPDESK, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='Helpdesk'/>"><pwm:Display key="Title_Helpdesk"/></a>
                 </td>
                 <td style="border: 0">
@@ -115,7 +115,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.GUEST_REGISTRATION, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='GuestRegistration'/>"><pwm:Display key="Title_GuestRegistration"/></a>
                 </td>
                 <td style="border: 0">
@@ -126,7 +126,7 @@
             <% } %>
             <% if (Permission.checkPermission(Permission.PWMADMIN, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='admin/activity.jsp'/>"><pwm:Display key="Title_Admin"/></a>
                 </td>
                 <td style="border: 0">
@@ -136,7 +136,7 @@
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON)) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='../public/Logout'/>"><pwm:Display key="Title_Logout"/></a>
                 </td>
                 <td style="border: 0">

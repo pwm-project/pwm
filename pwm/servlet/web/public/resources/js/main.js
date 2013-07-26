@@ -24,6 +24,31 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 var PWM_STRINGS = PWM_STRINGS || {};
 
 function pwmPageLoadHandler() {
+    require(["dojo"],function(dojo){
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        dojo.xhrGet({
+            url: displayStringsUrl,
+            handleAs: 'json',
+            timeout: 30 * 1000,
+            headers: { "Accept": "application/json" },
+            load: function(data) {
+                for (var prop in data['data']['PWM_STRINGS']) {
+                    PWM_STRINGS[prop] = data['data']['PWM_STRINGS'][prop];
+                }
+                for (var prop in data['data']['PWM_GLOBAL']) {
+                    PWM_GLOBAL[prop] = data['data']['PWM_GLOBAL'][prop];
+                }
+                initPwmPage();
+            },
+            error: function(error) {
+                console.log('unable to read app-data: ' + error);
+                initPwmPage();
+            }
+        });
+    });
+}
+
+function initPwmPage() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
@@ -84,7 +109,7 @@ function pwmPageLoadHandler() {
         require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
             new Tooltip({
                 connectId: ["logoutDiv"],
-                label: PWM_STRINGS["Long_Title_Logout"]
+                label: showString("Long_Title_Logout")
             });
         });
     }
@@ -104,6 +129,16 @@ function pwmPageLoadHandler() {
     }
 }
 
+
+
+function showString(key) {
+    if (PWM_STRINGS[key]) {
+        return PWM_STRINGS[key];
+    } else {
+        return "UNDEFINED STRING-" + key;
+    }
+}
+
 function handleFormCancel() {
     showWaitDialog(null,null,function(){
         var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
@@ -115,7 +150,7 @@ function handleFormSubmit(buttonID, form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
     var submitButton = getObject(buttonID);
     if (submitButton != null) {
-        getObject(buttonID).value = PWM_STRINGS['Display_PleaseWait'];
+        getObject(buttonID).value = showString('Display_PleaseWait');
         getObject(buttonID).disabled = true;
 
         var formElements = submitButton.form.elements;
@@ -273,6 +308,13 @@ function initLocaleSelectorMenu(attachNode) {
         return;
     }
 
+    for (var localeKey in PWM_GLOBAL['localeFlags']) {
+        var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] +  '/public/resources/flags/png/' + PWM_GLOBAL['localeFlags'][localeKey] + '.png)';
+        var cssSelector = '.flagLang_' + localeKey;
+        createCSSClass(cssSelector,cssBody);
+    }
+
+
     require(["dojo/domReady!"],function(){
         require(["dojo","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(dojo, dijitMenu, dijitMenuItem, dijitMenuSeparator){
             var localeData = PWM_GLOBAL['localeInfo'];
@@ -314,7 +356,7 @@ function initLocaleSelectorMenu(attachNode) {
 
             pMenu.addChild(new dijitMenuSeparator());
             pMenu.addChild(new dijitMenuItem({
-                label: PWM_STRINGS['Title_LocaleSelect'],
+                label: showString('Title_LocaleSelect'),
                 onClick: function() {
                     showWaitDialog(null,null,function(){
                         window.location = PWM_GLOBAL['url-context'] + '/public/localeselect.jsp'
@@ -327,7 +369,7 @@ function initLocaleSelectorMenu(attachNode) {
 
 function showWaitDialog(title, body, loadFunction) {
     if (title == null) {
-        title=PWM_STRINGS['Display_PleaseWait'];
+        title=showString('Display_PleaseWait');
     }
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         var idName = 'dialogPopup';
@@ -341,6 +383,8 @@ function showWaitDialog(title, body, loadFunction) {
         }
         var theDialog = new Dialog({
             id: idName,
+            closable: false,
+            draggable: false,
             title: title,
             style: "width: 300px",
             content: body
@@ -363,7 +407,7 @@ function showDialog(title, text, nextAction) {
     bodyText += text;
     bodyText += '</p></div>';
     bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + PWM_STRINGS['Button_OK'] + '</button>  ';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + showString('Button_OK') + '</button>  ';
     showWaitDialog(titleText,bodyText);
 }
 
@@ -378,12 +422,14 @@ function showEula(requireAgreement, agreeFunction) {
     bodyText += '</iframe>';
     bodyText += '<div style="width: 100%; text-align: center">';
     if (requireAgreement) {
-        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_Agree'] + '" onclick="PWM_GLOBAL[\'eulaAgreed\']=true;clearDijitWidget(\'dialogPopup\');PWM_GLOBAL[\'dialog_agreeAction\']()"/>';
-        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_Cancel'] + '" onclick="closeWaitDialog()"/>';
+        bodyText += '<input type="button" class="btn" value="' + showString('Button_Agree') + '" onclick="PWM_GLOBAL[\'eulaAgreed\']=true;clearDijitWidget(\'dialogPopup\');PWM_GLOBAL[\'dialog_agreeAction\']()"/>';
+        bodyText += '<input type="button" class="btn" value="' + showString('Button_Cancel') + '" onclick="closeWaitDialog()"/>';
     } else {
-        bodyText += '<input type="button" class="btn" value="' + PWM_STRINGS['Button_OK'] + '" onclick="closeWaitDialog()"/>';
+        bodyText += '<input type="button" class="btn" value="' + showString('Button_OK') + '" onclick="closeWaitDialog()"/>';
     }
     bodyText += '</div>'
+
+    clearDijitWidget('dialogPopup');
     require(["dijit/Dialog"], function(Dialog){
         new Dialog({
             title: "End User License Agreement",
@@ -394,7 +440,7 @@ function showEula(requireAgreement, agreeFunction) {
 }
 
 function showConfirmDialog(title, text, trueAction, falseAction) {
-    var titleText = title == null ? PWM_STRINGS['Button_Confirm'] : title;
+    var titleText = title == null ? showString('Button_Confirm') : title;
     PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};
     PWM_GLOBAL['confirm_false_action'] = falseAction ? falseAction : function(){};
     var bodyText = '';
@@ -402,8 +448,8 @@ function showConfirmDialog(title, text, trueAction, falseAction) {
     bodyText += text;
     bodyText += '</p></div>';
     bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + PWM_STRINGS['Button_OK'] + '</button>  ';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + PWM_STRINGS['Button_Cancel'] + '</button>  ';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + showString('Button_OK') + '</button>  ';
+    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + showString('Button_Cancel') + '</button>  ';
     showWaitDialog(titleText,bodyText);
 }
 
@@ -629,9 +675,9 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
     if (days != 0) {
         output += days + " ";
         if (days != 1) {
-            output += PWM_STRINGS['Display_Days'];
+            output += showString('Display_Days');
         } else {
-            output += PWM_STRINGS['Display_Day'];
+            output += showString('Display_Day');
         }
     }
 
@@ -643,9 +689,9 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
 
         output += hours + " ";
         if (hours != 1) {
-            output += PWM_STRINGS['Display_Hours'];
+            output += showString('Display_Hours');
         } else {
-            output += PWM_STRINGS['Display_Hour'];
+            output += showString('Display_Hour');
         }
     }
 
@@ -657,9 +703,9 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
 
         output += mins + " ";
         if (mins != 1) {
-            output += PWM_STRINGS['Display_Minutes'];
+            output += showString('Display_Minutes');
         } else {
-            output += PWM_STRINGS['Display_Minute'];
+            output += showString('Display_Minute');
         }
     }
 
@@ -672,13 +718,13 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
         output += secs + " ";
 
         if (secs != 1) {
-            output += PWM_STRINGS['Display_Seconds'];
+            output += showString('Display_Seconds');
         } else {
-            output += PWM_STRINGS['Display_Second'];
+            output += showString('Display_Second');
         }
     }
 
-    output = PWM_STRINGS['Display_IdleTimeout'] + " " + output;
+    output = showString('Display_IdleTimeout') + " " + output;
     return output;
 };
 
@@ -686,10 +732,10 @@ IdleTimeoutHandler.showIdleWarning = function() {
     if (!PWM_GLOBAL['idle_warningDisplayed']) {
         PWM_GLOBAL['idle_warningDisplayed'] = true;
 
-        var dialogBody = PWM_STRINGS['Display_IdleWarningMessage'] + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
+        var dialogBody = showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
         require(["dijit/Dialog"],function(){
             var theDialog = new dijit.Dialog({
-                title: PWM_STRINGS['Display_IdleWarningTitle'],
+                title: showString('Display_IdleWarningTitle'),
                 style: "width: 260px; border: 2px solid #D4D4D4;",
                 content: dialogBody,
                 closable: true,
@@ -1075,7 +1121,7 @@ function pwmFormValidator(validationProps, reentrant)
     var serviceURL = validationProps['serviceURL'] + (validationProps['serviceURL'].indexOf('?') == -1 ? '?' : '&' ) + "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
-    var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : PWM_STRINGS['Display_PleaseWait'];
+    var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : showString('Display_PleaseWait');
 
     if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
     //init vars;
@@ -1103,7 +1149,7 @@ function pwmFormValidator(validationProps, reentrant)
 
     // check to see if user is still typing.  if yes, then come back later.
     if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < TYPE_WAIT_TIME_MS) {
-        showInfo(PWM_STRINGS['Display_TypingWait']);
+        showInfo(showString('Display_TypingWait'));
         setTimeout(function(){pwmFormValidator(validationProps, true)}, TYPE_WAIT_TIME_MS + 1);
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
         return;
@@ -1135,7 +1181,7 @@ function pwmFormValidator(validationProps, reentrant)
             timeout: AJAX_TIMEOUT,
             error: function(errorObj) {
                 PWM_GLOBAL['validationInProgress'] = false;
-                showInfo(PWM_STRINGS['Display_CommunicationError']);
+                showInfo(showString('Display_CommunicationError'));
                 if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
                 processResultsFunction(null);
             },

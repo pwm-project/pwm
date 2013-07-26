@@ -34,7 +34,7 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_LoginPasswordOnly"/></p>
-        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='Login'/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password"
               onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>

@@ -152,6 +152,15 @@ public class PwmLogEvent implements Serializable, Comparable {
         return topic;
     }
 
+    public String getTopTopic() {
+        if (topic == null) {
+            return null;
+        }
+
+        final int lastDot = topic.lastIndexOf(".");
+        return lastDot != -1 ? topic.substring(lastDot + 1, topic.length()) : topic;
+    }
+
 // ------------------------ INTERFACE METHODS ------------------------
 
 

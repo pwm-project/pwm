@@ -69,7 +69,7 @@ public class SessionStateBean implements PwmSessionBean {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
-    private String sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(PwmConstants.HTTP_SESSION_VALIDATION_KEY_LENGTH) + Long.toHexString(System.currentTimeMillis());
+    private String sessionVerificationKey;
 
     private boolean passedCaptcha;
     private boolean debugInitialized;
@@ -80,6 +80,10 @@ public class SessionStateBean implements PwmSessionBean {
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public SessionStateBean() {
+        regenerateSessionVerificationKey();
+    }
 
     public FINISH_ACTION getFinishAction() {
         return finishAction;
@@ -258,6 +262,10 @@ public class SessionStateBean implements PwmSessionBean {
 
     public enum FINISH_ACTION {
         LOGOUT, FORWARD
+    }
+
+    public void regenerateSessionVerificationKey() {
+        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(PwmConstants.HTTP_SESSION_VALIDATION_KEY_LENGTH) + Long.toHexString(System.currentTimeMillis());
     }
 }
 

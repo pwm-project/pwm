@@ -120,10 +120,11 @@
         <label>Interface Theme</label>
         <description><![CDATA[Change the look and feel by selecting a theme.  Themes are provided to provide CSS customizers inspiration.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
         <default>
-            <value><![CDATA[default]]></value>
+            <value><![CDATA[pwm]]></value>
         </default>
         <options>
             <option value="default">Default</option>
+            <option value="pwm">PWM</option>
             <option value="autumn">Autumn</option>
             <option value="blue">Blue</option>
             <option value="matrix">Matrix</option>
@@ -209,6 +210,13 @@
     <setting key="display.logoutButton" level="0" required="true">
         <label>Show Logout Button</label>
         <description><![CDATA[When authenticated, show a logout button in header and/or other menus as appropriate.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.homeButton" level="0" required="true">
+        <label>Show Home Button</label>
+        <description><![CDATA[When authenticated, show a "home" button in header and/or other menus as appropriate.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -674,7 +682,7 @@
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
         <label>SMTP Email Advanced Settings</label>
-        <description><![CDATA[Name/Value settings to control the behavior of the mail agent.Available settings are defined as part of the <a href="http://java.sun.com/products/javamail/javadocs/com/sun/mail/smtp/package-summary.html">JavaMail API</a>. The settings must be in "name=value" format, where name is the key value of a valid JavaMail API setting.]]></description>
+        <description><![CDATA[Name/Value settings to control the behavior of the mail agent.Available settings are defined as part of the <a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html">JavaMail API</a>. The settings must be in "name=value" format, where name is the key value of a valid JavaMail API setting.]]></description>
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
         <default>
             <value />
@@ -1451,7 +1459,23 @@
     </setting>
     <setting key="events.pwmDB.logLevel" level="0" required="true">
         <label>LocalDB Log Level</label>
-        <description><![CDATA[Level at which to log events in the LocalDB.]]></description>
+        <description><![CDATA[Level at which to log events in the LocalDB.  Log events written to the LocalDB can be viewed in the administrator event log viewer.]]></description>
+        <default>
+            <value><![CDATA[INFO]]></value>
+        </default>
+        <options>
+            <option value="TRACE">Trace</option>
+            <option value="DEBUG">Debug</option>
+            <option value="INFO">Info</option>
+            <option value="WARN">Warn</option>
+            <option value="ERROR">Error</option>
+            <option value="FATAL">Fatal</option>
+            <option value="Off">Off - no logging to stdout</option>
+        </options>
+    </setting>
+    <setting key="events.fileAppender.level" level="0" required="true">
+        <label>File Log Level</label>
+        <description><![CDATA[Level at which to log events to the local File Log.]]></description>
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
@@ -1625,7 +1649,7 @@
     </setting>
     <setting key="challenge.minRandomsSetup" level="0" required="true">
         <label>Minimum Random Challenges Required During Setup</label>
-        <description><![CDATA[The minimum number of random questions the user is required to complete during Response Setup.  If this number is higher then the available randoms, or lower then the minimum required, it will be adjusted accordingly.  Set to zero to force all available randoms to be configured at time of setup.]]></description>
+        <description><![CDATA[The minimum number of random questions the user is required to complete during Response Setup.  If this number is higher than the available randoms, or lower than the minimum required, it will be adjusted accordingly.  Set to zero to force all available random questions to be configured at time of setup.]]></description>
         <default>
             <value>4</value>
         </default>
@@ -2684,6 +2708,19 @@
         <description><![CDATA[Allow web services to be used to read stored challenge/response answers of users.  The read responses will be available in whatever hashing method format is being used.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="webservices.thirdParty.queryMatch" level="0">
+        <label>WebServices Third Party Query String</label>
+        <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
+        <default>
+            <value><![CDATA[(groupMembership=cn=RestUsers,ou=Groups,o=example)]]></value>
+        </default>
+        <default template="AD">
+            <value><![CDATA[(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)]]></value>
         </default>
     </setting>
     <setting key="external.webAuth.methods" level="0">

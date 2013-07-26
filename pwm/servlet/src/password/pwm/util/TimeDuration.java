@@ -279,8 +279,7 @@ public class TimeDuration implements Comparable, Serializable {
 
     public String asLongString(final Locale locale) {
         final TimeDetail timeDetail = getTimeDetail();
-
-        final StringBuilder sb = new StringBuilder(16);
+        final StringBuilder sb = new StringBuilder();
 
         //output number of days
         if (timeDetail.days > 0) {
@@ -354,7 +353,7 @@ public class TimeDuration implements Comparable, Serializable {
             milliseconds = duration % 1000;
             seconds = (totalSeconds) % 60;
             minutes = (totalSeconds / 60) % 60;
-            hours = ((totalSeconds / 60) / 60) % 60;
+            hours = ((totalSeconds / 60) / 60) % 24;
             days = (((totalSeconds / 60) / 60) / 24);
         }
     }

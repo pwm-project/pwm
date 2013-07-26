@@ -27,7 +27,7 @@ var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 // and then parses (and displays) the response from the servlet.
 function validateNewUserForm() {
     var validationProps = new Array();
-    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingData'];
+    validationProps['messageWorking'] = showString('Display_CheckingData');
     validationProps['serviceURL'] = 'NewUser' + "?processAction=validate";
     validationProps['readDataFunction'] = function(){
         return makeFormData();
@@ -117,11 +117,11 @@ function markStrength(strength) { //strength meter
     var barColor = "";
 
     if (strength > 70) {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthHigh'];
+        strengthLabel = showString('Display_PasswordStrengthHigh');
     } else if (strength > 45) {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthMedium'];
+        strengthLabel = showString('Display_PasswordStrengthMedium');
     } else {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthLow'];
+        strengthLabel = showString('Display_PasswordStrengthLow');
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }

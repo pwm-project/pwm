@@ -22,12 +22,45 @@
 
 package password.pwm.util;
 
+import org.apache.log4j.Level;
+
 public enum PwmLogLevel {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    FATAL,
+    TRACE(Level.TRACE),
+    DEBUG(Level.DEBUG),
+    INFO(Level.INFO),
+    WARN(Level.WARN),
+    ERROR(Level.ERROR),
+    FATAL(Level.FATAL),
     ;
+
+    private PwmLogLevel(Level log4jLevel) {
+        this.log4jLevel = log4jLevel;
+    }
+
+    private Level log4jLevel;
+
+    public Level getLog4jLevel() {
+        return log4jLevel;
+    }
+
+    public static PwmLogLevel fromLog4jLevel(final Level level) {
+        if (level == null) {
+            return null;
+        }
+
+        if (level == Level.TRACE) {
+            return TRACE;
+        } else if (level == Level.DEBUG) {
+            return DEBUG;
+        } else if (level == Level.INFO) {
+            return INFO;
+        } else if (level == Level.WARN) {
+            return WARN;
+        } else if (level == Level.ERROR) {
+            return ERROR;
+        } else if (level == Level.FATAL) {
+            return FATAL;
+        }
+        return TRACE;
+    }
 }

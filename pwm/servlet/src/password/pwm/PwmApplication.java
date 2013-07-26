@@ -24,7 +24,6 @@ package password.pwm;
 
 import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiConstant;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -59,6 +58,7 @@ import password.pwm.wordlist.WordlistManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -287,19 +287,22 @@ public class PwmApplication {
         // initialize log4j
         {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
-            final File log4jFile = Helper.figureFilepath(log4jFileName,pwmApplicationPath);
-            final String logLevel;
+            final File log4jFile = Helper.figureFilepath(log4jFileName, pwmApplicationPath);
+            final File log4jAppenderFolder = Helper.figureFilepath("logs",pwmApplicationPath);
+            final String consoleLevel, fileLevel;
             switch (getApplicationMode()) {
                 case ERROR:
-                    logLevel = PwmLogLevel.TRACE.toString();
+                    consoleLevel = PwmLogLevel.TRACE.toString();
+                    fileLevel = PwmLogLevel.TRACE.toString();
                     break;
 
                 default:
-                    logLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+                    consoleLevel = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_STDOUT_LEVEL);
+                    fileLevel = configuration.readSettingAsString(PwmSetting.EVENTS_FILE_LEVEL);
                     break;
             }
 
-            PwmInitializer.initializeLogger(log4jFile, logLevel);
+            PwmInitializer.initializeLogger(log4jFile, consoleLevel, log4jAppenderFolder, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -601,7 +604,12 @@ public class PwmApplication {
 // -------------------------- INNER CLASSES --------------------------
 
     private static class PwmInitializer {
-        private static void initializeLogger(final File log4jConfigFile, final String logLevel) {
+        private static void initializeLogger(
+                final File log4jConfigFile,
+                final String consoleLogLevel,
+                final File logDirectory,
+                final String fileLogLevel
+        ) {
             // clear all existing package loggers
             final String pwmPackageName = PwmApplication.class.getPackage().getName();
             final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
@@ -632,19 +640,49 @@ public class PwmApplication {
 
             // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
             if (!configured) {
-                if (logLevel != null && logLevel.length() > 0) {
-                    final Layout patternLayout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss}, %-5p, %c{2}, %m%n");
+                final Layout patternLayout = new PatternLayout(PwmConstants.LOGGING_PATTERN);
+
+                // configure console logging
+                if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
                     final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-                    final Level level = Level.toLevel(logLevel);
+                    final Level level = Level.toLevel(consoleLogLevel);
                     pwmPackageLogger.addAppender(consoleAppender);
                     pwmPackageLogger.setLevel(level);
                     chaiPackageLogger.addAppender(consoleAppender);
                     chaiPackageLogger.setLevel(level);
                     casPackageLogger.addAppender(consoleAppender);
                     casPackageLogger.setLevel(level);
-                    LOGGER.debug("successfully initialized default log4j config at log level " + level.toString());
+                    LOGGER.debug("successfully initialized default console log4j config at log level " + level.toString());
                 } else {
                     LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
+                }
+
+                // configure file logging
+                if (logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals(fileLogLevel)) {
+                    try {
+                        if (!logDirectory.exists()) {
+                            if (logDirectory.mkdir()) {
+                                LOGGER.info("created directory " + logDirectory.getAbsoluteFile());
+                            } else {
+                                throw new IOException("failed to create directory " + logDirectory.getAbsoluteFile());
+                            }
+                        }
+
+                        final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
+                        final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
+                        final Level level = Level.toLevel(fileLogLevel);
+                        fileAppender.setMaxBackupIndex(PwmConstants.LOGGING_FILE_MAX_ROLLOVER);
+                        fileAppender.setMaxFileSize(PwmConstants.LOGGING_FILE_MAX_SIZE);
+                        pwmPackageLogger.addAppender(fileAppender);
+                        pwmPackageLogger.setLevel(level);
+                        chaiPackageLogger.addAppender(fileAppender);
+                        chaiPackageLogger.setLevel(level);
+                        casPackageLogger.addAppender(fileAppender);
+                        casPackageLogger.setLevel(level);
+                        LOGGER.debug("successfully initialized default file log4j config at log level " + level.toString());
+                    } catch (IOException e) {
+                        LOGGER.debug("error initializing RollingFileAppender: " + e.getMessage());
+                    }
                 }
             }
 
@@ -663,7 +701,6 @@ public class PwmApplication {
                 LOGGER.warn("skipping LocalDB open due to application mode " + pwmApplication.getApplicationMode());
                 return;
             }
-
 
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
@@ -698,14 +735,30 @@ public class PwmApplication {
             }
 
             // initialize the localDBLogger
+            final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalLevel();
             try {
                 final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
-                final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalLevel();
                 pwmApplication.localDBLogger = PwmLogger.initPwmApplication(pwmApplication.localDB, maxEvents, maxAgeMS, localLogLevel, pwmApplication);
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize localDBLogger: " + e.getMessage());
             }
+
+            // add appender for other packages;
+            try {
+                final String chaiPackageName = ChaiUser.class.getPackage().getName();
+                final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
+                final String casPackageName = "org.jasig.cas.client";
+                final Logger casPackageLogger = Logger.getLogger(casPackageName);
+                final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender(pwmApplication.localDBLogger);
+                chaiPackageLogger.addAppender(localDBLog4jAppender);
+                casPackageLogger.setLevel(localLogLevel.getLog4jLevel());
+                chaiPackageLogger.addAppender(localDBLog4jAppender);
+                casPackageLogger.setLevel(localLogLevel.getLog4jLevel());
+            } catch (Exception e) {
+                LOGGER.warn("unable to initialize localDBLogger/extraAppender: " + e.getMessage());
+            }
+
         }
     }
 
@@ -772,6 +825,8 @@ public class PwmApplication {
             }
         }
     }
+
+
 }
 
 

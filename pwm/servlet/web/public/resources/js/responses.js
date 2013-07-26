@@ -36,7 +36,7 @@ function validateResponses() {
             serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
         }
         var validationProps = {};
-        validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingResponses'];
+        validationProps['messageWorking'] = showString('Display_CheckingResponses');
         validationProps['serviceURL'] = serviceUrl;
         validationProps['readDataFunction'] = function(){
             return domForm.toObject('setupResponses');
@@ -86,9 +86,9 @@ function toggleHideResponses()
     }
 
     if (responsesHidden) {
-        getObject("hide_responses_button").value = PWM_STRINGS['Button_Hide_Responses'];
+        getObject("hide_responses_button").value = showString('Button_Hide_Responses');
     } else {
-        getObject("hide_responses_button").value = PWM_STRINGS['Button_Show_Responses'];
+        getObject("hide_responses_button").value = showString('Button_Show_Responses');
     }
 
     responsesHidden = !responsesHidden;
@@ -100,7 +100,7 @@ function makeSelectOptionsDistinct() {
         function(dojo,registry,array,dojoOn,ObjectStore,Memory){
         console.log('entering makeSelectOptionsDistinct()');
         var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
-        var initialChoiceText = PWM_STRINGS['Display_SelectionIndicator'];
+        var initialChoiceText = showString('Display_SelectionIndicator');
         var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
         var currentlySelectedTexts = [];
 
@@ -159,7 +159,7 @@ function startupResponsesPage()
         }
     }
 
-    var initialPrompt = PWM_STRINGS['Display_ResponsesPrompt'];
+    var initialPrompt = showString('Display_ResponsesPrompt');
     if (initialPrompt != null && initialPrompt.length > 1) {
         var messageElement = getObject("message");
         if (messageElement.firstChild.nodeValue.length < 2) {

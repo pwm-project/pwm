@@ -35,6 +35,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
+<% request.setAttribute("noTheme","true"); %>
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
@@ -54,6 +55,21 @@
 <script type="text/javascript">
     PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES))%>';
 </script>
+<style type="text/css">
+    #centerbody-config {
+        width: 600px;
+        min-width: 600px;
+        padding: 10px;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 0;
+        clear: both;
+        border-radius: 0 0 5px 5px;
+        box-shadow: 0;
+        background-color: white;
+    }
+</style>
 <div id="wrapper" style="border:1px; background-color: black">
     <div id="header">
         <div id="header-company-logo"></div>
@@ -72,7 +88,7 @@
     </div>
     <div id="TopMenu">
     </div>
-    <div id="centerbody" style="width: 600px; align: center; background-color: white; padding: 10px; margin-top: 0" >
+    <div id="centerbody-config">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <script type="text/javascript">
             function buildMenuBar() {
@@ -393,6 +409,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('localeSelectionMenu').style.display = 'none';
+    });
+</script>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

@@ -94,6 +94,8 @@ public enum PwmSetting {
             "display.showLoginPageOptions", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_LOGOUT_BUTTON(
             "display.logoutButton", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
+    DISPLAY_HOME_BUTTON(
+            "display.homeButton", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_IDLE_TIMEOUT(
             "display.idleTimeout", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_CSS_CUSTOM_STYLE(
@@ -432,6 +434,8 @@ public enum PwmSetting {
             "events.pwmDB.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     EVENTS_LOCALDB_LOG_LEVEL(
             "events.pwmDB.logLevel", PwmSettingSyntax.SELECT, Category.LOGGING),
+    EVENTS_FILE_LEVEL(
+            "events.fileAppender.level", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
     EVENTS_LDAP_MAX_EVENTS(
@@ -736,6 +740,8 @@ public enum PwmSetting {
             "external.webservices.enable", PwmSettingSyntax.BOOLEAN, Category.MISC),
     ENABLE_WEBSERVICES_READANSWERS(
             "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, Category.MISC),
+    WEBSERVICES_THIRDPARTY_QUERY_MATCH(
+            "webservices.thirdParty.queryMatch", PwmSettingSyntax.STRING, Category.MISC),
     EXTERNAL_WEB_AUTH_METHODS(
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
 

@@ -198,7 +198,7 @@ class Populator {
         }
     }
 
-    private String makeStatString()
+    public String makeStatString()
     {
         final int lps = perReportStats.getElapsedSeconds() <= 0 ? 0 : perReportStats.getLines() / perReportStats.getElapsedSeconds();
         final int linesRemaining = totalLines - overallStats.getLines();

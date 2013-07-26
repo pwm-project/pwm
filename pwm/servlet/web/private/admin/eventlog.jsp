@@ -191,8 +191,7 @@
                         rowData.put("level", event.getLevel().toString());
                         rowData.put("src", event.getSource());
                         rowData.put("user", event.getActor());
-                        final int lastDot = event.getTopic().lastIndexOf(".");
-                        rowData.put("component",lastDot != -1 ? event.getTopic().substring(lastDot + 1, event.getTopic().length()) : event.getTopic());
+                        rowData.put("component",event.getTopTopic());
                         rowData.put("detail",event.getMessage());
             %>
             data.push(<%=gson.toJson(rowData)%>)
@@ -201,6 +200,7 @@
                 }
             %>
         </script>
+            <div id="WaitDialogBlank">&nbsp;</div>
             <div id="dgrid">
             </div>
             <script>
@@ -213,8 +213,8 @@
                         "component":"Component",
                         "detail":"Detail"
                     };
-                    require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                            function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                            function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
                                 var columnHeaders = headers;
         
                                 // Create a new constructor by mixing in the components
@@ -227,6 +227,7 @@
                                 }, "dgrid");
                                 grid.set("sort","timestamp");
                                 grid.renderArray(data);
+                                getObject('WaitDialogBlank').style.display = 'none';
                             });
                 };
             </script>

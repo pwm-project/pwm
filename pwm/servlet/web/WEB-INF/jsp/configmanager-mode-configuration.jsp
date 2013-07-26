@@ -64,7 +64,7 @@
 
         <table style="border:0">
             <tr style="border:0">
-                <td style="border:0; text-align: right">
+                <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
@@ -72,7 +72,7 @@
                 </td>
             </tr>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
+                <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false"><pwm:Display key="MenuItem_ViewLog" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
@@ -80,20 +80,15 @@
                 </td>
             </tr>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
+                <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="showConfirmDialog(null,'<pwm:Display key="Confirm_LockConfig" bundle="Config"/>',function(){finalizeConfiguration()})"><pwm:Display key="MenuItem_LockConfig" bundle="Config"/></a>
-                    <form action="<pwm:url url='ConfigManager'/>" method="post" name="lockConfiguration"
-                          enctype="application/x-www-form-urlencoded">
-                        <input type="hidden" name="processAction" value="lockConfiguration"/>
-                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </form>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_LockConfig" bundle="Config" value1="<%=configFilePath%>"/></p>
                 </td>
             </tr>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
+                <td class="menubutton_key">
                     <a class="menubutton" href="<%=request.getContextPath()%>"><pwm:Display key="MenuItem_MainMenu" bundle="Config"/></a>
                 </td>
                 <td style="border:0">

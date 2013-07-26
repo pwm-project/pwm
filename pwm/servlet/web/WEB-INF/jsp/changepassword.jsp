@@ -27,7 +27,7 @@
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler(); startupChangePasswordPage('<pwm:Display key="Display_PasswordPrompt"/>');" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <script type="text/javascript" defer="defer"
         src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
@@ -136,9 +136,12 @@
         </form>
     </div>
     <div class="push"></div>
-    <script type="text/javascript">
-    </script>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupChangePasswordPage();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

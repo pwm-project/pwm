@@ -139,25 +139,21 @@ table td.key {
     width: 90%;
 }
 
-
 .menubutton_key {
-    text-align: right;
+    border: 0;
+    width: 160px;
+    table-layout: fixed;
 }
 
 .menubutton {
+    max-width: 150px;
     padding: 4px 11px;
+    display: block;
     white-space: nowrap;
     border-radius: 3px;
     border: 10px;
-    margin: 20px 10px 20px 0;
-    text-decoration: none;
     color: black;
-    background: #E8E1F6;
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E8E1F6), color-stop(1, #B2B1B9) );
-    background:linear-gradient(to bottom, #E8E1F6 5%, #B2B1B9 100% );
-}.menubutton:hover {
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
-    background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+    margin: 0 5px;
 }
 
 /* main body wrapper, all elements (except footer) should be within wrapper */
@@ -173,8 +169,7 @@ table td.key {
 /* main content section, all content should be inside a centerbody div */
 #centerbody {
     width: 600px;
-    min-width: 600px;
-    padding: 0;
+    padding: 5px;
     position: relative;
     margin-left: auto;
     margin-right: auto;
@@ -191,7 +186,6 @@ table td.key {
 }
 
 .btn {
-    font-family: Trebuchet MS, sans-serif;
     border-style:none;
     border-radius: 5px;
     padding: 3px 11px;
@@ -199,15 +193,6 @@ table td.key {
     text-decoration: none;
     color: white;
     background: #3e374c;
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #3e374c), color-stop(1, #08070f) );
-    background:linear-gradient(to bottom, #3e374c 5%, #08070f 100% );
-}.btn:hover {
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #08070f), color-stop(1, #3e374c) );
-    background:linear-gradient(to bottom, #08070f 5%, #3e374c 100% );
-}.btn:disabled {
-    color: #656565;
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #4f485d), color-stop(1, #191820) );
-    background:linear-gradient(to bottom, #4f485d 5%, #191820 100% );
 }
 
 
@@ -217,6 +202,14 @@ table td.key {
     border-width: 0;
     display: block;
     background-image: url('logout.png');
+}
+
+#HomeButton {
+    height: 22px;
+    width: 22px;
+    border-width: 0;
+    display: block;
+    background-image: url('home.png');
 }
 
 #WaitDialogBlank {
@@ -251,6 +244,7 @@ div.progress-container > div {
     z-index: 5;
     position: relative;
 }
+
 
 #header-page {
     width: 600px;

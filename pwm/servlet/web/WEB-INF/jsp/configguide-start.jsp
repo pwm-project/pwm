@@ -46,26 +46,24 @@
         <br/>
         <table style="border:0">
             <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="gotoStep('TEMPLATE')"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></button>
+                <td style="border:0" class="menubutton_key">
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){gotoStep('TEMPLATE')}) } else {gotoStep('TEMPLATE')}"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="skipWizard()">
-                        <pwm:Display key="MenuItem_ManualConfig" bundle="Config"/>
-                    </button>
+                <td style="border:0" class="menubutton_key">
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){skipWizard()}) } else {skipWizard()}"><pwm:Display key="MenuItem_ManualConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
-                <td style="border:0; text-align: right">
-                    <button class="menubutton" href="#" onclick="uploadConfigDialog()"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></button>
+                <td style="border:0" class="menubutton_key">
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){uploadConfigDialog()}) } else {uploadConfigDialog()}"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>

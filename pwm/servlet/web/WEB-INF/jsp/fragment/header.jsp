@@ -37,6 +37,9 @@
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
+
+    // read parameters from calling jsp;
+    final boolean showTheme = !"true".equalsIgnoreCase((String)request.getAttribute("noTheme"));
 %>
 <head>
     <title><pwm:Display key="Title_TitleBar"/></title>
@@ -47,13 +50,12 @@
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/style.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/mobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-    <% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
+    <% if (showTheme) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();</script>
+    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';</script>
     <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
-    <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/jsClientValues.jsp'/>?nonce=<%=Helper.makePwmVariableJsNonce(pwmApplicationHeader, pwmSessionHeader)%>"></script>
 </head>

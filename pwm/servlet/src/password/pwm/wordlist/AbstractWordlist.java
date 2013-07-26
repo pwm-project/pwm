@@ -341,7 +341,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     public String getDebugStatus() {
         if (wlStatus == STATUS.OPENING && populator != null) {
-            return "populating " + populator.percentComplete();
+            return populator.makeStatString();
         } else {
             return wlStatus.toString();
         }
@@ -369,6 +369,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     public List<HealthRecord> healthCheck() {
         if (wlStatus == STATUS.OPENING) {
+
             final HealthRecord healthRecord = new HealthRecord(HealthStatus.CAUTION, this.DEBUG_LABEL, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus());
             return Collections.singletonList(healthRecord);
         }

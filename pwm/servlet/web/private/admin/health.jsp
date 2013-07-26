@@ -44,6 +44,7 @@
                 });
                 });
             </script>
+            <br/>
             <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">
                 public health page at
                 <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>

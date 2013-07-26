@@ -22,13 +22,15 @@
 
 package password.pwm;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.jasig.cas.client.util.AbstractCasFilter;
 import password.pwm.bean.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -37,8 +39,9 @@ import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Jason D. Rivard
@@ -343,5 +346,34 @@ public class PwmSession implements Serializable {
 
     public void setHttpSession(HttpSession httpSession) {
         this.httpSession = httpSession;
+    }
+
+    public boolean setLocale(final String localeString)
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
+
+        if (pwmApplication == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
+        }
+
+        final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+        final Locale requestedLocale = Helper.parseLocaleString(localeString);
+        if (knownLocales.contains(requestedLocale) || localeString.equalsIgnoreCase("default")) {
+            LOGGER.debug(this, "setting session locale to '" + localeString + "'");
+            final SessionStateBean ssBean = this.getSessionStateBean();
+            ssBean.setLocale(new Locale(localeString.equalsIgnoreCase("default") ? "" : localeString));
+            if (ssBean.isAuthenticated()) {
+                try {
+                    UserStatusHelper.populateLocaleSpecificUserInfoBean(this, this.getUserInfoBean(), pwmApplication, ssBean.getLocale());
+                } catch (ChaiUnavailableException e) {
+                    LOGGER.warn("unable to refresh locale-specific user data, error:" + e.getLocalizedMessage());
+                }
+            }
+            return true;
+        } else {
+            LOGGER.error(this, "ignoring unknown locale value set request for locale '" + localeString);
+            return false;
+        }
     }
 }

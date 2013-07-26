@@ -43,6 +43,7 @@
 %>
 <% final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
 <% final boolean showLogout = loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
+<% final boolean showHome =  loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON); %>
 <% final String customImageLogoUrl = pwmApplictionHeaderBody.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_LOGO_IMAGE); %>
 <% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION; %>
 <% if (showConfigHeader) { %>
@@ -61,6 +62,13 @@
         <br/><%-- balance div for ie 6 --%>
     </div>
     <%-- this section handles the logout link (if user is logged in) --%>
+    <div style="position: absolute; text-align:right; border-width:0; top: 19px; right:50px;">
+        <div style="visibility: <%=showHome ? "inline" : "hidden"%>" id="homebuttonDiv">
+            <a id="HomeButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/'/>"
+               title="<pwm:Display key="Button_Home"/>">
+            </a>
+        </div>
+    </div>
     <div style="position: absolute; text-align:right; border-width:0; top: 19px; right:18px;">
         <div style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="logoutDiv">
             <a id="LogoutButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"

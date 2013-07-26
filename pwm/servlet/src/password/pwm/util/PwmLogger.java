@@ -151,9 +151,9 @@ public class PwmLogger {
     private static String makeActorString(final PwmSession pwmSession) {
         if (pwmSession != null) {
             if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                final String userID = pwmSession.getUserInfoBean().getUserID();
-                if (userID != null && userID.length() > 0) {
-                    return userID;
+                final String userDN = pwmSession.getUserInfoBean().getUserDN();
+                if (userDN != null && userDN.length() > 0) {
+                    return userDN;
                 }
             }
         }

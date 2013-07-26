@@ -61,6 +61,7 @@
                             <%= StringEscapeUtils.escapeHtml(uiBean.getUserID()) %>
                         </td>
                     </tr>
+                    <%--
                     <tr>
                         <td class="key">
                             <pwm:Display key="Field_UserDN"/>
@@ -69,6 +70,7 @@
                             <%= StringEscapeUtils.escapeHtml(uiBean.getUserDN()) %>
                         </td>
                     </tr>
+                    --%>
                 </table>
                 <br class="clear"/>
                 <table>

@@ -45,7 +45,7 @@ function validatePasswords(userDN)
     }
 
     var validationProps = new Array();
-    validationProps['messageWorking'] = PWM_STRINGS['Display_CheckingPassword'];
+    validationProps['messageWorking'] = showString('Display_CheckingPassword');
     validationProps['serviceURL'] = PWM_GLOBAL['url-restservice'] + "/checkpassword";
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
@@ -72,7 +72,7 @@ function updateDisplay(resultInfo) {
         if (passwordButton != null) {
             passwordButton.disabled = false;
         }
-        showSuccess(PWM_STRINGS['Display_PasswordPrompt']);
+        showSuccess(showString('Display_PasswordPrompt'));
         markStrength(0);
         markConfirmationCheck(null);
         return;
@@ -147,11 +147,11 @@ function markStrength(strength) { //strength meter
     var barColor = "";
 
     if (strength > 70) {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthHigh'];
+        strengthLabel = showString('Display_PasswordStrengthHigh');
     } else if (strength > 45) {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthMedium'];
+        strengthLabel = showString('Display_PasswordStrengthMedium');
     } else {
-        strengthLabel = PWM_STRINGS['Display_PasswordStrengthLow'];
+        strengthLabel = showString('Display_PasswordStrengthLow');
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
@@ -194,9 +194,9 @@ function showPasswordGuide() {
     clearDijitWidget('dialogPopup');
     require(["dojo","dijit/Dialog"],function(){
         var theDialog = new dijit.Dialog({
-            title: PWM_STRINGS['Title_PasswordGuide'],
+            title: showString('Title_PasswordGuide'),
             style: "border: 2px solid #D4D4D4; style: 300px",
-            content: PWM_STRINGS['passwordGuideText'],
+            content: PWM_GLOBAL['passwordGuideText'],
             closable: true,
             draggable: true,
             id: "dialogPopup"
@@ -208,7 +208,7 @@ function showPasswordGuide() {
 
 function showRandomPasswordsDialog(randomConfig) {
 
-    var titleString = randomConfig['title'] == null ? PWM_STRINGS['Title_RandomPasswords'] : randomConfig['title'];
+    var titleString = randomConfig['title'] == null ? showString('Title_RandomPasswords') : randomConfig['title'];
 
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
         closeWaitDialog();
@@ -227,11 +227,11 @@ function showRandomPasswordsDialog(randomConfig) {
 function toggleMaskPasswords()
 {
     if (passwordsMasked) {
-        getObject("hide_button").value = PWM_STRINGS['Button_Hide'];
+        getObject("hide_button").value = showString('Button_Hide');
         changeInputTypeField(getObject("password1"),"text");
         changeInputTypeField(getObject("password2"),"text");
     } else {
-        getObject("hide_button").value = PWM_STRINGS['Button_Show'];
+        getObject("hide_button").value = showString('Button_Show');
         changeInputTypeField(getObject("password1"),"password");
         changeInputTypeField(getObject("password2"),"password");
     }
@@ -241,7 +241,7 @@ function toggleMaskPasswords()
 
 function handleChangePasswordSubmit()
 {
-    showInfo(PWM_STRINGS['Display_PleaseWait']);
+    showInfo(showString('Display_PleaseWait'));
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 }
 
@@ -258,7 +258,7 @@ function doRandomGeneration(randomConfig) {
     if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
     } else {
-        dialogBody += PWM_STRINGS['Display_PasswordGeneration'];
+        dialogBody += showString('Display_PasswordGeneration');
     }
     dialogBody += "<br/><br/>";
     dialogBody += '<table style="border: 0">';
@@ -276,8 +276,8 @@ function doRandomGeneration(randomConfig) {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_STRINGS['Button_More'] + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="clearDijitWidget(\'dialogPopup\')">' + PWM_STRINGS['Button_Cancel'] + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + showString('Button_More') + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="clearDijitWidget(\'dialogPopup\')">' + showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
     randomConfig['dialogBody'] = dialogBody;
     PWM_GLOBAL['lastRandomConfig'] = randomConfig;
@@ -342,7 +342,7 @@ function fetchRandoms(randomConfig) {
     }
 }
 
-function startupChangePasswordPage(initialPrompt)
+function startupChangePasswordPage()
 {
     /* enable the hide button only if the toggle works */
     if (PWM_GLOBAL['setting-showHidePasswordFields']) {
@@ -367,7 +367,7 @@ function startupChangePasswordPage(initialPrompt)
     // show the password guide panel
     var passwordGuideElement = getObject("passwordGuide");
     if (passwordGuideElement != null) {
-        var passwordGuideText = PWM_STRINGS['passwordGuideText'];
+        var passwordGuideText = showString('passwordGuideText');
         if ( passwordGuideText != null && passwordGuideText.length > 0) {
             passwordGuideElement.style.visibility = 'visible';
         }
@@ -376,7 +376,7 @@ function startupChangePasswordPage(initialPrompt)
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     window.onbeforeunload = function() {
         if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
-            var message = PWM_STRINGS['Display_LeaveDirtyPasswordPage'];
+            var message = showString('Display_LeaveDirtyPasswordPage');
             return message;
         }
     };
@@ -386,7 +386,7 @@ function startupChangePasswordPage(initialPrompt)
     var messageElement = getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){
-            showInfo(initialPrompt);
+            showInfo(showString('Display_PasswordPrompt'));
         },100);
     }
 

@@ -194,7 +194,7 @@ function showConfigurationNotes() {
     var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
     bodyText += 'Loading...';
     bodyText += '</textarea>';
-    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + PWM_STRINGS['Button_OK'] + '</button>';
+    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + showString('Button_OK') + '</button>';
 
     require(["dijit/Dialog"],function(Dialog){
         var theDialog = new Dialog({

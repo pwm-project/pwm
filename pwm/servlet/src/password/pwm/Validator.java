@@ -171,7 +171,7 @@ public class Validator {
         final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_FORM_NONCE)) {
-            if (submittedPwmFormID == null || submittedPwmFormID.length() < 1) {
+            if (submittedPwmFormID == null || submittedPwmFormID.length() < pwmFormID.length()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
             }
 

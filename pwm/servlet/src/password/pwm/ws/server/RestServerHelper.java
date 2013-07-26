@@ -87,7 +87,7 @@ public abstract class RestServerHelper {
         final RestRequestBean restRequestBean = new RestRequestBean();
         restRequestBean.setAuthenticated(pwmSession.getSessionStateBean().isAuthenticated());
         restRequestBean.setExternal(determineIfRestClientIsExternal(request, pwmSession));
-        restRequestBean.setUserDN(lookupUsername(pwmApplication, pwmSession, requestedUsername));
+        restRequestBean.setUserDN(lookupUsername(pwmApplication, pwmSession, restRequestBean.isExternal(), requestedUsername));
         restRequestBean.setPwmApplication(pwmApplication);
         restRequestBean.setPwmSession(pwmSession);
 
@@ -97,6 +97,7 @@ public abstract class RestServerHelper {
     private static String lookupUsername(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
+            final boolean isExternal,
             final String username
     )
             throws PwmUnrecoverableException
@@ -112,8 +113,16 @@ public abstract class RestServerHelper {
         pwmApplication.getIntruderManager().check(username,null,null);
 
         try {
-            if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
+            if (isExternal) {
+                if (!Permission.checkPermission(Permission.WEBSERVICE_THIRDPARTY,pwmSession,pwmApplication)) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match thirdparty webservices query filter");
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            } else {
+                if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match third-party webservices query filter");
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
             }
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);

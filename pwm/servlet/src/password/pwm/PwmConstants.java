@@ -98,6 +98,7 @@ public abstract class PwmConstants {
     public static final boolean RESOURCE_SERVLET_ENABLE_PATH_NONCE = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnablePathNonce"));
     public static final String RESOURCE_SERVLET_NONCE_PATH_PREFIX = readPwmConstantsBundle("resourceServletNoncePathPrefix");
     public static final boolean SERVLET_FILTER_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("servletFilterEnableGzip"));
+    public static final int USER_COOKIE_MAX_AGE_SECONDS = Integer.parseInt(readPwmConstantsBundle("userCookieMaxAgeSeconds"));
 
     public static final int LDAP_PROXY_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapProxyConnectionTimeout"));
     public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));
@@ -126,6 +127,10 @@ public abstract class PwmConstants {
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
+
+    public static final String LOGGING_PATTERN = readPwmConstantsBundle("logging.pattern");
+    public static final String LOGGING_FILE_MAX_SIZE = readPwmConstantsBundle("logging.file.maxSize");
+    public static final int    LOGGING_FILE_MAX_ROLLOVER = Integer.parseInt(readPwmConstantsBundle("logging.file.maxRollover"));
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "pwm_lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
@@ -224,6 +229,9 @@ public abstract class PwmConstants {
     public static final String PARAM_THEME = readPwmConstantsBundle("paramName.theme");
     public static final String PARAM_LOCALE = readPwmConstantsBundle("paramName.locale");
     public static final String PARAM_PASSWORD_EXPIRED = readPwmConstantsBundle("paramName.passwordExpired");
+
+    public static final String COOKIE_THEME = readPwmConstantsBundle("cookieName.theme");
+    public static final String COOKIE_LOCALE = readPwmConstantsBundle("cookieName.locale");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
 

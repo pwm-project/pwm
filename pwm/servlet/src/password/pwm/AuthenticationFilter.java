@@ -395,6 +395,10 @@ public class AuthenticationFilter implements Filter {
 
             case AUTH_WITHOUT_PASSWORD:
                 if (!PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req) && !PwmServletURLHelper.isMenuURL(req)) {
+                    //store the original requested url
+                    final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
+                    pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
+
                     LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
                     resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
                     return true;

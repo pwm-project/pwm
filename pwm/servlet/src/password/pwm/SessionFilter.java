@@ -22,19 +22,17 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
-import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -128,41 +126,27 @@ public class SessionFilter implements Filter {
             return;
         }
 
-        //set the session's locale
+        // initialize the session's locale
         if (ssBean.getLocale() == null) {
-            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
-            ssBean.setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
-            LOGGER.trace(pwmSession, "user locale set to '" + ssBean.getLocale() + "'");
+            initializeLocaleAndTheme(req, resp, pwmApplication, pwmSession);
         }
 
         //override session locale due to parameter
-        final String langReqParamter = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOCALE);
-        if (langReqParamter != null && langReqParamter.length() > 0) {
-            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale requestedLocale = Helper.parseLocaleString(langReqParamter);
-            if (knownLocales.contains(requestedLocale) || langReqParamter.equalsIgnoreCase("default")) {
-                LOGGER.debug(pwmSession, "setting session locale to '" + langReqParamter + "' due to '" + PwmConstants.PARAM_LOCALE + "' request parameter");
-                ssBean.setLocale(new Locale(langReqParamter.equalsIgnoreCase("default") ? "" : langReqParamter));
-                if (ssBean.isAuthenticated()) {
-                    try {
-                        UserStatusHelper.populateLocaleSpecificUserInfoBean(pwmSession, pwmSession.getUserInfoBean(), pwmApplication, ssBean.getLocale());
-                    } catch (ChaiUnavailableException e) {
-                        LOGGER.warn("unable to refresh locale-specific user data, error:" + e.getLocalizedMessage());
-                    }
-                }
-            } else {
-                LOGGER.error(pwmSession, "ignoring unknown value for '" + PwmConstants.PARAM_LOCALE + "' request parameter: " + langReqParamter);
-            }
-        }
+        handleLocaleParam(req, resp, pwmSession);
 
         //set the session's theme
         final String themeReqParamter = Validator.readStringFromRequest(req, PwmConstants.PARAM_THEME);
         if (themeReqParamter != null && themeReqParamter.length() > 0) {
             ssBean.setTheme(themeReqParamter);
+            final Cookie newCookie = new Cookie(PwmConstants.COOKIE_THEME, themeReqParamter);
+            newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
+            newCookie.setPath(req.getContextPath() + "/");
+            final String configuredTheme = pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
+            if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParamter)) {
+                newCookie.setMaxAge(0);
+            }
+            resp.addCookie(newCookie);
         }
-
-
 
         // make sure connection is secure.
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
@@ -224,14 +208,6 @@ public class SessionFilter implements Filter {
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
             ServletHelper.addPwmResponseHeaders(pwmApplication, resp, true);
-        }
-
-        if (pwmApplication.getApplicationMode() != PwmApplication.MODE.RUNNING || pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
-            try {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Debug", pwmSession.toString());
-            } catch(Exception e) {
-                LOGGER.debug(pwmSession, "error adding debug header: " + e.getMessage());
-            }
         }
 
         try {
@@ -395,5 +371,44 @@ public class SessionFilter implements Filter {
         }
 
         return true;
+    }
+
+    private static void initializeLocaleAndTheme(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        final String localeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_LOCALE);
+        if (PwmConstants.COOKIE_LOCALE.length() > 0 && localeCookie != null) {
+            LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
+            pwmSession.setLocale(localeCookie);
+        } else {
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
+            pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
+            LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
+        }
+
+        final String themeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_THEME);
+        if (PwmConstants.COOKIE_THEME.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
+            LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
+            pwmSession.getSessionStateBean().setTheme(themeCookie);
+        }
+    }
+
+    private static void handleLocaleParam(final HttpServletRequest request, final HttpServletResponse response, final PwmSession pwmSession) throws PwmUnrecoverableException {
+        final String requestedLocale = Validator.readStringFromRequest(request, PwmConstants.PARAM_LOCALE);
+        if (requestedLocale != null && requestedLocale.length() > 0) {
+            LOGGER.debug(pwmSession, "detected locale request parameter " + PwmConstants.PARAM_LOCALE + " with value " + requestedLocale);
+            if (pwmSession.setLocale(requestedLocale)) {
+                final Cookie newCookie = new Cookie(PwmConstants.COOKIE_LOCALE, requestedLocale);
+                newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
+                newCookie.setPath(request.getContextPath() + "/");
+                response.addCookie(newCookie);
+            }
+        }
     }
 }

@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.error.ErrorInformation" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,7 +27,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
 <% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
+    <% final ErrorInformation errorInformation = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError(); %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
+    <span id="errorCode" style="display: none"><%=errorInformation.getError().getErrorCode()%></span>
+    <span id="errorName" style="display: none"><%=errorInformation.getError().toString()%></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); %>
 <% } else if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) { %>
     <span id="message" class="message message-success"><pwm:SuccessMessage/></span>

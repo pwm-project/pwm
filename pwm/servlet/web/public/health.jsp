@@ -31,6 +31,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
+<% request.setAttribute("noTheme","true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% try { password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <%
@@ -41,7 +42,7 @@
         ServletHelper.forwardToErrorPage(request, response, true);
     }
 %>
-<body id="body" class="nihilo" style="background-color: black" onload="startupHealthPage()">
+<body id="body" class="nihilo" style="background-color: black" onload="pwmPageLoadHandler();">
 <div id="centerbody" style="margin-top: 0">
     <div id style="z-index: 3; position: relative; background: white; opacity: 0.9">
         <table id="form">
@@ -60,9 +61,9 @@
             <tr>
                 <td colspan="10" style="margin:0; padding:0">
                     <div style="max-width: 600px; text-align: center">
-                        <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
-                        <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
-                        <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Intruder Attempts</div>
+                        <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Authentications</div>
+                        <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Password Changes</div>
+                        <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Intruder Attempts</div>
                     </div>
                     <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">Events Per Minute</div>
                 </td>
@@ -233,6 +234,11 @@
 
         });
     }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupHealthPage();
+        PWM_GLOBAL['idle_suspendTimeout'] = true;
+    });
 </script>
 </body>
 </html>

@@ -195,7 +195,7 @@
         <br/>
         <div id="healthBody" style="border:0; margin:0; padding:0" onclick="loadHealth()">
             <div style="text-align: center">
-                <button class="menubutton" onclick="loadHealth()">Check Settings</button>
+                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
             </div>
         </div>
         <div id="buttonbar">
@@ -215,7 +215,7 @@
     function clearHealthDiv() {
         var healthBodyObj = getObject('healthBody');
         var newHtml = '<div style="text-align: center">';
-        newHtml += '<button class="menubutton">Check Settings</button>';
+        newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
         newHtml += '</div>'
         healthBodyObj.innerHTML = newHtml;
     }

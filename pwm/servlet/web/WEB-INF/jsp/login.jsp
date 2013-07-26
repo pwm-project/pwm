@@ -35,7 +35,7 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_Login"/></p>
 
-        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="password"
               onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <% //check to see if any locations are configured.

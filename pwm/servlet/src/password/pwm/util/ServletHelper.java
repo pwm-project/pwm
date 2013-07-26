@@ -336,23 +336,30 @@ public class ServletHelper {
         }
     }
 
-    public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
-        if (req == null || cookieName == null || cookieValue == null) {
-            return false;
+    public static String readCookie(final HttpServletRequest req, final String cookieName) {
+        if (req == null || cookieName == null) {
+            return null;
         }
         final Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (final Cookie cookie : cookies) {
                 if (cookie != null) {
                     final String loopName = cookie.getName();
-                    final String loopValue = cookie.getValue();
-                    if (cookieName.equals(loopName) && cookieValue.equals(loopValue)) {
-                        return true;
+                    if (cookieName.equals(loopName)) {
+                        return cookie.getValue();
                     }
                 }
             }
         }
-        return false;
+        return null;
+    }
+
+    public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
+        final String value = readCookie(req, cookieName);
+        if (value == null) {
+            return cookieValue == null;
+        }
+        return value.equals(cookieValue);
     }
 
     public static String readUserHostname(final HttpServletRequest req, final PwmSession pwmSession) throws PwmUnrecoverableException {
@@ -463,6 +470,8 @@ public class ServletHelper {
     public static void recycleSessions(final PwmSession pwmSession, HttpServletRequest req)
             throws IOException, ServletException
     {
+        pwmSession.getSessionStateBean().regenerateSessionVerificationKey();
+
         if (!PwmConstants.HTTP_RECYCLE_SESSIONS_ON_AUTH) {
             return;
         }

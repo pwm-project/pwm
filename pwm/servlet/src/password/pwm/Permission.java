@@ -46,6 +46,7 @@ public enum Permission {
     PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
     HELPDESK(PwmSetting.HELPDESK_QUERY_MATCH),
     PROFILE_UPDATE(PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
+    WEBSERVICE_THIRDPARTY(PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH),
 
     ;
 // ------------------------------ FIELDS ------------------------------

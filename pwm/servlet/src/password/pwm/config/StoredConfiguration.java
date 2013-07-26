@@ -44,6 +44,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 /**
@@ -239,7 +240,14 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public String toString(final PwmSetting setting) {
         final StringBuilder outputString = new StringBuilder();
         outputString.append(setting.getKey()).append("=");
-        if (setting.isConfidential()) {
+        if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
+            final X509Certificate[] certs = (X509Certificate[])settingMap.get(setting).toNativeObject();
+            if (certs != null) {
+                for (X509Certificate cert : certs) {
+                    outputString.append(cert.toString());
+                }
+            }
+        } else if (setting.isConfidential()) {
             outputString.append("**removed**");
         } else {
             outputString.append(settingMap.get(setting));

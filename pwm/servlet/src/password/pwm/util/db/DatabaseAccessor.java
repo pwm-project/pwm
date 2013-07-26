@@ -59,6 +59,7 @@ public class DatabaseAccessor implements PwmService {
     private static final String KEY_ENGINE_START_PREFIX = "engine-start-";
 
     private DBConfiguration dbConfiguration;
+    private Driver driver;
     private String instanceID;
     private volatile Connection connection;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
@@ -111,8 +112,8 @@ public class DatabaseAccessor implements PwmService {
         }
 
         try {
-            final Driver driver = DriverManager.getDriver(dbConfiguration.connectionString);
             DriverManager.deregisterDriver(driver);
+            driver = null;
         } catch (Exception e) {
             LOGGER.debug("error while de-registering driver: " + e.getMessage());
         }
@@ -184,12 +185,12 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    private static Connection openDB(final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
+    private Connection openDB(final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
         final String connectionURL = dbConfiguration.getConnectionString();
         final String jdbcClass = dbConfiguration.getDriverClassname();
 
         try {
-            final Driver driver = (Driver)Class.forName(jdbcClass).newInstance();
+            driver = (Driver)Class.forName(jdbcClass).newInstance();
             DriverManager.registerDriver(driver);
             final Connection connection = DriverManager.getConnection(connectionURL,dbConfiguration.getUsername(),dbConfiguration.getPassword());
             connection.setAutoCommit(true);

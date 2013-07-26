@@ -64,6 +64,7 @@
                 }
             }
         %>
+        <div id="WaitDialogBlank">&nbsp;</div>
         <div id="grid">
         </div>
         <script>
@@ -76,7 +77,7 @@
                     "message":"Message",
                     "targetID":"Target ID",
                     "targetDN":"Target DN",
-                    "srcIP":"Source IP",
+                    "srcIP":"Source Address",
                     "srcHost":"Source Host"
                 };
                 require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
@@ -100,6 +101,8 @@
                             getObject('grid-hider-menu-check-message').click();
                             getObject('grid-hider-menu-check-targetDN').click();
                             getObject('grid-hider-menu-check-srcHost').click();
+
+                            getObject('WaitDialogBlank').style.display = 'none';
                         });
             };
         </script>

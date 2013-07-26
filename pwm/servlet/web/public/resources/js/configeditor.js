@@ -1933,7 +1933,7 @@ EmailTableHandler.popupEditor = function(keyName, localeName) {
             var idValue = keyName + "_" + localeName + "_htmlEditor";
             var idValueDialog = idValue + "_Dialog";
             var bodyText = '';
-            bodyText += '<div id="' + idValue + '" style="border:2px solid #EAEAEA;"></div>'
+            bodyText += '<div id="' + idValue + '" style="border:2px solid #EAEAEA; min-height: 200px;"></div>'
             bodyText += '<br/>'
             bodyText += '<button class="btn" onclick="EmailTableHandler.writeSetting(\'' + keyName + '\',true);clearDijitWidget(\'' + idValueDialog + '\')"> OK </button>'
             clearDijitWidget(idValue);
@@ -1942,16 +1942,20 @@ EmailTableHandler.popupEditor = function(keyName, localeName) {
             var dialog = new Dialog({
                 id: idValueDialog,
                 title: "HTML Editor",
-                style: "width: 500px",
+                style: "width: 650px",
                 content: bodyText
             });
             dialog.show();
 
             new Editor({
-                extraPlugins: [AlwaysShowToolbar,"viewsource",{name:"dijit/_editor/plugins/LinkDialog",command:"createLink",urlRegExp:".*"},"fontName","foreColor"],
+                extraPlugins: [
+                    AlwaysShowToolbar,"viewsource",
+                    {name:"dijit/_editor/plugins/LinkDialog",command:"createLink",urlRegExp:".*"},
+                    "fontName","foreColor"
+                ],
                 height: '',
                 value: clientSettingCache[keyName][localeName]['bodyHtml'],
-                style: 'width: 470px',
+                style: 'width: 630px',
                 onChange: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')},
                 onKeyUp: function(){clientSettingCache[keyName][localeName]['bodyHtml'] = this.get('value')}
             },idValue).startup();
