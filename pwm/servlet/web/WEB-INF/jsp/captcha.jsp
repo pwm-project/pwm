@@ -32,14 +32,15 @@
 <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
 <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/captcha.css'/>" rel="stylesheet" type="text/css" media="screen"/>
 <script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js">
 </script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         Recaptcha.create("<%=reCaptchaPublicKey%>",
-                "recaptchaDiv",
+                "recaptcha_widget",
                 {
-                    theme: "blackglass",
+                    theme: "custom",
                     lang: '<%=locale%>',
                     callback: Recaptcha.focus_response_field
                 }
@@ -54,11 +55,39 @@
         <p><pwm:Display key="Display_Captcha"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false">
-            <div style="margin-left: auto; margin-right: auto; width: 322px" id="recaptchaDiv">
-                <div id="WaitDialogBlank"></div>
+            <div id="recaptcha_WaitDialogBlank">
+                <div id="recaptcha_widget" style="display:none" class="recaptcha_widget">
+                    <div id="recaptcha_image"></div>
+                    <div class="recaptcha_input">
+                        <label class="recaptcha_only_if_image" for="recaptcha_response_field"><pwm:Display key="Display_CaptchaInputWords"/></label>
+                        <label class="recaptcha_only_if_audio" for="recaptcha_response_field"><pwm:Display key="Display_CaptchaInputNumbers"/></label>
+                        <input type="text" id="recaptcha_response_field" name="recaptcha_response_field">
+                    </div>
+                    <ul class="recaptcha_options">
+                        <li>
+                            <a href="javascript:Recaptcha.reload()">
+                                <span class="icon-refresh" title="<pwm:Display key="Display_CaptchaRefresh"/>"></span>
+                            </a>
+                        </li>
+                        <li class="recaptcha_only_if_image">
+                            <a href="javascript:Recaptcha.switch_type('audio')">
+                                <span class="icon-volume-up" title="<pwm:Display key="Display_CaptchaGetAudio"/>"></span>
+                            </a>
+                        </li>
+                        <li class="recaptcha_only_if_audio">
+                            <a href="javascript:Recaptcha.switch_type('image')">
+                                <span class="icon-picture" title="<pwm:Display key="Display_CaptchaGetImage"/>"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:Recaptcha.showhelp()">
+                                <span class="icon-question-sign" title="<pwm:Display key="Display_CaptchaHelp"/>"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <noscript>
                 <iframe src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/noscript?k=<%=reCaptchaPublicKey%>&hl=<%=locale%>"

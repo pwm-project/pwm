@@ -115,6 +115,18 @@
             <br/>
         </div>
         <div class="licenseBlock">
+            <h2>Font Awesome</h2>
+            <a href="http://fortawesome.github.io/Font-Awesome/">http://fortawesome.github.io/Font-Awesome/</a>
+            <br/><br/>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/OFL.txt"/></pre>
+            </div>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/MIT.txt"/></pre>
+            </div>
+            <br/>
+        </div>
+        <div class="licenseBlock">
             <h2>Gson</h2>
             <a href="http://code.google.com/p/google-gson/">http://code.google.com/p/google-gson/</a>
             <br/><br/>
