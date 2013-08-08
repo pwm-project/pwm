@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="java.util.List" %>
@@ -37,8 +37,7 @@
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
 --%>
-<body onload="pwmPageLoadHandler(); startupResponsesPage(); document.forms.responseForm.elements[0].focus();"
-      class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
@@ -85,9 +84,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="reset" name="reset" class="btn"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
-                <input type="hidden" name="hideButton" class="btn"
-                       value="<pwm:Display key="Button_Hide_Responses"/>"
-                       onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
@@ -99,6 +95,13 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        startupResponsesPage();
+        document.forms.responseForm.elements[0].focus();
+        ShowHidePasswordHandler.initAllForms();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

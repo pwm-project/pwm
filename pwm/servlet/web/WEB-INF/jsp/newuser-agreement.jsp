@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();updateContinueButton()" class="nihilo">
+<body onload="pwmPageLoadHandler()" class="nihilo">
 <script type="text/javascript">
     function updateContinueButton() {
         var checkBox = getObject("agreeCheckBox");
@@ -85,6 +85,7 @@
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
+            updateContinueButton();
         });
     });
 </script>

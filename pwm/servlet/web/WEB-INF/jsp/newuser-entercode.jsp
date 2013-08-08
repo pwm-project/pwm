@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.NewUserBean" %>
+<%@ page import="password.pwm.bean.servlet.NewUserBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="nihilo">
+<body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
@@ -65,6 +65,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -1,5 +1,6 @@
-package password.pwm.bean;
+package password.pwm.bean.servlet;
 
+import password.pwm.bean.PwmSessionBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.value.BooleanValue;

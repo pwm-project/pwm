@@ -1342,6 +1342,13 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="network.allowMultiIPSession" level="1" required="true">
+        <label>Allow changing source IP addresses during the scope of a user session.</label>
+        <description><![CDATA[If true, Allow a single HTTP session to be accessed from different source IP addresses.  Some load balancing/proxy network infrastructures may require this, but in most cases it should be disabled.  Especially since typical sessions are very short, there is generally not a practical reason for a user to access the same session from multiple client addresses.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="security.page.leaveNoticeTimeout" level="1" required="true">
         <label>Page Leave Notice Timeout</label>
         <description><![CDATA[When a user navigates away from any page, a notice is sent to the server.   The next time a page is requested, the timeout is checked to determine if the last page leave time was greater then the timeout, and if so, the user's session will be invalidated.  This has the effect of logging out users that navigate away from the application without explicitly logging out.If set to zero, this feature is disabled.]]></description>
@@ -2567,7 +2574,7 @@
     </setting>
     <setting key="helpdesk.clearResponses" level="0">
         <label>Clear Responses on Password Set</label>
-        <description><![CDATA[Mode to allow helpdesk administrators to set passwords.  (Note the logged-in user must have proper ldap permissions.)]]></description>
+        <description><![CDATA[Allow the helpdesk operator to clear out a user's stored responses after changing the user's password.]]></description>
         <default>
             <value><![CDATA[ask]]></value>
         </default>
@@ -2602,7 +2609,7 @@
     </setting>
     <setting key="db.classname" level="0">
         <label>Database Class</label>
-        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC drivar JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.]]></description>
+        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC driver JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.]]></description>
         <default>
             <value />
         </default>

@@ -91,6 +91,8 @@ public abstract class PwmConstants {
     public static final boolean ENABLE_AUDIT_AUTHENTICATION_TYPE = Boolean.parseBoolean(readPwmConstantsBundle("enableAuditAuthenticationType"));
     public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
 
+    public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
+
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
     public static final int RESOURCE_SERVLET_EXPIRATION_SECONDS = Integer.parseInt(readPwmConstantsBundle("resourceServletExpirationSeconds"));
@@ -275,6 +277,7 @@ public abstract class PwmConstants {
             "Bite my shiny metal password!",
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.", //nick helm
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
+            "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
     };
 
     static {

@@ -26,8 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();if (getObject('username').value.length < 1) { getObject('username').focus(); } else { getObject('password').focus(); }"
-      class="nihilo">
+<body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Login"/>
@@ -48,10 +47,10 @@
             <% } %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
             <input type="text" name="username" id="username" class="inputfield" required="required"
-                   value="<pwm:ParamValue name='username'/>"/>
+                   value="<pwm:ParamValue name='username'/>" autofocus/>
 
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield" re/>
+            <input type="password" name="password" id="password" class="inputfield"/>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"
@@ -120,6 +119,15 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        if (getObject('username').value.length < 1) {
+            getObject('username').focus();
+        } else {
+            getObject('password').focus();
+        }
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

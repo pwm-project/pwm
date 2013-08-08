@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
 <%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%@ page import="password.pwm.servlet.ConfigManagerServlet" %>

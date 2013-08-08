@@ -27,7 +27,6 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
@@ -57,13 +56,22 @@ public class ErrorMessageTag extends PwmAbstractTag {
 
         try {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-            final Configuration config = pwmApplication.getConfig();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
 
             if (error != null) {
+
+                boolean showErrorDetail = true;
+                if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+                    if (pwmApplication.getConfig() != null) {
+                        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                            showErrorDetail = false;
+                        }
+                    }
+                }
+
                 String errorMsg;
-                if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                if (showErrorDetail) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
                     errorMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
                 }  else {

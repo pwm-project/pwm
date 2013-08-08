@@ -118,7 +118,13 @@ function waitForRestart(startTime, oldEpoch) {
 }
 
 function handleResetClick(settingKey) {
-    showConfirmDialog(null,'Are you sure you want to reset this setting to the default value?',function(){
+    var dialogText = 'Are you sure you want to reset the setting ';
+    dialogText += PWM_GLOBAL['setting_label'][settingKey];
+    dialogText += ' to the default value?';
+
+    var title = 'Reset ' + PWM_GLOBAL['setting_label'][settingKey];
+
+    showConfirmDialog(title,dialogText,function(){
         resetSetting(settingKey);
         window.location = "ConfigManager";
     });

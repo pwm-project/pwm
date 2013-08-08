@@ -78,6 +78,15 @@ public class SessionFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         try {
+            resp.setHeader(
+                    "X-" + PwmConstants.PWM_APP_NAME + "-Noise",
+                    PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
+            );
+        } catch (Exception e) {
+            /* noop */
+        }
+
+        try {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
@@ -99,6 +108,15 @@ public class SessionFilter implements Filter {
         // mark the user's IP address in the session bean
         if (ssBean.getSrcAddress() == null) {
             ssBean.setSrcAddress(ServletHelper.readUserIPAddress(req, pwmSession));
+        } else if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.MULTI_IP_SESSION_ALLOWED)) {
+            final String remoteAddress = ServletHelper.readUserIPAddress(req, pwmSession);
+            if (!ssBean.getSrcAddress().equals(remoteAddress)) {
+                final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
+                LOGGER.error(errorInformation.toDebugStr());
+                ssBean.setSessionError(errorInformation);
+                ServletHelper.forwardToErrorPage(req,resp,true);
+            }
         }
 
         // mark the user's hostname in the session bean

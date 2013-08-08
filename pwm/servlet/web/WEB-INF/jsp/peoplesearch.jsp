@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.bean.PeopleSearchBean" %>
+<%@ page import="password.pwm.bean.servlet.PeopleSearchBean" %>
 <%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -30,7 +30,7 @@
 <% final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus()" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
@@ -148,7 +148,7 @@
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
-<script>
+<script type="text/javascript">
     function loadDetails(userKey) {
         showWaitDialog(null,null,function(){
             setTimeout(function(){
@@ -157,6 +157,10 @@
             },10);
         });
     }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('username').focus();
+    });
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

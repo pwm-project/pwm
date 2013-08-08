@@ -121,5 +121,7 @@ public class ActionValue implements StoredValue {
         return Collections.emptyList();
     }
 
-
+    public String toDebugString() {
+        return toString();
+    }
 }

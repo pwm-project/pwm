@@ -27,7 +27,7 @@
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.changePasswordForm.elements[0].focus()" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
@@ -76,9 +76,12 @@
         </form>
     </div>
     <div class="push"></div>
-    <script type="text/javascript">
-    </script>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        document.forms.changePasswordForm.elements[0].focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

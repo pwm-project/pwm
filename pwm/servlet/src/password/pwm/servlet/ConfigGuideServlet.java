@@ -28,7 +28,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
-import password.pwm.bean.ConfigGuideBean;
+import password.pwm.bean.servlet.ConfigGuideBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
 import password.pwm.config.value.*;
@@ -112,14 +112,14 @@ public class ConfigGuideServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
 
-        req.getSession().setMaxInactiveInterval(15 * 60);
-
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
             ssBean.setSessionError(errorInformation);
             LOGGER.error(pwmSession,errorInformation.toDebugStr());
             return;
         }
+
+        req.getSession().setMaxInactiveInterval(15 * 60);
 
         if (configGuideBean.getStep() == STEP.LDAPCERT) {
             final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS).toNativeObject()).get(0);

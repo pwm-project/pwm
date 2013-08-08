@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.bean.HelpdeskBean" %>
+<%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
 <%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -30,7 +30,7 @@
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
@@ -45,7 +45,7 @@
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
 
             <input type="search" id="username" name="username" class="inputfield"
-                   value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>"/>
+                   value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
             <input type="submit" class="btn"
                    name="search"
                    value="<pwm:Display key="Button_Search"/>"
@@ -133,6 +133,11 @@
             },10);
         });
     }
+</script>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('username').focus();
+    });
 </script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>

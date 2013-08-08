@@ -29,7 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.GuestRegistrationBean;
+import password.pwm.bean.servlet.GuestRegistrationBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;

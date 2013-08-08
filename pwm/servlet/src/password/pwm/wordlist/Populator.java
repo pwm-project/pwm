@@ -105,7 +105,7 @@ class Populator {
     public void init()
             throws Exception
     {
-        status = PwmService.STATUS.OPEN;
+        status = PwmService.STATUS.NEW;
 
         LOGGER.info(
                 DEBUG_LABEL + " using source ZIP file of "
@@ -113,7 +113,7 @@ class Populator {
                         + " (" + zipFileReader.getSourceFile().length() + " bytes)"
         );
 
-        totalLines = wordlistSize(zipFileReader.getSourceFile());
+        wordlistSize(zipFileReader.getSourceFile());
 
         if (abortFlag) return;
 
@@ -145,20 +145,19 @@ class Populator {
         status = PwmService.STATUS.OPEN;
     }
 
-    private int wordlistSize(final File wordlistFile)
+    private void wordlistSize(final File wordlistFile)
             throws Exception
     {
         LOGGER.trace(DEBUG_LABEL + " beginning to count total input ZIP file lines");
         final ZipReader zipFileReader = new ZipReader(wordlistFile);
-        int counter = 0;
+        totalLines = 0;
 
         while (zipFileReader.nextLine() != null) {
-            counter++;
-            if (abortFlag) return -1;
+            totalLines++;
+            if (abortFlag) return;
         }
 
-        LOGGER.trace(DEBUG_LABEL + " input file line counting complete at " + counter + " lines");
-        return counter;
+        LOGGER.trace(DEBUG_LABEL + " input file line counting complete at " + totalLines + " lines");
     }
 
     public String percentComplete()
@@ -200,6 +199,10 @@ class Populator {
 
     public String makeStatString()
     {
+        if (status == PwmService.STATUS.NEW) {
+            return "initializing, examining wordlist, lines read=" + totalLines;
+        }
+
         final int lps = perReportStats.getElapsedSeconds() <= 0 ? 0 : perReportStats.getLines() / perReportStats.getElapsedSeconds();
         final int linesRemaining = totalLines - overallStats.getLines();
         final int msRemaining = lps <= 0 ? 0 : (linesRemaining / lps) * 1000;

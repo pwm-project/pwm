@@ -92,17 +92,30 @@ public abstract class TopServlet extends HttpServlet {
             LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (PwmUnrecoverableException e) {
-            if (PwmError.ERROR_UNKNOWN.equals(e.getErrorInformation().getError())) {
-                LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
-                try { // try to update stats
-                    if (pwmSession != null) {
-                        pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+            switch (e.getError()) {
+                case ERROR_UNKNOWN:
+                    LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
+                    try { // try to update stats
+                        if (pwmSession != null) {
+                            pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                        }
+                    } catch (Throwable e1) {
+                        // oh well
                     }
-                } catch (Throwable e1) {
-                    // oh well
-                }
-            } else {
-                LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
+                    break;
+
+                case ERROR_PASSWORD_REQUIRED:
+                    LOGGER.warn("attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
+                    //store the original requested url
+                    final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
+                    pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
+
+                    LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
+                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
+                    return;
+
+                default:
+                    LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
             }
 
             if (ssBean != null) {

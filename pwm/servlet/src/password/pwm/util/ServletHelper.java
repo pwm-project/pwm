@@ -130,29 +130,6 @@ public class ServletHelper {
         req.getSession().getServletContext().getRequestDispatcher(redirectPageJsp).forward(req, resp);
     }
 
-    public static void forwardToOriginalRequestURL(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException {
-
-        try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-            String destURL = ssBean.getOriginalRequestURL();
-
-            if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
-                destURL = req.getContextPath();
-            }
-
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error forwarding user to original request url: " + e.toString());
-        }
-
-    }
-
     public static void forwardToSuccessPage(
             final HttpServletRequest req,
             final HttpServletResponse resp

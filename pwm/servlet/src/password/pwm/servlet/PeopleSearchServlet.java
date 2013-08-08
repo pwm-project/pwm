@@ -28,7 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.PeopleSearchBean;
+import password.pwm.bean.servlet.PeopleSearchBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -168,7 +168,12 @@ public class PeopleSearchServlet extends TopServlet {
                 final Map<String,Map<String,String>> outputMap = Collections.unmodifiableMap(ldapResults);
                 return new UserSearchEngine.UserSearchResults(attributeHeaderMap,outputMap,resultsExceeded);
             }
-        } catch (Exception e) {
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "can't perform search: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.warn(pwmSession, errorInformation.toDebugStr());
+        } catch (PwmOperationalException e) {
             final String errorMsg = "can't perform search: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
             pwmSession.getSessionStateBean().setSessionError(errorInformation);

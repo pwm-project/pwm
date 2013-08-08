@@ -22,17 +22,6 @@
 
 package password.pwm.config;
 
-import org.jdom2.Element;
+public class Responses {
 
-import java.io.Serializable;
-import java.util.List;
-
-public interface StoredValue extends Serializable {
-    List<Element> toXmlValues(final String valueElementName);
-
-    Object toNativeObject();
-
-    List<String> validateValue(PwmSetting pwm);
-
-    String toDebugString();
 }

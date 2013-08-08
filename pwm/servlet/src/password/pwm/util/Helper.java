@@ -1084,26 +1084,6 @@ public class Helper {
         return result;
     }
 
-    public static String makePwmVariableJsNonce(final PwmApplication pwmApplication, final PwmSession pwmSession)
-            throws IOException
-    {
-        final StringBuilder inputString = new StringBuilder();
-        inputString.append(PwmConstants.BUILD_NUMBER);
-        inputString.append(ResourceFileServlet.makeNonce(pwmApplication));
-
-        if (pwmSession != null) {
-            inputString.append(pwmSession.getSessionStateBean().getSessionID());
-            if (pwmSession.getSessionStateBean().getLocale() != null) {
-                inputString.append(pwmSession.getSessionStateBean().getLocale());
-            }
-            if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                inputString.append(pwmSession.getUserInfoBean().getUserGuid());
-                inputString.append(pwmSession.getUserInfoBean().getAuthTime());
-            }
-        }
-        return md5sum(inputString.toString());
-    }
-
     public static class TokenSender {
         public static void sendToken(
                 final PwmApplication pwmApplication,

@@ -26,13 +26,11 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();try {document.forms.verifyCaptcha.recaptcha_response_field.focus()} catch (e) {}"
-      class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
 <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
 <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/captcha.css'/>" rel="stylesheet" type="text/css" media="screen"/>
 <script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js">
 </script>
 <script type="text/javascript">
@@ -118,6 +116,15 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        try {
+            document.forms.verifyCaptcha.recaptcha_response_field.focus()
+        } catch (e) {
+            /* noop */
+        }
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

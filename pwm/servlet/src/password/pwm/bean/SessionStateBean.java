@@ -56,6 +56,7 @@ public class SessionStateBean implements PwmSessionBean {
     private Message sessionSuccess;
     private String sessionSuccessField;
     private String originalRequestURL;
+    private String preCaptchaRequestURL;
     private String srcAddress;
     private String srcHostname;
     private String forwardURL;
@@ -135,6 +136,14 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setOriginalRequestURL(final String originalRequestURL) {
         this.originalRequestURL = originalRequestURL;
+    }
+
+    public String getPreCaptchaRequestURL() {
+        return preCaptchaRequestURL;
+    }
+
+    public void setPreCaptchaRequestURL(String preCaptchaRequestURL) {
+        this.preCaptchaRequestURL = preCaptchaRequestURL;
     }
 
     public ErrorInformation getSessionError() {

@@ -111,12 +111,12 @@ public class IntruderManager implements Serializable, PwmService {
                     try {
                         userStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
                     } catch (Exception e) {
-                        LOGGER.error("error cleaning userStore: " + e.getMessage());
+                        LOGGER.error("error cleaning userStore: " + e.getMessage(),e);
                     }
                     try {
                         addressStore.cleanup(new TimeDuration(MAX_RECORD_AGE_MS));
                     } catch (Exception e) {
-                        LOGGER.error("error cleaning addressStore: " + e.getMessage());
+                        LOGGER.error("error cleaning addressStore: " + e.getMessage(),e);
                     }
                 }
             },1000,CLEANER_RUN_FREQUENCY_MS);

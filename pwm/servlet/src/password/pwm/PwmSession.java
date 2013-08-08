@@ -25,6 +25,7 @@ package password.pwm;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.jasig.cas.client.util.AbstractCasFilter;
 import password.pwm.bean.*;
+import password.pwm.bean.servlet.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;

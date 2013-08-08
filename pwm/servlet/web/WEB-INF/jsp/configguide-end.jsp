@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

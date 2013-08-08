@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.HelpdeskBean" %>
+<%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>

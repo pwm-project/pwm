@@ -401,6 +401,8 @@ public enum PwmSetting {
             "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     REVERSE_DNS_ENABLE(
             "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
+    MULTI_IP_SESSION_ALLOWED(
+            "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     DISPLAY_SHOW_DETAILED_ERRORS(

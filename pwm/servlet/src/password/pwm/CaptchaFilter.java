@@ -85,7 +85,9 @@ public class CaptchaFilter implements Filter {
 
         // store the original requested url
         final String urlToStore = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-        ssBean.setOriginalRequestURL(urlToStore);
+        if (ssBean.getPreCaptchaRequestURL() == null) {
+            ssBean.setPreCaptchaRequestURL(urlToStore);
+        }
 
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(SessionFilter.rewriteRedirectURL(captchaServletURL,req,resp), req, resp));
     }

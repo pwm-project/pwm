@@ -36,6 +36,7 @@ function validatePasswords(userDN)
     getObject("password_button").disabled = true;
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
         updateDisplay(null);
+        getObject('password2').disabled = true;
         return;
     }
 
@@ -75,6 +76,7 @@ function updateDisplay(resultInfo) {
         showSuccess(showString('Display_PasswordPrompt'));
         markStrength(0);
         markConfirmationCheck(null);
+        getObject('password2').disabled = false;
         return;
     }
 
@@ -86,6 +88,7 @@ function updateDisplay(resultInfo) {
     }
 
     if (resultInfo["passed"] == true) {
+        getObject('password2').disabled = false;
         if (resultInfo["match"] == "MATCH") {
             getObject("password_button").disabled = false;
             showSuccess(message);
@@ -94,6 +97,7 @@ function updateDisplay(resultInfo) {
             showInfo(message);
         }
     } else {
+        getObject('password2').disabled = true;
         getObject("password_button").disabled = true;
         showError(message);
     }
@@ -224,21 +228,6 @@ function showRandomPasswordsDialog(randomConfig) {
     });
 }
 
-function toggleMaskPasswords()
-{
-    if (passwordsMasked) {
-        getObject("hide_button").value = showString('Button_Hide');
-        changeInputTypeField(getObject("password1"),"text");
-        changeInputTypeField(getObject("password2"),"text");
-    } else {
-        getObject("hide_button").value = showString('Button_Show');
-        changeInputTypeField(getObject("password1"),"password");
-        changeInputTypeField(getObject("password2"),"password");
-    }
-    passwordsMasked = !passwordsMasked;
-
-}
-
 function handleChangePasswordSubmit()
 {
     showInfo(showString('Display_PleaseWait'));
@@ -344,18 +333,7 @@ function fetchRandoms(randomConfig) {
 
 function startupChangePasswordPage()
 {
-    /* enable the hide button only if the toggle works */
-    if (PWM_GLOBAL['setting-showHidePasswordFields']) {
-        try {
-            toggleMaskPasswords();
-            toggleMaskPasswords();
-            changeInputTypeField(getObject("hide_button"),"button");
-        } catch (e) {
-            //alert("can't show hide button: " + e)
-
-        }
-    }
-
+    getObject('password2').disabled = true;
     markStrength(0);
 
     // show the auto generate password panel
@@ -374,12 +352,14 @@ function startupChangePasswordPage()
     }
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
-    window.onbeforeunload = function() {
-        if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
-            var message = showString('Display_LeaveDirtyPasswordPage');
-            return message;
-        }
-    };
+    require(["dojo/_base/connect"], function(connect){
+        connect.connect(window, "onbeforeunload", function(){
+            if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
+                var message = showString('Display_LeaveDirtyPasswordPage');
+                return message;
+            }
+        });
+    });
 
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
@@ -390,7 +370,16 @@ function startupChangePasswordPage()
         },100);
     }
 
-    setInputFocus();
+    require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
+        new Tooltip({
+            connectId: ["strengthBox"],
+            label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+        });
+    });
+
+    setTimeout(function(){
+        setInputFocus();
+    },10);
 }
 
 function setInputFocus() {

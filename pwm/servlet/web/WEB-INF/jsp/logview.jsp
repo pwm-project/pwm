@@ -30,7 +30,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
-<body onload="pwmPageLoadHandler();">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div style="width: 100%; text-align:center;">
 <a href="<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog">refresh</a>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

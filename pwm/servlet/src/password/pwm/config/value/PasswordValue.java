@@ -87,4 +87,8 @@ public class PasswordValue extends StringValue {
     public String toString() {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
+
+    public String toDebugString() {
+        return "**removed**";
+    }
 }

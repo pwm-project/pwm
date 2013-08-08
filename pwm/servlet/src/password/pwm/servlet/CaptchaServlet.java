@@ -30,6 +30,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.*;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -54,7 +55,7 @@ public class CaptchaServlet extends TopServlet {
     private static final String SKIP_COOKIE_NAME = "captcha-key";
     private static final String COOKIE_SKIP_INSTANCE_VALUE = "INSTANCEID";
 
-    private static final String RECAPTCHA_VALIDATE_URL = "http://www.google.com/recaptcha/api/verify";
+    private static final String RECAPTCHA_VALIDATE_URL = PwmConstants.RECAPTCHA_VALIDATE_URL;
 
 
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
@@ -213,7 +214,21 @@ public class CaptchaServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, ServletException {
-        ServletHelper.forwardToOriginalRequestURL(req, resp);
+        try {
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+            String destURL = ssBean.getPreCaptchaRequestURL();
+            ssBean.setPreCaptchaRequestURL(null);
+
+            if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
+                destURL = req.getContextPath();
+            }
+
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(destURL, req, resp));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unexpected error forwarding user to original request url: " + e.toString());
+        }
     }
 
     private static void writeCaptchaSkipCookie(final PwmSession pwmSession, final PwmApplication pwmApplication, final HttpServletResponse resp)

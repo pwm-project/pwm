@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.util.PwmServletURLHelper" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.PwmRandom" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionHeader = null;
@@ -50,6 +51,7 @@
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/style.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/mobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
+    <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/font/font-awesome.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <% if (showTheme) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>

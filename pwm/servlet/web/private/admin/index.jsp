@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
-<body class="nihilo" onload="showWaitDialog();pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

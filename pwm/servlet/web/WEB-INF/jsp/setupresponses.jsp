@@ -20,18 +20,15 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<%
-    final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean();
-%>
+<% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo"
-      onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler()">
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -54,9 +51,6 @@
                 <input type="reset" name="reset" class="btn"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
-                <input type="hidden" name="hideButton" class="btn"
-                       value="<pwm:Display key="Button_Hide_Responses"/>"
-                       onclick="toggleHideResponses();" id="hide_responses_button"/>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
@@ -72,6 +66,7 @@
     PWM_GLOBAL['startupFunctions'].push(function(){
         startupResponsesPage();
         document.forms[0].elements[0].focus();
+        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

@@ -191,7 +191,9 @@ public class AuthenticationFilter implements Filter {
 
         //store the original requested url
         final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-        ssBean.setOriginalRequestURL(originalRequestedUrl);
+        if (ssBean.getOriginalRequestURL() == null) {
+            ssBean.setOriginalRequestURL(originalRequestedUrl);
+        }
 
         // handle if authenticated during filter process.
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -393,6 +395,7 @@ public class AuthenticationFilter implements Filter {
                 }
                 break;
 
+            /*
             case AUTH_WITHOUT_PASSWORD:
                 if (!PwmServletURLHelper.isLoginServlet(req) && !PwmServletURLHelper.isCommandServletURL(req) && !PwmServletURLHelper.isMenuURL(req)) {
                     //store the original requested url
@@ -404,6 +407,7 @@ public class AuthenticationFilter implements Filter {
                     return true;
                 }
                 break;
+                */
         }
 
         // high priority password changes.

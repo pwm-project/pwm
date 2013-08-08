@@ -66,6 +66,10 @@ public class StringValue implements StoredValue {
         return value;
     }
 
+    public String toDebugString() {
+        return value;
+    }
+
     public String toString() {
         return new Gson().toJson(value);
     }

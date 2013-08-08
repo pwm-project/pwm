@@ -265,7 +265,7 @@ public class Configuration implements Serializable {
 
         final String[] s1 = inputString.split("::");
         if (s1.length > 0) {
-            inputString = s1[0];
+            inputString = s1[0].trim();
         }
         if (s1.length > 1) {
             try {

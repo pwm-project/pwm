@@ -194,6 +194,7 @@ public class EmailValue implements StoredValue {
         return Collections.emptyList();
     }
 
-
-
+    public String toDebugString() {
+        return toString();
+    }
 }

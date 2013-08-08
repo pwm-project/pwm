@@ -69,7 +69,7 @@
                 <tr>
                     <td style="border:0; width:75%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
-                        <input type="password" name="password1" id="password1" class="changepasswordfield"/>
+                        <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus="autofocus"/>
                     </td>
                     <td style="border:0; width:15%">
                         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
@@ -81,16 +81,6 @@
                                 <div id="strengthBar" style="width: 0">&nbsp;</div>
                             </div>
                         </div>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
-                                    new Tooltip({
-                                        connectId: ["strengthBox"],
-                                        label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
-                                    });
-                                });
-                            });
-                        </script>
                         <% } %>
                     </td>
                     <td style="border:0; width:10%">&nbsp;</td>
@@ -121,9 +111,6 @@
                 <input type="reset" name="reset" class="btn"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
-                <input type="hidden" name="hideButton" class="btn"
-                       value="<pwm:Display key="Button_Show"/>"
-                       onclick="toggleMaskPasswords()" id="hide_button"/>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
@@ -140,6 +127,7 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         startupChangePasswordPage();
+        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

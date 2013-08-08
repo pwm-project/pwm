@@ -22,6 +22,7 @@
 
 package password.pwm.config.value;
 
+import com.google.gson.Gson;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -32,10 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class X509CertificateValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(X509CertificateValue.class);
@@ -102,5 +100,19 @@ public class X509CertificateValue implements StoredValue {
     @Override
     public List<String> validateValue(PwmSetting pwm) {
         return Collections.emptyList();
+    }
+
+    public String toDebugString() {
+        final List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+        for (X509Certificate cert : certificates) {
+            final Map<String,String> map = new TreeMap<String,String>();
+            map.put("subject",cert.getSubjectDN().toString());
+            map.put("serial",cert.getSerialNumber().toString());
+            map.put("issuer",cert.getIssuerDN().toString());
+            map.put("expireDate",cert.getNotAfter().toString());
+            map.put("issueDate",cert.getNotBefore().toString());
+            list.add(map);
+        }
+        return new Gson().toJson(list);
     }
 }

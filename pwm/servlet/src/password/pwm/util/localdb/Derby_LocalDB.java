@@ -54,8 +54,6 @@ public class Derby_LocalDB implements LocalDBProvider {
 
     private static final String DERBY_CLASSPATH = "org.apache.derby.jdbc.EmbeddedDriver";
 
-    //private Connection connection;
-    //private String baseConnectionURL;
     private Driver driver;
     private File dbDirectory;
 
@@ -154,7 +152,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                LOGGER.error("unexected error during close resultSet object " + e.getMessage(), e);
+                LOGGER.error("unexpected error during close resultSet object " + e.getMessage(), e);
             }
         }
     }

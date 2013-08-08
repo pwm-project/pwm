@@ -34,6 +34,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
+import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.MacroMachine;
 import password.pwm.util.stats.Statistic;
@@ -82,19 +83,16 @@ public class RestAppDataServer {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
 
-        final String eTagValue = Helper.makePwmVariableJsNonce(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        final String eTagValue = makeEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
 
         // check the incoming header;
-        /*
         final String ifNoneMatchValue = request.getHeader("If-None-Match");
 
         if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
             return Response.notModified().build();
         }
         response.setHeader("ETag",eTagValue);
-        response.setHeader("Cache-Control","private");
-        */
-        response.setHeader("Cache-Control","private, max-age=3600");
+        response.setHeader("Cache-Control","private, max-age=0");
 
         final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response);
         final RestResultBean restResultBean = new RestResultBean();
@@ -153,7 +151,7 @@ public class RestAppDataServer {
         settingMap.put("url-context",request.getContextPath());
         settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true", request, response));
         settingMap.put("url-command",request.getContextPath() + SessionFilter.rewriteURL("/public/CommandServlet", request, response));
-        settingMap.put("url-resources",request.getContextPath() + SessionFilter.rewriteURL("/public/resources", request, response));
+        settingMap.put("url-resources",request.getContextPath() + SessionFilter.rewriteURL("/public/resources" + ResourceFileServlet.makeResourcePathNonce(pwmApplication), request, response));
         settingMap.put("url-restservice",request.getContextPath() + SessionFilter.rewriteURL("/public/rest", request, response));
         settingMap.put("url-setupresponses",request.getContextPath() + SessionFilter.rewriteURL("/private/SetupResponses", request, response));
 
@@ -215,5 +213,25 @@ public class RestAppDataServer {
         }
 
         return settingMap;
+    }
+
+    public static String makeEtag(final PwmApplication pwmApplication, final PwmSession pwmSession)
+            throws IOException
+    {
+        final StringBuilder inputString = new StringBuilder();
+        inputString.append(PwmConstants.BUILD_NUMBER);
+        inputString.append(ResourceFileServlet.makeNonce(pwmApplication));
+
+        if (pwmSession != null) {
+            inputString.append(pwmSession.getSessionStateBean().getSessionID());
+            if (pwmSession.getSessionStateBean().getLocale() != null) {
+                inputString.append(pwmSession.getSessionStateBean().getLocale());
+            }
+            if (pwmSession.getSessionStateBean().isAuthenticated()) {
+                inputString.append(pwmSession.getUserInfoBean().getUserGuid());
+                inputString.append(pwmSession.getUserInfoBean().getAuthTime());
+            }
+        }
+        return Helper.md5sum(inputString.toString());
     }
 }

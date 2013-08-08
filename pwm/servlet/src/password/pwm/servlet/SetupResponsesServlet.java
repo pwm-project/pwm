@@ -36,7 +36,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.SetupResponsesBean;
+import password.pwm.bean.servlet.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
@@ -44,7 +44,6 @@ import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
@@ -89,6 +88,10 @@ public class SetupResponsesServlet extends TopServlet {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
+        }
+
+        if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
         // read the action request parameter

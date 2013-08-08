@@ -2,7 +2,7 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -140,7 +140,6 @@
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
            onkeyup="validateResponses();" required="required"/>
-</p>
 <% } %>
 <% } %>
 <% } %>

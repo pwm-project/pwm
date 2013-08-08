@@ -67,34 +67,6 @@ function updateDisplay(resultInfo)
     }
 }
 
-
-function toggleHideResponses()
-{
-    for (var j = 0; j < document.forms.length; j++) {
-        for (var i = 0; i < document.forms[j].length; i++) {
-            var current = document.forms[j].elements[i];
-            if (current.id != null && (current.id.indexOf("PwmResponse_R") == 0 || current.id.indexOf("attribute-") == 0)) {
-                if (current.type == "text" || current.type == "password") {
-                    if (responsesHidden) {
-                        changeInputTypeField(current,"text");
-                    } else {
-                        changeInputTypeField(current,"password");
-                    }
-                }
-            }
-        }
-    }
-
-    if (responsesHidden) {
-        getObject("hide_responses_button").value = showString('Button_Hide_Responses');
-    } else {
-        getObject("hide_responses_button").value = showString('Button_Show_Responses');
-    }
-
-    responsesHidden = !responsesHidden;
-}
-
-
 function makeSelectOptionsDistinct() {
     require(["dojo","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore","dojo/store/Memory"],
         function(dojo,registry,array,dojoOn,ObjectStore,Memory){
@@ -149,16 +121,6 @@ function makeSelectOptionsDistinct() {
 
 function startupResponsesPage()
 {
-    if (PWM_GLOBAL['setting-showHidePasswordFields']) {
-        try {
-            toggleHideResponses();
-            toggleHideResponses();
-            changeInputTypeField(getObject("hide_responses_button"),"button");
-        } catch (e) {
-            //alert("can't show hide button: " + e)
-        }
-    }
-
     var initialPrompt = showString('Display_ResponsesPrompt');
     if (initialPrompt != null && initialPrompt.length > 1) {
         var messageElement = getObject("message");

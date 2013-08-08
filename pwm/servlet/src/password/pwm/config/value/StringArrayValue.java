@@ -84,6 +84,10 @@ public class StringArrayValue implements StoredValue {
         return new Gson().toJson(value);
     }
 
+    public String toDebugString() {
+        return toString();
+    }
+
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (value == null || value.size() < 1 || value.get(0).length() < 1) {

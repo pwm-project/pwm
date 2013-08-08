@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.updateProfile.elements[0].focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
@@ -86,6 +86,11 @@
 
         pwmFormValidator(validationProps);
     }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        document.forms.updateProfile.elements[0].focus();
+        ShowHidePasswordHandler.initAllForms();
+    });
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

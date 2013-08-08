@@ -22,11 +22,11 @@
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
-<%@ page import="password.pwm.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
-<body onload="pwmPageLoadHandler();getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
@@ -63,6 +63,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

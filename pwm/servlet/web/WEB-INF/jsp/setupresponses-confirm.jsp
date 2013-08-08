@@ -22,7 +22,7 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -31,8 +31,7 @@
 <% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();"
-      class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>

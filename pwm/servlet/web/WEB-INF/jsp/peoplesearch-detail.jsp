@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.PeopleSearchBean" %>
+<%@ page import="password.pwm.bean.servlet.PeopleSearchBean" %>
 <%@ page import="password.pwm.util.operations.UserSearchEngine" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -29,7 +29,7 @@
 <% final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();getObject('username').focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
@@ -42,7 +42,7 @@
 
             <p><pwm:Display key="Display_PeopleSearch"/></p>
             <input type="search" id="username" name="username" class="inputfield"
-                   value="<%=peopleSearchBean.getSearchString()!=null?peopleSearchBean.getSearchString():""%>"/>
+                   value="<%=peopleSearchBean.getSearchString()!=null?peopleSearchBean.getSearchString():""%>" autofocus/>
             <input type="submit" class="btn"
                    name="search"
                    value="<pwm:Display key="Button_Search"/>"
@@ -81,6 +81,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('username').focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

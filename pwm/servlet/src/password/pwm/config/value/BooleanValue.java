@@ -67,4 +67,7 @@ public class BooleanValue implements StoredValue {
         return new Gson().toJson(value);
     }
 
+    public String toDebugString() {
+        return toString();
+    }
 }

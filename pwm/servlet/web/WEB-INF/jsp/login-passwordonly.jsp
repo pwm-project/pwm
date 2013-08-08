@@ -26,8 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler(); getObject('password').focus();"
-      class="nihilo">
+<body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Login"/>
@@ -38,7 +37,7 @@
               onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield" re/>
+            <input type="password" name="password" id="password" class="inputfield" autofocus/>
             <div id="buttonbar">
                 <input type="submit" class="btn"
                        name="button"

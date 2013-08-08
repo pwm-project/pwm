@@ -101,7 +101,17 @@ public class SessionManager implements Serializable {
     }
 
     public ChaiProvider getChaiProvider()
-            throws ChaiUnavailableException, PwmUnrecoverableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
+        final String userDN = pwmSession.getUserInfoBean().getUserDN();
+
+        if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+            if (userPassword == null || userPassword.length() < 1) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
+            }
+        }
+
         try {
             providerLock.lock();
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -113,8 +123,6 @@ public class SessionManager implements Serializable {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"invalid session handle"));
                 }
 
-                final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
-                final String userDN = pwmSession.getUserInfoBean().getUserDN();
                 final Configuration config = ContextManager.getPwmApplication(session).getConfig();
                 chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             }

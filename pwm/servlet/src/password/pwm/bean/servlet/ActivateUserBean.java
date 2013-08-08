@@ -20,9 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.bean.servlet;
 
 import com.novell.ldapchai.ChaiUser;
+import password.pwm.bean.PwmSessionBean;
 
 public class ActivateUserBean implements PwmSessionBean {
     private boolean tokenIssued;

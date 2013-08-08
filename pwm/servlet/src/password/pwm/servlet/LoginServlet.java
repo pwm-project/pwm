@@ -30,7 +30,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.UserAuthenticator;
@@ -88,7 +87,6 @@ public class
             try {
                 if (passwordOnly) {
                     final String userDN = pwmSession.getUserInfoBean().getUserDN();
-                    //UserAuthenticator.testCredentials(userDN, password, pwmSession);
                     UserAuthenticator.authenticateUser(userDN, password, null, pwmSession,pwmApplication, req.isSecure());
                 } else {
                     UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
@@ -99,9 +97,10 @@ public class
 
                 // see if there is a an original request url
                 final String originalURL = ssBean.getOriginalRequestURL();
+                ssBean.setOriginalRequestURL(null);
 
                 if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
-                    resp.sendRedirect(SessionFilter.rewriteRedirectURL(ssBean.getOriginalRequestURL(), req, resp));
+                    resp.sendRedirect(SessionFilter.rewriteRedirectURL(originalURL, req, resp));
                 } else {
                     resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
                 }

@@ -116,4 +116,8 @@ public class FormValue implements StoredValue {
     public String toString() {
         return new Gson().toJson(values);
     }
+
+    public String toDebugString() {
+        return toString();
+    }
 }

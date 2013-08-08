@@ -32,15 +32,16 @@ function pwmPageLoadHandler() {
             timeout: 30 * 1000,
             headers: { "Accept": "application/json" },
             load: function(data) {
-                for (var prop in data['data']['PWM_STRINGS']) {
-                    PWM_STRINGS[prop] = data['data']['PWM_STRINGS'][prop];
+                for (var stringProp in data['data']['PWM_STRINGS']) {
+                    PWM_STRINGS[stringProp] = data['data']['PWM_STRINGS'][stringProp];
                 }
-                for (var prop in data['data']['PWM_GLOBAL']) {
-                    PWM_GLOBAL[prop] = data['data']['PWM_GLOBAL'][prop];
+                for (var globalProp in data['data']['PWM_GLOBAL']) {
+                    PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
                 }
                 initPwmPage();
             },
             error: function(error) {
+                showError('Unable to read app-data from server, please reload page (' + error + ')');
                 console.log('unable to read app-data: ' + error);
                 initPwmPage();
             }
@@ -261,28 +262,6 @@ function trimString(sInString) {
     // strip leading
     return sInString.replace(/\s+$/g, "");
     // strip trailing
-}
-
-// this method exists because IE doesn't support simply changing the type of object
-function changeInputTypeField(object, type) {
-    var newObject = document.createElement('input');
-    newObject.type = type;
-
-    if (object.size) newObject.size = object.size;
-    if (object.value) newObject.value = object.value;
-    if (object.name) newObject.name = object.name;
-    if (object.id) newObject.id = object.id;
-    if (object.className) newObject.className = object.className;
-    if (object.onclick) newObject.onclick = object.onclick;
-    if (object.onkeyup) newObject.onkeyup = object.onkeyup;
-    if (object.onkeydown) newObject.onkeydown = object.onkeydown;
-    if (object.onkeydown) newObject.onchange = object.onchange;
-    if (object.onkeypress) newObject.onkeypress = object.onkeypress;
-    if (object.disabled) newObject.disabled = object.disabled;
-    if (object.readonly) newObject.readonly = object.readonly;
-
-    object.parentNode.replaceChild(newObject, object);
-    return newObject;
 }
 
 function clearDijitWidget(widgetName) {
@@ -1239,3 +1218,109 @@ function itemCount(o) {
     for (var key in o) if (o.hasOwnProperty(key)) i++;
     return i;
 }
+
+var ShowHidePasswordHandler = {};
+ShowHidePasswordHandler.idSuffix = '-eye-icon';
+ShowHidePasswordHandler.toggleState = {};
+ShowHidePasswordHandler.toggleRevertTimeout = 10 * 1000;
+
+ShowHidePasswordHandler.initAllForms = function() {
+    if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
+        return;
+    }
+
+    require(["dojo/query"], function(query){
+        var inputFields = query('input[type="password"]');
+        for (var i = 0; i < inputFields.length; i++) {
+            var field = inputFields[i];
+            if (field.id) {
+                console.log('adding show/hide option on fieldID=' + field.id);
+                ShowHidePasswordHandler.init(field.id);
+            }
+        }
+    });
+}
+
+ShowHidePasswordHandler.init = function(nodeName) {
+    if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
+        return;
+    }
+    var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
+    if (getObject(eyeId)) {
+        return;
+    }
+
+    require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
+        node = getObject(nodeName);
+        var divElement = document.createElement('div');
+        divElement.className = 'icon-eye-open';
+        divElement.id = eyeId;
+        divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
+        divElement.style.cursor = 'pointer';
+        divElement.style.visibility = 'hidden';
+        domConstruct.place(divElement,node,'after');
+
+        ShowHidePasswordHandler.toggleState[nodeName] = true;
+        ShowHidePasswordHandler.setupTooltip(nodeName, false);
+
+        connect.connect(node, "onkeyup", function(){
+            var node = getObject(nodeName);
+            if (node && node.value && node.value.length > 0) {
+                divElement.style.visibility = 'visible';
+            } else {
+                divElement.style.visibility = 'hidden';
+            }
+        });
+    });
+};
+
+ShowHidePasswordHandler.toggle = function(nodeName) {
+    var state = ShowHidePasswordHandler.toggleState[nodeName];
+    if (state) {
+        ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'text');
+        setTimeout(function(){
+            if (!ShowHidePasswordHandler.toggleState[nodeName]) {
+                ShowHidePasswordHandler.toggle(nodeName);
+            }
+        },ShowHidePasswordHandler.toggleRevertTimeout);
+    } else {
+        ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'password');
+    }
+    ShowHidePasswordHandler.setupTooltip(nodeName, state);
+    ShowHidePasswordHandler.toggleState[nodeName] = !state;
+};
+
+ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
+    require(["dojo/_base/lang", "dojo/dom", "dojo/dom-attr"], function(lang, dom, attr){
+        var newObject = lang.clone(object);
+        attr.set(newObject, "type", type);
+        object.parentNode.replaceChild(newObject, object);
+        return newObject;
+    });
+}
+
+ShowHidePasswordHandler.setupTooltip = function(nodeName, passwordsMasked) {
+    var eyeNodeId = nodeName + ShowHidePasswordHandler.idSuffix;
+    clearDijitWidget(eyeNodeId );
+    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+        if (passwordsMasked) {
+            new Tooltip({
+                connectId: [eyeNodeId],
+                label: PWM_STRINGS['Button_Hide']
+            });
+            getObject(eyeNodeId).className = 'icon-eye-close';
+        } else {
+            new Tooltip({
+                connectId: [eyeNodeId],
+                label: PWM_STRINGS['Button_Show']
+            });
+            getObject(eyeNodeId).className = 'icon-eye-open';
+        }
+    });
+};
+
+
+
+
+
+

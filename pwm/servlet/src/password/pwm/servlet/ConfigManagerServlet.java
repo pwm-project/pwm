@@ -26,7 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.ConfigManagerBean;
+import password.pwm.bean.servlet.ConfigManagerBean;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;

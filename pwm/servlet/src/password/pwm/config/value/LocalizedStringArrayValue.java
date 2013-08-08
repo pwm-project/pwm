@@ -113,4 +113,8 @@ public class LocalizedStringArrayValue implements StoredValue {
 
         return Collections.emptyList();
     }
+
+    public String toDebugString() {
+        return toString();
+    }
 }

@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
@@ -39,9 +39,72 @@
     final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory();
     final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0;
 %>
+<style type="text/css">
+    .setting_outline {
+        background-color: #eaeaea;
+        border-radius: 5px;
+        box-shadow: 2px 2px 1px 1px #bfbfbf;
+    }
+
+    .setting_title {
+        background-color: #d3d3d3;
+        padding-left: 10px;
+        padding-top: 4px;
+        padding-bottom: 3px;
+        font-weight: bold;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+    }
+
+    .setting_title .text {
+        text-shadow: 2px 2px #bfbfbf;
+        cursor: pointer;
+    }
+
+    .icon_button {
+        float: right;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+    .icon-question-sign {
+        border-bottom-right-radius: 3px;
+        box-shadow: 2px 2px 2px 2px #bfbfbf;
+    }
+
+    .icon-reply {
+        color: #880000;
+        visibility: hidden;
+        border-bottom-right-radius: 3px;
+        box-shadow: 2px 2px 2px 2px #bfbfbf;
+    }
+
+    .helpDiv {
+        padding: 10px;
+        border: 3px solid #d3d3d3;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+        margin-bottom: 10px;
+        box-shadow: inset 0 0 2px #000000
+    }
+</style>
+<script type="text/javascript">
+    PWM_GLOBAL['setting_helpText'] = {};
+    PWM_GLOBAL['setting_label'] = {};
+    function toggleDisplayStyle(nodeId) {
+        var node = getObject(nodeId);
+        if (node) {
+            if (node.style.display == 'block') {
+                node.style.display = 'none';
+            } else {
+                node.style.display = 'block';
+            }
+        }
+    }
+</script>
 <% if (showDesc) { %>
 <div id="categoryDescription" style="background-color: #F5F5F5; border-radius: 5px; padding: 10px 15px 10px 15px">
-<%= category.getDescription(locale)%>
+    <%= category.getDescription(locale)%>
 </div>
 <% } %>
 <% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true") && level < 1) { %>
@@ -60,20 +123,11 @@
 </div>
 <% } %>
 <% } %>
-<% if (!showDesc) { %>
-<% if (!ServletHelper.cookieEquals(request, "hide-warn-showdesc", "true") && !showDesc) { %>
-<div style="font-size: small">
-    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
-    <pwm:Display key="Warning_ShowDescription" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-showdesc','true',2592000);" href="ConfigManager">(hide)</a>
-</div>
-<% } %>
-<% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
 <% final boolean showSetting = loopSetting.showSetting(category,level,!configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
 <% if (showSetting) { %>
-<div id="outline_<%=loopSetting.getKey()%>" style="background-color: #F5F5F5; border-radius: 5px; box-shadow: 2px 2px 1px 1px #bfbfbf;}">
+<div id="outline_<%=loopSetting.getKey()%>" class="setting_outline">
 <%
     StringBuilder title = new StringBuilder();
     title.append(loopSetting.getLabel(locale));
@@ -81,30 +135,27 @@
         title.append(" (Advanced)");
     }
 %>
-<img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
-     id="resetButton-<%=loopSetting.getKey()%>"
-     style="visibility:hidden; vertical-align:bottom; float: right"
-     onclick="handleResetClick('<%=loopSetting.getKey()%>')"/>
+<div class="setting_title" id="title_<%=loopSetting.getKey()%>">
+    <span class="text" onclick="toggleDisplayStyle('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
+    <div class="icon-question-sign icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleDisplayStyle('helpDiv_<%=loopSetting.getKey()%>')"></div>
+    <div class="icon-reply icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
+</div>
+<div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDesc?"block":"none"%>">
+    <%=loopSetting.getDescription(locale)%>
+</div>
 <script type="text/javascript">
+    PWM_GLOBAL['setting_helpText']['<%=loopSetting.getKey()%>'] = '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>';
+    PWM_GLOBAL['setting_label']['<%=loopSetting.getKey()%>'] = '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getLabel(locale))%>';
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dijit/Tooltip"],function(Tooltip){
             new Tooltip({
                 connectId: ["resetButton-<%=loopSetting.getKey()%>"],
                 label: 'Return this setting to its default value.'
             });
-        });
-    });
-</script>
-<div id="titlePaneHeader-<%=loopSetting.getKey()%>" style="width:580px" id="title_<%=loopSetting.getKey()%>">
-</div>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dijit/TitlePane"],function(TitlePane){
-            new TitlePane({
-                open: <%=showDesc%>,
-                content: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>',
-                title: '<%=title%>'
-            },'titlePaneHeader-<%=loopSetting.getKey()%>');
+            new Tooltip({
+                connectId: ["helpButton-<%=loopSetting.getKey()%>"],
+                label: 'Show description for this setting.'
+            });
         });
     });
 </script>
@@ -248,7 +299,7 @@
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dijit/form/NumberSpinner"],function(NumberSpinner){
+            require(["dijit","dijit/form/NumberSpinner"],function(dijit,NumberSpinner){
                 new NumberSpinner({
                     regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                     required: <%=loopSetting.isRequired()%>,
@@ -260,6 +311,7 @@
                     value: "[Loading..]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
+                dijit.byId("value_<%=loopSetting.getKey()%>")._mouseWheeled = function() {};
                 readInitialTextBasedValue('<%=loopSetting.getKey()%>');
             });
         });

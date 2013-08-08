@@ -20,9 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.bean.servlet;
 
 import com.novell.ldapchai.cr.ResponseSet;
+import password.pwm.bean.PwmSessionBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.event.AuditRecord;
 import password.pwm.util.operations.UserSearchEngine;

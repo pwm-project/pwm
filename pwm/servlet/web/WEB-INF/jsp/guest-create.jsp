@@ -28,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();document.forms.newGuest.elements[0].focus();" class="nihilo">
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_GuestRegistration"/>
@@ -98,6 +98,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        document.forms.newGuest.elements[0].focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

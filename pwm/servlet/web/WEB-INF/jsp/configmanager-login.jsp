@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler();getObject('password').focus()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">
@@ -45,7 +45,7 @@
 
             <h1>Configuration Password</h1>
             <br class="clear"/>
-            <input type="password" class="inputfield" name="password" id="password"/>
+            <input type="password" class="inputfield" name="password" id="password" autofocus/>
             <div id="buttonbar">
                 <input type="submit" class="btn"
                        name="button"
@@ -67,6 +67,11 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        getObject('password').focus();
+    });
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

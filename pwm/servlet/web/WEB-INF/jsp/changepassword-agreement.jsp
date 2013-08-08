@@ -26,20 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();updateContinueButton()" class="nihilo">
-<script type="text/javascript">
-    function updateContinueButton() {
-        var checkBox = getObject("agreeCheckBox");
-        var continueButton = getObject("button_continue");
-        if (checkBox != null && continueButton != null) {
-            if (checkBox.checked) {
-                continueButton.removeAttribute('disabled');
-            } else {
-                continueButton.disabled = "disabled";
-            }
-        }
-    }
-</script>
+<body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
@@ -82,9 +69,22 @@
     <div class="push"></div>
 </div>
 <script type="text/javascript">
+    function updateContinueButton() {
+        var checkBox = getObject("agreeCheckBox");
+        var continueButton = getObject("button_continue");
+        if (checkBox != null && continueButton != null) {
+            if (checkBox.checked) {
+                continueButton.removeAttribute('disabled');
+            } else {
+                continueButton.disabled = "disabled";
+            }
+        }
+    }
+
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
+            updateContinueButton();
         });
     });
 </script>

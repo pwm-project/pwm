@@ -32,6 +32,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.*;
+import password.pwm.bean.servlet.ForgottenPasswordBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PasswordStatus;

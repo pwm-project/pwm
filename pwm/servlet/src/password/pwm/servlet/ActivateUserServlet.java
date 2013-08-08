@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.*;
 import password.pwm.bean.*;
+import password.pwm.bean.servlet.ActivateUserBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;

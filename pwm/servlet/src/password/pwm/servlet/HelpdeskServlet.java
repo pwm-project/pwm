@@ -24,15 +24,13 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.HelpdeskBean;
+import password.pwm.bean.servlet.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;

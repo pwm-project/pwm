@@ -26,7 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.ChangePasswordBean;
+import password.pwm.bean.servlet.ChangePasswordBean;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -70,6 +70,10 @@ public class ChangePasswordServlet extends TopServlet {
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         final String processRequestParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+
+        if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
+        }
 
         if (!ssBean.isAuthenticated()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));

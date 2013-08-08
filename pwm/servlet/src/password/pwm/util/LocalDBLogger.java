@@ -63,7 +63,7 @@ public class LocalDBLogger implements PwmService {
 
     private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
-    private final LocalDBStoredQueue pwmDBListQueue;
+    private final LocalDBStoredQueue localDBListQueue;
 
     private volatile STATUS status = STATUS.NEW;
     private volatile boolean writerThreadActive = false;
@@ -79,11 +79,11 @@ public class LocalDBLogger implements PwmService {
         status = STATUS.OPENING;
         this.localDB = localDB;
         this.setting_maxAgeMs = maxAgeMS;
-        this.pwmDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, LocalDB.DB.EVENTLOG_EVENTS);
+        this.localDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
-            LOGGER.info("maxEvents set to zero, clearing PwmDBLogger history and PwmDBLogger will remain closed");
-            pwmDBListQueue.clear();
+            LOGGER.info("maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed");
+            localDBListQueue.clear();
             throw new IllegalArgumentException("maxEvents=0, will remain closed");
         }
 
@@ -95,14 +95,14 @@ public class LocalDBLogger implements PwmService {
         }
 
         if (localDB == null) {
-            throw new IllegalArgumentException("pwmDB cannot be null");
+            throw new IllegalArgumentException("localDB cannot be null");
         }
 
         this.tailTimestampMs = readTailTimestamp();
         status = STATUS.OPEN;
 
         { // start the writer thread
-            final Thread writerThread = new Thread(new WriterThread(), PwmConstants.PWM_APP_NAME + "-PwmDBLogger writer");
+            final Thread writerThread = new Thread(new WriterThread(), PwmConstants.PWM_APP_NAME + "-LocalDBLogger writer");
             writerThread.setDaemon(true);
             writerThread.start();
         }
@@ -115,7 +115,7 @@ public class LocalDBLogger implements PwmService {
     private long readTailTimestamp() {
         final PwmLogEvent loopEvent;
         try {
-            loopEvent = readEvent(pwmDBListQueue.getLast());
+            loopEvent = readEvent(localDBListQueue.getLast());
             return loopEvent.getDate().getTime();
         } catch (Exception e) {
             LOGGER.error("unexpected error attempting to determine tail event timestamp: " + e.getMessage());
@@ -127,18 +127,18 @@ public class LocalDBLogger implements PwmService {
 
     private String debugStats() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("events=").append(pwmDBListQueue.size());
+        sb.append("events=").append(localDBListQueue.size());
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
         sb.append(", maxEvents=").append(setting_maxEvents);
         sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
-        sb.append(", pwmDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
+        sb.append(", localDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     public void close() {
-        LOGGER.debug("PwmDBLogger closing... (" + debugStats() + ")");
+        LOGGER.debug("LocalDBLogger closing... (" + debugStats() + ")");
         status = STATUS.CLOSED;
 
         { // wait for the writer to die.
@@ -198,9 +198,9 @@ public class LocalDBLogger implements PwmService {
                 }
             }
 
-            pwmDBListQueue.addAll(transactions);
+            localDBListQueue.addAll(transactions);
         } catch (Exception e) {
-            LOGGER.error("error writing to pwmDBLogger: " + e.getMessage(), e);
+            LOGGER.error("error writing to localDBLogger: " + e.getMessage(), e);
         }
     }
 
@@ -209,7 +209,7 @@ public class LocalDBLogger implements PwmService {
     }
 
     public int getStoredEventCount() {
-        return pwmDBListQueue.size();
+        return localDBListQueue.size();
     }
 
     public int getPendingEventCount() {
@@ -217,7 +217,7 @@ public class LocalDBLogger implements PwmService {
     }
 
     private int determineTailRemovalCount() {
-        final int currentItemCount = pwmDBListQueue.size();
+        final int currentItemCount = localDBListQueue.size();
 
         // must keep at least one position populated
         if (currentItemCount <= 1) {
@@ -265,7 +265,7 @@ public class LocalDBLogger implements PwmService {
     ) {
         final long startTime = System.currentTimeMillis();
         final int maxReturnedEvents = count > this.setting_maxEvents ? this.setting_maxEvents : count;
-        final int eventsInDb = pwmDBListQueue.size();
+        final int eventsInDb = localDBListQueue.size();
 
         Pattern pattern = null;
         try {
@@ -277,7 +277,7 @@ public class LocalDBLogger implements PwmService {
         }
 
         final List<PwmLogEvent> returnList = new ArrayList<PwmLogEvent>();
-        final Iterator<String> iterator = pwmDBListQueue.iterator();
+        final Iterator<String> iterator = localDBListQueue.iterator();
         boolean timeExceeded = false;
 
         int examinedPositions = 0;
@@ -337,7 +337,7 @@ public class LocalDBLogger implements PwmService {
         } catch (Throwable e) {
             if (!hasShownReadError) {
                 hasShownReadError = true;
-                LOGGER.error("error reading pwmDBLogger event: " + e.getMessage());
+                LOGGER.error("error reading localDBLogger event: " + e.getMessage());
             }
         }
         return null;
@@ -436,7 +436,7 @@ public class LocalDBLogger implements PwmService {
             try {
                 loop();
             } catch (Exception e) {
-                LOGGER.fatal("unexpected fatal error during PwmDBLogger log event writing; logging to pwmDB will be suspended.", e);
+                LOGGER.fatal("unexpected fatal error during LocalDBLogger log event writing; logging to localDB will be suspended.", e);
             }
             writerThreadActive = false;
         }
@@ -456,7 +456,7 @@ public class LocalDBLogger implements PwmService {
                 final int purgeCount = determineTailRemovalCount();
                 if (purgeCount > 0) {
                     final int removalCount = purgeCount > transactionCalculator.getTransactionSize() + 1 ? transactionCalculator.getTransactionSize() + 1 : purgeCount;
-                    pwmDBListQueue.removeLast(removalCount);
+                    localDBListQueue.removeLast(removalCount);
                     tailTimestampMs = readTailTimestamp();
                     workDone += removalCount;
                 }
@@ -507,19 +507,19 @@ public class LocalDBLogger implements PwmService {
         final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
 
         if (status != STATUS.OPEN) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "PwmDBLogger", "PwmDBLogger is not open, status is " + status.toString()));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "LocalDBLogger", "PwmDBLogger is not open, status is " + status.toString()));
             return healthRecords;
         }
 
         final int eventCount = getStoredEventCount();
         if (eventCount > setting_maxEvents + 5000) {
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "PwmDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
         }
 
         final Date tailDate = getTailDate();
         final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
         if (timeDuration.isLongerThan(setting_maxAgeMs)) { // older than max age
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "PwmDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
         }
 
         return healthRecords;

@@ -240,18 +240,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public String toString(final PwmSetting setting) {
         final StringBuilder outputString = new StringBuilder();
         outputString.append(setting.getKey()).append("=");
-        if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
-            final X509Certificate[] certs = (X509Certificate[])settingMap.get(setting).toNativeObject();
-            if (certs != null) {
-                for (X509Certificate cert : certs) {
-                    outputString.append(cert.toString());
-                }
-            }
-        } else if (setting.isConfidential()) {
-            outputString.append("**removed**");
-        } else {
-            outputString.append(settingMap.get(setting));
-        }
+
+        outputString.append(settingMap.get(setting).toDebugString());
         return outputString.toString();
     }
 

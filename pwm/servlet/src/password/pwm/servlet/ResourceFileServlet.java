@@ -39,7 +39,6 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -123,10 +122,8 @@ public class ResourceFileServlet extends HttpServlet {
             throws IOException {
 
         final PwmApplication pwmApplication;
-        final PwmSession pwmSession;
         try {
             pwmApplication = ContextManager.getPwmApplication(request);
-            pwmSession = PwmSession.getPwmSession(request);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("error reading pwm session/application: " + e.getMessage());
             response.sendError(500,"error reading pwm session/application: " + e.getMessage());
@@ -140,14 +137,14 @@ public class ResourceFileServlet extends HttpServlet {
                 return;
             }
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "unexpected error detecting/handling special request uri: " + e.getMessage());
+            LOGGER.error("unexpected error detecting/handling special request uri: " + e.getMessage());
         }
 
         final FileResource file = resolveRequestedFile(requestURI, request, zipResources);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request));
+            LOGGER.trace(ServletHelper.debugHttpRequest(request));
             return;
         }
 
@@ -194,9 +191,9 @@ public class ResourceFileServlet extends HttpServlet {
                     if (fromCache && acceptsGzip) debugText.append(", ");
                     if (acceptsGzip) debugText.append("gzip");
                     debugText.append(")");
-                    LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
+                    LOGGER.trace(ServletHelper.debugHttpRequest(request,debugText.toString()));
                 } else {
-                    LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,"(not cached)"));
+                    LOGGER.trace(ServletHelper.debugHttpRequest(request,"(not cached)"));
                 }
             } catch (UncacheableResourceException e) {
                 handleUncachedResponse(response, file, acceptsGzip);
@@ -204,10 +201,10 @@ public class ResourceFileServlet extends HttpServlet {
                 debugText.append("(uncacheable");
                 if (acceptsGzip) debugText.append(", gzip");
                 debugText.append(")");
-                LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(request,debugText.toString()));
+                LOGGER.trace(ServletHelper.debugHttpRequest(request,debugText.toString()));
             }
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
+            LOGGER.error("error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
         }
     }
 
