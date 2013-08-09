@@ -17,7 +17,7 @@ v1.7
    reading/writing/deleting challenge responses, setting password, reading user status, application health and other functions
 + Added capability to call external rest web services after most operations.
 + Improvements in mobile/tablet display support
-+ Challenges refereshed into chosen language when locale is changed on setup challenges page (issue #390)
++ Challenges refreshed into chosen language when locale is changed on setup challenges page (issue #390)
 + Norwegian language (Nynorsk) localization (issue #376) thanks hagazaz!
 + Several fixes for macros to work in more settings (issue #370, #363, #352, others)
 + Install Guide "wizzard" for new installation
@@ -26,6 +26,7 @@ v1.7
 + Support for authenticating expired users with AD
 + Support for reading AD "fine-grained" password policies
 + Http Header "SSO" authentication option
++ Hungarian language (magyar) localization (issue #441) thanks torlasz!
 
 ! protection against session fixation attacks (issue #391)
 
