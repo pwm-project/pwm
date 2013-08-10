@@ -57,6 +57,10 @@ public abstract class PwmServletURLHelper {
                 checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_COMMAND);
     }
 
+    public static boolean isWebServiceURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/public/rest/");
+    }
+
     public static boolean isConfigManagerURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/config/ConfigManager", "/private/admin/ConfigManager");
     }

@@ -49,7 +49,7 @@
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
 
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="initConfigPage();pwmPageLoadHandler()">
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript">

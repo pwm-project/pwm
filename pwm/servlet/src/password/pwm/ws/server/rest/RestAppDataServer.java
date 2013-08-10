@@ -27,10 +27,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.SessionFilter;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
@@ -47,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -61,6 +59,17 @@ public class RestAppDataServer {
     public static class AppData implements Serializable {
         public Map<String,String> PWM_STRINGS;
         public Map<String,Object> PWM_GLOBAL;
+        public Map<String,Object> PWM_SETTINGS;
+    }
+
+    public static class SettingInfo implements  Serializable {
+        public String key;
+        public String label;
+        public String description;
+        public PwmSetting.Category category;
+        public PwmSettingSyntax syntax;
+        public boolean hidden;
+        public boolean required;
     }
 
     @GET
@@ -73,7 +82,8 @@ public class RestAppDataServer {
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppData(
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response
+            @Context HttpServletResponse response,
+            @QueryParam("settings") boolean settings
     )
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException {
         final RestRequestBean restRequestBean;
@@ -95,6 +105,9 @@ public class RestAppDataServer {
         response.setHeader("Cache-Control","private, max-age=0");
 
         final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response);
+        if (settings) {
+            appData.PWM_SETTINGS = makeSettingData(restRequestBean);
+        }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(appData);
         return Response.ok(restResultBean.toJson()).build();
@@ -110,7 +123,7 @@ public class RestAppDataServer {
     {
         final AppData appData = new AppData();
         appData.PWM_STRINGS = makeDisplayData(pwmApplication, pwmSession);
-        appData.PWM_GLOBAL = makeSettingData(pwmApplication, pwmSession, request, response);
+        appData.PWM_GLOBAL = makeData(pwmApplication, pwmSession, request, response);
         return appData;
     }
 
@@ -130,7 +143,7 @@ public class RestAppDataServer {
         return displayStrings;
     }
 
-    private static Map<String,Object> makeSettingData(
+    private static Map<String,Object> makeData(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest request,
@@ -212,6 +225,23 @@ public class RestAppDataServer {
             settingMap.put("defaultLocale",PwmConstants.DEFAULT_LOCALE.toString());
         }
 
+        return settingMap;
+    }
+
+    private static Map<String,Object> makeSettingData(final RestRequestBean restRequestBean) {
+        final Map<String,Object> settingMap = new TreeMap<String, Object>();
+        final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
+        for (final PwmSetting setting : PwmSetting.values()) {
+            final SettingInfo settingInfo = new SettingInfo();
+            settingInfo.key = setting.getKey();
+            settingInfo.description = setting.getDescription(locale);
+            settingInfo.label = setting.getLabel(locale);
+            settingInfo.syntax = setting.getSyntax();
+            settingInfo.category = setting.getCategory();
+            settingInfo.required = setting.isRequired();
+            settingInfo.hidden = setting.isHidden();
+            settingMap.put(setting.getKey(),settingInfo);
+        }
         return settingMap;
     }
 

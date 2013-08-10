@@ -89,7 +89,7 @@ public class ApplicationModeFilter implements Filter {
 
         if (mode == PwmApplication.MODE.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
-            if (req.getRequestURI().contains("CommandServlet")) {
+            if (PwmServletURLHelper.isCommandServletURL(req) || PwmServletURLHelper.isWebServiceURL(req)) {
                 return false;
             }
 

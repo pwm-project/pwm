@@ -20,6 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+var PWM_SETTINGS = {};
+
 function saveConfiguration(waitForReload) {
     showWaitDialog('Saving Configuration...', null, function(){
         require(["dojo"],function(dojo){
@@ -118,11 +120,15 @@ function waitForRestart(startTime, oldEpoch) {
 }
 
 function handleResetClick(settingKey) {
+    var label = PWM_SETTINGS[settingKey] ? PWM_SETTINGS[settingKey]['label'] : null;
+
     var dialogText = 'Are you sure you want to reset the setting ';
-    dialogText += PWM_GLOBAL['setting_label'][settingKey];
+    if (label) {
+        dialogText += '<span style="font-style: italic;">' + PWM_SETTINGS[settingKey]['label'] + '</span>';
+    }
     dialogText += ' to the default value?';
 
-    var title = 'Reset ' + PWM_GLOBAL['setting_label'][settingKey];
+    var title = 'Reset ' + label ? label : '';
 
     showConfirmDialog(title,dialogText,function(){
         resetSetting(settingKey);
@@ -346,3 +352,25 @@ function uploadConfigDialog() {
         });
     });
 }
+
+function initConfigPage() {
+    require(["dojo"],function(dojo){
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data?settings=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        dojo.xhrGet({
+            url: displayStringsUrl,
+            handleAs: 'json',
+            timeout: 30 * 1000,
+            headers: { "Accept": "application/json" },
+            load: function(data) {
+                for (var settingKey in data['data']['PWM_SETTINGS']) {
+                    PWM_SETTINGS[settingKey] = data['data']['PWM_SETTINGS'][settingKey];
+                }
+            },
+            error: function(error) {
+                showError('Unable to read settings app-data from server, please reload page (' + error + ')');
+                console.log('unable to read settings app-data: ' + error);
+            }
+        });
+    });
+}
+

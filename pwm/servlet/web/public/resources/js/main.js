@@ -41,7 +41,6 @@ function pwmPageLoadHandler() {
                 initPwmPage();
             },
             error: function(error) {
-                showError('Unable to read app-data from server, please reload page (' + error + ')');
                 console.log('unable to read app-data: ' + error);
                 initPwmPage();
             }

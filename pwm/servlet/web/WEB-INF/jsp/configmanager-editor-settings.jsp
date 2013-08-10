@@ -89,8 +89,6 @@
     }
 </style>
 <script type="text/javascript">
-    PWM_GLOBAL['setting_helpText'] = {};
-    PWM_GLOBAL['setting_label'] = {};
     function toggleDisplayStyle(nodeId) {
         var node = getObject(nodeId);
         if (node) {
@@ -144,8 +142,6 @@
     <%=loopSetting.getDescription(locale)%>
 </div>
 <script type="text/javascript">
-    PWM_GLOBAL['setting_helpText']['<%=loopSetting.getKey()%>'] = '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getDescription(locale))%>';
-    PWM_GLOBAL['setting_label']['<%=loopSetting.getKey()%>'] = '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getLabel(locale))%>';
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dijit/Tooltip"],function(Tooltip){
             new Tooltip({
