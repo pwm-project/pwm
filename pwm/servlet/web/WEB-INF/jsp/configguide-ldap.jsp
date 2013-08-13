@@ -1,7 +1,6 @@
 <%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
 <%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="com.google.gson.Gson" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -34,6 +33,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
@@ -47,148 +47,152 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="widgetForm" name="widgetForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <br class="clear"/>
-            <div id="outline_ldap-server" class="configDiv">
-                <div id="titlePaneHeader-ldap-server" title="Server Information" style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="open:false">
-                    Please enter the connection information for your ldap server.
-                </div>
-                <br/>
-                <div style="padding-left: 10px; padding-bottom: 5px">
-                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                    <b>LDAP Hostname / Server Address</b>
-                    <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="value_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>"/>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                new ValidationTextBox({
-                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_HOST%>',
-                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_HOST%>',
-                                    required: true,
-                                    style: "width: 300px",
-                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_HOST)%>',
-                                    onKeyUp: function() {
-                                        handleFormActivity();
-                                    },
-                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>'
-                                }, "value_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>");
+            <div id="outline_ldap-server" class="setting_outline">
+                <div id="titlePaneHeader-ldap-server" class="setting_title">LDAP Server</div>
+                <div class="setting_body">
+                    Enter the connection information for your ldap server.
+                    <div class="setting_body">
+                        <b>LDAP Hostname / Server Address</b>
+                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>"/>
+                        <script type="text/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                                    new ValidationTextBox({
+                                        required: true,
+                                        style: "width: 550px",
+                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_HOST)%>',
+                                        onChange: function() {
+                                            handleFormActivity();
+                                        },
+                                        onKeyUp: function() {
+                                            handleFormActivity();
+                                        },
+                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>'
+                                    }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>");
+                                });
                             });
-                        });
-                    </script>
-                </div>
-                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" style="padding-left: 5px; padding-top: 5px">
-                    <b>LDAP Port</b>
-                    <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>"/>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/form/NumberSpinner"],function(ValidationTextBox){
-                                new ValidationTextBox({
-                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_PORT%>',
-                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_PORT%>',
-                                    required: true,
-                                    style: "width: 80px",
-                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_PORT)%>',
-                                    onKeyUp: function() {
-                                        handleFormActivity();
-                                    },
-                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>'
-                                }, "<%=ConfigGuideServlet.PARAM_LDAP_PORT%>");
-                            });
-                        });
-                    </script>
-                </div>
-                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" style="padding-left: 5px; padding-top: 5px">
-                    <b>Secure (SSL) Connection</b>
-                    <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input type="hidden" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE)%>"/>
-                    <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/registry","dijit/form/ToggleButton"],function(registry,ToggleButton){
-                                new ToggleButton({
-                                    id: 'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>',
-                                    iconClass:'dijitCheckBoxIcon',
-                                    label: 'Secure',
-                                    style: 'width:100px',
-                                    onChange: function() {
-                                        if (this.checked) {
-                                            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="true";
-                                            registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','636');
-                                        } else {
-                                            showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', function(){
-                                                getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value="false";
-                                                registry.byId('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').set('value','389');
-                                            },function(){
-                                                registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked',true);
+                        </script>
+                        <table style="border:0; padding:0; margin-top: 10px">
+                            <tr style="border:0; padding:0">
+                                <td style="border:0; padding: 0; width: 30%">
+                                    <b>LDAP Port</b>
+                                </td>
+                                <td style="border:0; padding: 0">
+                                    <b>Secure (SSL) Connection</b>
+                                </td>
+                            </tr>
+                            <tr style="border:0; padding:0">
+                                <td style="border:0; padding:0">
+                                    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                                    <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
+                                    <script type="text/javascript">
+                                        PWM_GLOBAL['startupFunctions'].push(function(){
+                                            require(["dijit/registry","dijit/form/NumberSpinner"],function(registry,NumberSpinner){
+                                                new NumberSpinner({
+                                                    id: 'widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>',
+                                                    required: true,
+                                                    style: "width: 70px",
+                                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_PORT)%>',
+                                                    constraints:{min:1,max:65535,places:0,pattern:'#'},
+                                                    onKeyUp: function() {
+                                                        handleFormActivity();
+                                                    },
+                                                    onChange: function() {
+                                                        handleFormActivity();
+                                                    },
+                                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>'
+                                                }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>");
                                             });
-                                        }
-                                        handleFormActivity();
-                                    },
-                                    checked: <%="true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))%>
-                                },'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>');
-                            });
-                        });
-                    </script>
-                </div>
+                                        });
+                                    </script>
+                                </td>
+                                <td style="border:0; padding:0">
+                                    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                                    <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
+                                    <script type="text/javascript">
+                                        PWM_GLOBAL['startupFunctions'].push(function(){
+                                            require(["dijit/registry","dijit/form/ToggleButton"],function(registry,ToggleButton){
+                                                new ToggleButton({
+                                                    iconClass:'dijitCheckBoxIcon',
+                                                    label: 'Secure',
+                                                    style: 'width:100px',
+                                                    onChange: function() {
+                                                        console.log('onchange trigger!')
+                                                        getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = this.checked ? '636' : '389';
+                                                        handleFormActivity();
+                                                        if (!this.checked) {
+                                                            showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', null, function(){
+                                                                registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked','true');
+                                                            });
+                                                        }
+                                                    },
+                                                    checked: <%="true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))%>
+                                                },'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>');
+                                            });
+                                        });
+                                    </script>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <br class="clear"/>
-            <div id="outline_ldap-user" class="configDiv">
-                <div id="titlePaneHeader-ldap-user" style="width:580px" data-dojo-type="dijit/TitlePane" title="Admin/Proxy Account" data-dojo-props="open:false">
-                    Please enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
+            <br/>
+            <div id="outline_ldap-user" class="setting_outline">
+                <div id="titlePaneHeader-ldap-credentials" class="setting_title">
+                    LDAP Credentials
+                </div>
+                <div class="setting_body">
+                    Enter the credentials for your ldap server.  You must enter the fully qualified LDAP DN of the
                     admin account here.  In most cases, you should use an account created specially for this purpose, with sufficient rights to
                     administer the users that will be logging into this system.
-                </div>
-                <br/>
-                <div style="padding-left: 10px; padding-bottom: 5px">
-                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
-                    <b>Proxy/Admin LDAP DN</b>
-                    <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                new ValidationTextBox({
-                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>',
-                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>',
-                                    required: true,
-                                    style: "width: 500px",
-                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>',
-                                    onKeyUp: function() {
-                                        handleFormActivity();
-                                    },
-                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>'
-                                }, "<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>");
+                    <div class="setting_item">
+                        <b>Proxy/Admin LDAP DN</b>
+                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
+                        <script type="text/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                                    new ValidationTextBox({
+                                        required: true,
+                                        style: "width: 550px",
+                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>',
+                                        onKeyUp: function() {
+                                            handleFormActivity();
+                                        },
+                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>'
+                                    }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>");
+                                });
                             });
-                        });
-                    </script>
-                </div>
-                <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
-                    <b>Password</b>
-                    <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                    <input id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
-                    <script type="text/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                new ValidationTextBox({
-                                    id: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>',
-                                    name: '<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>',
-                                    required: true,
-                                    type: "password",
-                                    style: "width: 200px",
-                                    placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>',
-                                    onKeyUp: function() {
-                                        handleFormActivity();
-                                    },
-                                    value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>'
-                                }, "<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>");
+                        </script>
+                    </div>
+                    <div class="setting_item">
+                        <b>Password</b>
+                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
+                        <script type="text/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                                    new ValidationTextBox({
+                                        required: true,
+                                        type: "password",
+                                        style: "width: 200px",
+                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>',
+                                        onKeyUp: function() {
+                                            handleFormActivity();
+                                        },
+                                        onChange: function() {
+                                            handleFormActivity();
+                                        },
+                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>'
+                                    }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>");
+                                });
                             });
-                        });
-                    </script>
-                </div>
+                        </script>
+                    </div>
                 </div>
             </div>
         </form>
@@ -206,10 +210,24 @@
     </div>
     <div class="push"></div>
 </div>
+<form id="configForm" name="configForm">
+    <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" id="<%=ConfigGuideServlet.PARAM_LDAP_HOST%>"/>
+    <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" id="<%=ConfigGuideServlet.PARAM_LDAP_PORT%>"/>
+    <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" id="<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
+    <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
+    <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>"/>
+</form>
 <script type="text/javascript">
     function handleFormActivity() {
-        updateForm();
-        clearHealthDiv();
+        require(["dijit/registry"],function(registry){
+            getObject('<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').get('value');
+            getObject('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').get('value');
+            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked;
+            getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').get('value');
+            getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').get('value');
+            updateForm();
+            clearHealthDiv();
+        });
     }
 
     function clearHealthDiv() {

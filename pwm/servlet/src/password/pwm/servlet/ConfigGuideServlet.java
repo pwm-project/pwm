@@ -255,6 +255,10 @@ public class ConfigGuideServlet extends TopServlet {
         final StoredConfiguration newStoredConfig = configGuideBean.getStoredConfiguration();
         LOGGER.trace("setting template to: " + requestedTemplate);
         newStoredConfig.writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE, template.toString());
+
+        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,new StringValue(""));
+        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,new StringValue(""));
+
         configGuideBean.setFormData(new HashMap<String,String>(defaultForm(template)));
         updateLdapInfo(newStoredConfig, new HashMap<String,String>(defaultForm(template)),Collections.<String,String>emptyMap());
         ServletHelper.outputJsonResult(resp,new RestResultBean());
@@ -271,45 +275,62 @@ public class ConfigGuideServlet extends TopServlet {
         final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
-        if (configGuideBean.getStep() == STEP.LDAP) {
-            records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,false));
-            if (records.isEmpty()) {
-                records.add(new HealthRecord(
-                        HealthStatus.GOOD,
-                        "LDAP",
-                        LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
-                ));
-            }
-        }
-        if (configGuideBean.getStep() == STEP.LDAP2) {
-            records.addAll(ldapStatusChecker.doHealthCheck(tempApplication));
-            if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
-                final int maxSearchSize = 500;
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
-                final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
-                searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
-                try {
-                    final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfig, maxSearchSize, Collections.<String>emptyList());
-                    if (results == null || results.isEmpty()) {
-                        records.add(new HealthRecord(HealthStatus.WARN,"Admin Users","No admin users are defined with the current Administration Search Filter"));
-                    } else {
-                        final StringBuilder sb = new StringBuilder();
-                        sb.append("<ul>");
-                        for (final ChaiUser user : results.keySet()) {
-                            sb.append("<li>");
-                            sb.append(user.getEntryDN());
-                            sb.append("</li>");
-                        }
-                        sb.append("</ul>");
-                        if (results.size() == maxSearchSize) {
-                            sb.append(LocaleHelper.getLocalizedMessage("Display_SearchResultsExceeded",tempConfiguration, Display.class));
-                        }
-                        records.add(new HealthRecord(HealthStatus.GOOD,"Admin Users","Users matching current Administration Search Filter: " + sb.toString()));
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn(pwmSession,"error while attempting to search for pwm admin users: " + e.getMessage());
+        switch (configGuideBean.getStep()) {
+            case LDAP:
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,false));
+                if (records.isEmpty()) {
+                    records.add(new HealthRecord(
+                            HealthStatus.GOOD,
+                            "LDAP",
+                            LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
+                    ));
                 }
-            }
+                break;
+
+            case LDAP2:
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, true));
+                if (records.isEmpty()) {
+                    records.add(new HealthRecord(
+                            HealthStatus.GOOD,
+                            "LDAP",
+                            LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
+                    ));
+                }
+                if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
+                    final int maxSearchSize = 500;
+                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
+                    final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
+                    searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
+                    try {
+                        final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfig, maxSearchSize, Collections.<String>emptyList());
+                        if (results == null || results.isEmpty()) {
+                            records.add(new HealthRecord(HealthStatus.WARN,"Admin Users","No admin users are defined with the current Administration Search Filter"));
+                        } else {
+                            final StringBuilder sb = new StringBuilder();
+                            sb.append("<ul>");
+                            for (final ChaiUser user : results.keySet()) {
+                                sb.append("<li>");
+                                sb.append(user.getEntryDN());
+                                sb.append("</li>");
+                            }
+                            sb.append("</ul>");
+                            if (results.size() == maxSearchSize) {
+                                sb.append(LocaleHelper.getLocalizedMessage("Display_SearchResultsExceeded",tempConfiguration, Display.class));
+                            }
+                            records.add(new HealthRecord(HealthStatus.GOOD,"Admin Users","Users matching current Administration Search Filter: " + sb.toString()));
+                        }
+                    } catch (Exception e) {
+                        final String errorMsg = "error while attempting to search for Admin users: " + e.getMessage();
+                        LOGGER.warn(pwmSession,errorMsg);
+                        records.add(new HealthRecord(HealthStatus.WARN,"Admin Users",errorMsg));
+                    }
+                }
+                break;
+
+            case LDAP3:
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, false));
+                records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, tempApplication));
+                break;
         }
 
         RestHealthServer.JsonOutput jsonOutput = new RestHealthServer.JsonOutput();
@@ -337,6 +358,7 @@ public class ConfigGuideServlet extends TopServlet {
         final RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp, restResultBean);
         updateLdapInfo(storedConfiguration, configGuideBean.getFormData(), incomingFormData);
+        //LOGGER.info("config: " + storedConfiguration.toString());
     }
 
     private void restGotoStep(
@@ -466,6 +488,9 @@ public class ConfigGuideServlet extends TopServlet {
     ) throws PwmOperationalException {
         ConfigurationReader configReader = contextManager.getConfigReader();
 
+        storedConfiguration.resetSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
+        storedConfiguration.resetSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+
         try {
             // add a random security key
             storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)));
@@ -497,6 +522,6 @@ public class ConfigGuideServlet extends TopServlet {
     }
 
     public enum STEP {
-        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, PASSWORD, END, FINISH
+        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, PASSWORD, END, FINISH
     }
 }

@@ -32,6 +32,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
@@ -53,22 +54,28 @@
         <form id="formData" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br class="clear"/>
-            <div id="outline_ldap-server" class="configDiv">
-                LDAP Server Certificates for <%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>.
-                Please verify these certificates match your LDAP server.
-                <div>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                        <% for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
-                        <% request.setAttribute("certificate",certificate); %>
-                        <jsp:include page="fragment/setting-certificate.jsp"/>
-                        <br/>
-                        <% } %>
+            <div id="outline_ldap-server" class="setting_outline">
+                <div class="setting_title">
+                    LDAP Server Certificates
+                </div>
+                <div class="setting_body">
+                    LDAP Server Certificates for <%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>.
+                    Please verify these certificates match your LDAP server.
+                    <div>
+                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
+                            <% for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
+                            <% request.setAttribute("certificate",certificate); %>
+                            <jsp:include page="fragment/setting-certificate.jsp"/>
+                            <br/>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             </div>
             <br class="clear"/>
-            <div id="outline_ldapcert-options" class="configDiv">
-                <div style="padding-left: 10px; padding-bottom: 5px">
+            <div id="outline_ldapcert-options" class="setting_outline">
+                <div class="setting_title">Certificate Settings</div>
+                <div class="setting_body">
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default keystore
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>

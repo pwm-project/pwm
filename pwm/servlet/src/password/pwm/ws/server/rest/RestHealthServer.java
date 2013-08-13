@@ -79,7 +79,9 @@ public class RestHealthServer {
         public static List<HealthRecordBean> fromHealthRecords(final List<HealthRecord> healthRecords, final Locale locale, final Configuration config) {
             final List<HealthRecordBean> beanList = new ArrayList<HealthRecordBean>();
             for (HealthRecord record : healthRecords) {
-                beanList.add(fromHealthRecord(record, locale, config));
+                if (record != null) {
+                    beanList.add(fromHealthRecord(record, locale, config));
+                }
             }
             return beanList;
         }

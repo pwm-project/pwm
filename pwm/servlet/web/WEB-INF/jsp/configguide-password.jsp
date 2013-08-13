@@ -33,6 +33,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo" onload="pwmPageLoadHandler()">
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
@@ -49,13 +50,14 @@
         <form id="configForm" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
                 <br/>
-            <div id="password" class="configDiv">
+            <div id="password" class="setting_outline">
+                <div class="setting_title">
+                    Configuration Password
+                </div>
+                <div class="setting_body">
                 To protect this system, you will need to set a configuration password.  The configuration password will be required whenever
                 you wish to modify the configuration using the web based configuration manager.
-                <br/>
-                <br/>
-                <div style="padding-left: 10px; padding-bottom: 5px">
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" style="padding-left: 5px; padding-top: 5px">
+                    <div class="setting_item">
                         <b>Configuration Password</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" />
@@ -77,13 +79,12 @@
                             });
                         </script>
                     </div>
-                    <br/>
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" style="padding-left: 5px; padding-top: 5px">
+                    <div class="setting_item">
                         <b>Verify Configuration Password</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" />
                         <div style="display: inline; padding-top:45px;">
-                            <img style="visibility:visible;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
+                            <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
                                  src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
                                  src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">
@@ -110,7 +111,7 @@
         </form>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
             <button class="btn" id="button_next" onclick="gotoStep('END')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>

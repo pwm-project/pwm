@@ -39,55 +39,7 @@
     final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory();
     final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0;
 %>
-<style type="text/css">
-    .setting_outline {
-        background-color: #eaeaea;
-        border-radius: 5px;
-        box-shadow: 2px 2px 1px 1px #bfbfbf;
-    }
-
-    .setting_title {
-        background-color: #d3d3d3;
-        padding-left: 10px;
-        padding-top: 4px;
-        padding-bottom: 3px;
-        font-weight: bold;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-    }
-
-    .setting_title .text {
-        text-shadow: 2px 2px #bfbfbf;
-        cursor: pointer;
-    }
-
-    .icon_button {
-        float: right;
-        margin-right: 10px;
-        cursor: pointer;
-    }
-
-    .icon-question-sign {
-        border-bottom-right-radius: 3px;
-        box-shadow: 2px 2px 2px 2px #bfbfbf;
-    }
-
-    .icon-reply {
-        color: #880000;
-        visibility: hidden;
-        border-bottom-right-radius: 3px;
-        box-shadow: 2px 2px 2px 2px #bfbfbf;
-    }
-
-    .helpDiv {
-        padding: 10px;
-        border: 3px solid #d3d3d3;
-        border-bottom-left-radius: 5px;
-        border-bottom-right-radius: 5px;
-        margin-bottom: 10px;
-        box-shadow: inset 0 0 2px #000000
-    }
-</style>
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
     function toggleDisplayStyle(nodeId) {
         var node = getObject(nodeId);
@@ -155,7 +107,7 @@
         });
     });
 </script>
-<div id="titlePane_<%=loopSetting.getKey()%>" style="padding-left: 5px; padding-top: 5px">
+<div id="titlePane_<%=loopSetting.getKey()%>" class="setting_body">
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">

@@ -2585,7 +2585,7 @@
             <option value="no">False</option>
         </options>
     </setting>
-    <setting key="pwmDb.location" level="0" required="true">
+    <setting key="pwmDb.location" level="1" required="true">
         <label>LocalDB Location</label>
         <description><![CDATA[Location of the LocalDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
         <default>

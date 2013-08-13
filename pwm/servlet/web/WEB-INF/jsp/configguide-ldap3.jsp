@@ -50,65 +50,40 @@
         <form id="configForm" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
-            <div class="setting_outline">
-                <div class="setting_title">LDAP Contextless Login Root</div>
-                <div class="setting_body">
-                    Enter the top level LDAP context of your LDAP directory. This sets the top level LDAP container where an LDAP sub-tree search is performed to find your user entries. If you need to enter multiple containers, you can use the configuration editor to add them after this guide completes.
-                    <div class="setting_item">
-                        <b>LDAP Contextless Login Root</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                        <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>"/>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>',
-                                        required: true,
-                                        style: "width: 550px",
-                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>'
-                                    }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>");
-                                });
-                            });
-                        </script>
-                    </div>
-                </div>
-            </div>
-            <br/>
-            <div class="setting_outline">
+            <div id="outline_ldap" class="setting_outline">
                 <div class="setting_title">
-                    Administrator Search Filter
+                    LDAP Test User
                 </div>
                 <div class="setting_body">
-                    Enter the LDAP search filter to use for determining if a user should be given administrator access to this system.  Any user
-                    that authenticates and matches this filter will be allowed administrative access.
-                    <div class="setting_item">
-                        <b>Administrator Search Filter</b>
+                Please enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privledges and policies
+                as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
+                validate the configuration and health of both the LDAP server and this server.
+                <br/><br/>
+                This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank.
+                <div class="setting_item">
+                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
+                        <b>LDAP Test User DN</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                        <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>"/>
+                        <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
                                     new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>',
-                                        required: true,
+                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>',
+                                        required: false,
                                         style: "width: 550px",
-                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>',
+                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
                                         onKeyUp: function() {
                                             handleFormActivity();
                                         },
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>'
-                                    }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>");
+                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
+                                    }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
                                 });
                             });
                         </script>
                     </div>
                 </div>
+                    </div>
             </div>
         </form>
         <br/>
@@ -118,9 +93,9 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAPCERT')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP3')"><pwm:Display key="Button_Next"  bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('PASSWORD')"><pwm:Display key="Button_Next"  bundle="Config"/></button>
         </div>
     </div>
     <div class="push"></div>
@@ -129,6 +104,7 @@
     function handleFormActivity() {
         updateForm();
         clearHealthDiv();
+        checkIfNextEnabled();
     }
 
     function clearHealthDiv() {
@@ -141,17 +117,16 @@
 
     PWM_GLOBAL['startupFunctions'].push(function(){
         getObject('localeSelectionMenu').style.display = 'none';
-        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
-        });
         checkIfNextEnabled();
     });
 
     function checkIfNextEnabled() {
-        if (PWM_GLOBAL['pwm-health'] == 'GOOD' || PWM_GLOBAL['pwm-health'] == 'CONFIG') {
-            getObject('button_next').disabled = false;
-        } else {
-            getObject('button_next').disabled = true;
+        var fieldValue = getObject('<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>').value;
+        getObject('button_next').disabled = false;
+        if (fieldValue.length && fieldValue.length > 0) {
+            if (PWM_GLOBAL['pwm-health'] != 'GOOD' && PWM_GLOBAL['pwm-health'] != 'CONFIG') {
+                getObject('button_next').disabled = true;
+            }
         }
     }
 

@@ -123,7 +123,7 @@ public abstract class TopServlet extends HttpServlet {
             }
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
+            LOGGER.warn(pwmSession, "unexpected error during page generation: " + e.getMessage(), e);
             if (ssBean != null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
             }

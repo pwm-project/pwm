@@ -374,11 +374,8 @@ div.progress-container > div {
     font-family: monospace;
 }
 
-.configDiv {
-    background-color: #F5F5F5;
-    border-radius: 5px;
-    box-shadow: 2px 2px 1px 1px #bfbfbf;
-    padding: 5px;
+.icon-eye {
+    font-size: larger;
 }
 
 /* recaptcha section */

@@ -69,7 +69,7 @@
                 <tr>
                     <td style="border:0; width:75%">
                         <h2><label for="password1"><pwm:Display key="Field_NewPassword"/></label></h2>
-                        <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus="autofocus"/>
+                        <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus/>
                     </td>
                     <td style="border:0; width:15%">
                         <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>

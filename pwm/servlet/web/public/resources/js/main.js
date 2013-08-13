@@ -394,7 +394,7 @@ function showEula(requireAgreement, agreeFunction) {
         agreeFunction();
         return;
     }
-    var eulaLocation = PWM_GLOBAL['url-context'] + '/public/resources/eula.html';
+    var eulaLocation = PWM_GLOBAL['url-context'] + '/public/resources/text/eula.html';
     PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
     var bodyText = '<iframe width="600" height="400" src="' + eulaLocation + '">';
     bodyText += '</iframe>';
@@ -448,18 +448,16 @@ function showPwmHealth(parentDivID, options, refreshNow) {
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo"],function(dojo){
         var parentDiv = dojo.byId(parentDivID);
-        PWM_GLOBAL['healthCheckInProgress'] = "true";
 
-        if (!showRefresh) {
-            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
+        if (PWM_GLOBAL['healthCheckInProgress']) {
+            return;
         }
 
-        if (!PWM_GLOBAL['healthCheckInProgress']) {
-            setTimeout(function() {
-                if (PWM_GLOBAL['healthCheckInProgress']) {
-                    parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
-                }
-            }, 11 * 1000);
+
+        PWM_GLOBAL['healthCheckInProgress'] = "true";
+
+        if (refreshNow) {
+            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
         }
 
         refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
@@ -1252,7 +1250,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
     require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
         node = getObject(nodeName);
         var divElement = document.createElement('div');
-        divElement.className = 'icon-eye-open';
+        divElement.className = 'icon-eye icon-eye-open';
         divElement.id = eyeId;
         divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
         divElement.style.cursor = 'pointer';
@@ -1307,13 +1305,13 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName, passwordsMasked) {
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Hide']
             });
-            getObject(eyeNodeId).className = 'icon-eye-close';
+            getObject(eyeNodeId).className = 'icon-eye icon-eye-close';
         } else {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Show']
             });
-            getObject(eyeNodeId).className = 'icon-eye-open';
+            getObject(eyeNodeId).className = 'icon-eye icon-eye-open';
         }
     });
 };

@@ -117,7 +117,7 @@ public class CrService implements PwmService {
         if (returnSet == null) {
             returnSet = config.getGlobalChallengeSet(locale);
             if (returnSet != null) {
-                LOGGER.debug("using pwm c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+                LOGGER.debug("using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
             }
         }
 

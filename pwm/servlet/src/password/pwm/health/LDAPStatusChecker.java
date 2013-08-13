@@ -70,10 +70,6 @@ public class LDAPStatusChecker implements HealthChecker {
                 returnRecords.addAll(checkLdapServerUrls(config));
             }
 
-            if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                returnRecords.addAll(checkAd(pwmApplication, config));
-            }
-
             if (returnRecords.isEmpty()) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.GOOD,
@@ -81,10 +77,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         LocaleHelper.getLocalizedMessage("Health_LDAP_OK",config,Admin.class)
                 ));
 
-                final HealthRecord hr = doLdapTestUserCheck(config, pwmApplication);
-                if (hr != null) {
-                    returnRecords.add(hr);
-                }
+                returnRecords.addAll(doLdapTestUserCheck(config, pwmApplication));
 
                 final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
                 if (errorInfo != null) {
@@ -108,15 +101,17 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static HealthRecord doLdapTestUserCheck(final Configuration config, final PwmApplication pwmApplication)
+    public List<HealthRecord> doLdapTestUserCheck(final Configuration config, final PwmApplication pwmApplication)
     {
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
         final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
         ChaiProvider.DIRECTORY_VENDOR vendor = null;
 
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+
         if (testUserDN == null || testUserDN.length() < 1) {
-            return null;
+            return returnRecords;
         }
 
         if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
@@ -125,11 +120,12 @@ public class LDAPStatusChecker implements HealthChecker {
                     + PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
             final String setting2 = PwmSetting.LDAP_PROXY_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
 
-            return new HealthRecord(
+            returnRecords.add(new HealthRecord(
                     HealthStatus.WARN,
                     TOPIC,
                     LocaleHelper.getLocalizedMessage(null,"Health_LDAP_ProxyTestSameUser",config,Admin.class,new String[]{setting1,setting2})
-            );
+            ));
+            return returnRecords;
         }
 
         ChaiUser theUser = null;
@@ -145,19 +141,21 @@ public class LDAPStatusChecker implements HealthChecker {
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
             } catch (ChaiUnavailableException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC,
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()}));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()})));
+                return returnRecords;
             } catch (Throwable e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC,
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()}));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
+                return returnRecords;
             }
 
             try {
                 theUser.readObjectClass();
-                vendor = chaiProvider.getDirectoryVendor();
             } catch (ChaiException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC,
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()}));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()})));
+                return returnRecords;
             }
 
             String userPassword = null;
@@ -179,33 +177,31 @@ public class LDAPStatusChecker implements HealthChecker {
                         theUser.setPassword(newPassword);
                         userPassword = newPassword;
                     } catch (ChaiPasswordPolicyException e) {
-                        return new HealthRecord(HealthStatus.WARN, TOPIC,
-                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()}));
+                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()})));
+                        return returnRecords;
                     } catch (Exception e) {
-                        return new HealthRecord(HealthStatus.WARN, TOPIC,
-                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()}));
+                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
+                        return returnRecords;
                     }
                 }
             }
 
             if (userPassword == null) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC,
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class)));
+                return returnRecords;
             }
 
             try {
                 UserStatusHelper.populateUserInfoBean(null, new UserInfoBean(), pwmApplication, PwmConstants.DEFAULT_LOCALE, theUser.getEntryDN(), userPassword, chaiProvider);
             } catch (ChaiUnavailableException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage());
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage()));
+                return returnRecords;
             } catch (PwmUnrecoverableException e) {
-                return new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage());
-            }
-
-            if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                final List<HealthRecord> results = checkAd(pwmApplication, config);
-                if (results != null && !results.isEmpty()) {
-                    return results.get(0);
-                }
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage()));
+                return returnRecords;
             }
 
         } finally {
@@ -214,7 +210,8 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        return new HealthRecord(HealthStatus.GOOD, TOPIC, LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class));
+        returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
+        return returnRecords;
     }
 
 
@@ -286,6 +283,10 @@ public class LDAPStatusChecker implements HealthChecker {
                 returnRecords.add(record);
                 pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
                 return returnRecords;
+            }
+
+            if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                returnRecords.addAll(checkAd(pwmApplication, config));
             }
 
             if (testContextlessRoot) {
