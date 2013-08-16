@@ -38,31 +38,35 @@
             String destination = aub.getTokenSendAddress();
         %>
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
-        <form action="<pwm:url url='ActivateUser'/>" method="post"
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+        <div id="buttonbar">
+            <form action="<pwm:url url='ActivateUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn',this);return false">
-            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-            <textarea style="height: 130px; width: 80%; resize: none" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
-
-            <div id="buttonbar">
+              onsubmit="handleFormSubmit('submitBtn',this);return false"
+              style="display: inline;">
+                <textarea style="height: 130px; width: 80%; resize: none; display: block; margin-bottom: 30px;" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
                 <input type="submit" class="btn"
                        name="search"
                        value="<pwm:Display key="Button_CheckCode"/>"
                        id="submitBtn"/>
+                <input type="reset" class="btn"
+                       name="reset" onclick="clearForm('searchForm');return false;"
+                       value="<pwm:Display key="Button_Reset"/>"/>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
-        </form>
-        <div style="text-align: center">
+            </form>
+            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+                  enctype="application/x-www-form-urlencoded"
+                  style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
                 <input type="submit" name="button" class="btn"
                        value="<pwm:Display key="Button_Cancel"/>"
                        id="button_reset"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
+            <% } %>
         </div>
     </div>
     <div class="push"></div>

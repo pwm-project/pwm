@@ -620,6 +620,9 @@ public class PwmApplication {
             pwmPackageLogger.removeAllAppenders();
             chaiPackageLogger.removeAllAppenders();
             casPackageLogger.removeAllAppenders();
+            pwmPackageLogger.setLevel(Level.TRACE);
+            chaiPackageLogger.setLevel(Level.TRACE);
+            casPackageLogger.setLevel(Level.TRACE);
 
             Exception configException = null;
             boolean configured = false;
@@ -646,12 +649,10 @@ public class PwmApplication {
                 if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
                     final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
                     final Level level = Level.toLevel(consoleLogLevel);
+                    consoleAppender.setThreshold(level);
                     pwmPackageLogger.addAppender(consoleAppender);
-                    pwmPackageLogger.setLevel(level);
                     chaiPackageLogger.addAppender(consoleAppender);
-                    chaiPackageLogger.setLevel(level);
                     casPackageLogger.addAppender(consoleAppender);
-                    casPackageLogger.setLevel(level);
                     LOGGER.debug("successfully initialized default console log4j config at log level " + level.toString());
                 } else {
                     LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
@@ -671,14 +672,12 @@ public class PwmApplication {
                         final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
                         final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
                         final Level level = Level.toLevel(fileLogLevel);
+                        fileAppender.setThreshold(level);
                         fileAppender.setMaxBackupIndex(PwmConstants.LOGGING_FILE_MAX_ROLLOVER);
                         fileAppender.setMaxFileSize(PwmConstants.LOGGING_FILE_MAX_SIZE);
                         pwmPackageLogger.addAppender(fileAppender);
-                        pwmPackageLogger.setLevel(level);
                         chaiPackageLogger.addAppender(fileAppender);
-                        chaiPackageLogger.setLevel(level);
                         casPackageLogger.addAppender(fileAppender);
-                        casPackageLogger.setLevel(level);
                         LOGGER.debug("successfully initialized default file log4j config at log level " + level.toString());
                     } catch (IOException e) {
                         LOGGER.debug("error initializing RollingFileAppender: " + e.getMessage());
