@@ -50,14 +50,12 @@
 
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/private/<pwm:url url='ChangePassword'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+                  enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input tabindex="1" type="submit" name="change_btn" class="btn"
                        value="    <pwm:Display key="Button_ChangePassword"/>    "/>
             </form>
-            <br class="clear"/>
-
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+                  enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
                        value="    <pwm:Display key="Button_Continue"/>    "/>
                 <input type="hidden"
