@@ -355,15 +355,15 @@ function uploadConfigDialog() {
 
 function initConfigPage() {
     require(["dojo"],function(dojo){
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data?settings=true&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/settings";
         dojo.xhrGet({
             url: displayStringsUrl,
             handleAs: 'json',
             timeout: 30 * 1000,
             headers: { "Accept": "application/json" },
             load: function(data) {
-                for (var settingKey in data['data']['PWM_SETTINGS']) {
-                    PWM_SETTINGS[settingKey] = data['data']['PWM_SETTINGS'][settingKey];
+                for (var settingKey in data['data']) {
+                    PWM_SETTINGS[settingKey] = data['data'][settingKey];
                 }
             },
             error: function(error) {

@@ -50,7 +50,7 @@
                    value="<pwm:ParamValue name='username'/>" autofocus/>
 
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield"/>
+            <input type="password" name="password" id="password" required="required" class="inputfield"/>
 
             <div id="buttonbar">
                 <input type="submit" class="btn"

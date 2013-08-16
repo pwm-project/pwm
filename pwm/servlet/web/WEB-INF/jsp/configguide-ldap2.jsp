@@ -85,7 +85,8 @@
                 </div>
                 <div class="setting_body">
                     Enter the LDAP search filter to use for determining if a user should be given administrator access to this system.  Any user
-                    that authenticates and matches this filter will be allowed administrative access.
+                    that authenticates and matches this filter will be allowed administrative access.  The example below uses group membership
+                    but any valid LDAP search filter can be used.
                     <div class="setting_item">
                         <b>Administrator Search Filter</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>

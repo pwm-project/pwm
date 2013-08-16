@@ -36,7 +36,7 @@ function validatePasswords(userDN)
     getObject("password_button").disabled = true;
     if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
         updateDisplay(null);
-        getObject('password2').disabled = true;
+        //getObject('password2').disabled = true;
         return;
     }
 
@@ -76,7 +76,7 @@ function updateDisplay(resultInfo) {
         showSuccess(showString('Display_PasswordPrompt'));
         markStrength(0);
         markConfirmationCheck(null);
-        getObject('password2').disabled = false;
+        //getObject('password2').disabled = false;
         return;
     }
 
@@ -88,7 +88,7 @@ function updateDisplay(resultInfo) {
     }
 
     if (resultInfo["passed"] == true) {
-        getObject('password2').disabled = false;
+        //getObject('password2').disabled = false;
         if (resultInfo["match"] == "MATCH") {
             getObject("password_button").disabled = false;
             showSuccess(message);
@@ -97,7 +97,7 @@ function updateDisplay(resultInfo) {
             showInfo(message);
         }
     } else {
-        getObject('password2').disabled = true;
+        //getObject('password2').disabled = true;
         getObject("password_button").disabled = true;
         showError(message);
     }
@@ -333,7 +333,7 @@ function fetchRandoms(randomConfig) {
 
 function startupChangePasswordPage()
 {
-    getObject('password2').disabled = true;
+    //getObject('password2').disabled = true;
     markStrength(0);
 
     // show the auto generate password panel

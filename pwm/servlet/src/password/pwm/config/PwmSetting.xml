@@ -35,7 +35,7 @@
     </setting>
     <setting key="pwm.versionCheck.enable" level="0" required="true">
         <label>Enable Version Checking</label>
-        <description><![CDATA[Allow periodically checks for new versions.]]></description>
+        <description><![CDATA[Allow periodically checks for new versions.  If a new version is detected, an item will be shown on the health check.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -140,7 +140,7 @@
     </setting>
     <setting key="password.showAutoGen" level="0" required="true">
         <label>Show Auto Generate Randoms</label>
-        <description><![CDATA[If true, the user will see the auto-generate random password link on the change password screen.]]></description>
+        <description><![CDATA[If set to true, a link will be displayed to users during the change password process to display a list of auto-generated sample passwords that are allowed by the configured password policies.  The user will have the option to select and use one of the values in the list.  If this option feature is enabled the user is not forced to choose a password from the list.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -360,7 +360,7 @@
     </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
-        <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because it has a valid commercial certificate, or because you have manually added the public key certificate from the tree to the Java keystore.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Avoid using a virtual IP address (vip) or load balancer device whenever possible.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
+        <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because you have manually added the public key certificate from the tree to the Java keystore or the certificate is imported into the setting <i>LDAP Server Certificates</i>.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Do not use a load-balancing device for LDAP high availability, instead use the built in LDAP server fail-over functionality.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <default>
             <value><![CDATA[ldaps://ldap.example.com:636]]></value>
@@ -374,7 +374,7 @@
     </setting>
     <setting key="ldap.serverCerts" level="2" required="true">
         <label>LDAP Certificates</label>
-        <description><![CDATA[LDAP Server Certificates]]></description>
+        <description><![CDATA[LDAP Server Certificates.  These certificates have are stored in the configuration file and used to validate the identity of your LDAP server.]]></description>
         <default/>
     </setting>
     <setting key="ldap.promiscuousSSL" level="1" required="true">
@@ -1359,9 +1359,9 @@
     </setting>
     <setting key="display.showDetailedErrors" level="0" required="true">
         <label>Show Detailed Error Messages</label>
-        <description><![CDATA[While useful for administrators, especially during configuration, showing detailed error messages to users may be confusing as well as a security hazard.]]></description>
+        <description><![CDATA[While useful for administrators, especially during configuration, showing detailed error messages to users may be confusing as well as a security hazard.  This setting is ignored until the configuration is closed.]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting key="security.sso.authHeaderName" level="0">
@@ -1369,6 +1369,13 @@
         <description><![CDATA[With this setting enabled, an upstream server can be configured to allow autologin with a only a username, a password is not required.  This setting controls the name of the HTTP header.  When used, a user will likely be prompted for their password to access certain functionality.]]></description>
         <default>
             <value/>
+        </default>
+    </setting>
+    <setting key="session.maxSeconds" level="1">
+        <label>Maximum Session Duration</label>
+        <description><![CDATA[Maximum duration of a session (in seconds).  Having a maximum session lifetime prevents certain types of long-term session fixation attacks.]]></description>
+        <default>
+            <value>28800</value>
         </default>
     </setting>
     <setting key="audit.syslog.servers" level="0" required="false">

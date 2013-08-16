@@ -28,8 +28,10 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.util.operations.UserDataReader;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -351,5 +353,16 @@ public class MacroMachine {
 
     public static interface StringReplacer {
         public String replace(final String matchedMacro, final String newValue);
+    }
+
+    public static class URLEncoderReplacer implements StringReplacer {
+        public String replace(String matchedMacro, String newValue) {
+            try {
+                return URLEncoder.encode(newValue, "UTF8"); // make sure replacement values are properly encoded
+            } catch (UnsupportedEncodingException e) {
+                LOGGER.error("unexpected error attempting to url-encode macro values: " + e.getMessage(),e);
+            }
+            return newValue;
+        }
     }
 }

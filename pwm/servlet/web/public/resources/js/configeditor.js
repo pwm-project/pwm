@@ -1322,7 +1322,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
 
             bodyText += '</tr></table>';
             bodyText += '<button name="change" class="btn" id="password_button" onclick="' + writeFunction + '" disabled="true"/>';
-            bodyText += 'Set Password</button>&nbsp;&nbsp;';
+            bodyText += 'Store Password</button>&nbsp;&nbsp;';
             bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom(\'' + settingKey + '\')">Random</button>';
             bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="32"/>Length';
             bodyText += '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit/form/CheckBox" value="10"/>Special';
@@ -1332,7 +1332,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
             clearDijitWidget('dialogPopup');
             var theDialog = new dijit.Dialog({
                 id: 'dialogPopup',
-                title: 'Set Password',
+                title: 'Store Password',
                 style: "width: 550px",
                 content: bodyText,
                 hide: function(){
@@ -1619,7 +1619,7 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Options for ' + clientSettingCache[keyName][iteration]['name'],
-            style: "width: 450px",
+            style: "width: 650px",
             content: bodyText,
             hide: function(){
                 clearDijitWidget('dialogPopup');

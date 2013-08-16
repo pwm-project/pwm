@@ -113,7 +113,6 @@ public abstract class PwmConstants {
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
-    public static final int INTRUDER_TABLE_SIZE_VIEW_MAX = Integer.parseInt(readPwmConstantsBundle("intruderTableSizeViewMax"));
     public static final long INTRUDER_RETENTION_TIME_MS = Long.parseLong(readPwmConstantsBundle("intruderRetentionTimeMS"));
     public static final long INTRUDER_CLEANUP_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("intruderCleanupFrequencyMS"));
     public static final long INTRUDER_MIN_DELAY_PENALTY_MS = Long.parseLong(readPwmConstantsBundle("intruderMinimumDelayPenaltyMS"));

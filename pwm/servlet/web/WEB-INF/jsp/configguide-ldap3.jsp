@@ -52,10 +52,10 @@
             <br/>
             <div id="outline_ldap" class="setting_outline">
                 <div class="setting_title">
-                    LDAP Test User
+                    LDAP Test User (Optional)
                 </div>
                 <div class="setting_body">
-                Please enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privledges and policies
+                Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privledges and policies
                 as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
                 validate the configuration and health of both the LDAP server and this server.
                 <br/><br/>

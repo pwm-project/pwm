@@ -64,6 +64,7 @@ public class SessionStateBean implements PwmSessionBean {
     private Locale locale;
     private String sessionID;
     private String theme;
+    private String lastRequestURL;
 
     private FormMap lastParameterValues = new FormMap();
     private Map<String, ShortcutItem> visibleShortcutItems;
@@ -75,7 +76,10 @@ public class SessionStateBean implements PwmSessionBean {
     private boolean passedCaptcha;
     private boolean debugInitialized;
     private boolean sessionVerified;
+
     private Date pageLeaveNoticeTime;
+    private Date sessionCreationTime = new Date();
+    private Date sessionLastAccessedTime = new Date();
 
     private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
 
@@ -265,6 +269,30 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setPageLeaveNoticeTime(final Date pageLeaveNoticeTime) {
         this.pageLeaveNoticeTime = pageLeaveNoticeTime;
+    }
+
+    public Date getSessionCreationTime() {
+        return sessionCreationTime;
+    }
+
+    public void setSessionCreationTime(Date sessionCreationTime) {
+        this.sessionCreationTime = sessionCreationTime;
+    }
+
+    public Date getSessionLastAccessedTime() {
+        return sessionLastAccessedTime;
+    }
+
+    public void setSessionLastAccessedTime(Date sessionLastAccessedTime) {
+        this.sessionLastAccessedTime = sessionLastAccessedTime;
+    }
+
+    public String getLastRequestURL() {
+        return lastRequestURL;
+    }
+
+    public void setLastRequestURL(String lastRequestURL) {
+        this.lastRequestURL = lastRequestURL;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

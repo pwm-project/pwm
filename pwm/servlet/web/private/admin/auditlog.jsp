@@ -20,9 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.event.AuditRecord" %>
-<%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -36,92 +33,16 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <%
-            final Gson gson = new Gson();
-            final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
-            final int maxResults = password.pwm.Validator.readIntegerFromRequest(request, "maxResults", 1000);
-            boolean maxResultsExceeded = false;
-            final List<Map<String,String>> gridData = new ArrayList<Map<String, String>>();
-            for (Iterator<AuditRecord> iterator = pwmApplicationHeader.getAuditManager().readLocalDB(); iterator.hasNext(); ) {
-                final AuditRecord loopRecord = iterator.next();
-                try {
-                    final Map<String, String> rowData = new HashMap<String, String>();
-                    rowData.put("timestamp", timeFormat.format(loopRecord.getTimestamp()));
-                    rowData.put("perpID", loopRecord.getPerpetratorID());
-                    rowData.put("perpDN", loopRecord.getPerpetratorDN());
-                    rowData.put("event", loopRecord.getEventCode().toString());
-                    rowData.put("message",loopRecord.getMessage());
-                    rowData.put("targetID",loopRecord.getTargetID());
-                    rowData.put("targetDN",loopRecord.getTargetDN());
-                    rowData.put("srcIP",loopRecord.getSourceAddress());
-                    rowData.put("srcHost",loopRecord.getSourceHost());
-                    gridData.add(rowData);
-                } catch (IllegalStateException e) { /* ignore */ }
-                if (gridData.size() >= maxResults) {
-                    maxResultsExceeded = true;
-                    break;
-                }
-            }
-        %>
-        <div id="WaitDialogBlank">&nbsp;</div>
         <div id="grid">
         </div>
-        <script>
-            function startupPage() {
-                var headers = {
-                    "timestamp":"Time",
-                    "perpID":"Perpetrator ID",
-                    "perpDN":"Perpetrator DN",
-                    "event":"Event",
-                    "message":"Message",
-                    "targetID":"Target ID",
-                    "targetDN":"Target DN",
-                    "srcIP":"Source Address",
-                    "srcHost":"Source Host"
-                };
-                require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                        function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                            var data = <%=gson.toJson(gridData)%>;
-                            var columnHeaders = headers;
-
-                            // Create a new constructor by mixing in the components
-                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
-
-                            // Now, create an instance of our custom grid which
-                            // have the features we added!
-                            var grid = new CustomGrid({
-                                columns: columnHeaders
-                            }, "grid");
-                            grid.set("sort","timestamp");
-                            grid.renderArray(data);
-
-                            // unclick superfluous fields
-                            getObject('grid-hider-menu-check-perpDN').click();
-                            getObject('grid-hider-menu-check-message').click();
-                            getObject('grid-hider-menu-check-targetDN').click();
-                            getObject('grid-hider-menu-check-srcHost').click();
-
-                            getObject('WaitDialogBlank').style.display = 'none';
-                        });
-            };
-        </script>
         <style scoped="scoped">
             .grid { height: auto; }
-            .grid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
         </style>
-        <% if (maxResultsExceeded) { %>
-        <div style="width:100%; text-align: center">
-            <pwm:Display key="Display_SearchResultsExceeded"/>
-        </div>
-        <% } %>
         <div id="buttonbar">
-            <form action="auditlog.jsp" method="GET">
-                <input name="maxResults" id="maxResults" value="<%=maxResults%>" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
-                       data-dojo-props="constraints:{min:10,max:10000000},smallDelta:100"/>
+                <input name="maxResults" id="maxResults" value="10000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                       data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                 Rows
-                <button class="btn" type="submit">Refresh</button>
-            </form>
+                <button class="btn" type="button" onclick="refreshData()">Refresh</button>
             <br/>
             <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                 <button type="submit" class="btn">Download as CSV</button>
@@ -133,20 +54,71 @@
     <div class="push"></div>
 </div>
 <script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
-            dojoParser.parse();
-            startupPage();
-        });
-    });
-    function refresh() {
-        require(["dijit/registry"],function(registry){
-            showWaitDialog(null,null,function(){
-                var maxResults = registry.byId('maxResults').get('value');
-                window.location = 'auditlog.jsp?maxResults=' + maxResults;
+    var grid;
+    var headers = {
+        "timestamp":"Time",
+        "perpID":"Perpetrator ID",
+        "perpDN":"Perpetrator DN",
+        "event":"Event",
+        "message":"Message",
+        "targetID":"Target ID",
+        "targetDN":"Target DN",
+        "srcIP":"Source Address",
+        "srcHost":"Source Host"
+    };
+
+    function initGrid() {
+        require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                    var columnHeaders = headers;
+
+                    // Create a new constructor by mixing in the components
+                    var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                    // Now, create an instance of our custom grid
+                    grid = new CustomGrid({
+                        columns: columnHeaders
+                    }, "grid");
+
+                    // unclick superfluous fields
+                    getObject('grid-hider-menu-check-perpDN').click();
+                    getObject('grid-hider-menu-check-message').click();
+                    getObject('grid-hider-menu-check-targetDN').click();
+                    getObject('grid-hider-menu-check-srcHost').click();
+
+                    refreshData();
+                });
+    }
+
+    function refreshData() {
+        showWaitDialog();
+        require(["dojo"],function(dojo){
+            grid.renderArray([]);
+            var maximum = getObject('maxResults').value;
+            var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
+            dojo.xhrGet({
+                url: url,
+                preventCache: true,
+                handleAs: 'json',
+                load: function(data) {
+                    closeWaitDialog();
+                    grid.renderArray(data['data']);
+                    grid.set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+                },
+                error: function(error) {
+                    closeWaitDialog();
+                    alert('unable to load data: ' + error);
+                }
             });
         });
     }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
+            dojoParser.parse();
+            initGrid();
+        });
+    });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

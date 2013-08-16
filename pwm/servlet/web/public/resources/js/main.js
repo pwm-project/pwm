@@ -1219,7 +1219,7 @@ function itemCount(o) {
 var ShowHidePasswordHandler = {};
 ShowHidePasswordHandler.idSuffix = '-eye-icon';
 ShowHidePasswordHandler.toggleState = {};
-ShowHidePasswordHandler.toggleRevertTimeout = 10 * 1000;
+ShowHidePasswordHandler.toggleRevertTimeout = 15 * 1000;
 
 ShowHidePasswordHandler.initAllForms = function() {
     if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
@@ -1316,6 +1316,29 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName, passwordsMasked) {
     });
 };
 
+function toggleFullscreen(iconObj,divName) {
+    var obj = getObject(divName);
+
+    var storedStyleName = 'fullscreen-style-' + divName;
+    if (PWM_GLOBAL[storedStyleName]) {
+        iconObj.className = "icon-fullscreen";
+        obj.style = PWM_GLOBAL[storedStyleName];
+        delete PWM_GLOBAL[storedStyleName];
+    } else {
+        PWM_GLOBAL[storedStyleName] = obj.style;
+        iconObj.className = "icon-resize-full";
+        obj.style.position = 'fixed';
+        obj.style.top = '0';
+        obj.style.left = '0';
+        obj.style.bottom = '0';
+        obj.style.right = '0';
+        obj.style.zIndex = '100';
+        obj.style.background = 'white';
+    }
+    if (PWM_GLOBAL['displayGrid']) {
+        PWM_GLOBAL['displayGrid'].resize();
+    }
+}
 
 
 

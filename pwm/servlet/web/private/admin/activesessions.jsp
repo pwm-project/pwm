@@ -20,11 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -38,81 +33,89 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <br/>
-        <%
-            final Gson gson = new Gson();
-            final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-            timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
-            final int maxResults = 100000;
-            boolean maxResultsExceeded = false;
-            final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-            final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
-            final List<Map<String,String>> gridData = new ArrayList<Map<String, String>>();
-            for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && !maxResultsExceeded;) {
-                final PwmSession loopSession = iterator.next();
-                try {
-                    final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-                    final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-                    final Map<String, String> rowData = new HashMap<String, String>();
-                    rowData.put("label", loopSession.getSessionStateBean().getSessionID());
-                    rowData.put("createTime", timeFormat.format(new Date(loopSession.getCreationTime())));
-                    rowData.put("idle", TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString());
-                    rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
-                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "");
-                    rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUserID() : "");
-                    rowData.put("srcAddress", loopSsBean.getSrcAddress());
-                    rowData.put("srcHost", loopSsBean.getSrcHostname());
-                    gridData.add(rowData);
-                } catch (IllegalStateException e) { /* ignore */ }
-                if (gridData.size() >= maxResults) {
-                    maxResultsExceeded = true;
-                }
-            }
-        %>
         <div id="grid">
         </div>
-        <script>
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                require(["dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                        function(declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-
-                            var headers = {"createTime":"Create Time","label":"Label","idle":"Idle","srcAddress":"Address","locale":"Locale",
-                                "userID":"User ID","userDN":"User DN","srcHost":"Host"};
-
-                            var data = <%=gson.toJson(gridData)%>;
-                            var columnHeaders = headers;
-
-                            // Create a new constructor by mixing in the components
-                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
-
-                            // Now, create an instance of our custom grid which
-                            // have the features we added!
-                            var grid = new CustomGrid({
-                                columns: columnHeaders
-                            }, "grid");
-                            grid.renderArray(data);
-                            grid.set("sort","createTime");
-
-                            // unclick superfluous fields
-                            getObject('grid-hider-menu-check-label').click();
-                            getObject('grid-hider-menu-check-userDN').click();
-                            getObject('grid-hider-menu-check-srcHost').click();
-                            getObject('grid-hider-menu-check-locale').click();
-                        });
-            });
-        </script>
         <style scoped="scoped">
             .grid { height: auto; }
             .grid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
         </style>
-        <% if (maxResultsExceeded) { %>
-        <div style="width:100%; text-align: center">
-            <pwm:Display key="Display_SearchResultsExceeded"/>
+        <div id="buttonbar">
+                <input name="maxResults" id="maxResults" value="10000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                       data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                Rows
+                <button class="btn" type="button" onclick="refreshData()">Refresh</button>
         </div>
-        <% } %>
     </div>
     <div class="push"></div>
 </div>
+<script>
+    var grid;
+    var headers = {
+        "createTime":"Create Time",
+        "label":"Label",
+        "idle":"Idle",
+        "srcAddress":"Address",
+        "locale":"Locale",
+        "userID":"User ID",
+        "userDN":"User DN",
+        "srcHost":"Host",
+        "lastUrl":"Last URL"
+    };
+
+    function initGrid() {
+        require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
+                function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                    var columnHeaders = headers;
+
+                    // Create a new constructor by mixing in the components
+                    var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+                    // Now, create an instance of our custom grid
+                    grid = new CustomGrid({
+                        columns: columnHeaders
+                    }, "grid");
+
+                    // unclick superfluous fields
+                    getObject('grid-hider-menu-check-label').click();
+                    getObject('grid-hider-menu-check-userDN').click();
+                    getObject('grid-hider-menu-check-srcHost').click();
+                    getObject('grid-hider-menu-check-locale').click();
+                    getObject('grid-hider-menu-check-lastUrl').click();
+
+                    refreshData();
+                });
+    }
+
+    function refreshData() {
+        showWaitDialog();
+        require(["dojo"],function(dojo){
+            grid.renderArray([]);
+            var maximum = getObject('maxResults').value;
+            var url = PWM_GLOBAL['url-restservice'] + "/app-data/session?maximum=" + maximum;
+            dojo.xhrGet({
+                url: url,
+                preventCache: true,
+                handleAs: 'json',
+                load: function(data) {
+                    closeWaitDialog();
+                    grid.renderArray(data['data']);
+                    grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
+                },
+                error: function(error) {
+                    closeWaitDialog();
+                    alert('unable to load data: ' + error);
+                }
+            });
+        });
+    }
+
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
+            dojoParser.parse();
+            initGrid();
+        });
+    });
+</script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

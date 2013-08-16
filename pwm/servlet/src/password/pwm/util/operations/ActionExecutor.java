@@ -124,17 +124,8 @@ public class ActionExecutor {
         try {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
-                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, userDataReader, new MacroMachine.StringReplacer() {
-                    public String replace(String matchedMacro, String newValue) {
-                        try {
-                            return URLEncoder.encode(newValue, "UTF8"); // make sure replacement values are properly encoded
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                        }
-                        return newValue;
-                    }
-                });
-                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean, userDataReader);
+                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, userDataReader, new MacroMachine.URLEncoderReplacer());
+                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean, userDataReader, new MacroMachine.URLEncoderReplacer());
             }
 
             LOGGER.debug("sending HTTP request: " + url);

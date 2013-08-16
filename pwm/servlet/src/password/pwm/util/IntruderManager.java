@@ -42,6 +42,8 @@ import password.pwm.util.stats.StatisticsManager;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 // ------------------------------ FIELDS ------------------------------
@@ -303,15 +305,43 @@ public class IntruderManager implements Serializable, PwmService {
         return userManager.recordCount();
     }
 
-    public RecordIterator userRecordIterator() throws PwmOperationalException {
-        return userManager.iterator();
+    public List<Map<String,Object>> getUserRecords(int maximum)
+            throws PwmOperationalException
+    {
+        return getRecords(userManager,maximum);
     }
 
-    public RecordIterator addressRecordIterator() throws PwmOperationalException {
-        return addressManager.iterator();
+    public List<Map<String,Object>> getAddressRecords(int maximum)
+            throws PwmOperationalException
+    {
+        return getRecords(addressManager,maximum);
     }
 
-    public static class IntruderRecord implements Serializable {
+    private List<Map<String,Object>> getRecords(RecordManager recordManager, int maximum)
+            throws PwmOperationalException
+    {
+        final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        final ArrayList<Map<String,Object>> returnList = new ArrayList<Map<String,Object>>();
+        for (final IntruderManager.RecordIterator theIterator = recordManager.iterator(); theIterator.hasNext() && returnList.size() < maximum; ) {
+            final IntruderManager.IntruderRecord intruderRecord = theIterator.next();
+            if (intruderRecord != null) {
+                final Map<String,Object> rowData = new HashMap<String,Object>();
+                rowData.put("subject",intruderRecord.getSubject());
+                rowData.put("timestamp",dateFormat.format(intruderRecord.getTimeStamp()));
+                rowData.put("count",String.valueOf(intruderRecord.getAttemptCount()));
+                try {
+                    check(intruderRecord.getSubject(), intruderRecord.getSubject(), "",null);
+                    rowData.put("status","watching");
+                } catch (PwmException e) {
+                    rowData.put("status","locked");
+                }
+                returnList.add(rowData);
+            }
+        }
+        return returnList;
+    }
+
+    private static class IntruderRecord implements Serializable {
         public enum Type { username, userDN, address }
         private Type type;
         private String subject;

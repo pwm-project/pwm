@@ -143,6 +143,7 @@ public enum PwmError {
     ERROR_SYSLOG_WRITE_ERROR("Error_SyslogWriteError",5060),
     ERROR_TOO_MANY_THREADS("Error_TooManyThreads",5061),
     ERROR_PASSWORD_REQUIRED("Error_PasswordRequired",5062),
+    ERROR_SECURITY_VIOLATION("Error_SecurityViolation",5063),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

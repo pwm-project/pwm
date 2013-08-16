@@ -266,7 +266,7 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
-        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Set Password</button>
+        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
         <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="showConfirmDialog(null,'Clear password for setting <%=loopSetting.getLabel(locale)%>?',function() {resetSetting('<%=loopSetting.getKey()%>');showInfo('<%=loopSetting.getLabel(locale)%> password cleared')})">Clear Password</button>
     </div>
     <script type="text/javascript">

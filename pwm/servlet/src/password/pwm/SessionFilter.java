@@ -112,10 +112,36 @@ public class SessionFilter implements Filter {
             final String remoteAddress = ServletHelper.readUserIPAddress(req, pwmSession);
             if (!ssBean.getSrcAddress().equals(remoteAddress)) {
                 final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
                 LOGGER.error(errorInformation.toDebugStr());
                 ssBean.setSessionError(errorInformation);
                 ServletHelper.forwardToErrorPage(req,resp,true);
+                return;
+            }
+        }
+
+        // mark last url
+        ssBean.setLastRequestURL(req.getRequestURI());
+
+        // mark first request
+        if (ssBean.getSessionCreationTime() == null) {
+            ssBean.setSessionCreationTime(new Date());
+        }
+
+        // mark last request time.
+        ssBean.setSessionLastAccessedTime(new Date());
+
+        // check total time.
+        {
+            final Long maxSessionSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SESSION_MAX_SECONDS);
+            final TimeDuration sessionAge = TimeDuration.fromCurrent(ssBean.getSessionCreationTime());
+            if (sessionAge.getTotalSeconds() > maxSessionSeconds) {
+                final String errorMsg = "session age (" + sessionAge.asCompactString() + ") is longer than maximum permitted age";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                LOGGER.error(errorInformation.toDebugStr());
+                ssBean.setSessionError(errorInformation);
+                ServletHelper.forwardToErrorPage(req,resp,true);
+                return;
             }
         }
 
@@ -238,10 +264,12 @@ public class SessionFilter implements Filter {
             throw new ServletException(e);
         }
 
+        // update last request time.
+        ssBean.setSessionLastAccessedTime(new Date());
+
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_REQUESTS);
         }
-
     }
 
     public void destroy() {

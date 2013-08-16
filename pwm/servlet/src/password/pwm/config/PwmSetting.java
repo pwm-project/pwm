@@ -409,6 +409,8 @@ public enum PwmSetting {
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     SSO_AUTH_HEADER_NAME(
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, Category.SECURITY),
+    SESSION_MAX_SECONDS(
+            "session.maxSeconds", PwmSettingSyntax.NUMERIC, Category.SECURITY),
 
 
     // token settings
