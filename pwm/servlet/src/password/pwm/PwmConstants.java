@@ -217,8 +217,6 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_CONFIG_MANAGER = "ConfigManager";
     public static final String URL_SERVLET_CONFIG_GUIDE = "ConfigGuide";
 
-    public static final String URL_THEMES = "/public/resources/themes/";
-
     public static final String PARAM_ACTION_REQUEST = "processAction";
     public static final String PARAM_VERIFICATION_KEY = "session_verification_key";
     public static final String PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
@@ -235,6 +233,7 @@ public abstract class PwmConstants {
     public static final String COOKIE_LOCALE = readPwmConstantsBundle("cookieName.locale");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
+    public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{

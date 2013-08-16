@@ -490,7 +490,7 @@ public class Helper {
     }
 
     public static boolean testEmailAddress(final String address) {
-        final Pattern pattern = Pattern.compile("^[_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*$");
+        final Pattern pattern = Pattern.compile(PwmConstants.EMAIL_REGEX_MATCH);
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
     }
