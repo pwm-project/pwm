@@ -45,7 +45,7 @@
         </div>
         <br/>
         <div id="buttonbar">
-            <input name="maxResults" id="maxResults" value="10000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+            <input name="maxResults" id="maxResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
                    data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
             Rows
             <button class="btn" type="button" onclick="refreshData()">Refresh</button>
@@ -86,7 +86,7 @@
             addressGrid.renderArray([]);
             addressGrid.renderArray([]);
             var maximum = getObject('maxResults').value;
-            var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum;
+            var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum  + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             dojo.xhrGet({
                 url: url,
                 preventCache: true,

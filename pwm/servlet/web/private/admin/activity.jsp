@@ -116,40 +116,40 @@
         </table>
         <br/>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="Authentications">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute">
                 <table class="tablemain">
                     <tr>
                         <td colspan="10" style="margin:0; padding:0">
                             <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Last Minute</div>
-                                <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Last Hour</div>
-                                <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Last Day</div>
+                                <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Authentications</div>
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Password Changes</div>
+                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Intruder Attempts</div>
                             </div>
                         </td>
                     </tr>
                 </table>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Password Changes">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour">
                 <table class="tablemain">
                     <tr>
                         <td colspan="10" style="margin:0; padding:0">
                             <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Last Minute</div>
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Last Hour</div>
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Last Day</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Intruder Attempts">
-                <table class="tablemain">
-                    <tr>
-                        <td colspan="10" style="margin:0; padding:0">
-                            <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Last Minute</div>
+                                <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
                                 <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Last Hour</div>
-                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Last Day</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Last Day">
+                <table class="tablemain">
+                    <tr>
+                        <td colspan="10" style="margin:0; padding:0">
+                            <div style="max-width: 600px; text-align: center">
+                                <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Authentications</div>
+                                <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Password Changes</div>
+                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Intruder Attempts</div>
                             </div>
                         </td>
                     </tr>
