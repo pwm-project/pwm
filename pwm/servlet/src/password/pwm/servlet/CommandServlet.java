@@ -349,7 +349,8 @@ public class CommandServlet extends TopServlet {
             }
 
             // log the user out if our finish action is currently set to log out.
-            if (ssBean.getFinishAction() == SessionStateBean.FINISH_ACTION.LOGOUT) {
+            final boolean forceLogoutOnChange = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE);
+            if (forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified()) {
                 LOGGER.trace(pwmSession, "logging out user; password has been modified");
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));
                 return;
@@ -359,7 +360,6 @@ public class CommandServlet extends TopServlet {
         final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
-        //ServletHelper.forwardToRedirectPage(req, resp, redirectURL);
     }
 
     private void outputUserReportCsv(final HttpServletRequest req, final HttpServletResponse resp)

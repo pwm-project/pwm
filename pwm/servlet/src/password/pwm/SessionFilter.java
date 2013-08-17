@@ -170,6 +170,11 @@ public class SessionFilter implements Filter {
             return;
         }
 
+        // update the privateUrlAccessed flag
+        if (PwmServletURLHelper.isPrivateUrl(req)) {
+            ssBean.setPrivateUrlAccessed(true);
+        }
+
         // initialize the session's locale
         if (ssBean.getLocale() == null) {
             initializeLocaleAndTheme(req, resp, pwmApplication, pwmSession);

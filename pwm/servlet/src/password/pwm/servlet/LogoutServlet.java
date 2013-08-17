@@ -24,6 +24,7 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -41,8 +42,8 @@ public class LogoutServlet extends TopServlet {
     {
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("processing logout request from user");
-        final String idleParam = Validator.readStringFromRequest(req, "idle");
-        if (Boolean.parseBoolean(idleParam)) {
+        final boolean logoutDueToIdle = Validator.readBooleanFromRequest(req, "idle");
+        if (logoutDueToIdle) {
             debugMsg.append(" due to client idle timeout");
         }
 
@@ -65,8 +66,20 @@ public class LogoutServlet extends TopServlet {
         { // if the logout url hasn't been set then try seeing if one has been configured.
             final String configuredLogoutURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT);
             if (configuredLogoutURL != null && configuredLogoutURL.length() > 0) {
-                LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + configuredLogoutURL );
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(configuredLogoutURL, req, resp));
+
+                // construct params
+                final StringBuilder logoutURL = new StringBuilder();
+                logoutURL.append(configuredLogoutURL);
+                logoutURL.append(configuredLogoutURL.contains("?") ? "&" : "?");
+                logoutURL.append("idle=");
+                logoutURL.append(logoutDueToIdle);
+                logoutURL.append("&passwordModified=");
+                logoutURL.append(pwmSession.getSessionStateBean().isPasswordModified());
+                logoutURL.append("&publicOnly=");
+                logoutURL.append(!pwmSession.getSessionStateBean().isPrivateUrlAccessed());
+
+                LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL.toString());
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(logoutURL.toString(), req, resp));
                 pwmSession.invalidate();
                 return;
             }

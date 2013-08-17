@@ -291,6 +291,9 @@ public class PasswordUtility {
         // clear out the password change bean
         pwmSession.clearChangePasswordBean();
 
+        // update the session state bean's password modified flag
+        pwmSession.getSessionStateBean().setPasswordModified(true);
+
         // update the uibean with the user's new password
         uiBean.setUserCurrentPassword(newPassword);
 

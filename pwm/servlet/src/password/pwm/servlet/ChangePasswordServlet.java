@@ -329,10 +329,6 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE)) {
-            ssBean.setFinishAction(SessionStateBean.FINISH_ACTION.LOGOUT);
-        }
-
         // send user an email confirmation
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 

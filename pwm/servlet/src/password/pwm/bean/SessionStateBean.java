@@ -81,7 +81,8 @@ public class SessionStateBean implements PwmSessionBean {
     private Date sessionCreationTime = new Date();
     private Date sessionLastAccessedTime = new Date();
 
-    private FINISH_ACTION finishAction = FINISH_ACTION.FORWARD;
+    private boolean passwordModified;
+    private boolean privateUrlAccessed;
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -90,12 +91,20 @@ public class SessionStateBean implements PwmSessionBean {
         regenerateSessionVerificationKey();
     }
 
-    public FINISH_ACTION getFinishAction() {
-        return finishAction;
+    public boolean isPasswordModified() {
+        return passwordModified;
     }
 
-    public void setFinishAction(final FINISH_ACTION finishAction) {
-        this.finishAction = finishAction;
+    public void setPasswordModified(boolean passwordModified) {
+        this.passwordModified = passwordModified;
+    }
+
+    public boolean isPrivateUrlAccessed() {
+        return this.privateUrlAccessed;
+    }
+
+    public void setPrivateUrlAccessed(final boolean privateUrlAccessed) {
+        this.privateUrlAccessed = privateUrlAccessed;
     }
 
     public String getForwardURL() {
@@ -296,10 +305,6 @@ public class SessionStateBean implements PwmSessionBean {
     }
 
     // -------------------------- ENUMERATIONS --------------------------
-
-    public enum FINISH_ACTION {
-        LOGOUT, FORWARD
-    }
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(PwmConstants.HTTP_SESSION_VALIDATION_KEY_LENGTH) + Long.toHexString(System.currentTimeMillis());
