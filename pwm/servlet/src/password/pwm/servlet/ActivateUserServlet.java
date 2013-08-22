@@ -235,19 +235,22 @@ public class ActivateUserServlet extends TopServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        try {
-            theUser.unlock();
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "error unlocking user " + theUser.getEntryDN() + ": " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-            throw new PwmOperationalException(errorInformation);
+        Configuration config = pwmApplication.getConfig();
+        if (config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_UNLOCK)) {
+            try {
+                theUser.unlock();
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "error unlocking user " + theUser.getEntryDN() + ": " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
         }
 
         try {
             {  // execute configured actions
                 final ChaiUser proxiedUser = ChaiFactory.createChaiUser(theUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
                 LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
-                final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
+                final List<ActionConfiguration> configValues = config.readSettingAsAction(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
                 settings.setUserInfoBean(pwmSession.getUserInfoBean());

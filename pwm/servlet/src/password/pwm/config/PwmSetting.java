@@ -591,6 +591,8 @@ public enum PwmSetting {
     // activation settings
     ACTIVATE_USER_ENABLE(
             "activateUser.enable", PwmSettingSyntax.BOOLEAN, Category.ACTIVATION),
+    ACTIVATE_USER_UNLOCK(
+            "activateUser.allowUnlock", PwmSettingSyntax.BOOLEAN, Category.ACTIVATION),
     ACTIVATE_TOKEN_SEND_METHOD(
             "activateUser.token.sendMethod", PwmSettingSyntax.SELECT, Category.ACTIVATION),
     ACTIVATE_AGREEMENT_MESSAGE(

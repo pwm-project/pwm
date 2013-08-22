@@ -2129,6 +2129,13 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="activateUser.allowUnlock" level="0" required="true">
+        <label>Unlock User During Activation</label>
+        <description><![CDATA[Try to unlock the user account during activation.  If true, and if the user's account is locked the user account will be unlocked.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="activateUser.token.verification" level="0" required="true">
         <label>Enable Token Verification</label>
         <description><![CDATA[Send the user a token during activation, and require the value to be entered (or clicked) during the activation process.]]></description>
