@@ -32,7 +32,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
@@ -113,15 +113,15 @@
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:0; margin:0; padding:0" onclick="loadHealth()">
+        <div id="healthBody" style="border:0; margin:0; padding:0" onclick="loadHealth();">
             <div style="text-align: center">
                 <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAPCERT')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAPCERT');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP3')"><pwm:Display key="Button_Next"  bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Next"  bundle="Config"/></button>
         </div>
     </div>
     <div class="push"></div>
@@ -136,7 +136,7 @@
         var healthBodyObj = getObject('healthBody');
         var newHtml = '<div style="text-align: center">';
         newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
-        newHtml += '</div>'
+        newHtml += '</div>';
         healthBodyObj.innerHTML = newHtml;
     }
 
@@ -149,7 +149,7 @@
     });
 
     function checkIfNextEnabled() {
-        if (PWM_GLOBAL['pwm-health'] == 'GOOD' || PWM_GLOBAL['pwm-health'] == 'CONFIG') {
+        if (PWM_GLOBAL['pwm-health'] === 'GOOD' || PWM_GLOBAL['pwm-health'] === 'CONFIG') {
             getObject('button_next').disabled = false;
         } else {
             getObject('button_next').disabled = true;

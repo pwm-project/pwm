@@ -27,7 +27,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
@@ -47,7 +47,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){gotoStep('TEMPLATE')}) } else {gotoStep('TEMPLATE')}"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){gotoStep('TEMPLATE');}); } else {gotoStep('TEMPLATE');};"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
@@ -55,7 +55,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){skipWizard()}) } else {skipWizard()}"><pwm:Display key="MenuItem_ManualConfig" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){skipWizard();}); } else {skipWizard();}"><pwm:Display key="MenuItem_ManualConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
@@ -63,7 +63,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){uploadConfigDialog()}) } else {uploadConfigDialog()}"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){uploadConfigDialog();}); } else {uploadConfigDialog();};"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>

@@ -28,7 +28,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <%
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     final boolean hasBeenModified = configManagerBean.getConfiguration() != null && configManagerBean.getConfiguration().hasBeenModified();
@@ -63,7 +63,7 @@
             <pwm:Display key="MenuDisplay_AlternateUnlockConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
         </p>
         <br/>
-        <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_AlternateNewConfig" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="startConfigurationEditor();"><pwm:Display key="MenuItem_AlternateNewConfig" bundle="Config"/></a>
         <p>
         <p>
         <pwm:Display key="MenuDisplay_AlternateNewConfig" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
@@ -78,13 +78,13 @@
             <input type="hidden" name="processAction" value="generateXml"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
         </form>
-        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit()"><pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="document.forms['generateXml'].submit();"><pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/></a>
         <p>
             <pwm:Display key="MenuDisplay_DownloadConfigRunning" bundle="Config" value1="<%=PwmConstants.CONFIG_FILE_FILENAME%>"/>
         </p>
 
         <br/>
-        <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_ReturnToEditor" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="startConfigurationEditor();"><pwm:Display key="MenuItem_ReturnToEditor" bundle="Config"/></a>
         <p>
             <pwm:Display key="MenuDisplay_ReturnToEditor" bundle="Config"/>
         </p>
@@ -96,7 +96,7 @@
         </form>
 
         <br/>
-        <a class="menubutton" href="#" onclick="document.forms['cancelEditing'].submit()"><pwm:Display key="MenuItem_CancelEdits" bundle="Config"/></a>
+        <a class="menubutton" href="#" onclick="document.forms['cancelEditing'].submit();"><pwm:Display key="MenuItem_CancelEdits" bundle="Config"/></a>
         <p>
             <pwm:Display key="MenuDisplay_CancelEdits" bundle="Config"/>
         </p>

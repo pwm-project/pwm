@@ -30,7 +30,7 @@
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
@@ -63,9 +63,9 @@
         <br/>
 
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('START')"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('START');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP')"><pwm:Display key="Button_Next" bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP');"><pwm:Display key="Button_Next" bundle="Config"/></button>
         </div>
     </div>
     <div class="push"></div>

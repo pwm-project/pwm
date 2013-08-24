@@ -32,7 +32,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="pwmPageLoadHandler();">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
@@ -111,8 +111,8 @@
         </form>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3')"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-            <button class="btn" id="button_next" onclick="gotoStep('END')"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_next" onclick="gotoStep('END');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>
     <div class="push"></div>
@@ -139,7 +139,7 @@
         getObject('confirmCheckMark').style.visibility = 'hidden';
         getObject('confirmCrossMark').style.visibility = 'hidden';
         if (password2.length > 0) {
-            if (password == password2) {
+            if (password === password2) {
                 console.log('yep');
                 getObject('confirmCheckMark').style.visibility = 'visible';
                 getObject('confirmCrossMark').style.visibility = 'hidden';
