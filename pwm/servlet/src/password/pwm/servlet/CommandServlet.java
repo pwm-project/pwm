@@ -331,6 +331,14 @@ public class CommandServlet extends TopServlet {
                 return;
             }
 
+            // check if password expiration is within warn period
+            if (uiBean.getPasswordState().isWarnPeriod() && !Validator.readStringFromRequest(req, "passwordWarn").equalsIgnoreCase("skip")) {
+                LOGGER.info(pwmSession, "password expiration is within warn period, redirecting to warn screen");
+                final String passwordWarnURL = req.getContextPath() + "/" + PwmConstants.URL_JSP_PASSWORD_WARN;
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(passwordWarnURL, req, resp));
+                return;
+            }
+
             //check if we force response configuration, and user requires it.
             if (uiBean.isRequiresResponseConfig() && (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirecting to setupresponses page");

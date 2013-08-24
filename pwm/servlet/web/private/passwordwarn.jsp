@@ -61,6 +61,9 @@
                 <input type="hidden"
                        name="processAction"
                        value="continue"/>
+                <input type="hidden"
+                       name="passwordWarn"
+                       value="skip"/>
             </form>
         </div>
     </div>
