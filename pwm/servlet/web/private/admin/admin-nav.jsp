@@ -71,12 +71,6 @@
                     { // System Menu
                         var systemMenu = new Menu({});
                         systemMenu.addChild(new MenuItem({
-                            label: 'About',
-                            onClick: function() {
-                                showWaitDialog(null,null,function(){window.location = "about.jsp";});
-                            }
-                        }));
-                        systemMenu.addChild(new MenuItem({
                             label: 'System Details',
                             onClick: function() {
                                 showWaitDialog(null,null,function(){window.location = "status.jsp";});

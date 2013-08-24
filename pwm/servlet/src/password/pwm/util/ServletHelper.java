@@ -477,4 +477,172 @@ public class ServletHelper {
 
         pwmSession.setHttpSession(newSession);
     }
+
+    public static void handleRequestInitialization(
+            final HttpServletRequest req,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        // set the auto-config url value.
+        pwmApplication.setAutoSiteURL(req);
+
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        // mark last url
+        ssBean.setLastRequestURL(req.getRequestURI());
+
+        // mark if first request
+        if (ssBean.getSessionCreationTime() == null) {
+            ssBean.setSessionCreationTime(new Date());
+        }
+
+        // mark session ip address
+        if (ssBean.getSrcAddress() == null) {
+            ssBean.setSrcAddress(readUserIPAddress(req, pwmSession));
+        }
+
+        // mark the user's hostname in the session bean
+        if (ssBean.getSrcHostname() == null) {
+            ssBean.setSrcHostname(readUserHostname(req, pwmSession));
+        }
+
+        // update the privateUrlAccessed flag
+        if (PwmServletURLHelper.isPrivateUrl(req)) {
+            ssBean.setPrivateUrlAccessed(true);
+        }
+
+        // initialize the session's locale
+        if (ssBean.getLocale() == null) {
+            initializeLocaleAndTheme(req, pwmApplication, pwmSession);
+        }
+    }
+
+    private static void initializeLocaleAndTheme(
+            final HttpServletRequest req,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        final String localeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_LOCALE);
+        if (PwmConstants.COOKIE_LOCALE.length() > 0 && localeCookie != null) {
+            LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
+            pwmSession.setLocale(localeCookie);
+        } else {
+            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
+            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
+            pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
+            LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
+        }
+
+        final String themeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_THEME);
+        if (PwmConstants.COOKIE_THEME.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
+            LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
+            pwmSession.getSessionStateBean().setTheme(themeCookie);
+        }
+    }
+
+    public static void handleRequestSecurityChecks(
+            final HttpServletRequest req,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+        // check the user's IP address
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.MULTI_IP_SESSION_ALLOWED)) {
+            final String remoteAddress = readUserIPAddress(req, pwmSession);
+            if (!ssBean.getSrcAddress().equals(remoteAddress)) {
+                final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        // check idle time
+        {
+            if (ssBean.getSessionLastAccessedTime() != null) {
+                final Long maxIdleSesconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+                final TimeDuration idleTime = TimeDuration.fromCurrent(ssBean.getSessionLastAccessedTime());
+                if (idleTime.getTotalSeconds() > maxIdleSesconds) {
+                    final String errorMsg = "session idle time (" + idleTime.asCompactString() + ") is longer than maximum idle time age";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
+        }
+
+        // check total time.
+        {
+            if (ssBean.getSessionCreationTime() != null) {
+                final Long maxSessionSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SESSION_MAX_SECONDS);
+                final TimeDuration sessionAge = TimeDuration.fromCurrent(ssBean.getSessionCreationTime());
+                if (sessionAge.getTotalSeconds() > maxSessionSeconds) {
+                    final String errorMsg = "session age (" + sessionAge.asCompactString() + ") is longer than maximum permitted age";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
+        }
+
+        // check headers
+        {
+            final List<String> requiredHeaders = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.REQUIRED_HEADERS);
+            if (requiredHeaders != null && !requiredHeaders.isEmpty()) {
+                final Map<String, String> configuredValues  = Configuration.convertStringListToNameValuePair(requiredHeaders, "=");
+                for (final String key : configuredValues.keySet()) {
+                    if (key != null && key.length() > 0) {
+                        final String requiredValue = configuredValues.get(key);
+                        if (requiredValue != null && requiredValue.length() > 0) {
+                            final String value = Validator.sanatizeInputValue(pwmApplication.getConfig(),req.getHeader(key),1024);
+                            if (value == null || value.length() < 1) {
+                                final String errorMsg = "request is missing required value for header '" + key + "'";
+                                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                                throw new PwmUnrecoverableException(errorInformation);
+                            } else {
+                                if (!requiredValue.equals(value)) {
+                                    final String errorMsg = "request has incorrect required value for header '" + key + "'";
+                                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                                    throw new PwmUnrecoverableException(errorInformation);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check permitted source IP address
+        {
+            final List<String> requiredHeaders = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.IP_PERMITTED_RANGE);
+            if (requiredHeaders != null && !requiredHeaders.isEmpty()) {
+                boolean match = false;
+                final String requestAddress = req.getRemoteAddr();
+                for (int i = 0; i < requiredHeaders.size() && !match; i++) {
+                    String ipMatchString = requiredHeaders.get(i);
+                    try {
+                        final IPMatcher ipMatcher = new IPMatcher(ipMatchString);
+                        try {
+                            if (ipMatcher.match(requestAddress)) {
+                                match = true;
+                            }
+                        } catch (IPMatcher.IPMatcherException e) {
+                            LOGGER.error("error while attempting to match permitted address range '" + ipMatchString + "', error: " + e);
+                        }
+                    } catch (IPMatcher.IPMatcherException e) {
+                        LOGGER.error("error parsing permitted address range '" + ipMatchString + "', error: " + e);
+                    }
+                }
+                if (!match) {
+                    final String errorMsg = "request network address '" + req.getRemoteAddr() + "' does not match any configured permitted source address";
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
+        }
+    }
 }

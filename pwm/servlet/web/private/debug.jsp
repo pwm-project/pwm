@@ -47,6 +47,18 @@
                 <td class="key">AuthType</td>
                 <td><%=pwmSessionHeader.getUserInfoBean().getAuthenticationType()%></td>
             </tr>
+            <tr>
+                <td class="key">Session Creation Time</td>
+                <td><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmSessionHeader.getSessionStateBean().getSessionCreationTime())%></td>
+            </tr>
+            <tr>
+                <td class="key">Session ForwardURL</td>
+                <td><%=pwmSessionHeader.getSessionStateBean().getForwardURL()%></td>
+            </tr>
+            <tr>
+                <td class="key">Session LogoutURL</td>
+                <td><%=pwmSessionHeader.getSessionStateBean().getLogoutURL()%></td>
+            </tr>
         </table>
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"

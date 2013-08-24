@@ -33,6 +33,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 public class LogoutServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LogoutServlet.class);
@@ -77,6 +78,11 @@ public class LogoutServlet extends TopServlet {
                 logoutURL.append(pwmSession.getSessionStateBean().isPasswordModified());
                 logoutURL.append("&publicOnly=");
                 logoutURL.append(!pwmSession.getSessionStateBean().isPrivateUrlAccessed());
+                String sessionForwardURL = pwmSession.getSessionStateBean().getForwardURL();
+                if (sessionForwardURL != null && sessionForwardURL.length() > 0) {
+                    logoutURL.append("&" + PwmConstants.PARAM_FORWARD_URL + "=");
+                    logoutURL.append(URLEncoder.encode(sessionForwardURL, "UTF-8"));
+                }
 
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL.toString());
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(logoutURL.toString(), req, resp));

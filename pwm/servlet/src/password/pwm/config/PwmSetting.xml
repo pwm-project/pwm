@@ -1344,10 +1344,25 @@
         </default>
     </setting>
     <setting key="network.allowMultiIPSession" level="1" required="true">
-        <label>Allow changing source IP addresses during the scope of a user session.</label>
+        <label>Allow Roaming Source Network Address</label>
         <description><![CDATA[If true, Allow a single HTTP session to be accessed from different source IP addresses.  Some load balancing/proxy network infrastructures may require this, but in most cases it should be disabled.  Especially since typical sessions are very short, there is generally not a practical reason for a user to access the same session from multiple client addresses.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="network.requiredHttpHeaders" level="1" required="false">
+        <label>Required HTTP Headers</label>
+        <description><![CDATA[<p>Required HTTP header name and value pairs.  If specified, any HTTP request sent to the server must have these headers to be honored.  This feature is useful if you have a security gateway and wish to only allow sessions from the gateway.</p><p>The settings must be in "name=value" format.</p>]]></description>
+        <default>
+            <value/>
+        </default>
+        <regex>^[a-zA-Z0-9.-]{1,1024}=.{1,1024}$</regex>
+    </setting>
+    <setting key="network.ip.permittedRange" level="1" required="false">
+        <label>Permitted IP Network Addresses.</label>
+        <description><![CDATA[If specified, only connections originating from the specified IP address ranges will be permitted.  If blank (default), any source address is permitted.<p>Supported range specifications are:<p><ul><li>Full IPv4 address, e.g. <b>12.34.56.78</b></li><li>Full IPv6 address, e.g. <b>2001:18e8:3:171:218:8bff:fe2a:56a4</b></li><li>Partial IPv4 address, e.g. <b>12.34</b> (which matches any IP starting <b>12.34</b></li><li>IPv4 network/netmask, e.g. <b>18.25.0.0/255.255.0.0</b></li><li>IPv4 or IPv6 CIDR slash notation, e.g. <b>18.25.0.0/16</b> or <b>2001:18e8:3:171::/64</b></li></ul>]]></description>
+        <default>
+            <value/>
         </default>
     </setting>
     <setting key="security.page.leaveNoticeTimeout" level="1" required="true">

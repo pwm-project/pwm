@@ -36,7 +36,6 @@
     <tr><td>Issuer Name</td><td><%=certificate.getIssuerX500Principal().getName()%></td></tr>
     <tr><td>Serial Number</td><td style="word-break: break-all"><%=certificate.getSerialNumber().toString(16).toUpperCase()%></td></tr>
     <tr><td>Valid</td><td>Start <%=SimpleDateFormat.getDateTimeInstance().format(certificate.getNotBefore())%>, Expire <%=SimpleDateFormat.getDateTimeInstance().format(certificate.getNotAfter())%></td></tr>
-    <tr><td>Fingerprint</td><td>MD5: <%=md5sum%><br/>SHA1: <%=sha1sum%></td></tr>
     <tr><td colspan="2" class="key" style="text-align: center; font-size: smaller">
         <a href="#" onclick="showCert_<%=md5sum%>()">details</a>
     </td></tr>

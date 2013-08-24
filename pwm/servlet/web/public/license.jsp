@@ -115,6 +115,15 @@
             <br/>
         </div>
         <div class="licenseBlock">
+            <h2>DSpace</h2>
+            <a href="http://www.dspace.org/">http://www.dspace.org/</a>
+            <br/><br/>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/dspace_license.txt"/></pre>
+            </div>
+            <br/>
+        </div>
+        <div class="licenseBlock">
             <h2>Font Awesome</h2>
             <a href="http://fortawesome.github.io/Font-Awesome/">http://fortawesome.github.io/Font-Awesome/</a>
             <br/><br/>

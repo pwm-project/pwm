@@ -78,8 +78,8 @@ public class SessionStateBean implements PwmSessionBean {
     private boolean sessionVerified;
 
     private Date pageLeaveNoticeTime;
-    private Date sessionCreationTime = new Date();
-    private Date sessionLastAccessedTime = new Date();
+    private Date sessionCreationTime;
+    private Date sessionLastAccessedTime;
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;

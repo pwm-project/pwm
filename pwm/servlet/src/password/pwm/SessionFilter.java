@@ -102,53 +102,19 @@ public class SessionFilter implements Filter {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        // set the auto-config url value.
-        pwmApplication.setAutoSiteURL(req);
+        ServletHelper.handleRequestInitialization(req, pwmApplication, pwmSession);
 
-        // mark the user's IP address in the session bean
-        if (ssBean.getSrcAddress() == null) {
-            ssBean.setSrcAddress(ServletHelper.readUserIPAddress(req, pwmSession));
-        } else if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.MULTI_IP_SESSION_ALLOWED)) {
-            final String remoteAddress = ServletHelper.readUserIPAddress(req, pwmSession);
-            if (!ssBean.getSrcAddress().equals(remoteAddress)) {
-                final String errorMsg = "current network address '" + remoteAddress + "' has changed from original network address '" + ssBean.getSrcAddress() + "'";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
-                LOGGER.error(errorInformation.toDebugStr());
-                ssBean.setSessionError(errorInformation);
-                ServletHelper.forwardToErrorPage(req,resp,true);
-                return;
-            }
-        }
-
-        // mark last url
-        ssBean.setLastRequestURL(req.getRequestURI());
-
-        // mark first request
-        if (ssBean.getSessionCreationTime() == null) {
-            ssBean.setSessionCreationTime(new Date());
+        try {
+            ServletHelper.handleRequestSecurityChecks(req, pwmApplication, pwmSession);
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error(e.getErrorInformation().toDebugStr());
+            ssBean.setSessionError(e.getErrorInformation());
+            ServletHelper.forwardToErrorPage(req,resp,true);
+            return;
         }
 
         // mark last request time.
         ssBean.setSessionLastAccessedTime(new Date());
-
-        // check total time.
-        {
-            final Long maxSessionSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SESSION_MAX_SECONDS);
-            final TimeDuration sessionAge = TimeDuration.fromCurrent(ssBean.getSessionCreationTime());
-            if (sessionAge.getTotalSeconds() > maxSessionSeconds) {
-                final String errorMsg = "session age (" + sessionAge.asCompactString() + ") is longer than maximum permitted age";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
-                LOGGER.error(errorInformation.toDebugStr());
-                ssBean.setSessionError(errorInformation);
-                ServletHelper.forwardToErrorPage(req,resp,true);
-                return;
-            }
-        }
-
-        // mark the user's hostname in the session bean
-        if (ssBean.getSrcHostname() == null) {
-            ssBean.setSrcHostname(ServletHelper.readUserHostname(req, pwmSession));
-        }
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
@@ -168,16 +134,6 @@ public class SessionFilter implements Filter {
             pwmSession.invalidate();
             resp.sendRedirect(req.getRequestURI());
             return;
-        }
-
-        // update the privateUrlAccessed flag
-        if (PwmServletURLHelper.isPrivateUrl(req)) {
-            ssBean.setPrivateUrlAccessed(true);
-        }
-
-        // initialize the session's locale
-        if (ssBean.getLocale() == null) {
-            initializeLocaleAndTheme(req, resp, pwmApplication, pwmSession);
         }
 
         //override session locale due to parameter
@@ -424,32 +380,6 @@ public class SessionFilter implements Filter {
         return true;
     }
 
-    private static void initializeLocaleAndTheme(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
-            throws PwmUnrecoverableException
-    {
-        final String localeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_LOCALE);
-        if (PwmConstants.COOKIE_LOCALE.length() > 0 && localeCookie != null) {
-            LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
-            pwmSession.setLocale(localeCookie);
-        } else {
-            final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
-            pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
-            LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
-        }
-
-        final String themeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_THEME);
-        if (PwmConstants.COOKIE_THEME.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
-            LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
-            pwmSession.getSessionStateBean().setTheme(themeCookie);
-        }
-    }
-
     private static void handleLocaleParam(final HttpServletRequest request, final HttpServletResponse response, final PwmSession pwmSession) throws PwmUnrecoverableException {
         final String requestedLocale = Validator.readStringFromRequest(request, PwmConstants.PARAM_LOCALE);
         if (requestedLocale != null && requestedLocale.length() > 0) {
@@ -462,4 +392,5 @@ public class SessionFilter implements Filter {
             }
         }
     }
+
 }

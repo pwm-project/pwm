@@ -45,31 +45,146 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+<div data-dojo-type="dijit.layout.ContentPane" title="About">
+    <div style="max-height: 400px; overflow: auto;">
+        <table>
+            <tr>
+                <td class="key">
+                    <%=PwmConstants.PWM_APP_NAME%> Version
+                </td>
+                <td>
+                    <%= PwmConstants.SERVLET_VERSION %>
+                </td>
+            </tr>
+            <% if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { %>
+            <tr>
+                <td class="key">
+                    Current Published Version
+                </td>
+                <td>
+                    <%
+                        String publishedVersion = "n/a";
+                        if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
+                            publishedVersion = pwmApplication.getVersionChecker().currentVersion();
+                        }
+                    %>
+                    <%= publishedVersion %>
+                </td>
+            </tr>
+            <% } %>
+            <tr>
+                <td class="key">
+                    Current Time
+                </td>
+                <td>
+                    <%= dateFormat.format(new java.util.Date()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Start Time
+                </td>
+                <td>
+                    <%= dateFormat.format(pwmApplication.getStartupTime()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Up Time
+                </td>
+                <td>
+                    <%= TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Install Time
+                </td>
+                <td>
+                    <%= dateFormat.format(pwmApplication.getInstallTime()) %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Server Timezone
+                </td>
+                <td>
+                    <%= dateFormat.getTimeZone().getDisplayName() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Instance ID
+                </td>
+                <td>
+                    <%= pwmApplication.getInstanceID() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Last LDAP Unavailable Time
+                </td>
+                <td>
+                    <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : "n/a" %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    LDAP Vendor
+                </td>
+                <td>
+                    <%
+                        String vendor = "[detection error]";
+                        try {
+                            vendor = pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString();
+                        } catch (Exception e) { /* nothing */ }
+                    %>
+                    <%= vendor %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Chai API Version
+                </td>
+                <td>
+                    <%= com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION %> (<%= com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO %>)
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Dojo API Version
+                </td>
+                <td>
+                    <span id="dojoVersionSpan"></span>
+                    <script type="text/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            require(["dojo"],function(dojo){
+                                dojo.byId('dojoVersionSpan').innerHTML = dojo.version;
+                            });
+                        });
+                    </script>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    License Information
+                </td>
+                <td>
+                    <a href="<%=request.getContextPath()%><pwm:url url="/public/license.jsp"/>">License Information</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
 <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB">
     <div style="max-height: 400px; overflow: auto;">
         <table class="tablemain">
-            <tr>
-                <td class="key">
-                    Wordlist Dictionary Status
-                </td>
-                <td>
-                    <%= pwmApplication.getWordlistManager().getDebugStatus() %>
-                </td>
-            </tr>
             <tr>
                 <td class="key">
                     Wordlist Dictionary Size
                 </td>
                 <td>
                     <%= numberFormat.format(pwmApplication.getWordlistManager().size()) %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Seedlist Status
-                </td>
-                <td style="white-space:nowrap;">
-                    <%= pwmApplication.getSeedlistManager().getDebugStatus() %>
                 </td>
             </tr>
             <tr>
@@ -82,26 +197,10 @@
             </tr>
             <tr>
                 <td class="key">
-                    Shared Password History Status
-                </td>
-                <td>
-                    <%= pwmApplication.getSharedHistoryManager().status() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
                     Shared Password History Size
                 </td>
                 <td>
                     <%= numberFormat.format(pwmApplication.getSharedHistoryManager().size()) %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Email Queue Status
-                </td>
-                <td>
-                    <%= pwmApplication.getEmailQueue().status() %>
                 </td>
             </tr>
             <tr>
@@ -114,26 +213,10 @@
             </tr>
             <tr>
                 <td class="key">
-                    SMS Queue Status
-                </td>
-                <td>
-                    <%= pwmApplication.getSmsQueue().status() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
                     SMS Queue Size
                 </td>
                 <td>
                     <%= pwmApplication.getSmsQueue().queueSize() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Local Audit Service
-                </td>
-                <td>
-                    <%= pwmApplication.getAuditManager().status() %>
                 </td>
             </tr>
             <tr>
@@ -144,7 +227,7 @@
                 </td>
                 <td>
                     <a href="<pwm:url url='auditlog.jsp'/>">
-                        <%= pwmApplication.getAuditManager().localSize() %>
+                        <%= numberFormat.format(pwmApplication.getAuditManager().localSize()) %>
                     </a>
                 </td>
             </tr>
@@ -456,6 +539,9 @@
     </div>
 </div>
 </div>
+<div id="buttonbar">
+    <button class="btn" type="button" onclick="showWaitDialog(null,null,function(){location.reload()})">Refresh</button>
+</div>
 </div>
 <div class="push"></div>
 </div>
@@ -463,11 +549,6 @@
     function startupPage() {
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
             dojoParser.parse();
-
-            showStatChart('PASSWORD_CHANGES',14,'statsChart');
-            setInterval(function(){
-                showStatChart('PASSWORD_CHANGES',14,'statsChart');
-            }, 61 * 1000);
         });
     }
 

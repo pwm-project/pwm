@@ -1339,8 +1339,3 @@ function toggleFullscreen(iconObj,divName) {
         PWM_GLOBAL['displayGrid'].resize();
     }
 }
-
-
-
-
-

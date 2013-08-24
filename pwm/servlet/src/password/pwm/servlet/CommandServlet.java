@@ -359,6 +359,13 @@ public class CommandServlet extends TopServlet {
 
         final String redirectURL = Helper.figureForwardURL(pwmApplication, pwmSession, req);
         LOGGER.trace(pwmSession, "redirecting user to forward url: " + redirectURL);
+
+        // after redirecting we need to clear the session forward url
+        if (pwmSession.getSessionStateBean().getForwardURL() != null) {
+            LOGGER.trace(pwmSession, "clearing session forward url: " +  pwmSession.getSessionStateBean().getForwardURL());
+            pwmSession.getSessionStateBean().setForwardURL(null);
+        }
+
         resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
     }
 

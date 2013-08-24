@@ -781,7 +781,7 @@ public class PwmApplication {
         return configuredURL;
     }
 
-    void setAutoSiteURL(final HttpServletRequest request) {
+    public void setAutoSiteURL(final HttpServletRequest request) {
         if (autoSiteUrl == null && request != null) {
             try {
                 final URL url = new URL(request.getRequestURL().toString());

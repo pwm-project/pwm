@@ -462,6 +462,10 @@ public class ChangePasswordServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
 
+        if (configuredEmailSetting == null) {
+            return;
+        }
+
         final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
         if (toAddress == null || toAddress.length() < 1) {
             LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");

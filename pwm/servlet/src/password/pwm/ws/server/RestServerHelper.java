@@ -39,9 +39,11 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.UserSearchEngine;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -60,10 +62,12 @@ public abstract class RestServerHelper {
             final boolean requiresAuthentication,
             final String requestedUsername
     )
-            throws PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
         final PwmSession pwmSession = PwmSession.getPwmSession(request);
+
+        ServletHelper.handleRequestInitialization(request, pwmApplication, pwmSession);
+        ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
 
         if (pwmSession.getSessionStateBean().getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
