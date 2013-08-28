@@ -444,7 +444,6 @@ public class NMASCrOperator implements CrOperator {
         public NMASResponseSession(String userDN, LDAPConnection ldapConnection) throws LCMRegistryException, PwmUnrecoverableException {
             this.ldapConnection = ldapConnection;
 
-            Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
             Security.addProvider(new com.novell.sasl.client.NovellSaslProvider());
 
             lcmEnv = new GenLcmUI();
