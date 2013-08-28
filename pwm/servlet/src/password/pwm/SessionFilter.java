@@ -113,6 +113,11 @@ public class SessionFilter implements Filter {
             return;
         }
 
+        // mark last url
+        if (!PwmServletURLHelper.isCommandServletURL(req)) {
+            ssBean.setLastRequestURL(req.getRequestURI());
+        }
+
         // mark last request time.
         ssBean.setSessionLastAccessedTime(new Date());
 

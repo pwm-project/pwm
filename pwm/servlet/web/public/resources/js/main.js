@@ -25,7 +25,7 @@ var PWM_STRINGS = PWM_STRINGS || {};
 
 function pwmPageLoadHandler() {
     require(["dojo"],function(dojo){
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client";
         dojo.xhrGet({
             url: displayStringsUrl,
             handleAs: 'json',
@@ -599,7 +599,10 @@ IdleTimeoutHandler.pollActivity = function() {
             PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             window.location = PWM_GLOBAL['url-logout'];
+        } else {
+            try { getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
         }
+
     }
 
     if (idleSeconds < IdleTimeoutHandler.SETTING_WARN_SECONDS) {

@@ -36,8 +36,8 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
-import password.pwm.util.IntruderManager;
 import password.pwm.util.MacroMachine;
+import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
@@ -61,6 +61,8 @@ import java.util.*;
 
 @Path("/app-data")
 public class RestAppDataServer {
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestAppDataServer.class);
 
     public static class AppData implements Serializable {
         public Map<String,String> PWM_STRINGS;
@@ -88,14 +90,13 @@ public class RestAppDataServer {
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppAuditData(
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response,
             @QueryParam("maximum") int maximum
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
         } catch (PwmUnrecoverableException e) {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
@@ -139,14 +140,13 @@ public class RestAppDataServer {
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppSessionData(
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response,
             @QueryParam("maximum") int maximum
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
         } catch (PwmUnrecoverableException e) {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
@@ -190,14 +190,13 @@ public class RestAppDataServer {
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppIntruderData(
             @Context HttpServletRequest request,
-            @Context HttpServletResponse response,
             @QueryParam("maximum") int maximum
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
         } catch (PwmUnrecoverableException e) {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
@@ -225,15 +224,12 @@ public class RestAppDataServer {
     @Path("/settings")
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppSettingData(
-            @Context HttpServletRequest request,
-            @Context HttpServletResponse response,
-            @QueryParam("maximum") int maximum
+            @Context HttpServletRequest request
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
-        maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.PUBLIC, null);
         } catch (PwmUnrecoverableException e) {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
@@ -254,6 +250,7 @@ public class RestAppDataServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("/client")
     public Response doGetAppData(
             @Context HttpServletRequest request,
             @Context HttpServletResponse response
@@ -261,7 +258,7 @@ public class RestAppDataServer {
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.PUBLIC, null);
         } catch (PwmUnrecoverableException e) {
             return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
         }
@@ -293,7 +290,7 @@ public class RestAppDataServer {
     {
         final AppData appData = new AppData();
         appData.PWM_STRINGS = makeDisplayData(pwmApplication, pwmSession);
-        appData.PWM_GLOBAL = makeData(pwmApplication, pwmSession, request, response);
+        appData.PWM_GLOBAL = makeClientData(pwmApplication, pwmSession, request, response);
         return appData;
     }
 
@@ -307,13 +304,19 @@ public class RestAppDataServer {
         final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
         final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName());
         for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
-            displayStrings.put(key, Display.getLocalizedMessage(userLocale, key, config));
+            String displayValue = Display.getLocalizedMessage(userLocale, key, config);
+            try {
+                displayValue = MacroMachine.expandMacros(displayValue, pwmApplication, pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getUserDataReader());
+            } catch (Exception e) {
+                LOGGER.error(pwmSession,"error expanding macro for display value " + displayValue);
+            }
+            displayStrings.put(key, displayValue);
         }
         displayStrings.put(Message.SUCCESS_UNKNOWN.toString(), Message.getLocalizedMessage(userLocale, Message.SUCCESS_UNKNOWN, config));
         return displayStrings;
     }
 
-    private static Map<String,Object> makeData(
+    private static Map<String,Object> makeClientData(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest request,

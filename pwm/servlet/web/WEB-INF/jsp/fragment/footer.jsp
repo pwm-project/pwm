@@ -52,8 +52,10 @@
             &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
             <% } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
+            <span id="idle_wrapper">
             <span id="idle_status">&nbsp;</span>
             &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
+            </span>
             <% } %>
         <span id="localeSelectionMenu" style="white-space: nowrap">
             <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>

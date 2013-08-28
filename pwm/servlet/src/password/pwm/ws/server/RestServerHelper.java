@@ -39,11 +39,9 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.UserSearchEngine;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -51,6 +49,10 @@ import java.util.Locale;
 
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
+
+    public static enum ServiceType {
+        AUTH_REQUIRED, NORMAL, PUBLIC,
+    };
 
     public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
         final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
@@ -62,12 +64,28 @@ public abstract class RestServerHelper {
             final boolean requiresAuthentication,
             final String requestedUsername
     )
+            throws PwmUnrecoverableException
+    {
+        return initializeRestRequest(
+                request,
+                requiresAuthentication ? ServiceType.AUTH_REQUIRED : ServiceType.NORMAL,
+                requestedUsername);
+    }
+
+    public static RestRequestBean initializeRestRequest(
+            final HttpServletRequest request,
+            final ServiceType serviceType,
+            final String requestedUsername
+    )
             throws PwmUnrecoverableException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
         final PwmSession pwmSession = PwmSession.getPwmSession(request);
 
         ServletHelper.handleRequestInitialization(request, pwmApplication, pwmSession);
-        ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
+
+        if (serviceType != ServiceType.PUBLIC) {
+            ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
+        }
 
         if (pwmSession.getSessionStateBean().getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
@@ -80,12 +98,10 @@ public abstract class RestServerHelper {
         logMsg.append(ServletHelper.debugHttpRequest(request));
         LOGGER.debug(pwmSession,logMsg);
 
-        if (requiresAuthentication) {
-            try {
-                handleAuthentication(request,pwmSession);
-            } catch (ChaiUnavailableException e) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
-            }
+        try {
+            handleAuthentication(request,pwmSession);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
         }
 
         final RestRequestBean restRequestBean = new RestRequestBean();
@@ -95,6 +111,23 @@ public abstract class RestServerHelper {
         restRequestBean.setPwmApplication(pwmApplication);
         restRequestBean.setPwmSession(pwmSession);
 
+        if (serviceType == ServiceType.AUTH_REQUIRED) {
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            }
+        }
+
+        if (serviceType != ServiceType.PUBLIC) {
+            if (restRequestBean.isExternal()) {
+                final boolean allowExternal = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES);
+                if (!allowExternal) {
+                    final String errorMsg = "external web services are not enabled";
+                    LOGGER.warn(pwmSession, errorMsg);
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg));
+                }
+
+            }
+        }
         return restRequestBean;
     }
 
@@ -167,16 +200,12 @@ public abstract class RestServerHelper {
             return;
         }
 
-        if (!pwmSession.getSessionStateBean().isAuthenticated() && BasicAuthInfo.parseAuthHeader(request) != null) {
+        if (BasicAuthInfo.parseAuthHeader(request) != null) {
             try {
                 AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(request));
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             }
-        }
-
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
         }
     }
 
@@ -185,7 +214,6 @@ public abstract class RestServerHelper {
     {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
 
-        final boolean allowExternal = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES);
         boolean requestHasCorrectID = false;
 
         try {
@@ -193,11 +221,7 @@ public abstract class RestServerHelper {
             requestHasCorrectID = true;
         } catch (PwmUnrecoverableException e) {
             if (e.getError() == PwmError.ERROR_INVALID_FORMID) {
-                if (!allowExternal) {
-                    final String errorMsg = "external web services are not enabled";
-                    LOGGER.warn(pwmSession, errorMsg);
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg));
-                }
+                requestHasCorrectID = false;
             } else {
                 throw e;
             }

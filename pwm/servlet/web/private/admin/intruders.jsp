@@ -83,8 +83,8 @@
     function refreshData() {
         showWaitDialog();
         require(["dojo"],function(dojo){
-            addressGrid.renderArray([]);
-            addressGrid.renderArray([]);
+            addressGrid.refresh();
+            userGrid.refresh();
             var maximum = getObject('maxResults').value;
             var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum  + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             dojo.xhrGet({

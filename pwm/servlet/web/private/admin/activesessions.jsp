@@ -89,7 +89,7 @@
     function refreshData() {
         showWaitDialog();
         require(["dojo"],function(dojo){
-            grid.renderArray([]);
+            grid.refresh();
             var maximum = getObject('maxResults').value;
             var url = PWM_GLOBAL['url-restservice'] + "/app-data/session?maximum=" + maximum + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             dojo.xhrGet({

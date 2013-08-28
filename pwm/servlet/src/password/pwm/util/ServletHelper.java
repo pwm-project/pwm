@@ -490,9 +490,6 @@ public class ServletHelper {
 
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
-        // mark last url
-        ssBean.setLastRequestURL(req.getRequestURI());
-
         // mark if first request
         if (ssBean.getSessionCreationTime() == null) {
             ssBean.setSessionCreationTime(new Date());
