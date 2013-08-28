@@ -660,14 +660,14 @@
             <value>{"from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
-    <setting key="email.guest" level="1" hidden="true">
+    <setting key="email.guest" level="1">
         <label>Guest Registration Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
             <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
-    <setting key="email.updateguest" level="1" hidden="true">
+    <setting key="email.updateguest" level="1">
         <label>Guest Registration Update Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
@@ -1359,7 +1359,7 @@
         <regex>^[a-zA-Z0-9.-]{1,1024}=.{1,1024}$</regex>
     </setting>
     <setting key="network.ip.permittedRange" level="1" required="false">
-        <label>Permitted IP Network Addresses.</label>
+        <label>Permitted IP Network Addresses</label>
         <description><![CDATA[If specified, only connections originating from the specified IP address ranges will be permitted.  If blank (default), any source address is permitted.<p>Supported range specifications are:<p><ul><li>Full IPv4 address, e.g. <b>12.34.56.78</b></li><li>Full IPv6 address, e.g. <b>2001:18e8:3:171:218:8bff:fe2a:56a4</b></li><li>Partial IPv4 address, e.g. <b>12.34</b> (which matches any IP starting <b>12.34</b></li><li>IPv4 network/netmask, e.g. <b>18.25.0.0/255.255.0.0</b></li><li>IPv4 or IPv6 CIDR slash notation, e.g. <b>18.25.0.0/16</b> or <b>2001:18e8:3:171::/64</b></li></ul>]]></description>
         <default>
             <value/>
@@ -2397,7 +2397,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.useNmasResponses" level="0" required="true" hidden="true">
+    <setting key="ldap.edirectory.useNmasResponses" level="0" required="true">
         <label>Enable NMAS Responses for Forgotten Password</label>
         <description><![CDATA[If true, NMAS stored responses will be used for forgotten password recovery.  All other configured storage methods will be tried before the NMAS stored responses will be evaluated.]]></description>
         <default>
