@@ -26,6 +26,9 @@ public class LdapCrOperator implements CrOperator {
         this.config = config;
     }
 
+    public void close() {
+    }
+
     public ResponseSet readResponseSet(final ChaiUser theUser, final String userGuid)
             throws PwmUnrecoverableException
     {

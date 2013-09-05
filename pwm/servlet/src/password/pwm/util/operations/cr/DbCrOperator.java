@@ -25,6 +25,9 @@ public class DbCrOperator implements CrOperator {
         this.pwmApplication = pwmApplication;
     }
 
+    public void close() {
+    }
+
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
             final String userGUID

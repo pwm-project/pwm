@@ -54,6 +54,9 @@ public class NMASUAWSOperator implements CrOperator {
         this.pwmApplication = pwmApplication;
     }
 
+    public void close() {
+    }
+
     @Override
     public ResponseSet readResponseSet(ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
         return readResponsesFromNovellUA(pwmApplication,theUser);

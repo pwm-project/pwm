@@ -563,9 +563,10 @@ public class ServletHelper {
         // check idle time
         {
             if (ssBean.getSessionLastAccessedTime() != null) {
-                final Long maxIdleSesconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+                final Long maxIdleSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
+                final TimeDuration maxIdleCheckTime = new TimeDuration((maxIdleSeconds * 1000) + (60 * 1000));
                 final TimeDuration idleTime = TimeDuration.fromCurrent(ssBean.getSessionLastAccessedTime());
-                if (idleTime.getTotalSeconds() > maxIdleSesconds) {
+                if (idleTime.isLongerThan(maxIdleCheckTime)) {
                     final String errorMsg = "session idle time (" + idleTime.asCompactString() + ") is longer than maximum idle time age";
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
                     throw new PwmUnrecoverableException(errorInformation);

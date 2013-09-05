@@ -67,6 +67,9 @@ public abstract class PwmConstants {
     public static final int MAX_SMS_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxSmsQueueSize"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
     public static final int MAX_NMAS_THREAD_COUNT = Integer.parseInt(readPwmConstantsBundle("maxNmasThreadCount"));
+    public static final int MIN_NMAS_THREAD_SECONDS = Integer.parseInt(readPwmConstantsBundle("minNmasThreadSeconds"));
+    public static final int MAX_NMAS_THREAD_SECONDS = Integer.parseInt(readPwmConstantsBundle("maxNmasThreadSeconds"));
+    public static final int NMAS_WATCHDOG_FREQUENCY_MS = Integer.parseInt(readPwmConstantsBundle("nmasWatchdogFrequencyCheckMs"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
 

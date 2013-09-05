@@ -22,6 +22,9 @@ public class LocalDbCrOperator implements CrOperator {
         this.localDB = localDB;
     }
 
+    public void close() {
+    }
+
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
             final String userGUID

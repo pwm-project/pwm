@@ -72,6 +72,10 @@ public class CrService implements PwmService {
 
     @Override
     public void close() {
+        for (final CrOperator operator : operatorMap.values()) {
+            operator.close();
+        }
+        operatorMap.clear();
     }
 
     @Override

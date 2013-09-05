@@ -35,6 +35,8 @@ public interface CrOperator {
     public void writeResponses(final ChaiUser theUser, final String userGuid, final ResponseInfoBean responseInfoBean)
             throws PwmUnrecoverableException;
 
+    public void close();
+
     static class CrOperators {
         static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet)
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
