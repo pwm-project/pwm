@@ -36,7 +36,7 @@
         <% final String flagCode = pwmApplicationHeader.getConfig().getKnownLocaleFlagMap().get(locale); %>
         <div style="text-align: center; width: 100%">
             <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
-            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?locale=<%=locale.toString()%>">
+            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?<%=PwmConstants.PARAM_LOCALE%>=<%=locale.toString()%>">
                 <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
             </a>
         </div>

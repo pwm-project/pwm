@@ -333,6 +333,7 @@ public class RestAppDataServer {
         settingMap.put("setting-showHidePasswordFields",pwmApplication.getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS));
         settingMap.put("setting-displayEula",PwmConstants.ENABLE_EULA_DISPLAY);
         settingMap.put("MaxInactiveInterval",request.getSession().getMaxInactiveInterval());
+        settingMap.put("paramName.locale", PwmConstants.PARAM_LOCALE);
 
         settingMap.put("url-context",request.getContextPath());
         settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true", request, response));
