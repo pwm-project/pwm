@@ -48,7 +48,7 @@ BEGIN
 
 "pwmGUID" ATTRIBUTE ::=
  { 
-	 SyntaxID 	 SYN_PATH,
+	 SyntaxID 	 SYN_CI_STRING,
 	 Flags 	{ DS_SYNC_IMMEDIATE }, 
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 4 } 
  }
@@ -61,7 +61,7 @@ BEGIN
 
 "pwmToken" ATTRIBUTE ::=
  {
-	 SyntaxID 	 SYN_PATH,
+	 SyntaxID 	 SYN_CI_STRING,
 	 Flags 	{ DS_SYNC_IMMEDIATE },
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 5 }
  }
@@ -74,8 +74,8 @@ BEGIN
 "pwmUser" OBJECT-CLASS ::=
  { 
 	 Operation 	ADD, 
+	 Flags 	{DS_AUXILIARY_CLASS}, 
 	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID", "pwmToken" },
-	 Flags 	{ DS_AUXILIARY_CLASS, DS_CONTAINER_CLASS, DS_AMBIGUOUS_CONTAINMENT }, 
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 1 1 } 
  }
 
