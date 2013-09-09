@@ -239,7 +239,7 @@ public class NMASCrOperator implements CrOperator {
         private final PwmApplication pwmApplication;
         private final String userDN;
 
-        private ChaiConfiguration chaiConfiguration;
+        final private ChaiConfiguration chaiConfiguration;
         private ChallengeSet challengeSet;
         private transient NMASResponseSession ldapChallengeSession;
         boolean passed;
@@ -401,7 +401,7 @@ public class NMASCrOperator implements CrOperator {
     private class NMASResponseSession implements SessionManager.CloseConnectionListener {
 
         private LDAPConnection ldapConnection;
-        private GenLcmUI lcmEnv;
+        final private GenLcmUI lcmEnv;
         private NMASSessionThread nmasSessionThread;
 
         public NMASResponseSession(String userDN, LDAPConnection ldapConnection) throws LCMRegistryException, PwmUnrecoverableException {
@@ -415,7 +415,7 @@ public class NMASCrOperator implements CrOperator {
             nmasSessionThread.startLogin(userDN, ldapConnection, cbh);
         }
 
-        public List<String> getQuestions() throws XPathExpressionException, LCMRegistryException {
+        public List<String> getQuestions() throws XPathExpressionException {
 
             final LCMUserPrompt prompt = lcmEnv.getNextUserPrompt();
             if (prompt == null) {
@@ -465,25 +465,25 @@ public class NMASCrOperator implements CrOperator {
                 super(lcmenvironment, lcmregistry);
             }
 
-            public void handle(Callback acallback[]) throws UnsupportedCallbackException
+            public void handle(final Callback callbacks[]) throws UnsupportedCallbackException
             {
-                for (Callback anAcallback : acallback) {
-                    if (anAcallback instanceof NMASCompletionCallback) {
+                for (final Callback callback : callbacks) {
+                    if (callback instanceof NMASCompletionCallback) {
                         LOGGER.trace("received NMASCompletionCallback, ignoring");
-                    } else if (anAcallback instanceof NMASCallback) {
+                    } else if (callback instanceof NMASCallback) {
                         try {
-                            handleNMASCallback((NMASCallback) anAcallback);
+                            handleNMASCallback((NMASCallback) callback);
                         } catch (InvalidNMASCallbackException e) {
                             LOGGER.error("error processing NMASCallback: " + e.getMessage(),e);
                         }
-                    } else if (anAcallback instanceof LCMUserPromptCallback) {
+                    } else if (callback instanceof LCMUserPromptCallback) {
                         try {
-                            handleLCMUserPromptCallback((LCMUserPromptCallback) anAcallback);
+                            handleLCMUserPromptCallback((LCMUserPromptCallback) callback);
                         } catch (LCMUserPromptException e) {
                             LOGGER.error("error processing LCMUserPromptCallback: " + e.getMessage(),e);
                         }
                     } else {
-                        throw new UnsupportedCallbackException(anAcallback);
+                        throw new UnsupportedCallbackException(callback);
                     }
                 }
             }
@@ -548,7 +548,7 @@ public class NMASCrOperator implements CrOperator {
 
         public void startLogin(String userDN, LDAPConnection ldapConnection, CallbackHandler paramCallbackHandler) throws PwmUnrecoverableException {
             if (sessionMonitorThreads.size() > maxThreadCount) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOO_MANY_THREADS,"NMASSessionMonitor thread count exceeded"));
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOO_MANY_THREADS,"NMASSessionMonitor maximum thread count (" + maxThreadCount + ") exceeded"));
             }
             this.loginDN = userDN;
             this.ldapConn = ldapConnection;
@@ -564,14 +564,14 @@ public class NMASCrOperator implements CrOperator {
         public void run()
         {
             try {
-                LOGGER.trace("starting NMASSessionThread id=" + threadID + " activeCount=" + sessionMonitorThreads.size());
+                LOGGER.trace("starting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString());
                 sessionMonitorThreads.add(this);
                 controlWatchdogThread();
                 doLoginSequence();
             } finally {
                 sessionMonitorThreads.remove(this);
                 controlWatchdogThread();
-                LOGGER.trace("exiting NMASSessionThread id=" + threadID + " activeCount=" + sessionMonitorThreads.size());
+                LOGGER.trace("exiting NMASSessionThread, activeCount=" + sessionMonitorThreads.size() + ", " + this.toDebugString());
             }
         }
 
@@ -592,7 +592,20 @@ public class NMASCrOperator implements CrOperator {
             {
                 setLoginState(NMASThreadState.BIND);
                 lastActivityTimestamp = new Date();
-                this.ldapConn.bind(this.loginDN, "dn:" + this.loginDN, new String[] { "NMAS_LOGIN" }, new HashMap(CR_OPTIONS_MAP), this.callbackHandler);
+                try {
+                    this.ldapConn.bind(
+                            this.loginDN,
+                            "dn:" + this.loginDN,
+                            new String[] { "NMAS_LOGIN" },
+                            new HashMap(CR_OPTIONS_MAP),
+                            this.callbackHandler
+                    );
+                } catch (NullPointerException e) {
+                    LOGGER.error("NullPointer error during CallBackHandler-NMASCR-bind; this is usually the result of an ldap disconnection, thread=" + this.toDebugString());
+                    this.setLoginState(NMASThreadState.ABORTED);
+                    return;
+
+                }
 
                 if (loginState == NMASThreadState.ABORTED) {
                     return;
@@ -609,7 +622,7 @@ public class NMASCrOperator implements CrOperator {
                     return;
                 }
                 final String ldapErrorMessage = e.getLDAPErrorMessage();
-                if (ldapErrorMessage  != null) {
+                if (ldapErrorMessage != null) {
                     LOGGER.error("NMASLoginMonitor: LDAP error (" + ldapErrorMessage + ")");
                 } else {
                     LOGGER.error("NMASLoginMonitor: LDAPException " + e.toString());
@@ -653,7 +666,7 @@ public class NMASCrOperator implements CrOperator {
     private class ThreadWatchdogTask extends TimerTask {
         @Override
         public void run() {
-            logThreadInfo();
+            //logThreadInfo();
             final List<NMASSessionThread> threads = new ArrayList(sessionMonitorThreads);
             for (final NMASSessionThread thread : threads) {
                 final TimeDuration idleTime = TimeDuration.fromCurrent(thread.getLastActivityTimestamp());
@@ -664,6 +677,7 @@ public class NMASCrOperator implements CrOperator {
             }
         }
 
+        /*
         private void logThreadInfo() {
             final List<NMASSessionThread> threads = new ArrayList(sessionMonitorThreads);
             final StringBuilder threadDebugInfo = new StringBuilder();
@@ -674,6 +688,7 @@ public class NMASCrOperator implements CrOperator {
             }
             LOGGER.trace(threadDebugInfo.toString());
         }
+        */
     }
 
 
