@@ -486,7 +486,7 @@ public class DatabaseAccessor implements PwmService {
 // -------------------------- ENUMERATIONS --------------------------
 
     public enum TABLE {
-        PWM_META, PWM_RESPONSES, TOKENS
+        PWM_META, PWM_RESPONSES, TOKENS, OTP
     }
 
 // -------------------------- INNER CLASSES --------------------------

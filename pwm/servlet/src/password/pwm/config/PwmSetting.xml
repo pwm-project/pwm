@@ -1443,6 +1443,41 @@
             <value><![CDATA[pwmToken]]></value>
         </default>
     </setting>
+    <setting key="otp.secret.storageMethod" level="0" required="true">
+        <label>Token Storage Method</label>
+        <description><![CDATA[Storage method used to save one time password secrets.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>DB</td><td>Store the secret in a configured, remote database.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to secrets.</td></tr></table>]]></description>
+        <default>
+            <value><![CDATA[STORE_LDAP]]></value>
+        </default>
+        <options>
+            <option value="STORE_DB">DB</option>
+            <option value="STORE_LDAP">LDAP</option>
+        </options>
+    </setting>
+    <setting key="otp.secret.storageFormat" level="0" required="true">
+        <label>Token Storage Method</label>
+        <description><![CDATA[Storage format used to save one time password secrets.<table style="width: 400px"><tr><td>Format</td><td>Description</td></tr><tr><td>PWM</td><td>Store the secret in PWM native format.</td></tr></table>]]></description>
+        <default>
+            <value><![CDATA[PWM]]></value>
+        </default>
+        <options>
+            <option value="PWM">PWM</option>
+        </options>
+    </setting>
+    <setting key="otp.secret.encrypt" level="0" required="true">
+        <label>Encrypt OTP secret</label>
+        <description><![CDATA[If enabled, the configured encryption key is used to encrypt and decrypt token information, to make sure it is not readable as plain text.  Multiple instances of PWM must use the same encryption key.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="otp.secret.ldap.attribute" level="0" required="false">
+        <label>OTP Secret LDAP Attribute</label>
+        <description><![CDATA[LDAP attribute for storing the OTP secret.  This setting is used only when the storage method is set to LDAP.]]></description>
+        <default>
+            <value/>
+        </default>
+    </setting>
     <setting key="events.healthCheck.minInterval" level="1">
         <label>Health Check Frequency</label>
         <description><![CDATA[Frequency (in seconds) at which a self-health check is performed.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
@@ -2800,6 +2835,10 @@
     <category key="TOKEN">
         <label>Tokens</label>
         <description><![CDATA[Options for email and sms tokens sent to users.]]></description>
+    </category>
+    <category key="OTP">
+        <label>One Time Password</label>
+        <description><![CDATA[Options for time based one time passwords.]]></description>
     </category>
     <category key="LOGGING">
         <label>Logging &amp; Alerts</label>

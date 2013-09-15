@@ -429,6 +429,16 @@ public enum PwmSetting {
     TOKEN_LDAP_ATTRIBUTE(
             "token.ldap.attribute", PwmSettingSyntax.STRING, Category.TOKEN),
 
+    // OTP
+    OTP_SECRET_STORAGEMETHOD(
+            "otp.secret.storageMethod", PwmSettingSyntax.SELECT, Category.OTP),
+    OTP_SECRET_STORAGEFORMAT(
+            "otp.secret.storageFormat", PwmSettingSyntax.SELECT, Category.OTP),
+    OTP_SECRET_ENCRYPT(
+            "otp.secret.encrypt", PwmSettingSyntax.BOOLEAN, Category.OTP),
+    OTP_SECRET_LDAP_ATTRIBUTE(
+            "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, Category.OTP),
+    
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
             "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, Category.LOGGING),
@@ -931,6 +941,7 @@ public enum PwmSetting {
         SMS(Type.SETTING),
         SECURITY(Type.SETTING),
         TOKEN(Type.SETTING),
+        OTP(Type.SETTING),
         LOGGING(Type.SETTING),
         EDIRECTORY(Type.SETTING),
         ACTIVE_DIRECTORY(Type.SETTING),
