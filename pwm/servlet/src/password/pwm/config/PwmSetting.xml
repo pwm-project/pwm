@@ -1478,6 +1478,13 @@
             <value/>
         </default>
     </setting>
+    <setting key="otp.secret.allowSetup.queryMatch" level="0" required="true">
+        <label>OTP Secret Setup Query Match</label>
+        <description><![CDATA[Query string used to detect if a user is a permitted to setup an OTP secret.  The user must be returned during this ldap query or else the user will not be permitted to setup the secret.]]></description>
+        <default>
+            <value><![CDATA[(objectClass=*)]]></value>
+        </default>
+    </setting>
     <setting key="events.healthCheck.minInterval" level="1">
         <label>Health Check Frequency</label>
         <description><![CDATA[Frequency (in seconds) at which a self-health check is performed.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
