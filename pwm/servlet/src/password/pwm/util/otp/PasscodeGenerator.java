@@ -20,6 +20,8 @@ import javax.crypto.Mac;
  *
  * @author sweis@google.com (Steve Weis)
  *
+ * http://code.google.com/p/google-authenticator/
+ *
  */
 public class PasscodeGenerator {
   /** Default decimal passcode length */
