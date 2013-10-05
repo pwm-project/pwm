@@ -1443,15 +1443,50 @@
             <value><![CDATA[pwmToken]]></value>
         </default>
     </setting>
-    <setting key="otp.secret.storageMethod" level="0" required="true">
-        <label>Token Storage Method</label>
-        <description><![CDATA[Storage method used to save one time password secrets.<table style="width: 400px"><tr><td>Method</td><td>Description</td></tr><tr><td>DB</td><td>Store the secret in a configured, remote database.</td></tr><tr><td>LDAP</td><td>Use the LDAP directory to secrets.</td></tr></table>]]></description>
+    <setting key="otp.secret.readPreference" level="0" required="true">
+        <label>OTP Secret Read Location</label>
+        <description><![CDATA[Location to read the OTP secret from. If an option with multiple values are selected, each location will be read in turn until a stored response is found.]]></description>
         <default>
-            <value><![CDATA[STORE_LDAP]]></value>
+            <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[DB]]></value>
         </default>
         <options>
-            <option value="STORE_DB">DB</option>
-            <option value="STORE_LDAP">LDAP</option>
+            <option value="LDAP">LDAP</option>
+            <option value="LDAP-DB">LDAP, Database</option>
+            <option value="LDAP-DB-LOCALDB">LDAP, Database, LocalDB</option>
+            <option value="LDAP-LOCALDB">LDAP, LocalDB</option>
+            <option value="LDAP-LOCALDB-DB">LDAP, LocalDB, Database</option>
+            <option value="DB">Database</option>
+            <option value="DB-LDAP">Database, LDAP</option>
+            <option value="DB-LDAP-LOCALDB">Database, LDAP, LocalDB</option>
+            <option value="DB-LOCALDB">Database, LocalDB</option>
+            <option value="DB-LOCALDB-LDAP">Database, LocalDB, LDAP</option>
+            <option value="LOCALDB">LocalDB</option>
+            <option value="LOCALDB-DB">LocalDB, Database</option>
+            <option value="LOCALDB-DB-LDAP">LocalDB, Database, LDAP</option>
+            <option value="LOCALDB-LDAP">LocalDB, LDAP</option>
+            <option value="LOCALDB-LDAP-DB">LocalDB, LDAP, Database</option>
+        </options>
+    </setting>
+    <setting key="otp.secret.writePreference" level="0" required="true">
+        <label>OTP Secret Write Location</label>
+        <description><![CDATA[Location to write the OTP secret to.  All storage methods will be written to when the user configures their response answers.]]></description>
+        <default>
+            <value><![CDATA[LDAP]]></value>
+        </default>
+        <default template="ADDB">
+            <value><![CDATA[DB]]></value>
+        </default>
+        <options>
+            <option value="LDAP">LDAP</option>
+            <option value="LDAP-DB">LDAP, Database</option>
+            <option value="LDAP-LOCALDB">LDAP, LocalDB</option>
+            <option value="LDAP-DB-LOCALDB">LDAP, Database, LocalDB</option>
+            <option value="DB">Database</option>
+            <option value="DB-LOCALDB">Database, LocalDB</option>
+            <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
     <setting key="otp.secret.storageFormat" level="0" required="true">

@@ -430,8 +430,10 @@ public enum PwmSetting {
             "token.ldap.attribute", PwmSettingSyntax.STRING, Category.TOKEN),
 
     // OTP
-    OTP_SECRET_STORAGEMETHOD(
-            "otp.secret.storageMethod", PwmSettingSyntax.SELECT, Category.OTP),
+    OTP_SECRET_READ_PREFERENCE(
+            "otp.secret.readPreference", PwmSettingSyntax.SELECT, Category.OTP),
+    OTP_SECRET_WRITE_PREFERENCE(
+            "otp.secret.writePreference", PwmSettingSyntax.SELECT, Category.OTP),
     OTP_SECRET_STORAGEFORMAT(
             "otp.secret.storageFormat", PwmSettingSyntax.SELECT, Category.OTP),
     OTP_SECRET_ENCRYPT(

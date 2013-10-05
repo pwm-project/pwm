@@ -487,6 +487,14 @@ public class Configuration implements Serializable {
     }
 
     public List<STORAGE_METHOD> getResponseStorageLocations(final PwmSetting setting) {
+        return getGenericStorageLocations(setting);
+    }
+
+    public List<STORAGE_METHOD> getOtpSecretStorageLocations(final PwmSetting setting) {
+        return getGenericStorageLocations(setting);
+    }
+
+    public List<STORAGE_METHOD> getGenericStorageLocations(final PwmSetting setting) {
         final String input = readSettingAsString(setting);
         final List<STORAGE_METHOD> storageMethods = new ArrayList<STORAGE_METHOD>();
         for (final String rawValue : input.split("-")) {
