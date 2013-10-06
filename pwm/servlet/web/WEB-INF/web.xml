@@ -225,6 +225,10 @@
         <servlet-class>password.pwm.servlet.SetupResponsesServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>SetupOtpSecretServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.SetupOtpSecretServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ForgottenPasswordServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ForgottenPasswordServlet</servlet-class>
     </servlet>
@@ -303,6 +307,10 @@
     <servlet-mapping>
         <servlet-name>SetupResponsesServlet</servlet-name>
         <url-pattern>/private/SetupResponses</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SetupOtpSecretServlet</servlet-name>
+        <url-pattern>/private/SetupOtpSecret</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ForgottenUsernameServlet</servlet-name>

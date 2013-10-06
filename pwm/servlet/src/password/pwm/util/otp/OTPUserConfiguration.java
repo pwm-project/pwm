@@ -24,6 +24,7 @@ package password.pwm.util.otp;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.crypto.Mac;
@@ -31,6 +32,7 @@ import org.apache.commons.codec.binary.Base32;
 import java.security.SecureRandom;
 import java.util.Date;
 import javax.crypto.spec.SecretKeySpec;
+import password.pwm.PwmConstants;
 import password.pwm.util.PwmLogger;
 
 public class OTPUserConfiguration {
@@ -65,8 +67,17 @@ public class OTPUserConfiguration {
     }
 
     private byte[] generateSecret() {
-        byte[] secArray = new byte[8];
-        SecureRandom random = new SecureRandom();
+        byte[] secArray = new byte[10];
+        SecureRandom random;
+        try {
+            random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        } catch (NoSuchAlgorithmException ex) {
+            random = new SecureRandom();
+            LOGGER.error(ex.getMessage(), ex);
+        } catch (NoSuchProviderException ex) {
+            random = new SecureRandom();
+            LOGGER.error(ex.getMessage(), ex);
+        }
         random.setSeed((new Date()).getTime());
         random.nextBytes(secArray);
         return secArray;
@@ -78,7 +89,7 @@ public class OTPUserConfiguration {
             byte[] rawSecret = base32.decode(secret);
             Mac mac = Mac.getInstance("HMACSHA1");
             mac.init(new SecretKeySpec(rawSecret, ""));
-            PasscodeGenerator pg = new PasscodeGenerator(mac, 8, 30);
+            PasscodeGenerator pg = new PasscodeGenerator(mac, PwmConstants.TOTP_RECOVERY_TOKEN_LENGTH, PwmConstants.TOTP_INTERVAL);
             this.recoveryCodes = new ArrayList();
             Long n;
             for (n = 0L; n < 5L; n++) {
@@ -95,9 +106,11 @@ public class OTPUserConfiguration {
     }
 
     public void init(boolean counterBased) throws NoSuchAlgorithmException, InvalidKeyException {
+        LOGGER.trace(String.format("Enter: init(%s)", counterBased));
         Base32 base32 = new Base32();
         byte[] rawSecret = generateSecret();
-        this.secret = base32.encodeAsString(rawSecret);
+        this.secret = new String(base32.encode(rawSecret));
+        LOGGER.debug(String.format("Generated Secret: %s", secret));
         Long n = initRecoveryCodes();
         if (counterBased) {
             this.counter = n;

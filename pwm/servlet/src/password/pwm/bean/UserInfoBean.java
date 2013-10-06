@@ -72,6 +72,7 @@ public class UserInfoBean implements PwmSessionBean {
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
+    private boolean requiresOtpConfig;
     private boolean requiresUpdateProfile;
     
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
@@ -183,6 +184,15 @@ public class UserInfoBean implements PwmSessionBean {
     public void setRequiresResponseConfig(final boolean requiresResponseConfig) {
         this.requiresResponseConfig = requiresResponseConfig;
     }
+
+    public boolean isRequiresOtpConfig() {
+        return requiresOtpConfig;
+    }
+
+    public void setRequiresOtpConfig(final boolean requiresOtpConfig) {
+        this.requiresOtpConfig = requiresOtpConfig;
+    }
+
 
     public boolean isRequiresUpdateProfile() {
         return requiresUpdateProfile;

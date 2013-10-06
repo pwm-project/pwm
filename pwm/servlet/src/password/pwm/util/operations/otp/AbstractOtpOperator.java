@@ -23,13 +23,15 @@ package password.pwm.util.operations.otp;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.crypto.SecretKey;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPUserConfiguration;
 
@@ -42,16 +44,10 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractOtpOperator.class);
     private Configuration config;
 
-    public AbstractOtpOperator(Configuration config) {
-        this.config = config;
-    }
-
     /**
      * Compose a single line of OTP information.
      *
-     * @param description
-     * @param secret
-     * @param counter
+     * @param otpconfig
      * @return
      */
     public String composeOtpAttribute(OTPUserConfiguration otpconfig) {
@@ -77,14 +73,30 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         return value;
     }
     
-    public String encryptAttributeValue(String unecnrypted) throws PwmUnrecoverableException {
-        /* TODO */
-        throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
+    /**
+     * Encrypt the given string using the PWM encryption key.
+     * 
+     * @param unencrypted
+     * @return
+     * @throws PwmUnrecoverableException
+     * @throws PwmOperationalException 
+     */
+    public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
+        SecretKey key = config.getSecurityKey();
+        return Helper.SimpleTextCrypto.encryptValue(unencrypted, key);
     }
 
-    public String decryptAttributeValue(String ecnrypted) throws PwmUnrecoverableException {
-        /* TODO */
-        throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
+    /**
+     * Decrypt the given string using the PWM encryption key.
+     * 
+     * @param encrypted
+     * @return
+     * @throws PwmUnrecoverableException
+     * @throws PwmOperationalException 
+     */
+    public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
+        SecretKey key = config.getSecurityKey();
+        return Helper.SimpleTextCrypto.decryptValue(encrypted, key);
     }
     
     /**

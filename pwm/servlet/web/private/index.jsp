@@ -56,6 +56,18 @@
             </tr>
             <% } %>
             <% } %>
+            <!-- % if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { % -->
+            <% if (Permission.checkPermission(Permission.SETUP_OTP_SECRET, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
+            <tr style="border:0">
+                <td class="menubutton_key">
+                    <a onclick="showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtpSecret'/>"><pwm:Display key="Title_SetupOtpSecret"/></a>
+                </td>
+                <td style="border: 0">
+                    <p><pwm:Display key="Long_Title_SetupOtpSecret"/></p>
+                </td>
+            </tr>
+            <% } %>
+            <!--% } %-->
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">

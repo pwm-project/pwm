@@ -54,6 +54,7 @@ public enum Statistic {
     CAPTCHA_FAILURES(Type.INCREMENTOR, "CaptchaFailures"),
     LDAP_UNAVAILABLE_COUNT(Type.INCREMENTOR, "LdapUnavailableCount"),
     SETUP_RESPONSES(Type.INCREMENTOR, "SetupResponses"),
+    SETUP_OTP_SECRET(Type.INCREMENTOR, "SetupOtpSecret"),
     UPDATE_ATTRIBUTES(Type.INCREMENTOR, "UpdateAttributes"),
     SHORTCUTS_SELECTED(Type.INCREMENTOR, "ShortcutsSelected"),
     GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),

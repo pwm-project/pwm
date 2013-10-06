@@ -312,10 +312,10 @@ div.progress-container > div {
 }
 
 #footer-content {
-  position: absolute;
-  width: 100%;
-  bottom: 0;
-  padding-bottom: 5px;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    padding-bottom: 5px;
 }
 
 
@@ -516,4 +516,15 @@ div.progress-container > div {
 /* hide recaptcha iframe near footer */
 body > iframe[src="about:blank"] {
     display:none !important;
+}
+
+.qrcodeblock {
+    background-color: white;
+}
+
+img.qrcodeimage {
+    background-color: white;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }

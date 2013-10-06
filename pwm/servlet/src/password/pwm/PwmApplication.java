@@ -64,6 +64,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
+import password.pwm.util.operations.OtpService;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -114,7 +115,8 @@ public class PwmApplication {
             TokenManager.class,
             VersionChecker.class,
             IntruderManager.class,
-            CrService.class
+            CrService.class,
+            OtpService.class
     ));
 
 
@@ -481,6 +483,10 @@ public class PwmApplication {
 
     public StatisticsManager getStatisticsManager() {
         return (StatisticsManager)pwmServices.get(StatisticsManager.class);
+    }
+
+    public OtpService getOtpService() {
+        return (OtpService)pwmServices.get(OtpService.class);
     }
 
     public CrService getCrService() {

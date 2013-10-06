@@ -270,6 +270,10 @@ public class PwmSession implements Serializable {
         return (SetupResponsesBean) getSessionBean(SetupResponsesBean.class);
     }
 
+    public SetupOtpBean getSetupOtpBean() {
+        return (SetupOtpBean) getSessionBean(SetupOtpBean.class);
+    }
+
     public NewUserBean getNewUserBean() {
         return (NewUserBean) getSessionBean(NewUserBean.class);
     }

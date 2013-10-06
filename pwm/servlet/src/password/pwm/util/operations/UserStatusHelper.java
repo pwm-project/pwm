@@ -19,7 +19,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiFactory;
@@ -46,25 +45,25 @@ import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
+import password.pwm.util.otp.OTPUserConfiguration;
 
 public class UserStatusHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UserStatusHelper.class);
 
-
     private UserStatusHelper() {
     }
-
 
     /**
      * Read password status values from directory
      *
-     * @param pwmSession     users pwm Session
-     * @param theUser        the user to check
-     * @param passwordPolicy the password policy to use for checking if current password violates current policy
+     * @param pwmSession users pwm Session
+     * @param theUser the user to check
+     * @param passwordPolicy the password policy to use for checking if current
+     * password violates current policy
      * @return bean describing the status of the user's password
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *          of directory is unavailable
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException of
+     * directory is unavailable
      */
     public static PasswordStatus readPasswordStatus(
             final PwmSession pwmSession,
@@ -74,8 +73,7 @@ public class UserStatusHelper {
             final PwmPasswordPolicy passwordPolicy,
             final UserInfoBean userInfoBean
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final Configuration config = pwmApplication.getConfig();
         final PasswordStatus returnState = new PasswordStatus();
         final String userDN = theUser.getEntryDN();
@@ -115,12 +113,12 @@ public class UserStatusHelper {
         try {
             Date ldapPasswordExpirationTime = theUser.readPasswordExpirationDate();
             if (ldapPasswordExpirationTime != null && ldapPasswordExpirationTime.getTime() < 0) {
-  				// If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
-            	ldapPasswordExpirationTime = null;
+                // If ldapPasswordExpirationTime is less than 0, this may indicate an extremely late date, past the epoch.
+                ldapPasswordExpirationTime = null;
             }
 
             if (ldapPasswordExpirationTime != null) {
-            	LOGGER.trace(String.format("ldapPasswordExpirationTime (%s): %s (%d ms)", userDN, ldapPasswordExpirationTime.toString(), ldapPasswordExpirationTime.getTime()));
+                LOGGER.trace(String.format("ldapPasswordExpirationTime (%s): %s (%d ms)", userDN, ldapPasswordExpirationTime.toString(), ldapPasswordExpirationTime.getTime()));
                 final long diff = ldapPasswordExpirationTime.getTime() - System.currentTimeMillis();
 
                 // now check to see if the user's expire time is within the 'preExpireTime' setting.
@@ -155,7 +153,6 @@ public class UserStatusHelper {
         return returnState;
     }
 
-
     public static void populateActorUserInfoBean(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
@@ -168,7 +165,6 @@ public class UserStatusHelper {
         populateUserInfoBean(pwmSession, uiBean, pwmApplication, pwmSession.getSessionStateBean().getLocale(), userDN, userCurrentPassword, provider);
     }
 
-
     public static void populateUserInfoBean(
             final PwmSession pwmSession,
             final UserInfoBean uiBean,
@@ -178,8 +174,7 @@ public class UserStatusHelper {
             final String userCurrentPassword,
             final ChaiProvider provider
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         final Configuration config = pwmApplication.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
@@ -204,10 +199,29 @@ public class UserStatusHelper {
 
         populateLocaleSpecificUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale);
 
+        //populate OTP data
+        {
+            final OtpService otpService = pwmApplication.getOtpService();
+            final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(theUser);
+            uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, theUser, otpConfig));
+        }
+        /*
+         {
+         final CrService crService = pwmApplication.getCrService();
+         final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, theUser);
+         final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
+         uiBean.setChallengeSet(challengeSet);
+         uiBean.setResponseInfoBean(responseInfoBean);
+         uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession,theUser,challengeSet,responseInfoBean));
+         }
+
+        
+         */
+
         //populate cached password rule attributes
         try {
             final Set<String> interestingUserAttributes = figurePasswordRuleAttributes(uiBean);
-            final Map<String,String> allUserAttrs = userDataReader.readStringAttributes(interestingUserAttributes);
+            final Map<String, String> allUserAttrs = userDataReader.readStringAttributes(interestingUserAttributes);
             uiBean.setCachedPasswordRuleAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
             LOGGER.warn("error retrieving user attributes " + e);
@@ -218,7 +232,7 @@ public class UserStatusHelper {
             try {
                 uiBean.setUserID(userDataReader.readStringAttribute(uIDattr));
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession,"error reading userID attribute: " + e.getMessage());
+                LOGGER.error(pwmSession, "error reading userID attribute: " + e.getMessage());
             }
         }
 
@@ -277,8 +291,7 @@ public class UserStatusHelper {
             final PwmApplication pwmApplication,
             final Locale userLocale
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
+            throws PwmUnrecoverableException, ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
 
         if (uiBean == null || uiBean.getUserDN() == null) {
@@ -297,7 +310,7 @@ public class UserStatusHelper {
             final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
             uiBean.setChallengeSet(challengeSet);
             uiBean.setResponseInfoBean(responseInfoBean);
-            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession,theUser,challengeSet,responseInfoBean));
+            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession, theUser, challengeSet, responseInfoBean));
         }
 
         LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime));
@@ -305,8 +318,7 @@ public class UserStatusHelper {
 
     private static Set<String> figurePasswordRuleAttributes(
             final UserInfoBean uiBean
-    )
-    {
+    ) {
         final Set<String> interestingUserAttributes = new HashSet<String>();
         interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
         if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
@@ -323,8 +335,7 @@ public class UserStatusHelper {
             final Configuration config,
             final ChaiUser theUser
     )
-            throws ChaiUnavailableException
-    {
+            throws ChaiUnavailableException {
         // fetch last password modification time from pwm last update attribute operation
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
@@ -351,14 +362,15 @@ public class UserStatusHelper {
         return null;
     }
 
-
     /**
-     * Update the user's "lastUpdated" attribute.  By default this is "pwmLastUpdate" attribute
+     * Update the user's "lastUpdated" attribute. By default this is
+     * "pwmLastUpdate" attribute
      *
      * @param pwmSession to lookup session info
-     * @param theUser    ldap user to operate on
+     * @param theUser ldap user to operate on
      * @return true if successful;
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the directory is unavailable
+     * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the
+     * directory is unavailable
      */
     public static boolean updateLastUpdateAttribute(final PwmSession pwmSession, final PwmApplication pwmApplication, final ChaiUser theUser)
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -378,6 +390,5 @@ public class UserStatusHelper {
 
         return success;
     }
-
 
 }

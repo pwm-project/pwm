@@ -60,3 +60,7 @@
 .message-success {
     background-color: #70c1f9;
 }
+
+.menubutton {
+    white-space: normal;
+}

@@ -26,19 +26,18 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPUserConfiguration;
 
 /**
  *
- * @author mpieters
+ * @author Menno Pieters, Jason D. Rivard
  */
 public class LdapOtpOperator extends AbstractOtpOperator {
 
@@ -50,7 +49,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @param config
      */
     public LdapOtpOperator(Configuration config) {
-        super(config);
+        setConfig(config);
     }
 
     /**
@@ -79,10 +78,18 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             if (value != null) {
                 otp = decomposeOtpAttribute(value);
             }
-        } catch (ChaiOperationException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        } catch (ChaiUnavailableException ex) {
-            LOGGER.error(ex.getMessage(), ex);
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        } catch (ChaiUnavailableException e) {
+            final String errorMsg = "unexpected LDAP error reading responses: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "unexpected error reading responses: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            throw new PwmUnrecoverableException(errorInformation);
         }
         return otp;
     }
@@ -97,7 +104,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
     @Override
     public void writeOtpUserConfiguration(ChaiUser theUser, String userGuid, OTPUserConfiguration otpConfig) throws PwmUnrecoverableException {
         Configuration config = getConfig();
-        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE);
+        final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
             final String errorMsg = "ldap storage attribute is not configured, unable to write OTP secret";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
@@ -110,18 +117,26 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             throw new PwmUnrecoverableException(errorInformation);
         }
         try {
+            if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
+                value = encryptAttributeValue(value);
+            }
             theUser.writeStringAttribute(ldapStorageAttribute, value);
             LOGGER.info("saved OTP secret for user to chai-ldap format");
-        } catch (ChaiException e) {
+        } catch (ChaiException ex) {
             final String errorMsg;
-            if (e.getErrorCode() == ChaiError.NO_ACCESS) {
-                errorMsg = "permission error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save OTP secret: " + e.getMessage();
+            if (ex.getErrorCode() == ChaiError.NO_ACCESS) {
+                errorMsg = "permission error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "', user does not appear to have correct permissions to save OTP secret: " + ex.getMessage();
             } else {
-                errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
+                errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
-            pwmOE.initCause(e);
+            pwmOE.initCause(ex);
+            throw pwmOE;
+        } catch (PwmOperationalException ex) {
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, ex.getMessage());
+            final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
+            pwmOE.initCause(ex);
             throw pwmOE;
         }
     }

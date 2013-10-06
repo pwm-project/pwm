@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2013 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,6 +144,9 @@ public enum PwmError {
     ERROR_TOO_MANY_THREADS("Error_TooManyThreads",5061),
     ERROR_PASSWORD_REQUIRED("Error_PasswordRequired",5062),
     ERROR_SECURITY_VIOLATION("Error_SecurityViolation",5063),
+    ERROR_NO_OTP_CONFIGURATION("Error_NoOtpConfiguration",5064),
+    ERROR_INCORRECT_OTP_TOKEN("Error_WrongOtpToken", 5065),
+    ERROR_WRITING_OTP_SECRET("Error_Writing_Otp_Secret", 5066),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101),

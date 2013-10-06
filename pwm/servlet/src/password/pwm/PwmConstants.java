@@ -171,6 +171,9 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
     public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
     public static final String URL_JSP_SETUP_HELPDESK_RESPONSES = "WEB-INF/jsp/setupresponses-helpdesk.jsp";
+    public static final String URL_JSP_SETUP_OTP_SECRET_EXISTING = "WEB-INF/jsp/setupotpsecret-existing.jsp";
+    public static final String URL_JSP_SETUP_OTP_SECRET = "WEB-INF/jsp/setupotpsecret.jsp";
+    public static final String URL_JSP_SETUP_OTP_SECRET_TEST = "WEB-INF/jsp/setupotpsecret-test.jsp";
     public static final String URL_JSP_CONFIRM_RESPONSES = "WEB-INF/jsp/setupresponses-confirm.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "WEB-INF/jsp/forgottenpassword-search.jsp";
     public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "WEB-INF/jsp/forgottenpassword-responses.jsp";
@@ -211,6 +214,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
     public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
     public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
+    public static final String URL_SERVLET_SETUP_OTP_SECRET = "SetupOtpSecret";
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
     public static final String URL_SERVLET_NEW_USER = "NewUser";
     public static final String URL_SERVLET_GUEST_REGISTRATION = "GuestRegistration";
@@ -231,6 +235,7 @@ public abstract class PwmConstants {
     public static final String PARAM_THEME = readPwmConstantsBundle("paramName.theme");
     public static final String PARAM_LOCALE = readPwmConstantsBundle("paramName.locale");
     public static final String PARAM_PASSWORD_EXPIRED = readPwmConstantsBundle("paramName.passwordExpired");
+    public static final String PARAM_OTP_TOKEN = "otpToken";
 
     public static final String COOKIE_THEME = readPwmConstantsBundle("cookieName.theme");
     public static final String COOKIE_LOCALE = readPwmConstantsBundle("cookieName.locale");
@@ -280,6 +285,12 @@ public abstract class PwmConstants {
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
     };
+    
+    public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync
+    public final static int TOTP_FUTURE_INTERVALS = 1;  // Allows one newer TOTP token - compensate for clock out of sync
+    public final static int TOTP_INTERVAL = 30;         // 30 second interval
+    public final static int TOTP_TOKEN_LENGTH = 6;
+    public final static int TOTP_RECOVERY_TOKEN_LENGTH = 8;
 
     static {
         DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
