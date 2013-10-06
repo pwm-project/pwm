@@ -17,6 +17,12 @@ changetype: modify
 add: ACL
 ACL: 7#subtree#[This]#pwmResponseSet
 
+# Grant users rights for users to configure an OTP secret
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 7#subtree#[This]#pwmOtpSecret
+
 #Create the PWM proxy user.
 dn: cn=PwmProxy,ou=OU,o=O
 changetype: add
@@ -49,6 +55,12 @@ dn: ou=USERS,o=O
 changetype: modify
 add: ACL
 ACL: 7#subtree#cn=PwmProxy,ou=OU,o=O#pwmLastPwdUpdate
+
+# Grant rights to the users container for the proxy user
+dn: ou=USERS,o=O
+changetype: modify
+add: ACL
+ACL: 3#subtree#cn=PwmProxy,ou=OU,o=O#pwmOtpSecret
 
 # Grant rights to the users container for the proxy user
 dn: ou=USERS,o=O

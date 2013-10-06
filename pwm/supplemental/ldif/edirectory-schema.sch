@@ -66,6 +66,19 @@ BEGIN
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 5 }
  }
 
+-- attributeTypes: ( 
+--   1.3.6.1.4.1.35015.1.2.6 
+--   NAME 'pwmOtpSecret' 
+--   SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 
+--  ) 
+
+"pwmOtpSecret" ATTRIBUTE ::=
+ { 
+	 SyntaxID 	 SYN_OCTET_STRING,
+	 Flags 	{ DS_SYNC_IMMEDIATE }, 
+	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 2 6 } 
+ }
+
 -- objectClasses: ( 1.3.6.1.4.1.35015.1.1.1
 --   NAME 'pwmUser' 
 --   AUXILIARY 
