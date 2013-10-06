@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2013 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -124,6 +124,7 @@ public interface LocalDB {
         EMAIL_QUEUE,
         SMS_QUEUE,
         RESPONSE_STORAGE,
+        OTP_SECRET,
         TOKENS,
         INTRUDER_USER,
         INTRUDER_ADDRESS,
@@ -176,10 +177,12 @@ public interface LocalDB {
             return value;
         }
 
+        @Override
         public String toString() {
             return "db=" + db + ", key=" + key + ", value=" + value;
         }
 
+        @Override
         public boolean equals(final Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -189,6 +192,7 @@ public interface LocalDB {
             return db == that.db && key.equals(that.key) && value.equals(that.value);
         }
 
+        @Override
         public int hashCode() {
             int result;
             result = db.hashCode();
@@ -197,6 +201,7 @@ public interface LocalDB {
             return result;
         }
 
+        @Override
         public int compareTo(final Object o) {
             if (!(o instanceof TransactionItem)) {
                 throw new IllegalArgumentException("can only compare same object type");
