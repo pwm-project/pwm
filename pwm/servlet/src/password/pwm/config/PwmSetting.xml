@@ -1443,6 +1443,13 @@
             <value><![CDATA[pwmToken]]></value>
         </default>
     </setting>
+    <setting key="otp.enabled" level="0" required="true">
+        <label>Enable One Time Passwords</label>
+        <description><![CDATA[Set to true to enable the configuration and use of one time password.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="otp.secret.readPreference" level="0" required="true">
         <label>OTP Secret Read Location</label>
         <description><![CDATA[Location to read the OTP secret from. If an option with multiple values are selected, each location will be read in turn until a stored response is found.]]></description>

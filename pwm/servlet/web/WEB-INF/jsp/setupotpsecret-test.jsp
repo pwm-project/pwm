@@ -52,8 +52,8 @@ TODO: support HOTP
                     <h1>
                         <label for="PwmOneTimePassword"><pwm:Display key="Field_OneTimePassword"/></label>
                     </h1>
-                    <input type="password" name="<%= PwmConstants.PARAM_OTP_TOKEN %>" class="inputfield" maxlength="<%= PwmConstants.TOTP_TOKEN_LENGTH %>" type="text"
-                           id="<%= PwmConstants.PARAM_OTP_TOKEN %>" required="required"
+                    <input type="password" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.TOTP_TOKEN_LENGTH%>" type="text"
+                           id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required"
                            onkeyup="validateResponses();"/>
                     <div id="buttonbar">
                         <input type="hidden" name="processAction" value="setOtpSecret"/>
@@ -74,7 +74,7 @@ TODO: support HOTP
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function() {
                 startupOtpSecretPage();
-                document.forms[0].elements[0].focus();
+                document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
                 ShowHidePasswordHandler.initAllForms();
             });
         </script>

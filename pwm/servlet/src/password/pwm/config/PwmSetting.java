@@ -430,6 +430,8 @@ public enum PwmSetting {
             "token.ldap.attribute", PwmSettingSyntax.STRING, Category.TOKEN),
 
     // OTP
+    OTP_ENABLED(
+            "otp.enabled", PwmSettingSyntax.BOOLEAN, Category.OTP),
     OTP_SECRET_READ_PREFERENCE(
             "otp.secret.readPreference", PwmSettingSyntax.SELECT, Category.OTP),
     OTP_SECRET_WRITE_PREFERENCE(

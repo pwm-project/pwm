@@ -94,7 +94,7 @@ public class OTPUserConfiguration {
             Long n;
             for (n = 0L; n < 5L; n++) {
                 try {
-                    String code = pg.generateResponseCode(n);
+                    String code = pg.generateResponseCode(10^n);
                     this.recoveryCodes.add(code);
                 } catch (GeneralSecurityException ex) {
                     LOGGER.error(ex.getMessage(), ex);

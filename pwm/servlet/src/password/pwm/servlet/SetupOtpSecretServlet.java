@@ -122,9 +122,9 @@ public class SetupOtpSecretServlet extends TopServlet {
         // check to see if the user has an OTP configuration
         if (otpBean.getOtp() != null && !otpBean.isCleared()) {
             if (!"clearOtp".equals(actionParam)) {
-              LOGGER.info(String.format("Existing configuration found for %s", uiBean.getUserID()));
-              forwardToSetupExistingJSP(req, resp);
-              return;
+                LOGGER.info(String.format("Existing configuration found for %s", uiBean.getUserID()));
+                forwardToSetupExistingJSP(req, resp);
+                return;
             }
         }
         if (otpBean.getOtp() == null) {
@@ -196,8 +196,8 @@ public class SetupOtpSecretServlet extends TopServlet {
             final SetupOtpBean otpBean)
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
         otpBean.setOtp(null);
-        initializeBean(pwmSession, pwmApplication, otpBean, true);
         otpBean.setCleared(true);
+        initializeBean(pwmSession, pwmApplication, otpBean, true);
         otpBean.setConfirmed(false);
         forwardToSetupJSP(req, resp);
     }
@@ -252,7 +252,9 @@ public class SetupOtpSecretServlet extends TopServlet {
             try {
                 final OtpService service = pwmApplication.getOtpService();
                 final ChaiUser theUser = pwmSession.getSessionManager().getActor();
-                otpBean.setOtp(service.readOTPUserConfiguration(theUser));
+                if (!newOtp) {
+                    otpBean.setOtp(service.readOTPUserConfiguration(theUser));
+                }
                 if (otpBean.getOtp() == null && newOtp) { // setup OTP
                     LOGGER.info("Setting up new OTP secret.");
                     UserInfoBean uibean = pwmSession.getUserInfoBean();
@@ -281,7 +283,7 @@ public class SetupOtpSecretServlet extends TopServlet {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, ex.getLocalizedMessage()));
             }
         } else {
-            LOGGER.info("OTP already set:" +  otpBean.getOtp().getSecret());
+            LOGGER.info("OTP already set:" + otpBean.getOtp().getSecret());
         }
     }
 

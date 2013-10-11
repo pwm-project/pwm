@@ -200,7 +200,7 @@ public class UserStatusHelper {
         populateLocaleSpecificUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale);
 
         //populate OTP data
-        {
+        if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
             final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(theUser);
             uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, theUser, otpConfig));
