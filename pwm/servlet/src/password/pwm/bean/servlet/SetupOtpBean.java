@@ -63,7 +63,7 @@ public class SetupOtpBean implements PwmSessionBean {
                 byte[] rawSecret = base32.decode(otp.getSecret());
                 Mac mac = Mac.getInstance("HMACSHA1");
                 mac.init(new SecretKeySpec(rawSecret, ""));
-                PasscodeGenerator generator = new PasscodeGenerator(mac, PwmConstants.TOTP_TOKEN_LENGTH, PwmConstants.TOTP_INTERVAL);
+                PasscodeGenerator generator = new PasscodeGenerator(mac, PwmConstants.OTP_TOKEN_LENGTH, PwmConstants.TOTP_INTERVAL);
                 switch (otp.getType()) {
                     case TOTP:
                         return generator.verifyTimeoutCode(token, PwmConstants.TOTP_PAST_INTERVALS, PwmConstants.TOTP_FUTURE_INTERVALS);

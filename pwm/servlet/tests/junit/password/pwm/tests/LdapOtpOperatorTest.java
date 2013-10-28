@@ -65,7 +65,7 @@ public class LdapOtpOperatorTest extends TestCase {
     @Test
     public void testEncodeDecode() throws NoSuchAlgorithmException, InvalidKeyException {
         OTPUserConfiguration otp = new OTPUserConfiguration("dummy@example.com");
-        otp.init(false);
+        otp.init(false, 5);
         String encoded = operator.composeOtpAttribute(otp);
         OTPUserConfiguration decoded = operator.decomposeOtpAttribute(encoded);
         System.err.println("1: "+encoded);

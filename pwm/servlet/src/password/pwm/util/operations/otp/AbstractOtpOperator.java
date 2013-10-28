@@ -160,6 +160,18 @@ public abstract class AbstractOtpOperator implements OtpOperator {
 
     public enum StorageFormat {
 
-        PWM
+        PWM(true),
+        BASE32SECRET(false),
+        OTPURL(false);
+        
+        private final boolean useRecoveryCodes;
+        
+        StorageFormat(boolean useRecoveryCodes) {
+            this.useRecoveryCodes = useRecoveryCodes;
+        }
+        
+        public boolean supportsRecoveryCodes() {
+            return useRecoveryCodes;
+        }
     }
 }

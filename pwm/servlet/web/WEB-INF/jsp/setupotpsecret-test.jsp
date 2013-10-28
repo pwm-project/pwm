@@ -35,7 +35,7 @@ TODO: support HOTP
 <html dir="<pwm:LocaleOrientation/>">
     <%@ include file="fragment/header.jsp" %>
     <body class="nihilo" onload="pwmPageLoadHandler();">
-        <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
+        <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
         <div id="wrapper">
             <jsp:include page="fragment/header-body.jsp">
                 <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
@@ -52,7 +52,7 @@ TODO: support HOTP
                     <h1>
                         <label for="PwmOneTimePassword"><pwm:Display key="Field_OneTimePassword"/></label>
                     </h1>
-                    <input type="password" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.TOTP_TOKEN_LENGTH%>" type="text"
+                    <input type="password" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
                            id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required"
                            onkeyup="validateResponses();"/>
                     <div id="buttonbar">
@@ -73,7 +73,6 @@ TODO: support HOTP
         </div>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function() {
-                startupOtpSecretPage();
                 document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
                 ShowHidePasswordHandler.initAllForms();
             });

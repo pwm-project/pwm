@@ -267,8 +267,8 @@ public class SetupOtpSecretServlet extends TopServlet {
                         LOGGER.error("Malformed URL, not using hostname for identifier", e);
                         hostname = "";
                     }
-                    String identifier = identifier = user + ((hostname != null && hostname.length() > 0) ? ("@" + hostname) : "");
-                    OTPUserConfiguration otp = OTPUserConfiguration.getInstance(identifier, false);
+                    String identifier = user + ((hostname != null && hostname.length() > 0) ? ("@" + hostname) : "");
+                    OTPUserConfiguration otp = OTPUserConfiguration.getInstance(identifier, false, (service.supportsRecoveryCodes())?PwmConstants.OTP_RECOVERY_TOKEN_COUNT:0);
                     otpBean.setOtp(otp);
                     otpBean.setCleared(true);
                 }

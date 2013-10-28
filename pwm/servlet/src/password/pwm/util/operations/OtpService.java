@@ -35,6 +35,7 @@ import password.pwm.util.TimeDuration;
 
 import java.util.*;
 
+import password.pwm.util.operations.otp.AbstractOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
 import password.pwm.util.operations.otp.OtpOperator;
@@ -234,4 +235,9 @@ public class OtpService implements PwmService {
         return true;
     }
 
+    public boolean supportsRecoveryCodes() {
+        Configuration config = pwmApplication.getConfig();
+        AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
+        return format.supportsRecoveryCodes();
+    }
 }

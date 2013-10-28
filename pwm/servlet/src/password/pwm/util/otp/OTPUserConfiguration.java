@@ -83,37 +83,28 @@ public class OTPUserConfiguration {
         return secArray;
     }
 
-    public Long initRecoveryCodes() throws NoSuchAlgorithmException, InvalidKeyException {
-        if (this.secret != null) {
-            Base32 base32 = new Base32();
-            byte[] rawSecret = base32.decode(secret);
-            Mac mac = Mac.getInstance("HMACSHA1");
-            mac.init(new SecretKeySpec(rawSecret, ""));
-            PasscodeGenerator pg = new PasscodeGenerator(mac, PwmConstants.TOTP_RECOVERY_TOKEN_LENGTH, PwmConstants.TOTP_INTERVAL);
+    public void initRecoveryCodes(int numRecoveryCodes) throws NoSuchAlgorithmException, InvalidKeyException {
+        if (numRecoveryCodes > 0) {
             this.recoveryCodes = new ArrayList();
-            Long n;
-            for (n = 0L; n < 5L; n++) {
-                try {
-                    String code = pg.generateResponseCode(10^n);
-                    this.recoveryCodes.add(code);
-                } catch (GeneralSecurityException ex) {
-                    LOGGER.error(ex.getMessage(), ex);
-                }
+            SecureRandom random = new SecureRandom();
+            for (int n = 0; n < numRecoveryCodes; n++) {
+                Long modulo = (long) Math.pow(10L, (new Long(PwmConstants.OTP_RECOVERY_TOKEN_LENGTH)));
+                LOGGER.debug(modulo);
+                String code = String.format("%08d", Math.abs(random.nextLong() % modulo));
+                this.recoveryCodes.add(code);
             }
-
         }
-        return null;
     }
 
-    public void init(boolean counterBased) throws NoSuchAlgorithmException, InvalidKeyException {
+    public void init(boolean counterBased, int numRecoveryCodes) throws NoSuchAlgorithmException, InvalidKeyException {
         LOGGER.trace(String.format("Enter: init(%s)", counterBased));
         Base32 base32 = new Base32();
         byte[] rawSecret = generateSecret();
         this.secret = new String(base32.encode(rawSecret));
         LOGGER.debug(String.format("Generated Secret: %s", secret));
-        Long n = initRecoveryCodes();
+        if (numRecoveryCodes > 0) initRecoveryCodes(numRecoveryCodes);
         if (counterBased) {
-            this.counter = n;
+            this.counter = new SecureRandom().nextLong();
             this.type = Type.HOTP;
         } else {
             this.counter = null;
@@ -121,9 +112,18 @@ public class OTPUserConfiguration {
         }
     }
 
-    public static OTPUserConfiguration getInstance(String identifier, Boolean counterBased) throws NoSuchAlgorithmException, InvalidKeyException {
+    /**
+     * 
+     * @param identifier
+     * @param counterBased
+     * @param numRecoveryCodes
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException 
+     */
+    public static OTPUserConfiguration getInstance(String identifier, Boolean counterBased, int numRecoveryCodes) throws NoSuchAlgorithmException, InvalidKeyException {
         OTPUserConfiguration otpuc = new OTPUserConfiguration(identifier);
-        otpuc.init(counterBased);
+        otpuc.init(counterBased, numRecoveryCodes);
         return otpuc;
     }
 
