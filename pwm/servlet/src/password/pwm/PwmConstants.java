@@ -276,8 +276,9 @@ public abstract class PwmConstants {
     public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync
     public final static int TOTP_FUTURE_INTERVALS = 1;  // Allows one newer TOTP token - compensate for clock out of sync
     public final static int TOTP_INTERVAL = 30;         // 30 second interval
-    public final static int TOTP_TOKEN_LENGTH = 6;
-    public final static int TOTP_RECOVERY_TOKEN_LENGTH = 8;
+    public final static int OTP_TOKEN_LENGTH = 6;
+    public final static int OTP_RECOVERY_TOKEN_LENGTH = 8;
+    public final static int OTP_RECOVERY_TOKEN_COUNT = 5;
 
     private static String readPwmConstantsBundle(final String key) {
         return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);
