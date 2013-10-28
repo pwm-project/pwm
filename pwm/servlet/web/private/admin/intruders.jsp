@@ -1,3 +1,7 @@
+<%@ page import="password.pwm.util.intruder.RecordType" %>
+<%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.i18n.Config" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -34,14 +38,13 @@
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="Users">
-                <div id="userGrid">
+            <% for (RecordType recordType : RecordType.values()) { %>
+            <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(),Config.class); %>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<%=titleName%>">
+                <div id="<%=recordType%>_Grid">
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Addresses">
-                <div id="addressGrid">
-                </div>
-            </div>
+            <% } %>
         </div>
         <br/>
         <div id="buttonbar">
@@ -55,16 +58,16 @@
     <div class="push"></div>
 </div>
 <style scoped="scoped">
-    .addressGrid { height: auto; }
-    .addressGrid .dgrid-scroller { position: relative; overflow: visible; }
-    .userGrid { height: auto; }
-    .userGrid .dgrid-scroller { position: relative; overflow: visible; }
+    <% for (RecordType recordType : RecordType.values()) { %>
+    .<%=recordType%>_Grid { height: auto; }
+    .<%=recordType%>_Grid .dgrid-scroller { position: relative; overflow: visible; }
+    <% } %>
 </style>
 <script>
-    var userGrid;
-    var addressGrid;
-    var userHeaders = {"subject":"Username/DN","timestamp":"Timestamp","count":"Count","status":"Status"};
-    var addressHeaders = {"subject":"Address","timestamp":"Timestamp","count":"Count","status":"Status"};
+    <% for (RecordType recordType : RecordType.values()) { %>
+    var <%=recordType%>_Grid;
+    var <%=recordType%>_Headers = {"subject":"Subject","timestamp":"Timestamp","count":"Count","status":"Status"};
+    <% } %>
 
     function initGrid() {
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
@@ -73,8 +76,9 @@
                     var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
                     // Now, create an instance of our custom grid
-                    addressGrid = new CustomGrid({ columns: addressHeaders}, "addressGrid");
-                    userGrid = new CustomGrid({ columns: userHeaders}, "userGrid");
+                    <% for (RecordType recordType : RecordType.values()) { %>
+                    <%=recordType%>_Grid = new CustomGrid({ columns: <%=recordType%>_Headers}, "<%=recordType%>_Grid");
+                    <% } %>
 
                     refreshData();
                 });
@@ -83,8 +87,9 @@
     function refreshData() {
         showWaitDialog();
         require(["dojo"],function(dojo){
-            addressGrid.refresh();
-            userGrid.refresh();
+            <% for (RecordType recordType : RecordType.values()) { %>
+            <%=recordType%>_Grid.refresh();
+            <% } %>
             var maximum = getObject('maxResults').value;
             var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum  + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             dojo.xhrGet({
@@ -93,8 +98,9 @@
                 handleAs: 'json',
                 load: function(data) {
                     closeWaitDialog();
-                    addressGrid.renderArray(data['data']['address']);
-                    userGrid.renderArray(data['data']['user']);
+                    <% for (RecordType recordType : RecordType.values()) { %>
+                    <%=recordType%>_Grid.renderArray(data['data']['<%=recordType%>']);
+                    <% } %>
                 },
                 error: function(error) {
                     closeWaitDialog();

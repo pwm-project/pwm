@@ -35,6 +35,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.stats.Statistic;
@@ -95,11 +96,11 @@ public class EmailQueueManager extends AbstractQueueManager {
             return;
         }
 
-        final String eventItemGson = (new Gson()).toJson(emailItem);
+        final String eventItemGson = (Helper.getGson()).toJson(emailItem);
         final QueueEvent event = new QueueEvent(eventItemGson, System.currentTimeMillis());
 
         try {
-            final String jsonEvent = (new Gson()).toJson(event);
+            final String jsonEvent = (Helper.getGson()).toJson(event);
             sendQueue.addLast(jsonEvent);
         } catch (Exception e) {
             LOGGER.error("error writing to LocalDB queue, discarding email send request: " + e.getMessage());
@@ -138,7 +139,7 @@ public class EmailQueueManager extends AbstractQueueManager {
     }
 
     boolean sendItem(final String item) {
-        final EmailItemBean emailItemBean = (new Gson()).fromJson(item, EmailItemBean.class);
+        final EmailItemBean emailItemBean = (Helper.getGson()).fromJson(item, EmailItemBean.class);
         final StatisticsManager statsMgr = pwmApplication.getStatisticsManager();
 
         // createSharedHistoryManager a new MimeMessage object (using the Session created above)

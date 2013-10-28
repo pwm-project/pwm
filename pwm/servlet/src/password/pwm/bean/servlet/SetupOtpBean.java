@@ -40,7 +40,7 @@ import password.pwm.util.otp.PasscodeGenerator;
 
 public class SetupOtpBean implements PwmSessionBean {
 
-    static final PwmLogger LOGGER = PwmLogger.getLogger(SetupOtpBean.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(SetupOtpBean.class);
 
     private OTPUserConfiguration otp = null;
     private boolean confirmed = false;

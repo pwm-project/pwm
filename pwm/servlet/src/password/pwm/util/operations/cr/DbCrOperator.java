@@ -34,6 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.db.DatabaseException;
+import password.pwm.util.db.DatabaseTable;
 
 
 public class DbCrOperator implements CrOperator {
@@ -56,27 +57,27 @@ public class DbCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
-            final String errorMsg = "user " + theUser.getEntryDN() + " does not have a pwmGUID, unable to search for responses in Database";
+            final String errorMsg = "user " + theUser.getEntryDN() + " does not have a guid, unable to search for responses in remote database";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
         try {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            final String responseStringBlob = databaseAccessor.get(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
+            final String responseStringBlob = databaseAccessor.get(DatabaseTable.PWM_RESPONSES, userGUID);
             if (responseStringBlob != null && responseStringBlob.length() > 0) {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
-                LOGGER.debug("found user responses in database: " + userResponseSet.toString());
+                LOGGER.debug("found responses for " + theUser.getEntryDN() + " in remote database: " + userResponseSet.toString());
                 return userResponseSet;
             } else {
-                LOGGER.trace("user guid not found in database");
+                LOGGER.trace("user guid for " + theUser.getEntryDN() + " not found in remote database (key=" + userGUID + ")");
             }
         } catch (ChaiValidationException e) {
-            final String errorMsg = "unexpected chai error reading responses from database: " + e.getMessage();
+            final String errorMsg = "unexpected error reading responses for " + theUser.getEntryDN() + " from remote database: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         } catch (PwmOperationalException e) {
-            final String errorMsg = "unexpected error reading responses from database: " + e.getMessage();
+            final String errorMsg = "unexpected error reading responses for " + theUser.getEntryDN() + " from remote database: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -90,7 +91,7 @@ public class DbCrOperator implements CrOperator {
             final ResponseSet responseSet = readResponseSet(theUser,userGUID);
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet);
         } catch (ChaiException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info " + e.getMessage()));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info for " + theUser.getEntryDN() + ", error: "  + e.getMessage()));
         }
     }
 
@@ -98,15 +99,15 @@ public class DbCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to remote database, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to remote database, user " + theUser.getEntryDN() + " does not have a guid"));
         }
 
         try {
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            databaseAccessor.remove(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID);
+            databaseAccessor.remove(DatabaseTable.PWM_RESPONSES, userGUID);
             LOGGER.info("cleared responses for user " + theUser.getEntryDN() + " in remote database");
         } catch (DatabaseException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected error clearing responses to remote database: " + e.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, "unexpected error clearing responses for " + theUser.getEntryDN() + " in remote database, error: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(e);
             throw pwmOE;
@@ -118,8 +119,10 @@ public class DbCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to remote database, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to remote database, user " + theUser.getEntryDN() +  " does not have a guid"));
         }
+
+        LOGGER.trace("attempting to save responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")");
 
         try {
             final ChaiResponseSet responseSet = ChaiCrFactory.newChaiResponseSet(
@@ -132,16 +135,18 @@ public class DbCrOperator implements CrOperator {
             );
 
             final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
-            databaseAccessor.put(DatabaseAccessor.TABLE.PWM_RESPONSES, userGUID, responseSet.stringValue());
-            LOGGER.info("saved responses for user in remote database");
+            databaseAccessor.put(DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue());
+            LOGGER.info("saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")");
         } catch (ChaiException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
+            LOGGER.error(errorInfo.toDebugStr());
             pwmOE.initCause(e);
             throw pwmOE;
         } catch (DatabaseException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to remote database: " + e.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses for " + theUser.getEntryDN() + " in remote database: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
+            LOGGER.error(errorInfo.toDebugStr());
             pwmOE.initCause(e);
             throw pwmOE;
         }

@@ -28,6 +28,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.util.Helper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -44,7 +45,7 @@ public class LocalizedStringValue implements StoredValue {
         if (input == null) {
             return new LocalizedStringValue(Collections.<String, String>emptyMap());
         } else {
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
             }.getType());
             srcMap = srcMap == null ? Collections.<String,String>emptyMap() : new TreeMap(srcMap);
@@ -102,7 +103,7 @@ public class LocalizedStringValue implements StoredValue {
     }
 
     public String toString() {
-        return new Gson().toJson(value);
+        return Helper.getGson().toJson(value);
     }
 
     public String toDebugString() {

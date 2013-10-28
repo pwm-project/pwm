@@ -70,8 +70,23 @@ public class AuthenticationFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         try {
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+
+            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
+                if (PwmServletURLHelper.isConfigGuideURL(req)) {
+                    chain.doFilter(req, resp);
+                    return;
+                }
+            }
+
+            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+                if (PwmServletURLHelper.isConfigManagerURL(req)) {
+                    chain.doFilter(req, resp);
+                    return;
+                }
+            }
 
             //user is already authenticated
             if (ssBean.isAuthenticated()) {

@@ -37,6 +37,8 @@ import java.util.Map;
 
 public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(SeedlistManager.class);
+
     private int initialPopulationCounter = 0;
 
     public SeedlistManager() {
@@ -47,7 +49,6 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
             final LocalDB pwmDB
 
     ) {
-        this.LOGGER = PwmLogger.getLogger(this.getClass());
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
         this.META_DB = LocalDB.DB.SEEDLIST_META;
         this.WORD_DB = LocalDB.DB.SEEDLIST_WORDS;

@@ -47,6 +47,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
@@ -73,7 +74,7 @@ public class HelpdeskServlet extends TopServlet {
         type,
         autogen,
         both,
-        sendpassword,
+        random,
     }
 
     public static enum SETTING_CLEAR_RESPONSES {
@@ -334,7 +335,8 @@ public class HelpdeskServlet extends TopServlet {
 
         try {
             additionalUserInfo.setPwmIntruder(false);
-            pwmApplication.getIntruderManager().check(uiBean.getUserID(),userDN,pwmSession);
+            pwmApplication.getIntruderManager().check(RecordType.USERNAME, uiBean.getUserID(), pwmSession);
+            pwmApplication.getIntruderManager().check(RecordType.USER_DN, uiBean.getUserDN(), pwmSession);
         } catch (Exception e) {
             additionalUserInfo.setPwmIntruder(true);
         }
@@ -388,7 +390,8 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().clear(helpdeskBean.getUserInfoBean().getUserID(),helpdeskBean.getUserInfoBean().getUserDN(),pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
 
         try {
             final String userDN = helpdeskBean.getUserInfoBean().getUserDN();

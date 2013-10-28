@@ -34,6 +34,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.DataStore;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -68,7 +70,7 @@ public class DatabaseAccessor implements PwmService {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public DatabaseAccessor()
-            throws PwmUnrecoverableException
+            throws DatabaseException
     {
     }
 
@@ -130,18 +132,18 @@ public class DatabaseAccessor implements PwmService {
 
         try {
             preOperationCheck();
-        } catch (PwmUnrecoverableException e) {
+        } catch (DatabaseException e) {
             lastError = e.getErrorInformation();
             returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Database server is not available: " + e.getErrorInformation().toDebugStr()));
             return returnRecords;
         }
 
         try {
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             final Map<String,String> tempMap = new HashMap<String,String>();
             tempMap.put("instance",instanceID);
             tempMap.put("date",(new java.util.Date()).toString());
-            this.put(TABLE.PWM_META, DatabaseAccessor.KEY_TEST, gson.toJson(tempMap));
+            this.put(DatabaseTable.PWM_META, DatabaseAccessor.KEY_TEST, gson.toJson(tempMap));
         } catch (PwmException e) {
             returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Error writing to database: " + e.getErrorInformation().toDebugStr()));
             return returnRecords;
@@ -165,27 +167,27 @@ public class DatabaseAccessor implements PwmService {
 // -------------------------- OTHER METHODS --------------------------
 
     private synchronized void init()
-            throws PwmUnrecoverableException
+            throws DatabaseException
     {
         status = PwmService.STATUS.OPENING;
         LOGGER.debug("opening connection to database " + this.dbConfiguration.getConnectionString());
 
         connection = openDB(dbConfiguration);
-        for (final TABLE table : TABLE.values()) {
+        for (final DatabaseTable table : DatabaseTable.values()) {
             initTable(connection, table, dbConfiguration);
         }
 
         status = PwmService.STATUS.OPEN;
 
         try {
-            put(TABLE.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, (new java.util.Date()).toString());
+            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, (new java.util.Date()).toString());
         } catch (DatabaseException e) {
             final String errorMsg = "error writing engine start time value: " + e.getMessage();
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
+            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
         }
     }
 
-    private Connection openDB(final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
+    private Connection openDB(final DBConfiguration dbConfiguration) throws DatabaseException {
         final String connectionURL = dbConfiguration.getConnectionString();
         final String jdbcClass = dbConfiguration.getDriverClassname();
 
@@ -197,11 +199,11 @@ public class DatabaseAccessor implements PwmService {
             return connection;
         } catch (Throwable e) {
             LOGGER.error("error opening DB: " + e.getMessage());
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get operation failed: " + e.getMessage()));
+            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get operation failed: " + e.getMessage()));
         }
     }
 
-    private static void initTable(final Connection connection, final TABLE table, final DBConfiguration dbConfiguration) throws PwmUnrecoverableException {
+    private static void initTable(final Connection connection, final DatabaseTable table, final DBConfiguration dbConfiguration) throws DatabaseException {
         try {
             checkIfTableExists(connection, table);
             LOGGER.trace("table " + table + " appears to exist");
@@ -251,7 +253,7 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    private static void checkIfTableExists(final Connection connection, final TABLE table) throws SQLException {
+    private static void checkIfTableExists(final Connection connection, final DatabaseTable table) throws SQLException {
         final StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM  ").append(table.toString()).append(" WHERE " + KEY_COLUMN + " = '0'");
         Statement statement = null;
@@ -265,8 +267,8 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    public boolean put(final TABLE table, final String key, final String value)
-            throws PwmUnrecoverableException, DatabaseException {
+    public boolean put(final DatabaseTable table, final String key, final String value)
+            throws DatabaseException {
         LOGGER.trace("attempting put operation for table=" + table + ", key=" + key);
         preOperationCheck();
         if (!contains(table, key)) {
@@ -308,9 +310,9 @@ public class DatabaseAccessor implements PwmService {
         return true;
     }
 
-    private synchronized void preOperationCheck() throws PwmUnrecoverableException {
+    private synchronized void preOperationCheck() throws DatabaseException {
         if (status == PwmService.STATUS.CLOSED) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"database connection is not open"));
+            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"database connection is not open"));
         }
 
         if (status == PwmService.STATUS.NEW) {
@@ -342,7 +344,7 @@ public class DatabaseAccessor implements PwmService {
         }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append("SELECT * FROM ").append(TABLE.PWM_META.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
+        sb.append("SELECT * FROM ").append(DatabaseTable.PWM_META.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
@@ -385,14 +387,14 @@ public class DatabaseAccessor implements PwmService {
         }
     }
 
-    public boolean contains(final TABLE table, final String key)
-            throws DatabaseException, PwmUnrecoverableException
+    public boolean contains(final DatabaseTable table, final String key)
+            throws DatabaseException
     {
         return get(table, key) != null;
     }
 
-    public String get(final TABLE table, final String key)
-            throws DatabaseException, PwmUnrecoverableException
+    public String get(final DatabaseTable table, final String key)
+            throws DatabaseException
     {
         LOGGER.trace("attempting get operation for table=" + table + ", key=" + key);
         preOperationCheck();
@@ -422,15 +424,15 @@ public class DatabaseAccessor implements PwmService {
         return null;
     }
 
-    public Iterator<String> iterator(final TABLE table)
-            throws DatabaseException, PwmUnrecoverableException
+    public DataStore.DataStoreIterator<String> iterator(final DatabaseTable table)
+            throws DatabaseException, DatabaseException
     {
         preOperationCheck();
         return new DBIterator<String>(table);
     }
 
-    public boolean remove(final TABLE table, final String key)
-            throws DatabaseException, PwmUnrecoverableException {
+    public boolean remove(final DatabaseTable table, final String key)
+            throws DatabaseException, DatabaseException {
         LOGGER.trace("attempting remove operation for table=" + table + ", key=" + key);
         if (!contains(table, key)) { // pre-operation check is called by contains
             return false;
@@ -456,8 +458,8 @@ public class DatabaseAccessor implements PwmService {
         return true;
     }
 
-    public int size(final TABLE table) throws
-            DatabaseException, PwmUnrecoverableException {
+    public int size(final DatabaseTable table) throws
+            DatabaseException {
         preOperationCheck();
 
         final StringBuilder sb = new StringBuilder();
@@ -485,19 +487,15 @@ public class DatabaseAccessor implements PwmService {
 
 // -------------------------- ENUMERATIONS --------------------------
 
-    public enum TABLE {
-        PWM_META, PWM_RESPONSES, TOKENS, OTP
-    }
+    // -------------------------- INNER CLASSES --------------------------
 
-// -------------------------- INNER CLASSES --------------------------
-
-    public class DBIterator<E> implements Iterator<String> {
-        private final TABLE table;
+    public class DBIterator<E> implements DataStore.DataStoreIterator<String> {
+        private final DatabaseTable table;
         private final ResultSet resultSet;
         private java.lang.String nextValue;
         private boolean finished;
 
-        public DBIterator(final TABLE table)
+        public DBIterator(final DatabaseTable table)
                 throws DatabaseException
         {
             this.table = table;

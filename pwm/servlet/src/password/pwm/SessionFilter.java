@@ -25,6 +25,7 @@ package password.pwm;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.SessionVerificationMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -110,6 +111,7 @@ public class SessionFilter implements Filter {
             LOGGER.error(e.getErrorInformation().toDebugStr());
             ssBean.setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req,resp,true);
+            pwmSession.invalidate();
             return;
         }
 
@@ -142,20 +144,23 @@ public class SessionFilter implements Filter {
         }
 
         //override session locale due to parameter
-        handleLocaleParam(req, resp, pwmSession);
+        handleLocaleParam(req, resp, pwmSession, pwmApplication);
 
         //set the session's theme
-        final String themeReqParamter = Validator.readStringFromRequest(req, PwmConstants.PARAM_THEME);
-        if (themeReqParamter != null && themeReqParamter.length() > 0) {
-            ssBean.setTheme(themeReqParamter);
-            final Cookie newCookie = new Cookie(PwmConstants.COOKIE_THEME, themeReqParamter);
-            newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
-            newCookie.setPath(req.getContextPath() + "/");
-            final String configuredTheme = pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
-            if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParamter)) {
-                newCookie.setMaxAge(0);
+        final String themeReqParameter = Validator.readStringFromRequest(req, PwmConstants.PARAM_THEME);
+        if (themeReqParameter != null && themeReqParameter.length() > 0) {
+            ssBean.setTheme(themeReqParameter);
+            final String themeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_THEME);
+            if (themeCookieName != null && themeCookieName.length() > 0) {
+                final Cookie newCookie = new Cookie(themeCookieName, themeReqParameter);
+                newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
+                newCookie.setPath(req.getContextPath() + "/");
+                final String configuredTheme = pwmApplication.getConfig().readSettingAsString(PwmSetting.INTERFACE_THEME);
+                if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
+                    newCookie.setMaxAge(0);
+                }
+                resp.addCookie(newCookie);
             }
-            resp.addCookie(newCookie);
         }
 
         // make sure connection is secure.
@@ -166,12 +171,13 @@ public class SessionFilter implements Filter {
         }
 
         //check for session verification failure
-        if (!ssBean.isSessionVerified()) {
+        if (!ssBean.isSessionVerified() && pwmApplication.getConfig() != null) {
             // ignore resource requests
-            if (pwmApplication.getConfig() != null && !pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_SESSION_VERIFICATION)) {
+            final SessionVerificationMode mode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.ENABLE_SESSION_VERIFICATION, SessionVerificationMode.class);
+            if (mode == SessionVerificationMode.OFF) {
                 ssBean.setSessionVerified(true);
             } else {
-                if (verifySession(req, resp, servletContext)) {
+                if (verifySession(req, resp, servletContext, mode)) {
                     return;
                 }
             }
@@ -180,7 +186,7 @@ public class SessionFilter implements Filter {
         //check intruder detection, if it is tripped, send user to error page
         if (pwmApplication.getIntruderManager() != null && pwmApplication.getConfig() != null) {
             try {
-                pwmApplication.getIntruderManager().check(null,null,pwmSession);
+                pwmApplication.getIntruderManager().convenience().checkAddressAndSession(pwmSession);
             } catch (PwmUnrecoverableException e) {
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 ServletHelper.forwardToErrorPage(req, resp, false);
@@ -288,7 +294,8 @@ public class SessionFilter implements Filter {
     private static boolean verifySession(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final ServletContext servletContext
+            final ServletContext servletContext,
+            final SessionVerificationMode mode
     )
             throws IOException, ServletException, PwmUnrecoverableException {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
@@ -304,7 +311,12 @@ public class SessionFilter implements Filter {
             LOGGER.trace(pwmSession, "session has not been validated, redirecting with verification key to " + returnURL);
 
             resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
+            if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
+                req.setAttribute("Location",returnURL);
+                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_INIT).forward(req, resp);
+            } else {
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
+            }
             return true;
         }
 
@@ -324,7 +336,7 @@ public class SessionFilter implements Filter {
         LOGGER.error(pwmSession, errorInformation.toDebugStr());
         ssBean.setSessionError(errorInformation);
         ServletHelper.forwardToErrorPage(req, resp, servletContext);
-        return false;
+        return true;
     }
 
     private static String figureValidationURL(final HttpServletRequest req, final String validationKey) {
@@ -385,12 +397,20 @@ public class SessionFilter implements Filter {
         return true;
     }
 
-    private static void handleLocaleParam(final HttpServletRequest request, final HttpServletResponse response, final PwmSession pwmSession) throws PwmUnrecoverableException {
+    private static void handleLocaleParam(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException
+    {
         final String requestedLocale = Validator.readStringFromRequest(request, PwmConstants.PARAM_LOCALE);
         if (requestedLocale != null && requestedLocale.length() > 0) {
             LOGGER.debug(pwmSession, "detected locale request parameter " + PwmConstants.PARAM_LOCALE + " with value " + requestedLocale);
             if (pwmSession.setLocale(requestedLocale)) {
-                final Cookie newCookie = new Cookie(PwmConstants.COOKIE_LOCALE, requestedLocale);
+                final String localeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_LOCALE);
+                final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
                 newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
                 newCookie.setPath(request.getContextPath() + "/");
                 response.addCookie(newCookie);

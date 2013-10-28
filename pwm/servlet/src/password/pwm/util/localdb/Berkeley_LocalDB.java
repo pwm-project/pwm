@@ -58,7 +58,7 @@ public class Berkeley_LocalDB implements LocalDBProvider {
     private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<DB, Database>();
 
     // cache of dbIterators
-    private final Set<LocalDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.PwmDBIterator<String>,Boolean>());
+    private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.LocalDBIterator<String>,Boolean>());
 
     private LocalDB.Status status = LocalDB.Status.NEW;
 
@@ -211,7 +211,7 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         status = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.PwmDBIterator<String> iterator(final DB db)
+    public LocalDB.LocalDBIterator<String> iterator(final DB db)
             throws LocalDBException
     {
         preCheck(false);
@@ -219,7 +219,7 @@ public class Berkeley_LocalDB implements LocalDBProvider {
             if (dbIterators.size() > ITERATOR_LIMIT) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
-            final LocalDB.PwmDBIterator<String> iterator = new DbIterator<String>(db);
+            final LocalDB.LocalDBIterator<String> iterator = new DbIterator<String>(db);
             dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
@@ -308,12 +308,12 @@ public class Berkeley_LocalDB implements LocalDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
+    private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
 
         private Iterator<String> innerIter;
 
         private DbIterator(final DB db) throws DatabaseException {
-            this.innerIter = cachedMaps.get(db).keySet().iterator();
+            this.innerIter = cachedMaps.get(db).keySet().<Iterator>iterator();
         }
 
         public boolean hasNext() {

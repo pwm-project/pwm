@@ -38,6 +38,8 @@ import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
@@ -54,10 +56,10 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-class UserLdapHistory implements Serializable {
+class LdapXmlUserHistory implements UserHistory, Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserLdapHistory.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(LdapXmlUserHistory.class);
 
     private static final String XML_ATTR_TIMESTAMP = "timestamp";
     private static final String XML_ATTR_TRANSACTION = "eventCode";
@@ -68,17 +70,29 @@ class UserLdapHistory implements Serializable {
 
     private static final String COR_RECORD_ID = "0001";
 
-// -------------------------- STATIC METHODS --------------------------
+    // -------------------------- STATIC METHODS --------------------------
+    private final PwmApplication pwmApplication;
 
-    static void updateUserHistory(
-            final PwmApplication pwmApplication,
-            final AuditRecord auditRecord
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+    LdapXmlUserHistory(PwmApplication pwmApplication) {
+        this.pwmApplication = pwmApplication;
+    }
+
+    public void updateUserHistory(final AuditRecord auditRecord)
+            throws PwmUnrecoverableException
+    {
+        try {
+            updateUserHistoryImpl(auditRecord);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        }
+    }
+
+    void updateUserHistoryImpl(final AuditRecord auditRecord)
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(auditRecord.getPerpetratorDN(),chaiProvider);
+        final ChaiUser theUser = ChaiFactory.createChaiUser(auditRecord.getTargetDN(), chaiProvider);
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
@@ -123,21 +137,21 @@ class UserLdapHistory implements Serializable {
         }
     }
 
-    public static List<AuditRecord> readUserHistory(
-            final PwmApplication pwmApplication,
-            final UserInfoBean userInfoBean
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+    public List<AuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+            throws PwmUnrecoverableException
     {
-        // user info
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userInfoBean.getUserDN(),chaiProvider);
+        try {
+            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
+            final ChaiUser theUser = ChaiFactory.createChaiUser(userInfoBean.getUserDN(),chaiProvider);
 
-        final StoredHistory storedHistory = readUserHistory(pwmApplication, theUser);
-        return storedHistory.asAuditRecords(userInfoBean);
+            final StoredHistory storedHistory = readUserHistory(pwmApplication, theUser);
+            return storedHistory.asAuditRecords(userInfoBean);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
+        }
     }
 
-    private static StoredHistory readUserHistory(
+    private StoredHistory readUserHistory(
             final PwmApplication pwmApplication,
             final ChaiUser chaiUser
     )

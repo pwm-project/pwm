@@ -34,6 +34,7 @@ import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
@@ -41,6 +42,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
 
@@ -134,9 +136,13 @@ public class ActivateUserServlet extends TopServlet {
         pwmSession.clearActivateUserBean();
         final List<FormConfiguration> formItem = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
+        Map<FormConfiguration,String> formValues = new HashMap();
         try {
             //read the values from the request
-            final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
+            formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
+
+            // check for intruders
+            pwmApplication.getIntruderManager().convenience().checkAttributes(formValues, pwmSession);
 
             // read the context attr
             final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
@@ -161,15 +167,19 @@ public class ActivateUserServlet extends TopServlet {
             if (!Permission.testQueryMatch(theUser, queryString, Permission.ACTIVATE_USER.toString(), pwmSession)) {
                 final String errorMsg = "user " + theUser.getEntryDN() + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
-                pwmApplication.getIntruderManager().mark(null, theUser.getEntryDN(), pwmSession);
+                pwmApplication.getIntruderManager().mark(RecordType.USER_DN, theUser.getEntryDN(), pwmSession);
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 throw new PwmUnrecoverableException(errorInformation);
             }
 
             final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
             activateUserBean.setTheUser(theUser);
             activateUserBean.setFormValidated(true);
+            pwmApplication.getIntruderManager().convenience().clearAttributes(formValues, pwmSession);
+            pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
         } catch (PwmOperationalException e) {
-            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
         }
@@ -191,7 +201,7 @@ public class ActivateUserServlet extends TopServlet {
             return;
         }
 
-        final boolean tokenRequired = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final boolean tokenRequired = MessageSendMethod.NONE != MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         if (tokenRequired) {
             if (!activateUserBean.isTokenIssued()) {
                 try {
@@ -223,7 +233,8 @@ public class ActivateUserServlet extends TopServlet {
             final String userDN = activateUserBean.getTheUser() == null ? null : activateUserBean.getTheUser().getEntryDN();
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-            pwmApplication.getIntruderManager().mark(null,userDN,pwmSession);
+            pwmApplication.getIntruderManager().mark(RecordType.USER_DN, userDN, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
@@ -388,7 +399,7 @@ public class ActivateUserServlet extends TopServlet {
     {
         final Configuration config = pwmApplication.getConfig();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
-        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final boolean success;
         switch (pref) {
             case BOTH:
@@ -432,20 +443,12 @@ public class ActivateUserServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION, locale);
 
-        final String toAddress = userInfoBean.getUserEmailAddress();
-
-        if (toAddress == null || toAddress.length() < 1) {
+        if (configuredEmailSetting == null) {
             LOGGER.debug(pwmSession, "skipping send activation email for '" + userInfoBean.getUserDN() + "' no email configured");
             return false;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean(), new UserDataReader(theUser));
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(), new UserDataReader(theUser));
         return true;
     }
 
@@ -492,6 +495,7 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
         final Configuration config = pwmApplication.getConfig();
 
+        final Set<String> dest = new HashSet<String>();
         final StringBuilder tokenSendDisplay = new StringBuilder();
         final String toAddress;
         try {
@@ -499,7 +503,7 @@ public class ActivateUserServlet extends TopServlet {
             if (toAddress != null && toAddress.length() > 0) {
                 tokenSendDisplay.append(toAddress);
             }
-
+            dest.add(toAddress);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
@@ -515,6 +519,7 @@ public class ActivateUserServlet extends TopServlet {
                     tokenSendDisplay.append(" / ");
                 }
                 tokenSendDisplay.append(toSmsNumber);
+                dest.add(toSmsNumber);
             }
         } catch (Exception e) {
             final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
@@ -536,7 +541,7 @@ public class ActivateUserServlet extends TopServlet {
 
         final String tokenKey;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,tokenMapData,theUser.getEntryDN());
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,tokenMapData,theUser.getEntryDN(),dest);
             tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
@@ -559,13 +564,14 @@ public class ActivateUserServlet extends TopServlet {
 
         boolean tokenPass = false;
         final String userDN;
+        TokenManager.TokenPayload tokenPayload = null;
         try {
-            TokenManager.TokenPayload tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
                 if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
-                final String dnFromToken = tokenPayload.getUserDN();
+                final String dnFromToken = tokenPayload.getDN();
                 {
                     final ChaiUser proxiedUser = activateUserBean.getTheUser();
                     if (proxiedUser == null) {
@@ -592,7 +598,7 @@ public class ActivateUserServlet extends TopServlet {
                 try {
                     final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
                     final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
-                    final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+                    final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
                         tokenPass = false;
                         final String errorString = "user password has changed since token issued, token rejected";
@@ -619,6 +625,11 @@ public class ActivateUserServlet extends TopServlet {
             activateUserBean.setTheUser(proxiedUser);
             activateUserBean.setTokenPassed(true);
             activateUserBean.setFormValidated(true);
+            if (tokenPayload.getDest() != null) {
+                for (final String dest : tokenPayload.getDest()) {
+                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest, null);
+                }
+            }
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             advanceToNextStage(req, resp);
@@ -627,7 +638,8 @@ public class ActivateUserServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().mark(null, userDN, pwmSession);
+        pwmApplication.getIntruderManager().mark(RecordType.USER_DN, userDN, pwmSession);
+        pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 
@@ -642,7 +654,7 @@ public class ActivateUserServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
+        final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
         final UserDataReader userDataReader = new UserDataReader(theUser);

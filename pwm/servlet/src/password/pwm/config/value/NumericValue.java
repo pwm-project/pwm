@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.util.Helper;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +39,7 @@ public class NumericValue implements StoredValue {
     }
 
     static NumericValue fromJson(String value) {
-        return new NumericValue(new Gson().fromJson(value,Long.class));
+        return new NumericValue(Helper.getGson().fromJson(value, Long.class));
     }
 
     static NumericValue fromXmlElement(final Element settingElement) {
@@ -65,7 +66,7 @@ public class NumericValue implements StoredValue {
     }
 
     public String toString() {
-        return new Gson().toJson(value);
+        return Helper.getGson().toJson(value);
     }
 
     public String toDebugString() {

@@ -64,7 +64,7 @@
         <br/>
         <% final UserSearchEngine.UserSearchResults searchResults = helpdeskBean.getSearchResults(); %>
         <% if (searchResults != null && searchResults.getResults() != null && !searchResults.getResults().isEmpty()) { %>
-        <% final Gson gson = new Gson(); %>
+        <% final Gson gson = Helper.getGson(); %>
         <noscript>
             <span>Javascript is required to view this page.</span>
         </noscript>

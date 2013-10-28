@@ -365,7 +365,7 @@ public class SharedHistoryManager implements Wordlist {
 
             LOGGER.debug("beginning wordDB reduce operation, examining " + initialSize + " words for entries older than " + TimeDuration.asCompactString(maxAgeMs));
 
-            LocalDB.PwmDBIterator<String> keyIterator = null;
+            LocalDB.LocalDBIterator<String> keyIterator = null;
             try {
                 keyIterator = localDB.iterator(WORDS_DB);
                 while (status == STATUS.OPEN && keyIterator.hasNext()) {

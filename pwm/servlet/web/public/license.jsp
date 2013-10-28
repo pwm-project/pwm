@@ -210,6 +210,15 @@
             <br/>
         </div>
         <div class="licenseBlock">
+            <h2>Scrypt</h2>
+            <a href="https://github.com/wg/scrypt">https://github.com/wg/scrypt</a>
+            <br/><br/>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/apache20_license.txt"/></pre>
+            </div>
+            <br/>
+        </div>
+        <div class="licenseBlock">
             <h2>Syslog4j</h2>
             <a href="http://www.syslog4j.org/">http://www.syslog4j.org/</a>
             <br/><br/>

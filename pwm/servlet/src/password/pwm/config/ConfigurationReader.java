@@ -49,7 +49,7 @@ public class ConfigurationReader {
 
     private final File configFile;
     private final String configFileChecksum;
-    private final Configuration configuration;
+    private Configuration configuration;
     private StoredConfiguration storedConfiguration;
     private ErrorInformation configFileError;
 
@@ -64,9 +64,12 @@ public class ConfigurationReader {
             this.storedConfiguration = readStoredConfig();
             this.configFileError = null;
         } catch (PwmUnrecoverableException e) {
-            this.storedConfiguration = StoredConfiguration.getDefaultConfiguration();
             this.configFileError = e.getErrorInformation();
             LOGGER.warn("error reading configuration file: " + e.getMessage());
+        }
+
+        if (storedConfiguration == null) {
+            this.storedConfiguration = StoredConfiguration.getDefaultConfiguration();
         }
 
         LOGGER.debug("configuration mode: " + configMode);
@@ -74,8 +77,6 @@ public class ConfigurationReader {
         if (modifiedSincePWMSave()) {
             LOGGER.warn("configuration settings have been modified since the file was saved by pwm");
         }
-
-        configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.getDefaultConfiguration() : this.storedConfiguration);
     }
 
     public PwmApplication.MODE getConfigMode() {
@@ -87,6 +88,10 @@ public class ConfigurationReader {
     }
 
     public Configuration getConfiguration() {
+        if (configuration == null) {
+            configuration = new Configuration(this.storedConfiguration == null ? StoredConfiguration.getDefaultConfiguration() : this.storedConfiguration);
+            storedConfiguration.lock();
+        }
         return configuration;
     }
 
@@ -128,14 +133,13 @@ public class ConfigurationReader {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        final String configIsEditable = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
-        if (configIsEditable != null && configIsEditable.equalsIgnoreCase("true")) {
+        final String configIsEditable = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
             this.configMode = PwmApplication.MODE.CONFIGURATION;
         } else {
             this.configMode = PwmApplication.MODE.RUNNING;
         }
 
-        storedConfiguration.lock();
         return storedConfiguration;
     }
 
@@ -144,7 +148,7 @@ public class ConfigurationReader {
     {
 
         { // increment the config epoch
-            String epochStrValue = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
+            String epochStrValue = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
             try {
                 final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
                 epochStrValue = epochValue.add(BigInteger.ONE).toString();
@@ -201,7 +205,7 @@ public class ConfigurationReader {
         }
 
         try {
-            final String storedChecksum = storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+            final String storedChecksum = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
             final String actualChecksum = storedConfiguration.settingChecksum();
             return !actualChecksum.equals(storedChecksum);
         } catch (Exception e) {
@@ -224,7 +228,7 @@ public class ConfigurationReader {
 
     public int getConfigurationEpoch() {
         try {
-            return Integer.parseInt(storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
+            return Integer.parseInt(storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
         } catch (Exception e) {
             return 0;
         }

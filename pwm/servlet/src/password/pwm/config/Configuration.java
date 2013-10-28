@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
@@ -32,10 +31,15 @@ import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.config.option.CrStorageMethod;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.RecoveryAction;
+import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -47,6 +51,7 @@ import password.pwm.util.operations.PasswordUtility;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -65,13 +70,7 @@ public class Configuration implements Serializable {
     private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
 
-    public enum STORAGE_METHOD { DB, LDAP, LOCALDB, NMAS, NMASUAWS }
-
-    public enum RECOVERY_ACTION { RESETPW, SENDNEWPW }
-
-    public enum TokenStorageMethod {STORE_LOCALDB, STORE_DB, STORE_CRYPTO, STORE_LDAP}
-
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public Configuration(final StoredConfiguration storedConfiguration) {
         this.storedConfiguration = storedConfiguration;
@@ -87,7 +86,7 @@ public class Configuration implements Serializable {
     }
 
     public String toString(final PwmSetting pwmSetting) {
-        return new Gson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
+        return Helper.getGson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -116,8 +115,35 @@ public class Configuration implements Serializable {
         return availableLocaleMap.get(matchedLocale);
     }
 
-    public PwmSetting.MessageSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
-        return PwmSetting.MessageSendMethod.valueOf(readSettingAsString(setting));
+    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting pwmSetting,  Class<E> enumClass) {
+        final String strValue = (String)storedConfiguration.readSetting(pwmSetting).toNativeObject();
+        try {
+            return (E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
+        } catch (InvocationTargetException e1) {
+            if (e1.getCause() instanceof IllegalArgumentException) {
+                LOGGER.error("illegal setting value for setting '" + pwmSetting.getKey() + "', option '" + strValue + "' is not recognized, will use default");
+            }
+        } catch (Exception e1) {
+            LOGGER.error("unexpected error", e1);
+        }
+
+        // couldn't read enum, try to read default.
+        try {
+            final String defaultValue = (String)(pwmSetting.getDefaultValue(this.getTemplate()).toNativeObject());
+            return (E)enumClass.getMethod("valueOf", String.class).invoke(null, defaultValue);
+        } catch (InvocationTargetException e1) {
+            if (e1.getCause() instanceof IllegalArgumentException) {
+                LOGGER.error("illegal DEFAULT setting value for setting '" + pwmSetting.getKey() + "', option '" + strValue + "' is not recognized, will use return null");
+            }
+        } catch (Exception e1) {
+            LOGGER.error("unexpected error",e1);
+        }
+
+        return null;
+    }
+
+    public MessageSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
+        return MessageSendMethod.valueOf(readSettingAsString(setting));
     }
 
 
@@ -435,7 +461,7 @@ public class Configuration implements Serializable {
     }
 
     public String readProperty(final String key) {
-        return storedConfiguration.readProperty(key);
+        return storedConfiguration.readConfigProperty(key);
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting) {
@@ -459,7 +485,7 @@ public class Configuration implements Serializable {
     }
 
     public String getNotes() {
-        return storedConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+        return storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
     }
 
     public SecretKey getSecurityKey() throws PwmOperationalException {
@@ -486,20 +512,21 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<STORAGE_METHOD> getResponseStorageLocations(final PwmSetting setting) {
+    public List<CrStorageMethod> getResponseStorageLocations(final PwmSetting setting) {
+
         return getGenericStorageLocations(setting);
     }
 
-    public List<STORAGE_METHOD> getOtpSecretStorageLocations(final PwmSetting setting) {
+    public List<CrStorageMethod> getOtpSecretStorageLocations(final PwmSetting setting) {
         return getGenericStorageLocations(setting);
     }
 
-    public List<STORAGE_METHOD> getGenericStorageLocations(final PwmSetting setting) {
+    private List<CrStorageMethod> getGenericStorageLocations(final PwmSetting setting) {
         final String input = readSettingAsString(setting);
-        final List<STORAGE_METHOD> storageMethods = new ArrayList<STORAGE_METHOD>();
+        final List<CrStorageMethod> storageMethods = new ArrayList<CrStorageMethod>();
         for (final String rawValue : input.split("-")) {
             try {
-                storageMethods.add(STORAGE_METHOD.valueOf(rawValue));
+                storageMethods.add(CrStorageMethod.valueOf(rawValue));
             } catch (IllegalArgumentException e) {
                 LOGGER.error("unknown STORAGE_METHOD found: " + rawValue);
             }
@@ -593,13 +620,13 @@ public class Configuration implements Serializable {
         return Collections.unmodifiableMap(localeFlagMap);
     }
 
-    public RECOVERY_ACTION getRecoveryAction() {
+    public RecoveryAction getRecoveryAction() {
         final String stringValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_ACTION);
         try {
-            return RECOVERY_ACTION.valueOf(stringValue);
+            return RecoveryAction.valueOf(stringValue);
         } catch (IllegalArgumentException e) {
             LOGGER.error("unknown recovery action value: " + stringValue);
-            return RECOVERY_ACTION.RESETPW;
+            return RecoveryAction.RESETPW;
         }
     }
 
@@ -620,16 +647,71 @@ public class Configuration implements Serializable {
 
     public boolean shouldHaveDbConfigured() {
         for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-            if (getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.DB)) {
+            if (getResponseStorageLocations(loopSetting).contains(CrStorageMethod.DB)) {
                 return true;
             }
         }
         return false;
     }
 
+    public boolean hasDbConfigured() {
+        if (readSettingAsString(PwmSetting.DATABASE_CLASS) == null || readSettingAsString(PwmSetting.DATABASE_CLASS).length() < 1) {
+            return false;
+        }
+        if (readSettingAsString(PwmSetting.DATABASE_URL) == null || readSettingAsString(PwmSetting.DATABASE_URL).length() < 1) {
+            return false;
+        }
+        if (readSettingAsString(PwmSetting.DATABASE_USERNAME) == null || readSettingAsString(PwmSetting.DATABASE_USERNAME).length() < 1) {
+            return false;
+        }
+        if (readSettingAsString(PwmSetting.DATABASE_PASSWORD) == null || readSettingAsString(PwmSetting.DATABASE_PASSWORD).length() < 1) {
+            return false;
+        }
+
+        return true;
+    }
+
     public String getUsernameAttribute() {
         final String configUsernameAttr = readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
         final String ldapNamingAttribute = readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+    }
+
+    public String readAppProperty(final AppProperty appProperty) {
+        return storedConfiguration.readAppProperty(appProperty);
+    }
+
+    private Convenience helper = new Convenience();
+
+    public Convenience getHelper() {
+        return helper;
+    }
+
+    public class Convenience {
+        public List<CrStorageMethod> getCrReadPreference() {
+            final List<CrStorageMethod> writeMethods = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+            if (writeMethods.size() == 1 && writeMethods.get(0) == CrStorageMethod.AUTO) {
+                writeMethods.clear();
+                if (hasDbConfigured()) {
+                    writeMethods.add(CrStorageMethod.DB);
+                } else {
+                    writeMethods.add(CrStorageMethod.LDAP);
+                }
+            }
+            return writeMethods;
+        }
+
+        public List<CrStorageMethod> getCrWritePreference() {
+            final List<CrStorageMethod> writeMethods = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
+            if (writeMethods.size() == 1 && writeMethods.get(0) == CrStorageMethod.AUTO) {
+                writeMethods.clear();
+                if (hasDbConfigured()) {
+                    writeMethods.add(CrStorageMethod.DB);
+                } else {
+                    writeMethods.add(CrStorageMethod.LDAP);
+                }
+            }
+            return writeMethods;
+        }
     }
 }

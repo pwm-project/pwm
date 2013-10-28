@@ -144,10 +144,10 @@ public class MapDB_LocalDB implements LocalDBProvider {
         }
     }
 
-    public LocalDB.PwmDBIterator<String> iterator(final DB db)
+    public LocalDB.LocalDBIterator<String> iterator(final DB db)
             throws LocalDBException {
         try {
-            return new DbIterator<String>(db);
+            return new MapDBIterator<String>(db);
         } catch (Exception e) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
         }
@@ -275,10 +275,10 @@ public class MapDB_LocalDB implements LocalDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
+    private class MapDBIterator<K> implements LocalDB.LocalDBIterator<String> {
         private Iterator<String> theIterator;
 
-        private DbIterator(final DB db) throws IOException, LocalDBException {
+        private MapDBIterator(final DB db) throws IOException, LocalDBException {
             this.theIterator = getHTree(db).keySet().iterator();
         }
 

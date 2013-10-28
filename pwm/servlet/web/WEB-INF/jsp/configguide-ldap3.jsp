@@ -95,7 +95,7 @@
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="gotoStep('LDAP2');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('PASSWORD');"><pwm:Display key="Button_Next"  bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('CR_STORAGE');"><pwm:Display key="Button_Next"  bundle="Config"/></button>
         </div>
     </div>
     <div class="push"></div>

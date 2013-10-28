@@ -76,8 +76,6 @@ public enum PwmSetting {
             "password.showAutoGen", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     PASSWORD_SHOW_STRENGTH_METER(
             "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
-    DISPLAY_PASSWORD_GUIDE_TEXT(
-            "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.USER_INTERFACE),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_CANCEL_BUTTON(
@@ -108,8 +106,6 @@ public enum PwmSetting {
             "display.css.customMobileStyle", PwmSettingSyntax.TEXT_AREA, Category.USER_INTERFACE),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", PwmSettingSyntax.TEXT_AREA, Category.USER_INTERFACE),
-    DISPLAY_CUSTOM_LOGO_IMAGE(
-            "display.custom.logoImage", PwmSettingSyntax.STRING, Category.USER_INTERFACE),
 
     // change password
     QUERY_MATCH_CHANGE_PASSWORD(
@@ -122,6 +118,8 @@ public enum PwmSetting {
             "password.change.requireCurrent", PwmSettingSyntax.SELECT, Category.CHANGE_PASSWORD),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
+    DISPLAY_PASSWORD_GUIDE_TEXT(
+            "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
     PASSWORD_SYNC_MIN_WAIT_TIME(
             "passwordSyncMinWaitTime", PwmSettingSyntax.NUMERIC, Category.CHANGE_PASSWORD),
     PASSWORD_SYNC_MAX_WAIT_TIME(
@@ -373,6 +371,10 @@ public enum PwmSetting {
             "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     INTRUDER_ADDRESS_CHECK_TIME(
             "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
+    INTRUDER_STORAGE_METHOD(
+            "intruder.storageMethod", PwmSettingSyntax.SELECT, Category.SECURITY),
+    INTRUDER_SESSION_MAX_ATTEMPTS(
+            "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
             "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     RECAPTCHA_KEY_PUBLIC(
@@ -390,7 +392,7 @@ public enum PwmSetting {
     ALLOW_URL_SESSIONS(
             "allowUrlSessions", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     ENABLE_SESSION_VERIFICATION(
-            "enableSessionVerification", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
+            "enableSessionVerification", PwmSettingSyntax.SELECT, Category.SECURITY),
     DISALLOWED_HTTP_INPUTS(
             "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, Category.SECURITY),
     REQUIRE_HTTPS(
@@ -460,6 +462,8 @@ public enum PwmSetting {
             "events.pwmDB.logLevel", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_FILE_LEVEL(
             "events.fileAppender.level", PwmSettingSyntax.SELECT, Category.LOGGING),
+    EVENTS_USER_STORAGE_METHOD(
+            "events.user.storageMethod", PwmSettingSyntax.SELECT, Category.SECURITY),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
     EVENTS_LDAP_MAX_EVENTS(
@@ -688,11 +692,11 @@ public enum PwmSetting {
 
     // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
-            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
+            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
     AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
+            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
     AD_ALLOW_AUTH_EXPIRED(
-            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD,Template.ADDB}),
+            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
 
     // helpdesk
     HELPDESK_ENABLE(
@@ -711,6 +715,8 @@ public enum PwmSetting {
             "helpdesk.result.limit", PwmSettingSyntax.NUMERIC, Category.HELPDESK),
     HELPDESK_SET_PASSWORD_MODE(
             "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, Category.HELPDESK),
+    HELPDESK_SEND_PASSWORD(
+            "helpdesk.sendPassword", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
             "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, Category.HELPDESK),
     HELPDESK_ACTIONS(
@@ -827,16 +833,12 @@ public enum PwmSetting {
         return templates;
     }
 
-    public boolean showSetting(Category category, int level, boolean isModified) {
+    public boolean showSetting(Category category, int level) {
         if (category != this.getCategory()) {
             return false;
         }
 
-        if (isModified) {
-            return true;
-        }
-
-        if (getLevel() > level) {
+        if (getLevel() != level) {
             return false;
         }
 
@@ -845,6 +847,16 @@ public enum PwmSetting {
         }
 
         return true;
+    }
+
+    public static List<PwmSetting> getSettings(Category category, int level) {
+        final List<PwmSetting> returnList = new ArrayList<PwmSetting>();
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (setting.showSetting(category, level)) {
+                returnList.add(setting);
+            }
+        }
+        return Collections.unmodifiableList(returnList);
     }
 
     // -------------------------- OTHER METHODS --------------------------
@@ -965,6 +977,10 @@ public enum PwmSetting {
         HELPDESK(Type.MODULE),
         ;
 
+        public String getKey() {
+            return this.toString();
+        }
+
         public enum Type {
             SETTING, MODULE
         }
@@ -1004,18 +1020,8 @@ public enum PwmSetting {
         }
     }
 
-    public enum MessageSendMethod {
-        NONE,
-        EMAILONLY,
-        BOTH,
-        EMAILFIRST,
-        SMSFIRST,
-        SMSONLY
-    }
-
     public enum Template {
         NOVL,
-        ADDB,
         AD,
         DEFAULT,
         ;

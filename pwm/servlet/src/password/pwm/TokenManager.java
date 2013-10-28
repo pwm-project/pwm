@@ -30,6 +30,8 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
@@ -38,6 +40,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.localdb.LocalDB;
 
@@ -55,7 +58,7 @@ import java.util.*;
  */
 public class TokenManager implements PwmService {
 
-    private static PwmLogger LOGGER = PwmLogger.getLogger(TokenManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(TokenManager.class);
 
     private static final long MAX_CLEANER_INTERVAL_MS = 24 * 60 * 60 * 1000; // one day
     private static final long MIN_CLEANER_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -63,7 +66,7 @@ public class TokenManager implements PwmService {
     private Timer timer;
 
     private Configuration configuration;
-    private Configuration.TokenStorageMethod storageMethod;
+    private TokenStorageMethod storageMethod;
     private long maxTokenAgeMS;
     private long maxTokenPurgeAgeMS;
     private TokenMachine tokenMachine;
@@ -216,7 +219,7 @@ public class TokenManager implements PwmService {
             }
         }
 
-        if (storageMethod == Configuration.TokenStorageMethod.STORE_LDAP) {
+        if (storageMethod == TokenStorageMethod.STORE_LDAP) {
             if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
                 if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
                     returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to STORE_LDAP, this configuration is not supported."));
@@ -232,7 +235,11 @@ public class TokenManager implements PwmService {
         if (theToken == null) {
             return false;
         }
-        final Date issueDate = theToken.getIssueDate();
+        final Date issueDate = theToken.getDate();
+        if (issueDate == null) {
+            LOGGER.error("retrieved token has no issueDate, marking as expired: " + Helper.getGson().toJson(theToken));
+            return true;
+        }
         final TimeDuration duration = new TimeDuration(issueDate,new Date());
         return duration.isLongerThan(maxTokenAgeMS);
     }
@@ -241,7 +248,11 @@ public class TokenManager implements PwmService {
         if (theToken == null) {
             return false;
         }
-        final Date issueDate = theToken.getIssueDate();
+        final Date issueDate = theToken.getDate();
+        if (issueDate == null) {
+            LOGGER.error("retrieved token has no issueDate, marking as purgable: " + Helper.getGson().toJson(theToken));
+            return true;
+        }
         final TimeDuration duration = new TimeDuration(issueDate,new Date());
         return duration.isLongerThan(maxTokenPurgeAgeMS);
     }
@@ -287,8 +298,8 @@ public class TokenManager implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unexpected error while cleaning expired stored tokens: " + e.getMessage());
         } finally {
-            if (keyIterator != null && storageMethod == Configuration.TokenStorageMethod.STORE_LOCALDB) {
-                try {((LocalDB.PwmDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning LocalDB token DB iterator: " + e.getMessage());}
+            if (keyIterator != null && storageMethod == TokenStorageMethod.STORE_LOCALDB) {
+                try {((LocalDB.LocalDBIterator)keyIterator).close(); } catch (Exception e) {LOGGER.error("unexpected error returning LocalDB token DB iterator: " + e.getMessage());}
             }
         }
 
@@ -310,38 +321,44 @@ public class TokenManager implements PwmService {
     }
 
     public static class TokenPayload implements Serializable {
-        private final java.util.Date issueDate;
+        private final java.util.Date date;
         private final String name;
-        private final Map<String,String> payloadData;
-        private final String userDN;
+        private final Map<String,String> data;
+        private final String dn;
+        private final Set<String> dest;
 
-        public TokenPayload(final String name, final Map<String,String> payloadData, final String userDN) {
-            this.issueDate = new Date();
-            this.payloadData = payloadData;
+        public TokenPayload(final String name, final Map<String,String> data, final String dn, final Set<String> dest) {
+            this.date = new Date();
+            this.data = data;
             this.name = name;
-            this.userDN = userDN;
+            this.dn = dn;
+            this.dest = dest;
         }
 
-        public Date getIssueDate() {
-            return issueDate;
+        public Date getDate() {
+            return date;
         }
 
         public String getName() {
             return name;
         }
 
-        public Map<String, String> getPayloadData() {
-            return payloadData;
+        public Map<String, String> getData() {
+            return data;
         }
 
-        public String getUserDN() {
-            return userDN;
+        public String getDN() {
+            return dn;
+        }
+
+        public Set<String> getDest() {
+            return dest;
         }
 
         public String toEncryptedString(final TokenManager tokenManager)
                 throws PwmUnrecoverableException, PwmOperationalException
         {
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             final String jsonPayload = gson.toJson(this);
             return Helper.SimpleTextCrypto.encryptValue(jsonPayload,tokenManager.secretKey, true);
         }
@@ -351,7 +368,7 @@ public class TokenManager implements PwmService {
         {
             final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
             final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken,tokenManager.secretKey, true);
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             return gson.fromJson(decryptedString,TokenPayload.class);
         }
     }
@@ -423,7 +440,7 @@ public class TokenManager implements PwmService {
 
         int size() throws PwmOperationalException, PwmUnrecoverableException;
 
-        Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException;
+        Iterator keyIterator() throws PwmOperationalException, PwmUnrecoverableException;
 
         void cleanup() throws PwmUnrecoverableException, PwmOperationalException;
     }
@@ -470,7 +487,7 @@ public class TokenManager implements PwmService {
             return localDB.size(LocalDB.DB.TOKENS);
         }
 
-        public LocalDB.PwmDBIterator<String> keyIterator() throws PwmOperationalException {
+        public LocalDB.LocalDBIterator<String> keyIterator() throws PwmOperationalException {
             return localDB.iterator(LocalDB.DB.TOKENS);
         }
 
@@ -494,7 +511,7 @@ public class TokenManager implements PwmService {
                 throws PwmOperationalException, PwmUnrecoverableException
         {
             final String md5sumToken = makeTokenHash(tokenKey);
-            final String storedRawValue = databaseAccessor.get(DatabaseAccessor.TABLE.TOKENS,md5sumToken);
+            final String storedRawValue = databaseAccessor.get(DatabaseTable.TOKENS,md5sumToken);
 
             if (storedRawValue != null && storedRawValue.length() > 0 ) {
                 return TokenPayload.fromEncryptedString(TokenManager.this, storedRawValue);
@@ -506,21 +523,21 @@ public class TokenManager implements PwmService {
         public void storeToken(String tokenKey, TokenPayload tokenPayload) throws PwmOperationalException, PwmUnrecoverableException {
             final String rawValue = tokenPayload.toEncryptedString(TokenManager.this);
             final String md5sumToken = makeTokenHash(tokenKey);
-            databaseAccessor.put(DatabaseAccessor.TABLE.TOKENS, md5sumToken, rawValue);
+            databaseAccessor.put(DatabaseTable.TOKENS, md5sumToken, rawValue);
         }
 
         public void removeToken(String tokenKey) throws PwmOperationalException, PwmUnrecoverableException {
             final String md5sumToken = makeTokenHash(tokenKey);
-            databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,tokenKey);
-            databaseAccessor.remove(DatabaseAccessor.TABLE.TOKENS,md5sumToken);
+            databaseAccessor.remove(DatabaseTable.TOKENS,tokenKey);
+            databaseAccessor.remove(DatabaseTable.TOKENS,md5sumToken);
         }
 
         public int size() throws PwmOperationalException, PwmUnrecoverableException {
-            return databaseAccessor.size(DatabaseAccessor.TABLE.TOKENS);
+            return databaseAccessor.size(DatabaseTable.TOKENS);
         }
 
-        public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
-            return databaseAccessor.iterator(DatabaseAccessor.TABLE.TOKENS);
+        public Iterator keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
+            return databaseAccessor.iterator(DatabaseTable.TOKENS);
         }
 
         public void cleanup() throws PwmUnrecoverableException, PwmOperationalException {
@@ -563,7 +580,7 @@ public class TokenManager implements PwmService {
             return 0;
         }
 
-        public Iterator<String> keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
+        public Iterator keyIterator() throws PwmOperationalException, PwmUnrecoverableException {
             return Collections.<String>emptyList().iterator();
         }
 
@@ -643,7 +660,7 @@ public class TokenManager implements PwmService {
                 final String encodedTokenPayload = tokenPayload.toEncryptedString(TokenManager.this);
 
                 final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-                final ChaiUser chaiUser = ChaiFactory.createChaiUser(tokenPayload.getUserDN(),chaiProvider);
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(tokenPayload.getDN(),chaiProvider);
                 chaiUser.writeStringAttribute(tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload);
             } catch (ChaiException e) {
                 final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
@@ -657,7 +674,7 @@ public class TokenManager implements PwmService {
         {
             final TokenPayload payload = retrieveToken(tokenKey);
             if (payload != null) {
-                final String userDN = payload.getUserDN();
+                final String userDN = payload.getDN();
                 try {
                     final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN,chaiProvider);
@@ -674,7 +691,7 @@ public class TokenManager implements PwmService {
             return -1;
         }
 
-        public Iterator<String> keyIterator() throws PwmOperationalException {
+        public Iterator keyIterator() throws PwmOperationalException {
             return Collections.<String>emptyList().iterator();
         }
 
@@ -689,12 +706,12 @@ public class TokenManager implements PwmService {
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE) &&
-                PwmSetting.MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD)) {
+                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD)) {
             return true;
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE) &&
-                PwmSetting.MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD)) {
+                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD)) {
             return true;
         }
 

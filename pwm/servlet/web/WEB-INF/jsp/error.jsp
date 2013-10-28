@@ -47,6 +47,7 @@
         <br/>
         <br/>
         <% if (pwmApplicationHeader != null && pwmApplicationHeader.getApplicationMode() != PwmApplication.MODE.ERROR) { %>
+        <% if (errorInfo != null && !errorInfo.getError().isErrorIsPermanent()) { %>
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
@@ -58,6 +59,7 @@
                        id="button_continue"/>
             </form>
         </div>
+        <% } %>
         <% } %>
     </div>
     <div class="push"></div>

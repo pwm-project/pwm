@@ -84,6 +84,8 @@ public class SessionStateBean implements PwmSessionBean {
     private boolean passwordModified;
     private boolean privateUrlAccessed;
 
+    private int intruderAttempts;
+
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -302,6 +304,18 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setLastRequestURL(String lastRequestURL) {
         this.lastRequestURL = lastRequestURL;
+    }
+
+    public int getIntruderAttempts() {
+        return intruderAttempts;
+    }
+
+    public void incrementIntruderAttempts() {
+        intruderAttempts++;
+    }
+
+    public void clearIntruderAttempts() {
+        intruderAttempts = 0;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

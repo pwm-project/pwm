@@ -39,6 +39,9 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class WordlistManager extends AbstractWordlist implements Wordlist {
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(WordlistManager.class);
+
 // ------------------------------ FIELDS ------------------------------
 
     boolean backwards;
@@ -50,7 +53,6 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
 
     public void init(final LocalDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
-        this.LOGGER = PwmLogger.getLogger(WordlistManager.class);
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
         this.META_DB = LocalDB.DB.WORDLIST_META;
         this.WORD_DB = LocalDB.DB.WORDLIST_WORDS;

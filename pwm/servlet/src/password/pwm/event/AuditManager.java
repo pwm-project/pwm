@@ -24,7 +24,6 @@ package password.pwm.event;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogConfigIF;
 import org.productivity.java.syslog4j.SyslogIF;
@@ -36,9 +35,11 @@ import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
@@ -55,9 +56,7 @@ public class AuditManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuditManager.class);
     private static final int MAX_REMOVALS_PER_ADD = 100;
 
-
     private STATUS status = STATUS.NEW;
-    private PwmApplication pwmApplication;
     private LocalDBStoredQueue auditDB;
 
     private TimeDuration maxRecordAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 30);
@@ -65,6 +64,7 @@ public class AuditManager implements PwmService {
 
     private SyslogManager syslogManager;
     private ErrorInformation lastError;
+    private UserHistory userHistory;
 
     public AuditManager() {
     }
@@ -77,7 +77,6 @@ public class AuditManager implements PwmService {
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
-        this.pwmApplication = pwmApplication;
         this.maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
 
         if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
@@ -95,6 +94,38 @@ public class AuditManager implements PwmService {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
                 LOGGER.error(errorInformation.toDebugStr());
             }
+        }
+        {
+            final UserEventStorageMethod userEventStorageMethod = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.INTRUDER_STORAGE_METHOD, UserEventStorageMethod.class);
+            final String debugMsg;
+            switch (userEventStorageMethod) {
+                case AUTO:
+                    if (pwmApplication.getConfig().hasDbConfigured()) {
+                        debugMsg = "starting AuditManager using auto-confgured data store, Remote Database selected";
+                        this.userHistory = new DatabaseUserHistory(pwmApplication);
+                    } else {
+                        debugMsg = "starting AuditManager using auto-confgured data store, LDAP selected";
+                        this.userHistory = new LdapXmlUserHistory(pwmApplication);
+                    }
+                    break;
+
+                case DATABASE:
+                    this.userHistory = new DatabaseUserHistory(pwmApplication);
+                    debugMsg = "starting AuditManager using Remote Database data store";
+                    break;
+
+                case LDAP:
+                    this.userHistory = new LdapXmlUserHistory(pwmApplication);
+                    debugMsg = "starting AuditManager using LocalDB data store";
+                    break;
+
+                default:
+                    lastError = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown storageMethod selected: " + userEventStorageMethod);
+                    status = STATUS.CLOSED;
+                    return;
+            }
+            LOGGER.info(debugMsg);
+
         }
         this.status = STATUS.OPEN;
     }
@@ -152,11 +183,7 @@ public class AuditManager implements PwmService {
     public List<AuditRecord> readUserAuditRecords(final UserInfoBean userInfoBean)
             throws PwmUnrecoverableException
     {
-        try {
-            return UserLdapHistory.readUserHistory(pwmApplication, userInfoBean);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-        }
+        return userHistory.readUserHistory(userInfoBean);
     }
 
     public int localSize() {
@@ -177,7 +204,7 @@ public class AuditManager implements PwmService {
     public void submitAuditRecord(final AuditRecord auditRecord)
             throws PwmUnrecoverableException
     {
-        final String gsonRecord = new Gson().toJson(auditRecord);
+        final String gsonRecord = Helper.getGson().toJson(auditRecord);
 
         if (status != STATUS.OPEN) {
             LOGGER.warn("discarding audit event (AuditManager is not open), " + gsonRecord);
@@ -194,10 +221,8 @@ public class AuditManager implements PwmService {
         }
 
         // add to user ldap record
-        try {
-            UserLdapHistory.updateUserHistory(pwmApplication, auditRecord);
-        } catch (ChaiUnavailableException e) {
-            LOGGER.error("error updating ldap user history: " + e.getMessage());
+        if (auditRecord.getEventCode().isStoreOnUser()) {
+            userHistory.updateUserHistory(auditRecord);
         }
 
         // send to syslog
@@ -222,7 +247,7 @@ public class AuditManager implements PwmService {
         int workActions = 0;
         while (workActions < MAX_REMOVALS_PER_ADD && !auditDB.isEmpty()) {
             final String stringFirstRecord = auditDB.getFirst();
-            final AuditRecord firstRecord = new Gson().fromJson(stringFirstRecord,AuditRecord.class);
+            final AuditRecord firstRecord = Helper.getGson().fromJson(stringFirstRecord, AuditRecord.class);
             oldestRecord = firstRecord.getTimestamp();
             if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(maxRecordAge)) {
                 auditDB.removeFirst();
@@ -248,7 +273,7 @@ public class AuditManager implements PwmService {
         @Override
         public AuditRecord next() {
             final String value = innerIter.next();
-            return (AuditRecord)new Gson().fromJson(value,password.pwm.event.AuditRecord.class);
+            return (AuditRecord)Helper.getGson().fromJson(value, password.pwm.event.AuditRecord.class);
         }
 
         @Override

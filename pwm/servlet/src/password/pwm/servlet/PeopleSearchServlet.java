@@ -124,7 +124,7 @@ public class PeopleSearchServlet extends TopServlet {
     {
         final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class);
         final String username = peopleSearchBean.getSearchString();
-        if (username.length() < 1) {
+        if (username == null || username.length() < 1) {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
             return;
         }

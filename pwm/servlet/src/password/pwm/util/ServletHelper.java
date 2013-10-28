@@ -33,6 +33,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
@@ -42,9 +44,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.math.BigInteger;
+import java.net.*;
 import java.util.*;
 
 public class ServletHelper {
@@ -126,7 +127,7 @@ public class ServletHelper {
             throws IOException, ServletException
     {
         req.setAttribute("nextURL",redirectURL);
-        final String redirectPageJsp = '/' + PwmConstants.URL_JSP_REDIRECT;
+        final String redirectPageJsp = '/' + PwmConstants.URL_JSP_INIT;
         req.getSession().getServletContext().getRequestDispatcher(redirectPageJsp).forward(req, resp);
     }
 
@@ -323,12 +324,27 @@ public class ServletHelper {
                 if (cookie != null) {
                     final String loopName = cookie.getName();
                     if (cookieName.equals(loopName)) {
-                        return cookie.getValue();
+                        try {
+                            return URLDecoder.decode(cookie.getValue(),"UTF8");
+                        } catch (UnsupportedEncodingException e) {
+                            LOGGER.warn("error decoding cookie value for cookie '" + loopName + "', error: " + e.getMessage());
+                        }
                     }
                 }
             }
         }
         return null;
+    }
+
+    public static void writeCookie(final HttpServletResponse resp, final String cookieName, final String cookieValue) {
+        Cookie theCookie = null;
+        try {
+            theCookie = new Cookie(cookieName, URLEncoder.encode(cookieValue, "UTF8"));
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.warn("error decoding cookie value for cookie '" + cookieName + "', error: " + e.getMessage());
+        }
+        theCookie.setMaxAge(1024);
+        resp.addCookie(theCookie);
     }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
@@ -523,8 +539,9 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        final String localeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_LOCALE);
-        if (PwmConstants.COOKIE_LOCALE.length() > 0 && localeCookie != null) {
+        final String localeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_LOCALE);
+        final String localeCookie = ServletHelper.readCookie(req,localeCookieName);
+        if (localeCookieName.length() > 0 && localeCookie != null) {
             LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
             pwmSession.setLocale(localeCookie);
         } else {
@@ -534,8 +551,9 @@ public class ServletHelper {
             LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
         }
 
-        final String themeCookie = ServletHelper.readCookie(req,PwmConstants.COOKIE_THEME);
-        if (PwmConstants.COOKIE_THEME.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
+        final String themeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_THEME);
+        final String themeCookie = ServletHelper.readCookie(req,themeCookieName);
+        if (localeCookieName.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
             LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
             pwmSession.getSessionStateBean().setTheme(themeCookie);
         }
@@ -640,6 +658,19 @@ public class ServletHelper {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
                     throw new PwmUnrecoverableException(errorInformation);
                 }
+            }
+        }
+
+        // check trial
+        if (PwmConstants.TRIAL_MODE) {
+            final String currentAuthString = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CURRENT).getStatistic(Statistic.AUTHENTICATIONS);
+            if (new BigInteger(currentAuthString).compareTo(BigInteger.valueOf(PwmConstants.TRIAL_MAX_AUTHENTICATIONS)) > 0) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"maximum usage per server startup exceeded"));
+            }
+
+            final String totalAuthString = pwmApplication.getStatisticsManager().getStatBundleForKey(StatisticsManager.KEY_CUMULATIVE).getStatistic(Statistic.AUTHENTICATIONS);
+            if (new BigInteger(totalAuthString).compareTo(BigInteger.valueOf(PwmConstants.TRIAL_MAX_TOTAL_AUTH)) > 0) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"maximum usage for this server has been exceeded"));
             }
         }
     }

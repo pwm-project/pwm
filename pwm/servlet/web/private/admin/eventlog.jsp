@@ -181,13 +181,11 @@
         <script type="text/javascript">
             var data = [];
             <%
-                final SimpleDateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                final Gson gson = new Gson();
-                timeFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+                final Gson gson = Helper.getGson();
                 for (final PwmLogEvent event : searchResults.getEvents()) {
                     try {
-                        final Map<String, String> rowData = new LinkedHashMap<String, String>();
-                        rowData.put("timestamp", timeFormat.format(event.getDate()));
+                        final Map<String, Object> rowData = new LinkedHashMap<String, Object>();
+                        rowData.put("timestamp", event.getDate());
                         rowData.put("level", event.getLevel().toString());
                         rowData.put("src", event.getSource());
                         rowData.put("user", event.getActor());

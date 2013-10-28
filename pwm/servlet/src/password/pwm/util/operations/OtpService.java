@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.*;
 import password.pwm.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.CrStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
@@ -33,8 +34,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
 import password.pwm.util.operations.otp.OtpOperator;
@@ -47,7 +47,7 @@ public class OtpService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(OtpService.class);
 
-    private final Map<Configuration.STORAGE_METHOD, OtpOperator> operatorMap = new EnumMap<Configuration.STORAGE_METHOD, OtpOperator>(Configuration.STORAGE_METHOD.class);
+    private final Map<CrStorageMethod, OtpOperator> operatorMap = new EnumMap<CrStorageMethod, OtpOperator>(CrStorageMethod.class);
     private PwmApplication pwmApplication;
 
     public OtpService() {
@@ -62,8 +62,8 @@ public class OtpService implements PwmService {
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
         //operatorMap.put(Configuration.STORAGE_METHOD.DB, new DbCrOperator(pwmApplication));
-        operatorMap.put(Configuration.STORAGE_METHOD.LDAP, new LdapOtpOperator(pwmApplication.getConfig()));
-        operatorMap.put(Configuration.STORAGE_METHOD.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
+        operatorMap.put(CrStorageMethod.LDAP, new LdapOtpOperator(pwmApplication.getConfig()));
+        operatorMap.put(CrStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
     }
 
     @Override
@@ -85,17 +85,17 @@ public class OtpService implements PwmService {
         final long methodStartTime = System.currentTimeMillis();
         OTPUserConfiguration otpConfig = null;
 
-        final List<Configuration.STORAGE_METHOD> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
             final String userGUID;
-            if (otpSecretStorageLocations.contains(Configuration.STORAGE_METHOD.DB) || otpSecretStorageLocations.contains(Configuration.STORAGE_METHOD.LOCALDB)) {
+            if (otpSecretStorageLocations.contains(CrStorageMethod.DB) || otpSecretStorageLocations.contains(CrStorageMethod.LOCALDB)) {
                 userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
             } else {
                 userGUID = null;
             }
-            Iterator<Configuration.STORAGE_METHOD> locationIterator = otpSecretStorageLocations.iterator();
+            Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (otpConfig == null && locationIterator.hasNext()) {
-                final Configuration.STORAGE_METHOD location = locationIterator.next();
+                final CrStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
                     otpConfig = operator.readOtpUserConfiguration(theUser, userGUID);
@@ -114,12 +114,12 @@ public class OtpService implements PwmService {
 
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
-        final List<Configuration.STORAGE_METHOD> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
-            final Iterator<Configuration.STORAGE_METHOD> locationIterator = otpSecretStorageLocations.iterator();
+            final Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (locationIterator.hasNext()) {
                 attempts++;
-                final Configuration.STORAGE_METHOD location = locationIterator.next();
+                final CrStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
                     try {

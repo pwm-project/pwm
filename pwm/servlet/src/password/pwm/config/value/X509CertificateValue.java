@@ -27,6 +27,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.Base64Util;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.ByteArrayInputStream;
@@ -113,6 +114,6 @@ public class X509CertificateValue implements StoredValue {
             map.put("issueDate",cert.getNotBefore().toString());
             list.add(map);
         }
-        return new Gson().toJson(list);
+        return Helper.getGson().toJson(list);
     }
 }

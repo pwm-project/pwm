@@ -27,6 +27,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.util.Helper;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +45,7 @@ public class StringValue implements StoredValue {
     }
 
     static StringValue fromJson(final String input) {
-        final String newValue = new Gson().fromJson(input,String.class);
+        final String newValue = Helper.getGson().fromJson(input, String.class);
         return new StringValue(newValue);
     }
 
@@ -71,7 +72,7 @@ public class StringValue implements StoredValue {
     }
 
     public String toString() {
-        return new Gson().toJson(value);
+        return Helper.getGson().toJson(value);
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {

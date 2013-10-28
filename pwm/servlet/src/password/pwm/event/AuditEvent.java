@@ -28,28 +28,34 @@ import password.pwm.i18n.Message;
 import java.util.Locale;
 
 public enum AuditEvent {
-    AUTHENTICATE(Message.EVENT_LOG_AUTHENTICATE),
-    CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD),
-    RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD),
-    SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES),
-    SET_OTP_SECRET(Message.EVENT_LOG_SETUP_OTP_SECRET),
-    ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER),
-    CREATE_USER(Message.EVENT_LOG_CREATE_USER),
-    UPDATE_PROFILE(Message.EVENT_LOG_UPDATE_PROFILE),
-    INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT),
-    HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD),
-    HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD),
-    HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES),
-    UNKNOWN(null);
+    AUTHENTICATE(Message.EVENT_LOG_AUTHENTICATE, false),
+    CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD, true),
+    RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD, true),
+    SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES, true),
+    SET_OTP_SECRET(Message.EVENT_LOG_SETUP_OTP_SECRET, true),
+    ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER, true),
+    CREATE_USER(Message.EVENT_LOG_CREATE_USER, true),
+    UPDATE_PROFILE(Message.EVENT_LOG_UPDATE_PROFILE, true),
+    INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT, true),
+    HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD, true),
+    HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD, true),
+    HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES, true),
+    UNKNOWN(null, true);
 
     final private Message message;
+    final private boolean storeOnUser;
 
-    AuditEvent(final Message message) {
+    AuditEvent(final Message message, boolean storeOnUser) {
         this.message = message;
+        this.storeOnUser = storeOnUser;
     }
 
     public Message getMessage() {
         return message;
+    }
+
+    public boolean isStoreOnUser() {
+        return storeOnUser;
     }
 
     public static AuditEvent forKey(final String key) {

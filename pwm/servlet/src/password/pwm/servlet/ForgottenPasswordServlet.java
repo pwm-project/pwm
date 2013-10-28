@@ -37,10 +37,13 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PasswordStatus;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.RecoveryAction;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.*;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.stats.Statistic;
@@ -56,8 +59,7 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class
-        ForgottenPasswordServlet extends TopServlet {
+public class ForgottenPasswordServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
@@ -90,7 +92,7 @@ public class
         }
 
         if (forgottenPasswordBean.getProxiedUser() != null) {
-            pwmApplication.getIntruderManager().check(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().check(RecordType.USER_DN, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
         }
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
@@ -105,7 +107,7 @@ public class
         if (processAction != null && processAction.length() > 0) {
             Validator.validatePwmFormID(req);
 
-            final boolean tokenEnabled = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+            final boolean tokenEnabled = MessageSendMethod.NONE != MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
             final boolean tokenNeeded = tokenEnabled && !forgottenPasswordBean.isTokenSatisfied();
             final boolean responsesEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES) || !config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES).isEmpty();
             final boolean responsesNeeded = responsesEnabled && !forgottenPasswordBean.isResponsesSatisfied();
@@ -147,9 +149,14 @@ public class
 
         final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);
 
+        Map<FormConfiguration, String> formValues = new HashMap();
+
         try {
             //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm, userLocale);
+            formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm, userLocale);
+
+            // check for intruder search values
+            pwmApplication.getIntruderManager().convenience().checkAttributes(formValues, pwmSession);
 
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, userLocale);
@@ -167,7 +174,7 @@ public class
 
             if (theUser == null) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
-                pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
                 forwardToSearchJSP(req,resp);
                 return;
@@ -175,9 +182,14 @@ public class
 
             forgottenPasswordBean.setProxiedUser(theUser);
             pwmSession.getSessionStateBean().setLastParameterValues(new FormMap());
+
+            // clear intruder search values
+            pwmApplication.getIntruderManager().convenience().clearAttributes(formValues, pwmSession);
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues());
-            pwmApplication.getIntruderManager().mark(null, null, pwmSession);
+            pwmApplication.getIntruderManager().mark(RecordType.ADDRESS, pwmSession.getSessionStateBean().getSrcAddress(), pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
+
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
             this.forwardToSearchJSP(req, resp);
@@ -198,13 +210,15 @@ public class
 
         boolean tokenPass = false;
         final String userDN;
+        final TokenManager.TokenPayload tokenPayload;
         try {
-            TokenManager.TokenPayload tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
+                LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
                 if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
-                final String dnFromToken = tokenPayload.getUserDN();
+                final String dnFromToken = tokenPayload.getDN();
 
                 {
                     final ChaiUser proxiedUser = forgottenPasswordBean.getProxiedUser();
@@ -232,7 +246,7 @@ public class
                 try {
                     final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
                     final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
-                    final String dateStringInToken = tokenPayload.getPayloadData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+                    final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
                         tokenPass = false;
                         final String errorString = "user password has changed since token issued, token rejected";
@@ -258,6 +272,11 @@ public class
             final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN,pwmApplication.getProxyChaiProvider());
             forgottenPasswordBean.setProxiedUser(proxiedUser);
             forgottenPasswordBean.setTokenSatisfied(true);
+            if (tokenPayload != null && tokenPayload.getDest() != null) {
+                for (final String dest : tokenPayload.getDest()) {
+                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest, null);
+                }
+            }
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             this.advancedToNextStage(req, resp);
@@ -267,7 +286,8 @@ public class
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
         simulateBadLogin(pwmApplication, pwmSession, userDN);
-        pwmApplication.getIntruderManager().mark(null, userDN, pwmSession);
+        pwmApplication.getIntruderManager().mark(RecordType.USER_DN, userDN, pwmSession);
+        pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
     }
 
@@ -365,7 +385,8 @@ public class
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, "incorrect attribute value during check for " + theUser.getEntryDN());
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-            pwmApplication.getIntruderManager().mark(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().mark(RecordType.USER_DN, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
             this.forwardToResponsesJSP(req, resp);
             return;
@@ -415,7 +436,8 @@ public class
                     LOGGER.debug(pwmSession,errorInformation.toDebugStr());
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
                     simulateBadLogin(pwmApplication, pwmSession, theUser.getEntryDN());
-                    pwmApplication.getIntruderManager().mark(null, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+                    pwmApplication.getIntruderManager().mark(RecordType.USER_DN, forgottenPasswordBean.getProxiedUser().getEntryDN(), pwmSession);
+                    pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     this.forwardToResponsesJSP(req, resp);
                     return;
                 }
@@ -488,7 +510,7 @@ public class
         }
 
         // process for token-enabled recovery
-        final boolean tokenEnabled = PwmSetting.MessageSendMethod.NONE != PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final boolean tokenEnabled = MessageSendMethod.NONE != MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         if (tokenEnabled) {
             if (!forgottenPasswordBean.isTokenSatisfied()) {
                 this.initializeToken(pwmSession, pwmApplication, forgottenPasswordBean.getProxiedUser());
@@ -505,7 +527,7 @@ public class
         forgottenPasswordBean.setAllPassed(true);
         LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
 
-        if (config.getRecoveryAction() == Configuration.RECOVERY_ACTION.SENDNEWPW) {
+        if (config.getRecoveryAction() == RecoveryAction.SENDNEWPW) {
             this.processSendNewPassword(req,resp);
             return;
         }
@@ -729,6 +751,7 @@ public class
         final Configuration config = pwmApplication.getConfig();
 
         final Map<String,String> tokenMapData = new HashMap<String, String>();
+        final Set<String> dest = new HashSet<String>();
 
         try {
             final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
@@ -739,24 +762,15 @@ public class
             LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
         }
 
-        final String token;
-        try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, tokenMapData, proxiedUser.getEntryDN());
-            token = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
-        } catch (PwmOperationalException e) {
-            throw new PwmUnrecoverableException(e.getErrorInformation());
-        }
-        LOGGER.debug(pwmSession, "generated token code for session");
-        LOGGER.trace(String.format("Token: %s", token));
-
         final StringBuilder tokenSendDisplay = new StringBuilder();
         String toEmailAddr = null;
         try {
-            LOGGER.trace("Reading setting "+PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+            LOGGER.trace("Reading setting " + PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
             toEmailAddr = proxiedUser.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
             if (toEmailAddr != null && toEmailAddr.length() > 0) {
                 LOGGER.trace("Email address: "+toEmailAddr);
                 tokenSendDisplay.append(toEmailAddr);
+                dest.add(toEmailAddr);
             }
         } catch (Exception e) {
             LOGGER.debug("error reading mail attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
@@ -772,11 +786,22 @@ public class
                     tokenSendDisplay.append(" / ");
                 }
                 tokenSendDisplay.append(toSmsNumber);
+                dest.add(toSmsNumber);
             }
         } catch (Exception e) {
             LOGGER.debug("error reading SMS attribute from user '" + proxiedUser.getEntryDN() + "': " + e.getMessage());
         }
         forgottenPasswordBean.setTokenSendAddress(tokenSendDisplay.toString());
+
+        final String token;
+        try {
+            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, tokenMapData, proxiedUser.getEntryDN(),dest);
+            token = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
+        }
+        LOGGER.debug(pwmSession, "generated token code for session");
+
 
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         sendToken(pwmApplication, proxiedUser, locale, toEmailAddr, toSmsNumber, token);
@@ -793,7 +818,7 @@ public class
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
+        final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
         final UserDataReader userDataReader = new UserDataReader(theUser);

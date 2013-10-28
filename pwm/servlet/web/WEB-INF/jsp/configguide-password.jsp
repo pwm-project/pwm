@@ -1,7 +1,7 @@
 <%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
 <%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
 <%@ page import="java.security.cert.X509Certificate" %>
-<%@ page import="password.pwm.servlet.ConfigManagerServlet" %>
+<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -111,7 +111,7 @@
         </form>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('CR_STORAGE');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
             <button class="btn" id="button_next" onclick="gotoStep('END');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>

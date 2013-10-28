@@ -58,7 +58,7 @@ public class Derby_LocalDB implements LocalDBProvider {
     private File dbDirectory;
 
     // cache of dbIterators
-    private final Set<LocalDB.PwmDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.PwmDBIterator<String>, Boolean>());
+    private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.LocalDBIterator<String>, Boolean>());
 
     // sql db connection
     private Connection dbConnection;
@@ -250,14 +250,14 @@ public class Derby_LocalDB implements LocalDBProvider {
         this.status = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.PwmDBIterator<String> iterator(final DB db)
+    public LocalDB.LocalDBIterator<String> iterator(final DB db)
             throws LocalDBException {
         try {
             if (dbIterators.size() > ITERATOR_LIMIT) {
                 throw new LocalDBException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"over " + ITERATOR_LIMIT + " iterators are outstanding, maximum limit exceeded"));
             }
 
-            final LocalDB.PwmDBIterator iterator = new DbIterator(db);
+            final LocalDB.LocalDBIterator iterator = new DbIterator(db);
             dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
@@ -469,7 +469,7 @@ public class Derby_LocalDB implements LocalDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator implements LocalDB.PwmDBIterator<String> {
+    private class DbIterator implements LocalDB.LocalDBIterator<String> {
         private String nextItem;
         private String currentItem;
 

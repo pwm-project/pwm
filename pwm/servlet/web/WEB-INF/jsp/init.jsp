@@ -24,30 +24,42 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final String nextURL = (String)request.getAttribute("nextURL"); %>
+<% final String nextURL = (String)request.getAttribute("Location"); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="nihilo">
-<noscript>
-<meta id="meta-redirect" http-equiv="refresh"
-      content="0;url='<%=nextURL%>'">
-</noscript>
+<meta id="meta-redirect" http-equiv="refresh" content="30;url='<%=StringEscapeUtils.escapeHtml(nextURL)%>'"><%-- failsafe... --%>
 <div id="wrapper">
-    <jsp:include page="fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
-    </jsp:include>
+    <div style="height:100px">&nbsp;</div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:Display key="Display_PleaseWait"/></p>
+        <p style="width: 100%; text-align: center">
+            <pwm:Display key="Display_PleaseWait"/>
+            <br/>
+            <br/>
+        <div id="WaitDialogBlank"></div>
+
+        </p>
+
         <div id="buttonbar"></div>
-        <%--<div id="WaitDialogBlank"></div>--%>
+        <p id="failsafeAnchor">
+            <a href="<%=StringEscapeUtils.escapeHtml(nextURL)%>">Click here to continue...</a>
+        </p>
+        <script>
+            var div = document.getElementById('failsafeAnchor');
+            while(div.firstChild){
+                div.removeChild(div.firstChild);
+            }
+        </script>
     </div>
     <div class="push"></div>
 </div>
 <script type="text/javascript">
-        showWaitDialog(null,null,function(){
-            window.location = '<%=StringEscapeUtils.escapeJavaScript(nextURL)%>'
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        preloadResources(function(){
+            window.location.replace('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
         });
+    });
 </script>
 </body>
 </html>

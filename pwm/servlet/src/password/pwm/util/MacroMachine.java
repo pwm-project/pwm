@@ -50,6 +50,7 @@ public class MacroMachine {
         MACROS.add(new UserPwExpirationTimeDefaultMacro());
         MACROS.add(new UserDaysUntilPwExpireMacro());
         MACROS.add(new UserIDMacro());
+        MACROS.add(new UserEmailMacro());
         MACROS.add(new UserPasswordMacro());
         MACROS.add(new PwmInstanceIDMacro());
         MACROS.add(new PwmCurrentTimeMacro());
@@ -228,6 +229,20 @@ public class MacroMachine {
             }
 
             return uiBean.getUserID();
+        }
+    }
+
+    private static class UserEmailMacro implements MacroImplementation {
+        public Pattern getRegExPattern() {
+            return Pattern.compile("@User:Email@");
+        }
+
+        public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
+            if (uiBean == null || uiBean.getUserEmailAddress() == null) {
+                return "";
+            }
+
+            return uiBean.getUserEmailAddress();
         }
     }
 

@@ -129,7 +129,7 @@ function markStrength(strength) { //strength meter
 
 
     var barObject = getObject("strengthBar");
-    if (barObject != null) {
+    if (barObject != null && strength != null) {
         barObject.style.width = strength + '%';
         barObject.style.backgroundColor = '#' + gradColor;
     }

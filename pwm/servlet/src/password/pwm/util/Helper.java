@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import com.google.gson.*;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -45,11 +46,13 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.servlet.ResourceFileServlet;
+import password.pwm.util.intruder.IntruderManager;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.stats.Statistic;
 
@@ -60,11 +63,15 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,7 +81,8 @@ import java.util.regex.Pattern;
  *
  * @author Jason D. Rivard
  */
-public class Helper {
+public class
+        Helper {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Helper.class);
@@ -1090,18 +1098,19 @@ public class Helper {
                 final UserInfoBean userInfoBean,
                 final UserDataReader userDataReader,
                 final EmailItemBean configuredEmailSetting,
-                final PwmSetting.MessageSendMethod tokenSendMethod,
+                final MessageSendMethod tokenSendMethod,
                 final String emailAddress,
                 final String smsNumber,
                 final String smsMessage,
                 final String tokenKey
         )
-                throws PwmUnrecoverableException, ChaiUnavailableException {
-            final Configuration config = pwmApplication.getConfig();
+                throws PwmUnrecoverableException, ChaiUnavailableException
+        {
             final boolean success;
             switch (tokenSendMethod) {
                 case NONE:
                     // should never get here
+                    LOGGER.error("attempt to send token to destination type 'NONE'");
                     throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
                 case BOTH:
                     // Send both email and SMS, success if one of both succeeds
@@ -1135,7 +1144,7 @@ public class Helper {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
         }
 
-        private static Boolean sendEmailToken(
+        public static boolean sendEmailToken(
                 final PwmApplication pwmApplication,
                 final UserInfoBean userInfoBean,
                 final UserDataReader userDataReader,
@@ -1149,6 +1158,8 @@ public class Helper {
                 return false;
             }
 
+            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
+
             pwmApplication.sendEmailUsingQueue(new EmailItemBean(
                     toAddress,
                     configuredEmailSetting.getFrom(),
@@ -1160,7 +1171,7 @@ public class Helper {
             return true;
         }
 
-        private static Boolean sendSmsToken(
+        public static boolean sendSmsToken(
                 final PwmApplication pwmApplication,
                 final UserInfoBean userInfoBean,
                 final UserDataReader userDataReader,
@@ -1180,10 +1191,61 @@ public class Helper {
 
             final String modifiedMessage = smsMessage.replaceAll("%TOKEN%", tokenKey);
 
+            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, null);
+
             final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
             pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, senderId, modifiedMessage, maxlen), userInfoBean, userDataReader);
             LOGGER.debug("token SMS added to send queue for " + smsNumber);
             return true;
+        }
+    }
+
+    public static Gson getGson(GsonBuilder gsonBuilder) {
+        if (gsonBuilder == null) {
+            gsonBuilder = new GsonBuilder();
+        }
+        return gsonBuilder.registerTypeAdapter(Date.class, new DateTypeAdapter()).create();
+    }
+
+    public static Gson getGson() {
+        return GSON_SINGLETON;
+    }
+
+    private static Gson GSON_SINGLETON = new GsonBuilder().registerTypeAdapter(Date.class, new DateTypeAdapter()).create();
+
+    private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+        private static final DateFormat isoDateFormat;
+        private static final DateFormat gsonDateFormat;
+
+        static {
+            isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            isoDateFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
+
+            gsonDateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
+            gsonDateFormat.setTimeZone(TimeZone.getDefault());
+        }
+
+        private DateTypeAdapter() {
+        }
+
+        public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
+            return new JsonPrimitive(isoDateFormat.format(date));
+        }
+
+        public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
+            try {
+                return isoDateFormat.parse(jsonElement.getAsString());
+            } catch (ParseException e) {
+                LOGGER.error("error parsing default json stored date format '" + jsonElement.getAsString() + "' using ISO format error:" + e.getMessage());
+            }
+
+            // for backwards compatibility
+            try {
+                return gsonDateFormat.parse(jsonElement.getAsString());
+            } catch (ParseException e) {
+                LOGGER.error("error parsing default json stored date format '" + jsonElement.getAsString() + "' using system default format error:" + e.getMessage());
+                throw new JsonParseException(e);
+            }
         }
     }
 }

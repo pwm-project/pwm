@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

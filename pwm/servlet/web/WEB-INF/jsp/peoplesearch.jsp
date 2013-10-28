@@ -62,7 +62,7 @@
         <br class="clear"/>
         <% final UserSearchEngine.UserSearchResults searchResults = peopleSearchBean.getSearchResults(); %>
         <% if (searchResults != null) { %>
-        <% final Gson gson = new Gson(); %>
+        <% final Gson gson = Helper.getGson(); %>
         <noscript>
             <span>Javascript is required to view this page.</span>
             <%--

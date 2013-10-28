@@ -34,6 +34,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.UserStatusHelper;
@@ -232,7 +233,7 @@ public class RestCheckPasswordServer {
             sb.append("\n");
             sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append("\n");
-            sb.append("  passwordCheckInfo string: ").append(new Gson().toJson(result));
+            sb.append("  passwordCheckInfo string: ").append(Helper.getGson().toJson(result));
             LOGGER.trace(pwmSession, sb.toString());
         }
 

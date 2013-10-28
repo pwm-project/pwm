@@ -39,10 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard
@@ -51,8 +48,6 @@ public class PwmSession implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmSession.class);
-
-    private long creationTime;
 
     private final SessionStateBean sessionStateBean = new SessionStateBean();
 
@@ -103,7 +98,6 @@ public class PwmSession implements Serializable {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
         }
 
-        this.creationTime = System.currentTimeMillis();
         this.getSessionStateBean().setSessionID("");
         clearSessionBeans();
 
@@ -122,10 +116,6 @@ public class PwmSession implements Serializable {
 
     public ChangePasswordBean getChangePasswordBean() {
         return (ChangePasswordBean) getSessionBean(ChangePasswordBean.class);
-    }
-
-    public long getCreationTime() {
-        return creationTime;
     }
 
     public ForgottenPasswordBean getForgottenPasswordBean() {

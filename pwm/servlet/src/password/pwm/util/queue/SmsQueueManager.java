@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
 public class SmsQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
 
-    static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
     static String SERVICE_NAME = "SmsQueueManager";
 
 
@@ -116,10 +116,10 @@ public class SmsQueueManager extends AbstractQueueManager {
             LOGGER.warn("sms queue full, discarding sms send request: " + smsItem);
         }
 
-        final String smsItemGson = (new Gson()).toJson(smsItem);
+        final String smsItemGson = (Helper.getGson()).toJson(smsItem);
         final QueueEvent event = new QueueEvent(smsItemGson, System.currentTimeMillis());
             try {
-                final String jsonEvent = (new Gson()).toJson(event);
+                final String jsonEvent = (Helper.getGson()).toJson(event);
                 sendQueue.addLast(jsonEvent);
             } catch (Exception e) {
                 LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
@@ -156,7 +156,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     }
 
     boolean sendItem(final String item) {
-        final SmsItemBean smsItemBean = (new Gson()).fromJson(item, SmsItemBean.class);
+        final SmsItemBean smsItemBean = (Helper.getGson()).fromJson(item, SmsItemBean.class);
         boolean success = true;
         while (success && smsItemBean.hasNextPart()) {
             success = sendSmsPart(smsItemBean);

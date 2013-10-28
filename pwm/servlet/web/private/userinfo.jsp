@@ -35,6 +35,7 @@
 <%@ page import="password.pwm.event.AuditRecord" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
+<%@ page import="password.pwm.i18n.Display" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -111,7 +112,7 @@
                             <pwm:Display key="Field_PasswordSetTime"/>
                         </td>
                         <td>
-                            <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : "n/a"%>
+                            <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
                         </td>
                     </tr>
                     <tr>
@@ -119,7 +120,7 @@
                             <pwm:Display key="Field_PasswordSetTimeDelta"/>
                         </td>
                         <td>
-                            <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : "n/a"%>
+                            <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
                         </td>
                     </tr>
                     <tr>
@@ -127,7 +128,7 @@
                             <pwm:Display key="Field_PasswordExpirationTime"/>
                         </td>
                         <td>
-                            <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : "n/a"%>
+                            <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
                         </td>
                     </tr>
                 </table>
@@ -147,7 +148,7 @@
                             <pwm:Display key="Field_ResponsesTimestamp"/>
                         </td>
                         <td>
-                            <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : "n/a" %>
+                            <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
                         </td>
                     </tr>
                 </table>

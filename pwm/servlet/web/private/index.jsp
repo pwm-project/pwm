@@ -47,7 +47,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.SETUP_RESPONSE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
-                <td style="border:0" class="menubutton_key">
+                <td class="menubutton_key">
                     <a onclick="showWaitDialog()" class="menubutton" href="<pwm:url url='SetupResponses'/>"><pwm:Display key="Title_SetupResponses"/></a>
                 </td>
                 <td style="border: 0">

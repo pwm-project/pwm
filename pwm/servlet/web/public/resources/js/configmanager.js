@@ -20,67 +20,43 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+"use strict";
+
 var PWM_SETTINGS = {};
 
-function saveConfiguration(waitForReload) {
-    showWaitDialog('Saving Configuration...', null, function(){
-        require(["dojo"],function(dojo){
-            dojo.xhrGet({
-                url:"ConfigManager?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                preventCache: true,
-                dataType: "json",
-                handleAs: "json",
-                load: function(data){
-                    if (data['error'] == true) {
-                        closeWaitDialog();
-                        showError(data['errorDetail']);
-                    } else {
-                        if (waitForReload) {
-                            var oldEpoch = data['data']['currentEpoch'];
-                            var currentTime = new Date().getTime();
-                            showError('Waiting for server restart');
-                            waitForRestart(currentTime, oldEpoch);
+
+function lockConfiguration() {
+    showConfirmDialog(null,PWM_SETTINGS['display']['Confirm_LockConfig'],function(){
+        showWaitDialog(null,null,function(){
+            require(["dojo"],function(dojo){
+                dojo.xhrGet({
+                    url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    sync:true,
+                    dataType: "json",
+                    handleAs: "json",
+                    preventCache: true,
+                    load: function(data) {
+                        if (data['error'] == true) {
+                            closeWaitDialog();
+                            showDialog('Error',data['errorDetail']);
                         } else {
-                            window.location = "ConfigManager";
+                            showWaitDialog();
+                            showError('Waiting for server restart');
+                            waitForRestart(new Date().getTime());
                         }
                     }
-                }
-            });
-        });
-    });
-}
-
-function finalizeConfiguration() {
-    showWaitDialog(null,null,function(){
-        require(["dojo"],function(dojo){
-            dojo.xhrGet({
-                url:"ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                sync:true,
-                dataType: "json",
-                handleAs: "json",
-                preventCache: true,
-                load: function(data) {
-                    if (data['error'] == true) {
-                        closeWaitDialog();
-                        showError(data['errorDetail']);
-                    } else {
-                        var oldEpoch = data['data']['currentEpoch'];
-                        var currentTime = new Date().getTime();
-                        showError('Waiting for server restart');
-                        waitForRestart(currentTime, oldEpoch);
-                    }
-                }
+                });
             });
         });
     });
 }
 
 
-function waitForRestart(startTime, oldEpoch) {
+function waitForRestart(startTime) {
     require(["dojo"],function(dojo){
         var currentTime = new Date().getTime();
         dojo.xhrGet({
-            url:"ConfigManager?processAction=getEpoch",
+            url: PWM_GLOBAL['url-restservice'] + "/app-data/client/reload",
             preventCache: true,
             timeout: 10 * 1000,
             dataType: "json",
@@ -92,47 +68,30 @@ function waitForRestart(startTime, oldEpoch) {
                     return;
                 }
 
-                var epoch = data['data']['currentEpoch'];
-                if (epoch != oldEpoch) {
+                var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
+                if (serverStartTime != PWM_GLOBAL['startupTime']) {
                     window.location = PWM_GLOBAL['url-context'];
                     return;
                 }
                 var diff = currentTime - startTime;
-                console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
+                //console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
                 if (diff > 4 * 60 * 1000) { // timeout
-                    alert('Configuration save successful.   Unable to restart, please restart the java application server.');
+                    alert('Unable to restart, please restart the java application server.');
                     showError('Server has not restarted (timeout)');
                 } else {
                     showError('Waiting for server restart, server has not yet restarted (' + (diff) + ' ms)');
                     setTimeout(function() {
-                        waitForRestart(startTime, oldEpoch)
+                        waitForRestart(startTime)
                     }, Math.random() * 1000);
                 }
             },
             error: function(error) {
                 setTimeout(function() {
-                    waitForRestart(startTime, oldEpoch)
+                    waitForRestart(startTime)
                 }, 1000);
                 console.log('Waiting for server restart, unable to contact server: ' + error);
             }
         });
-    });
-}
-
-function handleResetClick(settingKey) {
-    var label = PWM_SETTINGS[settingKey] ? PWM_SETTINGS[settingKey]['label'] : null;
-
-    var dialogText = 'Are you sure you want to reset the setting ';
-    if (label) {
-        dialogText += '<span style="font-style: italic;">' + PWM_SETTINGS[settingKey]['label'] + '</span>';
-    }
-    dialogText += ' to the default value?';
-
-    var title = 'Reset ' + label ? label : '';
-
-    showConfirmDialog(title,dialogText,function(){
-        resetSetting(settingKey);
-        window.location = "ConfigManager";
     });
 }
 
@@ -177,80 +136,11 @@ function readInitialTextBasedValue(key) {
     });
 }
 
-function writeConfigurationNotes() {
-    require(["dojo","dijit/Dialog"],function(dojo){
-        var value = getObject('configNotesDialog').value;
-        PWM_GLOBAL['configurationNotes'] = value;
-        showWaitDialog();
-        dojo.xhrPost({
-            url:"ConfigManager?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
-            postData: dojo.toJson(value),
-            contentType: "application/json;charset=utf-8",
-            dataType: "json",
-            handleAs: "text",
-            load: function(data){
-                closeWaitDialog();
-                buildMenuBar();
-            },
-            error: function(errorObj) {
-                closeWaitDialog();
-                showError("error saving notes text: " + errorObj);
-                buildMenuBar();
-            }
-        });
-    });
-}
-
-function showConfigurationNotes() {
-    var idName = 'configNotesDialog';
-    var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
-    bodyText += 'Loading...';
-    bodyText += '</textarea>';
-    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + showString('Button_OK') + '</button>';
-
-    require(["dijit/Dialog"],function(Dialog){
-        var theDialog = new Dialog({
-            id: 'dialogPopup',
-            title: 'Configuration Notes',
-            style: "width: 600px;",
-            content: bodyText
-        });
-        theDialog.show();
-        getObject(idName).value = PWM_GLOBAL['configurationNotes'];
-        setCookie("hide-warn-shownotes","true", 60 * 60);
-    });
-}
-
-function setConfigurationPassword(password) {
-    if (password) {
-        clearDijitWidget('dialogPopup');
-        showWaitDialog();
-        dojo.xhrPost({
-            url:"ConfigManager?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            postData: password,
-            contentType: "application/text;charset=utf-8",
-            dataType: "text",
-            handleAs: "text",
-            load: function(data){
-                closeWaitDialog();
-                showInfo('Configuration password set successfully.')
-            },
-            error: function(errorObj) {
-                closeWaitDialog();
-                showError("error saving notes text: " + errorObj);
-            }
-        });
-        return;
-    }
-
-    var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';
-    ChangePasswordHandler.init('configPw','Configuration Password',writeFunction);
-}
 
 function importLdapCertificates() {
     showWaitDialog();
     dojo.xhrPost({
-        url:"ConfigManager?processAction=manageLdapCerts&certAction=autoImport&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        url:"ConfigEditor?processAction=manageLdapCerts&certAction=autoImport&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         contentType: "application/text;charset=utf-8",
         dataType: "json",
         handleAs: "json",
@@ -260,7 +150,7 @@ function importLdapCertificates() {
                 showError(data['errorDetail']);
             } else {
                 showDialog('Success','Certificates imported',function(){
-                    location = "ConfigManager";
+                    loadMainPageBody();
                 });
             }
         },
@@ -274,7 +164,7 @@ function importLdapCertificates() {
 function clearLdapCertificates() {
     showWaitDialog();
     dojo.xhrPost({
-        url:"ConfigManager?processAction=manageLdapCerts&certAction=clear&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+        url:"ConfigEditor?processAction=manageLdapCerts&certAction=clear&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
         contentType: "application/text;charset=utf-8",
         dataType: "json",
         handleAs: "json",
@@ -284,7 +174,7 @@ function clearLdapCertificates() {
                 showError(data['errorDetail']);
             } else {
                 showDialog('Success','Certificates removed',function(){
-                    location = "ConfigManager";
+                    loadMainPageBody();
                 });
             }
         },
@@ -305,8 +195,8 @@ function uploadConfigDialog() {
     var uploadUrl = window.location.pathname + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
     console.log('uploading config file to url ' + uploadUrl);
 
-    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/FileList","dojox/form/uploader/plugins/HTML5"],function(
-        dojo,Dialog,Uploader,FileList,Button,FileList){
+    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
+        dojo,Dialog,Uploader,FileList,Button){
         var idName = 'dialogPopup';
         clearDijitWidget(idName);
         var theDialog = new Dialog({
@@ -343,10 +233,11 @@ function uploadConfigDialog() {
             if (data['error'] == true) {
                 showDialog('Upload Error', data['errorDetail']);
             } else {
+                clearDijitWidget(idName);
                 showWaitDialog(null,null,function(){
                     setTimeout(function(){
-                        location = PWM_GLOBAL['url-context'];
-                    },10 * 1000);
+                        waitForRestart(new Date().getTime());
+                    },5000);
                 });
             }
         });
@@ -355,7 +246,7 @@ function uploadConfigDialog() {
 
 function initConfigPage() {
     require(["dojo"],function(dojo){
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/settings";
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-config";
         dojo.xhrGet({
             url: displayStringsUrl,
             handleAs: 'json',
@@ -365,10 +256,12 @@ function initConfigPage() {
                 for (var settingKey in data['data']) {
                     PWM_SETTINGS[settingKey] = data['data'][settingKey];
                 }
+                pwmPageLoadHandler();
             },
             error: function(error) {
                 showError('Unable to read settings app-data from server, please reload page (' + error + ')');
                 console.log('unable to read settings app-data: ' + error);
+                pwmPageLoadHandler();
             }
         });
     });

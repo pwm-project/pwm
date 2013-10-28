@@ -35,6 +35,7 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.PasswordUtility;
 
 import javax.servlet.ServletContext;
@@ -259,7 +260,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             if (!passed) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmApplication.getIntruderManager().mark(null,pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                pwmApplication.getIntruderManager().mark(RecordType.USER_DN,pwmSession.getUserInfoBean().getUserDN(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
                 forwardToFormJSP(req, resp);
                 return;
@@ -277,7 +278,8 @@ public class ChangePasswordServlet extends TopServlet {
 
             cpb.setFormPassed(true);
         } catch (PwmOperationalException e) {
-            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            pwmApplication.getIntruderManager().mark(RecordType.USER_DN,pwmSession.getUserInfoBean().getUserDN(),pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
             forwardToFormJSP(req, resp);
@@ -463,22 +465,11 @@ public class ChangePasswordServlet extends TopServlet {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
 
         if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmSession, "skipping change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email configured");
             return;
         }
 
-        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
-            return;
-        }
-
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
     }
 
     private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)

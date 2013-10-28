@@ -37,6 +37,7 @@ import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.UserSearchEngine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -147,7 +148,7 @@ public abstract class RestServerHelper {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
         }
 
-        pwmApplication.getIntruderManager().check(username,null,null);
+        pwmApplication.getIntruderManager().check(RecordType.USERNAME,username,pwmSession);
 
         try {
             if (isExternal) {
@@ -171,7 +172,7 @@ public abstract class RestServerHelper {
             //see if we need to a contextless search.
             if (userSearchEngine.checkIfStringIsDN(pwmSession, username)) {
                 final ChaiUser theUser = ChaiFactory.createChaiUser(username,chaiProvider);
-                pwmApplication.getIntruderManager().check(null,theUser.getEntryDN(),null);
+                pwmApplication.getIntruderManager().check(RecordType.USER_DN,theUser.getEntryDN(),null);
                 if (theUser.isValid()) {
                     return theUser.getEntryDN();
                 } else {

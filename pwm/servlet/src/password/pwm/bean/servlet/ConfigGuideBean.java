@@ -6,6 +6,7 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.config.value.BooleanValue;
 import password.pwm.servlet.ConfigGuideServlet;
 
+import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;

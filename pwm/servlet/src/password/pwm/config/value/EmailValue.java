@@ -29,6 +29,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
 
 import java.util.*;
 
@@ -43,7 +44,7 @@ public class EmailValue implements StoredValue {
         if (input == null) {
             return new EmailValue(Collections.<String,EmailItemBean>emptyMap());
         } else {
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             Map<String,EmailItemBean> srcList = gson.fromJson(input, new TypeToken<Map<String,EmailItemBean>>() {
             }.getType());
 
@@ -55,7 +56,7 @@ public class EmailValue implements StoredValue {
 
     static EmailValue fromXmlElement(Element settingElement) throws PwmOperationalException {
         final Map<String,EmailItemBean> values = new HashMap<String,EmailItemBean>();
-        final Gson gson = new Gson();
+        final Gson gson = Helper.getGson();
         {
             final List valueElements = settingElement.getChildren("value");
             for (final Object loopValue : valueElements) {
@@ -147,7 +148,7 @@ public class EmailValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<Element>();
-        final Gson gson = new Gson();
+        final Gson gson = Helper.getGson();
         for (final String localeValue : values.keySet()) {
             final EmailItemBean emailItemBean = values.get(localeValue);
             final Element valueElement = new Element(valueElementName);
@@ -165,7 +166,7 @@ public class EmailValue implements StoredValue {
     }
 
     public String toString() {
-        return new Gson().toJson(values);
+        return Helper.getGson().toJson(values);
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {

@@ -57,7 +57,7 @@
             &nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;
             </span>
             <% } %>
-        <span id="localeSelectionMenu" style="white-space: nowrap">
+        <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
             <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
             &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
         </span>

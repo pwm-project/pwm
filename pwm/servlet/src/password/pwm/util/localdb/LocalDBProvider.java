@@ -43,7 +43,7 @@ public interface LocalDBProvider {
     void init(File dbDirectory, Map<String, String> initParameters, boolean readOnly)
             throws LocalDBException;
 
-    LocalDB.PwmDBIterator<String> iterator(LocalDB.DB db)
+    LocalDB.LocalDBIterator<String> iterator(LocalDB.DB db)
             throws LocalDBException;
 
     @LocalDB.WriteOperation

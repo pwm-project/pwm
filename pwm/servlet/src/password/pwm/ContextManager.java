@@ -28,6 +28,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.ResourceFileServlet;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 
@@ -94,7 +95,7 @@ public class ContextManager implements Serializable {
             if (startupErrorInformation != null) {
                 errorInformation = startupErrorInformation;
             } else {
-                errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,"application is not yet available");
+                errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,"application is not yet available, please try again in a moment.");
             }
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -126,6 +127,7 @@ public class ContextManager implements Serializable {
                 final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
                 final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
                 configReader = new ConfigurationReader(configurationFile);
+                configReader.getStoredConfiguration().lock();
                 configuration = configReader.getConfiguration();
                 pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
             }

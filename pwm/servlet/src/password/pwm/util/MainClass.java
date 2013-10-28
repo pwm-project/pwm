@@ -249,7 +249,7 @@ public class MainClass {
 
         int counter = 0;
         String line;
-        final Gson gson = new Gson();
+        final Gson gson = Helper.getGson();
         final long startTime = System.currentTimeMillis();
         while ((line = reader.readLine()) != null) {
             counter++;
@@ -441,10 +441,10 @@ public class MainClass {
             return;
         } else {
             output.append("  name: ").append(tokenPayload.getName());
-            output.append("userDN: ").append(tokenPayload.getUserDN());
-            output.append("issued: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getIssueDate()));
-            for (final String key : tokenPayload.getPayloadData().keySet()) {
-                final String value = tokenPayload.getPayloadData().get(key);
+            output.append("userDN: ").append(tokenPayload.getDN());
+            output.append("issued: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
+            for (final String key : tokenPayload.getData().keySet()) {
+                final String value = tokenPayload.getData().get(key);
                 output.append("  payload key: ").append(key).append(", value:").append(value);
             }
         }

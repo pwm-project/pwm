@@ -33,6 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.i18n.Display;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -67,7 +68,7 @@ public class VersionChecker implements PwmService {
             try {
                 final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
-                    final Gson gson = new Gson();
+                    final Gson gson = Helper.getGson();
                     versionCheckInfoCache = gson.fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
             } catch (LocalDBException e) {
@@ -86,7 +87,7 @@ public class VersionChecker implements PwmService {
 
     public String currentVersion() {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
-            return "n/a";
+            return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, "Value_NotApplicable", pwmApplication.getConfig());
         }
 
         try {
@@ -97,7 +98,7 @@ public class VersionChecker implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unable to retrieve current version data from cloud: " + e.toString());
         }
-        return "n/a";
+        return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, "Value_NotApplicable", pwmApplication.getConfig());
     }
 
     public boolean isVersionCurrent() {
@@ -148,7 +149,7 @@ public class VersionChecker implements PwmService {
 
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
-                final Gson gson = new Gson();
+                final Gson gson = Helper.getGson();
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
                 pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
             } catch (LocalDBException e) {
@@ -170,7 +171,7 @@ public class VersionChecker implements PwmService {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }
         final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-        Gson gson = new Gson();
+        Gson gson = Helper.getGson();
         return gson.fromJson(responseBody, new TypeToken<Map<String, String>>() {}.getType());
     }
 

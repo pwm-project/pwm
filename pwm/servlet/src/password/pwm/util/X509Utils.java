@@ -40,26 +40,41 @@ public abstract class X509Utils {
     {
         final String ldapHost = ldapUri.getHost();
         final int ldapPort = ldapUri.getPort();
+
+        LOGGER.debug("LDAPCertReader: beginning certificate read procedure to import ldap certificates from host=" + ldapHost + ", port=" + ldapPort);
         final CertReaderTrustManager certReaderTm = new CertReaderTrustManager();
         try { // use custom trust manager to read the certificates
             final SSLContext ctx = SSLContext.getInstance("TLS");
             ctx.init(null, new TrustManager[]{certReaderTm}, new SecureRandom());
             final SSLSocketFactory factory = ctx.getSocketFactory();
             final SSLSocket sslSock = (SSLSocket) factory.createSocket(ldapHost,ldapPort);
+            LOGGER.debug("LDAPCertReader: socket established to host=" + ldapHost + ", port=" + ldapPort);
             sslSock.isConnected();
+            LOGGER.debug("LDAPCertReader: connected to host=" + ldapHost + ", port=" + ldapPort);
             sslSock.getOutputStream().write("data!".getBytes());//write some data so the connection gets established
+            LOGGER.debug("LDAPCertReader: data transfer completed host=" + ldapHost + ", port=" + ldapPort);
             sslSock.close();
+            LOGGER.debug("LDAPCertReader: certificate information read from host=" + ldapHost + ", port=" + ldapPort);
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append("unable to read ldap server certificates from ");
             errorMsg.append(ldapUri.toString());
             errorMsg.append(" error: ");
             errorMsg.append(e.getMessage());
-            LOGGER.debug(errorMsg);
+            LOGGER.error("LDAPCertReader: " + errorMsg);
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]{errorMsg.toString()});
             throw new PwmOperationalException(errorInformation);
         }
-        return certReaderTm.getCertificates();
+        final X509Certificate[] certs = certReaderTm.getCertificates();
+        if (certs == null) {
+            LOGGER.debug("LDAPCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()");
+        } else {
+            for (final X509Certificate certificate : certs) {
+                LOGGER.debug("LDAPCertReader: read x509 Certificate from host=" + ldapHost + ", port=" + ldapPort + ": \n" + certificate.toString());
+            }
+        }
+        LOGGER.debug("LDAPCertReader: process completed");
+        return certs;
     }
 
     public static boolean testIfLdapServerCertsInDefaultKeystore(final URI ldapUri) {

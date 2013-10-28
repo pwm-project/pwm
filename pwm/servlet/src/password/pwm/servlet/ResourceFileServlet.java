@@ -49,6 +49,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -169,13 +170,26 @@ public class ResourceFileServlet extends HttpServlet {
             }
         }
 
+        final String eTagValue = makeNonce(pwmApplication);
+
+        {   // reply back with etag.
+            final String ifNoneMatchValue = request.getHeader("If-None-Match");
+            if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
+                response.reset();
+                response.setStatus(304);
+                ServletHelper.addPwmResponseHeaders(pwmApplication, response, false);
+                LOGGER.trace(ServletHelper.debugHttpRequest(request,"returning 304 not modified".toString()));
+                return;
+            }
+        }
+
         // Initialize response.
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
-        //response.setDateHeader("Expires", System.currentTimeMillis() + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000);
+        response.setDateHeader("Expires", System.currentTimeMillis() + (PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS * 1000l));
         response.setHeader("Cache-Control","public, max-age=" + PwmConstants.RESOURCE_SERVLET_EXPIRATION_SECONDS);
         response.setHeader("ETag", makeNonce(pwmApplication));
-        response.setHeader("Vary","Accept-Encoding");
+        //response.setHeader("Vary","Accept-Encoding");
         response.setContentType(contentType);
 
         // set pwm headers

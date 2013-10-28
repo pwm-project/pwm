@@ -27,15 +27,17 @@
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.TreeSet" %>
+<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getLocaleBundle(); %>
+<% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
+<% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <script type="text/javascript">
     var LOAD_TRACKER = new Array();
     PWM_GLOBAL['startupFunctions'].push(function(){
-    getObject('mainContentPane').style.display = 'none';
-    showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading display values.......</div>');
+        showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>');
     });
 </script>
 <div>
@@ -103,7 +105,6 @@
         } else {
             setTimeout(function(){
                 closeWaitDialog();
-                getObject('mainContentPane').style.display = 'inline';
             },500); // time after element reads completed.
         }
     }
@@ -118,7 +119,6 @@
             } else {
                 setTimeout(function(){
                     closeWaitDialog();
-                    getObject('mainContentPane').style.display = 'inline';
                 },2000);
             }
         });

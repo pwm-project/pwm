@@ -49,7 +49,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected LocalDB localDB;
     protected Populator populator;
 
-    protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
+    protected static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
     protected String DEBUG_LABEL = "Generic Wordlist";
 
     protected int storedSize = 0;

@@ -38,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -66,7 +67,7 @@ public class CaptchaServlet extends TopServlet {
 
         //check intruder detection, if it is tripped, send user to error page
         try {
-            pwmApplication.getIntruderManager().check(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().checkAddressAndSession(pwmSession);
         } catch (PwmUnrecoverableException e) {
             ServletHelper.forwardToErrorPage(req, resp, false);
             return;
@@ -115,7 +116,7 @@ public class CaptchaServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
             LOGGER.debug(pwmSession, "captcha passcode verified");
-            pwmApplication.getIntruderManager().clear(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             writeCaptchaSkipCookie(pwmSession, pwmApplication, resp);
             forwardToOriginalLocation(req, resp);
         } else { //failed captcha
@@ -124,7 +125,7 @@ public class CaptchaServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_FAILURES);
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
-            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             forwardToJSP(req, resp);
         }
     }

@@ -66,17 +66,17 @@ public abstract class PwmConstants {
     public static final int MAX_EMAIL_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxEmailQueueSize"));
     public static final int MAX_SMS_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("maxSmsQueueSize"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
-    public static final int MAX_NMAS_THREAD_COUNT = Integer.parseInt(readPwmConstantsBundle("maxNmasThreadCount"));
-    public static final int MIN_NMAS_THREAD_SECONDS = Integer.parseInt(readPwmConstantsBundle("minNmasThreadSeconds"));
-    public static final int MAX_NMAS_THREAD_SECONDS = Integer.parseInt(readPwmConstantsBundle("maxNmasThreadSeconds"));
-    public static final int NMAS_WATCHDOG_FREQUENCY_MS = Integer.parseInt(readPwmConstantsBundle("nmasWatchdogFrequencyCheckMs"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
 
-    public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateTimeFormat"));
-    public static final DateFormat DEFAULT_DATE_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultDateFormat"));
-    public static final DateFormat DEFAULT_TIME_FORMAT = new SimpleDateFormat(readPwmConstantsBundle("locale.defaultTimeFormat"));
+    public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
+    public static final DateFormat DEFAULT_DATETIME_FORMAT = new SimpleDateFormat(DEFAULT_DATETIME_FORMAT_STR);
+    static {
+        DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
+    }
+
+
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
     public static final int HTTP_PARAMETER_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpParameterMaxReadLength"));
@@ -93,12 +93,15 @@ public abstract class PwmConstants {
     public static final boolean HTTP_RECYCLE_SESSIONS_ON_AUTH = Boolean.parseBoolean(readPwmConstantsBundle("httpRecycleSessionsOnAuthentication"));
     public static final boolean ENABLE_AUDIT_AUTHENTICATION_TYPE = Boolean.parseBoolean(readPwmConstantsBundle("enableAuditAuthenticationType"));
     public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
+    public static final boolean TRIAL_MODE = Boolean.parseBoolean(readBuildInfoBundle("trial.enabled"));
+    public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
+    public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
     public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
 
     public static final int RESOURCE_SERVLET_MAX_CACHE_ITEMS = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheItems"));
     public static final int RESOURCE_SERVLET_MAX_CACHE_BYTES = Integer.parseInt(readPwmConstantsBundle("resourceServletMaxCacheBytes"));
-    public static final int RESOURCE_SERVLET_EXPIRATION_SECONDS = Integer.parseInt(readPwmConstantsBundle("resourceServletExpirationSeconds"));
+    public static final long RESOURCE_SERVLET_EXPIRATION_SECONDS = Long.parseLong(readPwmConstantsBundle("resourceServletExpirationSeconds"));
     public static final boolean RESOURCE_SERVLET_ENABLE_GZIP = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnableGzip"));
     public static final boolean RESOURCE_SERVLET_ENABLE_PATH_NONCE = Boolean.parseBoolean(readPwmConstantsBundle("resourceServletEnablePathNonce"));
     public static final String RESOURCE_SERVLET_NONCE_PATH_PREFIX = readPwmConstantsBundle("resourceServletNoncePathPrefix");
@@ -109,18 +112,9 @@ public abstract class PwmConstants {
     public static final int LDAP_CHECKER_CONNECTION_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("ldapCheckerConnectionTimeout"));
     public static final int LDAP_CHECKER_RECENT_ERRORS_DURATION = Integer.parseInt(readPwmConstantsBundle("ldapCheckerRecentErrorDuration"));
 
-    public static final int CLIENT_AJAX_TYPING_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingTimeout"));
-    public static final int CLIENT_AJAX_TYPING_WAIT = Integer.parseInt(readPwmConstantsBundle("client.ajaxTypingWait"));
-    public static final int CLIENT_ACTIVITY_MAX_EPS_RATE = Integer.parseInt(readPwmConstantsBundle("client.activityMaxEpsRate"));
     public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
-
-    public static final long INTRUDER_RETENTION_TIME_MS = Long.parseLong(readPwmConstantsBundle("intruderRetentionTimeMS"));
-    public static final long INTRUDER_CLEANUP_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("intruderCleanupFrequencyMS"));
-    public static final long INTRUDER_MIN_DELAY_PENALTY_MS = Long.parseLong(readPwmConstantsBundle("intruderMinimumDelayPenaltyMS"));
-    public static final long INTRUDER_MAX_DELAY_PENALTY_MS = Long.parseLong(readPwmConstantsBundle("intruderMaximumDelayPenaltyMS"));
-    public static final long INTRUDER_DELAY_MAX_JITTER_MS = Long.parseLong(readPwmConstantsBundle("intruderDelayMaxJitterMS"));
 
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
@@ -131,10 +125,6 @@ public abstract class PwmConstants {
 
     public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
-
-    public static final String LOGGING_PATTERN = readPwmConstantsBundle("logging.pattern");
-    public static final String LOGGING_FILE_MAX_SIZE = readPwmConstantsBundle("logging.file.maxSize");
-    public static final int    LOGGING_FILE_MAX_ROLLOVER = Integer.parseInt(readPwmConstantsBundle("logging.file.maxRollover"));
 
     public static final String TOKEN_KEY_PWD_CHG_DATE = "pwm_lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
@@ -164,7 +154,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
     public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
     public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
-    public static final String URL_JSP_REDIRECT = "WEB-INF/jsp/redirect.jsp";
+    public static final String URL_JSP_INIT = "WEB-INF/jsp/init.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
     public static final String URL_JSP_PASSWORD_FORM = "WEB-INF/jsp/changepassword-form.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";
@@ -198,11 +188,11 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
     public static final String URL_JSP_PEOPLE_SEARCH = "WEB-INF/jsp/peoplesearch.jsp";
     public static final String URL_JSP_PEOPLE_SEARCH_DETAIL = "WEB-INF/jsp/peoplesearch-detail.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configmanager-editor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configmanager-editor-settings.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configmanager-editor-localeBundle.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configeditor.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "WEB-INF/jsp/configeditor-settings.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "WEB-INF/jsp/configeditor-localeBundle.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager-mode-configuration.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_RUNNING = "WEB-INF/jsp/configguide-mode-running.jsp";
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
@@ -236,9 +226,6 @@ public abstract class PwmConstants {
     public static final String PARAM_LOCALE = readPwmConstantsBundle("paramName.locale");
     public static final String PARAM_PASSWORD_EXPIRED = readPwmConstantsBundle("paramName.passwordExpired");
     public static final String PARAM_OTP_TOKEN = "otpToken";
-
-    public static final String COOKIE_THEME = readPwmConstantsBundle("cookieName.theme");
-    public static final String COOKIE_LOCALE = readPwmConstantsBundle("cookieName.locale");
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
     public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");
@@ -291,12 +278,6 @@ public abstract class PwmConstants {
     public final static int TOTP_INTERVAL = 30;         // 30 second interval
     public final static int TOTP_TOKEN_LENGTH = 6;
     public final static int TOTP_RECOVERY_TOKEN_LENGTH = 8;
-
-    static {
-        DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
-        DEFAULT_DATE_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
-        DEFAULT_TIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
-    }
 
     private static String readPwmConstantsBundle(final String key) {
         return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);

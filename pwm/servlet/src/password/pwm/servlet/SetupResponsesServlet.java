@@ -42,6 +42,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.UserStatusHelper;
@@ -132,6 +133,9 @@ public class SetupResponsesServlet extends TopServlet {
                 setupResponsesBean.setConfirmed(true);
             } else if ("changeResponses".equalsIgnoreCase(actionParam)) {
                 pwmSession.clearUserBean(SetupResponsesBean.class);
+                setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
+                this.initializeBean(pwmSession, pwmApplication, setupResponsesBean);
+                setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
             }
         }
 
@@ -222,7 +226,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         final AjaxValidationBean ajaxValidationBean = new AjaxValidationBean(userMessage,success);
-        final String output = new Gson().toJson(ajaxValidationBean);
+        final String output = Helper.getGson().toJson(ajaxValidationBean);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);
@@ -312,7 +316,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         final String bodyString = ServletHelper.readRequestBody(req);
 
-        final Gson gson = new Gson();
+        final Gson gson = Helper.getGson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 

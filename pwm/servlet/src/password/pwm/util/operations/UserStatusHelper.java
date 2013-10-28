@@ -205,18 +205,6 @@ public class UserStatusHelper {
             final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(theUser);
             uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, theUser, otpConfig));
         }
-        /*
-         {
-         final CrService crService = pwmApplication.getCrService();
-         final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, theUser);
-         final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
-         uiBean.setChallengeSet(challengeSet);
-         uiBean.setResponseInfoBean(responseInfoBean);
-         uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession,theUser,challengeSet,responseInfoBean));
-         }
-
-        
-         */
 
         //populate cached password rule attributes
         try {
@@ -282,6 +270,15 @@ public class UserStatusHelper {
         final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, config, theUser);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
+        // read user last login time:
+        try {
+            uiBean.setLastLdapLoginTime(theUser.readLastLoginTime());
+        } catch (ChaiOperationException e) {
+            LOGGER.warn(pwmSession, "error reading user's last ldap login time: " + e.getMessage());
+        }
+
+        pwmApplication.getUserStatusCacheManager().updateUserCache(uiBean);
+
         LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
@@ -313,7 +310,7 @@ public class UserStatusHelper {
             uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession, theUser, challengeSet, responseInfoBean));
         }
 
-        LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime));
+        LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     private static Set<String> figurePasswordRuleAttributes(

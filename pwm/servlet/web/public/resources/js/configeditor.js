@@ -21,11 +21,12 @@
  */
 
 var clientSettingCache = { };
+var preferences = { };
 
 function readSetting(keyName, valueWriter) {
     require(["dojo"],function(dojo){
         dojo.xhrGet({
-            url:"ConfigManager?processAction=readSetting&key=" + keyName + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            url:"ConfigEditor?processAction=readSetting&key=" + keyName + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             contentType: "application/json;charset=utf-8",
             preventCache: true,
             dataType: "json",
@@ -42,8 +43,10 @@ function readSetting(keyName, valueWriter) {
                 var resetImageButton = getObject('resetButton-' + keyName);
                 if (!isDefault) {
                     resetImageButton.style.visibility = 'visible';
+                    getObject('title_' + keyName).classList.add("modified");
                 } else {
                     resetImageButton.style.visibility = 'hidden';
+                    getObject('title_' + keyName).classList.remove("modified");
                 }
             }
         });
@@ -54,7 +57,7 @@ function writeSetting(keyName, valueData) {
     require(["dojo"],function(dojo){
         var jsonString = dojo.toJson(valueData);
         dojo.xhrPost({
-            url: "ConfigManager?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
+            url: "ConfigEditor?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
             postData: jsonString,
             contentType: "application/json;charset=utf-8",
             encoding: "utf-8",
@@ -71,8 +74,10 @@ function writeSetting(keyName, valueData) {
                 var resetImageButton = getObject('resetButton-' + keyName);
                 if (!isDefault) {
                     resetImageButton.style.visibility = 'visible';
+                    getObject('title_' + keyName).classList.add("modified");
                 } else {
                     resetImageButton.style.visibility = 'hidden';
+                    getObject('title_' + keyName).classList.remove("modified");
                 }
             }
         });
@@ -84,7 +89,7 @@ function resetSetting(keyName) {
         var jsonData = { key:keyName };
         var jsonString = dojo.toJson(jsonData);
         dojo.xhrPost({
-            url: "ConfigManager?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            url: "ConfigEditor?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: jsonString,
             contentType: "application/json;charset=utf-8",
             dataType: "json",
@@ -478,9 +483,10 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
                 valueTableRow.appendChild(valueTd1);
                 localeTableElement.appendChild(valueTableRow);
 
-                var imgElement = document.createElement("img");
-                imgElement.setAttribute("style", "width: 10px; height: 10px");
-                imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                // add remove button
+                var imgElement = document.createElement("div");
+                imgElement.setAttribute("style", "width: 10px; height: 10px;");
+                imgElement.setAttribute("class", "fa fa-times icon_button");
                 imgElement.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
                 valueTd1.appendChild(imgElement);
             }
@@ -506,9 +512,9 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
 
 
             if (localeName != '') { // add remove locale x
-                var imgElement2 = document.createElement("img");
+                var imgElement2 = document.createElement("div");
                 imgElement2.setAttribute("style", "width: 12px; height: 12px;");
-                imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
+                imgElement2.setAttribute("class", "fa fa-times icon_button");
                 imgElement2.setAttribute("onclick", "MultiLocaleTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null,'" + regExPattern + "')");
                 var tdElement = document.createElement("td");
                 tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
@@ -1311,8 +1317,9 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
             var bodyText = '<div id="changePasswordDialogDiv">';
             bodyText += '<span id="message" class="message message-info">' + clientSettingCache[settingKey]['settings']['name'] + '</span><br/>';
             bodyText += '<table style="border: 0">';
-            bodyText += '<tr style="border: 0"><td style="border: 0"><input name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off"></input></td>';
-            bodyText += '</tr><tr style="border: 0">';
+            bodyText += '<tr style="border: 0"><td style="border: 0">';
+            bodyText += '<input name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off">' + '</input>';
+            bodyText += '</td></tr><tr style="border: 0">';
             bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><input name="password2" id="password2" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto;" autocomplete="off"/></input></td>';
 
             bodyText += '<td style="border: 0"><div style="margin:0;">';
@@ -1862,6 +1869,8 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
             var idPrefix = "setting_" + localeName + "_" + keyName;
             var htmlBody = '';
             htmlBody += '<table>';
+            htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">To</td>';
+            htmlBody += '<td style="border:0"><input id="' + idPrefix + '_to"/></td></tr>';
             htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">From</td>';
             htmlBody += '<td style="border:0"><input id="' + idPrefix + '_from"/></td></tr>';
             htmlBody += '<tr style="border:0"><td style="border:0; width:30px; text-align:right">Subject</td>';
@@ -1876,6 +1885,14 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
             dojoHtml.set(localeTableElement,htmlBody);
             var parentDivElement = getObject(parentDiv);
             parentDivElement.appendChild(localeTableRow);
+
+            clearDijitWidget(idPrefix + "_to");
+            new ValidationTextBox({
+                value: clientSettingCache[keyName][localeName]['to'],
+                style: 'width: 450px',
+                required: true,
+                onChange: function(){clientSettingCache[keyName][localeName]['to'] = this.value;EmailTableHandler.writeSetting(keyName)}
+            },idPrefix + "_to");
 
             clearDijitWidget(idPrefix + "_from");
             new ValidationTextBox({
@@ -2000,5 +2017,572 @@ BooleanHandler.init = function(keyName) {
 
 BooleanHandler.toggle = function(keyName,widget) {
     writeSetting(keyName,widget.checked);
+}
+
+
+var ResponseTableHandler = {};
+
+ResponseTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regExPattern) {
+    console.log('ResponseTableHandler init for ' + keyName);
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        ResponseTableHandler.draw(parentDiv, keyName, regExPattern);
+    });
+};
+
+ResponseTableHandler.draw = function(parentDiv, keyName, regExPattern) {
+    var resultValue = clientSettingCache[keyName];
+    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
+        clearDivElements(parentDiv, false);
+        for (var localeName in resultValue) {
+            var localeTableRow = document.createElement("tr");
+            localeTableRow.setAttribute("style", "border-width: 0;");
+
+            var localeTdName = document.createElement("td");
+            localeTdName.setAttribute("style", "border-width: 0; width:15px");
+            localeTdName.innerHTML = localeName;
+            localeTableRow.appendChild(localeTdName);
+
+            var localeTdContent = document.createElement("td");
+            localeTdContent.setAttribute("style", "border-width: 0; width: 525px");
+            localeTableRow.appendChild(localeTdContent);
+
+            var localeTableElement = document.createElement("table");
+            localeTableElement.setAttribute("style", "border-width: 2px; width:525px; margin:0");
+            localeTdContent.appendChild(localeTableElement);
+
+            var multiValues = resultValue[localeName];
+
+            for (var iteration in multiValues) {
+
+                var valueTableRow = document.createElement("tr");
+
+                var valueTd1 = document.createElement("td");
+                valueTd1.setAttribute("style", "border-width: 0;");
+
+                // clear the old dijit node (if it exists)
+                var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
+                var oldDijitNode = registry.byId(inputID);
+                if (oldDijitNode != null) {
+                    try {
+                        oldDijitNode.destroy();
+                    } catch (error) {
+                    }
+                }
+
+                var inputElement = document.createElement("input");
+                inputElement.setAttribute("id", inputID);
+                inputElement.setAttribute("value", multiValues[iteration]);
+                inputElement.setAttribute("onchange", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',this.value,'" + regExPattern + "')");
+                inputElement.setAttribute("style", "width: 490px");
+                inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+                inputElement.setAttribute("regExp", regExPattern);
+                inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
+                valueTd1.appendChild(inputElement);
+                valueTableRow.appendChild(valueTd1);
+                localeTableElement.appendChild(valueTableRow);
+
+                // add remove button
+                var imgElement = document.createElement("div");
+                imgElement.setAttribute("style", "width: 10px; height: 10px;");
+                imgElement.setAttribute("class", "fa fa-times icon_button");
+                imgElement.setAttribute("onclick", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
+                valueTd1.appendChild(imgElement);
+
+                var optionsRow = document.createElement("td");
+                var minLengthInput = document.createElement("input");
+                optionsRow.appendChild(minLengthInput);
+
+                localeTableElement.appendChild(optionsRow);
+            }
+
+            { // add row button for this locale group
+                var newTableRow = document.createElement("tr");
+                newTableRow.setAttribute("style", "border-width: 0");
+                newTableRow.setAttribute("colspan", "5");
+
+                var newTableData = document.createElement("td");
+                newTableData.setAttribute("style", "border-width: 0;");
+
+                var addItemButton = document.createElement("button");
+                addItemButton.setAttribute("type", "[button");
+                addItemButton.setAttribute("onclick", "clientSettingCache['" + keyName + "']['" + localeName + "'].push('');ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "',null,null,null,'" + regExPattern + "')");
+                addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+                addItemButton.innerHTML = "Add Value";
+                newTableData.appendChild(addItemButton);
+
+                newTableRow.appendChild(newTableData);
+                localeTableElement.appendChild(newTableRow);
+            }
+
+
+            if (localeName != '') { // add remove locale x
+                var imgElement2 = document.createElement("div");
+                imgElement2.setAttribute("style", "width: 12px; height: 12px;");
+                imgElement2.setAttribute("class", "fa fa-times icon_button");
+                imgElement2.setAttribute("onclick", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null,'" + regExPattern + "')");
+                var tdElement = document.createElement("td");
+                tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
+
+                localeTableRow.appendChild(tdElement);
+                tdElement.appendChild(imgElement2);
+            }
+
+            var parentDivElement = getObject(parentDiv);
+            parentDivElement.appendChild(localeTableRow);
+
+            { // add a spacer row
+                var spacerTableRow = document.createElement("tr");
+                spacerTableRow.setAttribute("style", "border-width: 0");
+                parentDivElement.appendChild(spacerTableRow);
+
+                var spacerTableData = document.createElement("td");
+                spacerTableData.setAttribute("style", "border-width: 0");
+                spacerTableData.innerHTML = "&nbsp;";
+                spacerTableRow.appendChild(spacerTableData);
+            }
+        }
+
+        var addLocaleFunction = function() {
+            require(["dijit/registry"],function(registry){
+                ResponseTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '', regExPattern);
+            });
+        };
+
+        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+        clientSettingCache[keyName] = resultValue;
+        dojoParser.parse(parentDiv);
+    });
+};
+
+ResponseTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value, regExPattern) {
+    if (locale != null) {
+        if (clientSettingCache[settingKey][locale] == null) {
+            clientSettingCache[settingKey][locale] = [ "" ];
+        }
+
+        if (iteration == null) {
+            delete clientSettingCache[settingKey][locale];
+        } else {
+            if (value == null) {
+                clientSettingCache[settingKey][locale].splice(iteration,1);
+            } else {
+                clientSettingCache[settingKey][locale][iteration] = value;
+            }
+        }
+    }
+
+    writeSetting(settingKey, clientSettingCache[settingKey]);
+    var parentDiv = 'table_setting_' + settingKey;
+    ResponseTableHandler.draw(parentDiv, settingKey, regExPattern);
+};
+
+function buildMenuBar() {
+    clearDijitWidget('topMenuBar');
+    require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],
+        function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem,CheckedMenuItem,MenuSeparator){
+            var topMenuBar = new MenuBar({id:"topMenuBar"});
+
+            var settingsMenu = new Menu({});
+            topMenuBar.addChild(new PopupMenuBarItem({
+                label: "Settings",
+                popup: settingsMenu
+            }));
+
+            var modulesMenu = new Menu({});
+            topMenuBar.addChild(new PopupMenuBarItem({
+                label: "Modules",
+                popup: modulesMenu
+            }));
+
+            { // Settings & Modules Menu
+                for (var category in PWM_SETTINGS['categories']) {
+                    (function() {
+                        var menuCategory = PWM_SETTINGS['categories'][category];
+                        var settingInfo = {};
+
+                        var showMenu = true;
+                        if (menuCategory['key'] == 'EDIRECTORY') {
+                            showMenu = (PWM_GLOBAL['selectedTemplate'] == 'NOVL');
+                        }
+                        if (menuCategory['key'] == 'ACTIVE_DIRECTORY') {
+                            showMenu = (PWM_GLOBAL['selectedTemplate'] == 'AD');
+                        }
+
+                        if (showMenu) {
+                            if (preferences['editMode'] == 'SETTINGS' && menuCategory['key'] == preferences['category']) {
+                                settingInfo = {
+                                    label: menuCategory['label'],
+                                    disabled: true
+                                };
+                            } else {
+                                settingInfo = {
+                                    label: menuCategory['label'],
+                                    onClick: function() {
+                                        showWaitDialog(null,null,function(){
+                                            preferences['editMode'] = 'SETTINGS';
+                                            preferences['category'] = menuCategory['key'];
+                                            setConfigEditorCookie();
+                                            loadMainPageBody();
+                                        });
+                                    }
+                                };
+                            }
+                            if (menuCategory['type'] == "SETTING") {
+                                settingsMenu.addChild(new MenuItem(settingInfo));
+                            } else {
+                                modulesMenu.addChild(new MenuItem(settingInfo));
+                            }
+                        }
+                    })();
+                }
+            }
+            { // Display menu
+                var displayMenu = new Menu({});
+                topMenuBar.addChild(new PopupMenuBarItem({
+                    label: "Custom Text",
+                    popup: displayMenu
+                }));
+
+                for (var localeMenu in PWM_SETTINGS['locales']) {
+                    (function() {
+                        if (preferences['editMode'] == 'LOCALEBUNDLE' && preferences['localeBundle'] == [localeMenu]['key']) {
+                            displayMenu.addChild(new MenuItem({
+                                label: localeMenu,
+                                disabled: true
+                            }));
+                        } else {
+                            displayMenu.addChild(new MenuItem({
+                                label: localeMenu,
+                                onClick: function() {
+                                    showWaitDialog(null,null,function(){
+                                        preferences['editMode'] = 'LOCALEBUNDLE';
+                                        preferences['localeBundle'] = [localeMenu]['key'];
+                                        setConfigEditorCookie();
+                                        loadMainPageBody();
+                                    });
+                                }
+                            }));
+                        }
+                    })();
+                }
+            }
+            {
+                topMenuBar.addChild(
+                    new MenuBarItem({
+                        label: " | ",
+                        disabled: true
+                    }));
+            }
+            { // view menu
+                var viewMenu = new Menu({});
+                var advancedIsChecked = preferences['level'] && preferences['level'] > 1;
+                viewMenu.addChild(new CheckedMenuItem({
+                    label: "Advanced Settings",
+                    checked: advancedIsChecked,
+                    onClick: function() {
+                        preferences['level'] = advancedIsChecked ? 1 : 2;
+                        setConfigEditorCookie();
+                        loadMainPageBody();
+                    }
+                }));
+                viewMenu.addChild(new CheckedMenuItem({
+                    label: "Display Help Text",
+                    checked: preferences['showDesc'],
+                    onClick: function() {
+                        showWaitDialog(null,null,function(){
+                            preferences['showDesc'] = !preferences['showDesc'];
+                            setConfigEditorCookie();
+                            loadMainPageBody();
+                        });
+                    }
+                }));
+                viewMenu.addChild(new MenuSeparator());
+                viewMenu.addChild(new MenuItem({
+                    label: "Configuration Notes",
+                    onClick: function() {
+                        showConfigurationNotes();
+                    }
+                }));
+                viewMenu.addChild(new MenuItem({
+                    label: "Macro Help",
+                    onClick: function() {
+                        var idName = 'dialogPopup';
+                        clearDijitWidget(idName);
+                        var theDialog = new Dialog({
+                            id: idName,
+                            title: 'Macro Help',
+                            style: "width: 550px",
+                            href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
+                        });
+                        theDialog.show();
+                    }
+                }));
+                viewMenu.addChild(new MenuSeparator());
+                viewMenu.addChild(new MenuItem({
+                    label: "Current Health",
+                    onClick: function() {
+                        showDialog('Health','<div id="healthBody" style="width: 600px"><div id="WaitDialogBlank"></div></div>');
+                        setTimeout(function(){
+                            showPwmHealth('healthBody', {showRefresh: true, showTimestamp: true});
+                        },1000);
+                    }
+                }));
+                topMenuBar.addChild(new PopupMenuBarItem({
+                    label: "View",
+                    popup: viewMenu
+                }));
+            }
+
+            { // Templates
+                var templateMenu = new Menu({});
+                var confirmText = 'Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.';
+                for (var template in PWM_SETTINGS['templates']) {
+                    (function() {
+                        var templateItem = PWM_SETTINGS['templates'][template];
+                        templateMenu.addChild(new CheckedMenuItem({
+                            label: templateItem['description'],
+                            checked: templateItem['key'] == PWM_GLOBAL['selectedTemplate'],
+                            onClick: function() {
+                                showConfirmDialog(null,confirmText,function(){
+                                    showWaitDialog(null,null,function(){
+                                        dojo.xhrGet({
+                                            url:"ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
+                                            preventCache: true,
+                                            error: function(errorObj) {
+                                                showError("error loading " + keyName + ", reason: " + errorObj)
+                                            },
+                                            load: function() {
+                                                loadMainPageBody();
+                                            }
+                                        });
+                                    });
+                                });
+                            }
+                        }));
+                    })();
+                };
+                templateMenu.addChild(new MenuSeparator());
+                templateMenu.addChild(new MenuItem({
+                    label: "About Templates",
+                    onClick: function() {
+                        var idName = 'dialogPopup';
+                        clearDijitWidget(idName);
+                        var theDialog = new Dialog({
+                            id: idName,
+                            title: 'About Templates',
+                            style: "width: 550px",
+                            href: PWM_GLOBAL['url-resources'] + "/text/aboutTemplates.html"
+                        });
+                        theDialog.show();
+                    }
+                }));
+
+                topMenuBar.addChild(new PopupMenuBarItem({
+                    label: "Template",
+                    popup: templateMenu
+                }));
+            }
+            {
+                topMenuBar.addChild(
+                    new MenuBarItem({
+                        label: " | ",
+                        disabled: true
+                    }));
+            }
+            { // Actions
+                var actionsMenu = new Menu({});
+                actionsMenu.addChild(new MenuItem({
+                    label: "Set Configuration Password",
+                    onClick: function() {
+                        setConfigurationPassword();
+                    }
+                }));
+                actionsMenu.addChild(new MenuSeparator());
+                actionsMenu.addChild(new MenuItem({
+                    label: "Import LDAP Server Certificates",
+                    onClick: function() {
+                        importLdapCertificates();
+                    }
+                }));
+                actionsMenu.addChild(new MenuItem({
+                    label: "Clear Imported LDAP Server Certificates",
+                    onClick: function() {
+                        clearLdapCertificates();
+                    }
+                }));
+                actionsMenu.addChild(new MenuSeparator());
+                actionsMenu.addChild(new MenuItem({
+                    label: "Save",
+                    iconClass: "dijitSaveIcon dijitSaveIconCancel",
+                    onClick: function() {
+                        showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_SaveConfig'],function(){saveConfiguration(true)});
+                        buildMenuBar();
+                    }
+                }));
+                actionsMenu.addChild(new MenuItem({
+                    label: "Cancel",
+                    iconClass: "dijitEditorIcon dijitEditorIconCancel",
+                    onClick: function() {
+                        document.forms['cancelEditing'].submit();
+                    }
+                }));
+
+                topMenuBar.addChild(new PopupMenuBarItem({
+                    label: "Actions",
+                    popup: actionsMenu
+                }));
+            }
+            topMenuBar.placeAt("TopMenu");
+            topMenuBar.startup();
+        });
+}
+
+function saveConfiguration(waitForReload) {
+    showWaitDialog('Saving Configuration...', null, function(){
+        require(["dojo"],function(dojo){
+            dojo.xhrGet({
+                url:"ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                preventCache: true,
+                dataType: "json",
+                handleAs: "json",
+                load: function(data){
+                    if (data['error'] == true) {
+                        closeWaitDialog();
+                        showError(data['errorDetail']);
+                    } else {
+                        if (waitForReload) {
+                            var currentTime = new Date().getTime();
+                            showError('Waiting for server restart');
+                            waitForRestart(currentTime);
+                        } else {
+                            window.location = "ConfigManager";
+                        }
+                    }
+                }
+            });
+        });
+    });
+}
+
+
+function readConfigEditorCookie() {
+    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
+        try {
+            preferences = json.parse(dojoCookie("preferences"));
+        } catch (e) {
+            console.log("error reading preferences cookie: " + e);
+        }
+    });
+}
+
+function setConfigEditorCookie() {
+    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
+        dojoCookie("preferences", json.stringify(preferences), {expires: 5}); // 5 days
+    });
+}
+
+function setConfigurationPassword(password) {
+    if (password) {
+        clearDijitWidget('dialogPopup');
+        showWaitDialog();
+        dojo.xhrPost({
+            url:"ConfigEditor?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            postData: password,
+            contentType: "application/text;charset=utf-8",
+            dataType: "text",
+            handleAs: "text",
+            load: function(data){
+                closeWaitDialog();
+                showInfo('Configuration password set successfully.')
+            },
+            error: function(errorObj) {
+                closeWaitDialog();
+                showError("error saving notes text: " + errorObj);
+            }
+        });
+        return;
+    }
+
+    var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';
+    ChangePasswordHandler.init('configPw','Configuration Password',writeFunction);
+}
+
+function toggleHelpDisplay(nodeId) {
+    var node = getObject(nodeId);
+    if (node) {
+        if (node.style.display == 'block') {
+            node.style.display = 'none';
+        } else {
+            node.style.display = 'block';
+        }
+    }
+}
+
+function showConfigurationNotes() {
+    var idName = 'configNotesDialog';
+    var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
+    bodyText += 'Loading...';
+    bodyText += '</textarea>';
+    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + showString('Button_OK') + '</button>';
+
+    clearDijitWidget('dialogPopup');
+    require(["dijit/Dialog"],function(Dialog){
+        var theDialog = new Dialog({
+            id: 'dialogPopup',
+            title: 'Configuration Notes',
+            style: "width: 600px;",
+            content: bodyText
+        });
+        theDialog.show();
+        getObject(idName).value = PWM_GLOBAL['configurationNotes'];
+        preferences['seenNotes'] = true;
+        setConfigEditorCookie();
+    });
+}
+
+function writeConfigurationNotes() {
+    require(["dojo","dijit/Dialog"],function(dojo){
+        var value = getObject('configNotesDialog').value;
+        PWM_GLOBAL['configurationNotes'] = value;
+        showWaitDialog();
+        dojo.xhrPost({
+            url:"ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
+            postData: dojo.toJson(value),
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            handleAs: "text",
+            load: function(){
+                loadMainPageBody();
+            },
+            error: function(errorObj) {
+                closeWaitDialog();
+                alert("error saving notes text: " + errorObj);
+                loadMainPageBody();
+            }
+        });
+    });
+}
+
+function loadMainPageBody() {
+    window.location.replace(PWM_GLOBAL['url-context'] + '/private/config/ConfigEditor');
+}
+
+function handleResetClick(settingKey) {
+    var label = PWM_SETTINGS['settings'][settingKey] ? PWM_SETTINGS['settings'][settingKey]['label'] : null;
+
+    var dialogText = 'Are you sure you want to reset the setting ';
+    if (label) {
+        dialogText += '<span style="font-style: italic;">' + PWM_SETTINGS['settings'][settingKey]['label'] + '</span>';
+    }
+    dialogText += ' to the default value?';
+
+    var title = 'Reset ' + label ? label : '';
+
+    showConfirmDialog(title,dialogText,function(){
+        resetSetting(settingKey);
+        loadMainPageBody();
+    });
 }
 

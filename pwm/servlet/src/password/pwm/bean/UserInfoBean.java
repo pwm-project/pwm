@@ -66,7 +66,8 @@ public class UserInfoBean implements PwmSessionBean {
 
     private Date passwordExpirationTime;
     private Date passwordLastModifiedTime;
-    private Date authTime;
+    private Date localAuthTime;
+    private Date lastLdapLoginTime;
 
     private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<Permission, Permission.PERMISSION_STATUS>();
 
@@ -97,12 +98,20 @@ public class UserInfoBean implements PwmSessionBean {
         cachedPasswordRuleAttributes = userAttributes;
     }
 
-    public Date getAuthTime() {
-        return authTime;
+    public Date getLocalAuthTime() {
+        return localAuthTime;
     }
 
-    public void setAuthTime(final Date authTime) {
-        this.authTime = authTime;
+    public void setLocalAuthTime(final Date localAuthTime) {
+        this.localAuthTime = localAuthTime;
+    }
+
+    public Date getLastLdapLoginTime() {
+        return lastLdapLoginTime;
+    }
+
+    public void setLastLdapLoginTime(Date lastLdapLoginTime) {
+        this.lastLdapLoginTime = lastLdapLoginTime;
     }
 
     public ChallengeSet getChallengeSet() {

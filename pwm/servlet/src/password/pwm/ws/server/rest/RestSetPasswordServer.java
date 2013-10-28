@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiUser;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -124,6 +125,8 @@ public class RestSetPasswordServer {
 
             final JsonInputData jsonResultData = new JsonInputData();
             jsonResultData.random = random;
+
+            /* helpdesk set password */
             if (restRequestBean.getUserDN() != null) {
                 final ChaiUser chaiUser = ChaiFactory.createChaiUser(restRequestBean.getUserDN(), restRequestBean.getPwmSession().getSessionManager().getChaiProvider());
                 final String newPassword;
@@ -144,13 +147,6 @@ public class RestSetPasswordServer {
                         newPassword,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
-                PasswordUtility.sendNewPassword(
-                        uiBean,
-                        restRequestBean.getPwmApplication(),
-                        new UserDataReader(chaiUser),
-                        newPassword,
-                        restRequestBean.getPwmSession().getSessionStateBean().getLocale()
-                );
                 jsonResultData.password = null;
                 jsonResultData.username = restRequestBean.getUserDN();
             } else {
@@ -161,13 +157,6 @@ public class RestSetPasswordServer {
                     newPassword = password;
                 }
                 PasswordUtility.setUserPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(), newPassword);
-                PasswordUtility.sendNewPassword(
-                        restRequestBean.getPwmSession().getUserInfoBean(),
-                        restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getSessionManager().getUserDataReader(),
-                        newPassword,
-                        restRequestBean.getPwmSession().getSessionStateBean().getLocale()
-                );
                 restRequestBean.getPwmApplication().getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(),restRequestBean.getPwmSession());
                 jsonResultData.password = null;
                 jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserDN();

@@ -22,6 +22,8 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.util.DataStore;
+
 import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
@@ -62,7 +64,7 @@ public interface LocalDB {
     String get(DB db, String key)
             throws LocalDBException;
 
-    PwmDBIterator<String> iterator(DB db)
+    LocalDBIterator<String> iterator(DB db)
             throws LocalDBException;
 
     @WriteOperation
@@ -126,9 +128,9 @@ public interface LocalDB {
         RESPONSE_STORAGE,
         OTP_SECRET,
         TOKENS,
-        INTRUDER_USER,
-        INTRUDER_ADDRESS,
+        INTRUDER,
         AUDIT_EVENTS,
+        USER_CACHE,
         TEMP, // cleared on each initialization of the pwmDB.
     }
 
@@ -146,8 +148,7 @@ public interface LocalDB {
     }
 
 
-    public static interface PwmDBIterator<String> extends Iterator<String> {
-        public void close();
+    public static interface LocalDBIterator<K> extends DataStore.DataStoreIterator<String> {
     }
 
     public static class TransactionItem implements Serializable, Comparable {

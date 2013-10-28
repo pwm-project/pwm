@@ -122,11 +122,11 @@ public class DisplayTag extends PwmAbstractTag {
 
             pageContext.getOut().write(expandedMessage);
         } catch (PwmUnrecoverableException e) { {
-            LOGGER.debug("error while executing jsp display tag: " + e.getMessage(), e);
+            LOGGER.debug("error while executing jsp display tag: " + e.getMessage());
             return EVAL_PAGE;
         }
         } catch (Exception e) {
-            LOGGER.debug("error while executing jsp display tag: " + e.getMessage(), e);
+            LOGGER.debug("error while executing jsp display tag: " + e.getMessage());
             throw new JspTagException(e.getMessage());
         }
         return EVAL_PAGE;

@@ -38,10 +38,10 @@ import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
-import password.pwm.servlet.ForgottenPasswordServlet;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -66,7 +66,7 @@ public class PasswordUtility {
     {
         final Configuration config = pwmApplication.getConfig();
 
-        final PwmSetting.MessageSendMethod pref = PwmSetting.MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_SENDNEWPW_METHOD));
+        final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_SENDNEWPW_METHOD));
         final String emailAddress = userInfoBean.getUserEmailAddress();
         final String smsNumber = userInfoBean.getUserSmsNumber();
         String returnToAddress = emailAddress;
@@ -161,14 +161,14 @@ public class PasswordUtility {
         final Configuration config = pwmApplication.getConfig();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_SENDPASSWORD, userLocale);
 
-        if (toAddress == null || toAddress.length() < 1) {
-            final String errorMsg = "unable to send new password email for '" + userInfoBean.getUserDN() + "' no email address available in ldap";
+        if (configuredEmailSetting == null) {
+            final String errorMsg = "send password email contents are not configured";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return errorInformation;
         }
 
         pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
+                configuredEmailSetting.getTo(),
                 configuredEmailSetting.getFrom(),
                 configuredEmailSetting.getSubject(),
                 configuredEmailSetting.getBodyPlain().replace("%TOKEN%", newPassword),
@@ -466,6 +466,18 @@ public class PasswordUtility {
 
         // send email notification
         sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean, proxiedUser);
+
+        // send password
+        final boolean sendPassword = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
+        if (sendPassword) {
+            PasswordUtility.sendNewPassword(
+                    userInfoBean,
+                    pwmApplication,
+                    new UserDataReader(chaiUser),
+                    newPassword,
+                    pwmSession.getSessionStateBean().getLocale()
+            );
+        }
     }
 
     private static void performReplicaSyncCheck(
@@ -852,18 +864,11 @@ public class PasswordUtility {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD_HELPDESK, locale);
 
-        final String toAddress = userInfoBean.getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmSession, "skipping send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email configured");
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), userInfoBean, new UserDataReader(user));
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, userInfoBean, new UserDataReader(user));
     }
 }

@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.SessionManager;
@@ -52,6 +53,7 @@ import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.intruder.RecordType;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -90,12 +92,15 @@ public class NMASCrOperator implements CrOperator {
 
     public NMASCrOperator(PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        maxThreadCount = PwmConstants.MAX_NMAS_THREAD_COUNT;
+        maxThreadCount = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MAX_COUNT));
+        final int MAX_SECONDS = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MAX_SECONDS));
+        final int MIN_SECONDS = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MIN_SECONDS));
+
         int maxNmasIdleSeconds = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-        if (maxNmasIdleSeconds > PwmConstants.MAX_NMAS_THREAD_SECONDS) {
-            maxNmasIdleSeconds = PwmConstants.MAX_NMAS_THREAD_SECONDS;
-        } else if (maxNmasIdleSeconds < PwmConstants.MIN_NMAS_THREAD_SECONDS) {
-            maxNmasIdleSeconds = PwmConstants.MIN_NMAS_THREAD_SECONDS;
+        if (maxNmasIdleSeconds > MAX_SECONDS) {
+            maxNmasIdleSeconds = MAX_SECONDS;
+        } else if (maxNmasIdleSeconds < MIN_SECONDS) {
+            maxNmasIdleSeconds = MIN_SECONDS;
         }
         maxThreadIdleTime = new TimeDuration(maxNmasIdleSeconds * 1000);
     }
@@ -113,7 +118,8 @@ public class NMASCrOperator implements CrOperator {
                 if (timer == null) {
                     LOGGER.debug("starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString());
                     timer = new Timer(PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer",true);
-                    timer.schedule(new ThreadWatchdogTask(),PwmConstants.NMAS_WATCHDOG_FREQUENCY_MS,PwmConstants.NMAS_WATCHDOG_FREQUENCY_MS);
+                    final long frequency = Long.parseLong(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY));
+                    timer.schedule(new ThreadWatchdogTask(),frequency,frequency);
                 }
             }
         }
@@ -134,7 +140,7 @@ public class NMASCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         final String userDN = theUser.getEntryDN();
-        pwmApplication.getIntruderManager().check(null,theUser.getEntryDN(),null);
+        pwmApplication.getIntruderManager().check(RecordType.USER_DN,theUser.getEntryDN(),null);
 
         try {
             if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
@@ -371,7 +377,7 @@ public class NMASCrOperator implements CrOperator {
             if (!passed) {
                 try {
                     cycle();
-                    pwmApplication.getIntruderManager().check(null,userDN,null);
+                    pwmApplication.getIntruderManager().check(RecordType.USER_DN,userDN,null);
                     if (challengeSet == null) {
                         final String errorMsg = "unable to load next challenge set";
                         throw new ChaiUnavailableException(errorMsg, ChaiError.UNKNOWN);

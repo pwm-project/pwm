@@ -1,9 +1,3 @@
-<%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -30,33 +24,28 @@
   ~ This file is imported by most JSPs, it shows the main 'header' in the html
   - which by default is a blue-gray gradieted and rounded block.
   --%>
+<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmSession" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionHeaderBody = null;
-    PwmApplication pwmApplictionHeaderBody = null;
+    PwmApplication pwmApplicationHeaderBody = null;
     try {
-        pwmApplictionHeaderBody = ContextManager.getPwmApplication(session);
+        pwmApplicationHeaderBody = ContextManager.getPwmApplication(session);
         pwmSessionHeaderBody = PwmSession.getPwmSession(session);
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
 %>
 <% final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
-<% final boolean showLogout = loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
-<% final boolean showHome =  loggedIn && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON); %>
-<% final String customImageLogoUrl = pwmApplictionHeaderBody.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_LOGO_IMAGE); %>
-<% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && pwmApplictionHeaderBody != null && pwmApplictionHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION; %>
-<% if (showConfigHeader) { %>
-<div id="header-warning">
-    <% final String configManagerUrl = request.getContextPath() + "/config/ConfigManager"; %>
-    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/> &nbsp;&nbsp; <a href="#" style="font-size: 70%" onclick="getObject('header-warning').style.display='none'">hide</a>
-</div>
-<% } %>
+<% final boolean showLogout = loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
+<% final boolean showHome =  loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON); %>
+<%@ include file="header-warnings.jsp" %>
 <div id="header">
     <div id="header-company-logo">
-        <% if (customImageLogoUrl != null && customImageLogoUrl.length() > 0) { %>
-        <img id="header-company-logo-image" src="<%=customImageLogoUrl%>" style="padding-top: 10px"/>
-        <% } %>
     </div>
     <div style="position: absolute; text-align:left; border-width:0; top: 19px; left:18px;">
         <br/><%-- balance div for ie 6 --%>

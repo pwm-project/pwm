@@ -31,8 +31,7 @@
 <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
 <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js">
-</script>
+<script defer type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         Recaptcha.create("<%=reCaptchaPublicKey%>",
@@ -66,22 +65,22 @@
                     <ul class="recaptcha_options">
                         <li>
                             <a href="javascript:Recaptcha.reload()">
-                                <span class="icon-refresh" title="<pwm:Display key="Display_CaptchaRefresh"/>"></span>
+                                <span class="fa fa-refresh" title="<pwm:Display key="Display_CaptchaRefresh"/>"></span>
                             </a>
                         </li>
                         <li class="recaptcha_only_if_image">
                             <a href="javascript:Recaptcha.switch_type('audio')">
-                                <span class="icon-volume-up" title="<pwm:Display key="Display_CaptchaGetAudio"/>"></span>
+                                <span class="fa fa-volume-up" title="<pwm:Display key="Display_CaptchaGetAudio"/>"></span>
                             </a>
                         </li>
                         <li class="recaptcha_only_if_audio">
                             <a href="javascript:Recaptcha.switch_type('image')">
-                                <span class="icon-picture" title="<pwm:Display key="Display_CaptchaGetImage"/>"></span>
+                                <span class="fa fa-picture" title="<pwm:Display key="Display_CaptchaGetImage"/>"></span>
                             </a>
                         </li>
                         <li>
                             <a href="javascript:Recaptcha.showhelp()">
-                                <span class="icon-question-sign" title="<pwm:Display key="Display_CaptchaHelp"/>"></span>
+                                <span class="fa fa-question-sign" title="<pwm:Display key="Display_CaptchaHelp"/>"></span>
                             </a>
                         </li>
                     </ul>

@@ -36,6 +36,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
@@ -43,6 +44,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,9 +86,13 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM);
 
+        //read the values from the request
+        Map<FormConfiguration, String> formValues = new HashMap();
         try {
-            //read the values from the request
-            final Map<FormConfiguration, String> formValues = Validator.readFormValuesFromRequest(req, forgottenUsernameForm, ssBean.getLocale());
+            formValues = Validator.readFormValuesFromRequest(req, forgottenUsernameForm, ssBean.getLocale());
+
+            // check for intruder search
+            pwmApplication.getIntruderManager().convenience().checkAttributes(formValues, pwmSession);
 
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
@@ -99,14 +105,14 @@ public class ForgottenUsernameServlet extends TopServlet {
 
             if (theUser == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
-                pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
                 forwardToJSP(req, resp);
                 return;
             }
 
             // make sure the user isn't locked.
-            pwmApplication.getIntruderManager().check(null,theUser.getEntryDN(),pwmSession);
+            pwmApplication.getIntruderManager().check(RecordType.USER_DN,theUser.getEntryDN(),pwmSession);
 
             // redirect user to success page.
             LOGGER.info(pwmSession, "found user " + theUser.getEntryDN());
@@ -115,7 +121,10 @@ public class ForgottenUsernameServlet extends TopServlet {
                 final String username = theUser.readStringAttribute(usernameAttribute);
                 LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
                 ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
-                pwmApplication.getIntruderManager().clear(null,null,pwmSession);
+
+                pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
+                pwmApplication.getIntruderManager().convenience().clearAttributes(formValues, pwmSession);
+
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_SUCCESSES);
                 ServletHelper.forwardToSuccessPage(req, resp);
                 return;
@@ -126,7 +135,8 @@ public class ForgottenUsernameServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getErrorInformation().getDetailedErrorMsg(), e.getErrorInformation().getFieldValues());
             ssBean.setSessionError(errorInfo);
-            pwmApplication.getIntruderManager().mark(null,null,pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);

@@ -194,6 +194,7 @@ table td.key {
     text-decoration: none;
     color: white;
     background: #3e374c;
+    cursor: pointer;
 }
 
 
@@ -271,6 +272,18 @@ div.progress-container > div {
     text-align: center;
     padding-top: 4px;
     padding-bottom: 4px
+}
+
+.header-error {
+    text-align: center;
+    white-space: normal;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    background-color: red;
+    border: 1px solid white;
+    border-radius: 4px;
 }
 
 .clear {
@@ -372,10 +385,6 @@ div.progress-container > div {
     max-height: 300px;
     overflow: auto;
     font-family: monospace;
-}
-
-.icon-eye {
-    font-size: larger;
 }
 
 /* recaptcha section */

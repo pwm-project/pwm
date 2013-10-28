@@ -34,7 +34,9 @@ import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -44,6 +46,7 @@ public class PwmDBLoggerTest extends TestCase {
 
     private LocalDBLogger localDBLogger;
     private LocalDB pwmDB;
+    private Configuration config;
     private int maxSize;
 
     private int eventsAdded;
@@ -61,7 +64,8 @@ public class PwmDBLoggerTest extends TestCase {
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
         final File configFileLocation = new File(TestHelper.getParameter("pwmConfigurationLocation"));
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
-        final Map<String,String> initStrings = Configuration.convertStringListToNameValuePair(reader.getConfiguration().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING),"=");
+        config = reader.getConfiguration();
+        final Map<String,String> initStrings = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING),"=");
 
         pwmDB = LocalDBFactory.getInstance(
                 fileLocation,
@@ -77,7 +81,7 @@ public class PwmDBLoggerTest extends TestCase {
         localDBLogger = new LocalDBLogger(pwmDB, maxSize, maxAge);
 
         {
-            final int randomLength = 2000;
+            final int randomLength = 4000;
             while (randomValue.length() < randomLength) {
                 randomValue.append(PwmRandom.getInstance().nextChar());
             }
@@ -116,10 +120,10 @@ public class PwmDBLoggerTest extends TestCase {
 
     private class PopulatorThread extends Thread {
         public void run() {
-            final int loopCount = 100;
+            final int loopCount = 10;
             while (eventsRemaining > 0) {
                 while (localDBLogger.getPendingEventCount() >= PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) {
-                    Helper.pause(5);
+                    Helper.pause(1);
                 }
                 final Collection<PwmLogEvent> events = makeBulkEvents(loopCount);
                 for (final PwmLogEvent logEvent : events) {
@@ -128,24 +132,18 @@ public class PwmDBLoggerTest extends TestCase {
                     eventsRemaining--;
                     eventsAdded++;
                 }
-                Helper.pause(1);
             }
         }
     }
 
     private Collection<PwmLogEvent> makeBulkEvents(final int count) {
-        //final long startTime = System.currentTimeMillis();
         final Collection<PwmLogEvent> events = new ArrayList<PwmLogEvent>();
-
 
         for (int i = 0; i < count; i++) {
             final int randomPos = random.nextInt(randomValue.length() - 1);
             randomValue.replace(randomPos, randomPos + 1,String.valueOf(random.nextInt(9)));
 
-            final StringBuilder description = new StringBuilder();
-            //description.append("bulk insert event").append(System.currentTimeMillis()).append(" ");
-            description.append(randomValue);
-
+            final StringBuilder description = new StringBuilder(randomValue);
             final PwmLogEvent event = new PwmLogEvent(
                     new Date(),
                     LocalDBLogger.class.getName(),
@@ -159,10 +157,17 @@ public class PwmDBLoggerTest extends TestCase {
     private class DebugOutputTimerTask extends TimerTask {
         public void run() {
             final StringBuilder sb = new StringBuilder();
+            final long maxEvents = config.readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
+            final long eventCount = localDBLogger.getStoredEventCount();
+            final double percentComplete = (double)eventCount / (double)maxEvents * 100f;
+            final NumberFormat numberFormat = NumberFormat.getNumberInstance();
+            numberFormat.setMaximumFractionDigits(3);
+            numberFormat.setMinimumFractionDigits(3);
             sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
-            sb.append(", added ").append(eventsAdded).append(", ").append(eventsRemaining).append(" remaining");
+            sb.append(", added ").append(eventsAdded);
             sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(pwmDB.getFileLocation())));
-            sb.append(", stored events: ").append(localDBLogger.getStoredEventCount());
+            sb.append(", events: ").append(localDBLogger.getStoredEventCount()).append("/").append(maxEvents);
+            sb.append(" (").append(numberFormat.format(percentComplete)).append("%)");
             sb.append(", free space: ").append(Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmDB.getFileLocation())));
             sb.append(", pending: ").append(localDBLogger.getPendingEventCount());
             sb.append(", txn size: ").append(localDBLogger.getTransactionSize());
@@ -170,5 +175,4 @@ public class PwmDBLoggerTest extends TestCase {
             System.out.println(sb);
         }
     }
-
 }

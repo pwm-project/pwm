@@ -52,6 +52,7 @@
     var grid;
     var headers = {
         "createTime":"Create Time",
+        "lastTime":"Last Time",
         "label":"Label",
         "idle":"Idle",
         "srcAddress":"Address",

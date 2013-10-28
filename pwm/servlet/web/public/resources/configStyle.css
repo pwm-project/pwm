@@ -28,12 +28,16 @@
 
 .setting_title {
     background-color: #d3d3d3;
+    opacity: 0.75;
     padding-left: 10px;
     padding-top: 4px;
     padding-bottom: 3px;
     font-weight: bold;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+}
+.setting_title.modified {
+    background-color: #eae498;
 }
 
 .setting_title .text {
@@ -55,12 +59,12 @@
     cursor: pointer;
 }
 
-.icon-question-sign {
+.fa-question-circle {
     border-bottom-right-radius: 3px;
     box-shadow: 2px 2px 2px 2px #bfbfbf;
 }
 
-.icon-reply {
+.fa-reply {
     color: #880000;
     visibility: hidden;
     border-bottom-right-radius: 3px;

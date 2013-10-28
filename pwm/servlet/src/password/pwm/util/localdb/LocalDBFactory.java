@@ -22,6 +22,7 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -53,10 +54,12 @@ public class LocalDBFactory {
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 
-        final LocalDB db = new LocalDBAdaptor(dbProvider, pwmApplication);
+        LocalDB db = new LocalDBAdaptor(dbProvider, pwmApplication);
 
         initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
+
+        db = wrapWithCompressor(db,pwmApplication);
 
         LOGGER.trace("clearing TEMP db");
         if (!readonly) {
@@ -107,5 +110,21 @@ public class LocalDBFactory {
         }
 
         LOGGER.trace("db init completed for " + theClass);
+    }
+
+    private static LocalDB wrapWithCompressor(final LocalDB localDB, final PwmApplication pwmApplication) {
+        if (localDB == null || pwmApplication == null || pwmApplication.getConfig() == null) {
+            return LocalDBCompressor.createLocalDBCompressor(localDB, 1024, false);
+        }
+
+        final boolean enableCompression = Boolean.parseBoolean(pwmApplication.readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
+        final boolean enableDecompression = Boolean.parseBoolean(pwmApplication.readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
+        final int compressionMinSize = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
+
+        if (enableCompression || enableDecompression) {
+            return LocalDBCompressor.createLocalDBCompressor(localDB, compressionMinSize, enableCompression);
+        }
+
+        return localDB;
     }
 }

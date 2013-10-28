@@ -41,6 +41,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;
 import password.pwm.util.*;
+import password.pwm.util.intruder.IntruderManager;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -64,11 +66,12 @@ public class UserAuthenticator {
         final long methodStartTime = System.currentTimeMillis();
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String userDN = resolveUsername(pwmApplication, pwmSession, username, context);
 
-        intruderManager.check(username, userDN, pwmSession);
+        intruderManager.check(RecordType.USERNAME, username, pwmSession);
+        intruderManager.check(RecordType.USER_DN, userDN, pwmSession);
+        intruderManager.convenience().checkAddressAndSession(pwmSession);
 
         boolean allowBindAsUser = true;
         try {
@@ -90,7 +93,9 @@ public class UserAuthenticator {
                 // auth failed, presumably due to wrong password.
                 LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-                intruderManager.mark(username, userDN, pwmSession);
+                intruderManager.mark(RecordType.USERNAME, username, pwmSession);
+                intruderManager.mark(RecordType.USER_DN, userDN, pwmSession);
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 throw e;
             }
         }
@@ -182,7 +187,7 @@ public class UserAuthenticator {
                     LOGGER.debug(pwmSession, "successfully retrieved user's current password from ldap, now conducting standard authentication");
                 }
             } catch (Exception e) {
-                LOGGER.debug(pwmSession, "unable to retrieve user password from ldap; " + e.getMessage());
+                LOGGER.error(pwmSession, "unable to retrieve user password from ldap: " + e.getMessage());
             }
 
             // actually do the authentication since we have user pw.
@@ -191,8 +196,8 @@ public class UserAuthenticator {
                     authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
                     return;
                 } catch (PwmOperationalException e) {
-                    final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
-                    LOGGER.error(errorStr);
+                    final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs; error: " + e.getMessage();
+                    LOGGER.error(pwmSession,errorStr);
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
                 }
             }
@@ -243,8 +248,8 @@ public class UserAuthenticator {
 
                 return;
             } catch (PwmOperationalException e) {
-                final String errorStr = "unable to authenticate user with temporary password, check proxy rights, ldap logs, and ensure " + PwmSetting.LDAP_NAMING_ATTRIBUTE.getKey() + " setting is correct";
-                LOGGER.error(errorStr);
+                final String errorStr = "unable to authenticate with temporary password, check proxy rights, ldap logs; error: " + e.getMessage();
+                LOGGER.error(pwmSession,errorStr);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
             }
         }
@@ -295,7 +300,8 @@ public class UserAuthenticator {
             }
         } catch (PwmOperationalException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            pwmApplication.getIntruderManager().mark(username, null, pwmSession);
+            pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
         }
 
@@ -402,10 +408,11 @@ public class UserAuthenticator {
         }
 
         //notify the intruder manager with a successful login
-        intruderManager.clear(pwmSession.getUserInfoBean().getUserID(), userDN, pwmSession);
+        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfoBean().getUserID(), pwmSession);
+        intruderManager.clear(RecordType.USER_DN, userDN, pwmSession);
+        intruderManager.convenience().clearAddressAndSession(pwmSession);
 
         //mark the auth time
-        userInfoBean.setAuthTime(new Date());
-
+        userInfoBean.setLocalAuthTime(new Date());
     }
 }

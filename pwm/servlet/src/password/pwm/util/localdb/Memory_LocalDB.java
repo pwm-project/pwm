@@ -116,7 +116,7 @@ public class Memory_LocalDB implements LocalDBProvider {
         state = LocalDB.Status.OPEN;
     }
 
-    public LocalDB.PwmDBIterator<String> iterator(final DB db) throws LocalDBException {
+    public LocalDB.LocalDBIterator<String> iterator(final DB db) throws LocalDBException {
         return new DbIterator(db);
     }
 
@@ -184,7 +184,7 @@ public class Memory_LocalDB implements LocalDBProvider {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private class DbIterator<K> implements LocalDB.PwmDBIterator<String> {
+    private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
         private final Iterator<String> iterator;
 
         private DbIterator(final DB db) {

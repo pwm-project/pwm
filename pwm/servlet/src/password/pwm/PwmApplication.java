@@ -43,6 +43,7 @@ import password.pwm.event.AuditManager;
 import password.pwm.health.HealthMonitor;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -115,6 +116,8 @@ public class PwmApplication {
             TokenManager.class,
             VersionChecker.class,
             IntruderManager.class,
+            CrService.class,
+            UserStatusCacheManager.class,
             CrService.class,
             OtpService.class
     ));
@@ -249,7 +252,7 @@ public class PwmApplication {
                 if (errorInformation == null) {
                     localDB.remove(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 } else {
-                    final Gson gson = new Gson();
+                    final Gson gson = Helper.getGson();
                     final String jsonString = gson.toJson(errorInformation);
                     localDB.put(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR, jsonString);
                 }
@@ -278,9 +281,12 @@ public class PwmApplication {
     }
 
     public synchronized DatabaseAccessor getDatabaseAccessor()
-            throws PwmUnrecoverableException
     {
         return (DatabaseAccessor)pwmServices.get(DatabaseAccessor.class);
+    }
+
+    public UserStatusCacheManager getUserStatusCacheManager() {
+        return (UserStatusCacheManager)pwmServices.get(UserStatusCacheManager.class);
     }
 
     private void initialize() {
@@ -294,6 +300,7 @@ public class PwmApplication {
             final String consoleLevel, fileLevel;
             switch (getApplicationMode()) {
                 case ERROR:
+                case NEW:
                     consoleLevel = PwmLogLevel.TRACE.toString();
                     fileLevel = PwmLogLevel.TRACE.toString();
                     break;
@@ -304,7 +311,7 @@ public class PwmApplication {
                     break;
             }
 
-            PwmInitializer.initializeLogger(log4jFile, consoleLevel, log4jAppenderFolder, fileLevel);
+            PwmInitializer.initializeLogger(this, log4jFile, consoleLevel, log4jAppenderFolder, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -323,10 +330,10 @@ public class PwmApplication {
         PwmInitializer.initializeLocalDB(this);
         PwmInitializer.initializePwmDBLogger(this);
 
-        LOGGER.info("initializing pwm");
+        LOGGER.info("initializing");
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
-        LOGGER.info("loaded pwm global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));
+        LOGGER.info("loaded global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));
 
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
@@ -337,7 +344,7 @@ public class PwmApplication {
 
         // get the pwm installation date
         installTime = fetchInstallDate(localDB, startupTime);
-        LOGGER.debug("this pwm instance first installed on " + installTime.toString());
+        LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
 
         LOGGER.info(logEnvironment());
         LOGGER.info(logDebugInfo());
@@ -360,7 +367,7 @@ public class PwmApplication {
             } catch (PwmException e) {
                 LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
             } catch (Exception e) {
-                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', pwm cannot load, error: " + e.getMessage();
+                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
                 LOGGER.fatal(errorMsg);
                 throw new IllegalStateException(errorMsg,e);
             }
@@ -370,7 +377,7 @@ public class PwmApplication {
         final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
         getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
-        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", pwmDefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
+        LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );
 
         // detect if config has been modified since previous startup
         try {
@@ -379,7 +386,7 @@ public class PwmApplication {
                 final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
                 if (previousHash == null || !previousHash.equals(currentHash)) {
                     localDB.put(LocalDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
-                    LOGGER.warn("pwm configuration has been modified since last startup");
+                    LOGGER.warn("configuration has been modified since last startup");
                     AlertHandler.alertConfigModify(this, configuration);
                 }
             }
@@ -449,7 +456,7 @@ public class PwmApplication {
             try {
                 final String lastLdapFailureStr = localDB.get(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
                 if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
-                    final Gson gson = new Gson();
+                    final Gson gson = Helper.getGson();
                     pwmApplication.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
                 }
             } catch (Exception e) {
@@ -495,18 +502,32 @@ public class PwmApplication {
 
     public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
         final EmailQueueManager emailQueue = this.getEmailQueue();
+
+        if (emailItem == null) {
+            return;
+        }
+
         if (emailQueue == null) {
             LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
             return;
         }
 
+        String toAddress = emailItem.getTo();
+        if (toAddress == null || toAddress.length() < 1 && uiBean != null) {
+           toAddress = uiBean.getUserEmailAddress();
+        }
+
         final EmailItemBean expandedEmailItem = new EmailItemBean(
-                MacroMachine.expandMacros(emailItem.getTo(), this, uiBean, userDataReader),
+                MacroMachine.expandMacros(toAddress, this, uiBean, userDataReader),
                 MacroMachine.expandMacros(emailItem.getFrom(), this, uiBean, userDataReader),
                 MacroMachine.expandMacros(emailItem.getSubject(), this, uiBean, userDataReader),
                 MacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean, userDataReader),
                 MacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean, userDataReader)
         );
+
+        if (expandedEmailItem.getTo() == null || expandedEmailItem.getTo().length() < 1) {
+            LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toString());
+        }
 
         try {
             emailQueue.addMailToQueue(expandedEmailItem);
@@ -577,7 +598,7 @@ public class PwmApplication {
 
         closeProxyChaiProvider();
 
-        LOGGER.info("PWM " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
+        LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
     }
 
     private void closeProxyChaiProvider() {
@@ -611,6 +632,7 @@ public class PwmApplication {
 
     private static class PwmInitializer {
         private static void initializeLogger(
+                final PwmApplication pwmApplication,
                 final File log4jConfigFile,
                 final String consoleLogLevel,
                 final File logDirectory,
@@ -649,7 +671,7 @@ public class PwmApplication {
 
             // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
             if (!configured) {
-                final Layout patternLayout = new PatternLayout(PwmConstants.LOGGING_PATTERN);
+                final Layout patternLayout = new PatternLayout(pwmApplication.readAppProperty(AppProperty.LOGGING_PATTERN));
 
                 // configure console logging
                 if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
@@ -679,8 +701,8 @@ public class PwmApplication {
                         final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
                         final Level level = Level.toLevel(fileLogLevel);
                         fileAppender.setThreshold(level);
-                        fileAppender.setMaxBackupIndex(PwmConstants.LOGGING_FILE_MAX_ROLLOVER);
-                        fileAppender.setMaxFileSize(PwmConstants.LOGGING_FILE_MAX_SIZE);
+                        fileAppender.setMaxBackupIndex(Integer.parseInt(pwmApplication.readAppProperty(AppProperty.LOGGING_FILE_MAX_ROLLOVER)));
+                        fileAppender.setMaxFileSize(pwmApplication.readAppProperty(AppProperty.LOGGING_FILE_MAX_SIZE));
                         pwmPackageLogger.addAppender(fileAppender);
                         chaiPackageLogger.addAppender(fileAppender);
                         casPackageLogger.addAppender(fileAppender);
@@ -831,7 +853,16 @@ public class PwmApplication {
         }
     }
 
+    public String readAppProperty(AppProperty property) {
+        if (this.getConfig() != null) {
+            final String configValue = this.getConfig().readAppProperty(property);
+            if (configValue != null) {
+                return configValue;
+            }
+        }
 
+        return property.getDefaultValue();
+    }
 }
 
 

@@ -49,7 +49,7 @@
         <select id="templateSelect" onchange="selectTemplate(this.value);">
             <%
                 boolean noTemplateYet = false;
-                if (configGuideBean.getStoredConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE) == null) {
+                if (configGuideBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE) == null) {
                     noTemplateYet = true;
             %>
             <option value="NOTSELECTED" selected="selected"><pwm:Display key="Display_SelectionIndicator"/></option>

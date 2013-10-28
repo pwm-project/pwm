@@ -20,12 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+"use strict";
+
 var PWM_GLOBAL = PWM_GLOBAL || {};
 var PWM_STRINGS = PWM_STRINGS || {};
 
 function pwmPageLoadHandler() {
     require(["dojo"],function(dojo){
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client";
+        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client/" + PWM_GLOBAL['clientEtag'];
         dojo.xhrGet({
             url: displayStringsUrl,
             handleAs: 'json',
@@ -41,8 +43,8 @@ function pwmPageLoadHandler() {
                 initPwmPage();
             },
             error: function(error) {
-                console.log('unable to read app-data: ' + error);
-                initPwmPage();
+                console.log('unable to read app-data: ' + error + ', will retry.');
+                pwmPageLoadHandler();
             }
         });
     });
@@ -61,7 +63,7 @@ function initPwmPage() {
     }
 
     require(["dojo","dojo/on"], function(dojo,on){
-        on(window, "keypress", function(event){
+        on(document, "keypress", function(event){
             checkForCapsLock(event);
         });
     });
@@ -70,9 +72,18 @@ function initPwmPage() {
         getObject('button_cancel').style.visibility = 'visible';
     }
 
+    {
+        var filename = PWM_GLOBAL['url-resources'] + '/font/font-awesome.css';
+        var fileref = document.createElement("link");
+        fileref.setAttribute("rel", "stylesheet");
+        fileref.setAttribute("type", "text/css");
+        fileref.setAttribute("href", filename);
+        document.getElementsByTagName("head")[0].appendChild(fileref);
+    }
+
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){
-            on(window, "beforeunload", function(){
+            on(document, "beforeunload", function(){
                 dojo.xhrPost({
                     url: PWM_GLOBAL['url-command'] + "?processAction=pageLeaveNotice&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
                     preventCache: true,
@@ -84,9 +95,13 @@ function initPwmPage() {
 
     if (getObject('message')) {
         PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
-        require(["dojo/on"], function(on){
-            on(window, "resize", function(){messageDivFloatHandler()});
-            on(window, "scroll", function(){messageDivFloatHandler()});
+        require(["dojo","dojo/on"], function(dojo,on){
+            if(dojo.isIE <= 8){
+                return;
+            }
+
+            on(window, "resize", function(){ messageDivFloatHandler() });
+            on(window, "scroll", function(){ messageDivFloatHandler() });
         });
     }
 
@@ -114,7 +129,14 @@ function initPwmPage() {
         });
     }
 
-    require(["dojo/domReady!","dijit/Dialog","dijit/ProgressBar"],function(){ /*preload*/
+    for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
+        PWM_GLOBAL['startupFunctions'][i]();
+    }
+}
+
+function preloadResources(finishFunction) {
+    require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
+        "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
         var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
         var images = [prefix + 'a11y/indeterminate_progress.gif',
             prefix + 'nihilo/images/progressBarAnim.gif',
@@ -122,14 +144,11 @@ function initPwmPage() {
             prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
             prefix + 'nihilo/images/titleBar.png']
         preloadImages(images);
+        if (finishFunction) {
+            finishFunction();
+        }
     });
-
-    for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        PWM_GLOBAL['startupFunctions'][i]();
-    }
 }
-
-
 
 function showString(key) {
     if (PWM_STRINGS[key]) {
@@ -184,28 +203,26 @@ function handleFormClear() {
 
 function checkForCapsLock(e) {
     require(["dojo","dojo/_base/fx","dojo/domReady!"],function(dojo,fx){
-        if(dojo.isIE){
-            return;
-        }
-
         var capsLockWarningElement = getObject('capslockwarning');
         if (capsLockWarningElement == null) {
             return;
         }
 
         var capsLockKeyDetected = false;
-        var elementTarget = null;
-        if (e.target != null) {
-            elementTarget = e.target;
-        } else if (e.srcElement != null) {
-            elementTarget = e.srcElement;
-        }
-        if (elementTarget != null) {
-            if (elementTarget.nodeName == 'input' || elementTarget.nodeName == 'INPUT') {
-                var kc = e.keyCode ? e.keyCode : e.which;
-                var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
-                if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
-                    capsLockKeyDetected = true;
+        {
+            var elementTarget = null;
+            if (e.target != null) {
+                elementTarget = e.target;
+            } else if (e.srcElement != null) {
+                elementTarget = e.srcElement;
+            }
+            if (elementTarget != null) {
+                if (elementTarget.nodeName == 'input' || elementTarget.nodeName == 'INPUT') {
+                    var kc = e.keyCode ? e.keyCode : e.which;
+                    var sk = e.shiftKey ? e.shiftKey : ((kc == 16));
+                    if (((kc >= 65 && kc <= 90) && !sk) || ((kc >= 97 && kc <= 122) && sk)) {
+                        capsLockKeyDetected = true;
+                    }
                 }
             }
         }
@@ -213,22 +230,37 @@ function checkForCapsLock(e) {
         var displayDuration = 5 * 1000;
         var fadeOutArgs = { node: "capslockwarning", duration: 3 * 1000 };
         var fadeInArgs = { node: "capslockwarning", duration: 200 };
-        if (capsLockKeyDetected) {
-            capsLockWarningElement.style.display = null;
-            fx.fadeIn(fadeInArgs).play();
-            PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
-            setTimeout(function(){
-                if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                    dojo.fadeOut(fadeOutArgs).play();
-                    setTimeout(function(){
-                        if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
-                            capsLockWarningElement.style.display = 'none';
-                        }
-                    },5 * 1000);
-                }
-            },displayDuration + 500);
+
+        if(dojo.isIE){
+            if (capsLockKeyDetected) {
+                capsLockWarningElement.style.display = 'block';
+                PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
+                setTimeout(function(){
+                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                        capsLockWarningElement.style.display = 'none';
+                    }
+                },displayDuration + 500);
+            } else {
+                capsLockWarningElement.style.display = 'none';
+            }
         } else {
-            fx.fadeOut(fadeOutArgs).play();
+            if (capsLockKeyDetected) {
+                capsLockWarningElement.style.display = null;
+                fx.fadeIn(fadeInArgs).play();
+                PWM_GLOBAL['lastCapsLockErrorTime'] = (new Date().getTime());
+                setTimeout(function(){
+                    if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                        dojo.fadeOut(fadeOutArgs).play();
+                        setTimeout(function(){
+                            if ((new Date().getTime() - PWM_GLOBAL['lastCapsLockErrorTime'] > displayDuration)) {
+                                capsLockWarningElement.style.display = 'none';
+                            }
+                        },5 * 1000);
+                    }
+                },displayDuration + 500);
+            } else {
+                fx.fadeOut(fadeOutArgs).play();
+            }
         }
     });
 }
@@ -364,7 +396,7 @@ function showWaitDialog(title, body, loadFunction) {
             closable: false,
             draggable: false,
             title: title,
-            style: "width: 300px",
+            style: "width: 350px",
             content: body
         });
         dojo.style(theDialog.closeButtonNode,"display","none");
@@ -446,7 +478,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
     var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
     var finishFunction = inputOpts['finishFunction'];
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
-    require(["dojo"],function(dojo){
+    require(["dojo","dojo/date/stamp"],function(dojo,stamp){
         var parentDiv = dojo.byId(parentDivID);
 
         if (PWM_GLOBAL['healthCheckInProgress']) {
@@ -490,7 +522,9 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                 if (showTimestamp || showRefresh) {
                     htmlBody += '<tr><td colspan="3" style="text-align:center;">';
                     if (showTimestamp) {
-                        htmlBody += new Date(data['data']['timestamp']).toLocaleString() + '&nbsp;&nbsp;&nbsp;&nbsp;';
+                        var dateString = data['data']['timestamp'];
+                        var date = new Date(dateString);
+                        htmlBody += (date ? date.toLocaleString() : "") + '&nbsp;&nbsp;&nbsp;&nbsp;';
                     }
                     if (showRefresh) {
                         htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
@@ -539,15 +573,19 @@ function showPwmHealth(parentDivID, options, refreshNow) {
 
 var IdleTimeoutHandler = {};
 
-IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000; // milliseconds
-IdleTimeoutHandler.SETTING_PING_FREQUENCY = 10;   // seconds
-IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;     // seconds
+IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000;   // milliseconds
+IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;       // seconds
+IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS = 10; //
+IdleTimeoutHandler.timeoutSeconds = 0; // idle timeout time permitted
+IdleTimeoutHandler.lastActivityTime = new Date(); // time at which we are "idled out"
+IdleTimeoutHandler.lastPingTime = new Date(); // date at which the last ping occured
+IdleTimeoutHandler.realWindowTitle = "";
+IdleTimeoutHandler.warningDisplayed = false;
 
 IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
-    PWM_GLOBAL['idle_Timeout'] = secondsRemaining;
-    PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (secondsRemaining * 1000));
-    PWM_GLOBAL['idle_lastPingTime'] = new Date().getTime();
-    PWM_GLOBAL['real-window-title'] = document.title;
+    IdleTimeoutHandler.timeoutSeconds = secondsRemaining;
+    IdleTimeoutHandler.lastPingTime = new Date();
+    IdleTimeoutHandler.realWindowTitle = document.title;
     IdleTimeoutHandler.resetIdleCounter();
     setInterval(function(){IdleTimeoutHandler.pollActivity()}, IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
     require(["dojo/on"], function(on){
@@ -558,32 +596,14 @@ IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
 };
 
 IdleTimeoutHandler.resetIdleCounter = function() {
-    var idleSeconds = IdleTimeoutHandler.calcIdleSeconds();
+    IdleTimeoutHandler.lastActivityTime = new Date();
     IdleTimeoutHandler.closeIdleWarning();
-    try {
-        getObject("idle_status").firstChild.nodeValue = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
-    } catch (e) {
-        console.log("unable to update idle_status html node: " + e);
-    }
-
-    PWM_GLOBAL['idle_dateFuture'] = new Date(new Date().getTime() + (PWM_GLOBAL['idle_Timeout'] * 1000));
-    {
-        var dateNow = new Date().getTime();
-        var amount = dateNow - PWM_GLOBAL['idle_lastPingTime'];
-
-        if (amount > IdleTimeoutHandler.SETTING_PING_FREQUENCY * 1000) { //calc milliseconds between dates
-            IdleTimeoutHandler.            pingServer();
-            PWM_GLOBAL['idle_lastPingTime'] = dateNow;
-            PWM_GLOBAL['idle_sendPing'] = false;
-        }
-    }
-
-    PWM_GLOBAL['idle_warningDisplayed'] = false;
+    IdleTimeoutHandler.pollActivity();
 };
 
 IdleTimeoutHandler.pollActivity = function() {
-    var idleSeconds = IdleTimeoutHandler.calcIdleSeconds();
-    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(idleSeconds);
+    var secondsRemaining = IdleTimeoutHandler.calcSecondsRemaining();
+    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(secondsRemaining);
     var idleStatusFooter = getObject("idle_status");
     if (idleStatusFooter != null) {
         idleStatusFooter.firstChild.nodeValue = idleDisplayString;
@@ -594,7 +614,7 @@ IdleTimeoutHandler.pollActivity = function() {
         warningDialogText.firstChild.nodeValue = idleDisplayString;
     }
 
-    if (idleSeconds < 0) {
+    if (secondsRemaining < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
             PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
@@ -602,14 +622,19 @@ IdleTimeoutHandler.pollActivity = function() {
         } else {
             try { getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
         }
-
+        return;
     }
 
-    if (idleSeconds < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
+    var pingAgoMs = (new Date()).getTime() - IdleTimeoutHandler.lastPingTime.getTime();
+    if (pingAgoMs > (IdleTimeoutHandler.timeoutSeconds - IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS) * 1000) {
+        IdleTimeoutHandler.pingServer();
+    }
+
+    if (secondsRemaining < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
             IdleTimeoutHandler.showIdleWarning();
-            if (idleSeconds % 2 == 0) {
-                document.title = PWM_GLOBAL['real-window-title'];
+            if (secondsRemaining % 2 == 0) {
+                document.title = IdleTimeoutHandler.realWindowTitle;
             } else {
                 document.title = idleDisplayString;
             }
@@ -618,16 +643,17 @@ IdleTimeoutHandler.pollActivity = function() {
 };
 
 IdleTimeoutHandler.pingServer = function() {
+    IdleTimeoutHandler.lastPingTime = new Date();
     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    dojo.xhrPost({
-        url: pingURL,
-        sync: false
+    require(["dojo"], function(dojo){
+        dojo.xhrPost({url:pingURL,sync:false});
     });
 };
 
-IdleTimeoutHandler.calcIdleSeconds = function() {
-    var amount = PWM_GLOBAL['idle_dateFuture'].getTime() - (new Date()).getTime(); //calc milliseconds between dates
-    amount = Math.floor(amount / 1000); //kill the "milliseconds" so just secs
+IdleTimeoutHandler.calcSecondsRemaining = function() {
+    var timeoutTime = IdleTimeoutHandler.lastActivityTime.getTime() + (IdleTimeoutHandler.timeoutSeconds * 1000)
+    var amount = timeoutTime - (new Date()).getTime();
+    amount = Math.floor(amount / 1000);
     return amount;
 };
 
@@ -708,8 +734,8 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
 };
 
 IdleTimeoutHandler.showIdleWarning = function() {
-    if (!PWM_GLOBAL['idle_warningDisplayed']) {
-        PWM_GLOBAL['idle_warningDisplayed'] = true;
+    if (!IdleTimeoutHandler.warningDisplayed) {
+        IdleTimeoutHandler.warningDisplayed = true;
 
         var dialogBody = showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
         require(["dijit/Dialog"],function(){
@@ -728,7 +754,8 @@ IdleTimeoutHandler.showIdleWarning = function() {
 
 IdleTimeoutHandler.closeIdleWarning = function() {
     clearDijitWidget('idleDialog');
-    document.title = PWM_GLOBAL['real-window-title'];
+    document.title = IdleTimeoutHandler.realWindowTitle;
+    IdleTimeoutHandler.warningDisplayed = false;
 };
 
 function clearError()
@@ -755,7 +782,7 @@ function showSuccess(successMsg)
     doShow('message-success',successMsg);
 }
 
-function doShow(destClass, message) {
+function doShow(destClass, message, fromFloatHandler) {
     var messageElement = getObject("message");
     if (messageElement == null || messageElement.firstChild == null || messageElement.firstChild.nodeValue == null) {
         return;
@@ -777,20 +804,22 @@ function doShow(destClass, message) {
     }
 
     messageElement.style.opacity = '1';
-    require(["dojo"],function(dojo){
+    require(["dojo","dojo/dom-style"],function(dojo,domStyle){
         if(dojo.isIE <= 8){ // only IE7 and below
+
             messageElement.className = "message " + destClass;
         } else {
             try {
                 // create a temp element and place it on the page to figure out what the destination color should be
                 var tempDivElement = document.createElement('div');
                 tempDivElement.className = "message " + destClass;
-                tempDivElement.style.visibility = "hidden";
+                tempDivElement.style.display = "none";
                 tempDivElement.id = "tempDivElement";
                 messageElement.appendChild(tempDivElement);
                 var destStyle = window.getComputedStyle(tempDivElement, null);
                 var destBackground = destStyle.backgroundColor;
                 var destColor = destStyle.color;
+                messageElement.removeChild(tempDivElement);
 
                 dojo.animateProperty({
                     node:"message",
@@ -800,12 +829,12 @@ function doShow(destClass, message) {
                         color: destColor
                     }
                 }).play();
-
-                dojo.query('#tempDivElement').orphan();
             } catch (e) {
                 messageElement.className = "message " + destClass;
             }
-            messageDivFloatHandler();
+            if (!fromFloatHandler) {
+                messageDivFloatHandler();
+            }
         }
     });
 }
@@ -925,11 +954,11 @@ function createCSSClass(selector, style)
     // doesn't work in older versions of Opera (< 9) due to lack of styleSheets support
     if(!document.styleSheets) return;
     if(document.getElementsByTagName("head").length == 0) return;
-    var stylesheet;
+    var styleSheet;
     var mediaType;
     if(document.styleSheets.length > 0)
     {
-        for(i = 0; i<document.styleSheets.length; i++)
+        for(var i = 0; i<document.styleSheets.length; i++)
         {
             if(document.styleSheets[i].disabled) continue;
             var media = document.styleSheets[i].media;
@@ -1056,39 +1085,33 @@ function elementInViewport(el, includeWidth) {
 }
 
 function messageDivFloatHandler() { // called by message.jsp
-    require(["dojo","dojo/dom", "dojo/_base/fx", "dojo/on", "dojo/dom-style", "dojo/domReady!"],function(dojo){
-        if(dojo.isIE <= 8){
-            return;
-        }
+    var messageObj = getObject('message');
+    var messageWrapperObj = getObject('message_wrapper');
+    if (!messageObj || !messageWrapperObj) {
+        return;
+    }
 
-        var messageObj = getObject('message');
-        var messageWrapperObj = getObject('message_wrapper');
-        if (!messageObj || !messageWrapperObj) {
-            return;
-        }
+    if (messageObj.style.display == 'none') {
+        return;
+    }
 
-        if (messageObj.style.display == 'none') {
-            return;
-        }
+    if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
+        PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
 
-        if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
-            PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
-
-            if (elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
-                messageObj.style.cssText = '';
-                doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
-            } else {
-                messageObj.style.position = 'fixed';
-                messageObj.style.top = '-3px';
-                messageObj.style.left = '0';
-                messageObj.style.width = '100%';
-                messageObj.style.zIndex = "100";
-                messageObj.style.textAlign = "center";
-                messageObj.style.backgroundColor = 'black';
-                doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML);
-            }
+        if (elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
+            messageObj.style.cssText = '';
+            doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
+        } else {
+            messageObj.style.position = 'fixed';
+            messageObj.style.top = '-3px';
+            messageObj.style.left = '0';
+            messageObj.style.width = '100%';
+            messageObj.style.zIndex = "100";
+            messageObj.style.textAlign = "center";
+            messageObj.style.backgroundColor = 'black';
+            doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         }
-    });
+    }
 }
 
 function pwmFormValidator(validationProps, reentrant)
@@ -1175,29 +1198,6 @@ function pwmFormValidator(validationProps, reentrant)
     });
 }
 
-function setCookie(c_name,value,exseconds)
-{
-    var exdate=new Date();
-    exdate.setTime(exdate.getTime() + (exseconds * 1000));
-    var c_value=escape(value) + ((exseconds==null) ? "" : "; expires="+exdate.toUTCString());
-    document.cookie=c_name+"=" + c_value;
-}
-
-function getCookie(c_name)
-{
-    var i,x,y,ARRcookies=document.cookie.split(";");
-    for (i=0;i<ARRcookies.length;i++)
-    {
-        x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
-        y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
-        x=x.replace(/^\s+|\s+$/g,"");
-        if (x==c_name)
-        {
-            return unescape(y);
-        }
-    }
-}
-
 function preloadImages(arr){
     var newimages=[]
     var arr=(typeof arr!="object")? [arr] : arr //force arr parameter to always be an array
@@ -1221,7 +1221,7 @@ function itemCount(o) {
 
 var ShowHidePasswordHandler = {};
 ShowHidePasswordHandler.idSuffix = '-eye-icon';
-ShowHidePasswordHandler.toggleState = {};
+ShowHidePasswordHandler.state = {};
 ShowHidePasswordHandler.toggleRevertTimeout = 15 * 1000;
 
 ShowHidePasswordHandler.initAllForms = function() {
@@ -1251,43 +1251,59 @@ ShowHidePasswordHandler.init = function(nodeName) {
     }
 
     require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
-        node = getObject(nodeName);
+        var node = getObject(nodeName);
         var divElement = document.createElement('div');
-        divElement.className = 'icon-eye icon-eye-open';
+        divElement.className = 'fa fa-eye';
         divElement.id = eyeId;
         divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
         divElement.style.cursor = 'pointer';
         divElement.style.visibility = 'hidden';
         domConstruct.place(divElement,node,'after');
 
-        ShowHidePasswordHandler.toggleState[nodeName] = true;
+        ShowHidePasswordHandler.state[nodeName] = true;
         ShowHidePasswordHandler.setupTooltip(nodeName, false);
+        ShowHidePasswordHandler.renderIcon(nodeName);
 
-        connect.connect(node, "onkeyup", function(){
-            var node = getObject(nodeName);
-            if (node && node.value && node.value.length > 0) {
-                divElement.style.visibility = 'visible';
-            } else {
-                divElement.style.visibility = 'hidden';
-            }
-        });
+        connect.connect(node, "onkeyup", function(){ShowHidePasswordHandler.renderIcon(nodeName)});
     });
 };
 
-ShowHidePasswordHandler.toggle = function(nodeName) {
-    var state = ShowHidePasswordHandler.toggleState[nodeName];
-    if (state) {
-        ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'text');
-        setTimeout(function(){
-            if (!ShowHidePasswordHandler.toggleState[nodeName]) {
-                ShowHidePasswordHandler.toggle(nodeName);
-            }
-        },ShowHidePasswordHandler.toggleRevertTimeout);
+ShowHidePasswordHandler.renderIcon = function(nodeName) {
+    var node = getObject(nodeName);
+    var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
+    var eyeNode = getObject(eyeId);
+    if (node && node.value && node.value.length > 0) {
+        eyeNode.style.visibility = 'visible';
     } else {
-        ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'password');
+        eyeNode.style.visibility = 'hidden';
     }
-    ShowHidePasswordHandler.setupTooltip(nodeName, state);
-    ShowHidePasswordHandler.toggleState[nodeName] = !state;
+}
+
+ShowHidePasswordHandler.toggle = function(nodeName) {
+    if (ShowHidePasswordHandler.state[nodeName]) {
+        ShowHidePasswordHandler.show(nodeName);
+    } else {
+        ShowHidePasswordHandler.hide(nodeName);
+    }
+};
+
+ShowHidePasswordHandler.hide = function(nodeName) {
+    ShowHidePasswordHandler.state[nodeName] = true;
+    ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'password');
+    ShowHidePasswordHandler.setupTooltip(nodeName);
+    ShowHidePasswordHandler.renderIcon(nodeName);
+};
+
+ShowHidePasswordHandler.show = function(nodeName) {
+    ShowHidePasswordHandler.state[nodeName] = false;
+    ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'text');
+    setTimeout(function(){
+        if (!ShowHidePasswordHandler.state[nodeName]) {
+            ShowHidePasswordHandler.toggle(nodeName);
+        }
+    },ShowHidePasswordHandler.toggleRevertTimeout);
+    ShowHidePasswordHandler.setupTooltip(nodeName);
+    ShowHidePasswordHandler.renderIcon(nodeName);
 };
 
 ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
@@ -1299,22 +1315,23 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
     });
 }
 
-ShowHidePasswordHandler.setupTooltip = function(nodeName, passwordsMasked) {
+ShowHidePasswordHandler.setupTooltip = function(nodeName) {
+    var state = ShowHidePasswordHandler.state[nodeName];
     var eyeNodeId = nodeName + ShowHidePasswordHandler.idSuffix;
     clearDijitWidget(eyeNodeId );
     require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-        if (passwordsMasked) {
-            new Tooltip({
-                connectId: [eyeNodeId],
-                label: PWM_STRINGS['Button_Hide']
-            });
-            getObject(eyeNodeId).className = 'icon-eye icon-eye-close';
-        } else {
+        if (state) {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Show']
             });
-            getObject(eyeNodeId).className = 'icon-eye icon-eye-open';
+            getObject(eyeNodeId).className = 'fa fa-eye';
+        } else {
+            new Tooltip({
+                connectId: [eyeNodeId],
+                label: PWM_STRINGS['Button_Hide']
+            });
+            getObject(eyeNodeId).className = 'fa fa-eye-slash';
         }
     });
 };

@@ -53,7 +53,7 @@
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
 <% } else { %>
-<h1>
+<h2>
     <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %>
         <%if(loopConfiguration.isRequired()){%>
         <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
@@ -70,7 +70,7 @@
         </script>
         <%}%>
     </label>
-</h1>
+</h2>
 <% if (loopConfiguration.getDescription(ssBean.getLocale()) != null && loopConfiguration.getDescription(ssBean.getLocale()).length() > 0) { %>
 <p><%=loopConfiguration.getDescription(ssBean.getLocale())%></p>
 <% } %>
@@ -93,9 +93,9 @@
         <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
-<h1>
+<h2>
     <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
-</h1>
+</h2>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>_confirm" value="<%= ssBean.getLastParameterValues().get(loopConfiguration.getName() + "confirm","")%>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
@@ -117,7 +117,7 @@
 <% } %>
 
 <% if (showPasswordFields) { %>
-<h1>
+<h2>
     <label for="password1"><pwm:Display key="Field_NewPassword"/>
     <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
     <script type="text/javascript">
@@ -132,7 +132,7 @@
         });
     </script>
         </label>
-</h1>
+</h2>
 <div id="PasswordRequirements">
     <ul>
         <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>" form="newuser"/>

@@ -151,7 +151,7 @@ public class UpdateProfileServlet extends TopServlet {
         outputMap.put("message", userMessage);
         outputMap.put("success", String.valueOf(success));
 
-        final String output = new Gson().toJson(outputMap);
+        final String output = Helper.getGson().toJson(outputMap);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);
@@ -298,7 +298,7 @@ public class UpdateProfileServlet extends TopServlet {
         final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
 
         final String bodyString = ServletHelper.readRequestBody(req);
-        final Map<String, String> clientValues = new Gson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        final Map<String, String> clientValues = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 
         if (clientValues != null) {
@@ -452,19 +452,12 @@ public class UpdateProfileServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEPROFILE, locale);
 
-        final String toAddress = pwmSession.getUserInfoBean().getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
-            LOGGER.debug(pwmSession, "unable to send profile update email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no ' user email address available");
+        if (configuredEmailSetting == null) {
+            LOGGER.debug(pwmSession, "skipping send profile update email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email configured");
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), pwmSession.getUserInfoBean(),userDataReader);
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(),userDataReader);
     }
 
 }

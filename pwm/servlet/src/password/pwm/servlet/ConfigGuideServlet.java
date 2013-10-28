@@ -40,10 +40,7 @@ import password.pwm.health.LDAPStatusChecker;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.X509Utils;
+import password.pwm.util.*;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestHealthServer;
@@ -71,6 +68,8 @@ public class ConfigGuideServlet extends TopServlet {
     public static final String PARAM_LDAP2_TEST_USER = "ldap2-testUser";
     public static final String PARAM_LDAP2_ADMINS = "ldap2-adminsQuery";
 
+    public static final String PARAM_CR_STORAGE_PREF = "cr_storage-pref";
+
     public static final String PARAM_CONFIG_PASSWORD = "config-password";
     public static final String PARAM_CONFIG_PASSWORD_VERIFY = "config-password-verify";
 
@@ -91,6 +90,8 @@ public class ConfigGuideServlet extends TopServlet {
             defaultLdapForm.put(PARAM_LDAP2_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
             defaultLdapForm.put(PARAM_LDAP2_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
             defaultLdapForm.put(PARAM_LDAP2_ADMINS, (String) PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject());
+
+            defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
 
             defaultLdapForm.put(PARAM_CONFIG_PASSWORD, "");
             defaultLdapForm.put(PARAM_CONFIG_PASSWORD_VERIFY, "");
@@ -116,6 +117,7 @@ public class ConfigGuideServlet extends TopServlet {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
             ssBean.setSessionError(errorInformation);
             LOGGER.error(pwmSession,errorInformation.toDebugStr());
+            ServletHelper.forwardToErrorPage(req,resp,true);
             return;
         }
 
@@ -352,7 +354,8 @@ public class ConfigGuideServlet extends TopServlet {
         final String bodyString = ServletHelper.readRequestBody(req);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
-        final Map<String,String> incomingFormData = new Gson().fromJson(bodyString,new TypeToken<Map<String, String>>() {}.getType());        if (incomingFormData != null) {
+        final Map<String,String> incomingFormData = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        }.getType());        if (incomingFormData != null) {
         configGuideBean.getFormData().putAll(incomingFormData);
     }
         final RestResultBean restResultBean = new RestResultBean();
@@ -466,6 +469,13 @@ public class ConfigGuideServlet extends TopServlet {
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH,null);
         }
 
+        { // determine Cr Preference setting.
+            final String crPref = configGuideBean.getFormData().get(PARAM_CR_STORAGE_PREF);
+            if (crPref != null && crPref.length() > 0) {
+                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE, new StringValue(crPref));
+                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, new StringValue(crPref));
+            }
+        }
 
         { //determine promiscuous ssl setting
             if ("true".equalsIgnoreCase(configGuideBean.getFormData().get(PARAM_LDAP_SECURE))) {
@@ -487,9 +497,6 @@ public class ConfigGuideServlet extends TopServlet {
             final StoredConfiguration storedConfiguration
     ) throws PwmOperationalException {
         ConfigurationReader configReader = contextManager.getConfigReader();
-
-        storedConfiguration.resetSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
-        storedConfiguration.resetSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
 
         try {
             // add a random security key
@@ -522,6 +529,6 @@ public class ConfigGuideServlet extends TopServlet {
     }
 
     public enum STEP {
-        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, PASSWORD, END, FINISH
+        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, CR_STORAGE, PASSWORD, END, FINISH
     }
 }

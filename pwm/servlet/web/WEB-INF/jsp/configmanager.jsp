@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,12 +28,13 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
+    final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
     String configFilePath = PwmConstants.CONFIG_FILE_FILENAME;
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo" onload="initConfigPage()">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">
@@ -45,27 +47,31 @@
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <%--
         <% final String configLoadTime = ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime().toString(); %>
         <% final String configEpoch = String.valueOf(ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()); %>
         <pwm:Display key="Display_ConfigManagerConfiguration" bundle="Config" value1="<%=configLoadTime%>" value2="<%=configEpoch%>"/>
-        <div data-dojo-type="dijit.TitlePane" title="Health" style="border:0; margin:0; padding:0">
+        --%>
+        <div data-dojo-type="dijit/TitlePane" title="Health" style="border:0; margin:0; padding:0" data-dojo-props="persist: true">
             <div id="healthBody" style="border:0; margin:0; padding:0">
                 <div id="WaitDialogBlank"></div>
             </div>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     require(["dojo/domReady!"],function(){
-                        showPwmHealth('healthBody', {showRefresh: true});
+                        showPwmHealth('healthBody', {showRefresh: true, showTimestamp: true});
                     });
                 });
             </script>
         </div>
-        <br class="clear"/>
-
+        <br/>
         <table style="border:0">
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="startConfigurationEditor()"><pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="startConfigurationEditor()">
+                        <i class="fa fa-edit"></i>&nbsp;
+                        <pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/>
+                    </a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ConfigEditor" bundle="Config"/></p>
@@ -73,7 +79,10 @@
             </tr>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false"><pwm:Display key="MenuItem_ViewLog" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">
+                        <i class="fa fa-list-alt"></i>&nbsp;
+                        <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
+                    </a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ViewLog" bundle="Config"/></p>
@@ -81,15 +90,56 @@
             </tr>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,'<pwm:Display key="Confirm_LockConfig" bundle="Config"/>',function(){finalizeConfiguration()})"><pwm:Display key="MenuItem_LockConfig" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
+                        <i class="fa fa-upload"></i>&nbsp;
+                        <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
+                    </a>
+                </td>
+                <td style="border:0">
+                    <p><pwm:Display key="MenuDisplay_DownloadConfig" bundle="Config"/></p>
+                </td>
+            </tr>
+            <% if (!configManagerBean.isConfigLocked()) { %>
+            <tr style="border:0">
+                <td class="menubutton_key">
+                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_UploadConfig'],function(){uploadConfigDialog()},null)">
+                        <i class="fa fa-download"></i>&nbsp;
+                        <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
+                    </a>
+                </td>
+                <td style="border:0">
+                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td class="menubutton_key">
+                    <a class="menubutton" href="#" onclick="lockConfiguration()">
+                        <i class="fa fa-lock"></i>&nbsp;
+                        <pwm:Display key="MenuItem_LockConfig" bundle="Config"/>
+                    </a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_LockConfig" bundle="Config" value1="<%=configFilePath%>"/></p>
                 </td>
             </tr>
+            <% } %>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" href="<%=request.getContextPath()%>"><pwm:Display key="MenuItem_MainMenu" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
+                        <i class="fa fa-suitcase"></i>&nbsp;
+                        Make Support Bundle
+                    </a>
+                </td>
+                <td style="border:0">
+                    <p>Generate a support ZIP file that contains </p>
+                </td>
+            </tr>
+            <tr style="border:0">
+                <td class="menubutton_key">
+                    <a class="menubutton" href="<%=request.getContextPath()%>">
+                        <i class="fa fa-arrow-circle-left"></i>&nbsp;
+                        <pwm:Display key="MenuItem_MainMenu" bundle="Config"/>
+                    </a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_MainMenu" bundle="Config"/></p>

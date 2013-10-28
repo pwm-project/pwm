@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.google.gson.Gson;
 import org.jdom2.CDATA;
 import org.jdom2.Comment;
 import org.jdom2.Document;
@@ -30,6 +29,7 @@ import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.value.LocalizedStringValue;
@@ -44,15 +44,17 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.*;
-import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
  * @author Jason D. Rivard
  */
-public class StoredConfiguration implements Serializable, Cloneable {
+public class StoredConfiguration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
+    public static final DateFormat DATETIME_FORMAT;
     public static final String PROPERTY_KEY_SETTING_CHECKSUM = "settingsChecksum";
     public static final String PROPERTY_KEY_CONFIG_IS_EDITABLE = "configIsEditable";
     public static final String PROPERTY_KEY_CONFIG_EPOCH = "configEpoch";
@@ -66,10 +68,16 @@ public class StoredConfiguration implements Serializable, Cloneable {
     private Date createTime = new Date();
     private Date modifyTime = new Date();
     private Map<PwmSetting, StoredValue> settingMap = new LinkedHashMap<PwmSetting, StoredValue>();
-    private Map<String, String> propertyMap = new LinkedHashMap<String, String>();
+    private Map<String, String> configPropertyMap = new LinkedHashMap<String, String>();
+    private Map<String, String> appPropertyMap = new LinkedHashMap<String, String>();
     private Map<String, Map<String,Map<String,String>>> localizationMap = new LinkedHashMap<String, Map<String,Map<String, String>>>();
 
     private boolean locked = false;
+
+    static {
+        DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+        DATETIME_FORMAT.setTimeZone(TimeZone.getTimeZone("Zulu"));
+    }
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -91,29 +99,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        final StoredConfiguration clonedConfig = (StoredConfiguration) super.clone();
-        clonedConfig.createTime = this.createTime;
-        clonedConfig.modifyTime = this.modifyTime;
-        clonedConfig.settingMap = new LinkedHashMap<PwmSetting, StoredValue>();
-        clonedConfig.settingMap.putAll(this.settingMap);
-        clonedConfig.propertyMap = new LinkedHashMap<String, String>();
-        clonedConfig.propertyMap.putAll(this.propertyMap);
-        clonedConfig.localizationMap = new LinkedHashMap<String, Map<String,Map<String, String>>>();
-        for (final String middleKey : this.localizationMap.keySet()) { //deep copy of nested map, oy vey
-            final Map<String,Map<String,String>> newMiddleMap = new LinkedHashMap<String,Map<String,String>>();
-            for (final String bottomKey : this.localizationMap.get(middleKey).keySet()) {
-                final Map<String,String> newBottomMap = new LinkedHashMap<String,String>();
-                newBottomMap.putAll(this.localizationMap.get(middleKey).get(bottomKey));
-                newMiddleMap.put(bottomKey,newBottomMap);
-            }
-            clonedConfig.localizationMap.put(middleKey,newMiddleMap);
-        }
-        clonedConfig.locked = false;
-        return clonedConfig;
-    }
-
     public String toString() {
         return toString(false);
     }
@@ -129,7 +114,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
             hasBeenModified = true;
         }
 
-        final String notes = this.readProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+        final String notes = this.readConfigProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
         if (notes != null && notes.length() > 0) {
             hasBeenModified = true;
         }
@@ -137,15 +122,22 @@ public class StoredConfiguration implements Serializable, Cloneable {
         return hasBeenModified;
     }
 
-    public String readProperty(final String propertyName) {
-        return propertyMap.get(propertyName);
+    public String readConfigProperty(final String propertyName) {
+        return configPropertyMap.get(propertyName);
+    }
+
+    public String readAppProperty(final AppProperty propertyName) {
+        return appPropertyMap.get(propertyName.getKey());
     }
 
     public void lock() {
-        settingMap = Collections.unmodifiableMap(settingMap);
-        propertyMap = Collections.unmodifiableMap(propertyMap);
-        localizationMap = Collections.unmodifiableMap(localizationMap);
-        locked = true;
+        if (!locked) {
+            settingMap = Collections.unmodifiableMap(settingMap);
+            configPropertyMap = Collections.unmodifiableMap(configPropertyMap);
+            appPropertyMap = Collections.unmodifiableMap(configPropertyMap);
+            localizationMap = Collections.unmodifiableMap(localizationMap);
+            locked = true;
+        }
     }
 
     public Map<String,String> readLocaleBundleMap(final String bundleName, final String keyName) {
@@ -157,10 +149,6 @@ public class StoredConfiguration implements Serializable, Cloneable {
             return Collections.emptyMap();
         }
         return keyMap.get(keyName);
-    }
-
-    public Set<String> readPropertyKeys() {
-        return Collections.unmodifiableSet(propertyMap.keySet());
     }
 
     public void resetLocaleBundleMap(final String bundleName, final String keyName) {
@@ -206,8 +194,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
         }
 
 
-        final String defaultJson = new Gson().toJson(defaultValue.toNativeObject());
-        final String currentJson = new Gson().toJson(settingMap.get(setting).toNativeObject());
+        final String defaultJson = Helper.getGson().toJson(defaultValue.toNativeObject());
+        final String currentJson = Helper.getGson().toJson(settingMap.get(setting).toNativeObject());
         return defaultJson.equals(currentJson);
     }
 
@@ -223,7 +211,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public PwmSetting.Template getTemplate() {
-        final String propertyValue = propertyMap.get(PROPERTY_KEY_TEMPLATE);
+        final String propertyValue = configPropertyMap.get(PROPERTY_KEY_TEMPLATE);
         try {
             return PwmSetting.Template.valueOf(propertyValue);
         } catch (IllegalArgumentException e) {
@@ -234,7 +222,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
     }
 
     public void setTemplate(PwmSetting.Template template) {
-        propertyMap.put(PROPERTY_KEY_TEMPLATE,template.toString());
+        configPropertyMap.put(PROPERTY_KEY_TEMPLATE, template.toString());
     }
 
     public String toString(final PwmSetting setting) {
@@ -333,9 +321,9 @@ public class StoredConfiguration implements Serializable, Cloneable {
     public void writeProperty(final String propertyName, final String propertyValue) {
         preModifyActions();
         if (propertyValue == null) {
-            propertyMap.remove(propertyName);
+            configPropertyMap.remove(propertyName);
         } else {
-            propertyMap.put(propertyName, propertyValue);
+            configPropertyMap.put(propertyName, propertyValue);
         }
     }
 
@@ -378,13 +366,26 @@ public class StoredConfiguration implements Serializable, Cloneable {
             commentText.append("\t\t").append(" ").append("\n");
             pwmConfigElement.addContent(new Comment(commentText.toString()));
 
-            { // write properties section
+            { // write config properties section
                 final Element propertiesElement = new Element("properties");
-                storedConfiguration.propertyMap.put(PROPERTY_KEY_SETTING_CHECKSUM, storedConfiguration.settingChecksum());
-                for (final String key : storedConfiguration.propertyMap.keySet()) {
+                propertiesElement.setAttribute("type","config");
+                storedConfiguration.configPropertyMap.put(PROPERTY_KEY_SETTING_CHECKSUM, storedConfiguration.settingChecksum());
+                for (final String key : storedConfiguration.configPropertyMap.keySet()) {
                     final Element propertyElement = new Element("property");
                     propertyElement.setAttribute("key", key);
-                    propertyElement.addContent(storedConfiguration.propertyMap.get(key));
+                    propertyElement.addContent(storedConfiguration.configPropertyMap.get(key));
+                    propertiesElement.addContent(propertyElement);
+                }
+                pwmConfigElement.addContent(propertiesElement);
+            }
+
+            { // write app properties section
+                final Element propertiesElement = new Element("properties");
+                propertiesElement.setAttribute("type","app");
+                for (final String key : storedConfiguration.appPropertyMap.keySet()) {
+                    final Element propertyElement = new Element("property");
+                    propertyElement.setAttribute("key", key);
+                    propertyElement.addContent(storedConfiguration.appPropertyMap.get(key));
                     propertiesElement.addContent(propertyElement);
                 }
                 pwmConfigElement.addContent(propertiesElement);
@@ -407,7 +408,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 } else {
                     final List<Element> valueElements;
                     if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                        final String key = PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
+                        final String key = DATETIME_FORMAT.format(storedConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
                         valueElements = ((PasswordValue) storedConfiguration.settingMap.get(setting)).toXmlValues("value", key);
                         settingElement.addContent(new Comment("Note: This value is encrypted and can not be edited directly."));
                         settingElement.addContent(new Comment("Please use the Configuration Manager GUI to modify this value."));
@@ -448,8 +449,8 @@ public class StoredConfiguration implements Serializable, Cloneable {
             pwmConfigElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
             pwmConfigElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
             pwmConfigElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
-            pwmConfigElement.setAttribute("createTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.createTime));
-            pwmConfigElement.setAttribute("modifyTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(storedConfiguration.modifyTime));
+            pwmConfigElement.setAttribute("createTime", DATETIME_FORMAT.format(storedConfiguration.createTime));
+            pwmConfigElement.setAttribute("modifyTime", DATETIME_FORMAT.format(storedConfiguration.modifyTime));
             pwmConfigElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
 
             final Format format = Format.getPrettyFormat();
@@ -482,7 +483,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                     throw new IllegalArgumentException("missing createTime timestamp");
                 }
                 final String modifyTimeString = rootElement.getAttributeValue("modifyTime");
-                newConfiguration.createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(createTimeString);
+                newConfiguration.createTime = DATETIME_FORMAT.parse(createTimeString);
                 final Element settingsElement = rootElement.getChild("settings");
                 final List<Element> settingElements = settingsElement.getChildren("setting");
                 for (final Element settingElement : settingElements) {
@@ -495,19 +496,27 @@ public class StoredConfiguration implements Serializable, Cloneable {
                         LOGGER.info("unknown setting key while parsing input configuration: " + keyName);
                     } else {
                         if (settingElement.getChild("default") == null) {
-                            final String key = PwmConstants.DEFAULT_DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
+                            final String key = DATETIME_FORMAT.format(newConfiguration.createTime) + StoredConfiguration.class.getSimpleName();
                             final StoredValue storedValue = ValueFactory.fromXmlValues(pwmSetting, settingElement, key);
                             newConfiguration.writeSetting(pwmSetting, storedValue);
                         }
                     }
                 }
 
-                final Element propertiesElement = rootElement.getChild("properties");
-                if (propertiesElement != null) {
-                    for (final Element element : propertiesElement.getChildren("property")) {
-                        final String key = element.getAttributeValue("key");
-                        final String value = element.getText();
-                        newConfiguration.propertyMap.put(key, value);
+                final List<Element> propertiesElements = rootElement.getChildren("properties");
+                for (final Element propertiesElement : propertiesElements) {
+                    if (propertiesElement.getAttribute("type") != null && "app".equals(propertiesElement.getAttribute("type").getValue())) {
+                        for (final Element element : propertiesElement.getChildren("property")) {
+                            final String key = element.getAttributeValue("key");
+                            final String value = element.getText();
+                            newConfiguration.appPropertyMap.put(key, value);
+                        }
+                    } else {
+                        for (final Element element : propertiesElement.getChildren("property")) {
+                            final String key = element.getAttributeValue("key");
+                            final String value = element.getText();
+                            newConfiguration.configPropertyMap.put(key, value);
+                        }
                     }
                 }
 
@@ -528,7 +537,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 if (modifyTimeString == null) {
                     throw new IllegalArgumentException("missing modifyTime timestamp");
                 }
-                newConfiguration.modifyTime = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
+                newConfiguration.modifyTime = DATETIME_FORMAT.parse(modifyTimeString);
 
                 for (final PwmSetting setting : PwmSetting.values()) {
                     if (!seenSettings.contains(setting)) {
@@ -554,7 +563,7 @@ public class StoredConfiguration implements Serializable, Cloneable {
                 throw new PwmUnrecoverableException(errorInfo);
             }
 
-            LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values, epoch " + newConfiguration.readProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
+            LOGGER.debug("successfully loaded configuration with " + newConfiguration.settingMap.size() + " setting values, epoch " + newConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
             return newConfiguration;
         }
     }
@@ -569,12 +578,12 @@ public class StoredConfiguration implements Serializable, Cloneable {
         if (!hasPassword()) {
             return false;
         }
-        final String passwordHash = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
         return BCrypt.checkpw(password,passwordHash);
     }
 
     public boolean hasPassword() {
-        final String passwordHash = this.readProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
+        final String passwordHash = this.readConfigProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH);
         return passwordHash != null && passwordHash.length() > 0;
     }
 }

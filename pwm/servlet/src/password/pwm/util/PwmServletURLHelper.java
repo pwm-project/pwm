@@ -66,11 +66,11 @@ public abstract class PwmServletURLHelper {
     }
 
     public static boolean isConfigManagerURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/config/ConfigManager", "/private/admin/ConfigManager");
+        return checkIfStartsWithURL(req, "/private/config/");
     }
 
     public static boolean isConfigGuideURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
+        return checkIfStartsWithURL(req, "/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
     }
 
     public static boolean isChangePasswordURL(final HttpServletRequest req) {

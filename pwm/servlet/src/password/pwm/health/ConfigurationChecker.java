@@ -27,6 +27,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.option.CrStorageMethod;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.servlet.NewUserServlet;
@@ -145,7 +147,7 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == PwmSetting.MessageSendMethod.NONE) {
+                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == MessageSendMethod.NONE) {
                     final Collection<String> formSettings = config.readSettingAsStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
                     if (formSettings == null || formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoRecoveryEnabled")));
@@ -158,23 +160,7 @@ public class ConfigurationChecker implements HealthChecker {
         //    records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, "Configuration file has been modified outside of PWM.  Please edit and save the configuration using the ConfigManager to be sure all settings are valid."));
         //}
 
-        boolean hasDbConfiguration = true;
-        {
-            if (config.readSettingAsString(PwmSetting.DATABASE_CLASS) == null || config.readSettingAsString(PwmSetting.DATABASE_CLASS).length() < 1) {
-                hasDbConfiguration = false;
-            }
-            if (config.readSettingAsString(PwmSetting.DATABASE_URL) == null || config.readSettingAsString(PwmSetting.DATABASE_URL).length() < 1) {
-                hasDbConfiguration = false;
-            }
-            if (config.readSettingAsString(PwmSetting.DATABASE_USERNAME) == null || config.readSettingAsString(PwmSetting.DATABASE_USERNAME).length() < 1) {
-                hasDbConfiguration = false;
-            }
-            if (config.readSettingAsString(PwmSetting.DATABASE_PASSWORD) == null || config.readSettingAsString(PwmSetting.DATABASE_PASSWORD).length() < 1) {
-                hasDbConfiguration = false;
-            }
-        }
-
-        if (!hasDbConfiguration) {
+        if (!config.hasDbConfigured()) {
             if (config.shouldHaveDbConfigured()) {
                 records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_MissingDB")));
             }
@@ -183,7 +169,7 @@ public class ConfigurationChecker implements HealthChecker {
         final boolean hasResponseAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE) != null && config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE).length() > 0;
         if (!hasResponseAttribute) {
             for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-                if (config.getResponseStorageLocations(loopSetting).contains(Configuration.STORAGE_METHOD.LDAP)) {
+                if (config.getResponseStorageLocations(loopSetting).contains(CrStorageMethod.LDAP)) {
                     final String value1 = loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
                             + " -> " + loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
                     final String value2 = PwmSetting.CHALLENGE_USER_ATTRIBUTE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)

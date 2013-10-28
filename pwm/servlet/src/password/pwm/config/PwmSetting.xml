@@ -152,13 +152,6 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.password.guideText" level="0">
-        <label>Password Guide Text</label>
-        <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting key="display.showHidePasswordFields" level="0" required="true">
         <label>Show Show/Hide Password Button</label>
         <description><![CDATA[Where available, allow the user to toggle the show/hide password field option.]]></description>
@@ -264,13 +257,6 @@
             <value />
         </default>
     </setting>
-    <setting key="display.custom.logoImage" level="1">
-        <label>Custom Logo Image</label>
-        <description><![CDATA[URL of custom logo.]]></description>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting key="password.allowChange.queryMatch" level="1" required="true">
         <label>Change Password Query Match</label>
         <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this ldap query or else the user will not be permitted to change the password.]]></description>
@@ -307,6 +293,13 @@
     <setting key="display.password.changeAgreement" level="0">
         <label>Password Change Agreement Message</label>
         <description><![CDATA[<p>Message to display to user before being allowed to change password. If blank, the change password agreement page will not be displayed to the user. This message may include HTML tags.</p> <p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="display.password.guideText" level="0">
+        <label>Password Guide Text</label>
+        <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
         <default>
             <value />
         </default>
@@ -368,11 +361,8 @@
         <default template="AD">
             <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[ldaps://dc1.site.example.net:636]]></value>
-        </default>
     </setting>
-    <setting key="ldap.serverCerts" level="2" required="true">
+    <setting key="ldap.serverCerts" level="0" required="true">
         <label>LDAP Certificates</label>
         <description><![CDATA[LDAP Server Certificates.  These certificates have are stored in the configuration file and used to validate the identity of your LDAP server.]]></description>
         <default/>
@@ -393,9 +383,6 @@
         <default template="AD">
             <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[cn=administrator,cn=users,dc=site,dc=example,dc=net]]></value>
-        </default>
     </setting>
     <setting key="ldap.proxy.password" level="0">
         <label>LDAP Proxy Password</label>
@@ -408,9 +395,6 @@
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
-        </default>
-        <default template="ADDB">
             <value><![CDATA[cn=users,dc=site,dc=example,dc=net]]></value>
         </default>
     </setting>
@@ -436,9 +420,6 @@
         <default template="AD">
             <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
-        </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="1" required="true">
         <label>Username Search Filter</label>
@@ -447,9 +428,6 @@
             <value><![CDATA[(&(objectClass=person)(cn=%USERNAME%))]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
-        </default>
-        <default template="ADDB">
             <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
     </setting>
@@ -467,9 +445,6 @@
         <default>
             <value><![CDATA[pwmUser]]></value>
         </default>
-        <default template="ADDB">
-            <value />
-        </default>
     </setting>
     <setting key="passwordLastUpdateAttribute" level="1">
         <label>Last Password Update Attribute</label>
@@ -477,9 +452,6 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmLastPwdUpdate]]></value>
-        </default>
-        <default template="ADDB">
-            <value />
         </default>
     </setting>
     <setting key="ldap.namingAttribute" level="1" required="true">
@@ -530,9 +502,6 @@
         <default template="AD">
             <value><![CDATA[sAMAccountName]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[sAMAccountName]]></value>
-        </default>
     </setting>
     <setting key="ldap.followReferrals" level="1" required="true">
         <label>Follow LDAP Referrals</label>
@@ -550,9 +519,6 @@
             <value><![CDATA[inetOrgPerson]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[User]]></value>
-        </default>
-        <default template="ADDB">
             <value><![CDATA[User]]></value>
         </default>
     </setting>
@@ -608,77 +574,77 @@
         <label>Change Password Email</label>
         <description><![CDATA[Email sent to user when a password change occurs.  This email is only sent when the user changes their own password.]]></description>
         <default>
-            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
+            <value>{"to":"@User:Email@","from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
     <setting key="email.changePassword.helpdesk" level="0">
         <label>Helpdesk Change Password Email</label>
         <description><![CDATA[Email sent to user when the helpdesk changes the user's password.  Macros used for this setting will be expanded based on the user who's password is being changed, not the helpdesk user.]]></description>
         <default>
-            <value>{"from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
+            <value>{"to":"@User:Email@","from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
         </default>
     </setting>
     <setting key="email.updateProfile" level="0">
         <label>Update Profile Email</label>
         <description><![CDATA[Email sent to users after a profile update.]]></description>
         <default>
-            <value>{"from":"Profile Update \u003cnoreply@@SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Profile Update \u003cnoreply@@SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser" level="0">
         <label>New User Email</label>
         <description><![CDATA[Email sent to newly created users.]]></description>
         <default>
-            <value>{"from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser.token" level="0">
         <label>New User Verification Email</label>
         <description><![CDATA[Email sent during new user verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.activation" level="0">
         <label>Activation Email</label>
         <description><![CDATA[Email sent to a user just after a successful activation.]]></description>
         <default>
-            <value>{"from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.activation.token" level="0">
         <label>Activation Verification Email</label>
         <description><![CDATA[Email sent during activation verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"Activation Verification \u003cnoreply@@SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"Activation Verification \u003cnoreply@@SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.challenge.token" level="0">
         <label>Forgotten Password Verification Email</label>
         <description><![CDATA[Email sent during forgotten password verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.guest" level="1">
         <label>Guest Registration Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
-            <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
     <setting key="email.updateguest" level="1">
         <label>Guest Registration Update Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
-            <value>{"from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.sendpassword" level="1">
         <label>Send Password Email Subject</label>
         <description><![CDATA[Email sent during forgotten password reset process if send password functionality is enabled.]]></description>
         <default>
-            <value>{"from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
@@ -1098,9 +1064,6 @@
         <default template="AD">
             <value>true</value>
         </default>
-        <default template="ADDB">
-            <value>true</value>
-        </default>
     </setting>
     <setting key="password.policy.regExMatch" level="1">
         <label>Required Regular Expression Matches</label>
@@ -1244,6 +1207,32 @@
             <value>300</value>
         </default>
     </setting>
+    <setting key="intruder.address.checkTime" level="0" required="true">
+        <label>Intruder Address Check Time</label>
+        <description><![CDATA[The maximum time period between each intruder attempt.  When this time period is exceeded, the intruder attempt count will be reset to zero.  A value of zero disables the address lockout functionality.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+    <setting key="intruder.storageMethod" level="1" required="true">
+        <label>Intruder Record Storage Location</label>
+        <description><![CDATA[Data store used for Intruder Records.  If <i>Database</i> is used, all application instances will share a common view of intruder status.]]></description>
+        <default>
+            <value><![CDATA[AUTO]]></value>
+        </default>
+        <options>
+            <option value="AUTO">Auto Configure - Database if configured, LocalDB otherwise</option>
+            <option value="DATABASE">Remote Database</option>
+            <option value="LOCALDB">LocalDB</option>
+        </options>
+    </setting>
+    <setting key="intruder.session.maxAttempts" level="1" required="true">
+        <label>Maximum intruder attempts per session</label>
+        <description><![CDATA[The maximum amount of intruder attempts per session.  When this limit is exceeded, the session will be "locked", and no other requests using that session will succeed.  A value of zero disables the session lockout functionality.]]></description>
+        <default>
+            <value>8</value>
+        </default>
+    </setting>
     <setting key="security.ldap.simulateBadPassword" level="0">
         <label>Enable Bad Password Simulation</label>
         <description><![CDATA[This feature will enable Bad Password simulation activity when a forgotten password field is entered.  When an identified user attempts to recover a forgotten password but uses incorrect data, the application will attempt to authenticate to the directory using a known bad password value.  This is done to allow the ldap directory to trigger it's own defense mechanisms against intruders.]]></description>
@@ -1299,10 +1288,15 @@
     </setting>
     <setting key="enableSessionVerification" level="1" required="true">
         <label>Enable Session Verification</label>
-        <description><![CDATA[If true, sessions will be verified using a session verification key and a redirect.  This verification proves that the browser can correctly establish a session with the server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and application server is 'sticky' when their are multiple server instances.  Additionally it helps prevent some types of XSS attacks.]]></description>
+        <description><![CDATA[If enabled, browser sessions will be verified using an HTTP redirect and verification code.  This verification proves that the browser can correctly establish a session with the server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and application server is 'sticky' when their are multiple server instances.  Additionally it helps prevent some types of XSS attacks.<br/><br/>The pre-load browser cache will show a "please wait" screen to the user during the verification.  This has the added benefit that many of the HTTP resources (javascript, css, images, etc) will be "pre-cached" by the browser before any actual pages are loaded.]]></description>
         <default>
-            <value>true</value>
+            <value>VERIFY</value>
         </default>
+        <options>
+            <option value="OFF">Disabled</option>
+            <option value="VERIFY">Enabled</option>
+            <option value="VERIFY_AND_CACHE">Enabled - And pre-load browser cache</option>
+        </options>
     </setting>
     <setting key="disallowedInputs" level="1">
         <label>Disallowed HTTP Inputs</label>
@@ -1456,9 +1450,6 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[DB]]></value>
-        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1482,9 +1473,6 @@
         <description><![CDATA[Location to write the OTP secret to.  All storage methods will be written to when the user configures their response answers.]]></description>
         <default>
             <value><![CDATA[LDAP]]></value>
-        </default>
-        <default template="ADDB">
-            <value><![CDATA[DB]]></value>
         </default>
         <options>
             <option value="LDAP">LDAP</option>
@@ -1603,15 +1591,24 @@
             <option value="Off">Off - no logging to stdout</option>
         </options>
     </setting>
+    <setting key="events.user.storageMethod" level="1" required="true">
+        <label>User History Storage Location</label>
+        <description><![CDATA[Data store used for user-specific audit history.]]></description>
+        <default>
+            <value><![CDATA[AUTO]]></value>
+        </default>
+        <options>
+            <option value="AUTO">Auto Configure - Database if configured, LDAP otherwise</option>
+            <option value="DATABASE">Remote Database</option>
+            <option value="LDAP">LDAP</option>
+        </options>
+    </setting>
     <setting key="events.ldap.attribute" level="1">
         <label>User History Attribute</label>
         <description><![CDATA[Attribute used to write a user event attribute in ldap.  The user event log attribute will hold an XML document with the users Event history.  Leave blank to disable logging event history to ldap.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[pwmEventLog]]></value>
-        </default>
-        <default template="ADDB">
-            <value />
         </default>
     </setting>
     <setting key="events.ldap.maxEvents" level="1" required="true">
@@ -1875,9 +1872,6 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[DB]]></value>
-        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1902,9 +1896,6 @@
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[DB]]></value>
-        </default>
         <options>
             <option value="LDAP">LDAP</option>
             <option value="LDAP-DB">LDAP, Database</option>
@@ -1922,9 +1913,6 @@
         <default>
             <value><![CDATA[pwmResponseSet]]></value>
         </default>
-        <default template="ADDB">
-            <value />
-        </default>
     </setting>
     <setting key="challenge.allowUnlock" level="0" required="true">
         <label>Allow Unlock</label>
@@ -1941,9 +1929,14 @@
         </default>
         <options>
             <option value="TEXT">None (Plaintext)</option>
+            <option value="MD5">MD5</option>
             <option value="SHA1">SHA1</option>
-            <option value="SHA1_SALT">SHA1 with Salt</option>
+            <option value="SHA1_SALT">SHA-1 with Salt</option>
+            <option value="SHA256_SALT">SHA-256 with Salt</option>
+            <option value="SHA512_SALT">SHA-512 with Salt</option>
+            <option value="PBKDF2">PBKDF2WithHmacSHA1</option>
             <option value="BCRYPT">BCrypt</option>
+            <option value="SCRYPT">SCrypt</option>
         </options>
     </setting>
     <setting key="challenge.requiredAttributes" level="0">
@@ -2035,9 +2028,6 @@
             <value><![CDATA[cn]]></value>
         </default>
         <default template="AD">
-            <value>sAMAccountName</value>
-        </default>
-        <default template="ADDB">
             <value>sAMAccountName</value>
         </default>
     </setting>
@@ -2271,9 +2261,6 @@
             <value><![CDATA[(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))]]></value>
-        </default>
-        <default template="ADDB">
             <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))]]></value>
         </default>
     </setting>
@@ -2527,9 +2514,6 @@
         <default template="AD">
             <value>true</value>
         </default>
-        <default template="ADDB">
-            <value>true</value>
-        </default>
     </setting>
     <setting key="ldap.ad.allowAuth.requireNewPassword" level="0" required="true">
         <label>Allow Authentication When "Must Change Password On Next Login" Is Set</label>
@@ -2561,9 +2545,6 @@
         <default template="AD">
             <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
-        </default>
     </setting>
     <setting key="helpdesk.filter" level="0">
         <label>Helpdesk Search Filter</label>
@@ -2572,9 +2553,6 @@
             <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
-        </default>
-        <default template="AADDB">
             <value><![CDATA[(&(objectClass=Person)(|((cn=*%USERNAME%*)(uid=*%USERNAME%*)(sAMAccountName=*%USERNAME%*)(userprincipalname=*%USERNAME%*)(givenName=*%USERNAME%*)(sn=*%USERNAME%*))))]]></value>
         </default>
     </setting>
@@ -2589,13 +2567,6 @@
             <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
         <default template="AD">
-            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"sAMAccountName"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-        </default>
-        <default template="ADDB">
             <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"sAMAccountName"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2652,13 +2623,20 @@
             <option value="type">Type new password</option>
             <option value="autogen">Auto generate a list of random passwords to choose from</option>
             <option value="both">Auto generate a list of random passwords and allow typing of new password</option>
-            <option value="sendpassword">Send a random password to the user</option>
+            <option value="random">Set the password to a random value unknown to the helpdesk operator</option>
         </options>
     </setting>
     <setting key="helpdesk.setPassword.writeAttributes" level="1">
         <label>Post Set Password Actions</label>
         <description><![CDATA[Actions to execute after a helpdesk actor modifies the user's password.  Macros may be used.]]></description>
         <default />
+    </setting>
+    <setting key="helpdesk.sendPassword" level="0" required="true">
+        <label>Send Password to User</label>
+        <description><![CDATA[If true, send the password to the user using the method selected under Forgotten Password -> New Password Send Method.]]></description>
+        <default>
+            <value>false</value>
+        </default>
     </setting>
     <setting key="helpdesk.actions" level="1">
         <label>Helpdesk Actor Actions</label>
@@ -2840,9 +2818,6 @@
         <default template="AD">
             <value><![CDATA[(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)]]></value>
         </default>
-        <default template="ADDB">
-            <value><![CDATA[(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)]]></value>
-        </default>
     </setting>
     <setting key="external.webAuth.methods" level="0">
         <label>External Web Auth Methods</label>
@@ -2854,7 +2829,7 @@
         <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="GENERAL">
-        <label>General</label>
+        <label>Application</label>
         <description><![CDATA[General settings for the application.  Settings here control the functionality and behavior of the system.]]></description>
     </category>
     <category key="USER_INTERFACE">
@@ -2950,13 +2925,10 @@
         <description><![CDATA[Configurations for administrative helpdesk.]]></description>
     </category>
     <template key="NOVL">
-        <label>Novell eDirectory</label>
-    </template>
-    <template key="ADDB">
-        <label>Active Directory - Store responses in a database</label>
+        <label>NetIQ eDirectory</label>
     </template>
     <template key="AD">
-        <label>Active Directory - Store responses in Active Directory</label>
+        <label>Active Directory</label>
     </template>
     <template key="DEFAULT">
         <label>OpenLDAP, DirectoryServer389, Others</label>

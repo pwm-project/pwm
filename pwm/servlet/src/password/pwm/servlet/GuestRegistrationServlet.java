@@ -200,19 +200,12 @@ public class GuestRegistrationServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_UPDATEGUEST, locale);
 
-        final String toAddress = guestUserInfoBean.getUserEmailAddress();
-        if (toAddress == null || toAddress.length() < 1) {
+        if (configuredEmailSetting == null) {
             LOGGER.debug(pwmSession, "unable to send updated guest user email: no email configured");
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     protected void handleSearchRequest(
@@ -467,20 +460,12 @@ public class GuestRegistrationServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_GUEST, locale);
 
-        final String toAddress = guestUserInfoBean.getUserEmailAddress();
-
-        if (toAddress == null || toAddress.length() < 1) {
+        if (configuredEmailSetting == null) {
             LOGGER.debug(pwmSession, "unable to send guest registration email for '" + userInfoBean.getUserDN() + "' no email configured");
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
-                toAddress,
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
-        ), guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     private void forwardToJSP(

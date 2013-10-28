@@ -22,7 +22,6 @@
 
 package password.pwm.util.queue;
 
-import com.google.gson.Gson;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -34,6 +33,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBCompressor;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public abstract class AbstractQueueManager implements PwmService {
 
     static final int ERROR_RETRY_WAIT_TIME_MS = 60 * 1000;
 
-    static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
 
     static String SERVICE_NAME = "AbstractQueueManager";
 
@@ -218,7 +218,7 @@ public abstract class AbstractQueueManager implements PwmService {
             while (sendQueue.peekFirst() != null) {
                 final String jsonEvent = sendQueue.peekFirst();
                 if (jsonEvent != null) {
-                    final QueueEvent event = (new Gson()).fromJson(jsonEvent, QueueEvent.class);
+                    final QueueEvent event = (Helper.getGson()).fromJson(jsonEvent, QueueEvent.class);
 
                     if ((System.currentTimeMillis() - maxErrorWaitTimeMS) > event.getQueueInsertTimestamp()) {
                         LOGGER.debug("discarding event due to maximum retry age: " + event.getItem());

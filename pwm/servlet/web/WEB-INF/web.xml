@@ -269,6 +269,10 @@
         <servlet-class>password.pwm.servlet.CaptchaServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>ConfigEditorServlet</servlet-name>
+        <servlet-class>password.pwm.servlet.ConfigEditorServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>ConfigManagerServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
     </servlet>
@@ -280,7 +284,7 @@
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
         <init-param>
-            <description>zip files to treat as resource paths, seperated by semi-colons (;), must end in .zip</description>
+            <description>zip files to treat as resource paths, separated by semi-colons (;), must end in .zip</description>
             <param-name>zipFileResources</param-name>
             <param-value>/public/resources/dojo.zip;/public/resources/flags.zip</param-value>
         </init-param>
@@ -357,13 +361,16 @@
         <url-pattern>/public/Captcha</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>ConfigEditorServlet</servlet-name>
+        <url-pattern>/private/config/ConfigEditor</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>ConfigManagerServlet</servlet-name>
-        <url-pattern>/config/ConfigManager</url-pattern>
-        <url-pattern>/private/admin/ConfigManager</url-pattern>
+        <url-pattern>/private/config/ConfigManager</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ConfigGuideServlet</servlet-name>
-        <url-pattern>/config/ConfigGuide</url-pattern>
+        <url-pattern>/private/config/ConfigGuide</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ResourceFileServlet</servlet-name>

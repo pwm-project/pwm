@@ -10,7 +10,20 @@ http://code.google.com/p/pwm
 [----------------------------]
 
 
-v1.7
+v1.7.1
+---
++ Functionality/option to store intruder table in DB
++ Functionality/option to store user history in DB
++ Intruder tracking for form values
++ Intruder tracking for token send destinations
++ Show/Hide password fields button replaced with eye hide/close icon on all pages
++ Ajaxified all admin section tables
++ Added AppProperties to allow configurable overrides for some former constant values
+- Removed "ADDB" template, replaced with extra Guide option to select responses
+- Separated ConfigEditor from ConfigManager implementation and user interface
+
+
+v1.7.0 (September 8, 2013) build 1228
 ---
 + Option to disable idle countdown timer added (issue #404)
 + REST based web services (including documentation and examples) for

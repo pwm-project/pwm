@@ -226,7 +226,7 @@ public class StatisticsManager implements PwmService {
         }
 
         {
-            final Gson gson = new Gson();
+            final Gson gson = Helper.getGson();
             for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                 for (final Statistic.EpsType loopEpsDuration : Statistic.EpsType.values()) {
                     final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
@@ -313,7 +313,7 @@ public class StatisticsManager implements PwmService {
                 localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
                 localDB.put(LocalDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
 
-                final Gson gson = new Gson();
+                final Gson gson = Helper.getGson();
                 for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                     for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
                         final String key = "EPS-" + loopEpsType.toString();
@@ -501,7 +501,7 @@ public class StatisticsManager implements PwmService {
         }
         final URI requestURI = new URI(PwmConstants.PWM_URL_CLOUD + "/rest/pwm/statistics");
         final HttpPost httpPost = new HttpPost(requestURI.toString());
-        final Gson gson = new Gson();
+        final Gson gson = Helper.getGson();
         final String jsonDataString = gson.toJson(statsPublishData);
         httpPost.setEntity(new StringEntity(jsonDataString));
         httpPost.setHeader("Accept", "application/json");

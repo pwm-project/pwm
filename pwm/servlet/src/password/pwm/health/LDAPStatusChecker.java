@@ -106,7 +106,6 @@ public class LDAPStatusChecker implements HealthChecker {
         final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
         final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-        ChaiProvider.DIRECTORY_VENDOR vendor = null;
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 

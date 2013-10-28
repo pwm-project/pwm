@@ -27,6 +27,8 @@
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="password.pwm.*" %>
+<%@ page import="password.pwm.i18n.Display" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -63,7 +65,7 @@
                 </td>
                 <td>
                     <%
-                        String publishedVersion = "n/a";
+                        String publishedVersion = Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig());
                         if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
                             publishedVersion = pwmApplication.getVersionChecker().currentVersion();
                         }
@@ -125,7 +127,7 @@
                     Last LDAP Unavailable Time
                 </td>
                 <td>
-                    <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : "n/a" %>
+                    <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -233,26 +235,10 @@
             </tr>
             <tr>
                 <td class="key">
-                    Intruder Address Table Size
-                </td>
-                <td>
-                    <%= pwmApplication.getIntruderManager().addressRecordCount() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
-                    Intruder User Table Size
-                </td>
-                <td>
-                    <%= pwmApplication.getIntruderManager().userRecordCount() %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
                     Log Events in Write Queue
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getPendingEventCount()) : "n/a" %>
+                    <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getPendingEventCount()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -263,7 +249,7 @@
                 </td>
                 <td>
                     <a href="<pwm:url url='eventlog.jsp'/>">
-                        <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getStoredEventCount()) : "n/a" %>
+                        <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getStoredEventCount()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                     </a>
                 </td>
             </tr>
@@ -272,7 +258,7 @@
                     Oldest Log Event in Write Queue
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() : "n/a"%>
+                    <%= pwmApplication.getLocalDBLogger() != null ? pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -280,7 +266,7 @@
                     Oldest Log Event
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : "n/a" %>
+                    <%= pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -289,7 +275,7 @@
                 </td>
                 <td>
                     <% final long oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryAge(); %>
-                    <%= oldestEntryAge == 0 ? "n/a" : TimeDuration.asCompactString(oldestEntryAge) %>
+                    <%= oldestEntryAge == 0 ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : TimeDuration.asCompactString(oldestEntryAge) %>
                 </td>
             </tr>
             <tr>
@@ -297,7 +283,7 @@
                     LocalDB Size On Disk
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDB() == null ? "n/a" : pwmApplication.getLocalDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())) %>
+                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
             <tr>
@@ -306,7 +292,7 @@
                 </td>
                 <td>
                     <%
-                        String responseCount = "n/a";
+                        String responseCount = Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig());
                         try {
                             responseCount = String.valueOf(pwmApplication.getLocalDB().size(LocalDB.DB.RESPONSE_STORAGE));
                         } catch (Exception e) { /* na */ }
@@ -319,7 +305,7 @@
                     LocalDB Free Space
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDB() == null ? "n/a" : pwmApplication.getLocalDB().getFileLocation() == null ? "n/a" : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
+                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
         </table>
@@ -521,7 +507,7 @@
                     <%= t.getId() %>
                 </td>
                 <td>
-                    <%= t.getName() != null ? t.getName() : "n/a" %>
+                    <%= t.getName() != null ? t.getName() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
                 </td>
                 <td>
                     <%= t.getPriority() %>

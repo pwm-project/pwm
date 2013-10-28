@@ -28,6 +28,7 @@
 <%@ page import="password.pwm.util.PwmServletURLHelper" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.PwmRandom" %>
+<%@ page import="password.pwm.ws.server.rest.RestAppDataServer" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionHeader = null;
@@ -51,13 +52,12 @@
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/style.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <link media="only screen and (max-device-width: 480px)" href="<%=request.getContextPath()%><pwm:url url='/public/resources/mobileStyle.css'/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
-    <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/font/font-awesome.css'/>" rel="stylesheet" type="text/css" media="screen"/>
     <% if (showTheme) { %>
     <link href="<pwm:ThemeURL/>" rel="stylesheet" type="text/css" media="screen"/>
-    <link media="only screen and (max-device-width: 480px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
+    <link media="only screen and (max-device-width: 620px)" href="<pwm:ThemeURL type="mobile"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';</script>
+    <script type="text/javascript">var PWM_GLOBAL = PWM_GLOBAL || {};var PWM_STRINGS = PWM_STRINGS || {};PWM_GLOBAL['startupFunctions'] = new Array();PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';PWM_GLOBAL['clientEtag']='<%=RestAppDataServer.makeClientEtag(request,pwmApplicationHeader,pwmSessionHeader)%>'</script>
     <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
 </head>

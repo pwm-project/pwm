@@ -1,3 +1,11 @@
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.PwmSettingSyntax" %>
+<%@ page import="java.security.cert.X509Certificate" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
+<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -19,66 +27,15 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
-
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.config.PwmSettingSyntax" %>
-<%@ page import="password.pwm.config.StoredConfiguration" %>
-<%@ page import="password.pwm.util.ServletHelper" %>
-<%@ page import="java.security.cert.X509Certificate" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="pwm" prefix="pwm" %>
 <%
+    final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
     final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
-    final int level = configManagerBean.getLevel();
-    final boolean showDesc = configManagerBean.isShowDescr();
-    final password.pwm.config.PwmSetting.Category category = configManagerBean.getCategory();
-    final boolean hasNotes = configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES) != null && configManagerBean.getConfiguration().readProperty(StoredConfiguration.PROPERTY_KEY_NOTES).length() > 0;
+    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
+    final boolean showDesc = cookie.isShowDesc();
 %>
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript">
-    function toggleDisplayStyle(nodeId) {
-        var node = getObject(nodeId);
-        if (node) {
-            if (node.style.display == 'block') {
-                node.style.display = 'none';
-            } else {
-                node.style.display = 'block';
-            }
-        }
-    }
-</script>
-<% if (showDesc) { %>
-<div id="categoryDescription" style="background-color: #F5F5F5; border-radius: 5px; padding: 10px 15px 10px 15px">
-    <%= category.getDescription(locale)%>
-</div>
-<% } %>
-<% if (!ServletHelper.cookieEquals(request, "hide-warn-advanced", "true") && level < 1) { %>
-<div style="font-size: small">
-    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
-    <pwm:Display key="Warning_ShowAdvanced" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-advanced','true',2592000);" href="ConfigManager">(hide)</a>
-</div>
-<% } %>
-<% if (hasNotes) { %>
-<% if (!ServletHelper.cookieEquals(request, "hide-warn-shownotes", "true") && !showDesc) { %>
-<div style="font-size: small">
-    <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/warning.gif"/>" alt="warning"/>
-    <pwm:Display key="Warning_ShowNotes" bundle="Config"/>
-    <a style="font-weight: normal; font-size: smaller" onclick="setCookie('hide-warn-shownotes','true',2592000);" href="ConfigManager">(hide)</a>
-</div>
-<% } %>
-<% } %>
-<br/>
-<% for (final PwmSetting loopSetting : PwmSetting.values()) { %>
-<% final boolean showSetting = loopSetting.showSetting(category,level,!configManagerBean.getConfiguration().isDefaultValue(loopSetting)); %>
-<% if (showSetting) { %>
 <div id="outline_<%=loopSetting.getKey()%>" class="setting_outline">
-<%
+    <%
     StringBuilder title = new StringBuilder();
     title.append(loopSetting.getLabel(locale));
     if (loopSetting.getLevel() == 1) {
@@ -86,12 +43,16 @@
     }
 %>
 <div class="setting_title" id="title_<%=loopSetting.getKey()%>">
-    <span class="text" onclick="toggleDisplayStyle('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
-    <div class="icon-question-sign icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleDisplayStyle('helpDiv_<%=loopSetting.getKey()%>')"></div>
-    <div class="icon-reply icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
+    <span class="text" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
+    <div class="fa fa-question-circle icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"></div>
+    <div class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
 <div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDesc?"block":"none"%>">
-    <%=loopSetting.getDescription(locale)%>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
+        });
+    </script>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -143,7 +104,7 @@
     </table>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=new Gson().toJson(loopSetting.getOptions())%>);
+            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
@@ -198,7 +159,7 @@
     <div style="padding-right:15px">
         <% for (X509Certificate certificate : (X509Certificate[])configManagerBean.getConfiguration().readSetting(loopSetting).toNativeObject()) {%>
         <% request.setAttribute("certificate",certificate); %>
-        <jsp:include page="fragment/setting-certificate.jsp"/>
+        <jsp:include page="setting-certificate.jsp"/>
         <br/>
         <% } %>
     </div>
@@ -279,8 +240,5 @@
     <% } %>
     <% } %>
 </div>
-<br/>
 </div>
 <br/>
-<% } %>
-<% } %>

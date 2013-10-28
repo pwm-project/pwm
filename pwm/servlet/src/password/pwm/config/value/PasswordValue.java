@@ -43,7 +43,7 @@ public class PasswordValue extends StringValue {
     }
 
     static PasswordValue fromJson(final String value) {
-        return new PasswordValue(new Gson().fromJson(value, String.class));
+        return new PasswordValue(Helper.getGson().fromJson(value, String.class));
     }
 
     static PasswordValue fromXmlValue(final Element settingElement, final String key) throws PwmOperationalException {

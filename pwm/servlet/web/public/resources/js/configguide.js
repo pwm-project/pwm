@@ -20,6 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+"use strict";
+
 function selectTemplate(template) {
     showWaitDialog('Loading...','',function(){
         require(["dojo"],function(dojo){
@@ -87,7 +89,7 @@ function gotoStep(step) {
                     }
                 }
                 var redirectLocation = "ConfigGuide";
-                location = redirectLocation;
+                window.location = redirectLocation;
             }
         });
     });
