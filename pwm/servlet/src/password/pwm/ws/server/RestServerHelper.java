@@ -51,10 +51,6 @@ import java.util.Locale;
 public abstract class RestServerHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
 
-    public static enum ServiceType {
-        AUTH_REQUIRED, NORMAL, PUBLIC,
-    };
-
     public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
         final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
         return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
@@ -62,20 +58,7 @@ public abstract class RestServerHelper {
 
     public static RestRequestBean initializeRestRequest(
             final HttpServletRequest request,
-            final boolean requiresAuthentication,
-            final String requestedUsername
-    )
-            throws PwmUnrecoverableException
-    {
-        return initializeRestRequest(
-                request,
-                requiresAuthentication ? ServiceType.AUTH_REQUIRED : ServiceType.NORMAL,
-                requestedUsername);
-    }
-
-    public static RestRequestBean initializeRestRequest(
-            final HttpServletRequest request,
-            final ServiceType serviceType,
+            final ServicePermissions servicePermissions,
             final String requestedUsername
     )
             throws PwmUnrecoverableException {
@@ -84,7 +67,7 @@ public abstract class RestServerHelper {
 
         ServletHelper.handleRequestInitialization(request, pwmApplication, pwmSession);
 
-        if (serviceType != ServiceType.PUBLIC) {
+        if (servicePermissions.isAuthRequired()) {
             ServletHelper.handleRequestSecurityChecks(request, pwmApplication, pwmSession);
         }
 
@@ -96,7 +79,7 @@ public abstract class RestServerHelper {
 
         final StringBuilder logMsg = new StringBuilder();
         logMsg.append("REST WebService Request: ");
-        logMsg.append(ServletHelper.debugHttpRequest(request));
+        logMsg.append(ServletHelper.debugHttpRequest(pwmApplication,request));
         LOGGER.debug(pwmSession,logMsg);
 
         try {
@@ -107,18 +90,18 @@ public abstract class RestServerHelper {
 
         final RestRequestBean restRequestBean = new RestRequestBean();
         restRequestBean.setAuthenticated(pwmSession.getSessionStateBean().isAuthenticated());
-        restRequestBean.setExternal(determineIfRestClientIsExternal(request, pwmSession));
+        restRequestBean.setExternal(determineIfRestClientIsExternal(pwmSession,request));
         restRequestBean.setUserDN(lookupUsername(pwmApplication, pwmSession, restRequestBean.isExternal(), requestedUsername));
         restRequestBean.setPwmApplication(pwmApplication);
         restRequestBean.setPwmSession(pwmSession);
 
-        if (serviceType == ServiceType.AUTH_REQUIRED) {
+        if (servicePermissions.isAuthRequired()) {
             if (!pwmSession.getSessionStateBean().isAuthenticated()) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
         }
 
-        if (serviceType != ServiceType.PUBLIC) {
+        if (servicePermissions.isBlockExternal()) {
             if (restRequestBean.isExternal()) {
                 final boolean allowExternal = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES);
                 if (!allowExternal) {
@@ -129,6 +112,18 @@ public abstract class RestServerHelper {
 
             }
         }
+
+        if (servicePermissions.isAdminOnly()) {
+            try {
+                if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+                    final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"admin authorization is required");
+                    throw new PwmUnrecoverableException(errorInfo);
+                }
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            }
+        }
+
         return restRequestBean;
     }
 
@@ -210,38 +205,16 @@ public abstract class RestServerHelper {
         }
     }
 
-    public static boolean determineIfRestClientIsExternal(HttpServletRequest request, PwmSession pwmSession)
+    public static boolean determineIfRestClientIsExternal(final PwmSession pwmSession, final HttpServletRequest request)
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-
-        boolean requestHasCorrectID = false;
-
-        try {
-            Validator.validatePwmFormID(request);
-            requestHasCorrectID = true;
-        } catch (PwmUnrecoverableException e) {
-            if (e.getError() == PwmError.ERROR_INVALID_FORMID) {
-                requestHasCorrectID = false;
-            } else {
-                throw e;
-            }
+        final String requestClientKey = request.getHeader(PwmConstants.HTTP_HEADER_REST_CLIENT_KEY);
+        if (requestClientKey == null || requestClientKey.length() < 1) {
+            return true;
         }
 
-        return !requestHasCorrectID;
-    }
-
-    public static String outputJsonErrorResult(final ErrorInformation errorInformation, HttpServletRequest request) {
-        try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-            final PwmSession pwmSession = PwmSession.getPwmSession(request);
-            return RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession).toJson();
-        } catch (Exception e) {
-            RestResultBean restRequestBean = new RestResultBean();
-            restRequestBean.setError(true);
-            restRequestBean.setErrorCode(errorInformation.getError().getErrorCode());
-            return restRequestBean.toJson();
-        }
+        final String sessionClientKey = pwmSession.getRestClientKey();
+        return !requestClientKey.equals(sessionClientKey);
     }
 
     public static void handleNonJsonErrorResult(final ErrorInformation errorInformation) {

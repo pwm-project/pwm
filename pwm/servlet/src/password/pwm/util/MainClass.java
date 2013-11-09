@@ -30,16 +30,17 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import org.apache.log4j.*;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
-import password.pwm.TokenManager;
+import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.value.PasswordValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
+import password.pwm.health.HealthRecord;
+import password.pwm.token.TokenPayload;
+import password.pwm.token.TokenService;
 import password.pwm.util.operations.UserSearchEngine;
 import password.pwm.util.localdb.*;
 import password.pwm.util.stats.StatisticsManager;
@@ -53,7 +54,7 @@ public class MainClass {
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
-        out(PwmConstants.PWM_APP_NAME + " Command Line - v" + PwmConstants.PWM_VERSION + " b" + PwmConstants.BUILD_NUMBER);
+        out(PwmConstants.SERVLET_VERSION);
         if (args == null || args.length < 1) {
             out("");
             out(" [command] option option");
@@ -68,6 +69,8 @@ public class MainClass {
             out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
             out("  | ExportStats     [outputFile]  Dump all statistics in the LocalDB to a csv file");
             out("  | ExportAudit     [outputFile]  Dump all audit records in the LocalDB to a csv file");
+            out("  | IntegrityReport [outputFile]  Dump code integrity report (useful only for developers)");
+            out("  | EncryptPassword [password] [outputFile] Encrypt a password for use in current configuration file");
             out("");
         } else {
             if ("LocalDbInfo".equalsIgnoreCase(args[0])) {
@@ -92,6 +95,10 @@ public class MainClass {
                 handleExportStats(args);
             } else if ("ExportAudit".equalsIgnoreCase(args[0])) {
                 handleExportAudit(args);
+            } else if ("IntegrityReport".equalsIgnoreCase(args[0])) {
+                handleIntegrityReport(args);
+            } else if ("EncryptPassword".equalsIgnoreCase(args[0])) {
+                handleEncryptConfigPassword(args);
             } else {
                 out("unknown command '" + args[0] + "'");
             }
@@ -99,6 +106,11 @@ public class MainClass {
     }
 
     static void handleUserReport(final String[] args) throws Exception {
+        if (args.length < 2) {
+            out("output filename required");
+            System.exit(-1);
+        }
+
         if (args.length < 2) {
             out("output filename required");
             System.exit(-1);
@@ -320,11 +332,7 @@ public class MainClass {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
         databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
-
-        final String classname = config.readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-        final List<String> initStrings = config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
-        final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
-        return LocalDBFactory.getInstance(databaseDirectory, classname, initParamers, readonly, null);
+        return LocalDBFactory.getInstance(databaseDirectory, readonly, null);
     }
 
     static Configuration loadConfiguration() throws Exception {
@@ -417,11 +425,11 @@ public class MainClass {
         final File workingFolder = new File(".").getCanonicalFile();
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
 
-        final TokenManager tokenManager = pwmApplication.getTokenManager();
-        TokenManager.TokenPayload tokenPayload = null;
+        final TokenService tokenService = pwmApplication.getTokenManager();
+        TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try {
-            tokenPayload = tokenManager.retrieveTokenData(tokenKey);
+            tokenPayload = tokenService.retrieveTokenData(tokenKey);
         } catch (Exception e) {
             lookupError = e;
         }
@@ -498,8 +506,66 @@ public class MainClass {
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileWriter fileWriter = new FileWriter(outputFile,true);
-        final int counter = auditManager.outputLocalDBToCsv(fileWriter,false);
+        final int counter = auditManager.outpuVaultToCsv(fileWriter, false);
         fileWriter.close();
         out("completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
+
+    static void handleIntegrityReport(final String[] args) throws Exception {
+        final Configuration config = loadConfiguration();
+        final File workingFolder = new File(".").getCanonicalFile();
+        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
+
+        if (args.length < 2) {
+            out("must specify file to write audit data to");
+            return;
+        }
+
+        final File outputFile = new File(args[1]);
+        if (outputFile.exists()) {
+            out("outputFile '" + outputFile.getAbsolutePath() + "' already exists");
+            return;
+        }
+
+        final long startTime = System.currentTimeMillis();
+        out("beginning output to " + outputFile.getAbsolutePath());
+        final FileWriter writer = new FileWriter(outputFile,true);
+        writer.write("# " + PwmConstants.PWM_APP_NAME + "  " + PwmConstants.SERVLET_VERSION + " IntegrityCheck " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        writer.write("\n");
+        writer.write("# " + Helper.getGson().toJson(new CodeIntegrityChecker(pwmApplication).getStats()));
+        writer.write("\n");
+        final Set<HealthRecord> records = new CodeIntegrityChecker(pwmApplication).checkResources();
+        for (final HealthRecord record : records) {
+            writer.write(record.getDetail(PwmConstants.DEFAULT_LOCALE, config));
+            writer.write("\n");
+        }
+        writer.close();
+        out("completed writing " + records.size() + " rows in " + TimeDuration.fromCurrent(startTime).asLongString());
+    }
+
+    static void handleEncryptConfigPassword(final String[] args) throws Exception {
+        if (args.length < 2) {
+            out("must specify a password value");
+            System.exit(-1);
+        }
+
+        if (args.length < 3) {
+            out("must specify file to write password value to");
+            System.exit(-1);
+        }
+
+        final File outputFile = new File(args[2]);
+        if (outputFile.exists()) {
+            out("outputFile '" + outputFile.getAbsolutePath() + "' already exists");
+            System.exit(-1);
+        }
+
+        final String input = args[1];
+        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME));
+        final String key = configurationReader.getStoredConfiguration().getKey();
+        final String output = PasswordValue.encryptValue(key,input);
+        final FileWriter writer = new FileWriter(outputFile,true);
+        writer.write(output);
+        writer.close();
+   }
 }

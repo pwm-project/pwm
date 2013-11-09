@@ -158,7 +158,12 @@ public abstract class TopServlet extends HttpServlet {
         this.handleRequest(req, resp);
     }
 
-    static boolean convertURLtokenCommand(final HttpServletRequest req, final HttpServletResponse resp, final PwmSession pwmSession)
+    static boolean convertURLtokenCommand(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
             throws IOException
     {
         final String uri = req.getRequestURI();
@@ -202,7 +207,5 @@ public abstract class TopServlet extends HttpServlet {
         resp.sendRedirect(redirectURL.toString());
         return true;
     }
-
-
 }
 

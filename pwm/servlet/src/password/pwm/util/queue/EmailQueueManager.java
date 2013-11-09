@@ -22,22 +22,24 @@
 
 package password.pwm.util.queue;
 
-import com.google.gson.Gson;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
+import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -48,6 +50,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
@@ -59,7 +62,6 @@ public class EmailQueueManager extends AbstractQueueManager {
 
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
-    static String SERVICE_NAME = "EmailQueueManager";
 
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -75,39 +77,18 @@ public class EmailQueueManager extends AbstractQueueManager {
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
-        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE);
-        this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
+        final Settings settings = new Settings(
+                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))),
+                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS))),
+                Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_COUNT)),
+                EmailQueueManager.class.getSimpleName()
+        );
+        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE, settings);
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void addMailToQueue(final EmailItemBean emailItem)
-            throws PwmUnrecoverableException {
-        if (status != PwmService.STATUS.OPEN) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
-        }
-
-        if (!determineIfItemCanBeDelivered(emailItem)) {
-            return;
-        }
-
-        if (sendQueue.size() >= PwmConstants.MAX_EMAIL_QUEUE_SIZE) {
-            LOGGER.warn("email queue full, discarding email send request: " + emailItem);
-            return;
-        }
-
-        final String eventItemGson = (Helper.getGson()).toJson(emailItem);
-        final QueueEvent event = new QueueEvent(eventItemGson, System.currentTimeMillis());
-
-        try {
-            final String jsonEvent = (Helper.getGson()).toJson(event);
-            sendQueue.addLast(jsonEvent);
-        } catch (Exception e) {
-            LOGGER.error("error writing to LocalDB queue, discarding email send request: " + e.getMessage());
-        }
-    }
-
-    boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) throws PwmUnrecoverableException {
+    protected boolean determineIfItemCanBeDelivered(final EmailItemBean emailItem) {
         final String serverAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
 
         if (serverAddress == null || serverAddress.length() < 1) {
@@ -138,11 +119,49 @@ public class EmailQueueManager extends AbstractQueueManager {
         return true;
     }
 
+    public void submit(
+            final EmailItemBean emailItem,
+            final UserInfoBean uiBean,
+            final UserDataReader userDataReader
+    )
+    {
+        if (emailItem == null) {
+            return;
+        }
+
+        String toAddress = emailItem.getTo();
+        if (toAddress == null || toAddress.length() < 1 && uiBean != null) {
+            toAddress = uiBean.getUserEmailAddress();
+        }
+
+        final EmailItemBean expandedEmailItem = new EmailItemBean(
+                MacroMachine.expandMacros(toAddress, pwmApplication, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getFrom(), pwmApplication, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getSubject(), pwmApplication, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getBodyPlain(), pwmApplication, uiBean, userDataReader),
+                MacroMachine.expandMacros(emailItem.getBodyHtml(), pwmApplication, uiBean, userDataReader)
+        );
+
+        if (expandedEmailItem.getTo() == null || expandedEmailItem.getTo().length() < 1) {
+            LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toString());
+        }
+
+        if (!determineIfItemCanBeDelivered(emailItem)) {
+            return;
+        }
+
+        try {
+            add(new QueueEvent(Helper.getGson().toJson(expandedEmailItem),new Date()));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("unable to add email to queue: " + e.getMessage());
+        }
+    }
+
     boolean sendItem(final String item) {
-        final EmailItemBean emailItemBean = (Helper.getGson()).fromJson(item, EmailItemBean.class);
+        final EmailItemBean emailItemBean = Helper.getGson().fromJson(item, EmailItemBean.class);
         final StatisticsManager statsMgr = pwmApplication.getStatisticsManager();
 
-        // createSharedHistoryManager a new MimeMessage object (using the Session created above)
+        // create a new MimeMessage object (using the Session created above)
         try {
             final Message message = convertEmailItemToMessage(emailItemBean, this.pwmApplication.getConfig());
             final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
@@ -190,7 +209,7 @@ public class EmailQueueManager extends AbstractQueueManager {
                 statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
             }
 
-            lastSendFailure = new HealthRecord(HealthStatus.WARN, "EmailQueue", "Unable to send email in queue due to error: " + e.getMessage());
+            lastSendFailure = new HealthRecord(HealthStatus.WARN, HealthTopic.Email, HealthMessage.Email_SendFailure, e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {

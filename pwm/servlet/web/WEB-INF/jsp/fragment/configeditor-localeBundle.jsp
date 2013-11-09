@@ -36,9 +36,6 @@
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <script type="text/javascript">
     var LOAD_TRACKER = new Array();
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>');
-    });
 </script>
 <div>
     <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
@@ -48,7 +45,7 @@
 <% if (!isDefault) { %>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-    LOAD_TRACKER.push('<%=key%>');
+        LOAD_TRACKER.push('<%=key%>');
     });
 </script>
 <% } %>
@@ -67,13 +64,13 @@
         </script>
         <% } %>
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
-        <img src="<%=request.getContextPath()%><pwm:url url="/public/resources/reset.png"/>" alt="Reset" title="Reset to default value"
-             id="resetButton-localeBundle-<%=bundleName%>-<%=key%>"
-             style="visibility:hidden; vertical-align:bottom; float: right"
-             onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"/>
+        <div class="icon_button fa fa-undo" title="Reset" id="resetButton-localeBundle-<%=bundleName%>-<%=key%>" onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"
+             style="visibility:hidden; vertical-align:bottom; float: right; cursor: pointer"></div>
+
     </div>
     <div class="message message-info" style="width: 580px; background: white;">
         <table id="table_<%=key%>" style="border-width:0" width="500">
+            <% if (isDefault) { %>
             <% for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) { %>
             <tr style="border-width:0">
                 <td style="border-width:0">
@@ -81,6 +78,13 @@
                 </td>
                 <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
                     <%= StringEscapeUtils.escapeHtml(ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key)) %>
+                </td>
+            </tr>
+            <% } %>
+            <% } else { %>
+            <tr style="border-width:0">
+                <td style="border-width:0">
+                    <pwm:Display key="Display_PleaseWait"/>
                 </td>
             </tr>
             <% } %>
@@ -101,26 +105,19 @@
         if (LOAD_TRACKER.length > 0) {
             setTimeout(function(){
                 doLazyLoad(LOAD_TRACKER.pop());
-            },10); // time between element reads
+            },100); // time between element reads
         } else {
-            setTimeout(function(){
-                closeWaitDialog();
-            },500); // time after element reads completed.
+            closeWaitDialog();
         }
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/domReady!","dijit/form/Button","dijit/Dialog"],function(){
-            LOAD_TRACKER.reverse();
-            if (LOAD_TRACKER.length > 0) {
-                setTimeout(function(){
-                    doLazyLoad(LOAD_TRACKER.pop());
-                },1000);
-            } else {
-                setTimeout(function(){
-                    closeWaitDialog();
-                },2000);
-            }
-        });
+        if (LOAD_TRACKER.length > 0) {
+            showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>',function(){
+                LOAD_TRACKER.reverse();
+                doLazyLoad(LOAD_TRACKER.pop());
+            });
+        }
     });
 </script>
+

@@ -51,7 +51,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.UserDataReader;
 import password.pwm.util.stats.Statistic;
@@ -96,11 +95,10 @@ public class
             final Configuration config,
             final List<String> ldapURLs,
             final String userDN,
-            final String userPassword,
-            final int idleTimeoutMs
+            final String userPassword
     )
             throws ChaiUnavailableException {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword, idleTimeoutMs);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -108,13 +106,12 @@ public class
     public static ChaiProvider createChaiProvider(
             final Configuration config,
             final String userDN,
-            final String userPassword,
-            final int idleTimeoutMs
+            final String userPassword
     )
             throws ChaiUnavailableException
     {
         final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword, idleTimeoutMs);
+        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
     }
@@ -123,20 +120,25 @@ public class
             final Configuration config,
             final List<String> ldapURLs,
             final String userDN,
-            final String userPassword,
-            final int idleTimeoutMs
+            final String userPassword
     )
     {
 
         final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
 
-        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, Boolean.toString(config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)));
+        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
         chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
 
         chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
         chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
         chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
-        chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(PwmConstants.RESPONSES_HASH_LOOP_COUNT));
+        {
+            final String setting = config.readAppProperty(AppProperty.SECURITY_RESPONSES_HASH_ITERATIONS);
+            if (setting != null && setting.length() > 0) {
+                final int intValue = Integer.parseInt(setting);
+                chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(intValue));
+            }
+        }
 
         chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
         final String storageMethodString = config.readSettingAsString(PwmSetting.CHALLENGE_STORAGE_HASHED);
@@ -153,11 +155,15 @@ public class
             chaiConfig.setTrustManager(new X509TrustManager[]{tm});
         }
 
-        // if possible, set the ldap timeout.
+        final String idleTimeoutMsString = config.readAppProperty(AppProperty.LDAP_CONNECTION_TIMEOUT);
+        chaiConfig.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT,idleTimeoutMsString);
+
+        // set the watchdog idle timeout.
+        final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
         if (idleTimeoutMs > 0) {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, Long.toString(idleTimeoutMs));
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(60 * 1000));
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, idleTimeoutMsString);
+            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(5 * 1000));
         } else {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
@@ -291,13 +297,11 @@ public class
      * Append auxClasses    configured in the PWM configuration to the ldap user object.
      *
      * @param userDN     userDN userDN of the user to add to
-     * @param pwmSession Current pwmSession, used for logging
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *          if the ldap server is unavailable
      */
     public static void addConfiguredUserObjectClass(
             final String userDN,
-            final PwmSession pwmSession,
             final PwmApplication pwmApplication
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -306,10 +310,10 @@ public class
             return;
         }
         final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-        addUserObjectClass(theUser, newObjClasses, pwmSession);
+        addUserObjectClass(theUser, newObjClasses);
     }
 
-    private static void addUserObjectClass(final ChaiUser theUser, final Set<String> newObjClasses, final PwmSession pwmSession)
+    private static void addUserObjectClass(final ChaiUser theUser, final Set<String> newObjClasses)
             throws ChaiUnavailableException {
         String auxClass = null;
         try {
@@ -319,7 +323,7 @@ public class
             for (final String newObjClass : newObjClasses) {
                 auxClass = newObjClass;
                 theUser.addAttribute(ChaiConstant.ATTR_LDAP_OBJECTCLASS, auxClass);
-                LOGGER.info(pwmSession, "added objectclass '" + auxClass + "' to user " + theUser.getEntryDN());
+                LOGGER.info("added objectclass '" + auxClass + "' to user " + theUser.getEntryDN());
             }
         } catch (ChaiOperationException e) {
             final StringBuilder errorMsg = new StringBuilder();
@@ -329,7 +333,7 @@ public class
             errorMsg.append(": ");
             errorMsg.append(e.toString());
 
-            LOGGER.error(pwmSession, errorMsg.toString());
+            LOGGER.error(errorMsg.toString());
         }
     }
 
@@ -937,6 +941,31 @@ public class
         return new Locale(language, country, variant);
     }
 
+    public static void rotateBackups(final File inputFile, final int maxRotate) {
+        if (maxRotate < 1) {
+            return;
+        }
+        for (int i = maxRotate; i >= 0; i--) {
+            final File thisFile = (i == 0) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + i);
+            final File youngerFile = (i <= 1) ? inputFile : new File(inputFile.getAbsolutePath() + "-" + (i - 1));
+
+            if (i == maxRotate) {
+                if (thisFile.exists()) {
+                    LOGGER.debug("deleting old backup file: " + thisFile.getAbsolutePath());
+                    if (!thisFile.delete()) {
+                        LOGGER.error("unable to delete old backup file: " + thisFile.getAbsolutePath());
+                    }
+                }
+            } else if (i == 0 || youngerFile.exists()) {
+                final File destFile = new File(inputFile.getAbsolutePath() + "-" + (i + 1));
+                LOGGER.debug("backup file " + thisFile.getAbsolutePath() + " renamed to " + destFile.getAbsolutePath());
+                if (!thisFile.renameTo(destFile)) {
+                    LOGGER.debug("unable to rename file " + thisFile.getAbsolutePath() + " to " + destFile.getAbsolutePath());
+                }
+            }
+        }
+    }
+
     public static class SimpleTextCrypto {
 
         public static String encryptValue(final String value, final SecretKey key)
@@ -999,31 +1028,6 @@ public class
             System.arraycopy(md.digest(), 0, key, 0, 16);
             return new SecretKeySpec(key, "AES");
         }
-    }
-
-    public static String calcEtagUserString(final PwmApplication pwmApplication, final PwmSession pwmSession) {
-        if (pwmApplication == null || pwmSession == null) {
-            return "";
-        }
-
-        final SessionStateBean sessionStateBean = pwmSession.getSessionStateBean();
-        if (sessionStateBean == null) {
-            return "";
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        sb.append(Long.toString(pwmApplication.getStartupTime().getTime(),36));
-        sb.append("-");
-        sb.append(String.valueOf(sessionStateBean.getLocale()));
-        if (sessionStateBean.isAuthenticated()) {
-            sb.append("-");
-            try {
-                sb.append(md5sum(pwmSession.getUserInfoBean().getUserDN()));
-            } catch (IOException e) {
-                //nothing doin
-            }
-        }
-        return sb.toString();
     }
 
     public static String figureForwardURL(
@@ -1160,7 +1164,7 @@ public class
 
             pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
 
-            pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+            pwmApplication.getEmailQueue().submit(new EmailItemBean(
                     toAddress,
                     configuredEmailSetting.getFrom(),
                     configuredEmailSetting.getSubject(),
@@ -1235,15 +1239,13 @@ public class
         public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
             try {
                 return isoDateFormat.parse(jsonElement.getAsString());
-            } catch (ParseException e) {
-                LOGGER.error("error parsing default json stored date format '" + jsonElement.getAsString() + "' using ISO format error:" + e.getMessage());
-            }
+            } catch (ParseException e) { /* noop */ }
 
             // for backwards compatibility
             try {
                 return gsonDateFormat.parse(jsonElement.getAsString());
             } catch (ParseException e) {
-                LOGGER.error("error parsing default json stored date format '" + jsonElement.getAsString() + "' using system default format error:" + e.getMessage());
+                LOGGER.error("unable to parse stored json timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
                 throw new JsonParseException(e);
             }
         }

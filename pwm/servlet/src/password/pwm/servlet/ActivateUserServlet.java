@@ -38,6 +38,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.token.TokenPayload;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
@@ -64,7 +65,7 @@ public class ActivateUserServlet extends TopServlet {
 
     private static final String CONTEXT_PARAM_NAME = "context";
 
-    private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
+    private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
 
 // -------------------------- OTHER METHODS --------------------------
@@ -99,7 +100,7 @@ public class ActivateUserServlet extends TopServlet {
 
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
-            if (convertURLtokenCommand(req, resp, pwmSession)) {
+            if (convertURLtokenCommand(req, resp, pwmApplication, pwmSession)) {
                 return;
             }
         }
@@ -109,7 +110,7 @@ public class ActivateUserServlet extends TopServlet {
             if ("activate".equalsIgnoreCase(processAction)) {
                 handleActivationRequest(req, resp);
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
-                handleEnterForgottenCode(req,resp);
+                handleEnterForgottenCode(req,resp,pwmApplication,pwmSession);
             } else if ("reset".equalsIgnoreCase(processAction)) {
                 pwmSession.clearUserBean(ActivateUserBean.class);
                 advanceToNextStage(req, resp);
@@ -278,7 +279,7 @@ public class ActivateUserServlet extends TopServlet {
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // mark the event log
-            pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(),pwmSession);
+            pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(), pwmSession);
 
             // set the session success message
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_ACTIVATE_USER, null);
@@ -448,7 +449,7 @@ public class ActivateUserServlet extends TopServlet {
             return false;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(), new UserDataReader(theUser));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), new UserDataReader(theUser));
         return true;
     }
 
@@ -540,9 +541,10 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         final String tokenKey;
+        TokenPayload tokenPayload = null;
         try {
-            final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME,tokenMapData,theUser.getEntryDN(),dest);
-            tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
+            tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, tokenMapData, theUser.getEntryDN(), dest);
+            tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload, pwmSession);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -553,18 +555,21 @@ public class ActivateUserServlet extends TopServlet {
         activateUserBean.setTokenIssued(true);
     }
 
-    private void handleEnterForgottenCode(final HttpServletRequest req, final HttpServletResponse resp)
+    private void handleEnterForgottenCode(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
         boolean tokenPass = false;
         final String userDN;
-        TokenManager.TokenPayload tokenPayload = null;
+        TokenPayload tokenPayload = null;
         try {
             tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
@@ -599,14 +604,17 @@ public class ActivateUserServlet extends TopServlet {
                     final ChaiUser proxiedUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
                     final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmSession, pwmApplication.getConfig(), proxiedUser);
                     final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
-                    if ((userLastPasswordChange != null && dateStringInToken != null) && (!userLastPasswordChange.toString().equals(dateStringInToken))) {
-                        tokenPass = false;
-                        final String errorString = "user password has changed since token issued, token rejected";
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
-                        LOGGER.error(pwmSession, errorInfo.toDebugStr());
-                        pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                        this.forwardToEnterCodeJSP(req, resp);
-                        return;
+                    if (userLastPasswordChange != null && dateStringInToken != null) {
+                        final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
+                        if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
+                            tokenPass = false;
+                            final String errorString = "user password has changed since token issued, token rejected";
+                            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
+                            LOGGER.error(pwmSession, errorInfo.toDebugStr());
+                            pwmSession.getSessionStateBean().setSessionError(errorInfo);
+                            this.forwardToEnterCodeJSP(req, resp);
+                            return;
+                        }
                     }
                 } catch (ChaiUnavailableException e) {
                     LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
@@ -630,6 +638,7 @@ public class ActivateUserServlet extends TopServlet {
                     pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest, null);
                 }
             }
+            pwmApplication.getTokenManager().markTokenAsClaimed(userEnteredCode, pwmSession);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             advanceToNextStage(req, resp);

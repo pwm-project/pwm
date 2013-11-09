@@ -38,6 +38,7 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -98,7 +100,11 @@ public class RestHealthServer {
     ) {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(false);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -125,14 +131,18 @@ public class RestHealthServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String doPwmHealthJsonGet(
+    public Response doPwmHealthJsonGet(
             @QueryParam("refreshImmediate") final boolean requestImmediateParam
     ) {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(false);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return e.getMessage();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -147,13 +157,13 @@ public class RestHealthServer {
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);
-            return restResultBean.toJson();
+            return restResultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
 

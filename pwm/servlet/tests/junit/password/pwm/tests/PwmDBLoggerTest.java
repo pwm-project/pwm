@@ -65,12 +65,9 @@ public class PwmDBLoggerTest extends TestCase {
         final File configFileLocation = new File(TestHelper.getParameter("pwmConfigurationLocation"));
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
         config = reader.getConfiguration();
-        final Map<String,String> initStrings = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING),"=");
 
         pwmDB = LocalDBFactory.getInstance(
                 fileLocation,
-                reader.getConfiguration().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION),
-                initStrings,
                 false,
                 null
         );
@@ -145,7 +142,7 @@ public class PwmDBLoggerTest extends TestCase {
 
             final StringBuilder description = new StringBuilder(randomValue);
             final PwmLogEvent event = new PwmLogEvent(
-                    new Date(),
+                    new Date(System.currentTimeMillis() - (7l * 24l * 60l * 60l * 1000l)),
                     LocalDBLogger.class.getName(),
                     description.toString(), "", "", null, PwmLogLevel.TRACE);
             events.add(event);

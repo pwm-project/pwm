@@ -22,10 +22,12 @@
 
 package password.pwm.config;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -59,6 +61,7 @@ public class ConfigurationReader {
 
     public ConfigurationReader(final File configFile) {
         this.configFile = configFile;
+
         this.configFileChecksum = readFileChecksum(configFile);
         try {
             this.storedConfiguration = readStoredConfig();
@@ -143,9 +146,21 @@ public class ConfigurationReader {
         return storedConfiguration;
     }
 
-    public void saveConfiguration(final StoredConfiguration storedConfiguration)
-            throws IOException, PwmUnrecoverableException
+    public void saveConfiguration(final StoredConfiguration storedConfiguration, final PwmApplication pwmApplication)
+            throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
+        File backupDirectory = null;
+        int backupRotations = 0;
+        if (pwmApplication != null) {
+            final Configuration configuration = new Configuration(storedConfiguration);
+            final String backupDirSetting = configuration.readAppProperty(AppProperty.BACKUP_LOCATION);
+            if (backupDirSetting != null && backupDirSetting.length() > 0) {
+                final File pwmPath = pwmApplication.getPwmApplicationPath();
+                backupDirectory = Helper.figureFilepath(backupDirSetting, pwmPath);
+            }
+            backupRotations = Integer.parseInt(configuration.readAppProperty(AppProperty.BACKUP_CONFIG_COUNT));
+        }
+
 
         { // increment the config epoch
             String epochStrValue = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
@@ -159,38 +174,22 @@ public class ConfigurationReader {
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
         }
 
-        rotateBackups(configFile);
-        Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
-        LOGGER.info("saved configuration " + storedConfiguration.toString());
-    }
-
-    private void rotateBackups(final File configFile) {
-        final int maxRotations = PwmConstants.CONFIG_BACKUP_ROTATIONS;
-        if (maxRotations < 1) {
-            return;
+        if (backupDirectory != null && !backupDirectory.exists()) {
+            if (!backupDirectory.mkdirs()) {
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to create backup directory structure '" + backupDirectory.toString() + "'"));
+            }
         }
 
-        for (int i = maxRotations; i >= 0; i--) {
-            final File loopFile = new File(configFile + "-backup-" + i + ".xml");
-            final File destinationFileName = new File(configFile + "-backup-" + (i+1) + ".xml");
+        LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
+        Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
+        LOGGER.info("saved configuration " + storedConfiguration.toString());
 
-            if (i == maxRotations) {
-                if (loopFile.exists()) {
-                    if (loopFile.delete()) {
-                        LOGGER.debug("deleted old backup file: " + loopFile.getAbsolutePath());
-                    }
-                }
-            } else if (i == 0) {
-                if (configFile.exists()) {
-                    if (configFile.renameTo(destinationFileName)) {
-                        LOGGER.debug("current config file " + configFile.getAbsolutePath() + " renamed to " + destinationFileName.getAbsolutePath());
-                    }
-                }
-            } else {
-                if (loopFile.renameTo(destinationFileName)) {
-                    LOGGER.debug("backup file " + loopFile.getAbsolutePath() + " renamed to " + destinationFileName.getAbsolutePath());
-                }
-            }
+        if (backupDirectory != null) {
+            final String configFileName = configFile.getName();
+            final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
+            final File backupFile = new File(backupFilePath);
+            Helper.rotateBackups(backupFile, backupRotations);
+            Helper.writeFileAsString(backupFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
         }
     }
 

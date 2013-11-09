@@ -319,8 +319,8 @@ function fetchRandoms(randomConfig) {
 
         require(["dojo"],function(dojo){
             dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/randompassword?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                headers: {"Accept":"application/json"},
+                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
+                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 content: dataInput,
                 preventCache: true,
                 timeout: 15000,
@@ -356,6 +356,7 @@ function startupChangePasswordPage()
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
     require(["dojo/_base/connect"], function(connect){
         connect.connect(window, "onbeforeunload", function(){
+            console.log('changepassword-beforeunload handler invoked');
             if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
                 var message = showString('Display_LeaveDirtyPasswordPage');
                 return message;

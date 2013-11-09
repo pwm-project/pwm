@@ -31,7 +31,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<% request.setAttribute("noTheme","true"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% try { password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <%
@@ -157,8 +157,8 @@
     function fetchRandomPassword() {
         require(["dojo"],function(dojo){
             dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/randompassword" + "?pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                headers: {"Accept":"application/json"},
+                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
+                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 dataType: "json",
                 timeout: 15000,
                 sync: false,
@@ -220,7 +220,7 @@
 
             drawNextSprite();
 
-            showPwmHealth('healthBody', {showTimestamp:true});
+            showAppHealth('healthBody', {showTimestamp:true});
 
             showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
             setInterval(function(){

@@ -102,10 +102,11 @@
         require(["dojo"],function(dojo){
             grid.refresh();
             var maximum = getObject('maxResults').value;
-            var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum;
             dojo.xhrGet({
                 url: url,
                 preventCache: true,
+                headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 handleAs: 'json',
                 load: function(data) {
                     closeWaitDialog();

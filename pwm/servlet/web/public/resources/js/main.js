@@ -469,7 +469,7 @@ function closeWaitDialog() {
     });
 }
 
-function showPwmHealth(parentDivID, options, refreshNow) {
+function showAppHealth(parentDivID, options, refreshNow) {
     var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
     PWM_GLOBAL['showPwmHealthOptions'] = options;
     var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
@@ -490,19 +490,14 @@ function showPwmHealth(parentDivID, options, refreshNow) {
 
         if (refreshNow) {
             parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
-        }
-
-        refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
-        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-
-        if (refreshNow) {
+            refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
             refreshUrl += "&refreshImmediate=true";
         }
 
         dojo.xhrGet({
             url: refreshUrl,
             handleAs: "json",
-            headers: { "Accept": "application/json" },
+            headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
             timeout: 60 * 1000,
             preventCache: true,
             load: function(data) {
@@ -527,7 +522,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                         htmlBody += (date ? date.toLocaleString() : "") + '&nbsp;&nbsp;&nbsp;&nbsp;';
                     }
                     if (showRefresh) {
-                        htmlBody += '<a href="#"; onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
+                        htmlBody += '<a href="#"; onclick="showAppHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
                     }
                     htmlBody += "</td></tr>";
                 }
@@ -537,7 +532,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['healthCheckInProgress'] = false;
                 if (refreshTime > 0) {
                     setTimeout(function() {
-                        showPwmHealth(parentDivID, options);
+                        showAppHealth(parentDivID, options);
                     }, refreshTime);
                 }
                 if (finishFunction) {
@@ -552,7 +547,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                 htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
                 if (showRefresh) {
-                    htmlBody += '<a href="#" onclick="showPwmHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
+                    htmlBody += '<a href="#" onclick="showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
                 }
                 htmlBody += '</div>';
                 parentDiv.innerHTML = htmlBody;
@@ -560,7 +555,7 @@ function showPwmHealth(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['pwm-health'] = 'WARN';
                 if (refreshTime > 0) {
                     setTimeout(function() {
-                        showPwmHealth(parentDivID, options);
+                        showAppHealth(parentDivID, options);
                     }, refreshTime);
                 }
                 if (finishFunction) {
@@ -663,18 +658,17 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
     }
 
     var output = "";
-    var days = 0, hours = 0, mins = 0, secs = 0;
 
-    days = Math.floor(amount / 86400);
+    var days = Math.floor(amount / 86400);
 
     amount = amount % 86400;
-    hours = Math.floor(amount / 3600);
+    var hours = Math.floor(amount / 3600);
 
     amount = amount % 3600;
-    mins = Math.floor(amount / 60);
+    var mins = Math.floor(amount / 60);
 
     amount = amount % 60;
-    secs = Math.floor(amount);
+    var secs = Math.floor(amount);
 
     // write number of days
     if (days != 0) {
@@ -854,14 +848,13 @@ function showStatChart(statName,days,divName) {
         "dojo/domReady!"],
         function(dojo,dijit,registry){
             var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
-            statsGetUrl += "?pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-            statsGetUrl += "&statName=" + statName;
+            statsGetUrl += "?statName=" + statName;
             statsGetUrl += "&days=" + days;
 
             dojo.xhrGet({
                 url: statsGetUrl,
                 handleAs: "json",
-                headers: { "Accept": "application/json" },
+                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 timeout: 15 * 1000,
                 preventCache: true,
                 error: function(data) {
@@ -1006,7 +999,7 @@ function createCSSClass(selector, style)
         for(i = 0;i<styleSheet.rules.length;i++)
         {
             // if there is an existing rule set up, replace it
-            if(styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase())
+            if(styleSheet.cssRules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase())
             {
                 styleSheet.rules[i].style.cssText = style;
                 return;
@@ -1020,7 +1013,7 @@ function createCSSClass(selector, style)
         for(i = 0;i<styleSheet.cssRules.length;i++)
         {
             // if there is an existing rule set up, replace it
-            if(styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase())
+            if(styleSheet.cssRules[i].selectorText && styleSheet.cssRules[i].selectorText.toLowerCase() == selector.toLowerCase())
             {
                 styleSheet.cssRules[i].style.cssText = style;
                 return;
@@ -1120,7 +1113,7 @@ function pwmFormValidator(validationProps, reentrant)
     var AJAX_TIMEOUT = PWM_GLOBAL['client.ajaxTypingTimeout'];
     var CONSOLE_DEBUG = true;
 
-    var serviceURL = validationProps['serviceURL'] + (validationProps['serviceURL'].indexOf('?') == -1 ? '?' : '&' ) + "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var serviceURL = validationProps['serviceURL'];
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
     var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : showString('Display_PleaseWait');
@@ -1170,11 +1163,11 @@ function pwmFormValidator(validationProps, reentrant)
     var formDataString = dojo.toJson(formData);
 
     require(["dojo"],function(dojo){
-        if (CONSOLE_DEBUG) console.log('pwmFormValidator: sending form data to server...');
+        if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server...');
         dojo.xhrPost({
             url: serviceURL,
             postData: formDataString,
-            headers: {"Accept":"application/json"},
+            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
             contentType: "application/json;charset=utf-8",
             encoding: "utf-8",
             handleAs: "json",

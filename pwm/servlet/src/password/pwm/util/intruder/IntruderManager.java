@@ -25,14 +25,17 @@ package password.pwm.util.intruder;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.*;
@@ -40,6 +43,7 @@ import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
+import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -92,20 +96,20 @@ public class IntruderManager implements Serializable, PwmService {
                 case AUTO:
                     dataStore = DataStoreFactory.autoDbOrLocalDBstore(pwmApplication, DatabaseTable.INTRUDER, LocalDB.DB.INTRUDER);
                     if (dataStore instanceof DatabaseDataStore) {
-                        debugMsg = "starting IntruderManager using auto-confgured data store, Remote Database selected";
+                        debugMsg = "starting using auto-configured data store, Remote Database selected";
                     } else {
-                        debugMsg = "starting IntruderManager using auto-confgured data store, Remote Database selected";
+                        debugMsg = "starting using auto-configured data store, Remote Database selected";
                     }
                     break;
 
                 case DATABASE:
                     dataStore = new DatabaseDataStore(pwmApplication.getDatabaseAccessor(), DatabaseTable.INTRUDER);
-                    debugMsg = "starting IntruderManager using Remote Database data store";
+                    debugMsg = "starting using Remote Database data store";
                     break;
 
                 case LOCALDB:
                     dataStore = new LocalDBDataStore(pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER);
-                    debugMsg = "starting IntruderManager using LocalDB data store";
+                    debugMsg = "starting using LocalDB data store";
                     break;
 
                 default:
@@ -120,8 +124,8 @@ public class IntruderManager implements Serializable, PwmService {
         {
             recordStore = new DataStoreRecordStore(dataStore, this);
             timer = new Timer(PwmConstants.PWM_APP_NAME + "-IntruderManager cleaner",true);
-            final long maxRecordAge = Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_RETENTION_TIME_MS));
-            final long cleanerRunFrequency = Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS));
+            final long maxRecordAge = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_RETENTION_TIME_MS));
+            final long cleanerRunFrequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS));
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -201,27 +205,6 @@ public class IntruderManager implements Serializable, PwmService {
         final boolean locked = manager.checkSubject(subject);
 
         if (locked) {
-            if (!manager.isAlerted(subject) ) {
-                if (recordType == RecordType.USER_DN) {
-                    try {
-                        final ChaiUser chaiUser = ChaiFactory.createChaiUser(subject, pwmApplication.getProxyChaiProvider());
-                        final String userID = Helper.readLdapUserIDValue(pwmApplication,chaiUser);
-                        final AuditRecord auditRecord = new AuditRecord(AuditEvent.INTRUDER_LOCK ,userID, subject, pwmSession);
-                        pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
-                    } catch (ChaiException e) {
-                        LOGGER.error("unexpected ldap error generating audit lockout event: " + e.getMessage());
-                    }
-                }
-                sendAlert(manager.readIntruderRecord(subject));
-                manager.markAlerted(subject);
-
-                final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
-                if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
-                    pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
-                }
-            }
-
             if (recordType == RecordType.ADDRESS) {
                 throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_ADDRESS);
             } else {
@@ -270,7 +253,32 @@ public class IntruderManager implements Serializable, PwmService {
 
         final RecordManager manager = recordManagers.get(recordType);
         manager.markSubject(subject);
-        check(recordType, subject, pwmSession);
+        try {
+            check(recordType, subject, pwmSession);
+        } catch (PwmUnrecoverableException e) {
+            if (!manager.isAlerted(subject) ) {
+                if (recordType == RecordType.USER_DN) {
+                    try {
+                        final ChaiUser chaiUser = ChaiFactory.createChaiUser(subject, pwmApplication.getProxyChaiProvider());
+                        final String userID = Helper.readLdapUserIDValue(pwmApplication,chaiUser);
+                        final UserAuditRecord auditRecord = new UserAuditRecord(AuditEvent.INTRUDER_LOCK ,userID, subject, pwmSession);
+                        pwmApplication.getAuditManager().submit(auditRecord);
+                    } catch (ChaiException chaiException) {
+                        LOGGER.error("unexpected ldap error generating audit lockout event: " + chaiException.getMessage());
+                    }
+                    sendAlert(manager.readIntruderRecord(subject));
+                }
+                manager.markAlerted(subject);
+
+                final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+                if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
+                    pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
+                }
+            }
+            throw e;
+        }
+
         delayPenalty(manager.readIntruderRecord(subject), pwmSession);
     }
 
@@ -279,10 +287,10 @@ public class IntruderManager implements Serializable, PwmService {
         int points = 0;
         if (intruderRecord != null) {
             points += intruderRecord.getAttemptCount();
-            long delayPenalty = Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_MIN_DELAY_PENALTY_MS)); // minimum
-            delayPenalty += points * Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_DELAY_PER_COUNT_MS));
-            delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
-            delayPenalty = delayPenalty > Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
+            long delayPenalty = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MIN_DELAY_PENALTY_MS)); // minimum
+            delayPenalty += points * Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_PER_COUNT_MS));
+            delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
+            delayPenalty = delayPenalty > Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
             LOGGER.trace(pwmSession, "delaying response " + delayPenalty + "ms due to intruder record: " + Helper.getGson().toJson(intruderRecord));
             Helper.pause(delayPenalty);
         }
@@ -298,7 +306,11 @@ public class IntruderManager implements Serializable, PwmService {
         values.put(intruderRecord.getType().toString(),intruderRecord.getSubject());
         values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
         values.put("age", TimeDuration.fromCurrent(intruderRecord.getTimeStamp()).asCompactString());
-        AlertHandler.alertIntruder(pwmApplication, values);
+
+        if (intruderRecord.getType() == RecordType.USER_DN) {
+            final String userDN = intruderRecord.getSubject();
+            sendIntruderNoticeEmail(pwmApplication, userDN);
+        }
     }
 
     public List<Map<String,Object>> getRecords(final RecordType recordType, int maximum)
@@ -407,4 +419,43 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
     }
+
+    private static void sendIntruderNoticeEmail(
+            final PwmApplication pwmApplication,
+            final String userDN
+    )
+    {
+        final Configuration config = pwmApplication.getConfig();
+        final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_INTRUDERNOTICE, PwmConstants.DEFAULT_LOCALE);
+
+        if (configuredEmailSetting == null) {
+            return;
+        }
+
+        final UserInfoBean userInfoBean = new UserInfoBean();
+        try {
+            UserStatusHelper.populateUserInfoBean(
+                    null,
+                    userInfoBean,
+                    pwmApplication,
+                    PwmConstants.DEFAULT_LOCALE,
+                    userDN,
+                    null,
+                    pwmApplication.getProxyChaiProvider()
+            );
+        } catch (ChaiUnavailableException e) {
+            LOGGER.error("error reading user info while sending intruder notice for user " + userDN + ", error: " + e.getMessage());
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("error reading user info while sending intruder notice for user " + userDN + ", error: " + e.getMessage());
+        }
+
+        pwmApplication.getEmailQueue().submit(new EmailItemBean(
+                configuredEmailSetting.getTo(),
+                configuredEmailSetting.getFrom(),
+                configuredEmailSetting.getSubject(),
+                configuredEmailSetting.getBodyPlain(),
+                configuredEmailSetting.getBodyHtml()
+        ), userInfoBean, null);
+    }
+
 }

@@ -62,7 +62,7 @@
                 require(["dijit/Tooltip"],function(Tooltip){
                     new Tooltip({
                         connectId: ["label_required_<%=loopConfiguration.getName()%>"],
-                        label: '<%=PwmError.getLocalizedMessage(ssBean.getLocale(),PwmError.ERROR_FIELD_REQUIRED,pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
+                        label: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
                         position: ['above']
                     });
                 });
@@ -125,7 +125,7 @@
             require(["dijit/Tooltip"],function(Tooltip){
                 new Tooltip({
                     connectId: ["label_required_password"],
-                    label: '<%=PwmError.getLocalizedMessage(ssBean.getLocale(),PwmError.ERROR_FIELD_REQUIRED,pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
+                    label: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
                     position: ['above']
                 });
             });

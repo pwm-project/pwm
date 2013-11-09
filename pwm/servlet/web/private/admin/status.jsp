@@ -229,7 +229,7 @@
                 </td>
                 <td>
                     <a href="<pwm:url url='auditlog.jsp'/>">
-                        <%= numberFormat.format(pwmApplication.getAuditManager().localSize()) %>
+                        <%= numberFormat.format(pwmApplication.getAuditManager().vaultSize()) %>
                     </a>
                 </td>
             </tr>

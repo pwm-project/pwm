@@ -335,7 +335,7 @@ public class ChangePasswordServlet extends TopServlet {
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 
         ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
@@ -469,7 +469,7 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
     }
 
     private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)

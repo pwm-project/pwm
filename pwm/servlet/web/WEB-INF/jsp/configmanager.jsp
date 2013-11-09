@@ -52,18 +52,16 @@
         <% final String configEpoch = String.valueOf(ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()); %>
         <pwm:Display key="Display_ConfigManagerConfiguration" bundle="Config" value1="<%=configLoadTime%>" value2="<%=configEpoch%>"/>
         --%>
-        <div data-dojo-type="dijit/TitlePane" title="Health" style="border:0; margin:0; padding:0" data-dojo-props="persist: true">
             <div id="healthBody" style="border:0; margin:0; padding:0">
                 <div id="WaitDialogBlank"></div>
             </div>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     require(["dojo/domReady!"],function(){
-                        showPwmHealth('healthBody', {showRefresh: true, showTimestamp: true});
+                        showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
                     });
                 });
             </script>
-        </div>
         <br/>
         <table style="border:0">
             <tr style="border:0">
@@ -156,6 +154,7 @@
         });
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

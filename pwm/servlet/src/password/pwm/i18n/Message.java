@@ -55,6 +55,11 @@ public enum Message {
     SUCCESS_PASSWORDSEND("Success_PasswordSend"),
     SUCCESS_ACTION("Success_Action"),
 
+    EVENT_LOG_STARTUP("EventLog_Startup"),
+    EVENT_LOG_SHUTDOWN("EventLog_Shutdown"),
+    EVENT_LOG_FATAL_EVENT("EventLog_FatalEvent"),
+    EVENT_LOG_MODIFY_CONFIGURATION("EventLog_ModifyConfiguration"),
+
     EVENT_LOG_AUTHENTICATE("EventLog_Authenticate"),
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
@@ -64,9 +69,12 @@ public enum Message {
     EVENT_LOG_CREATE_USER("EventLog_CreateUser"),
     EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
+    EVENT_LOG_TOKEN_ISSUED("EventLog_TokenIssued"),
+    EVENT_LOG_TOKEN_CLAIMED("EventLog_TokenClaimed"),
     EVENT_LOG_HELPDESK_SET_PASSWORD("EventLog_HelpdeskSetPassword"),
     EVENT_LOG_HELPDESK_UNLOCK_PASSWORD("EventLog_HelpdeskUnlockPassword"),
     EVENT_LOG_HELPDESK_CLEAR_RESPONSES("EventLog_HelpdeskClearResponses"),
+    EVENT_LOG_HELPDESK_ACTION("EventLog_HelpdeskAction"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),
     REQUIREMENT_MINLENGTHPLURAL("Requirement_MinLengthPlural"),
@@ -114,7 +122,9 @@ public enum Message {
     REQUIREMENT_NOTCASESENSITIVE("Requirement_NotCaseSensitive"),
     REQUIREMENT_MINIMUMFREQUENCY("Requirement_MinimumFrequency"),
     REQUIREMENT_AD_COMPLEXITY("Requirement_ADComplexity"),
-    REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired");
+    REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired"),
+
+    ;
 
 // ------------------------------ FIELDS ------------------------------
 

@@ -72,6 +72,7 @@ public class SessionStateBean implements PwmSessionBean {
 
     private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
     private String sessionVerificationKey;
+    private String restClientKey;
 
     private boolean passedCaptcha;
     private boolean debugInitialized;
@@ -316,6 +317,14 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void clearIntruderAttempts() {
         intruderAttempts = 0;
+    }
+
+    public String getRestClientKey() {
+        return restClientKey;
+    }
+
+    public void setRestClientKey(String restClientKey) {
+        this.restClientKey = restClientKey;
     }
 
     // -------------------------- ENUMERATIONS --------------------------

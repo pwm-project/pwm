@@ -41,7 +41,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -167,7 +167,7 @@ public class PasswordUtility {
             return errorInformation;
         }
 
-        pwmApplication.sendEmailUsingQueue(new EmailItemBean(
+        pwmApplication.getEmailQueue().submit(new EmailItemBean(
                 configuredEmailSetting.getTo(),
                 configuredEmailSetting.getFrom(),
                 configuredEmailSetting.getSubject(),
@@ -396,7 +396,7 @@ public class PasswordUtility {
 
         // mark the event log
         {
-            final AuditRecord auditRecord = new AuditRecord(
+            final UserAuditRecord auditRecord = new UserAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmSession.getUserInfoBean().getUserID(),
                     pwmSession.getUserInfoBean().getUserDN(),
@@ -407,7 +407,7 @@ public class PasswordUtility {
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
+            pwmApplication.getAuditManager().submit(auditRecord);
         }
 
         // update statistics
@@ -450,7 +450,7 @@ public class PasswordUtility {
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log
-            final AuditRecord auditRecord = new AuditRecord(
+            final UserAuditRecord auditRecord = new UserAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmSession.getUserInfoBean().getUserID(),
                     pwmSession.getUserInfoBean().getUserDN(),
@@ -461,7 +461,7 @@ public class PasswordUtility {
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
-            pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
+            pwmApplication.getAuditManager().submit(auditRecord);
         }
 
         // send email notification
@@ -869,6 +869,6 @@ public class PasswordUtility {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, userInfoBean, new UserDataReader(user));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, userInfoBean, new UserDataReader(user));
     }
 }

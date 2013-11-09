@@ -47,7 +47,7 @@ import java.util.regex.PatternSyntaxException;
  * @author Jason D. Rivard
  */
 public enum PwmSetting {
-    // general settings
+    // application settings
     PWM_URL(
             "pwm.selfURL", PwmSettingSyntax.STRING, Category.GENERAL),
     VERSION_CHECK_ENABLE(
@@ -68,6 +68,9 @@ public enum PwmSetting {
             "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, Category.GENERAL),
     KNOWN_LOCALES(
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, Category.GENERAL),
+    PWMDB_LOCATION(
+            "pwmDb.location", PwmSettingSyntax.STRING, Category.GENERAL),
+
 
     // user interface
     INTERFACE_THEME(
@@ -140,8 +143,6 @@ public enum PwmSetting {
             "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
     LDAP_SERVER_CERTS(
             "ldap.serverCerts", PwmSettingSyntax.X509CERT, Category.LDAP),
-    LDAP_PROMISCUOUS_SSL(
-            "ldap.promiscuousSSL", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     LDAP_PROXY_USER_DN(
             "ldap.proxy.username", PwmSettingSyntax.STRING, Category.LDAP),
     LDAP_PROXY_USER_PASSWORD(
@@ -190,10 +191,6 @@ public enum PwmSetting {
             "email.userMailAttribute", PwmSettingSyntax.STRING, Category.EMAIL),
     EMAIL_MAX_QUEUE_AGE(
             "email.queueMaxAge", PwmSettingSyntax.NUMERIC, Category.EMAIL),
-    EMAIL_ADMIN_ALERT_TO(
-            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.EMAIL),
-    EMAIL_ADMIN_ALERT_FROM(
-            "email.adminAlert.fromAddress", PwmSettingSyntax.STRING, Category.EMAIL),
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_CHANGEPASSWORD_HELPDESK(
@@ -216,6 +213,8 @@ public enum PwmSetting {
             "email.updateguest", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_SENDPASSWORD(
             "email.sendpassword", PwmSettingSyntax.EMAIL, Category.EMAIL),
+    EMAIL_INTRUDERNOTICE(
+            "email.intruderNotice", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_ADVANCED_SETTINGS(
             "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, Category.EMAIL),
 
@@ -470,20 +469,14 @@ public enum PwmSetting {
             "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     LDAP_ENABLE_WIRE_TRACE(
             "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_ALERT_STARTUP(
-            "events.alert.startup.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_ALERT_SHUTDOWN(
-            "events.alert.shutdown.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_ALERT_INTRUDER_LOCKOUT(
-            "events.alert.intruder.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_ALERT_FATAL_EVENT(
-            "events.alert.fatalEvent.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_ALERT_CONFIG_MODIFY(
-            "events.alert.configModify.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
     EVENTS_AUDIT_MAX_AGE(
             "events.audit.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
+    AUDIT_EMAIL_SYSTEM_TO(
+            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
+    AUDIT_EMAIL_USER_TO(
+            "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
     AUDIT_SYSLOG_SERVERS(
             "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
 
@@ -552,6 +545,9 @@ public enum PwmSetting {
             "recovery.action", PwmSettingSyntax.SELECT, Category.RECOVERY),
     CHALLENGE_SENDNEWPW_METHOD(
             "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
+    FORGOTTEN_USER_POST_ACTIONS(
+            "recovery.postActions", PwmSettingSyntax.ACTION, Category.RECOVERY),
+
 
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
@@ -732,12 +728,6 @@ public enum PwmSetting {
 
 
     // Database
-    PWMDB_LOCATION(
-            "pwmDb.location", PwmSettingSyntax.STRING, Category.DATABASE),
-    PWMDB_IMPLEMENTATION(
-            "pwmDb.implementation", PwmSettingSyntax.STRING, Category.DATABASE),
-    PWMDB_INIT_STRING(
-            "pwmDb.initParameters", PwmSettingSyntax.STRING_ARRAY, Category.DATABASE),
     DATABASE_CLASS(
             "db.classname", PwmSettingSyntax.STRING, Category.DATABASE),
     DATABASE_URL(
@@ -800,7 +790,26 @@ public enum PwmSetting {
     PwmSetting(
             final String key,
             final PwmSettingSyntax syntax,
+            final Group group,
+            final Template... templates
+    ) {
+        this(key,syntax,null,group,templates);
+    }
+
+    PwmSetting(
+            final String key,
+            final PwmSettingSyntax syntax,
             final Category category,
+            final Template... templates
+    ) {
+        this(key,syntax,category,null,templates);
+    }
+
+    PwmSetting(
+            final String key,
+            final PwmSettingSyntax syntax,
+            final Category category,
+            final Group group,
             final Template... templates
     ) {
         this.key = key;
@@ -809,6 +818,7 @@ public enum PwmSetting {
         final Template[] temps = (templates == null || templates.length == 0) ? Template.values() : templates;
         this.templates = Collections.unmodifiableSet(new HashSet(Arrays.asList(temps)));
     }
+
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -947,6 +957,10 @@ public enum PwmSetting {
             LOGGER.error(errorMsg,e);
             throw new IllegalStateException(errorMsg,e);
         }
+    }
+
+    public enum Group {
+        LDAP,
     }
 
     public enum Category {

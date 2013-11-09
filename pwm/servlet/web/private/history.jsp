@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.event.AuditRecord" %>
+<%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
@@ -32,9 +32,9 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="nihilo">
 <%
-    List<AuditRecord> auditRecords = Collections.emptyList();
+    List<UserAuditRecord> auditRecords = Collections.emptyList();
     try {
-        auditRecords = pwmApplicationHeader.getAuditManager().readUserAuditRecords(pwmSessionHeader);
+        auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);
     } catch (Exception e) {
     }
     final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
@@ -49,7 +49,7 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
         <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
-            <% for (final AuditRecord record : auditRecords) { %>
+            <% for (final UserAuditRecord record : auditRecords) { %>
             <tr>
                 <td class="key" style="width: 200px">
                     <%= (DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, userLocale)).format(record.getTimestamp()) %>

@@ -38,13 +38,14 @@ import password.pwm.i18n.Message;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -82,23 +83,26 @@ public class RestVerifyResponsesServer {
 
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
-        final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
-        return javax.ws.rs.core.Response.temporaryRedirect(uri).build();
+    public Response doHtmlRedirect() throws URISyntaxException {
+        return RestServerHelper.doHtmlRedirect();
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String doSetChallengeDataJson(
+    public Response doSetChallengeDataJson(
             final JsonPutChallengesInput jsonInput
     )
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, jsonInput.username);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -123,13 +127,13 @@ public class RestVerifyResponsesServer {
             resultBean.setError(false);
             resultBean.setData(verified);
             resultBean.setSuccessMessage(successMsg);
-            return resultBean.toJson();
+            return resultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
         }
     }
 }

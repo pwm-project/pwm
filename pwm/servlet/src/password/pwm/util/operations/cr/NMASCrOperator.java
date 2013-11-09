@@ -92,9 +92,9 @@ public class NMASCrOperator implements CrOperator {
 
     public NMASCrOperator(PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
-        maxThreadCount = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MAX_COUNT));
-        final int MAX_SECONDS = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MAX_SECONDS));
-        final int MIN_SECONDS = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_MIN_SECONDS));
+        maxThreadCount = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_MAX_COUNT));
+        final int MAX_SECONDS = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_MAX_SECONDS));
+        final int MIN_SECONDS = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_MIN_SECONDS));
 
         int maxNmasIdleSeconds = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
         if (maxNmasIdleSeconds > MAX_SECONDS) {
@@ -118,7 +118,7 @@ public class NMASCrOperator implements CrOperator {
                 if (timer == null) {
                     LOGGER.debug("starting NMASCrOperator watchdog timer, maxIdleThreadTime=" + maxThreadIdleTime.asCompactString());
                     timer = new Timer(PwmConstants.PWM_APP_NAME + "-NMASCrOperator watchdog timer",true);
-                    final long frequency = Long.parseLong(pwmApplication.readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY));
+                    final long frequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.NMAS_THREADS_WATCHDOG_FREQUENCY));
                     timer.schedule(new ThreadWatchdogTask(),frequency,frequency);
                 }
             }
@@ -281,7 +281,7 @@ public class NMASCrOperator implements CrOperator {
             final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            chaiConfiguration = Helper.createChaiConfiguration(config, ldapURLs, proxyDN, proxyPW, (int)maxThreadIdleTime.getMilliseconds());
+            chaiConfiguration = Helper.createChaiConfiguration(config, ldapURLs, proxyDN, proxyPW);
             chaiConfiguration.setSetting(ChaiSetting.PROVIDER_IMPLEMENTATION, JLDAPProviderImpl.class.getName());
 
             cycle();
@@ -304,7 +304,7 @@ public class NMASCrOperator implements CrOperator {
             try {
                 if (theUser.isLocked()) {
                     LOGGER.trace("user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_USER,"nmas account is intruder locked-out"));
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP,"nmas account is intruder locked-out"));
                 } else if (!theUser.isAccountEnabled()) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"nmas account is disabled"));
                 }

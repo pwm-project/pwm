@@ -130,11 +130,18 @@ public class StoredConfiguration implements Serializable {
         return appPropertyMap.get(propertyName.getKey());
     }
 
+    public void writeAppProperty(final AppProperty propertyName, final String value) {
+        if (value == null) {
+            appPropertyMap.remove(propertyName);
+        }
+        appPropertyMap.put(propertyName.getKey(), value);
+    }
+
     public void lock() {
         if (!locked) {
             settingMap = Collections.unmodifiableMap(settingMap);
             configPropertyMap = Collections.unmodifiableMap(configPropertyMap);
-            appPropertyMap = Collections.unmodifiableMap(configPropertyMap);
+            appPropertyMap = Collections.unmodifiableMap(appPropertyMap);
             localizationMap = Collections.unmodifiableMap(localizationMap);
             locked = true;
         }
@@ -344,7 +351,9 @@ public class StoredConfiguration implements Serializable {
         modifyTime = new Date();
     }
 
-
+    public String getKey() {
+        return DATETIME_FORMAT.format(createTime) + StoredConfiguration.class.getSimpleName();
+    }
 // -------------------------- INNER CLASSES --------------------------
 
     private static class XmlConverter {

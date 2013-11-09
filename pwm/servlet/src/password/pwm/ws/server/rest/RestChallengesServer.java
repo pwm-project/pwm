@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
-import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
@@ -36,18 +35,18 @@ import password.pwm.error.*;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.cr.CrOperator;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -109,7 +108,7 @@ public class RestChallengesServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String doFormGetChallengeData(
+    public Response doFormGetChallengeData(
             @QueryParam("answers") final boolean answers,
             @QueryParam("helpdesk") final boolean helpdesk,
             @QueryParam("username") final String username
@@ -118,9 +117,13 @@ public class RestChallengesServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -152,28 +155,32 @@ public class RestChallengesServer {
 
             RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonData);
-            return resultBean.toJson();
+            return resultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String doSetChallengeDataJson(
+    public Response doSetChallengeDataJson(
             final JsonChallengesData jsonInput
     )
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, jsonInput.username);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -208,27 +215,31 @@ public class RestChallengesServer {
             RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setSuccessMessage(successMsg);
-            return resultBean.toJson();
+            return resultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error reading json input: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public String doDeleteChallengeData(
+    public Response doDeleteChallengeData(
             @QueryParam("username") final String username
     )
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -258,13 +269,13 @@ public class RestChallengesServer {
             RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setSuccessMessage(successMsg);
-            return resultBean.toJson();
+            return resultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error delete responses: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
 }

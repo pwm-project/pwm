@@ -120,9 +120,10 @@ public class ContextManager implements Serializable {
             startupErrorInformation = doTest.doTest();
         }
 
+        Configuration configuration = null;
+        File pwmApplicationPath = null;
+        PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
         try {
-            Configuration configuration = null;
-            File pwmApplicationPath = null;
             if (startupErrorInformation == null) {
                 final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
                 final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
@@ -131,27 +132,29 @@ public class ContextManager implements Serializable {
                 configuration = configReader.getConfiguration();
                 pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
             }
-            final PwmApplication.MODE mode = startupErrorInformation == null ? (configReader == null ? PwmApplication.MODE.ERROR : configReader.getConfigMode()) : PwmApplication.MODE.ERROR;
+
+            if (configReader == null) {
+                mode = startupErrorInformation == null ? PwmApplication.MODE.ERROR : PwmApplication.MODE.ERROR;
+            } else {
+                mode = startupErrorInformation == null ? configReader.getConfigMode() : PwmApplication.MODE.ERROR;
+            }
+
             if (startupErrorInformation == null) {
                 startupErrorInformation = configReader.getConfigFileError();
             }
+
             if (PwmApplication.MODE.ERROR == mode) {
                 System.err.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
                 System.out.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
             }
+        } catch (Throwable e) {
+            handleStartupError("unable to initialize pwm due to configuration related error: ",e);
+        }
+
+        try {
             pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath);
-        } catch (OutOfMemoryError e) {
-            final String errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage();
-            startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
-            try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
-            System.err.println(errorMsg);
         } catch (Exception e) {
-            final String errorMsg = "unable to initialize pwm due to configuration related error: " + e.getMessage();
-            startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
-            try {LOGGER.fatal(errorMsg);} catch (Exception e2) {/* we tried anyway.. */}
-            System.err.println(errorMsg);
-            System.out.println(errorMsg);
-            e.printStackTrace();
+            handleStartupError("unable to initialize pwm: ",e);
         }
 
         if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
@@ -159,6 +162,27 @@ public class ContextManager implements Serializable {
             taskMaster.schedule(new ConfigFileWatcher(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
             taskMaster.schedule(new SessionWatcherTask(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
         }
+    }
+
+    private void handleStartupError(final String msgPrefix, final Throwable throwable) {
+        final String errorMsg;
+        if (throwable instanceof OutOfMemoryError) {
+            errorMsg = "JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + throwable.getMessage();
+        } else {
+            errorMsg = throwable.getMessage();
+        }
+
+        startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, msgPrefix + errorMsg);
+
+        try {
+            LOGGER.fatal(errorMsg);
+        } catch (Exception e2) {
+            // noop
+        }
+
+        System.err.println(errorMsg);
+        System.out.println(errorMsg);
+        throwable.printStackTrace();
     }
 
     void shutdown() {

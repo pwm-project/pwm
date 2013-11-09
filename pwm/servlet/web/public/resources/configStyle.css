@@ -27,6 +27,7 @@
 }
 
 .setting_title {
+    color: black;
     background-color: #d3d3d3;
     opacity: 0.75;
     padding-left: 10px;
@@ -37,7 +38,7 @@
     border-top-right-radius: 5px;
 }
 .setting_title.modified {
-    background-color: #eae498;
+    background-color: #aaaaaa;
 }
 
 .setting_title .text {

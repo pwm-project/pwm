@@ -22,18 +22,10 @@
 
 package password.pwm.event;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.productivity.java.syslog4j.Syslog;
-import org.productivity.java.syslog4j.SyslogConfigIF;
-import org.productivity.java.syslog4j.SyslogIF;
-import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmService;
-import password.pwm.PwmSession;
+import com.google.gson.reflect.TypeToken;
+import password.pwm.*;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
@@ -44,27 +36,23 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.Writer;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class AuditManager implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuditManager.class);
-    private static final int MAX_REMOVALS_PER_ADD = 100;
 
     private STATUS status = STATUS.NEW;
-    private LocalDBStoredQueue auditDB;
+    private Settings settings = new Settings();
 
-    private TimeDuration maxRecordAge = new TimeDuration(TimeDuration.DAY.getTotalMilliseconds() * 30);
-    private Date oldestRecord = null;
-
-    private SyslogManager syslogManager;
+    private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
-    private UserHistory userHistory;
+    private UserHistoryStore userHistoryStore;
+    private AuditVault auditVault;
+
+    private PwmApplication pwmApplication;
 
     public AuditManager() {
     }
@@ -77,7 +65,11 @@ public class AuditManager implements PwmService {
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
-        this.maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
+        this.pwmApplication = pwmApplication;
+
+        settings.systemEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO);
+        settings.userEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_USER_TO);
+        settings.alertFromAddress  = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
 
         if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
             this.status = STATUS.CLOSED;
@@ -85,11 +77,10 @@ public class AuditManager implements PwmService {
             return;
         }
 
-        this.auditDB = LocalDBStoredQueue.createPwmDBStoredQueue(pwmApplication.getLocalDB(), LocalDB.DB.AUDIT_EVENTS);
         final List<String> syslogConfigStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
         if (!syslogConfigStrings.isEmpty()) {
             try {
-                syslogManager = new SyslogManager(pwmApplication.getConfig());
+                syslogManager = new SyslogAuditService(pwmApplication.getConfig());
             } catch (Exception e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
                 LOGGER.error(errorInformation.toDebugStr());
@@ -101,22 +92,22 @@ public class AuditManager implements PwmService {
             switch (userEventStorageMethod) {
                 case AUTO:
                     if (pwmApplication.getConfig().hasDbConfigured()) {
-                        debugMsg = "starting AuditManager using auto-confgured data store, Remote Database selected";
-                        this.userHistory = new DatabaseUserHistory(pwmApplication);
+                        debugMsg = "starting using auto-configured data store, Remote Database selected";
+                        this.userHistoryStore = new DatabaseUserHistory(pwmApplication);
                     } else {
-                        debugMsg = "starting AuditManager using auto-confgured data store, LDAP selected";
-                        this.userHistory = new LdapXmlUserHistory(pwmApplication);
+                        debugMsg = "starting using auto-configured data store, LDAP selected";
+                        this.userHistoryStore = new LdapXmlUserHistory(pwmApplication);
                     }
                     break;
 
                 case DATABASE:
-                    this.userHistory = new DatabaseUserHistory(pwmApplication);
-                    debugMsg = "starting AuditManager using Remote Database data store";
+                    this.userHistoryStore = new DatabaseUserHistory(pwmApplication);
+                    debugMsg = "starting using Remote Database data store";
                     break;
 
                 case LDAP:
-                    this.userHistory = new LdapXmlUserHistory(pwmApplication);
-                    debugMsg = "starting AuditManager using LocalDB data store";
+                    this.userHistoryStore = new LdapXmlUserHistory(pwmApplication);
+                    debugMsg = "starting using LocalDB data store";
                     break;
 
                 default:
@@ -126,6 +117,38 @@ public class AuditManager implements PwmService {
             }
             LOGGER.info(debugMsg);
 
+        }
+        {
+            final TimeDuration maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
+            final int maxRecords = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_VAULT_MAX_RECORDS));
+            final AuditVault.Settings settings = new AuditVault.Settings(
+                    maxRecords,
+                    maxRecordAge
+            );
+
+            if (pwmApplication.getLocalDB() != null && pwmApplication.getApplicationMode() != PwmApplication.MODE.READ_ONLY) {
+                auditVault = new LocalDbAuditVault(pwmApplication.getLocalDB());
+                auditVault.init(settings);
+            }
+        }
+
+        {
+            final String ignoredStringList = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_IGNORELIST);
+            if (ignoredStringList != null) {
+                for (final String ignoredString : ignoredStringList.split(AppProperty.VALUE_SEPARATOR)) {
+                    if (ignoredString != null && ignoredString.length() > 0) {
+                        try {
+                            final AuditEvent event = AuditEvent.valueOf(ignoredString);
+                            if (event != null) {
+                                settings.ignoredEvents.add(event);
+                                LOGGER.info("will ignore all events of type '" + event.toString() + "' due to AppProperty setting");
+                            }
+                        } catch (IllegalArgumentException e) {
+                            LOGGER.error("unknown event type '" + ignoredString + "' in AppProperty " + AppProperty.AUDIT_EVENTS_IGNORELIST.getKey());
+                        }
+                    }
+                }
+            }
         }
         this.status = STATUS.OPEN;
     }
@@ -156,58 +179,103 @@ public class AuditManager implements PwmService {
         return healthRecords;
     }
 
-    public Iterator<AuditRecord> readLocalDB() {
-        if (status != STATUS.OPEN) {
-            return new Iterator<AuditRecord>() {
-                public boolean hasNext() {
-                    return false;
-                }
+    public Iterator<AuditRecord> readVault() {
+        return auditVault.readVault();
+    }
 
-                public AuditRecord next() {
-                    return null;
-                }
+    public List<UserAuditRecord> readUserHistory(final PwmSession pwmSession)
+            throws PwmUnrecoverableException
+    {
+        return readUserHistory(pwmSession.getUserInfoBean());
+    }
 
-                public void remove() {
-                }
-            };
+    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+            throws PwmUnrecoverableException
+    {
+        return userHistoryStore.readUserHistory(userInfoBean);
+    }
+
+    protected void sendAsEmail(final AuditRecord record) {
+        if (record == null || record.getEventCode() == null) {
+            return;
         }
-        return new IteratorWrapper<AuditRecord>(auditDB.descendingIterator());
+        if (settings.alertFromAddress == null || settings.alertFromAddress.length() < 1) {
+            return;
+        }
+
+        switch (record.getEventCode().getType()) {
+            case SYSTEM:
+                for (final String toAddress : settings.systemEmailAddresses) {
+                    sendAsEmail(pwmApplication, record, toAddress, settings.alertFromAddress);
+                }
+                break;
+
+            case USER:
+                for (final String toAddress : settings.userEmailAddresses) {
+                    sendAsEmail(pwmApplication, record, toAddress, settings.alertFromAddress);
+                }
+                break;
+        }
     }
 
-    public List<AuditRecord> readUserAuditRecords(final PwmSession pwmSession)
-            throws PwmUnrecoverableException
-    {
-        return readUserAuditRecords(pwmSession.getUserInfoBean());
+    private static void sendAsEmail(
+            final PwmApplication pwmApplication,
+            final AuditRecord record,
+            final String toAddress,
+            final String fromAddress
+
+    ) {
+        final String subject = PwmConstants.PWM_APP_NAME + " - Audit Event - " + record.getEventCode().toString();
+
+        final StringBuilder body = new StringBuilder();
+        final String jsonRecord = Helper.getGson().toJson(record);
+        final Map<String,String> mapRecord = Helper.getGson().fromJson(jsonRecord, new TypeToken <Map<String, String >>() {
+        }.getType());
+
+        for (final String key : mapRecord.keySet()) {
+            body.append(key);
+            body.append("=");
+            body.append(mapRecord.get(key));
+            body.append("\n");
+        }
+
+        final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
+        pwmApplication.getEmailQueue().submit(emailItem, null, null);
     }
 
-    public List<AuditRecord> readUserAuditRecords(final UserInfoBean userInfoBean)
-            throws PwmUnrecoverableException
-    {
-        return userHistory.readUserHistory(userInfoBean);
-    }
-
-    public int localSize() {
-        if (status != STATUS.OPEN || auditDB == null) {
+    public int vaultSize() {
+        if (status != STATUS.OPEN || auditVault == null) {
             return -1;
         }
 
-        return auditDB.size();
+        return auditVault.size();
     }
 
-    public void submitAuditRecord(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
+    public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        final AuditRecord auditRecord = new AuditRecord(auditEvent, userInfoBean, pwmSession);
-        submitAuditRecord(auditRecord);
+        final UserAuditRecord auditRecord = new UserAuditRecord(auditEvent, userInfoBean, pwmSession);
+        submit(auditRecord);
     }
 
-    public void submitAuditRecord(final AuditRecord auditRecord)
+    public void submit(final AuditRecord auditRecord)
             throws PwmUnrecoverableException
     {
+
         final String gsonRecord = Helper.getGson().toJson(auditRecord);
 
         if (status != STATUS.OPEN) {
-            LOGGER.warn("discarding audit event (AuditManager is not open), " + gsonRecord);
+            LOGGER.warn("discarding audit event (AuditManager is not open); event=" + gsonRecord);
+            return;
+        }
+
+        if (auditRecord.getEventCode() == null) {
+            LOGGER.error("discarding audit event, missing event type; event=" + gsonRecord);
+            return;
+        }
+
+        if (settings.ignoredEvents.contains(auditRecord.getEventCode())) {
+            LOGGER.warn("discarding audit event, '" + auditRecord.getEventCode() + "', are being ignored; event=" + gsonRecord);
             return;
         }
 
@@ -215,14 +283,16 @@ public class AuditManager implements PwmService {
         LOGGER.info("audit event: " + gsonRecord);
 
         // add to audit db
-        if (status == STATUS.OPEN && auditDB != null) {
-            auditDB.addLast(gsonRecord);
-            trimDB();
+        if (auditVault != null) {
+            auditVault.add(auditRecord);
         }
 
+        // email alert
+        sendAsEmail(auditRecord);
+
         // add to user ldap record
-        if (auditRecord.getEventCode().isStoreOnUser()) {
-            userHistory.updateUserHistory(auditRecord);
+        if (auditRecord instanceof UserAuditRecord && auditRecord.getEventCode().isStoreOnUser()) {
+            userHistoryStore.updateUserHistory((UserAuditRecord)auditRecord);
         }
 
         // send to syslog
@@ -235,275 +305,63 @@ public class AuditManager implements PwmService {
         }
     }
 
-    private void trimDB() {
-        if (oldestRecord != null && TimeDuration.fromCurrent(oldestRecord).isLongerThan(maxRecordAge)) {
-            return;
-        }
 
-        if (auditDB.isEmpty()) {
-            return;
-        }
-
-        int workActions = 0;
-        while (workActions < MAX_REMOVALS_PER_ADD && !auditDB.isEmpty()) {
-            final String stringFirstRecord = auditDB.getFirst();
-            final AuditRecord firstRecord = Helper.getGson().fromJson(stringFirstRecord, AuditRecord.class);
-            oldestRecord = firstRecord.getTimestamp();
-            if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(maxRecordAge)) {
-                auditDB.removeFirst();
-                workActions++;
-            } else {
-                return;
-            }
-        }
-    }
-
-    private static class IteratorWrapper<AuditRecord> implements Iterator<AuditRecord> {
-        private Iterator<String> innerIter;
-
-        private IteratorWrapper(Iterator<String> innerIter) {
-            this.innerIter = innerIter;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return innerIter.hasNext();
-        }
-
-        @Override
-        public AuditRecord next() {
-            final String value = innerIter.next();
-            return (AuditRecord)Helper.getGson().fromJson(value, password.pwm.event.AuditRecord.class);
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-
-
-    public static class SyslogConfig implements Serializable {
-        public enum Protocol { tcp, udp }
-
-        private Protocol protocol;
-        private String host;
-        private int port;
-
-        public SyslogConfig(Protocol protocol, String host, int port) {
-            this.protocol = protocol;
-            this.host = host;
-            this.port = port;
-        }
-
-        public Protocol getProtocol() {
-            return protocol;
-        }
-
-        public String getHost() {
-            return host;
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public static SyslogConfig fromConfigString(final String input) throws IllegalArgumentException {
-            if (input == null) {
-                throw new IllegalArgumentException("input cannot be null");
-            }
-
-            final String parts[] = input.split(",");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("input must have three comma separated parts.");
-            }
-
-            final Protocol protocol;
-            try {
-                protocol = Protocol.valueOf(parts[0]);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("unknown protocol '" + parts[0] + "'");
-            }
-
-            final int port;
-            try {
-                port = Integer.parseInt(parts[2]);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("invalid port number '" + parts[2] + "'");
-            }
-
-            return new SyslogConfig(protocol,parts[1],port);
-        }
-
-        public String toString() {
-            final StringBuilder message = new StringBuilder();
-            message.append(this.getProtocol().toString()).append(",");
-            message.append(this.getHost()).append(",");
-            message.append(this.getPort());
-            return message.toString();
-        }
-    }
-
-
-    private static class SyslogManager extends TimerTask {
-        private static final int MAX_QUEUE_SIZE = 1000;
-        private static final int TIMER_FREQUENCY_MS = 1000;
-        private static final int WARNING_WINDOW_MS = 30 * 60 * 1000;
-        private final Map<SyslogConfig,SyslogIF> syslogInstances = new LinkedHashMap<SyslogConfig,SyslogIF>();
-        private final Map<SyslogConfig,ErrorInformation> syslogErrors = new LinkedHashMap<SyslogConfig,ErrorInformation>();
-        private final Queue<AuditRecord> syslogQueue = new ConcurrentLinkedQueue<AuditRecord>();
-
-        private final Configuration configuration;
-        private final Timer timer = new Timer(PwmConstants.PWM_APP_NAME + "-AuditManager syslog writer",true);
-
-        public SyslogManager(final Configuration configuration) {
-            this.configuration = configuration;
-            final List<String> syslogConfigStrings = configuration.readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-            for (final String loopStr : syslogConfigStrings) {
-                final SyslogConfig syslogConfig;
-                try {
-                    syslogConfig = SyslogConfig.fromConfigString(loopStr);
-                    syslogInstances.put(syslogConfig, makeSyslogInstance(syslogConfig));
-                } catch (IllegalArgumentException e) {
-                    LOGGER.error("error parsing syslog configuration for '" + loopStr + "', error: " + e.getMessage());
-                    break;
-                }
-            }
-            timer.schedule(this,TIMER_FREQUENCY_MS,TIMER_FREQUENCY_MS);
-        }
-
-        private static SyslogIF makeSyslogInstance(final SyslogConfig syslogConfig)
-        {
-            final SyslogConfigIF syslogConfigIF;
-            switch (syslogConfig.getProtocol()) {
-                case tcp:
-                    final TCPNetSyslogConfig tcpConfig = new TCPNetSyslogConfig();
-                    tcpConfig.setThreaded(false);
-                    tcpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
-                    syslogConfigIF = tcpConfig;
-                    break;
-
-                case udp:
-                    final TCPNetSyslogConfig udpConfig = new TCPNetSyslogConfig();
-                    udpConfig.setThreaded(false);
-                    udpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
-                    syslogConfigIF = udpConfig;
-                    break;
-
-                default:
-                    throw new IllegalArgumentException("unknown protocol type");
-            }
-            syslogConfigIF.setHost(syslogConfig.getHost());
-            syslogConfigIF.setPort(syslogConfig.getPort());
-            syslogConfigIF.setThrowExceptionOnWrite(true);
-
-            return Syslog.createInstance(syslogConfig.toString(),syslogConfigIF);
-        }
-
-        private void add(AuditRecord event) throws PwmOperationalException {
-            if (syslogQueue.size() >= MAX_QUEUE_SIZE) {
-                final String errorMsg = "dropping audit record event due to queue full " + event.toString() + ", queue length=" + syslogQueue.size();
-                LOGGER.warn(errorMsg);
-                throw new PwmOperationalException(PwmError.ERROR_SYSLOG_WRITE_ERROR,errorMsg);
-            }
-
-            syslogQueue.offer(event);
-        }
-
-        public List<HealthRecord> healthCheck() {
-            final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
-            for (final SyslogConfig syslogConfig : syslogErrors.keySet()) {
-                final ErrorInformation errorInformation = syslogErrors.get(syslogConfig);
-                if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
-                    healthRecords.add(new HealthRecord(HealthStatus.WARN,"AuditManager",errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
-                }
-            }
-            return healthRecords;
-        }
-
-
-        @Override
-        public void run() {
-            while (!syslogQueue.isEmpty()) {
-                processEvent(syslogQueue.poll());
-            }
-        }
-
-        private void processEvent(final AuditRecord auditRecord) {
-            final Gson gs = new GsonBuilder()
-                    .disableHtmlEscaping()
-                    .create();
-
-            final StringBuilder sb = new StringBuilder();
-            sb.append(PwmConstants.PWM_APP_NAME);
-            sb.append(" ");
-            sb.append(gs.toJson(auditRecord));
-
-            for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
-                final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
-                try {
-                    syslogIF.info(sb.toString());
-                    syslogErrors.remove(syslogConfig);
-                } catch (Exception e) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, e.getMessage(), new String[]{syslogConfig.toString(),e.getMessage()});
-                    syslogErrors.put(syslogConfig, errorInformation);
-                    LOGGER.error(errorInformation.toDebugStr());
-                }
-            }
-        }
-
-        public void close() {
-            for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
-                final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
-                Syslog.destroyInstance(syslogConfig.toString());
-                syslogIF.shutdown();
-            }
-            timer.cancel();
-            run();
-            syslogInstances.clear();
-        }
-
-    }
-
-    public int outputLocalDBToCsv(final Writer writer, final boolean includeHeader)
+    public int outpuVaultToCsv(final Writer writer, final boolean includeHeader)
             throws IOException
     {
         CsvWriter csvWriter = new CsvWriter(writer,',');
+        csvWriter.writeComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
+        csvWriter.writeComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<String>();
+            headers.add("Type");
             headers.add("Event");
             headers.add("Timestamp");
+            headers.add("Message");
+            headers.add("Instance");
             headers.add("Perpetrator ID");
             headers.add("Perpetrator DN");
             headers.add("Target ID");
             headers.add("Target DN");
             headers.add("Source Address");
             headers.add("Source Hostname");
-            headers.add("Message");
             csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
         }
 
         int counter = 0;
-        for (final Iterator<AuditRecord> recordIterator = readLocalDB(); recordIterator.hasNext();) {
+        for (final Iterator<AuditRecord> recordIterator = readVault(); recordIterator.hasNext();) {
             final AuditRecord loopRecord = recordIterator.next();
             counter++;
+
             final List<String> lineOutput = new ArrayList<String>();
+            lineOutput.add(loopRecord.getEventCode().getType().toString());
             lineOutput.add(loopRecord.getEventCode().toString());
             lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
-            lineOutput.add(loopRecord.getPerpetratorID());
-            lineOutput.add(loopRecord.getPerpetratorDN());
-            lineOutput.add(loopRecord.getTargetID());
-            lineOutput.add(loopRecord.getTargetDN());
-            lineOutput.add(loopRecord.getSourceAddress());
-            lineOutput.add(loopRecord.getSourceHost());
             lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
+            if (loopRecord instanceof SystemAuditRecord) {
+                lineOutput.add(((SystemAuditRecord)loopRecord).getInstance());
+            }
+            if (loopRecord instanceof UserAuditRecord) {
+                lineOutput.add(((UserAuditRecord)loopRecord).getPerpetratorID());
+                lineOutput.add(((UserAuditRecord)loopRecord).getPerpetratorDN());
+                lineOutput.add(((UserAuditRecord)loopRecord).getTargetID());
+                lineOutput.add(((UserAuditRecord)loopRecord).getTargetDN());
+                lineOutput.add(((UserAuditRecord)loopRecord).getSourceAddress());
+                lineOutput.add(((UserAuditRecord)loopRecord).getSourceHost());
+            }
             csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
         }
 
         writer.flush();
 
         return counter;
+    }
+
+    private static class Settings {
+        private List<String> systemEmailAddresses = new ArrayList<String>();
+        private List<String> userEmailAddresses = new ArrayList<String>();
+        private String alertFromAddress = "";
+        private Set<AuditEvent> ignoredEvents = new HashSet<AuditEvent>();
     }
 }

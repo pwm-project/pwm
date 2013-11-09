@@ -39,7 +39,6 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 
@@ -56,7 +55,7 @@ import java.util.List;
  *
  * @author Jason D. Rivard
  */
-class LdapXmlUserHistory implements UserHistory, Serializable {
+class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LdapXmlUserHistory.class);
@@ -77,7 +76,7 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
         this.pwmApplication = pwmApplication;
     }
 
-    public void updateUserHistory(final AuditRecord auditRecord)
+    public void updateUserHistory(final UserAuditRecord auditRecord)
             throws PwmUnrecoverableException
     {
         try {
@@ -87,7 +86,7 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
         }
     }
 
-    void updateUserHistoryImpl(final AuditRecord auditRecord)
+    void updateUserHistoryImpl(final UserAuditRecord auditRecord)
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
@@ -137,7 +136,7 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
         }
     }
 
-    public List<AuditRecord> readUserHistory(final UserInfoBean userInfoBean)
+    public List<UserAuditRecord> readUserHistory(final UserInfoBean userInfoBean)
             throws PwmUnrecoverableException
     {
         try {
@@ -190,8 +189,8 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
             }
         }
 
-        public List<AuditRecord> asAuditRecords(final UserInfoBean userInfoBean) {
-            final List<AuditRecord> returnList = new LinkedList<AuditRecord>();
+        public List<UserAuditRecord> asAuditRecords(final UserInfoBean userInfoBean) {
+            final List<UserAuditRecord> returnList = new LinkedList<UserAuditRecord>();
             for (final StoredEvent loopEvent : records) {
                 returnList.add(loopEvent.asAuditRecord(userInfoBean));
             }
@@ -202,7 +201,7 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
             final Element rootElement = new Element(XML_NODE_ROOT);
 
             for (final StoredEvent loopEvent : records) {
-                if (loopEvent.getAuditEvent() != AuditEvent.UNKNOWN) {
+                if (loopEvent.getAuditEvent() != null) {
                     final Element hrElement = new Element(XML_NODE_RECORD);
                     hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(loopEvent.getTimestamp()));
                     hrElement.setAttribute(XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getResourceKey());
@@ -292,15 +291,20 @@ class LdapXmlUserHistory implements UserHistory, Serializable {
             return sourceHost;
         }
 
-        public static StoredEvent fromAuditRecord(final AuditRecord auditRecord) {
+        public static StoredEvent fromAuditRecord(final UserAuditRecord auditRecord) {
             return new StoredEvent(auditRecord.getEventCode(),auditRecord.getTimestamp().getTime(),auditRecord.getMessage(),auditRecord.getSourceAddress(),auditRecord.getSourceHost());
         }
 
-        public AuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
+        public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
             final String userID = userInfoBean.getUserID();
             final String userDN = userInfoBean.getUserDN();
 
-            return new AuditRecord(this.getAuditEvent(), userID, userDN, new Date(this.getTimestamp()),this.getMessage(),null,null,this.getSourceAddress(),this.getSourceHost());
+            return new UserAuditRecord(
+                    this.getAuditEvent(),
+                    userID, userDN,
+                    new Date(this.getTimestamp()),
+                    this.getMessage(),null,null,this.getSourceAddress(),this.getSourceHost()
+            );
         }
     }
 

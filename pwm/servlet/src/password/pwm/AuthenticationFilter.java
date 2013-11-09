@@ -212,7 +212,7 @@ public class AuthenticationFilter implements Filter {
 
         // handle if authenticated during filter process.
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            ServletHelper.recycleSessions(pwmSession,req);
+            ServletHelper.recycleSessions(pwmApplication, pwmSession, req, resp);
             LOGGER.debug(pwmSession,"session authenticated during request, issuing redirect to originally requested url: " + originalRequestedUrl);
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(originalRequestedUrl,req,resp));
             return;

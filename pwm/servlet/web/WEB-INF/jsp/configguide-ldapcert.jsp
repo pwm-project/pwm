@@ -28,6 +28,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% boolean enableNext = configGuideBean.isCertsTrustedbyKeystore() || configGuideBean.isUseConfiguredCerts(); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -76,18 +77,19 @@
             <div id="outline_ldapcert-options" class="setting_outline">
                 <div class="setting_title">Certificate Settings</div>
                 <div class="setting_body">
+                    <div style="padding-left: 5px; padding-top: 5px">
+                        At least one of the following options must be selected to continue.
+                    </div>
+                    <br/>
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
                         Certificate(s) are trusted by default keystore
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                        <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into java keystore to change)
+                        <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
                         Use application configuration to manage certificate(s) and import certificates into configuration
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <button id="button_useConfig">Enabled</button>
-                        <% if (!configGuideBean.isUseConfiguredCerts()) { %>
-                        <span id="span_useConfig_unselected">(LDAP Promiscuous mode will be enabled)</span>
-                        <% } %>
                     </div>
                 </div>
                 <script type="text/javascript">
@@ -119,19 +121,19 @@
         <br/>
         <div id="buttonbar">
             <button class="btn" onclick="gotoStep('LDAP');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-            <button class="btn" onclick="gotoStep('LDAP2');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+            <button class="btn" onclick="gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
         </div>
     </div>
     <div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('localeSelectionMenu').style.display = 'none';
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

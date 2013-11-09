@@ -1713,6 +1713,8 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         });
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -370,5 +371,20 @@ public class PwmSession implements Serializable {
             LOGGER.error(this, "ignoring unknown locale value set request for locale '" + localeString);
             return false;
         }
+    }
+
+    public String getRestClientKey() {
+        if (!this.getSessionStateBean().isAuthenticated()) {
+            return "";
+        }
+
+        final String restClientKey = this.getSessionStateBean().getRestClientKey();
+        if (restClientKey != null && restClientKey.length() > 0) {
+            return restClientKey;
+        }
+
+        final String newKey = Long.toString(System.currentTimeMillis(),36) + PwmRandom.getInstance().alphaNumericString(500);
+        this.getSessionStateBean().setRestClientKey(newKey);
+        return newKey;
     }
 }

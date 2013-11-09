@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler()" class="nihilo">                           a
+<body onload="pwmPageLoadHandler()" class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_LocaleSelect"/>
@@ -36,7 +37,7 @@
         <% final String flagCode = pwmApplicationHeader.getConfig().getKnownLocaleFlagMap().get(locale); %>
         <div style="text-align: center; width: 100%">
             <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
-            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?<%=PwmConstants.PARAM_LOCALE%>=<%=locale.toString()%>">
+            <a onclick="showWaitDialog()" href="<%=request.getContextPath()%>?<%=pwmApplicationHeader.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
                 <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
             </a>
         </div>
@@ -47,9 +48,9 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('localeSelectionMenu').style.display = 'none';
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

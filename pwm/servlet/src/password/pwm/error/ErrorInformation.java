@@ -143,11 +143,7 @@ public class ErrorInformation implements Serializable {
             return userStrOverride;
         }
 
-        if (fieldValues != null && fieldValues.length > 0) {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), config, fieldValues);
-        } else {
-            return PwmError.getLocalizedMessage(userLocale, this.getError(), config);
-        }
+        return this.getError().getLocalizedMessage(userLocale, config, fieldValues);
     }
 
     public Date getDate() {

@@ -226,14 +226,14 @@
         <label>Custom CSS Stylesheet Location</label>
         <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
-            <value><![CDATA[/public/resources/custom/style.css]]></value>
+            <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customMobileStyleLocation" level="1">
         <label>Custom Mobile CSS Stylesheet Location</label>
         <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
-            <value><![CDATA[/public/resources/custom/mobileStyle.css]]></value>
+            <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customStyle" level="1">
@@ -366,13 +366,6 @@
         <label>LDAP Certificates</label>
         <description><![CDATA[LDAP Server Certificates.  These certificates have are stored in the configuration file and used to validate the identity of your LDAP server.]]></description>
         <default/>
-    </setting>
-    <setting key="ldap.promiscuousSSL" level="1" required="true">
-        <label>LDAP Promiscuous SSL</label>
-        <description><![CDATA[If true any LDAP SSL certificate will be blindly trusted without any verification.  Thus, with this setting set to true, it is not required to import the LDAP server's SSL certificate into the Java keystore.<br/><br/><b>WARNING:</b> using promiscuous SSL is a security risk and should never be used in a production system.]]></description>
-        <default>
-            <value>false</value>
-        </default>
     </setting>
     <setting key="ldap.proxy.username" level="0" required="true">
         <label>LDAP Proxy User</label>
@@ -556,20 +549,6 @@
             <value>3600</value>
         </default>
     </setting>
-    <setting key="email.adminAlert.toAddress" level="0">
-        <label>Admin Alert To Address</label>
-        <description><![CDATA[During certain events, email notifications are sent.  Leave this setting blank to disable the alerts.]]></description>
-        <default>
-            <value><![CDATA[admin@example.com]]></value>
-        </default>
-    </setting>
-    <setting key="email.adminAlert.fromAddress" level="1">
-        <label>Admin Alert From Address</label>
-        <description><![CDATA[Admin alert "From" email address.]]></description>
-        <default>
-            <value><![CDATA[Alert Notification <noreply@@SiteHost@>]]></value>
-        </default>
-    </setting>
     <setting key="email.changePassword" level="0">
         <label>Change Password Email</label>
         <description><![CDATA[Email sent to user when a password change occurs.  This email is only sent when the user changes their own password.]]></description>
@@ -641,10 +620,17 @@
         </default>
     </setting>
     <setting key="email.sendpassword" level="1">
-        <label>Send Password Email Subject</label>
+        <label>Send Password Email</label>
         <description><![CDATA[Email sent during forgotten password reset process if send password functionality is enabled.]]></description>
         <default>
             <value>{"to":"@User:Email@","from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.intruderNotice" level="0">
+        <label>Intruder Notice Email </label>
+        <description><![CDATA[Email sent when a userDN intruder lockout occurs]]></description>
+        <default>
+            <value>{"to":"@User:Email@","from":"Intruder Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
@@ -1387,6 +1373,20 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting key="email.adminAlert.toAddress" level="0">
+        <label>System Audit Event Email Alerts</label>
+        <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
+        <default>
+            <value><![CDATA[admin@example.com]]></value>
+        </default>
+    </setting>
+    <setting key="audit.userEvent.toAddress" level="0">
+        <label>User Audit Event Email Alerts</label>
+        <description><![CDATA[Send an email User Audit events occur to these email addresses.]]></description>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+    </setting>
     <setting key="audit.syslog.servers" level="0" required="false">
         <label>Syslog Audit Servers</label>
         <description><![CDATA[Syslog audit servers.  When configured, all audit events will be forwarded to the specified syslog servers.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
@@ -1403,7 +1403,7 @@
         </default>
         <options>
             <option value="STORE_LOCALDB">LocalDB</option>
-            <option value="STORE_DB">DB</option>
+            <option value="STORE_DB">Database</option>
             <option value="STORE_CRYPTO">Crypto</option>
             <option value="STORE_LDAP">LDAP</option>
         </options>
@@ -1623,41 +1623,6 @@
         <description><![CDATA[If true, all ldap traffic will be output to the TRACE logging level.<br/><br/><b>WARNING:</b> enabling this option may allow user passwords and other sensitive data to be written to the log files.]]></description>
         <default>
             <value>false</value>
-        </default>
-    </setting>
-    <setting key="events.alert.startup.enable" level="0" required="true">
-        <label>Startup Alerts</label>
-        <description><![CDATA[If true, send an alert during application startup.]]></description>
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting key="events.alert.shutdown.enable" level="0" required="true">
-        <label>Shutdown Alerts</label>
-        <description><![CDATA[If true, send an alert when application is shutdown.]]></description>
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting key="events.alert.intruder.enable" level="0" required="true">
-        <label>Intruder Alerts</label>
-        <description><![CDATA[If true, send an alert to when an intruder is detected.]]></description>
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting key="events.alert.fatalEvent.enable" level="0" required="true">
-        <label>Fatal Event Alerts</label>
-        <description><![CDATA[If true, send an alert when a fatal event occurs.]]></description>
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
-    <setting key="events.alert.configModify.enable" level="0" required="true">
-        <label>Configuration Modification Alerts</label>
-        <description><![CDATA[If true, send an email when the configuration has been modified.]]></description>
-        <default>
-            <value>true</value>
         </default>
     </setting>
     <setting key="events.alert.dailySummary.enable" level="0" required="true">
@@ -1974,7 +1939,7 @@
         </options>
     </setting>
     <setting key="recovery.action" level="0" required="true">
-        <label>Forgotten Password Success Action</label>
+        <label>Forgotten Password Recovery Mode</label>
         <description><![CDATA[Action to take when the user completes the forgotten password process.]]></description>
         <default>
             <value><![CDATA[RESETPW]]></value>
@@ -1997,6 +1962,13 @@
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
+    </setting>
+    <setting key="recovery.postActions" level="1">
+        <label>Forgotten Password Post Actions</label>
+        <description><![CDATA[Actions to execute after a user has successfully completed the forgotten password sequence and the user's password has been modified.  Macros may be used.]]></description>
+        <default>
+            <value/>
+        </default>
     </setting>
     <setting key="forgottenUsername.enable" level="0" required="true">
         <label>Enable Forgotten Username</label>
@@ -2681,22 +2653,6 @@
         <description><![CDATA[Location of the LocalDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
         <default>
             <value><![CDATA[LocalDB]]></value>
-        </default>
-    </setting>
-    <setting key="pwmDb.implementation" level="1" required="true">
-        <label>LocalDB Implementation Class</label>
-        <description><![CDATA[Java class implementation used by LocalDB.  Default is the embedded BerkeleyDB Java Edition.  Several default implementations are available.<table><tr><td><b>Implementation Class</b></td><td><b>Description</b></td></tr><tr><td>password.pwm.util.localdb.Berkeley_LocalDB</td><td>Default Implementation based on BerekelyDB Java Edition</td></tr><tr><td>password.pwm.util.localdb.Derby_LocalDB</td><td>Based on Apache Derby java embedded SQL database</td></tr><tr><td>password.pwm.util.localdb.MapDB_LocalDB</td><td>Uses JDBM2 as the embedded key store</td></tr><tr><td>password.pwm.util.localdb.Memory_LocalDB</td><td>In-Memory implementation, Super fast but not persistent and you will need a lot of memory</td><tr></table>]]></description>
-        <default>
-            <value><![CDATA[password.pwm.util.localdb.Berkeley_LocalDB]]></value>
-        </default>
-    </setting>
-    <setting key="pwmDb.initParameters" level="1">
-        <label>LocalDB Initialization String</label>
-        <description><![CDATA[Value passed to the LocalDB Implementation class during initialization.  Value format is specific to the implementation.]]></description>
-        <default>
-            <value><![CDATA[je.maxMemory=10000000]]></value>
-            <value><![CDATA[je.log.fileMax=10000000]]></value>
-            <value><![CDATA[je.cleaner.minUtilization=70]]></value>
         </default>
     </setting>
     <setting key="db.classname" level="0">

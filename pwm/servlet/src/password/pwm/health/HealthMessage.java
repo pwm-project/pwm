@@ -22,13 +22,24 @@
 
 package password.pwm.health;
 
-public enum HealthMessage {
-    LDAP_No_Connection
-    ;
+import password.pwm.i18n.Health;
+import password.pwm.i18n.LocaleHelper;
 
+import java.util.Locale;
+
+public enum HealthMessage {
+    LDAP_No_Connection,
+    Email_SendFailure,
+    MissingResource,
+    BrokenMethod
+
+    ;
 
     public String getKey() {
         return HealthMessage.class.getSimpleName() + "_" + this.toString();
     }
 
+    public String getDescription(final Locale locale, final password.pwm.config.Configuration config, final String[] fields) {
+        return LocaleHelper.getLocalizedMessage(locale, this.getKey(), config, Health.class, fields);
     }
+}

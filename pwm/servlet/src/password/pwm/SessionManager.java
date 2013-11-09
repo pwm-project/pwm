@@ -142,7 +142,6 @@ public class SessionManager implements Serializable {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         LOGGER.trace(pwmSession, "attempting to open new ldap connection for " + userDN);
-        final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
 
         final boolean authIsFromForgottenPw = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN;
         final boolean authIsBindInhibit = pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
@@ -152,10 +151,10 @@ public class SessionManager implements Serializable {
         if (authIsBindInhibit || (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent))) {
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            return Helper.createChaiProvider(config, proxyDN, proxyPassword, idleTimeoutMs);
+            return Helper.createChaiProvider(config, proxyDN, proxyPassword);
         }
 
-        return Helper.createChaiProvider(config, userDN, userPassword, idleTimeoutMs);
+        return Helper.createChaiProvider(config, userDN, userPassword);
     }
 
 // ------------------------ CANONICAL METHODS ------------------------

@@ -156,6 +156,11 @@
             <required>true</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
+        <attribute>
+            <name>addContext</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
     </tag>
     <tag>
         <name>FormID</name>
@@ -168,18 +173,6 @@
         <tag-class>password.pwm.tag.LocaleOrientationTag</tag-class>
         <body-content>empty</body-content>
         <description>Output text "rtl" or "ltr" depending on session locale</description>
-    </tag>
-    <tag>
-        <name>ThemeURL</name>
-        <tag-class>password.pwm.tag.ThemeUrlTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Output the name of the active theme</description>
-        <attribute>
-            <name>type</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>"mobile" for the mobile CSS stylesheet, otherwise not required.</description>
-        </attribute>
     </tag>
 </taglib>
 

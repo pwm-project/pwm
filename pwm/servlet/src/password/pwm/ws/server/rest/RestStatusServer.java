@@ -22,8 +22,6 @@
 
 package password.pwm.ws.server.rest;
 
-import password.pwm.PwmPasswordPolicy;
-import password.pwm.PwmSession;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PasswordStatus;
@@ -37,6 +35,7 @@ import password.pwm.util.operations.UserStatusHelper;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -45,6 +44,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -105,14 +105,18 @@ public class RestStatusServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String doGetStatusData(
+    public Response doGetStatusData(
             @QueryParam("username") final String username
     ) {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, username);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -137,14 +141,13 @@ public class RestStatusServer {
                     restRequestBean.getPwmApplication().getConfig(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()
             ));
-            return restResultBean.toJson();
+            return restResultBean.asJsonResponse();
         } catch (PwmException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
     }
-
 }

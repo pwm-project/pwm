@@ -101,42 +101,51 @@ function buildMenuBar() {
                     popup: systemMenu
                 }));
             }
-            { // Other Menu
-                var exitMenu = new Menu({});
-                exitMenu.addChild(new MenuItem({
-                    label: 'Main Menu',
+
+            { // Utilities Menu
+                var utilityMenu = new Menu({});
+                utilityMenu.addChild(new MenuItem({
+                    label: 'Token Lookup',
                     onClick: function() {
-                        showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>";});
+                        showWaitDialog(null,null,function(){window.location = "tokenlookup.jsp";});
                     }
                 }));
-                exitMenu.addChild(new MenuSeparator());
-                exitMenu.addChild(new MenuItem({
+                topMenuBar.addChild(new PopupMenuBarItem({
+                    label: "Utilities",
+                    popup: utilityMenu
+                }));
+            }
+            { // Other Menu
+                var referenceMenu = new Menu({});
+                referenceMenu.addChild(new MenuItem({
                     label: 'REST Services Reference',
                     onClick: function() {
-                        showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/public/rest.jsp";});
+                        showWaitDialog(null,null,function(){window.location = PWM_GLOBAL['url-context'] + "/public/rest.jsp";});
                     }
                 }));
-                exitMenu.addChild(new MenuItem({
+                referenceMenu.addChild(new MenuItem({
                     label: 'Software License Reference',
                     onClick: function() {
-                        showWaitDialog(null,null,function(){window.location = "<%=request.getContextPath()%>/public/license.jsp";});
+                        showWaitDialog(null,null,function(){window.location = PWM_GLOBAL['url-context'] + "/public/license.jsp";});
                     }
                 }));
-                exitMenu.addChild(new MenuItem({
+                referenceMenu.addChild(new MenuItem({
                     label: 'Error Code Reference',
                     onClick: function() {
                         showWaitDialog(null,null,function(){window.location = "error-reference.jsp";});
                     }
                 }));
-                exitMenu.addChild(new MenuItem({
-                    label: 'View EULA',
-                    onClick: function() {
-                        showEula(false,null);
-                    }
-                }));
+                if (PWM_GLOBAL['setting-displayEula'] == true) {
+                    referenceMenu.addChild(new MenuItem({
+                        label: 'View EULA',
+                        onClick: function() {
+                            showEula(false,null);
+                        }
+                    }));
+                }
                 topMenuBar.addChild(new PopupMenuBarItem({
-                    label: "Navigation",
-                    popup: exitMenu
+                    label: "Reference",
+                    popup: referenceMenu
                 }));
             }
             topMenuBar.placeAt("TopMenu");

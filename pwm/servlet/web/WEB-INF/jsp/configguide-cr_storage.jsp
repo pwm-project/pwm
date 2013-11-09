@@ -79,7 +79,6 @@
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('localeSelectionMenu').style.display = 'none';
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
@@ -87,6 +86,7 @@
         handleFormActivity();
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

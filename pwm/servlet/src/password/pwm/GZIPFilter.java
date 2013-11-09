@@ -22,6 +22,8 @@
 
 package password.pwm;
 
+import password.pwm.error.PwmUnrecoverableException;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,12 +41,21 @@ public class GZIPFilter implements Filter {
         if (req instanceof HttpServletRequest) {
             final HttpServletRequest request = (HttpServletRequest) req;
             final HttpServletResponse response = (HttpServletResponse) res;
-            final String acceptEncodingHeader = request.getHeader("accept-encoding");
-            if (PwmConstants.SERVLET_FILTER_ENABLE_GZIP && acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
-                final GZIPResponseWrapper wrappedResponse = new GZIPResponseWrapper(response);
-                chain.doFilter(req, wrappedResponse);
-                wrappedResponse.finishResponse();
-                return;
+
+            boolean gzipEnabled = false;
+            try {
+                final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+                gzipEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
+            } catch (PwmUnrecoverableException e) { /* noop */ }
+
+            if (gzipEnabled) {
+                final String acceptEncodingHeader = request.getHeader("accept-encoding");
+                if (acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
+                    final GZIPResponseWrapper wrappedResponse = new GZIPResponseWrapper(response);
+                    chain.doFilter(req, wrappedResponse);
+                    wrappedResponse.finishResponse();
+                    return;
+                }
             }
             chain.doFilter(req, res);
         }

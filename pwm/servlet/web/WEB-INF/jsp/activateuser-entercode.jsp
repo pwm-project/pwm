@@ -45,7 +45,7 @@
               enctype="application/x-www-form-urlencoded" name="search"
               onsubmit="handleFormSubmit('submitBtn',this);return false"
               style="display: inline;">
-                <textarea style="height: 130px; width: 80%; resize: none; display: block; margin-bottom: 30px;" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield"></textarea>
+                <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
                 <input type="submit" class="btn"
                        name="search"
                        value="<pwm:Display key="Button_CheckCode"/>"

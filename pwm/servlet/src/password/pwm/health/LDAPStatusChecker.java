@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
@@ -83,7 +84,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (errorInfo != null) {
                     final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
-                    if (errorAge.isShorterThan(PwmConstants.LDAP_CHECKER_RECENT_ERRORS_DURATION)) {
+                    final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
+                    if (errorAge.isShorterThan(cautionDurationMS)) {
                         final String ageString = errorAge.asLongString();
                         final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
                         final String errorMsg = errorInfo.toDebugStr();
@@ -134,8 +136,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 chaiProvider = Helper.createChaiProvider(
                         config,
                         proxyUserDN,
-                        proxyUserPW,
-                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT
+                        proxyUserPW
                 );
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
@@ -226,8 +227,8 @@ public class LDAPStatusChecker implements HealthChecker {
                         config,
                         Collections.singletonList(loopURL),
                         proxyDN,
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD),
-                        PwmConstants.LDAP_CHECKER_CONNECTION_TIMEOUT);
+                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD)
+                );
                 final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
                 proxyUser.isValid();
             } catch (Exception e) {
@@ -256,7 +257,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (proxyPW == null || proxyPW.length() < 1) {
                     return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"LDAP","Missing Proxy User Password"));
                 }
-                chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW,30*1000);
+                chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW);
                 final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),chaiProvider);
                 adminEntry.isValid();
                 directoryVendor = chaiProvider.getDirectoryVendor();
@@ -270,7 +271,7 @@ public class LDAPStatusChecker implements HealthChecker {
                     errorString.append(chaiError.toString());
                     if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
                         errorString.append(" - ");
-                        errorString.append(PwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, pwmError, pwmApplication.getConfig()));
+                        errorString.append(pwmError.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig()));
                     }
                     errorString.append(")");
                 }
@@ -289,20 +290,20 @@ public class LDAPStatusChecker implements HealthChecker {
             }
 
             if (testContextlessRoot) {
-            for (final String loopContext : config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
-                try {
-                    final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
-                    final Set<String> objectClasses = contextEntry.readObjectClass();
+                for (final String loopContext : config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
+                    try {
+                        final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
+                        final Set<String> objectClasses = contextEntry.readObjectClass();
 
-                    if (objectClasses == null || objectClasses.isEmpty()) {
-                        final String errorString = "ldap context setting '" + loopContext + "' is not valid";
+                        if (objectClasses == null || objectClasses.isEmpty()) {
+                            final String errorString = "ldap context setting '" + loopContext + "' is not valid";
+                            returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                        }
+                    } catch (Exception e) {
+                        final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
                         returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
                     }
-                } catch (Exception e) {
-                    final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
-                    returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
                 }
-            }
             }
         } finally {
             if (chaiProvider != null) {

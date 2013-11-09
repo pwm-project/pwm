@@ -22,18 +22,16 @@
 
 package password.pwm.ws.server.rest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.bean.UserStatusCacheBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.event.AuditRecord;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -43,7 +41,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Path("/report")
@@ -58,14 +55,18 @@ public class RestUserReportServer {
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.AUTH_REQUIRED, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-            final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
-            return Response.ok(RestResultBean.fromErrorInformation(errorInfo, restRequestBean.getPwmApplication(), restRequestBean.getPwmSession()).toJson()).build();
+            final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
         final ArrayList<UserStatusCacheBean> reportData = new ArrayList<UserStatusCacheBean>();
@@ -82,7 +83,7 @@ public class RestUserReportServer {
 
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnData);
-        return Response.ok(restResultBean.toJson()).build();
+        return restResultBean.asJsonResponse();
     }
 
 

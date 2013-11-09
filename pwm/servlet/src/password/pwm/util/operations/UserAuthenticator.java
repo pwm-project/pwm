@@ -39,7 +39,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.util.*;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.intruder.RecordType;
@@ -113,19 +113,17 @@ public class UserAuthenticator {
         final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
         LOGGER.debug(pwmSession, "user authenticated with authentication type: " + authenticationType);
-        if (PwmConstants.ENABLE_AUDIT_AUTHENTICATION_TYPE) {
-            pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
-                    AuditEvent.AUTHENTICATE,
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
-                    new Date(),
-                    authenticationType.toString(),
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
-                    pwmSession.getSessionStateBean().getSrcAddress(),
-                    pwmSession.getSessionStateBean().getSrcHostname()
-            ));
-        }
+        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+                AuditEvent.AUTHENTICATE,
+                pwmSession.getUserInfoBean().getUserID(),
+                pwmSession.getUserInfoBean().getUserDN(),
+                new Date(),
+                authenticationType.toString(),
+                pwmSession.getUserInfoBean().getUserID(),
+                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getSessionStateBean().getSrcAddress(),
+                pwmSession.getSessionStateBean().getSrcHostname()
+        ));
     }
 
     public static void authUserWithUnknownPassword(
@@ -260,19 +258,17 @@ public class UserAuthenticator {
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
         LOGGER.debug(pwmSession,"user authenticated with authentication type: " + authenticationType);
 
-        if (PwmConstants.ENABLE_AUDIT_AUTHENTICATION_TYPE) {
-            pwmApplication.getAuditManager().submitAuditRecord(new AuditRecord(
-                    AuditEvent.AUTHENTICATE,
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
-                    new Date(),
-                    authenticationType.toString(),
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
-                    pwmSession.getSessionStateBean().getSrcAddress(),
-                    pwmSession.getSessionStateBean().getSrcHostname()
-            ));
-        }
+        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+                AuditEvent.AUTHENTICATE,
+                pwmSession.getUserInfoBean().getUserID(),
+                pwmSession.getUserInfoBean().getUserDN(),
+                new Date(),
+                authenticationType.toString(),
+                pwmSession.getUserInfoBean().getUserID(),
+                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getSessionStateBean().getSrcAddress(),
+                pwmSession.getSessionStateBean().getSrcHostname()
+        ));
     }
 
     private static String resolveUsername(
@@ -339,7 +335,7 @@ public class UserAuthenticator {
         } catch (ChaiException e) {
             if (e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT) {
                 final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_USER, errorMsg);
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP, errorMsg);
                 LOGGER.warn(pwmSession, errorInformation.toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
                 throw new PwmUnrecoverableException(errorInformation);

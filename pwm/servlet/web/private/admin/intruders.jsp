@@ -57,7 +57,7 @@
     </div>
     <div class="push"></div>
 </div>
-<style scoped="scoped">
+<style>
     <% for (RecordType recordType : RecordType.values()) { %>
     .<%=recordType%>_Grid { height: auto; }
     .<%=recordType%>_Grid .dgrid-scroller { position: relative; overflow: visible; }
@@ -91,10 +91,11 @@
             <%=recordType%>_Grid.refresh();
             <% } %>
             var maximum = getObject('maxResults').value;
-            var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum  + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum;
             dojo.xhrGet({
                 url: url,
                 preventCache: true,
+                headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 handleAs: 'json',
                 load: function(data) {
                     closeWaitDialog();

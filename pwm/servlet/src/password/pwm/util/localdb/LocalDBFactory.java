@@ -24,11 +24,13 @@ package password.pwm.util.localdb;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -43,14 +45,26 @@ public class LocalDBFactory {
 
     public static synchronized LocalDB getInstance(
             final File dbDirectory,
-            final String className,
-            final Map<String, String> initParameters,
             final boolean readonly,
             final PwmApplication pwmApplication
     )
-            throws Exception {
+            throws Exception
+    {
 
         final long startTime = System.currentTimeMillis();
+
+        final String className;
+        final Map<String, String> initParameters;
+        if (pwmApplication == null) {
+            className = AppProperty.LOCALDB_IMPLEMENTATION.getDefaultValue();
+            final String initStrings = AppProperty.LOCALDB_INIT_STRING.getDefaultValue();
+            initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
+        } else {
+            className = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
+            final String initStrings = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_INIT_STRING);
+            initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
+        }
+
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 
@@ -117,9 +131,9 @@ public class LocalDBFactory {
             return LocalDBCompressor.createLocalDBCompressor(localDB, 1024, false);
         }
 
-        final boolean enableCompression = Boolean.parseBoolean(pwmApplication.readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
-        final boolean enableDecompression = Boolean.parseBoolean(pwmApplication.readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
-        final int compressionMinSize = Integer.parseInt(pwmApplication.readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
+        final boolean enableCompression = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
+        final boolean enableDecompression = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
+        final int compressionMinSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
 
         if (enableCompression || enableDecompression) {
             return LocalDBCompressor.createLocalDBCompressor(localDB, compressionMinSize, enableCompression);

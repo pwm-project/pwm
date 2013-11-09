@@ -18,9 +18,15 @@ v1.7.1
 + Intruder tracking for token send destinations
 + Show/Hide password fields button replaced with eye hide/close icon on all pages
 + Ajaxified all admin section tables
++ Added support for BCRYPT, SCRYPT, SHA-256, SHA-512, PBKDF2 and MD5 stored responses
 + Added AppProperties to allow configurable overrides for some former constant values
++ Send email on intruder detection to user or admin
++ Send email on system or user audit events
 - Removed "ADDB" template, replaced with extra Guide option to select responses
+
 - Separated ConfigEditor from ConfigManager implementation and user interface
+
+! fixed issue where SHA1 responses where hashed only once regardless of iteration count setting
 
 
 v1.7.0 (September 8, 2013) build 1228

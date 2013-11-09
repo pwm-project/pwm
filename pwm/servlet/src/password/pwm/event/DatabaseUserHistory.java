@@ -37,7 +37,7 @@ import password.pwm.util.db.DatabaseTable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseUserHistory implements UserHistory {
+public class DatabaseUserHistory implements UserHistoryStore {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseUserHistory.class);
 
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
@@ -51,7 +51,7 @@ public class DatabaseUserHistory implements UserHistory {
     }
 
     @Override
-    public void updateUserHistory(AuditRecord auditRecord) throws PwmUnrecoverableException {
+    public void updateUserHistory(UserAuditRecord auditRecord) throws PwmUnrecoverableException {
         final String targetUserDN = auditRecord.getTargetDN();
         final String guid;
         try {
@@ -72,7 +72,7 @@ public class DatabaseUserHistory implements UserHistory {
     }
 
     @Override
-    public List<AuditRecord> readUserHistory(UserInfoBean userInfoBean) throws PwmUnrecoverableException {
+    public List<UserAuditRecord> readUserHistory(UserInfoBean userInfoBean) throws PwmUnrecoverableException {
         final String userGuid = userInfoBean.getUserGuid();
         try {
             return readStoredHistory(userGuid).getRecords();
@@ -98,13 +98,13 @@ public class DatabaseUserHistory implements UserHistory {
     }
 
     static class StoredHistory {
-        private List<AuditRecord> records = new ArrayList<AuditRecord>();
+        private List<UserAuditRecord> records = new ArrayList<UserAuditRecord>();
 
-        List<AuditRecord> getRecords() {
+        List<UserAuditRecord> getRecords() {
             return records;
         }
 
-        void setRecords(List<AuditRecord> records) {
+        void setRecords(List<UserAuditRecord> records) {
             this.records = records;
         }
     }

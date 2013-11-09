@@ -60,14 +60,15 @@
                 <tr>
                     <td style="border:0;">
                         <div style="width: 100%">
-                        <h2 style="display: inline">
-                            <label style="" for="password1"><pwm:Display key="Field_NewPassword"/></label>
-                        </h2>
+                            <h2 style="display: inline">
+                                <label style="" for="password1"><pwm:Display key="Field_NewPassword"/></label>
+                            </h2>
                             &nbsp;&nbsp;
-                        <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="showPasswordGuide()" >&nbsp;&nbsp;</div>
-                        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_AUTOGEN)) { %>
-                        <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="doRandomGeneration();" >&nbsp;&nbsp;</div>
-                        <% } %>
+                            <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="showPasswordGuide()" ></div>
+                            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_AUTOGEN)) { %>
+                            &nbsp;&nbsp;
+                            <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="doRandomGeneration();" ></div>
+                            <% } %>
                         </div>
                         <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus/>
                     </td>

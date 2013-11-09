@@ -22,15 +22,13 @@
 
 package password.pwm.bean.servlet;
 
-import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.bean.PwmSessionBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
-import password.pwm.event.AuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.util.operations.UserSearchEngine;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +44,7 @@ public class HelpdeskBean implements PwmSessionBean {
         private boolean pwmIntruder;
         private boolean accountEnabled;
         private Date lastLoginTime;
-        private List<AuditRecord> userHistory;
+        private List<UserAuditRecord> userHistory;
         private Map<FormConfiguration, String> searchDetails;
 
         public boolean isIntruderLocked() {
@@ -81,11 +79,11 @@ public class HelpdeskBean implements PwmSessionBean {
             this.lastLoginTime = lastLoginTime;
         }
 
-        public List<AuditRecord> getUserHistory() {
+        public List<UserAuditRecord> getUserHistory() {
             return userHistory;
         }
 
-        public void setUserHistory(List<AuditRecord> userHistory) {
+        public void setUserHistory(List<UserAuditRecord> userHistory) {
             this.userHistory = userHistory;
         }
 

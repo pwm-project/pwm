@@ -33,6 +33,7 @@ public class ConfigEditorCookie implements Serializable {
     private EDIT_MODE editMode = EDIT_MODE.SETTINGS;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
+    private PwmSetting.Group group = null;
     private boolean notesSeen;
 
     public ConfigEditorCookie() {
@@ -69,6 +70,8 @@ public class ConfigEditorCookie implements Serializable {
     public void setCategory(PwmSetting.Category category) {
         this.category = category;
     }
+
+
 
     public PwmConstants.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
         return localeBundle;

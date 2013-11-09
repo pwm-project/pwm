@@ -42,7 +42,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -160,7 +160,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "request to execute unknown action: " + requestedName;
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
             LOGGER.debug(pwmSession,errorInformation.toDebugStr());
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         }
@@ -170,7 +170,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "no user selected: " + requestedName;
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg);
             LOGGER.debug(pwmSession,errorInformation.toDebugStr());
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         }
@@ -185,6 +185,22 @@ public class HelpdeskServlet extends TopServlet {
             settings.setExpandPwmMacros(true);
             actionExecutor.executeAction(action,settings,pwmSession);
             final RestResultBean restResultBean = new RestResultBean();
+            // mark the event log
+            {
+                final UserAuditRecord auditRecord = new UserAuditRecord(
+                        AuditEvent.HELPDESK_ACTION,
+                        pwmSession.getUserInfoBean().getUserID(),
+                        pwmSession.getUserInfoBean().getUserDN(),
+                        new Date(),
+                        action.getName(),
+                        helpdeskBean.getUserInfoBean().getUserID(),
+                        helpdeskBean.getUserInfoBean().getUserDN(),
+                        pwmSession.getSessionStateBean().getSrcAddress(),
+                        pwmSession.getSessionStateBean().getSrcHostname()
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+            }
+
             restResultBean.setSuccessMessage(Message.getLocalizedMessage(
                     pwmSession.getSessionStateBean().getLocale(),
                     Message.SUCCESS_ACTION,
@@ -194,7 +210,7 @@ public class HelpdeskServlet extends TopServlet {
             ServletHelper.outputJsonResult(resp, restResultBean);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession,e.getErrorInformation().toDebugStr());
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(), pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp, restResultBean);
         }
     }
@@ -343,7 +359,7 @@ public class HelpdeskServlet extends TopServlet {
 
         try {
 
-            additionalUserInfo.setUserHistory(pwmApplication.getAuditManager().readUserAuditRecords(uiBean));
+            additionalUserInfo.setUserHistory(pwmApplication.getAuditManager().readUserHistory(uiBean));
         } catch (Exception e) {
             LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
         }
@@ -401,7 +417,7 @@ public class HelpdeskServlet extends TopServlet {
             chaiUser.unlock();
             {
                 // mark the event log
-                final AuditRecord auditRecord = new AuditRecord(
+                final UserAuditRecord auditRecord = new UserAuditRecord(
                         AuditEvent.HELPDESK_UNLOCK_PASSWORD,
                         pwmSession.getUserInfoBean().getUserID(),
                         pwmSession.getUserInfoBean().getUserDN(),
@@ -412,7 +428,7 @@ public class HelpdeskServlet extends TopServlet {
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
-                pwmApplication.getAuditManager().submitAuditRecord(auditRecord);
+                pwmApplication.getAuditManager().submit(auditRecord);
             }
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);

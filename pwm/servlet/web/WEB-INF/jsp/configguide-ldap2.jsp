@@ -70,6 +70,9 @@
                                         onKeyUp: function() {
                                             handleFormActivity();
                                         },
+                                        onChange: function() {
+                                            handleFormActivity();
+                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>'
                                     }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>");
                                 });
@@ -101,6 +104,9 @@
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>',
                                         onKeyUp: function() {
+                                            handleFormActivity();
+                                        },
+                                        onChange: function() {
                                             handleFormActivity();
                                         },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>'
@@ -141,7 +147,6 @@
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('localeSelectionMenu').style.display = 'none';
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
@@ -166,9 +171,10 @@
             checkIfNextEnabled();
         };
         showWaitDialog();
-        showPwmHealth('healthBody', options);
+        showAppHealth('healthBody', options);
     }
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

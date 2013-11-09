@@ -32,7 +32,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.Collections" %>
-<%@ page import="password.pwm.event.AuditRecord" %>
+<%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.i18n.Display" %>
@@ -206,15 +206,15 @@
             </div>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
             <%
-                List<AuditRecord> auditRecords = Collections.emptyList();
-                try { auditRecords = pwmApplicationHeader.getAuditManager().readUserAuditRecords(pwmSessionHeader);} catch (Exception e) {/*noop*/}
+                List<UserAuditRecord> auditRecords = Collections.emptyList();
+                try { auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);} catch (Exception e) {/*noop*/}
                 final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
             %>
             <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
                 <div style="max-height: 400px; overflow: auto;">
                     <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
-                        <% for (final AuditRecord record : auditRecords) { %>
+                        <% for (final UserAuditRecord record : auditRecords) { %>
                         <tr>
                             <td class="key" style="width:50%">
                                 <%= dateFormatter.format(record.getTimestamp()) %>

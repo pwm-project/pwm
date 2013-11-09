@@ -79,15 +79,6 @@ public class SessionFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         try {
-            resp.setHeader(
-                    "X-" + PwmConstants.PWM_APP_NAME + "-Noise",
-                    PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
-            );
-        } catch (Exception e) {
-            /* noop */
-        }
-
-        try {
             processFilter(req,resp,filterChain);
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
@@ -104,6 +95,15 @@ public class SessionFilter implements Filter {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         ServletHelper.handleRequestInitialization(req, pwmApplication, pwmSession);
+
+        {
+            final boolean sendNoise = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
+            if (sendNoise) {
+                try {
+                    resp.setHeader( "X-" + PwmConstants.PWM_APP_NAME + "-Noise", PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10));
+                } catch (Exception e) { /* noop */ }
+            }
+        }
 
         try {
             ServletHelper.handleRequestSecurityChecks(req, pwmApplication, pwmSession);
@@ -133,7 +133,7 @@ public class SessionFilter implements Filter {
         ssBean.incrementRequestCounter();
 
         // output request information to debug log
-        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(req));
+        LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(pwmApplication,req));
 
         // check the page leave notice
         if (checkPageLeaveNotice(pwmSession, pwmApplication.getConfig())) {
@@ -147,10 +147,10 @@ public class SessionFilter implements Filter {
         handleLocaleParam(req, resp, pwmSession, pwmApplication);
 
         //set the session's theme
-        final String themeReqParameter = Validator.readStringFromRequest(req, PwmConstants.PARAM_THEME);
+        final String themeReqParameter = Validator.readStringFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_THEME));
         if (themeReqParameter != null && themeReqParameter.length() > 0) {
             ssBean.setTheme(themeReqParameter);
-            final String themeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_THEME);
+            final String themeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_THEME);
             if (themeCookieName != null && themeCookieName.length() > 0) {
                 final Cookie newCookie = new Cookie(themeCookieName, themeReqParameter);
                 newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
@@ -194,13 +194,13 @@ public class SessionFilter implements Filter {
             }
         }
 
-        final String forwardURLParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_FORWARD_URL);
+        final String forwardURLParam = Validator.readStringFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_FORWARD_URL));
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
             ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 
-        final String logoutURL = Validator.readStringFromRequest(req, PwmConstants.PARAM_LOGOUT_URL);
+        final String logoutURL = Validator.readStringFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_LOGOUT_URL));
         if (logoutURL != null && logoutURL.length() > 0) {
             ssBean.setLogoutURL(logoutURL);
             LOGGER.debug(pwmSession, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
@@ -217,7 +217,7 @@ public class SessionFilter implements Filter {
             }
         }
 
-        if (Validator.readBooleanFromRequest(req, PwmConstants.PARAM_PASSWORD_EXPIRED)) {
+        if (Validator.readBooleanFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_PASSWORD_EXPIRED))) {
             pwmSession.getUserInfoBean().getPasswordState().setExpired(true);
         }
 
@@ -306,6 +306,7 @@ public class SessionFilter implements Filter {
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
 
+            ssBean.regenerateSessionVerificationKey();
             final String returnURL = figureValidationURL(req, ssBean.getSessionVerificationKey());
 
             LOGGER.trace(pwmSession, "session has not been validated, redirecting with verification key to " + returnURL);
@@ -405,11 +406,12 @@ public class SessionFilter implements Filter {
     )
             throws PwmUnrecoverableException
     {
-        final String requestedLocale = Validator.readStringFromRequest(request, PwmConstants.PARAM_LOCALE);
+        final String localeParamName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE);
+        final String localeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_LOCALE);
+        final String requestedLocale = Validator.readStringFromRequest(request, localeParamName);
         if (requestedLocale != null && requestedLocale.length() > 0) {
-            LOGGER.debug(pwmSession, "detected locale request parameter " + PwmConstants.PARAM_LOCALE + " with value " + requestedLocale);
+            LOGGER.debug(pwmSession, "detected locale request parameter " + localeParamName+ " with value " + requestedLocale);
             if (pwmSession.setLocale(requestedLocale)) {
-                final String localeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_LOCALE);
                 final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
                 newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
                 newCookie.setPath(request.getContextPath() + "/");

@@ -52,6 +52,13 @@ public class ServletHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ServletHelper.class);
 
+    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<String>(
+            Arrays.asList(new String[] {
+                    "password",
+                    PwmConstants.PARAM_TOKEN,
+                    PwmConstants.PARAM_RESPONSE_PREFIX,
+            }));
+
     /**
      * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, boolean)} )}
      * with forceLogout=true;
@@ -190,11 +197,12 @@ public class ServletHelper {
         return sb.toString();
     }
 
-    public static String debugHttpRequest(final HttpServletRequest req) {
-        return debugHttpRequest(req, "");
+    public static String debugHttpRequest(final PwmApplication pwmApplication, final HttpServletRequest req) {
+        return debugHttpRequest(pwmApplication, req, "");
     }
 
-    public static String debugHttpRequest(final HttpServletRequest req, final String extraText) {
+    public static String debugHttpRequest(final PwmApplication pwmApplication, final HttpServletRequest req, final String extraText) {
+
         final StringBuilder sb = new StringBuilder();
 
         sb.append(req.getMethod());
@@ -225,11 +233,13 @@ public class ServletHelper {
 
                 for (final String paramValue : paramValues) {
                     sb.append("  ").append(paramName).append("=");
-                    if (
-                            paramName.toLowerCase().contains("password") ||
-                                    paramName.startsWith(PwmConstants.PARAM_RESPONSE_PREFIX) ||
-                                    paramName.contains(PwmConstants.PARAM_TOKEN)
-                            ) {
+                    boolean strip = false;
+                    for (final String stripValue : HTTP_DEBUG_STRIP_VALUES) {
+                        if (paramName.toLowerCase().contains(stripValue.toLowerCase())) {
+                            strip = true;
+                        }
+                    }
+                    if (strip) {
                         sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
                     } else {
                         sb.append('\'');
@@ -300,16 +310,22 @@ public class ServletHelper {
         return inputData.toString();
     }
 
-    public static void addPwmResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp, boolean includeXAmb) {
+    public static void addPwmResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp, boolean fromServlet) {
         if (!resp.isCommitted()) {
-            if (includeXAmb && PwmConstants.INCLUDE_X_VERSION_HEADER) {
+            final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
+            final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
+            final boolean includeXVersion = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+
+            if (fromServlet && includeXAmb) {
+                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+            }
+
+            if (includeXVersion) {
                 resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Version", PwmConstants.SERVLET_VERSION);
             }
 
-            resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
-
-            if (includeXAmb && PwmConstants.INCLUDE_X_AMB_HEADER) {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+            if (includeXInstance) {
+                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
             }
         }
     }
@@ -460,12 +476,16 @@ public class ServletHelper {
         return sb.toString();
     }
 
-    public static void recycleSessions(final PwmSession pwmSession, HttpServletRequest req)
+    public static void recycleSessions(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
             throws IOException, ServletException
     {
-        pwmSession.getSessionStateBean().regenerateSessionVerificationKey();
-
-        if (!PwmConstants.HTTP_RECYCLE_SESSIONS_ON_AUTH) {
+        final boolean recycleEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
+        if (!recycleEnabled) {
             return;
         }
 
@@ -490,8 +510,10 @@ public class ServletHelper {
         for (final String attrName : sessionAttributes.keySet()) {
             newSession.setAttribute(attrName, sessionAttributes.get(attrName));
         }
-
         pwmSession.setHttpSession(newSession);
+
+        //require session validation again
+        pwmSession.getSessionStateBean().setSessionVerified(false);
     }
 
     public static void handleRequestInitialization(
@@ -539,7 +561,7 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        final String localeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_LOCALE);
+        final String localeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_LOCALE);
         final String localeCookie = ServletHelper.readCookie(req,localeCookieName);
         if (localeCookieName.length() > 0 && localeCookie != null) {
             LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
@@ -551,7 +573,7 @@ public class ServletHelper {
             LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
         }
 
-        final String themeCookieName = pwmApplication.readAppProperty(AppProperty.COOKIE_NAME_THEME);
+        final String themeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_THEME);
         final String themeCookie = ServletHelper.readCookie(req,themeCookieName);
         if (localeCookieName.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
             LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);

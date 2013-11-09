@@ -32,6 +32,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditRecord;
+import password.pwm.event.SystemAuditRecord;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
@@ -43,20 +45,17 @@ import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Path("/app-data")
@@ -117,40 +116,37 @@ public class RestAppDataServer {
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(true);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-            final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
-            return Response.ok(RestResultBean.fromErrorInformation(errorInfo,restRequestBean.getPwmApplication(),restRequestBean.getPwmSession()).toJson()).build();
-        }
 
-        final ArrayList<Map<String,Object>> gridData = new ArrayList<Map<String,Object>>();
-        for (Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readLocalDB(); iterator.hasNext() && gridData.size() <= maximum; ) {
+        final ArrayList<UserAuditRecord> userRecords = new ArrayList<UserAuditRecord>();
+        final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<SystemAuditRecord>();
+        final Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readVault();
+        while (iterator.hasNext() && userRecords.size() <= maximum) {
             final AuditRecord loopRecord = iterator.next();
-            try {
-                final Map<String, Object> rowData = new HashMap<String, Object>();
-                rowData.put("timestamp", loopRecord.getTimestamp());
-                rowData.put("perpID", loopRecord.getPerpetratorID());
-                rowData.put("perpDN", loopRecord.getPerpetratorDN());
-                rowData.put("event", loopRecord.getEventCode().toString());
-                rowData.put("message",loopRecord.getMessage());
-                rowData.put("targetID",loopRecord.getTargetID());
-                rowData.put("targetDN",loopRecord.getTargetDN());
-                rowData.put("srcIP",loopRecord.getSourceAddress());
-                rowData.put("srcHost",loopRecord.getSourceHost());
-                gridData.add(rowData);
-            } catch (IllegalStateException e) { /* ignore */ }
-            if (gridData.size() >= maximum) {
+            if (loopRecord instanceof SystemAuditRecord) {
+                systemRecords.add((SystemAuditRecord)loopRecord);
+            } else if (loopRecord instanceof UserAuditRecord) {
+                userRecords.add((UserAuditRecord)loopRecord);
+            }
+            if (userRecords.size() >= maximum) {
                 break;
             }
         }
+        final HashMap<String,List> outputMap = new HashMap<String,List>();
+        outputMap.put("user",userRecords);
+        outputMap.put("system",systemRecords);
 
         final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(gridData);
-        return Response.ok(restResultBean.toJson()).build();
+        restResultBean.setData(outputMap);
+        return restResultBean.asJsonResponse();
     }
 
     @GET
@@ -164,14 +160,18 @@ public class RestAppDataServer {
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(true);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
             final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
-            return Response.ok(RestResultBean.fromErrorInformation(errorInfo,restRequestBean.getPwmApplication(),restRequestBean.getPwmSession()).toJson()).build();
+            return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
 
         final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
@@ -198,7 +198,7 @@ public class RestAppDataServer {
         }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(gridData);
-        return Response.ok(restResultBean.toJson()).build();
+        return restResultBean.asJsonResponse();
     }
 
     @GET
@@ -212,14 +212,18 @@ public class RestAppDataServer {
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.NORMAL, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(true);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
             final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
-            return Response.ok(RestResultBean.fromErrorInformation(errorInfo,restRequestBean.getPwmApplication(),restRequestBean.getPwmSession()).toJson()).build();
+            return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
 
         final TreeMap<String,Object> returnData = new TreeMap<String,Object>();
@@ -229,30 +233,35 @@ public class RestAppDataServer {
             }
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            return Response.ok(RestResultBean.fromErrorInformation(errorInfo,restRequestBean.getPwmApplication(),restRequestBean.getPwmSession()).toJson()).build();
+            return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
 
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnData);
-        return Response.ok(restResultBean.toJson()).build();
+        return restResultBean.asJsonResponse();
+
     }
 
     @GET
     @Path("/client-config")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response doGetAppSettingData(
+    public Response doGetClientConfigData(
             @Context HttpServletRequest request,
             @Context HttpServletResponse response
     ) throws ChaiUnavailableException, PwmUnrecoverableException {
 
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.PUBLIC, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String eTagValue = ResourceFileServlet.makeNonce(restRequestBean.getPwmApplication());
+        final String eTagValue = restRequestBean.getPwmApplication().getInstanceNonce();
 
         // check the incoming header;
         final String ifNoneMatchValue = request.getHeader("If-None-Match");
@@ -260,28 +269,34 @@ public class RestAppDataServer {
         if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
             return Response.notModified().build();
         }
+
         response.setHeader("ETag",eTagValue);
-        response.setHeader("Cache-Control","private, max-age=0");
 
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(makeClientConfigData(restRequestBean));
-        return Response.ok(restResultBean.toJson()).build();
+        return restResultBean.asJsonResponse();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/client/{etagUri}")
-    public Response doGetAppData(
+    @Path("/client/{eTagUri}")
+    public Response doGetAppClientData(
+            @PathParam(value = "eTagUri") final String eTagUri,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response
     )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException
+    {
         final int maxCacheAgeSeconds = 60 * 5;
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, RestServerHelper.ServiceType.PUBLIC, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(false);
+            servicePermissions.setBlockExternal(false);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return Response.ok(RestServerHelper.outputJsonErrorResult(e.getErrorInformation(),request)).build();
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         final String eTagValue = makeClientEtag(request, restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
@@ -289,7 +304,7 @@ public class RestAppDataServer {
         // check the incoming header;
         final String ifNoneMatchValue = request.getHeader("If-None-Match");
 
-        if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
+        if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue) && eTagValue.equals(eTagUri)) {
             return Response.notModified().build();
         }
 
@@ -300,7 +315,7 @@ public class RestAppDataServer {
         final AppData appData = makeAppData(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), request, response);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(appData);
-        return Response.ok(restResultBean.toJson()).build();
+        return restResultBean.asJsonResponse();
     }
 
     private AppData makeAppData(
@@ -347,17 +362,19 @@ public class RestAppDataServer {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final Configuration config = pwmApplication.getConfig();
         final TreeMap<String,Object> settingMap = new TreeMap<String, Object>();
-        settingMap.put("client.ajaxTypingTimeout", Integer.parseInt(pwmApplication.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_TIMEOUT)));
-        settingMap.put("client.ajaxTypingWait", Integer.parseInt(pwmApplication.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
-        settingMap.put("client.activityMaxEpsRate", Integer.parseInt(pwmApplication.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
-        settingMap.put("enableIdleTimeout", pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT));
-        settingMap.put("pageLeaveNotice", pwmApplication.getConfig().readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT));
+        settingMap.put("client.ajaxTypingTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_TIMEOUT)));
+        settingMap.put("client.ajaxTypingWait", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
+        settingMap.put("client.activityMaxEpsRate", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
+        settingMap.put("enableIdleTimeout", config.readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT));
+        settingMap.put("pageLeaveNotice", config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT));
         settingMap.put("setting-showHidePasswordFields",pwmApplication.getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS));
         settingMap.put("setting-displayEula",PwmConstants.ENABLE_EULA_DISPLAY);
         settingMap.put("MaxInactiveInterval",request.getSession().getMaxInactiveInterval());
-        settingMap.put("paramName.locale", PwmConstants.PARAM_LOCALE);
+        settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
         settingMap.put("startupTime",pwmApplication.getStartupTime());
+        settingMap.put("applicationMode",pwmApplication.getApplicationMode());
 
         settingMap.put("url-context",request.getContextPath());
         settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true", request, response));
@@ -506,23 +523,21 @@ public class RestAppDataServer {
             throws IOException
     {
         if (pwmSession == null || !pwmSession.getSessionStateBean().isAuthenticated()) {
-            return ResourceFileServlet.makeNonce(pwmApplication);
+            return pwmApplication.getInstanceNonce();
         }
 
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
-        inputString.append(ResourceFileServlet.makeNonce(pwmApplication));
+        inputString.append(pwmApplication.getStartupTime().getTime());
         inputString.append(request.getSession().getMaxInactiveInterval());
 
-        if (pwmSession != null) {
-            inputString.append(pwmSession.getSessionStateBean().getSessionID());
-            if (pwmSession.getSessionStateBean().getLocale() != null) {
-                inputString.append(pwmSession.getSessionStateBean().getLocale());
-            }
-            if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                inputString.append(pwmSession.getUserInfoBean().getUserGuid());
-                inputString.append(pwmSession.getUserInfoBean().getLocalAuthTime());
-            }
+        inputString.append(pwmSession.getSessionStateBean().getSessionID());
+        if (pwmSession.getSessionStateBean().getLocale() != null) {
+            inputString.append(pwmSession.getSessionStateBean().getLocale());
+        }
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            inputString.append(pwmSession.getUserInfoBean().getUserGuid());
+            inputString.append(pwmSession.getUserInfoBean().getLocalAuthTime());
         }
         return Helper.md5sum(inputString.toString());
     }

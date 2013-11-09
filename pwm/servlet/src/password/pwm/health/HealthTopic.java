@@ -22,12 +22,24 @@
 
 package password.pwm.health;
 
+import password.pwm.i18n.Health;
+import password.pwm.i18n.LocaleHelper;
+
+import java.util.Locale;
+
 public enum HealthTopic {
     Configuration,
     LDAP,
+    Email,
+    Integrity,
+
     ;
 
     public String getKey() {
         return HealthTopic.class.getSimpleName() + "_" + this.toString();
+    }
+
+    public String getDescription(final Locale locale, final password.pwm.config.Configuration config) {
+        return LocaleHelper.getLocalizedMessage(locale, this.getKey(), config, Health.class);
     }
 }

@@ -22,7 +22,6 @@
 
 package password.pwm.servlet;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -187,13 +186,13 @@ public class ConfigGuideServlet extends TopServlet {
                     ServletHelper.outputJsonResult(resp, restResultBean);
                     req.getSession().invalidate();
                 } catch (PwmException e) {
-                    final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(),pwmApplication,pwmSession);
+                    final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                     ServletHelper.outputJsonResult(resp, restResultBean);
                     LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 }
             } else {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload");
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation,pwmApplication,pwmSession);
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 ServletHelper.outputJsonResult(resp, restResultBean);
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
             }
@@ -236,7 +235,7 @@ public class ConfigGuideServlet extends TopServlet {
         if (requestedTemplate == null || requestedTemplate.length() <= 0) {
             final String errorMsg = "missing template value in template set request";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.error(pwmSession,errorInformation.toDebugStr());
             ServletHelper.outputJsonResult(resp,restResultBean);
             return;
@@ -247,7 +246,7 @@ public class ConfigGuideServlet extends TopServlet {
         } catch (IllegalArgumentException e) {
             final String errorMsg = "unknown template set request: " + requestedTemplate;
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.error(pwmSession,errorInformation.toDebugStr());
             ServletHelper.outputJsonResult(resp,restResultBean);
             return;
@@ -379,7 +378,7 @@ public class ConfigGuideServlet extends TopServlet {
             } catch (IllegalArgumentException e) {
                 final String errorMsg = "unknown goto step request: " + requestedStep;
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 LOGGER.error(pwmSession,errorInformation.toDebugStr());
                 ServletHelper.outputJsonResult(resp,restResultBean);
                 return;
@@ -393,7 +392,7 @@ public class ConfigGuideServlet extends TopServlet {
                 writeConfig(contextManager, configGuideBean);
             } catch (PwmOperationalException e) {
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(), pwmApplication, pwmSession);
+                final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 ServletHelper.outputJsonResult(resp, restResultBean);
                 return;
             }
@@ -460,7 +459,7 @@ public class ConfigGuideServlet extends TopServlet {
     private void writeConfig(
             final ContextManager contextManager,
             final ConfigGuideBean configGuideBean
-    ) throws PwmOperationalException {
+    ) throws PwmOperationalException, PwmUnrecoverableException {
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
         final String configPassword = configGuideBean.getFormData().get(PARAM_CONFIG_PASSWORD);
         if (configPassword != null && configPassword.length() > 0) {
@@ -477,33 +476,23 @@ public class ConfigGuideServlet extends TopServlet {
             }
         }
 
-        { //determine promiscuous ssl setting
-            if ("true".equalsIgnoreCase(configGuideBean.getFormData().get(PARAM_LDAP_SECURE))) {
-                if (configGuideBean.isUseConfiguredCerts() || configGuideBean.isCertsTrustedbyKeystore()) {
-                    storedConfiguration.writeSetting(PwmSetting.LDAP_PROMISCUOUS_SSL, new BooleanValue(false));
-                } else {
-                    storedConfiguration.writeSetting(PwmSetting.LDAP_PROMISCUOUS_SSL, new BooleanValue(true));
-                }
-            } else {
-                storedConfiguration.writeSetting(PwmSetting.LDAP_PROMISCUOUS_SSL, new BooleanValue(false));
-            }
-        }
-
+        storedConfiguration.writeAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE, null);
         writeConfig(contextManager, storedConfiguration);
     }
 
     private static void writeConfig(
             final ContextManager contextManager,
             final StoredConfiguration storedConfiguration
-    ) throws PwmOperationalException {
+    ) throws PwmOperationalException, PwmUnrecoverableException {
         ConfigurationReader configReader = contextManager.getConfigReader();
+        PwmApplication pwmApplication = contextManager.getPwmApplication();
 
         try {
             // add a random security key
             storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)));
 
             storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
-            configReader.saveConfiguration(storedConfiguration);
+            configReader.saveConfiguration(storedConfiguration, pwmApplication);
 
             contextManager.reinitialize();
         } catch (PwmException e) {

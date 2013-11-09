@@ -103,7 +103,7 @@ public enum PwmError {
     ERROR_USER_MISMATCH("Error_UserMisMatch", 5020, false),
     ERROR_ACTIVATE_USER_NO_QUERY_MATCH("Error_ActivateUserNoQueryMatch", 5021, false),
     ERROR_NO_CHALLENGES("Error_NoChallenges", 5022, false),
-    ERROR_INTRUDER_USER("Error_UserIntruder", 5023, true, ChaiError.INTRUDER_LOCKOUT),
+    ERROR_INTRUDER_USER("Error_UserIntruder", 5023, true),
     ERROR_INTRUDER_ADDRESS("Error_AddressIntruder", 5024, true),
     ERROR_INTRUDER_SESSION("Error_SessionIntruder", 5025, true),
     ERROR_BAD_SESSION_PASSWORD("Error_BadSessionPassword", 5026, false),
@@ -151,6 +151,8 @@ public enum PwmError {
     ERROR_INCORRECT_OTP_TOKEN("Error_WrongOtpToken", 5065, false),
     ERROR_WRITING_OTP_SECRET("Error_Writing_Otp_Secret", 5066, false),
     ERROR_INTRUDER_ATTR_SEARCH("Error_AttrIntruder", 5067, true),
+    ERROR_AUDIT_WRITE("Error_AuditWrite", 5068, false),
+    ERROR_INTRUDER_LDAP("Error_LdapIntruder", 5069, true, ChaiError.INTRUDER_LOCKOUT),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),
@@ -184,8 +186,8 @@ public enum PwmError {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String getLocalizedMessage(final Locale locale, final PwmError message, final Configuration config, final String... fieldValue) {
-        return LocaleHelper.getLocalizedMessage(locale, message.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue);
+    public String getLocalizedMessage(final Locale locale, final Configuration config, final String... fieldValue) {
+        return LocaleHelper.getLocalizedMessage(locale, this.getResourceKey(), config, password.pwm.i18n.Error.class, fieldValue);
     }
 
     public static PwmError forChaiError(final ChaiError errorCode) {

@@ -45,6 +45,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Message;
+import password.pwm.token.TokenPayload;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
@@ -109,7 +110,7 @@ public class NewUserServlet extends TopServlet {
 
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
-            if (convertURLtokenCommand(req, resp, pwmSession)) {
+            if (convertURLtokenCommand(req, resp, pwmApplication, pwmSession)) {
                 return;
             }
         }
@@ -122,7 +123,7 @@ public class NewUserServlet extends TopServlet {
                 restValidateForm(req, resp);
                 return;
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
-                handleEnterCodeRequest(req, resp);
+                handleEnterCodeRequest(req, resp, pwmApplication, pwmSession);
             } else if ("doCreate".equalsIgnoreCase(processAction)) {
                 handleDoCreateRequest(req, resp);
             } else if ("reset".equalsIgnoreCase(processAction)) {
@@ -247,20 +248,22 @@ public class NewUserServlet extends TopServlet {
                 ServletHelper.outputJsonResult(resp,restResultBean);
             }
         } catch (PwmOperationalException e) {
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(e.getErrorInformation(),pwmApplication,pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp,restResultBean);
         }
     }
 
-    private void handleEnterCodeRequest(final HttpServletRequest req, final HttpServletResponse resp)
+    private void handleEnterCodeRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-
         final String userSuppliedTokenKey = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
-        final TokenManager.TokenPayload tokenPayload;
+        final TokenPayload tokenPayload;
         try {
             tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userSuppliedTokenKey);
             if (tokenPayload != null && !TOKEN_NAME.equals(tokenPayload.getName())) {
@@ -295,6 +298,7 @@ public class NewUserServlet extends TopServlet {
                 }
             }
 
+            pwmApplication.getTokenManager().markTokenAsClaimed(userSuppliedTokenKey, pwmSession);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             this.advancedToNextStage(req,resp);
             return;
@@ -435,7 +439,7 @@ public class NewUserServlet extends TopServlet {
         sendNewUserEmailConfirmation(pwmSession, new UserDataReader(proxiedUser), pwmApplication);
 
         // add audit record
-        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
 
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
@@ -546,7 +550,7 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
     }
 
     private void forwardToJSP(
@@ -695,8 +699,8 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toNum));
-                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
+                    final TokenPayload tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toNum));
+                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload,pwmSession);
                     LOGGER.trace(pwmSession, "generated new user token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -719,8 +723,8 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenManager.TokenPayload tokenPayload = new TokenManager.TokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toAddress));
-                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload);
+                    final TokenPayload tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toAddress));
+                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload, pwmSession);
                     LOGGER.trace(pwmSession, "generated new user token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());

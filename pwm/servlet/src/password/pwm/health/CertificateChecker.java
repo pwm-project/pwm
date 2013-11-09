@@ -22,6 +22,7 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -56,20 +57,21 @@ public class CertificateChecker implements HealthChecker {
     }
 
     private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting) {
+        final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
         final X509Certificate[] certificates = configuration.readSettingAsCertificate(setting);
         if (certificates != null) {
             final List<HealthRecord> returnList = new ArrayList<HealthRecord>();
             for (final X509Certificate certificate : certificates) {
-                returnList.addAll(doHealthCheck(certificate));
+                returnList.addAll(doHealthCheck(certificate, warnDurationMs));
             }
             return returnList;
         }
         return Collections.emptyList();
     }
 
-    public static List<HealthRecord> doHealthCheck(X509Certificate certificate) {
+    private static List<HealthRecord> doHealthCheck(X509Certificate certificate, final long warnDurationMs) {
         try {
-            checkCertificate(certificate);
+            checkCertificate(certificate, warnDurationMs);
             return Collections.emptyList();
         } catch (PwmOperationalException e) {
             final HealthRecord record = new HealthRecord(HealthStatus.WARN,"Certificates",e.getErrorInformation().toDebugStr());
@@ -77,7 +79,7 @@ public class CertificateChecker implements HealthChecker {
         }
     }
 
-    public static void checkCertificate(final X509Certificate certificate)
+    public static void checkCertificate(final X509Certificate certificate, final long warnDurationMs)
             throws PwmOperationalException
     {
         if (certificate == null) {
@@ -98,7 +100,7 @@ public class CertificateChecker implements HealthChecker {
 
         final Date expireDate = certificate.getNotAfter();
         final TimeDuration durationUntilExpire = TimeDuration.fromCurrent(expireDate);
-        if (durationUntilExpire.isShorterThan(PwmConstants.CERTIFICATE_WARN_PERIOD_MS)) {
+        if (durationUntilExpire.isShorterThan(warnDurationMs)) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append("certificate for subject ");
             errorMsg.append(certificate.getSubjectDN().getName());

@@ -93,7 +93,7 @@ public class
                 }
 
                 // recycle the session to prevent session fixation attack.
-                ServletHelper.recycleSessions(pwmSession, req);
+                ServletHelper.recycleSessions(pwmApplication, pwmSession, req, resp);
 
                 // see if there is a an original request url
                 final String originalURL = ssBean.getOriginalRequestURL();

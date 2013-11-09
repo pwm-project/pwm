@@ -22,6 +22,7 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -78,10 +79,8 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_RequireHttps",value)));
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.LDAP_PROMISCUOUS_SSL)) {
-            final String value = PwmSetting.LDAP_PROMISCUOUS_SSL.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> " + PwmSetting.LDAP_PROMISCUOUS_SSL.getLabel(PwmConstants.DEFAULT_LOCALE);
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_PromiscuousLDAP",value)));
+        if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_PromiscuousLDAP")));
         }
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {

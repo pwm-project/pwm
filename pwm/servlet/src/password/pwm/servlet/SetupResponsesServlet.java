@@ -285,7 +285,7 @@ public class SetupResponsesServlet extends TopServlet {
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
-        pwmApplication.getAuditManager().submitAuditRecord(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean(), pwmSession);
+        pwmApplication.getAuditManager().submit(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean(), pwmSession);
     }
 
     private static Map<Challenge, String> readResponsesFromHttpRequest(

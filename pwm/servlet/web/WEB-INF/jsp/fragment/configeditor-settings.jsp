@@ -59,7 +59,7 @@
 <% final List<PwmSetting> advancedSettings = PwmSetting.getSettings(category,1);%>
 <% final boolean showAdvanced = cookie.getLevel() > 1; %>
 <% if (!advancedSettings.isEmpty()) { %>
-<button class="btn" id="showAdvancedSettingsButton" onclick="toggleAdvancedSettingsDisplay()">Show Advanced Settings</button>
+<a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="toggleAdvancedSettingsDisplay()">Show <%=advancedSettings.size()%> Advanced Settings</a>
 <div id="advancedSettings" style="display: none">
     <hr/>
     <% for (final PwmSetting loopSetting : advancedSettings) { %>
@@ -67,7 +67,7 @@
     <jsp:include page="configeditor-setting.jsp"/>
     <% } %>
     <% if (!showAdvanced) { %>
-    <button class="btn" onclick="toggleAdvancedSettingsDisplay()">Hide Advanced Settings</button>
+    <a onclick="toggleAdvancedSettingsDisplay()" style="cursor:pointer">Hide Advanced Settings</a>
     <% } %>
 </div>
 <script type="text/javascript">

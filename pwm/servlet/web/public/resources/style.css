@@ -135,6 +135,14 @@ table td.key {
     height: 18px;
 }
 
+.tokenInput {
+    height: 130px;
+    width: 80%;
+    resize: none;
+    display: block;
+    margin-bottom: 30px;
+}
+
 .changepasswordfield {
     width: 90%;
     margin-right: 5px;

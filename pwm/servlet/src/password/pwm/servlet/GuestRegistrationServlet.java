@@ -205,7 +205,7 @@ public class GuestRegistrationServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     protected void handleSearchRequest(
@@ -465,7 +465,7 @@ public class GuestRegistrationServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.sendEmailUsingQueue(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
     }
 
     private void forwardToJSP(

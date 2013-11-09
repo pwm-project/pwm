@@ -76,6 +76,9 @@
                                         onKeyUp: function() {
                                             handleFormActivity();
                                         },
+                                        onChange: function() {
+                                            handleFormActivity();
+                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
                                     }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
                                 });
@@ -116,7 +119,6 @@
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('localeSelectionMenu').style.display = 'none';
         checkIfNextEnabled();
     });
 
@@ -140,9 +142,10 @@
             checkIfNextEnabled();
         };
         showWaitDialog();
-        showPwmHealth('healthBody', options);
+        showAppHealth('healthBody', options);
     }
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

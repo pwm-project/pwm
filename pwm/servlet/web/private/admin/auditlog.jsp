@@ -33,16 +33,22 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <div id="grid">
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="User">
+                <div id="userGrid">
+                </div>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="System">
+                <div id="systemGrid">
+                </div>
+            </div>
         </div>
-        <style scoped="scoped">
-            .grid { height: auto; }
-        </style>
+        <br/>
         <div id="buttonbar">
-                <input name="maxResults" id="maxResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
-                       data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-                Rows
-                <button class="btn" type="button" onclick="refreshData()">Refresh</button>
+            <input name="maxResults" id="maxResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                   data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+            Rows
+            <button class="btn" type="button" onclick="refreshData()">Refresh</button>
             <br/>
             <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                 <button type="submit" class="btn">Download as CSV</button>
@@ -52,39 +58,47 @@
         </div>
     </div>
     <div class="push"></div>
+    <style>
+        .userGrid { height: auto; }
+        .systemGrid { height: auto; }
+    </style>
 </div>
 <script type="text/javascript">
-    var grid;
-    var headers = {
+    var userGrid;
+    var userHeaders = {
         "timestamp":"Time",
-        "perpID":"Perpetrator ID",
-        "perpDN":"Perpetrator DN",
-        "event":"Event",
+        "perpetratorID":"Perpetrator ID",
+        "perpetratorDN":"Perpetrator DN",
+        "eventCode":"Event",
         "message":"Message",
         "targetID":"Target ID",
         "targetDN":"Target DN",
-        "srcIP":"Source Address",
-        "srcHost":"Source Host"
+        "sourceAddress":"Source Address",
+        "sourceHost":"Source Host"
+    };
+    var systemGrid;
+    var systemHeaders = {
+        "timestamp":"Time",
+        "eventCode":"Event",
+        "message":"Message",
+        "instance":"Instance"
     };
 
     function initGrid() {
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                 function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                    var columnHeaders = headers;
-
                     // Create a new constructor by mixing in the components
                     var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
-                    // Now, create an instance of our custom grid
-                    grid = new CustomGrid({
-                        columns: columnHeaders
-                    }, "grid");
+                    // Now, create an instance of our custom userGrid
+                    userGrid = new CustomGrid({columns: userHeaders}, "userGrid");
+                    systemGrid = new CustomGrid({columns: systemHeaders}, "systemGrid");
 
                     // unclick superfluous fields
-                    getObject('grid-hider-menu-check-perpDN').click();
-                    getObject('grid-hider-menu-check-message').click();
-                    getObject('grid-hider-menu-check-targetDN').click();
-                    getObject('grid-hider-menu-check-srcHost').click();
+                    getObject('userGrid-hider-menu-check-perpetratorDN').click();
+                    getObject('userGrid-hider-menu-check-message').click();
+                    getObject('userGrid-hider-menu-check-targetDN').click();
+                    getObject('userGrid-hider-menu-check-sourceHost').click();
 
                     refreshData();
                 });
@@ -93,17 +107,21 @@
     function refreshData() {
         showWaitDialog();
         require(["dojo"],function(dojo){
-            grid.refresh();
+            userGrid.refresh();
+            systemGrid.refresh();
             var maximum = getObject('maxResults').value;
-            var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum  + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
             dojo.xhrGet({
                 url: url,
                 preventCache: true,
+                headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 handleAs: 'json',
                 load: function(data) {
                     closeWaitDialog();
-                    grid.renderArray(data['data']);
-                    grid.set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+                    userGrid.renderArray(data['data']['user']);
+                    userGrid.set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+                    systemGrid.renderArray(data['data']['system']);
+                    systemGrid.set("sort", { attribute : 'timestamp', ascending: false, descending: true });
                 },
                 error: function(error) {
                     closeWaitDialog();
@@ -114,7 +132,7 @@
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
+        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser){
             dojoParser.parse();
             initGrid();
         });

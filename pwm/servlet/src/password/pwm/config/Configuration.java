@@ -677,8 +677,13 @@ public class Configuration implements Serializable {
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
 
-    public String readAppProperty(final AppProperty appProperty) {
-        return storedConfiguration.readAppProperty(appProperty);
+    public String readAppProperty(AppProperty property) {
+        final String configValue = storedConfiguration.readAppProperty(property);
+        if (configValue != null) {
+            return configValue;
+        }
+
+        return property.getDefaultValue();
     }
 
     private Convenience helper = new Convenience();

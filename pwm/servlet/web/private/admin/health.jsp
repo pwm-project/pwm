@@ -40,7 +40,7 @@
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     require(["dojo/domReady!"],function(){
-                        showPwmHealth('healthBody', {showRefresh:true,showTimestamp:true});
+                        showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
                     });
                 });
             </script>

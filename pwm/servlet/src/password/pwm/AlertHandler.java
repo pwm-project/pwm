@@ -23,11 +23,9 @@
 package password.pwm;
 
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
-import password.pwm.util.PwmLogEvent;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,118 +33,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public abstract class AlertHandler {
-    public static void alertStartup(final PwmApplication pwmApplication) {
-        if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_STARTUP)) {
-            return;
-        }
-
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Startup";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Startup\n");
-            body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
-        }
-    }
-
-    public static void alertShutdown(final PwmApplication pwmApplication) {
-        if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_SHUTDOWN)) {
-            return;
-        }
-
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Shutdown";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Shutdown\n");
-            body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
-        }
-    }
-
-    public static void alertIntruder(final PwmApplication pwmApplication, final Map<String, String> valueMap) {
-        if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_INTRUDER_LOCKOUT)) {
-            return;
-        }
-
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = PwmConstants.PWM_APP_NAME + " Admin Alert - Intruder Detection";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Intruder Detection\n");
-            body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-
-            for (final String key : valueMap.keySet()) {
-                body.append(key);
-                body.append(": ");
-                body.append(valueMap.get(key));
-                body.append("\n");
-            }
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
-        }
-    }
-
-    public static void alertFatalEvent(final PwmApplication pwmApplication, final PwmLogEvent pwmLogEvent) {
-        if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_FATAL_EVENT)) {
-            return;
-        }
-
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Fatal Event";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Fatal Event\n");
-            body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-            body.append("level: ").append(pwmLogEvent.getLevel()).append("\n");
-            body.append("actor: ").append(pwmLogEvent.getActor()).append("\n");
-            body.append("date: ").append(pwmLogEvent.getDate()).append("\n");
-            body.append("source: ").append(pwmLogEvent.getSource()).append("\n");
-            body.append("topic: ").append(pwmLogEvent.getTopic()).append("\n");
-            body.append("message: ").append(pwmLogEvent.getMessage()).append("\n");
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
-        }
-    }
-
-    public static void alertConfigModify(final PwmApplication pwmApplication, final Configuration config) {
-        if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_CONFIG_MODIFY)) {
-            return;
-        }
-
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
-            final String subject = PwmConstants.PWM_APP_NAME + " Alert - Configuration Modification";
-            final StringBuilder body = new StringBuilder();
-            body.append("event: Configuration Modification\n");
-            body.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            body.append("timestamp: ").append(new java.util.Date().toString()).append("\n");
-            body.append("configuration: \n\n");
-            body.append(config.toDebugString());
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
-        }
-    }
-
     public static void alertDailyStats(final PwmApplication pwmApplication, final Map<String, String> valueMap) {
         if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_DAILY_SUMMARY)) {
             return;
         }
 
-        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO)) {
-            final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+        for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO)) {
+            final String fromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
             final String subject = Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Title_Application",pwmApplication.getConfig()) + " - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
             final StringBuilder htmlBody = new StringBuilder();
@@ -274,7 +167,7 @@ public abstract class AlertHandler {
             htmlBody.append("</body></html>");
 
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
-            pwmApplication.sendEmailUsingQueue(emailItem,null,null);
+            pwmApplication.getEmailQueue().submit(emailItem, null, null);
         }
     }
 
@@ -287,8 +180,8 @@ public abstract class AlertHandler {
             return false;
         }
 
-        final List<String> toAddress = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADMIN_ALERT_TO);
-        final String fromAddress = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_ADMIN_ALERT_FROM);
+        final List<String> toAddress = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO);
+        final String fromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
 
         if (toAddress == null || toAddress.isEmpty() || toAddress.get(0) == null || toAddress.get(0).length() < 1) {
             return false;

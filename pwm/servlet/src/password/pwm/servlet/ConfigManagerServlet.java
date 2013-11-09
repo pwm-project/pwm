@@ -179,7 +179,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         if (PwmConstants.TRIAL_MODE) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"configuration lock not available in trial");
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo);
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
@@ -187,7 +187,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"You must be authenticated before locking the configuration");
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo);
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
@@ -195,7 +195,7 @@ public class ConfigManagerServlet extends TopServlet {
 
         if (!Permission.checkPermission(Permission.PWMADMIN,pwmSession,pwmApplication)) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"You must be authenticated with admin privileges before locking the configuration");
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo);
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
@@ -205,7 +205,7 @@ public class ConfigManagerServlet extends TopServlet {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(req);
             if (!storedConfiguration.hasPassword()) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Please set a configuration password before locking the configuration");
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 LOGGER.debug(pwmSession, errorInfo);
                 ServletHelper.outputJsonResult(resp, restResultBean);
                 return;
@@ -217,13 +217,13 @@ public class ConfigManagerServlet extends TopServlet {
             configManagerBean.setConfiguration(null);
         } catch (PwmException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo.toDebugStr());
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         } catch (Exception e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo.toDebugStr());
             ServletHelper.outputJsonResult(resp, restResultBean);
             return;
@@ -249,8 +249,9 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            ContextManager.getContextManager(servletContext).getConfigReader().saveConfiguration(storedConfiguration);
-            ContextManager.getContextManager(servletContext).reinitialize();
+            ContextManager contextManager = ContextManager.getContextManager(servletContext);
+            contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication());
+            contextManager.reinitialize();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
             LOGGER.error(pwmSession, errorString);

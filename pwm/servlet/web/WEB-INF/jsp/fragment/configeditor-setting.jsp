@@ -27,6 +27,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+<%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
     final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
@@ -44,7 +45,7 @@
 %>
 <div class="setting_title" id="title_<%=loopSetting.getKey()%>">
     <span class="text" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
-    <div class="fa fa-question-circle icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"></div>
+    <div class="fa fa-question icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"></div>
     <div class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
 <div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDesc?"block":"none"%>">
@@ -72,7 +73,7 @@
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">
-            <td style="border-width:0"><input type="text" disabled="disabled" value="[Loading...]"/></td>
+            <td style="border-width:0"><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
     <script type="text/javascript">
@@ -91,7 +92,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
-            <td><input type="text" disabled="disabled" value="[Loading...]"/></td>
+            <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
     <script type="text/javascript">
@@ -125,7 +126,7 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
-    <div id="button_<%=loopSetting.getKey()%>" type="button">[Loading...]</div>
+    <div id="button_<%=loopSetting.getKey()%>" type="button"></div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             BooleanHandler.init('<%=loopSetting.getKey()%>');
@@ -177,7 +178,7 @@
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    value: "[Loading..]",
+                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 readInitialTextBasedValue('<%=loopSetting.getKey()%>');
@@ -197,7 +198,7 @@
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    value: "[Loading..]",
+                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 readInitialTextBasedValue('<%=loopSetting.getKey()%>');
@@ -217,7 +218,7 @@
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    value: "[Loading..]",
+                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 dijit.byId("value_<%=loopSetting.getKey()%>")._mouseWheeled = function() {};

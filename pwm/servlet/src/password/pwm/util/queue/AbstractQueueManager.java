@@ -25,38 +25,35 @@ package password.pwm.util.queue;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
-import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBCompressor;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public abstract class AbstractQueueManager implements PwmService {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractQueueManager.class);
 
-    static final int ERROR_RETRY_WAIT_TIME_MS = 60 * 1000;
+    private static final long QUEUE_POLL_INTERVAL = 30 * 1003; // 10 seconds
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
+    protected PwmApplication pwmApplication;
+    protected STATUS status = PwmService.STATUS.NEW;
+    protected Timer timerThread;
+    protected Settings settings;
 
-    static String SERVICE_NAME = "AbstractQueueManager";
-
-
-    PwmApplication pwmApplication;
-    STATUS status = PwmService.STATUS.NEW;
-    volatile boolean threadActive;
-    long maxErrorWaitTimeMS = 5 * 60 * 1000;
-
-    HealthRecord lastSendFailure;
-    LocalDBStoredQueue sendQueue;
+    protected HealthRecord lastSendFailure;
+    protected Date lastSendFailureTime;
+    protected LocalDBStoredQueue sendQueue;
 
     public STATUS status() {
         return status;
@@ -70,24 +67,39 @@ public abstract class AbstractQueueManager implements PwmService {
         return this.sendQueue.size();
     }
 
-    static class QueueEvent implements Serializable {
-        private String item;
-        private long queueInsertTimestamp;
-
-        public QueueEvent() {
+    protected void add(QueueEvent event)
+            throws PwmUnrecoverableException
+    {
+        if (status != PwmService.STATUS.OPEN) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
 
-        public QueueEvent(final String item, final long queueInsertTimestamp) {
+        if (sendQueue.size() >= settings.getMaxQueueItemCount()) {
+            LOGGER.warn("queue full, discarding email send request: " + event.getItem());
+            return;
+        }
+
+        final String jsonEvent = Helper.getGson().toJson(event);
+        sendQueue.add(jsonEvent);
+
+        timerThread.schedule(new QueueProcessorTask(), 1);
+    }
+
+    protected static class QueueEvent implements Serializable {
+        private String item;
+        private Date timestamp;
+
+        protected QueueEvent(final String item, final Date timestamp) {
             this.item = item;
-            this.queueInsertTimestamp = queueInsertTimestamp;
+            this.timestamp = timestamp;
         }
 
         public String getItem() {
             return item;
         }
 
-        public long getQueueInsertTimestamp() {
-            return queueInsertTimestamp;
+        public Date getTimestamp() {
+            return timestamp;
         }
     }
 
@@ -102,11 +114,11 @@ public abstract class AbstractQueueManager implements PwmService {
         return false;
     }
 
-    public void init(final PwmApplication pwmApplication, final LocalDB.DB DB)
+    public void init(final PwmApplication pwmApplication, final LocalDB.DB DB, final Settings settings)
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
-        this.maxErrorWaitTimeMS = this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_MAX_QUEUE_AGE) * 1000;
+        this.settings = settings;
 
         final LocalDB localDB = this.pwmApplication.getLocalDB();
 
@@ -123,47 +135,30 @@ public abstract class AbstractQueueManager implements PwmService {
         }
 
         sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, DB);
-
-        {
-            final QueueThread emailSendThread = new QueueThread();
-            emailSendThread.setDaemon(true);
-            emailSendThread.setName(PwmConstants.PWM_APP_NAME + "-" + SERVICE_NAME);
-            emailSendThread.start();
-            threadActive = true;
-        }
-
-
+        timerThread = new Timer(PwmConstants.PWM_APP_NAME + "-" + settings.getDebugName() + " timer thread",true);
         status = PwmService.STATUS.OPEN;
-        LOGGER.debug(SERVICE_NAME + " is now open");
+        LOGGER.debug(settings.getDebugName() + " is now open");
+        timerThread.schedule(new QueueProcessorTask(),1,QUEUE_POLL_INTERVAL);
     }
 
-    public void close() {
+    public synchronized void close() {
         status = PwmService.STATUS.CLOSED;
+        final Date startTime = new Date();
 
-        {
-            final long startTime = System.currentTimeMillis();
-            while (threadActive && (System.currentTimeMillis() - startTime) < 300) {
+        if (!sendQueue.isEmpty()) {
+            timerThread.schedule(new QueueProcessorTask(),1);
+            LOGGER.warn("waiting up to 5 seconds for " + sendQueue.size() + " items in the queue to process");
+            while (sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
                 Helper.pause(100);
             }
         }
 
-        if (threadActive) {
-            final long startTime = System.currentTimeMillis();
-            LOGGER.info("waiting up to 30 seconds for email sender thread to close....");
+        timerThread.cancel();
+        timerThread = null;
 
-            while (threadActive && (System.currentTimeMillis() - startTime) < 30 * 1000) {
-                Helper.pause(100);
-            }
-
-            try {
-                if (!sendQueue.isEmpty()) {
-                    LOGGER.warn("closing queue with " + sendQueue.size() + " message in queue");
-                }
-            } catch (Exception e) {
-                LOGGER.error("unexpected exception while shutting down: " + e.getMessage());
-            }
+        if (!sendQueue.isEmpty()) {
+            LOGGER.warn("closing queue with " + sendQueue.size() + " message in queue");
         }
-
         LOGGER.debug("closed");
     }
 
@@ -175,66 +170,83 @@ public abstract class AbstractQueueManager implements PwmService {
         return Collections.singletonList(lastSendFailure);
     }
 
+    private void processQueue() {
+        if (lastSendFailureTime != null) {
+            final TimeDuration timeSinceFailure = TimeDuration.fromCurrent(lastSendFailureTime);
+            if (timeSinceFailure.isShorterThan(settings.getErrorRetryWaitTime())) {
+                return;
+            }
+        }
+
+        lastSendFailureTime = null;
+
+        while (sendQueue.peekFirst() != null && lastSendFailureTime == null) {
+            final String jsonEvent = sendQueue.peekFirst();
+            if (jsonEvent != null) {
+                final QueueEvent event = Helper.getGson().fromJson(jsonEvent, QueueEvent.class);
+
+                if (event == null || event.getTimestamp() == null) {
+                    sendQueue.pollFirst();
+                } else if (TimeDuration.fromCurrent(event.getTimestamp()).isLongerThan(settings.getMaxQueueItemAge())) {
+                    LOGGER.debug("discarding event due to maximum retry age: " + event.getItem());
+                    sendQueue.pollFirst();
+                } else {
+                    final String item = event.getItem();
+
+                    final boolean success = sendItem(item);
+                    if (success) {
+                        sendQueue.pollFirst();
+                    } else {
+                        lastSendFailureTime = new Date();
+                    }
+                }
+            }
+        }
+    }
+
+
     abstract boolean sendItem(String item);
 
 
-        // -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
 
-    class QueueThread extends Thread {
+    protected class QueueProcessorTask extends TimerTask {
         public void run() {
-            LOGGER.trace("starting up queue processing thread, queue size is " + sendQueue.size());
-
-            while (status == PwmService.STATUS.OPEN) {
-                boolean success = false;
-                try {
-                    success = processQueue();
-                    if (success) {
-                        lastSendFailure = null;
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("unexpected exception while processing queue: " + e.getMessage(), e);
-                    LOGGER.error("unable to process queue successfully; sleeping for " + TimeDuration.asCompactString(ERROR_RETRY_WAIT_TIME_MS));
-                }
-
-                final long startTime = System.currentTimeMillis();
-                final long sleepTime = success ? 1000 : ERROR_RETRY_WAIT_TIME_MS;
-                while (PwmService.STATUS.OPEN == status && (System.currentTimeMillis() - startTime) < sleepTime) {
-                    Helper.pause(100);
-                }
-            }
-
-            // try to clear out the queue before the thread exits...
             try {
                 processQueue();
             } catch (Exception e) {
-                LOGGER.error("unexpected exception while processing queue: " + e.getMessage(), e);
+                LOGGER.error("unexpected exception while processing " + settings.getDebugName() + " queue: " + e.getMessage(), e);
             }
+        }
+    }
 
-            threadActive = false;
-            LOGGER.trace("closing queue processing thread");
+    protected static class Settings {
+        private TimeDuration maxQueueItemAge;
+        private TimeDuration errorRetryWaitTime;
+        private int maxQueueItemCount;
+        private String debugName;
+
+        public Settings(TimeDuration maxQueueItemAge, TimeDuration errorRetryWaitTime, int maxQueueItemCount, String debugName) {
+            this.maxQueueItemAge = maxQueueItemAge;
+            this.errorRetryWaitTime = errorRetryWaitTime;
+            this.maxQueueItemCount = maxQueueItemCount;
+            this.debugName = debugName;
         }
 
-        private boolean processQueue() {
-            while (sendQueue.peekFirst() != null) {
-                final String jsonEvent = sendQueue.peekFirst();
-                if (jsonEvent != null) {
-                    final QueueEvent event = (Helper.getGson()).fromJson(jsonEvent, QueueEvent.class);
+        public TimeDuration getMaxQueueItemAge() {
+            return maxQueueItemAge;
+        }
 
-                    if ((System.currentTimeMillis() - maxErrorWaitTimeMS) > event.getQueueInsertTimestamp()) {
-                        LOGGER.debug("discarding event due to maximum retry age: " + event.getItem());
-                        sendQueue.pollFirst();
-                    } else {
-                        final String item = event.getItem();
+        public TimeDuration getErrorRetryWaitTime() {
+            return errorRetryWaitTime;
+        }
 
-                        final boolean success = sendItem(item);
-                        if (!success) {
-                            return false;
-                        }
-                        sendQueue.pollFirst();
-                    }
-                }
-            }
-            return true;
+        public int getMaxQueueItemCount() {
+            return maxQueueItemCount;
+        }
+
+        public String getDebugName() {
+            return debugName;
         }
     }
 }

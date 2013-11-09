@@ -38,7 +38,7 @@
         <delete file="${destination.war}"/>
     </target>
 
-    <target name="googleSvnExport" depends="init">
+    <target name="svnExport" depends="init">
         <typedef resource="org/tigris/subversion/svnant/svnantlib.xml">
             <classpath>
                 <fileset dir="${build_lib}/ant" includes="*.jar"/>
@@ -62,6 +62,24 @@
             <export srcurl="https://pwm.googlecode.com/svn/trunk"  destPath="${svnExportDir}"/>
         </svn>
         <echo>Read revision ${svn.revision}</echo>
+    </target>
+
+    <target name="svnRevisionRead" depends="init">
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml">
+            <classpath>
+                <fileset dir="${build_lib}/ant" includes="*.jar"/>
+            </classpath>
+        </typedef>
+        <echo> svn source: ${build_lib}</echo>
+
+        <property name="svnExportDir" value="${destination}/svn-current"/>
+        <svnSetting javahl="false" svnkit="true" username="" password="" id="svn.settings"/>
+        <svn refid="svn.settings"> <!-- single checkout to determine revision -->
+            <checkout url="${svn.source}" destpath="${svnExportDir}/checkout" recurse="false"/>
+            <status path="${svnExportDir}/checkout" revisionproperty="svn.revision"/>
+        </svn>
+        <property name="svnRevisionNumber" value="${svn.revision}"/>
+        <echo>Read revision ${svnRevisionNumber}</echo>
     </target>
 
     <target name="compileCode" depends="init">
@@ -129,13 +147,14 @@
     <target name="makeRelease" depends="updateBuildInfo,makeZIP">
     </target>
 
-    <target name="updateBuildInfo" depends="init">
+    <target name="updateBuildInfo" depends="init,svnRevisionRead">
         <property name="buildFilename" value="${src.root}/src/password/pwm/BuildInformation.properties"/>
         <propertyfile file="${buildFilename}">
             <entry key="build.java.vendor" value="${java.vendor}"/>
             <entry key="build.java.version" value="${java.version}"/>
             <entry key="build.time" type="date" value="now" pattern="yyyy.MM.dd HH:mm:ss z"/>
             <entry key="build.user" value="${user.name}"/>
+            <entry key="build.revision" value="${svnRevisionNumber}"/>
         </propertyfile>
         <buildnumber file="${buildFilename}"/>
         <echo>build number: ${build.number}</echo>

@@ -33,12 +33,14 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
+import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.math.BigDecimal;
@@ -66,7 +68,7 @@ public class RestStatisticsServer {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String doPwmStatisticJsonGet(
+    public Response doPwmStatisticJsonGet(
             final @QueryParam("statKey") String statKey,
             final @QueryParam("statName") String statName,
             final @QueryParam("days") String days
@@ -74,9 +76,13 @@ public class RestStatisticsServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, false, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(false);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
-            return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
@@ -96,13 +102,14 @@ public class RestStatisticsServer {
 
             final RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonOutput);
-            return resultBean.toJson();
+            return resultBean.asJsonResponse();
         //} catch (PwmException e) {
-        //    return RestServerHelper.outputJsonErrorResult(e.getErrorInformation(), request);
+        //    return RestResultBean.fromError(e.getErrorInformation(),restRequestBean).asJsonResponse();
         } catch (Exception e) {
             final String errorMsg = "unexpected error building json response: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return RestServerHelper.outputJsonErrorResult(errorInformation, request);
+            return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
+
         }
     }
 
@@ -112,7 +119,11 @@ public class RestStatisticsServer {
     public String doPwmStatisticFileGet() {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, true, null);
+            final ServicePermissions servicePermissions = new ServicePermissions();
+            servicePermissions.setAdminOnly(false);
+            servicePermissions.setAuthRequired(false);
+            servicePermissions.setBlockExternal(true);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;

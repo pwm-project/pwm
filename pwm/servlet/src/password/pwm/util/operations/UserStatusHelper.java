@@ -183,7 +183,7 @@ public class UserStatusHelper {
         }
 
         //attempt to add the object class to the user
-        Helper.addConfiguredUserObjectClass(userDN, pwmSession, pwmApplication);
+        Helper.addConfiguredUserObjectClass(userDN, pwmApplication);
 
         uiBean.setUserCurrentPassword(userCurrentPassword);
 

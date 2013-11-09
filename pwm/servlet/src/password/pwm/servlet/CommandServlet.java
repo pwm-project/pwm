@@ -463,7 +463,7 @@ public class CommandServlet extends TopServlet {
         final OutputStream outputStream = new BufferedOutputStream(resp.getOutputStream());
 
         try {
-            pwmApplication.getAuditManager().outputLocalDBToCsv(new OutputStreamWriter(outputStream), true);
+            pwmApplication.getAuditManager().outpuVaultToCsv(new OutputStreamWriter(outputStream), true);
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();

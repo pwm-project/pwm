@@ -32,7 +32,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<% request.setAttribute("noTheme","true"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
 <% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
@@ -63,9 +63,8 @@
     }
 </style>
 <div id="wrapper" style="border:1px; background-color: black">
-<div id="header">
-    <div id="header-company-logo"></div>
-    <div id="header-page">
+<div id="header" style="height: 25px; text-align: center">
+    <div id="header-title">
         <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
         <%=category.getType() == PwmSetting.Category.Type.SETTING ? "Settings - " : "Modules - "%>
         <%=category.getLabel(locale)%>
@@ -73,9 +72,6 @@
         <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
         Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
         <% } %>
-    </div>
-    <div id="header-title">
-        Configuration Editor
     </div>
 </div>
 <div id="TopMenu">
@@ -95,14 +91,15 @@ PWM_GLOBAL['startupFunctions'].push(function(){
 </form>
 <div id="mainContentPane" style="width: 600px">
     <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-    <jsp:include page="fragment/configeditor-settings.jsp"/>
+    <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS%>"/>
     <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.LOCALEBUNDLE) { %>
-    <jsp:include page="fragment/configeditor-localeBundle.jsp"/>
+    <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
     <% } %>
 </div>
 </div>
 <div class="push"></div>
 </div>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

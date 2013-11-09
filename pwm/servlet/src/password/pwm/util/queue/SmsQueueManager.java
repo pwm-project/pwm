@@ -22,7 +22,6 @@
 
 package password.pwm.util.queue;
 
-import com.google.gson.Gson;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -31,14 +30,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmService;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
@@ -47,6 +44,7 @@ import password.pwm.util.localdb.LocalDB;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,8 +56,6 @@ public class SmsQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
-    static String SERVICE_NAME = "SmsQueueManager";
-
 
     public enum SmsNumberFormat {
         PLAIN,
@@ -87,14 +83,36 @@ public class SmsQueueManager extends AbstractQueueManager {
 // --------------------- Interface PwmService ---------------------
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE);
-        this.maxErrorWaitTimeMS = pwmApplication.getConfig().readSettingAsLong(PwmSetting.SMS_MAX_QUEUE_AGE) * 1000;
+        final Settings settings = new Settings(
+                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))),
+                new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))),
+                Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)),
+                EmailQueueManager.class.getSimpleName()
+        );
+        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE, settings);
     }
 
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void shortenMessageIfNeeded(final SmsItemBean smsItem) {
+    public void addSmsToQueue(final SmsItemBean smsItem)
+            throws PwmUnrecoverableException
+    {
+        shortenMessageIfNeeded(smsItem);
+        if (!determineIfItemCanBeDelivered(smsItem)) {
+            return;
+        }
+
+        final String smsItemGson = Helper.getGson().toJson(smsItem);
+        final QueueEvent event = new QueueEvent(smsItemGson, new Date());
+        try {
+            add(event);
+        } catch (Exception e) {
+            LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
+        }
+    }
+
+    protected void shortenMessageIfNeeded(final SmsItemBean smsItem) {
         final Boolean shorten = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SMS_USE_URL_SHORTENER);
         if (shorten) {
             final String message = smsItem.getMessage();
@@ -102,31 +120,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
     }
 
-    public void addSmsToQueue(final SmsItemBean smsItem) throws PwmUnrecoverableException {
-        if (status != PwmService.STATUS.OPEN) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
-        }
-
-        shortenMessageIfNeeded(smsItem);
-        if (!determineIfItemCanBeDelivered(smsItem)) {
-            return;
-        }
-
-        if (sendQueue.size() >= PwmConstants.MAX_SMS_QUEUE_SIZE) {
-            LOGGER.warn("sms queue full, discarding sms send request: " + smsItem);
-        }
-
-        final String smsItemGson = (Helper.getGson()).toJson(smsItem);
-        final QueueEvent event = new QueueEvent(smsItemGson, System.currentTimeMillis());
-            try {
-                final String jsonEvent = (Helper.getGson()).toJson(event);
-                sendQueue.addLast(jsonEvent);
-            } catch (Exception e) {
-                LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
-            }
-    }
-
-    boolean determineIfItemCanBeDelivered(final SmsItemBean smsItem) {
+    protected boolean determineIfItemCanBeDelivered(final SmsItemBean smsItem) {
         final Configuration config = pwmApplication.getConfig();
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
@@ -155,7 +149,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         return true;
     }
 
-    boolean sendItem(final String item) {
+    protected boolean sendItem(final String item) {
         final SmsItemBean smsItemBean = (Helper.getGson()).fromJson(item, SmsItemBean.class);
         boolean success = true;
         while (success && smsItemBean.hasNextPart()) {
@@ -164,7 +158,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         return success;
     }
 
-    private boolean sendSmsPart(final SmsItemBean smsItemBean) {
+    protected boolean sendSmsPart(final SmsItemBean smsItemBean) {
         final long startTime = System.currentTimeMillis();
         final Configuration config = pwmApplication.getConfig();
 
@@ -173,7 +167,7 @@ public class SmsQueueManager extends AbstractQueueManager {
 
         final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
         final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
-        
+
         final List<String> extraHeaders = config.readSettingAsStringArray(PwmSetting.SMS_GATEWAY_REQUEST_HEADERS);
 
         String requestData = config.readSettingAsString(PwmSetting.SMS_REQUEST_DATA);
@@ -188,7 +182,7 @@ public class SmsQueueManager extends AbstractQueueManager {
             requestData = requestData.replaceAll("%TO%", smsDataEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
         }
 
-        if (requestData.indexOf("%REQUESTID%")>=0) {
+        if (requestData.contains("%REQUESTID%")) {
             final String chars = config.readSettingAsString(PwmSetting.SMS_REQUESTID_CHARS);
             final int idLength = new Long(config.readSettingAsLong(PwmSetting.SMS_REQUESTID_LENGTH)).intValue();
             final String requestId = PwmRandom.getInstance().alphaNumericString(chars, idLength);
@@ -215,7 +209,7 @@ public class SmsQueueManager extends AbstractQueueManager {
             }
 
             if (extraHeaders != null) {
-                   final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
+                final Pattern pattern = Pattern.compile("^([A-Za-z0-9_\\.-]+):[ \t]*([^ \t].*)");
                 for (final String header : extraHeaders) {
                     final Matcher matcher = pattern.matcher(header);
                     if (matcher.matches()) {
@@ -230,8 +224,8 @@ public class SmsQueueManager extends AbstractQueueManager {
             }
 
             if ("HTTP".equalsIgnoreCase(gatewayAuthMethod) && gatewayUser != null && gatewayPass != null) {
-            	LOGGER.debug("Using Basic Authentication");
-            	final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
+                LOGGER.debug("Using Basic Authentication");
+                final BasicAuthInfo ba = new BasicAuthInfo(gatewayUser, gatewayPass);
                 httpRequest.addHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH, ba.toAuthHeader());
             }
 
@@ -253,7 +247,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
     }
 
-    private String smsDataEncode(final String data, final SmsDataEncoding encoding) {
+    protected String smsDataEncode(final String data, final SmsDataEncoding encoding) {
         String returnData;
         switch (encoding) {
             case NONE:
@@ -303,18 +297,18 @@ public class SmsQueueManager extends AbstractQueueManager {
         return false;
     }
 
-    private String formatSmsNumber(final String smsNumber) {
+    protected String formatSmsNumber(final String smsNumber) {
         final Configuration config = pwmApplication.getConfig();
         String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         Integer ccnum;
         try {
-          ccnum = Integer.parseInt(cc);
-          if (ccnum <= 0) {
-          	cc = "";
-          }
+            ccnum = Integer.parseInt(cc);
+            if (ccnum <= 0) {
+                cc = "";
+            }
         } catch (Exception e) {
-          LOGGER.error(e);
-          cc = "";
+            LOGGER.error(e);
+            cc = "";
         }
         final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
         String ret = smsNumber;

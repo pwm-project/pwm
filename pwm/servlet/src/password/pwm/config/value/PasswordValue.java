@@ -28,9 +28,12 @@ import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 
 import javax.crypto.SecretKey;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 
@@ -74,8 +77,7 @@ public class PasswordValue extends StringValue {
         }
         final Element valueElement = new Element(valueElementName);
         try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
-            final String encodedValue = Helper.SimpleTextCrypto.encryptValue(value, secretKey);
+            final String encodedValue = encryptValue(key,value);
             valueElement.addContent(encodedValue);
         } catch (Exception e) {
             valueElement.addContent("");
@@ -90,5 +92,12 @@ public class PasswordValue extends StringValue {
 
     public String toDebugString() {
         return "**removed**";
+    }
+
+    public static String encryptValue(final String key, final String value)
+            throws PwmUnrecoverableException, UnsupportedEncodingException, NoSuchAlgorithmException
+    {
+        final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
+        return Helper.SimpleTextCrypto.encryptValue(value, secretKey);
     }
 }

@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.event.AuditRecord" %>
+<%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.servlet.HelpdeskServlet" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
@@ -250,7 +250,7 @@
     <% if (helpdeskBean.getAdditionalUserInfo().getUserHistory() != null && !helpdeskBean.getAdditionalUserInfo().getUserHistory().isEmpty()) { %>
     <div style="max-height: 400px; overflow: auto;">
         <table>
-            <% for (final AuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
+            <% for (final UserAuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
             <tr>
                 <td class="key" style="width:50%">
                     <%= dateFormatter.format(record.getTimestamp()) %>

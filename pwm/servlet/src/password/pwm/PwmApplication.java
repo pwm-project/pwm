@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
-import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -39,13 +38,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
+import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
+import password.pwm.token.TokenService;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.UserDataReader;
@@ -78,11 +79,28 @@ public class PwmApplication {
 
     // ----------------------------- CONSTANTS ----------------------------
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmApplication.class);
-    private static final String DB_KEY_INSTANCE_ID = "context_instanceID";
-    private static final String DB_KEY_CONFIG_SETTING_HASH = "configurationSettingHash";
-    private static final String DB_KEY_INSTALL_DATE = "DB_KEY_INSTALL_DATE";
-    private static final String DB_KEY_LAST_LDAP_ERROR = "lastLdapError";
     private static final String DEFAULT_INSTANCE_ID = "-1";
+
+
+    public enum AppAttribute {
+        INSTANCE_ID("context_instanceID"),
+        INSTALL_DATE("DB_KEY_INSTALL_DATE"),
+        CONFIG_HASH("configurationSettingHash"),
+        LAST_LDAP_ERROR("lastLdapError"),
+        TOKEN_COUNTER("tokenCounter"),
+
+        ;
+
+        private String key;
+
+        private AppAttribute(String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
 
 
     private String instanceID = DEFAULT_INSTANCE_ID;
@@ -103,7 +121,8 @@ public class PwmApplication {
 
     private MODE applicationMode;
 
-    private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(SharedHistoryManager.class,
+    private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(
+            SharedHistoryManager.class,
             DatabaseAccessor.class,
             HealthMonitor.class,
             AuditManager.class,
@@ -113,7 +132,7 @@ public class PwmApplication {
             EmailQueueManager.class,
             SmsQueueManager.class,
             UrlShortenerService.class,
-            TokenManager.class,
+            TokenService.class,
             VersionChecker.class,
             IntruderManager.class,
             CrService.class,
@@ -122,6 +141,11 @@ public class PwmApplication {
             OtpService.class
     ));
 
+    private static final List<Package> LOGGING_PACKAGES  = Collections.unmodifiableList(Arrays.<Package>asList(
+            PwmApplication.class.getPackage(),
+            ChaiUser.class.getPackage(),
+            Package.getPackage("org.jasig.cas.client")
+    ));
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -189,8 +213,7 @@ public class PwmApplication {
         final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         try {
-            final int idleTimeoutMs = PwmConstants.LDAP_PROXY_CONNECTION_TIMEOUT;
-            return Helper.createChaiProvider(config, proxyDN, proxyPW, idleTimeoutMs);
+            return Helper.createChaiProvider(config, proxyDN, proxyPW);
         } catch (ChaiUnavailableException e) {
             if (statsMangager != null) {
                 statsMangager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
@@ -247,26 +270,20 @@ public class PwmApplication {
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
         this.lastLdapFailure = errorInformation;
-        if (localDB != null && localDB.status() == LocalDB.Status.OPEN) {
-            try {
-                if (errorInformation == null) {
-                    localDB.remove(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
-                } else {
-                    final Gson gson = Helper.getGson();
-                    final String jsonString = gson.toJson(errorInformation);
-                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR, jsonString);
-                }
-            } catch (LocalDBException e) {
-                LOGGER.error("error writing lastLdapFailure time to localDB: " + e.getMessage());
-            }
+        if (errorInformation == null) {
+            writeAppAttribute(AppAttribute.LAST_LDAP_ERROR, null);
+        } else {
+            final Gson gson = Helper.getGson();
+            final String jsonString = gson.toJson(errorInformation);
+            writeAppAttribute(AppAttribute.LAST_LDAP_ERROR, jsonString);
         }
     }
 
     // -------------------------- OTHER METHODS --------------------------
 
 
-    public TokenManager getTokenManager() {
-        return (TokenManager)pwmServices.get(TokenManager.class);
+    public TokenService getTokenManager() {
+        return (TokenService)pwmServices.get(TokenService.class);
     }
 
     public Configuration getConfig() {
@@ -296,7 +313,6 @@ public class PwmApplication {
         {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = Helper.figureFilepath(log4jFileName, pwmApplicationPath);
-            final File log4jAppenderFolder = Helper.figureFilepath("logs",pwmApplicationPath);
             final String consoleLevel, fileLevel;
             switch (getApplicationMode()) {
                 case ERROR:
@@ -311,7 +327,7 @@ public class PwmApplication {
                     break;
             }
 
-            PwmInitializer.initializeLogger(this, log4jFile, consoleLevel, log4jAppenderFolder, fileLevel);
+            PwmInitializer.initializeLogger(configuration, log4jFile, consoleLevel, pwmApplicationPath, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -340,10 +356,10 @@ public class PwmApplication {
         LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
 
         // read the lastLoginTime
-        lastLastLdapFailure(localDB, this);
+        this.lastLdapFailure = readLastLdapFailure();
 
         // get the pwm installation date
-        installTime = fetchInstallDate(localDB, startupTime);
+        installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
 
         LOGGER.info(logEnvironment());
@@ -381,29 +397,42 @@ public class PwmApplication {
 
         // detect if config has been modified since previous startup
         try {
-            if (localDB != null) {
-                final String previousHash = localDB.get(LocalDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH);
-                final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
-                if (previousHash == null || !previousHash.equals(currentHash)) {
-                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_CONFIG_SETTING_HASH, currentHash);
-                    LOGGER.warn("configuration has been modified since last startup");
-                    AlertHandler.alertConfigModify(this, configuration);
-                }
+            final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
+            final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+            if (previousHash == null || !previousHash.equals(currentHash)) {
+                writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
+                LOGGER.warn("configuration has been modified since last startup");
+                this.getAuditManager().submit(new SystemAuditRecord(
+                        AuditEvent.MODIFY_CONFIGURATION,
+                        new Date(),
+                        configuration.toDebugString(),
+                        this.getInstanceID()
+                ));
             }
         } catch (Exception e) {
             LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
         }
 
-        AlertHandler.alertStartup(this);
-
+        // send system audit event
+        final SystemAuditRecord auditRecord = new SystemAuditRecord(
+                AuditEvent.STARTUP,
+                new Date(),
+                null,
+                getInstanceID()
+        );
+        try {
+            getAuditManager().submit(auditRecord);
+        } catch (PwmException e) {
+            LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
+        }
     }
 
-    private static Date fetchInstallDate(final LocalDB localDB, final Date startupTime) {
+    private Date fetchInstallDate(final Date startupTime) {
         if (localDB != null) {
             try {
-                final String storedDateStr = localDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE);
+                final String storedDateStr = readAppAttribute(AppAttribute.INSTALL_DATE);
                 if (storedDateStr == null || storedDateStr.length() < 1) {
-                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTALL_DATE, String.valueOf(startupTime.getTime()));
+                    writeAppAttribute(AppAttribute.INSTALL_DATE, String.valueOf(startupTime.getTime()));
                 } else {
                     return new Date(Long.parseLong(storedDateStr));
                 }
@@ -414,34 +443,24 @@ public class PwmApplication {
         return new Date();
     }
 
-    private static String fetchInstanceID(final LocalDB localDB, final PwmApplication pwmApplication) {
+    private String fetchInstanceID(final LocalDB localDB, final PwmApplication pwmApplication) {
         String newInstanceID = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_INSTANCE_NAME);
 
         if (newInstanceID != null && newInstanceID.trim().length() > 0) {
             return newInstanceID;
         }
 
-        if (localDB != null) {
-            try {
-                newInstanceID = localDB.get(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID);
-                LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from localDB");
-            } catch (Exception e) {
-                LOGGER.warn("error retrieving instanceID from localDB: " + e.getMessage(), e);
-            }
-        }
+        newInstanceID = readAppAttribute(AppAttribute.INSTANCE_ID);
 
         if (newInstanceID == null || newInstanceID.length() < 1) {
             newInstanceID = Long.toHexString(PwmRandom.getInstance().nextLong()).toUpperCase();
             LOGGER.info("generated new random instanceID " + newInstanceID);
 
             if (localDB != null) {
-                try {
-                    localDB.put(LocalDB.DB.PWM_META, DB_KEY_INSTANCE_ID, String.valueOf(newInstanceID));
-                    LOGGER.debug("saved instanceID " + newInstanceID + "" + " to localDB");
-                } catch (Exception e) {
-                    LOGGER.warn("error saving instanceID to localDB: " + e.getMessage(), e);
-                }
+                writeAppAttribute(AppAttribute.INSTANCE_ID, newInstanceID);
             }
+        } else {
+            LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from localDB");
         }
 
         if (newInstanceID == null || newInstanceID.length() < 1) {
@@ -451,18 +470,13 @@ public class PwmApplication {
         return newInstanceID;
     }
 
-    private static void lastLastLdapFailure(final LocalDB localDB, final PwmApplication pwmApplication) {
-        if (localDB != null) {
-            try {
-                final String lastLdapFailureStr = localDB.get(LocalDB.DB.PWM_META, DB_KEY_LAST_LDAP_ERROR);
-                if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
-                    final Gson gson = Helper.getGson();
-                    pwmApplication.lastLdapFailure = gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
-                }
-            } catch (Exception e) {
-                LOGGER.error("error reading lastLdapFailure from localDB: " + e.getMessage(), e);
-            }
+    private ErrorInformation readLastLdapFailure() {
+        final String lastLdapFailureStr = readAppAttribute(AppAttribute.LAST_LDAP_ERROR);
+        if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
+            final Gson gson = Helper.getGson();
+            return gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
         }
+        return null;
     }
 
     private static String logEnvironment() {
@@ -500,42 +514,6 @@ public class PwmApplication {
         return (CrService)pwmServices.get(CrService.class);
     }
 
-    public void sendEmailUsingQueue(final EmailItemBean emailItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
-        final EmailQueueManager emailQueue = this.getEmailQueue();
-
-        if (emailItem == null) {
-            return;
-        }
-
-        if (emailQueue == null) {
-            LOGGER.error("email queue is unavailable, unable to send email: " + emailItem.toString());
-            return;
-        }
-
-        String toAddress = emailItem.getTo();
-        if (toAddress == null || toAddress.length() < 1 && uiBean != null) {
-           toAddress = uiBean.getUserEmailAddress();
-        }
-
-        final EmailItemBean expandedEmailItem = new EmailItemBean(
-                MacroMachine.expandMacros(toAddress, this, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getFrom(), this, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getSubject(), this, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getBodyPlain(), this, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getBodyHtml(), this, uiBean, userDataReader)
-        );
-
-        if (expandedEmailItem.getTo() == null || expandedEmailItem.getTo().length() < 1) {
-            LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toString());
-        }
-
-        try {
-            emailQueue.addMailToQueue(expandedEmailItem);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.warn("unable to add email to queue: " + e.getMessage());
-        }
-    }
-
     public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
         final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
@@ -559,7 +537,20 @@ public class PwmApplication {
 
     public void shutdown() {
         LOGGER.warn("shutting down");
-        AlertHandler.alertShutdown(this);
+        {
+            // send system audit event
+            final SystemAuditRecord auditRecord = new SystemAuditRecord(
+                    AuditEvent.SHUTDOWN,
+                    new Date(),
+                    null,
+                    getInstanceID()
+            );
+            try {
+                getAuditManager().submit(auditRecord);
+            } catch (PwmException e) {
+                LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
+            }
+        }
 
         {
             final List<Class> reverseServiceList = new ArrayList<Class>(PWM_SERVICE_CLASSES);
@@ -632,25 +623,20 @@ public class PwmApplication {
 
     private static class PwmInitializer {
         private static void initializeLogger(
-                final PwmApplication pwmApplication,
+                final Configuration config,
                 final File log4jConfigFile,
                 final String consoleLogLevel,
-                final File logDirectory,
+                final File pwmApplicationPath,
                 final String fileLogLevel
         ) {
             // clear all existing package loggers
-            final String pwmPackageName = PwmApplication.class.getPackage().getName();
-            final Logger pwmPackageLogger = Logger.getLogger(pwmPackageName);
-            final String chaiPackageName = ChaiUser.class.getPackage().getName();
-            final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
-            final String casPackageName = "org.jasig.cas.client";
-            final Logger casPackageLogger = Logger.getLogger(casPackageName);
-            pwmPackageLogger.removeAllAppenders();
-            chaiPackageLogger.removeAllAppenders();
-            casPackageLogger.removeAllAppenders();
-            pwmPackageLogger.setLevel(Level.TRACE);
-            chaiPackageLogger.setLevel(Level.TRACE);
-            casPackageLogger.setLevel(Level.TRACE);
+            for (final Package logPackage : LOGGING_PACKAGES) {
+                if (logPackage != null) {
+                    final Logger logger = Logger.getLogger(logPackage.getName());
+                    logger.removeAllAppenders();
+                    logger.setLevel(Level.TRACE);
+                }
+            }
 
             Exception configException = null;
             boolean configured = false;
@@ -671,22 +657,28 @@ public class PwmApplication {
 
             // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
             if (!configured) {
-                final Layout patternLayout = new PatternLayout(pwmApplication.readAppProperty(AppProperty.LOGGING_PATTERN));
+                final Layout patternLayout = new PatternLayout(config.readAppProperty(AppProperty.LOGGING_PATTERN));
 
                 // configure console logging
                 if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
                     final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
                     final Level level = Level.toLevel(consoleLogLevel);
                     consoleAppender.setThreshold(level);
-                    pwmPackageLogger.addAppender(consoleAppender);
-                    chaiPackageLogger.addAppender(consoleAppender);
-                    casPackageLogger.addAppender(consoleAppender);
+                    for (final Package logPackage : LOGGING_PACKAGES) {
+                        if (logPackage != null) {
+                            final Logger logger = Logger.getLogger(logPackage.getName());
+                            logger.addAppender(consoleAppender);
+                        }
+                    }
                     LOGGER.debug("successfully initialized default console log4j config at log level " + level.toString());
                 } else {
                     LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
                 }
 
                 // configure file logging
+                final String logDirectorySetting = config.readAppProperty(AppProperty.LOGGING_FILE_PATH);
+                final File logDirectory = Helper.figureFilepath(logDirectorySetting,pwmApplicationPath);
+
                 if (logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals(fileLogLevel)) {
                     try {
                         if (!logDirectory.exists()) {
@@ -701,11 +693,14 @@ public class PwmApplication {
                         final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
                         final Level level = Level.toLevel(fileLogLevel);
                         fileAppender.setThreshold(level);
-                        fileAppender.setMaxBackupIndex(Integer.parseInt(pwmApplication.readAppProperty(AppProperty.LOGGING_FILE_MAX_ROLLOVER)));
-                        fileAppender.setMaxFileSize(pwmApplication.readAppProperty(AppProperty.LOGGING_FILE_MAX_SIZE));
-                        pwmPackageLogger.addAppender(fileAppender);
-                        chaiPackageLogger.addAppender(fileAppender);
-                        casPackageLogger.addAppender(fileAppender);
+                        fileAppender.setMaxBackupIndex(Integer.parseInt(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_ROLLOVER)));
+                        fileAppender.setMaxFileSize(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_SIZE));
+                        for (final Package logPackage : LOGGING_PACKAGES) {
+                            if (logPackage != null) {
+                                final Logger logger = Logger.getLogger(logPackage.getName());
+                                logger.addAppender(fileAppender);
+                            }
+                        }
                         LOGGER.debug("successfully initialized default file log4j config at log level " + level.toString());
                     } catch (IOException e) {
                         LOGGER.debug("error initializing RollingFileAppender: " + e.getMessage());
@@ -744,11 +739,8 @@ public class PwmApplication {
 
             // initialize the localDB
             try {
-                final String classname = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_IMPLEMENTATION);
-                final List<String> initStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.PWMDB_INIT_STRING);
-                final Map<String, String> initParamers = Configuration.convertStringListToNameValuePair(initStrings, "=");
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
-                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, classname, initParamers, readOnly, pwmApplication);
+                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication);
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
@@ -773,15 +765,14 @@ public class PwmApplication {
 
             // add appender for other packages;
             try {
-                final String chaiPackageName = ChaiUser.class.getPackage().getName();
-                final Logger chaiPackageLogger = Logger.getLogger(chaiPackageName);
-                final String casPackageName = "org.jasig.cas.client";
-                final Logger casPackageLogger = Logger.getLogger(casPackageName);
                 final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender(pwmApplication.localDBLogger);
-                chaiPackageLogger.addAppender(localDBLog4jAppender);
-                casPackageLogger.setLevel(localLogLevel.getLog4jLevel());
-                chaiPackageLogger.addAppender(localDBLog4jAppender);
-                casPackageLogger.setLevel(localLogLevel.getLog4jLevel());
+                for (final Package logPackage : LOGGING_PACKAGES) {
+                    if (logPackage != null && !logPackage.equals(PwmApplication.class.getPackage())) {
+                        final Logger logger = Logger.getLogger(logPackage.getName());
+                        logger.addAppender(localDBLog4jAppender);
+                        logger.setLevel(localLogLevel.getLog4jLevel());
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.warn("unable to initialize localDBLogger/extraAppender: " + e.getMessage());
             }
@@ -853,15 +844,47 @@ public class PwmApplication {
         }
     }
 
-    public String readAppProperty(AppProperty property) {
-        if (this.getConfig() != null) {
-            final String configValue = this.getConfig().readAppProperty(property);
-            if (configValue != null) {
-                return configValue;
-            }
+    public String getInstanceNonce() {
+        return Long.toString(getStartupTime().getTime(),36);
+    }
+
+    public String readAppAttribute(final AppAttribute appAttribute) {
+        if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
+            LOGGER.error("error retrieving key '" + appAttribute.getKey() + "', localDB unavailable: ");
+            return null;
         }
 
-        return property.getDefaultValue();
+        if (appAttribute == null) {
+            return null;
+        }
+
+        try {
+            return localDB.get(LocalDB.DB.PWM_META, appAttribute.getKey());
+        } catch (Exception e) {
+            LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public void writeAppAttribute(final AppAttribute appAttribute, final String value) {
+        if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
+            LOGGER.error("error writing key '" + appAttribute.getKey() + "', localDB unavailable: ");
+            return;
+        }
+
+        if (appAttribute == null) {
+            return;
+        }
+
+        try {
+            if (value == null) {
+                localDB.remove(LocalDB.DB.PWM_META, appAttribute.getKey());
+            } else {
+                localDB.put(LocalDB.DB.PWM_META, appAttribute.getKey(), value);
+            }
+        } catch (Exception e) {
+            LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
+        }
     }
 }
 

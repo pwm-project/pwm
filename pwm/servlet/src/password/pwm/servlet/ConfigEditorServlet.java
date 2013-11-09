@@ -118,7 +118,7 @@ public class ConfigEditorServlet extends TopServlet {
             doSetConfigurationPassword(req);
             return;
         } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
-            doCancelEditing(req,resp);
+            doCancelEditing(req,resp,configManagerBean);
         } else if ("setOption".equalsIgnoreCase(processActionParam)) {
             setOptions(req);
         } else if ("manageLdapCerts".equalsIgnoreCase(processActionParam)) {
@@ -158,7 +158,7 @@ public class ConfigEditorServlet extends TopServlet {
                 if (e instanceof PwmException) {
                     errorInformation = ((PwmException) e).getErrorInformation();
                 }
-                final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 ServletHelper.outputJsonResult(resp, restResultBean);
                 return;
             }
@@ -171,7 +171,7 @@ public class ConfigEditorServlet extends TopServlet {
             return;
         }
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"invalid certAction parameter");
-        final RestResultBean restResultBean = RestResultBean.fromErrorInformation(errorInformation, pwmApplication, pwmSession);
+        final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
         ServletHelper.outputJsonResult(resp, restResultBean);
     }
 
@@ -348,7 +348,7 @@ public class ConfigEditorServlet extends TopServlet {
         if (!configManagerBean.getConfiguration().validateValues().isEmpty()) {
             final String errorString = configManagerBean.getConfiguration().validateValues().get(0);
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorString);
-            restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+            restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
         } else {
             try {
                 ConfigManagerServlet.saveConfiguration(pwmSession, req.getSession().getServletContext(), configManagerBean.getConfiguration());
@@ -357,7 +357,7 @@ public class ConfigEditorServlet extends TopServlet {
             } catch (PwmUnrecoverableException e) {
                 final ErrorInformation errorInfo = e.getErrorInformation();
                 pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                restResultBean = RestResultBean.fromErrorInformation(errorInfo, pwmApplication, pwmSession);
+                restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
                 LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
             }
         }
@@ -369,10 +369,12 @@ public class ConfigEditorServlet extends TopServlet {
 
     private void doCancelEditing(
             final HttpServletRequest req,
-            final HttpServletResponse resp
+            final HttpServletResponse resp,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        configManagerBean.setConfiguration(null);
         forwardToManager(req,resp);
     }
 

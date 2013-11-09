@@ -22,14 +22,16 @@
 
 package password.pwm.util;
 
-import password.pwm.AlertHandler;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.SystemAuditRecord;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * @author Jason D. Rivard
@@ -217,7 +219,20 @@ public class PwmLogger {
 
             if (level == PwmLogLevel.FATAL) {
                 if (!message.toString().contains("5039")) {
-                    AlertHandler.alertFatalEvent(pwmApplication, logEvent);
+                    final HashMap<String,String> messageInfo = new HashMap<String,String>();
+                    messageInfo.put("level",logEvent.getLevel().toString());
+                    messageInfo.put("actor",logEvent.getActor());
+                    messageInfo.put("source",logEvent.getSource());
+                    messageInfo.put("topic",logEvent.getTopic());
+                    messageInfo.put("errorMessage",logEvent.getMessage());
+
+                    final String messageInfoStr = Helper.getGson().toJson(messageInfo);
+                    pwmApplication.getAuditManager().submit(new SystemAuditRecord(
+                            AuditEvent.FATAL_EVENT,
+                            new Date(),
+                            messageInfoStr,
+                            pwmApplication.getInstanceID()
+                    ));
                 }
             }
         } catch (Exception e2) {

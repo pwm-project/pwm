@@ -14,4 +14,4 @@ fi
 JAVA_OPTS=-Xmx1024m
 CLASSPATH=$(for i in lib/*.jar ; do echo -n $i: ; done).:classes
 
-$JAVA_HOME/jre/bin/java $JAVA_OPTS -cp $CLASSPATH password.pwm.util.MainClass $1 $2 $3 $4 $5 $6 $7 $8 $9
+$JAVA_HOME/bin/java $JAVA_OPTS -cp $CLASSPATH password.pwm.util.MainClass $1 $2 $3 $4 $5 $6 $7 $8 $9
