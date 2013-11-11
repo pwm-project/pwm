@@ -256,6 +256,7 @@ public class RestAppDataServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(false);
             servicePermissions.setBlockExternal(false);
+            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();

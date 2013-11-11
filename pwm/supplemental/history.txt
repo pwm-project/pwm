@@ -24,6 +24,8 @@ v1.7.1
 + Send email on system or user audit events
 - Removed "ADDB" template, replaced with extra Guide option to select responses
 
+- fixed issue with slash character in DNs (issue #416)
+- cancel button sometimes triggered with enter key on forms (issue #507)
 - Separated ConfigEditor from ConfigManager implementation and user interface
 
 ! fixed issue where SHA1 responses where hashed only once regardless of iteration count setting

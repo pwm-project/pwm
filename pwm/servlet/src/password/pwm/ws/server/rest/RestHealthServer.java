@@ -103,7 +103,8 @@ public class RestHealthServer {
             final ServicePermissions servicePermissions = new ServicePermissions();
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(true);
+            servicePermissions.setBlockExternal(false);
+            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
@@ -139,7 +140,7 @@ public class RestHealthServer {
             final ServicePermissions servicePermissions = new ServicePermissions();
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(true);
+            servicePermissions.setBlockExternal(false);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
