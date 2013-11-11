@@ -1160,10 +1160,13 @@ function pwmFormValidator(validationProps, reentrant)
 
     // show in-progress message if load takes too long.
     setTimeout(function(){ if (PWM_GLOBAL['validationInProgress']==true) { showInfo(messageWorking); } },5);
-    var formDataString = dojo.toJson(formData);
+
+    serviceURL += serviceURL.indexOf('?') > 0 ? '&' : '?';
+    serviceURL += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
 
     require(["dojo"],function(dojo){
-        if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server...');
+        var formDataString = dojo.toJson(formData);
+        if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
         dojo.xhrPost({
             url: serviceURL,
             postData: formDataString,

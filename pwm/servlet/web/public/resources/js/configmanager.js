@@ -246,17 +246,21 @@ function uploadConfigDialog() {
 
 function initConfigPage() {
     require(["dojo"],function(dojo){
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-config";
+        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-config";
         dojo.xhrGet({
-            url: displayStringsUrl,
+            url: clientConfigUrl,
             handleAs: 'json',
             timeout: 30 * 1000,
             headers: { "Accept": "application/json" },
             load: function(data) {
-                for (var settingKey in data['data']) {
-                    PWM_SETTINGS[settingKey] = data['data'][settingKey];
+                if (data['error'] == true) {
+                    alert('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                } else {
+                    for (var settingKey in data['data']) {
+                        PWM_SETTINGS[settingKey] = data['data'][settingKey];
+                    }
+                    pwmPageLoadHandler();
                 }
-                pwmPageLoadHandler();
             },
             error: function(error) {
                 showError('Unable to read settings app-data from server, please reload page (' + error + ')');

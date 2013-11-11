@@ -282,12 +282,10 @@ public class NewUserServlet extends TopServlet {
 
             if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
                 LOGGER.debug("Email token passed");
-                pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, newUserBean.getTokenEmailAddress(),null);
                 newUserBean.setEmailTokenPassed(true);
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
             } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
                 LOGGER.debug("SMS token passed");
-                pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, newUserBean.getTokenSmsNumber(), null);
                 newUserBean.setSmsTokenPassed(true);
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
             }

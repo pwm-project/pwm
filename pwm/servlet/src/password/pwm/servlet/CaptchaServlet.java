@@ -38,6 +38,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.stats.Statistic;
 
@@ -101,6 +102,7 @@ public class CaptchaServlet extends TopServlet {
 
         Validator.validatePwmFormID(req);
 
+        final long startTime = System.currentTimeMillis();
         final boolean verified;
         try {
             verified = verifyReCaptcha(req, pwmSession);
@@ -115,7 +117,7 @@ public class CaptchaServlet extends TopServlet {
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.CAPTCHA_SUCCESSES);
 
-            LOGGER.debug(pwmSession, "captcha passcode verified");
+            LOGGER.debug(pwmSession, "captcha passcode verified (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             writeCaptchaSkipCookie(pwmSession, pwmApplication, resp);
             forwardToOriginalLocation(req, resp);

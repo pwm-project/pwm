@@ -3,8 +3,6 @@
 #
 # This script can be used to execute the command line tool.
 # It must be run from within the WEB-INF directory.
-#
-# Krowten's fault
 
 if [ -z "$JAVA_HOME" ]; then
 echo "JAVA_HOME variable must be set to a valid Java JDK or JRE"

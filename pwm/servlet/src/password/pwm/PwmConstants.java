@@ -43,7 +43,6 @@ public abstract class PwmConstants {
     public static final String BUILD_TIME           = readBuildInfoBundle("build.time");
     public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number");
     public static final String BUILD_TYPE           = readBuildInfoBundle("build.type");
-    public static final String BUILD_NAME           = readBuildInfoBundle("build.name");
     public static final String BUILD_USER           = readBuildInfoBundle("build.user");
     public static final String BUILD_REVISION       = readBuildInfoBundle("build.revision");
     public static final String BUILD_JAVA_VENDOR    = readBuildInfoBundle("build.java.vendor");

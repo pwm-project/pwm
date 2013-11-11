@@ -49,11 +49,10 @@ public class JarMain {
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(PwmConstants.BUILD_NAME + " v" + PwmConstants.PWM_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n");
+        sb.append(PwmConstants.PWM_APP_NAME + " v" + PwmConstants.PWM_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n");
         sb.append("\n");
         sb.append("Build Information: \n");
 
-        sb.append("build.name=" + PwmConstants.BUILD_NAME + "\n");
         sb.append("build.time=" + PwmConstants.BUILD_TIME + "\n");
         sb.append("build.number=" + PwmConstants.BUILD_NUMBER + "\n");
         sb.append("build.type=" + PwmConstants.BUILD_TYPE + "\n");
