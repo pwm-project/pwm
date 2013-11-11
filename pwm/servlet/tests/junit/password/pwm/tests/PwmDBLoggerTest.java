@@ -142,7 +142,7 @@ public class PwmDBLoggerTest extends TestCase {
 
             final StringBuilder description = new StringBuilder(randomValue);
             final PwmLogEvent event = new PwmLogEvent(
-                    new Date(System.currentTimeMillis() - (7l * 24l * 60l * 60l * 1000l)),
+                    new Date(System.currentTimeMillis()),
                     LocalDBLogger.class.getName(),
                     description.toString(), "", "", null, PwmLogLevel.TRACE);
             events.add(event);

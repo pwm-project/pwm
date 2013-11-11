@@ -56,7 +56,7 @@
                        name="reset"
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="document.location='<%=request.getContextPath()%>';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>

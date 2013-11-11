@@ -69,7 +69,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <tr style="border: 0">
                 <td class="key" style="border: 0">
-                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                        <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                                 onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
                             <pwm:Display key="Button_Cancel"/>
                         </button>

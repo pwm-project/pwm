@@ -56,7 +56,7 @@
                        value="<pwm:Display key="Button_Reset"/>"/>
                 <% } %>
                 <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
+                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>
