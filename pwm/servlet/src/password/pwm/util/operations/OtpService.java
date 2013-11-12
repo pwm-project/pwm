@@ -32,14 +32,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-
-import java.util.*;
-
 import password.pwm.util.operations.otp.AbstractOtpOperator;
+import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
 import password.pwm.util.operations.otp.OtpOperator;
 import password.pwm.util.otp.OTPUserConfiguration;
+import java.util.*;
 
 /**
  * @author Menno Pieters, Jason D. Rivard
@@ -65,6 +64,7 @@ public class OtpService implements PwmService {
         //operatorMap.put(Configuration.STORAGE_METHOD.DB, new DbCrOperator(pwmApplication));
         operatorMap.put(CrStorageMethod.LDAP, new LdapOtpOperator(pwmApplication.getConfig()));
         operatorMap.put(CrStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
+        operatorMap.put(CrStorageMethod.DB, new DbOtpOperator(pwmApplication));
     }
 
     @Override

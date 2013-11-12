@@ -6,8 +6,6 @@
 package password.pwm.util.operations.otp;
 
 import com.novell.ldapchai.ChaiUser;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;

@@ -53,33 +53,36 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     public String composeOtpAttribute(OTPUserConfiguration otpconfig) {
         String value = "";
         if (otpconfig != null) {
-            StorageFormat format = StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
-            switch (format) {
-                case PWM:
-                    try {
-                        JSONObject json = new JSONObject();
-                        json.put("identifier", otpconfig.getIdentifier());
-                        json.put("secret", otpconfig.getSecret());
-                        json.put("type", otpconfig.getType().toString());
-                        json.put("recoverycodes", otpconfig.getRecoveryCodes());
-                        json.put("counter", otpconfig.getCurrentCounter());
-                        value = json.toString();
-                    } catch (JSONException ex) {
-                        LOGGER.warn(ex.getMessage(), ex);
-                    }
-                    break;
+            String formatStr = config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT);
+            if (formatStr != null) {
+                StorageFormat format = StorageFormat.valueOf(formatStr);
+                switch (format) {
+                    case PWM:
+                        try {
+                            JSONObject json = new JSONObject();
+                            json.put("identifier", otpconfig.getIdentifier());
+                            json.put("secret", otpconfig.getSecret());
+                            json.put("type", otpconfig.getType().toString());
+                            json.put("recoverycodes", otpconfig.getRecoveryCodes());
+                            json.put("counter", otpconfig.getCurrentCounter());
+                            value = json.toString();
+                        } catch (JSONException ex) {
+                            LOGGER.warn(ex.getMessage(), ex);
+                        }
+                        break;
+                }
             }
         }
         return value;
     }
-    
+
     /**
      * Encrypt the given string using the PWM encryption key.
-     * 
+     *
      * @param unencrypted
      * @return
      * @throws PwmUnrecoverableException
-     * @throws PwmOperationalException 
+     * @throws PwmOperationalException
      */
     public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
         SecretKey key = config.getSecurityKey();
@@ -88,17 +91,17 @@ public abstract class AbstractOtpOperator implements OtpOperator {
 
     /**
      * Decrypt the given string using the PWM encryption key.
-     * 
+     *
      * @param encrypted
      * @return
      * @throws PwmUnrecoverableException
-     * @throws PwmOperationalException 
+     * @throws PwmOperationalException
      */
     public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
         SecretKey key = config.getSecurityKey();
         return Helper.SimpleTextCrypto.decryptValue(encrypted, key);
     }
-    
+
     /**
      *
      * @param value
@@ -163,13 +166,13 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         PWM(true),
         BASE32SECRET(false),
         OTPURL(false);
-        
+
         private final boolean useRecoveryCodes;
-        
+
         StorageFormat(boolean useRecoveryCodes) {
             this.useRecoveryCodes = useRecoveryCodes;
         }
-        
+
         public boolean supportsRecoveryCodes() {
             return useRecoveryCodes;
         }
