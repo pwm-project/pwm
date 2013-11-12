@@ -74,6 +74,7 @@ public enum Message {
     EVENT_LOG_HELPDESK_SET_PASSWORD("EventLog_HelpdeskSetPassword"),
     EVENT_LOG_HELPDESK_UNLOCK_PASSWORD("EventLog_HelpdeskUnlockPassword"),
     EVENT_LOG_HELPDESK_CLEAR_RESPONSES("EventLog_HelpdeskClearResponses"),
+    EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET("EventLog_HelpdeskClearOtpSecret"),
     EVENT_LOG_HELPDESK_ACTION("EventLog_HelpdeskAction"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),

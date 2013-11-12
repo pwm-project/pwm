@@ -725,7 +725,10 @@ public enum PwmSetting {
             "helpdesk.idleTimeout", PwmSettingSyntax.NUMERIC, Category.HELPDESK),
     HELPDESK_CLEAR_RESPONSES(
             "helpdesk.clearResponses", PwmSettingSyntax.SELECT, Category.HELPDESK),
-
+    HELPDESK_CLEAR_RESPONSES_BUTTON(
+            "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+    HELPDESK_CLEAR_OTP_BUTTON(
+            "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
 
     // Database
     DATABASE_CLASS(

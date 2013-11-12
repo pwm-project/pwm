@@ -123,6 +123,12 @@ public class HelpdeskServlet extends TopServlet {
             if (processAction.equalsIgnoreCase("doUnlock")) {
                 processUnlockPassword(req, resp, pwmApplication, pwmSession);
                 return;
+            } else if (processAction.equalsIgnoreCase("doClearResponses")) {
+                processClearResponses(req, resp, pwmApplication, pwmSession);
+                return;
+            } else if (processAction.equalsIgnoreCase("doClearOtpSecret")) {
+                processClearOtpSecret(req, resp, pwmApplication, pwmSession);
+                return;
             } else if (processAction.equalsIgnoreCase("search")) {
                 processSearchRequest(req, resp, pwmApplication, pwmSession);
                 return;
@@ -452,6 +458,146 @@ public class HelpdeskServlet extends TopServlet {
         this.forwardToDetailJSP(req, resp);
     }
 
+    private void processClearResponses(HttpServletRequest req, HttpServletResponse resp, PwmApplication pwmApplication, PwmSession pwmSession) throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
+
+        if (helpdeskBean.getUserInfoBean() == null) {
+            final String errorMsg = "password unlock request, but no user result in search";
+            LOGGER.error(pwmSession, errorMsg);
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            this.forwardToDetailJSP(req, resp);
+            return;
+        }
+
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) {
+            final String errorMsg = "clear responses request, but helpdesk clear responses button is not enabled";
+            LOGGER.error(pwmSession, errorMsg);
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
+            this.forwardToDetailJSP(req, resp);
+            return;
+        }
+
+        //clear pwm intruder setting.
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
+
+        try {
+            final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
+            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
+            final String GUID = Helper.readLdapGuidValue(pwmApplication, userDN);
+            
+            CrService service = pwmApplication.getCrService();
+            service.clearResponses(pwmSession, chaiUser, GUID);
+            {
+                // mark the event log
+                final UserAuditRecord auditRecord = new UserAuditRecord(
+                        AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                        pwmSession.getUserInfoBean().getUserID(),
+                        pwmSession.getUserInfoBean().getUserDN(),
+                        new Date(),
+                        null,
+                        userID,
+                        chaiUser.getEntryDN(),
+                        pwmSession.getSessionStateBean().getSrcAddress(),
+                        pwmSession.getSessionStateBean().getSrcHostname()
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+            }
+        } catch (PwmOperationalException e) {
+            final PwmError returnMsg = e.getError();
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            ssBean.setSessionError(error);
+            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+        } catch (ChaiUnavailableException e) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while clearing responses: " + e.toString());
+            throw e;
+        } catch (ChaiOperationException e) {
+            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            ssBean.setSessionError(error);
+            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+        }
+
+        Helper.pause(1000); // delay before re-reading data
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
+        this.forwardToDetailJSP(req, resp);
+    }
+
+    private void processClearOtpSecret(HttpServletRequest req, HttpServletResponse resp, PwmApplication pwmApplication, PwmSession pwmSession) throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException {
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
+
+        if (helpdeskBean.getUserInfoBean() == null) {
+            final String errorMsg = "password unlock request, but no user result in search";
+            LOGGER.error(pwmSession, errorMsg);
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            this.forwardToDetailJSP(req, resp);
+            return;
+        }
+
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) {
+            final String errorMsg = "clear responses request, but helpdesk clear responses button is not enabled";
+            LOGGER.error(pwmSession, errorMsg);
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
+            this.forwardToDetailJSP(req, resp);
+            return;
+        }
+
+        //clear pwm intruder setting.
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
+
+        try {
+            final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
+            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
+            final String GUID = Helper.readLdapGuidValue(pwmApplication, userDN);
+            
+            OtpService service = pwmApplication.getOtpService();
+            service.clearOTPUserConfiguration(pwmSession, chaiUser, GUID);
+            {
+                // mark the event log
+                final UserAuditRecord auditRecord = new UserAuditRecord(
+                        AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                        pwmSession.getUserInfoBean().getUserID(),
+                        pwmSession.getUserInfoBean().getUserDN(),
+                        new Date(),
+                        null,
+                        userID,
+                        chaiUser.getEntryDN(),
+                        pwmSession.getSessionStateBean().getSrcAddress(),
+                        pwmSession.getSessionStateBean().getSrcHostname()
+                );
+                pwmApplication.getAuditManager().submit(auditRecord);
+            }
+        } catch (PwmOperationalException e) {
+            final PwmError returnMsg = e.getError();
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            ssBean.setSessionError(error);
+            LOGGER.warn(pwmSession, "error clearing OTP secret for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+        } catch (ChaiUnavailableException e) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+            LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while clearing OTP secret: " + e.toString());
+            throw e;
+        } catch (ChaiOperationException e) {
+            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
+            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
+            ssBean.setSessionError(error);
+            LOGGER.warn(pwmSession, "error clearing OTP secret for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+        }
+
+        Helper.pause(1000); // delay before re-reading data
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
+        this.forwardToDetailJSP(req, resp);
+    }
+    
     private void forwardToSearchJSP(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, ServletException
     {

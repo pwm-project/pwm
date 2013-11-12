@@ -332,6 +332,13 @@
     <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
     <button class="btn" onclick="initiateChangePasswordDialog()"><pwm:Display key="Button_ChangePassword"/></button>
     <% } %>
+    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
+        <button id="clearResponsesBtn" class="btn" onclick="document.clearResponsesForm.submit()"><pwm:Display key="Button_ClearResponses"/></button>
+    <% } %>    
+    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) &&
+           ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
+        <button id="clearOtpSecretBtn" class="btn" onclick="document.clearOtpSecretForm.submit()"><pwm:Display key="Button_ClearOtpSecret"/></button>
+    <% } %>    
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
     <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
     <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
@@ -374,6 +381,14 @@
     </form>
     <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('unlockBtn', this)">
         <input type="hidden" name="processAction" value="doUnlock"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
+    <form name="clearResponsesForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('clearResponsesBtn', this)">
+        <input type="hidden" name="processAction" value="doClearResponses"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
+    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('clearOtpSecretBtn', this)">
+        <input type="hidden" name="processAction" value="doClearOtpSecret"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
 </div>

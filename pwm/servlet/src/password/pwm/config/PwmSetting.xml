@@ -2636,6 +2636,13 @@
             <value>3600</value>
         </default>
     </setting>
+    <setting key="helpdesk.clearResponses.button" level="0">
+        <label>Enable Clear Responses Button</label>
+        <description><![CDATA[Allow the helpdesk operator to clear out a user's stored responses by clicking a button.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="helpdesk.clearResponses" level="0">
         <label>Clear Responses on Password Set</label>
         <description><![CDATA[Allow the helpdesk operator to clear out a user's stored responses after changing the user's password.]]></description>
@@ -2647,6 +2654,13 @@
             <option value="ask">Ask</option>
             <option value="no">False</option>
         </options>
+    </setting>
+    <setting key="helpdesk.clearOtp.button" level="0">
+        <label>Enable Clear One Time Password Settings Button</label>
+        <description><![CDATA[Allow the helpdesk operator to clear out a user's stored one time password settings by clicking a button.]]></description>
+        <default>
+            <value>false</value>
+        </default>
     </setting>
     <setting key="pwmDb.location" level="1" required="true">
         <label>LocalDB Location</label>
