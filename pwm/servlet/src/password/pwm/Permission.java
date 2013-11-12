@@ -61,13 +61,16 @@ public enum Permission {
     public static boolean checkPermission(final Permission permission, final PwmSession pwmSession, final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        LOGGER.trace(String.format("Enter: checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {
+            LOGGER.debug(String.format("Checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserID()));
             final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
             final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
             final PwmSetting setting = permission.getPwmSetting();
             final boolean result = testQueryMatch(actor, pwmApplication.getConfig().readSettingAsString(setting), permission.toString(), pwmSession);
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
+            LOGGER.debug(String.format("Permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUserID(), status.toString()));
             pwmSession.getUserInfoBean().setPermission(permission, status);
         }
         return status == PERMISSION_STATUS.GRANTED;
