@@ -29,6 +29,7 @@ import password.pwm.bean.PwmSessionBean;
 import password.pwm.config.FormConfiguration;
 
 import java.util.List;
+import password.pwm.util.otp.OTPUserConfiguration;
 
 /**
  * @author Jason D. Rivard
@@ -38,11 +39,13 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     private transient ChaiUser proxiedUser;
     private transient ResponseSet responseSet;
+    private transient OTPUserConfiguration otpConfig;
     private ChallengeSet challengeSet;
     private String tokenSendAddress;
 
     private boolean responsesSatisfied;
     private boolean tokenSatisfied;
+    private boolean otpSatisfied;
     private boolean allPassed;
     
     private boolean passwordEmailSent = false;
@@ -67,6 +70,22 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     public void setChallengeSet(ChallengeSet challengeSet) {
         this.challengeSet = challengeSet;
+    }
+
+    public OTPUserConfiguration getOtpConfig() {
+        return otpConfig;
+    }
+
+    public void setOtpConfig(OTPUserConfiguration otpConfig) {
+        this.otpConfig = otpConfig;
+    }
+
+    public boolean isOtpSatisfied() {
+        return otpSatisfied;
+    }
+
+    public void setOtpSatisfied(boolean otpSatisfied) {
+        this.otpSatisfied = otpSatisfied;
     }
 
     public ChaiUser getProxiedUser() {

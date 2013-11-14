@@ -1918,7 +1918,7 @@
     </setting>
     <setting key="challenge.token.enable" level="0" required="true">
         <label>Require Email Token</label>
-        <description><![CDATA[If enabled, a token will be emailed to the user during the forgotten password process.  The user will be required to type the email token in order to proceed to recover their password.  If this setting is disabled, then 'Require Responses' must be set to true for forgotten password recovery to operate.]]></description>
+        <description><![CDATA[If enabled, a token will be emailed to the user during the forgotten password process.  The user will be required to type the email token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -1937,6 +1937,13 @@
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
+    </setting>
+    <setting key="recovery.require.otp" level="0" required="true">
+        <label>Require One Time Password</label>
+        <description><![CDATA[If enabled, a one time password will be required during the forgotten password process.  The user will be required to type the generated token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
+        <default>
+            <value>false</value>
+        </default>
     </setting>
     <setting key="recovery.action" level="0" required="true">
         <label>Forgotten Password Recovery Mode</label>

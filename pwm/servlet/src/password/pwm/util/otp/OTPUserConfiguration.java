@@ -102,7 +102,9 @@ public class OTPUserConfiguration {
         byte[] rawSecret = generateSecret();
         this.secret = new String(base32.encode(rawSecret));
         LOGGER.debug(String.format("Generated Secret: %s", secret));
-        if (numRecoveryCodes > 0) initRecoveryCodes(numRecoveryCodes);
+        if (numRecoveryCodes > 0) {
+            initRecoveryCodes(numRecoveryCodes);
+        }
         if (counterBased) {
             this.counter = new SecureRandom().nextLong();
             this.type = Type.HOTP;
@@ -113,13 +115,13 @@ public class OTPUserConfiguration {
     }
 
     /**
-     * 
+     *
      * @param identifier
      * @param counterBased
      * @param numRecoveryCodes
      * @return
      * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException 
+     * @throws InvalidKeyException
      */
     public static OTPUserConfiguration getInstance(String identifier, Boolean counterBased, int numRecoveryCodes) throws NoSuchAlgorithmException, InvalidKeyException {
         OTPUserConfiguration otpuc = new OTPUserConfiguration(identifier);
@@ -179,13 +181,13 @@ public class OTPUserConfiguration {
         HOTP,
         TOTP
     }
-    
+
     @Override
     public boolean equals(Object object) {
         if (object instanceof OTPUserConfiguration) {
             return (this.hashCode() == object.hashCode());
         }
-        return false;   
+        return false;
     }
 
     @Override
@@ -198,4 +200,30 @@ public class OTPUserConfiguration {
         hash = 71 * hash + (this.type != null ? this.type.hashCode() : 0);
         return hash;
     }
+
+    public boolean validateToken(String token) {
+        LOGGER.trace(String.format("Enter: validateToken(%s)", token));
+        try {
+            Base32 base32 = new Base32();
+            byte[] rawSecret = base32.decode(getSecret());
+            Mac mac = Mac.getInstance("HMACSHA1");
+            mac.init(new SecretKeySpec(rawSecret, ""));
+            PasscodeGenerator generator = new PasscodeGenerator(mac, PwmConstants.OTP_TOKEN_LENGTH, PwmConstants.TOTP_INTERVAL);
+            switch (getType()) {
+                case TOTP:
+                    return generator.verifyTimeoutCode(token, PwmConstants.TOTP_PAST_INTERVALS, PwmConstants.TOTP_FUTURE_INTERVALS);
+                case HOTP:
+                    /* Not yet implemented */
+                    break;
+            }
+        } catch (NoSuchAlgorithmException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        } catch (InvalidKeyException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        } catch (GeneralSecurityException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
+        return false;
+    }
+
 }

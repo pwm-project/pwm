@@ -60,6 +60,7 @@ public enum Statistic {
     GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
     RECOVERY_TOKENS_SENT(Type.INCREMENTOR, "RecoveryTokensSent"),
     RECOVERY_TOKENS_PASSED(Type.INCREMENTOR, "RecoveryTokensPassed"),
+    RECOVERY_OTP_PASSED(Type.INCREMENTOR, "RecoveryOneTimePasswordsPassed"),
     PEOPLESEARCH_SEARCHES(Type.INCREMENTOR, "PeopleSearchSearches"),
     HELPDESK_PASSWORD_SET(Type.INCREMENTOR, "HelpdeskPasswordSet"),
     HELPDESK_USER_LOOKUP(Type.INCREMENTOR, "HelpdeskUserLookup"),

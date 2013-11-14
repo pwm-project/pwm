@@ -541,6 +541,8 @@ public enum PwmSetting {
             "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
     CHALLENGE_TOKEN_SEND_METHOD(
             "challenge.token.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
+    FORGOTTEN_PASSWORD_REQUIRE_OTP(
+            "recovery.require.otp", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
     FORGOTTEN_PASSWORD_ACTION(
             "recovery.action", PwmSettingSyntax.SELECT, Category.RECOVERY),
     CHALLENGE_SENDNEWPW_METHOD(
