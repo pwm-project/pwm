@@ -23,6 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.util.otp.OTPUserConfiguration" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -34,9 +35,15 @@
             <div id="centerbody">
                 <%
                     final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+                    OTPUserConfiguration otp = fpb.getOtpConfig();
+                    String identifier = otp.getIdentifier();
+
+                    if (identifier != null && identifier.length() > 0 ) {
                 %>
-                <!-- TODO: Title -->
-                <p>Enter One Time Password</p>
+                <p><pwm:Display key="Display_RecoverOTPIdentified" value1="<%=identifier%>"/></p>
+                <% } else { %>
+                <p><pwm:Display key="Display_RecoverOTP" /></p>
+                <% } %>
                 <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
                       enctype="application/x-www-form-urlencoded" name="search"
                       onsubmit="handleFormSubmit('submitBtn', this);
