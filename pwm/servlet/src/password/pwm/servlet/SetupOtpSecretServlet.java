@@ -214,6 +214,7 @@ public class SetupOtpSecretServlet extends TopServlet {
             final ChaiUser theUser = pwmSession.getSessionManager().getActor();
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             otpService.writeOTPUserConfiguration(theUser, userGUID, otpBean.getOtp());
+            pwmSession.getUserInfoBean().setRequiresOtpConfig(false);
             pwmSession.clearUserBean(SetupOtpBean.class);
             ServletHelper.forwardToSuccessPage(req, resp);
             return;

@@ -148,46 +148,44 @@ public class OtpService implements PwmService {
         }
     }
 
-    public void clearOTPUserConfiguration(
-            final PwmSession pwmSession,
-            final ChaiUser theUser,
-            final String userGUID
-    )
-            throws PwmOperationalException, ChaiUnavailableException {
-        final Configuration config = pwmApplication.getConfig();
+    public void clearOTPUserConfiguration(final ChaiUser theUser, final String userGUID) throws PwmOperationalException, ChaiUnavailableException {
+        LOGGER.trace(String.format("Enter: clearOTPUserConfiguration(%s, %s)", theUser, userGUID));
+
         int attempts = 0, successes = 0;
+        final Configuration config = pwmApplication.getConfig();
+        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        if (otpSecretStorageLocations != null) {
+            final Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
+            while (locationIterator.hasNext()) {
+                attempts++;
+                final CrStorageMethod location = locationIterator.next();
+                final OtpOperator operator = operatorMap.get(location);
+                if (operator != null) {
+                    try {
+                        operator.clearOtpUserConfiguration(theUser, userGUID);
+                        successes++;
+                    } catch (PwmUnrecoverableException ex) {
+                        LOGGER.error(ex.getMessage(), ex);
+                    }
+                } else {
+                    LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
+                }
+            }
+        }
 
-        /*
+        if (attempts == 0) {
+            final String errorMsg = "no OTP secret clear methods are available or configured";
+            /* TODO: replace error message */
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
 
-         LOGGER.trace(pwmSession, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
-
-         final List<Configuration.STORAGE_METHOD> writeMethods = config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
-         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
-         writeMethods.add(Configuration.STORAGE_METHOD.NMAS);
-         }
-
-         for (final Configuration.STORAGE_METHOD loopWriteMethod : writeMethods) {
-         try {
-         attempts++;
-         operatorMap.get(loopWriteMethod).clearResponses(theUser, userGUID);
-         successes++;
-         } catch (PwmUnrecoverableException e) {
-         LOGGER.error(pwmSession, "error clearing responses via " + loopWriteMethod + ", error: " + e.getMessage());
-         }
-         }
-
-         if (attempts == 0) {
-         final String errorMsg = "no response save methods are available or configured";
-         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
-         throw new PwmOperationalException(errorInfo);
-         }
-
-         if (attempts != successes) { // should be impossible to get here, but just in case.
-         final String errorMsg = "response clear partially successful; attempts=" + attempts + ", successes=" + successes;
-         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
-         throw new PwmOperationalException(errorInfo);
-         }
-         */
+        if (attempts != successes) { // should be impossible to get here, but just in case.
+            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes;
+            /* TODO: replace error message */
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
+            throw new PwmOperationalException(errorInfo);
+        }
     }
 
     public boolean checkIfOtpSetupNeeded(
@@ -196,43 +194,8 @@ public class OtpService implements PwmService {
             final OTPUserConfiguration otpConfig
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        /* TODO */
-
-        /*
-         LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
-
-         final String userDN = theUser.getEntryDN();
-
-         final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
-         final Configuration config = pwmApplication.getConfig();
-
-         if (!Helper.testUserMatchQueryString(provider, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
-         LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
-         return false;
-         }
-
-         // check to be sure there are actually challenges in the challenge set
-         if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
-         LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userDN);
-         return false;
-         }
-
-         try {
-         // check if responses exist
-         if (responseInfoBean == null) {
-         throw new Exception("no responses configured");
-         }
-
-         // check if responses meet the challenge set policy for the user
-         //usersResponses.meetsChallengeSetRequirements(challengeSet);
-         LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " has good responses");
-         return false;
-         } catch (Exception e) {
-         LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " does not have good responses: " + e.getMessage());
-         return true;
-         }
-         */
-        return true;
+        OTPUserConfiguration otp = readOTPUserConfiguration(theUser);
+        return (otp == null || otp.getSecret() == null);
     }
 
     public boolean supportsRecoveryCodes() {

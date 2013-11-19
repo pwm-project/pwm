@@ -433,6 +433,8 @@ public enum PwmSetting {
     // OTP
     OTP_ENABLED(
             "otp.enabled", PwmSettingSyntax.BOOLEAN, Category.OTP),
+    OTP_FORCE_SETUP(
+            "otp.forceSetup", PwmSettingSyntax.BOOLEAN, Category.OTP),
     OTP_SECRET_READ_PREFERENCE(
             "otp.secret.readPreference", PwmSettingSyntax.SELECT, Category.OTP),
     OTP_SECRET_WRITE_PREFERENCE(

@@ -454,6 +454,22 @@ public class AuthenticationFilter implements Filter {
             return false;
         }
 
+        if (!PwmServletURLHelper.isSetupOtpSecretURL(req)) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.OTP_FORCE_SETUP)) {
+                    if (Permission.checkPermission(Permission.SETUP_OTP_SECRET, pwmSession, pwmApplication)) {
+                        if (pwmSession.getUserInfoBean().isRequiresOtpConfig()) {
+                            LOGGER.debug(pwmSession, "user is required to setup OTP configuration, redirecting to OTP setup page");
+                            resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET);
+                            return true;
+                        }
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+        
         if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {

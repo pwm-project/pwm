@@ -1444,6 +1444,13 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="otp.forceSetup" level="0" required="true">
+        <label>Force Setup of One Time Passwords</label>
+        <description><![CDATA[If true and one time passwords are enabled, the user will be directed to configure a one time password secret when logging in.  The user is forced to configure one time password if they do not have a current valid secret stored.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="otp.secret.readPreference" level="0" required="true">
         <label>OTP Secret Read Location</label>
         <description><![CDATA[Location to read the OTP secret from. If an option with multiple values are selected, each location will be read in turn until a stored response is found.]]></description>

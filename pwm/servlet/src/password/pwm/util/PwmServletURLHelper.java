@@ -19,7 +19,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 package password.pwm.util;
 
 import password.pwm.PwmConstants;
@@ -35,13 +34,13 @@ public abstract class PwmServletURLHelper {
     }
 
     public static boolean isResourceURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/public/resources/") ||
-                checkIfMatchesURL(req, "/public/jsClientValues.jsp");
+        return checkIfStartsWithURL(req, "/public/resources/")
+                || checkIfMatchesURL(req, "/public/jsClientValues.jsp");
     }
 
     public static boolean isLogoutURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_LOGOUT) ||
-                checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_LOGOUT);
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_LOGOUT)
+                || checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_LOGOUT);
     }
 
     public static boolean isAdminUrl(final HttpServletRequest req) {
@@ -53,12 +52,12 @@ public abstract class PwmServletURLHelper {
     }
 
     public static boolean isMenuURL(final HttpServletRequest req) {
-        return checkIfMatchesURL(req, "/", "/private/" , "/public/");
+        return checkIfMatchesURL(req, "/", "/private/", "/public/");
     }
 
     public static boolean isCommandServletURL(final HttpServletRequest req) {
-        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_COMMAND) ||
-                checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_COMMAND);
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_COMMAND)
+                || checkIfStartsWithURL(req, "/public/" + PwmConstants.URL_SERVLET_COMMAND);
     }
 
     public static boolean isWebServiceURL(final HttpServletRequest req) {
@@ -82,6 +81,10 @@ public abstract class PwmServletURLHelper {
         return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
     }
 
+    public static boolean isSetupOtpSecretURL(final HttpServletRequest req) {
+        return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET);
+    }
+
     public static boolean isProfileUpdateURL(final HttpServletRequest req) {
         return checkIfStartsWithURL(req, "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
     }
@@ -93,7 +96,7 @@ public abstract class PwmServletURLHelper {
 
         final URI originalRequestURI;
         try {
-            final String originalRequestValue = (String)req.getAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI);
+            final String originalRequestValue = (String) req.getAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI);
             originalRequestURI = new URI(originalRequestValue);
         } catch (URISyntaxException e) {
             return false;

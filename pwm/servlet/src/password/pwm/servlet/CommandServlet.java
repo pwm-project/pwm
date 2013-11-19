@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import password.pwm.config.Configuration;
 
 /**
  * Processes a variety of different commands sent in an HTTP Request, including logoff.
@@ -316,10 +317,11 @@ public class CommandServlet extends TopServlet {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final Configuration config = pwmApplication.getConfig();
 
         if (ssBean.isAuthenticated()) {
             //check if user has expired password, and expirecheck during auth is turned on.
-            if (uiBean.isRequiresNewPassword() || (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EXPIRE_CHECK_DURING_AUTH) && checkIfPasswordExpired(pwmSession))) {
+            if (uiBean.isRequiresNewPassword() || (config.readSettingAsBoolean(PwmSetting.EXPIRE_CHECK_DURING_AUTH) && checkIfPasswordExpired(pwmSession))) {
                 if (uiBean.isRequiresNewPassword()) {
                     LOGGER.trace(pwmSession, "user password has been marked as requiring a change");
                 } else {
@@ -340,15 +342,24 @@ public class CommandServlet extends TopServlet {
             }
 
             //check if we force response configuration, and user requires it.
-            if (uiBean.isRequiresResponseConfig() && (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
+            if (uiBean.isRequiresResponseConfig() && (config.readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user response set needs to be configured, redirecting to setupresponses page");
                 final String setupResponsesURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES;
 
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(setupResponsesURL, req, resp));
                 return;
             }
+            
+            // check if we force OTP setup, and user requires it.
+            if (uiBean.isRequiresOtpConfig() && config.readSettingAsBoolean(PwmSetting.OTP_ENABLED) && config.readSettingAsBoolean(PwmSetting.OTP_FORCE_SETUP)) {
+                LOGGER.info(pwmSession, "user needs to setup OTP configuration, redirecting to OTP setup page");
+                final String otpSetupURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET;
 
-            if (uiBean.isRequiresUpdateProfile() && (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP))) {
+                resp.sendRedirect(SessionFilter.rewriteRedirectURL(otpSetupURL, req, resp));
+                return;
+            }
+
+            if (uiBean.isRequiresUpdateProfile() && (config.readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP))) {
                 LOGGER.info(pwmSession, "user profile needs to be updated, redirecting to update profile page");
                 final String updateProfileURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE;
 
@@ -357,7 +368,7 @@ public class CommandServlet extends TopServlet {
             }
 
             // log the user out if our finish action is currently set to log out.
-            final boolean forceLogoutOnChange = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE);
+            final boolean forceLogoutOnChange = config.readSettingAsBoolean(PwmSetting.LOGOUT_AFTER_PASSWORD_CHANGE);
             if (forceLogoutOnChange && pwmSession.getSessionStateBean().isPasswordModified()) {
                 LOGGER.trace(pwmSession, "logging out user; password has been modified");
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_LOGOUT, req, resp));

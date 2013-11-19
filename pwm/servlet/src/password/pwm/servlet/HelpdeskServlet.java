@@ -560,7 +560,7 @@ public class HelpdeskServlet extends TopServlet {
             final String GUID = Helper.readLdapGuidValue(pwmApplication, userDN);
             
             OtpService service = pwmApplication.getOtpService();
-            service.clearOTPUserConfiguration(pwmSession, chaiUser, GUID);
+            service.clearOTPUserConfiguration(chaiUser, GUID);
             {
                 // mark the event log
                 final UserAuditRecord auditRecord = new UserAuditRecord(
