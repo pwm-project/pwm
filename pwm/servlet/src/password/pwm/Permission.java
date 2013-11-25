@@ -73,6 +73,7 @@ public enum Permission {
             LOGGER.debug(String.format("Permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUserID(), status.toString()));
             pwmSession.getUserInfoBean().setPermission(permission, status);
         }
+        LOGGER.debug(String.format("Permission status: %s", status));
         return status == PERMISSION_STATUS.GRANTED;
     }
 

@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.PasswordStatus;
 import password.pwm.util.PostChangePasswordAction;
+import password.pwm.util.PwmLogger;
 
 import java.util.*;
 
@@ -52,6 +53,7 @@ public class UserInfoBean implements PwmSessionBean {
     private String userSmsNumber;
     private String userGuid;
 
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserInfoBean.class);
 
     /**
      * A listing of all readable attributes on the ldap user object
@@ -255,6 +257,7 @@ public class UserInfoBean implements PwmSessionBean {
     }
 
     public void setPermission(final Permission permission, final Permission.PERMISSION_STATUS status) {
+        LOGGER.trace(String.format("Enter: setPermission(%s, %s)", permission, status));
         permissions.put(permission, status);
     }
 

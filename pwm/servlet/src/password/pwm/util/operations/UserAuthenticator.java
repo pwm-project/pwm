@@ -112,6 +112,7 @@ public class UserAuthenticator {
         postAuthenticationSequence(pwmApplication, pwmSession, userDN, password, allowBindAsUser, methodStartTime);
         final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
+        pwmSession.getUserInfoBean().clearPermissions();
         LOGGER.debug(pwmSession, "user authenticated with authentication type: " + authenticationType);
         pwmApplication.getAuditManager().submit(new UserAuditRecord(
                 AuditEvent.AUTHENTICATE,
@@ -256,6 +257,7 @@ public class UserAuthenticator {
         postAuthenticationSequence(pwmApplication, pwmSession, theUser.getEntryDN(), null, false, startAuthenticationTimestamp);
 
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
+        pwmSession.getUserInfoBean().clearPermissions();
         LOGGER.debug(pwmSession,"user authenticated with authentication type: " + authenticationType);
 
         pwmApplication.getAuditManager().submit(new UserAuditRecord(
