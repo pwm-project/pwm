@@ -246,6 +246,7 @@ public class EmailQueueManager extends AbstractQueueManager {
         message.setFrom(new InternetAddress(emailItemBean.getFrom()));
         message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(emailItemBean.getTo())});
         message.setSubject(emailItemBean.getSubject());
+        message.setSentDate(new Date());
 
         if (hasPlainText && hasHtml) {
             final MimeMultipart content = new MimeMultipart("alternative");
