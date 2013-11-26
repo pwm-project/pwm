@@ -396,5 +396,9 @@ public class UserAuthenticator {
 
         //mark the auth time
         userInfoBean.setLocalAuthTime(new Date());
+        
+        //clear permission cache - needs rechecking after login
+        LOGGER.debug("Clearing permission cache");
+        userInfoBean.clearPermissions();
     }
 }
