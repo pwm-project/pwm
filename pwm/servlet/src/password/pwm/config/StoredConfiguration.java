@@ -653,7 +653,7 @@ public class StoredConfiguration implements Serializable {
         private static XPathExpression xpathForConfigProperty(final ConfigProperty configProperty) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"config\"]/"
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"config\" or (not (@" + XML_ATTRIBUTE_TYPE + "))]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + configProperty.getKey() + "\"]";
             return xpfac.compile(xpathString);
         }

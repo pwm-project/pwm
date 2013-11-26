@@ -338,7 +338,7 @@ public class PwmApplication {
         PwmInitializer.initializeLocalDB(this);
         PwmInitializer.initializePwmDBLogger(this);
 
-        LOGGER.info("initializing");
+        LOGGER.info("initializing, application mode=" + getApplicationMode());
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
         LOGGER.info("loaded global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));

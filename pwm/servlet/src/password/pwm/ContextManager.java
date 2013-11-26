@@ -123,10 +123,11 @@ public class ContextManager implements Serializable {
         Configuration configuration = null;
         File pwmApplicationPath = null;
         PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
+        File configurationFile = null;
         try {
             if (startupErrorInformation == null) {
                 final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
-                final File configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
+                configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
                 configReader = new ConfigurationReader(configurationFile);
                 configReader.getStoredConfiguration().lock();
                 configuration = configReader.getConfiguration();
@@ -162,6 +163,8 @@ public class ContextManager implements Serializable {
             taskMaster.schedule(new ConfigFileWatcher(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
             taskMaster.schedule(new SessionWatcherTask(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
         }
+
+        LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
     }
 
     private void handleStartupError(final String msgPrefix, final Throwable throwable) {
