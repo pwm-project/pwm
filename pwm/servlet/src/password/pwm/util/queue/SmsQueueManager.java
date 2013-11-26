@@ -299,61 +299,70 @@ public class SmsQueueManager extends AbstractQueueManager {
 
     protected String formatSmsNumber(final String smsNumber) {
         final Configuration config = pwmApplication.getConfig();
-        String cc = config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
-        Integer ccnum;
-        try {
-            ccnum = Integer.parseInt(cc);
-            if (ccnum <= 0) {
-                cc = "";
+
+        String countryCodeNumber = "";
+        {
+            final String configuredNumber =  config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
+            try {
+                final int parsedValue = Integer.parseInt(configuredNumber);
+                if (parsedValue > 1) {
+                    countryCodeNumber = String.valueOf(parsedValue);
+                }
+            } catch (Exception e) {
+                LOGGER.error("unable to parse configured default SMS default country code '" + configuredNumber + "', error: " + e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.error(e);
-            cc = "";
         }
+
         final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
-        String ret = smsNumber;
+        String returnValue = smsNumber;
+
         // Remove (0)
-        ret = ret.replaceAll("\\(0\\)","");
+        returnValue = returnValue.replaceAll("\\(0\\)","");
+
         // Remove leading double zero, replace by plus
-        if (ret.substring(0,1).equals("00")) {
-            ret = "+" + ret.substring(2);
+        if (returnValue.startsWith("00")) {
+            returnValue = "+" + returnValue.substring(2, returnValue.length());
         }
+
         // Replace leading zero by country code
-        if (ret.charAt(0) == '0') {
-            ret = cc + ret.substring(1);
+        if (returnValue.startsWith("0")) {
+            returnValue = countryCodeNumber + returnValue.substring(1, returnValue.length());
         }
+
         // Add a leading plus if necessary
-        if (ret.charAt(0) != '+') {
-            ret = "+" + ret;
+        if (!returnValue.startsWith("+")) {
+            returnValue = "+" + returnValue;
         }
+
         // Remove any non-numeric, non-plus characters
-        final String tmp = ret;
-        ret = "";
-        for(int i=0;i<tmp.length();i++) {
-            if ((i==0&&tmp.charAt(i)=='+')||(
-                    (tmp.charAt(i)>='0'&&tmp.charAt(i)<='9'))
-                    ) {
-                ret += tmp.charAt(i);
+        {
+            final String tmp = returnValue;
+            returnValue = "";
+            for(int i=0; i < tmp.length(); i++) {
+                if ((i==0 && tmp.charAt(i) == '+') || ((tmp.charAt(i) >= '0' && tmp.charAt(i) <= '9'))) {
+                    returnValue += tmp.charAt(i);
+                }
             }
         }
+
         // Now the number should be in full international format
         // Let's see if we need to change anything:
         switch(format) {
             case PLAIN:
                 // remove plus
-                ret = ret.substring(1);
+                returnValue = returnValue.substring(1);
                 break;
             case PLUS:
                 // keep full international format
                 break;
             case ZEROS:
                 // replace + with 00
-                ret = "00" + ret.substring(1);
+                returnValue = "00" + returnValue.substring(1);
                 break;
             default:
                 // keep full international format
                 break;
         }
-        return ret;
+        return returnValue;
     }
 }

@@ -40,6 +40,7 @@ public enum PwmSettingSyntax {
     ACTION(ActionValue.class),
     EMAIL(EmailValue.class),
     X509CERT(X509CertificateValue.class),
+    PROFILE(StringArrayValue.class),
     ;
 
     private Class storedValueImpl;

@@ -4,6 +4,7 @@
 <%@ page import="java.security.cert.X509Certificate" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,9 +27,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<% X509Certificate certificate = (X509Certificate)request.getAttribute("certificate"); %>
+<% final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting"); %>
+<% X509Certificate[] certificates = (X509Certificate[])request.getAttribute("certificate"); %>
+<% for (X509Certificate certificate : certificates) {%>
 <% final String md5sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "MD5"); %>
-<% final String sha1sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "SHA1"); %>
 <table style="width:100%" id="table_certificate0">
     <tr><td colspan="2" class="key" style="text-align: center">
         Certificate
@@ -50,5 +52,20 @@
                 content: body
             }).show();
         });
-    };
+    }
+</script>
+<% } %>
+<button id="<%=loopSetting.getKey()%>_ClearButton" data-dojo-type="dijit.form.Button">Clear</button>
+<button id="<%=loopSetting.getKey()%>_AutoImportButton" data-dojo-type="dijit.form.Button">Import From LDAP Server</button>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dijit/form/Button"],function(parser,Button){
+            new Button({
+                onClick:function(){handleResetClick('<%=loopSetting.getKey()%>') }
+            },'<%=loopSetting.getKey()%>_ClearButton');
+            new Button({
+                onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'certificateImportFunction')}
+            },'<%=loopSetting.getKey()%>_AutoImportButton');
+        });
+    });
 </script>

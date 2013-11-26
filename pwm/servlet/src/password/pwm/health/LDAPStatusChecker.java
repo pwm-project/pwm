@@ -31,20 +31,22 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.operations.UserStatusHelper;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -61,53 +63,58 @@ public class LDAPStatusChecker implements HealthChecker {
 
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         final Configuration config = pwmApplication.getConfig();
+        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final Map<String,LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles();
 
-        { // check ldap server
-            returnRecords.addAll(checkBasicLdapConnectivity(pwmApplication,config,true));
+        for (final String profileID : ldapProfiles.keySet()) {
+            final List<HealthRecord> profileRecords = new ArrayList<HealthRecord>();
+            profileRecords.addAll(
+                    checkBasicLdapConnectivity(pwmApplication, config, ldapProfiles.get(profileID), true));
 
-            if (returnRecords.isEmpty()) {
-                returnRecords.addAll(checkLdapServerUrls(config));
+            if (profileRecords.isEmpty()) {
+                profileRecords.addAll(checkLdapServerUrls(config, ldapProfiles.get(profileID)));
             }
 
-            if (returnRecords.isEmpty()) {
-                returnRecords.add(new HealthRecord(
+            if (profileRecords.isEmpty()) {
+                profileRecords.add(new HealthRecord(
                         HealthStatus.GOOD,
-                        TOPIC,
+                        makeTopic(profileID),
                         LocaleHelper.getLocalizedMessage("Health_LDAP_OK",config,Admin.class)
                 ));
 
-                returnRecords.addAll(doLdapTestUserCheck(config, pwmApplication));
+                profileRecords.addAll(doLdapTestUserCheck(config, ldapProfiles.get(profileID), pwmApplication));
 
-                final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
-                if (errorInfo != null) {
-                    final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+            }
+            returnRecords.addAll(profileRecords);
+        }
 
-                    final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
-                    if (errorAge.isShorterThan(cautionDurationMS)) {
-                        final String ageString = errorAge.asLongString();
-                        final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
-                        final String errorMsg = errorInfo.toDebugStr();
-                        returnRecords.add(
-                                new HealthRecord(
-                                        HealthStatus.CAUTION,
-                                        TOPIC,
-                                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_Unreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
-                                ));
-                    }
-                }
+        final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
+        if (errorInfo != null) {
+            final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+
+            final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
+            if (errorAge.isShorterThan(cautionDurationMS)) {
+                final String ageString = errorAge.asLongString();
+                final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
+                final String errorMsg = errorInfo.toDebugStr();
+                returnRecords.add(
+                        new HealthRecord(
+                                HealthStatus.CAUTION,
+                                TOPIC,
+                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_RecentlyUnreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
+                        ));
             }
         }
 
         return returnRecords;
     }
 
-    public List<HealthRecord> doLdapTestUserCheck(final Configuration config, final PwmApplication pwmApplication)
+    public List<HealthRecord> doLdapTestUserCheck(final Configuration config, final LdapProfile ldapProfile, final PwmApplication pwmApplication)
     {
-        final String testUserDN = config.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
-        final String proxyUserDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-        final String proxyUserPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+        final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+        final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+        final String proxyUserPW = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 
@@ -123,7 +130,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             returnRecords.add(new HealthRecord(
                     HealthStatus.WARN,
-                    TOPIC,
+                    makeTopic(ldapProfile),
                     LocaleHelper.getLocalizedMessage(null,"Health_LDAP_ProxyTestSameUser",config,Admin.class,new String[]{setting1,setting2})
             ));
             return returnRecords;
@@ -131,9 +138,11 @@ public class LDAPStatusChecker implements HealthChecker {
 
         ChaiUser theUser = null;
         ChaiProvider chaiProvider = null;
+
         try {
             try {
-                chaiProvider = Helper.createChaiProvider(
+                chaiProvider = LdapOperationsHelper.createChaiProvider(
+                        ldapProfile,
                         config,
                         proxyUserDN,
                         proxyUserPW
@@ -141,11 +150,15 @@ public class LDAPStatusChecker implements HealthChecker {
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
             } catch (ChaiUnavailableException e) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             } catch (Throwable e) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             }
@@ -153,7 +166,9 @@ public class LDAPStatusChecker implements HealthChecker {
             try {
                 theUser.readObjectClass();
             } catch (ChaiException e) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             }
@@ -172,16 +187,22 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (userPassword == null) {
                     try {
                         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                        final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, theUser, locale);
-                        final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy, pwmApplication);
+                        final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                                pwmApplication, null, theUser, locale);
+                        final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy,
+                                pwmApplication);
                         theUser.setPassword(newPassword);
                         userPassword = newPassword;
                     } catch (ChaiPasswordPolicyException e) {
-                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        returnRecords.add(new HealthRecord(
+                                HealthStatus.WARN,
+                                makeTopic(ldapProfile),
                                 LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()})));
                         return returnRecords;
                     } catch (Exception e) {
-                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                        returnRecords.add(new HealthRecord(
+                                HealthStatus.WARN,
+                                makeTopic(ldapProfile),
                                 LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
                         return returnRecords;
                     }
@@ -189,51 +210,67 @@ public class LDAPStatusChecker implements HealthChecker {
             }
 
             if (userPassword == null) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC,
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class)));
                 return returnRecords;
             }
 
             try {
-                UserStatusHelper.populateUserInfoBean(null, new UserInfoBean(), pwmApplication, PwmConstants.DEFAULT_LOCALE, theUser.getEntryDN(), userPassword, chaiProvider);
+                final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
+                UserStatusHelper.populateUserInfoBean(pwmApplication, null, new UserInfoBean(),
+                        PwmConstants.DEFAULT_LOCALE, userIdentity, userPassword, chaiProvider);
             } catch (ChaiUnavailableException e) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage()));
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
+                        "unable to read test user data: " + e.getMessage()));
                 return returnRecords;
             } catch (PwmUnrecoverableException e) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, "unable to read test user data: " + e.getMessage()));
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
+                        "unable to read test user data: " + e.getMessage()));
                 return returnRecords;
             }
 
         } finally {
             if (chaiProvider != null) {
-                try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
+                try { chaiProvider.close(); } catch (Exception e) {
+                    // ignore
+                }
             }
         }
 
-        returnRecords.add(new HealthRecord(HealthStatus.GOOD, TOPIC, LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
+        returnRecords.add(new HealthRecord(HealthStatus.GOOD, makeTopic(ldapProfile), LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
         return returnRecords;
     }
 
 
-    public List<HealthRecord> checkLdapServerUrls(final Configuration config)
+    public List<HealthRecord> checkLdapServerUrls(final Configuration config, final LdapProfile ldapProfile)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
-        final List<String> serverURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         for (final String loopURL : serverURLs) {
-            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             ChaiProvider chaiProvider = null;
             try {
-                chaiProvider = Helper.createChaiProvider(
+                chaiProvider = LdapOperationsHelper.createChaiProvider(
                         config,
+                        ldapProfile,
                         Collections.singletonList(loopURL),
                         proxyDN,
-                        config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD)
+                        ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD)
                 );
                 final ChaiUser proxyUser = ChaiFactory.createChaiUser(proxyDN, chaiProvider);
                 proxyUser.isValid();
             } catch (Exception e) {
                 final String errorString = "error connecting to ldap server '" + loopURL + "': " + e.getMessage();
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
+                        errorString));
             } finally {
                 if (chaiProvider != null) {
                     try { chaiProvider.close(); } catch (Exception e) { /* ignore */ }
@@ -243,29 +280,35 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    public List<HealthRecord> checkBasicLdapConnectivity(final PwmApplication pwmApplication, final Configuration config, final boolean testContextlessRoot) {
+    public List<HealthRecord> checkBasicLdapConnectivity(
+            final PwmApplication pwmApplication,
+            final Configuration config,
+            final LdapProfile ldapProfile,
+            final boolean testContextlessRoot
+    ) {
 
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
         ChaiProvider chaiProvider = null;
         try{
             try {
-                final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-                final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+                final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+                final String proxyPW = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
                 if (proxyDN == null || proxyDN.length() < 1) {
                     return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"LDAP","Missing Proxy User DN"));
                 }
                 if (proxyPW == null || proxyPW.length() < 1) {
                     return Collections.singletonList(new HealthRecord(HealthStatus.WARN,"LDAP","Missing Proxy User Password"));
                 }
-                chaiProvider = Helper.createChaiProvider(config,proxyDN,proxyPW);
-                final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN),chaiProvider);
+                chaiProvider = LdapOperationsHelper.createChaiProvider(ldapProfile,config,proxyDN,proxyPW);
+                final ChaiEntry adminEntry = ChaiFactory.createChaiEntry(proxyDN,chaiProvider);
                 adminEntry.isValid();
                 directoryVendor = chaiProvider.getDirectoryVendor();
             } catch (ChaiException e) {
                 final ChaiError chaiError = ChaiErrors.getErrorForMessage(e.getMessage());
                 final PwmError pwmError = PwmError.forChaiError(chaiError);
                 final StringBuilder errorString = new StringBuilder();
-                errorString.append("error connecting to ldap directory: ").append(e.getMessage());
+                final String profileName = PwmConstants.DEFAULT_LDAP_PROFILE.equals(ldapProfile.getIdentifier()) ? "Default" : ldapProfile.getIdentifier();
+                errorString.append("error connecting to ldap directory (").append(profileName).append("), error: ").append(e.getMessage());
                 if (chaiError != null && chaiError != ChaiError.UNKNOWN) {
                     errorString.append(" (");
                     errorString.append(chaiError.toString());
@@ -275,33 +318,40 @@ public class LDAPStatusChecker implements HealthChecker {
                     }
                     errorString.append(")");
                 }
-                returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString.toString()));
+                returnRecords.add(new HealthRecord(
+                        HealthStatus.WARN,
+                        makeTopic(ldapProfile),
+                        errorString.toString()));
                 pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
             } catch (Exception e) {
-                HealthRecord record = new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, HealthMessage.LDAP_No_Connection, new String[]{e.getMessage()});
+                HealthRecord record = new HealthRecord(
+                        HealthStatus.WARN,
+                        HealthTopic.LDAP,
+                        HealthMessage.LDAP_No_Connection,
+                        new String[]{e.getMessage()});
                 returnRecords.add(record);
                 pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
                 return returnRecords;
             }
 
             if (directoryVendor != null && directoryVendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                returnRecords.addAll(checkAd(pwmApplication, config));
+                returnRecords.addAll(checkAd(pwmApplication, config, ldapProfile));
             }
 
             if (testContextlessRoot) {
-                for (final String loopContext : config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
+                for (final String loopContext : ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT)) {
                     try {
                         final ChaiEntry contextEntry = ChaiFactory.createChaiEntry(loopContext,chaiProvider);
                         final Set<String> objectClasses = contextEntry.readObjectClass();
 
                         if (objectClasses == null || objectClasses.isEmpty()) {
                             final String errorString = "ldap context setting '" + loopContext + "' is not valid";
-                            returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                            returnRecords.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), errorString));
                         }
                     } catch (Exception e) {
                         final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
-                        returnRecords.add(new HealthRecord(HealthStatus.WARN, TOPIC, errorString));
+                        returnRecords.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), errorString));
                     }
                 }
             }
@@ -314,26 +364,26 @@ public class LDAPStatusChecker implements HealthChecker {
         return returnRecords;
     }
 
-    private static List<HealthRecord> checkAd(final PwmApplication pwmApplication, final Configuration config) {
+    private static List<HealthRecord> checkAd(final PwmApplication pwmApplication, final Configuration config, final LdapProfile ldapProfile) {
         List<HealthRecord> returnList = new ArrayList<HealthRecord>();
-        final List<String> serverURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         for (final String loopURL : serverURLs) {
             try {
                 if (!urlUsingHostname(loopURL)) {
                     final String msg = localizedString(pwmApplication,"Health_LDAP_AD_StaticIP",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
+                    returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
                 }
 
                 final URI uri= URI.create(loopURL);
                 final String scheme = uri.getScheme();
                 if ("ldap".equalsIgnoreCase(scheme)) {
                     final String msg = localizedString(pwmApplication,"Health_LDAP_AD_Unsecure",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, msg));
+                    returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), msg));
                 }
             } catch (MalformedURLException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " is not a valid url"));
+                returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), loopURL + " is not a valid url"));
             } catch (UnknownHostException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, TOPIC, loopURL + " is not a valid host"));
+                returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile), loopURL + " is not a valid host"));
             }
         }
         return returnList;
@@ -351,5 +401,13 @@ public class LDAPStatusChecker implements HealthChecker {
 
     private static String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
         return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
+    }
+
+    private static String makeTopic(final LdapProfile ldapProfile) {
+        return makeTopic(ldapProfile.getIdentifier());
+    }
+
+    private static String makeTopic(final String profileID) {
+        return TOPIC + "-" + ("".equals(profileID) ? "Default" : profileID);
     }
 }

@@ -40,11 +40,11 @@
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = cookie.getCategory(); %>
-<body class="nihilo" onload="initConfigPage()">
+<body class="nihilo" onload="initConfigEditor()">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript">
-    PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.PROPERTY_KEY_NOTES))%>';
+    PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
     PWM_GLOBAL['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
 </script>
 <style type="text/css">
@@ -63,41 +63,39 @@
     }
 </style>
 <div id="wrapper" style="border:1px; background-color: black">
-<div id="header" style="height: 25px; text-align: center">
-    <div id="header-title">
-        <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-        <%=category.getType() == PwmSetting.Category.Type.SETTING ? "Settings - " : "Modules - "%>
-        <%=category.getLabel(locale)%>
-        <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.LOCALEBUNDLE) { %>
-        <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
-        Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
-        <% } %>
+    <div id="header" style="height: 25px; text-align: center">
+        <div id="header-title">
+            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
+            <%=category.getType() == PwmSetting.Category.Type.SETTING || category.getType() == PwmSetting.Category.Type.PROFILE ? "Settings - " : "Modules - "%>
+            <%=category.getLabel(locale)%>
+            <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.LOCALEBUNDLE) { %>
+            <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
+            Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
+            <% } %>
+        </div>
     </div>
-</div>
-<div id="TopMenu">
-</div>
-<div id="centerbody-config">
-<%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-<script type="text/javascript">
-PWM_GLOBAL['startupFunctions'].push(function(){
-    buildMenuBar();
-    readConfigEditorCookie();
-});
-</script>
-<form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
-      enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="processAction" value="cancelEditing"/>
-    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-</form>
-<div id="mainContentPane" style="width: 600px">
-    <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-    <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS%>"/>
-    <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.LOCALEBUNDLE) { %>
-    <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
-    <% } %>
-</div>
-</div>
-<div class="push"></div>
+    <div id="TopMenu">
+    </div>
+    <div id="centerbody-config">
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="processAction" value="cancelEditing"/>
+            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        </form>
+        <div id="mainContentPane" style="width: 600px">
+            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS || cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
+            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.getType() == PwmSetting.Category.Type.PROFILE) { %>
+            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PROFILE%>"/>
+            <% } else { %>
+            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS%>"/>
+            <% } %>
+            <% } else { %>
+            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
+            <% } %>
+        </div>
+    </div>
+    <div class="push"></div>
 </div>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>

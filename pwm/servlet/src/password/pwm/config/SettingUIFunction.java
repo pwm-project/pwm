@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2013 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.intruder;
+package password.pwm.config;
 
-public enum RecordType {
-    ADDRESS,
-    USERNAME,
-    USER_ID,
-    ATTRIBUTE,
-    TOKEN_DEST
+import password.pwm.PwmApplication;
+import password.pwm.error.PwmOperationalException;
+
+public interface SettingUIFunction {
+    String provideFunction(
+            final PwmApplication pwmApplication,
+            final StoredConfiguration storedConfiguration,
+            final PwmSetting setting,
+            final String profile
+    )
+            throws PwmOperationalException;
 }

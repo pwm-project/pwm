@@ -23,18 +23,17 @@
 package password.pwm.token;
 
 import com.google.gson.Gson;
-import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
@@ -82,7 +81,7 @@ public class TokenService implements PwmService {
     {
     }
 
-    public synchronized TokenPayload createTokenPayload(final String name, final Map<String, String> data, final String dn, final Set<String> dest) {
+    public synchronized TokenPayload createTokenPayload(final String name, final Map<String, String> data, final UserIdentity userIdentity, final Set<String> dest) {
         final long count = counter++;
         final StringBuilder guid = new StringBuilder();
         try {
@@ -92,7 +91,7 @@ public class TokenService implements PwmService {
         } catch (Exception e) {
             LOGGER.error("error making payload guid: " + e.getMessage(),e);
         }
-        return new TokenPayload(name, data, dn, dest, guid.toString());
+        return new TokenPayload(name, data, userIdentity, dest, guid.toString());
     }
 
     public void init(final PwmApplication pwmApplication)
@@ -187,20 +186,9 @@ public class TokenService implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final String userDN = tokenPayload.getDN();
-        String username = null;
-        if (userDN != null) {
-            try { // set userID
-                username = pwmApplication.getProxyChaiProvider().readStringAttribute(userDN,configuration.getUsernameAttribute());
-            } catch (ChaiException e) {
-                LOGGER.error("error reading userID attribute while generating audit event: " + e.getMessage());
-            }
-        }
-
-        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.TOKEN_ISSUED,
-                username,
-                userDN,
+                tokenPayload.getUserIdentity(),
                 pwmSession,
                 Helper.getGson().toJson(tokenPayload)
         ));
@@ -218,29 +206,16 @@ public class TokenService implements PwmService {
             return;
         }
 
-        if (tokenPayload == null) {
+        if (tokenPayload == null || tokenPayload.getUserIdentity() == null) {
             return;
         }
 
-        final String userDN = tokenPayload.getDN();
-        if (userDN == null) {
-            return;
-        }
-
-        String username = null;
-        try { // set userID
-            username = pwmApplication.getProxyChaiProvider().readStringAttribute(userDN, configuration.getUsernameAttribute());
-        } catch (ChaiException e) {
-            LOGGER.error(pwmSession, "error reading userID attribute: " + e.getMessage());
-        }
-        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.TOKEN_CLAIMED,
-                username,
-                userDN,
+                tokenPayload.getUserIdentity(),
                 pwmSession,
                 Helper.getGson().toJson(tokenPayload)
         ));
-
     }
 
     public TokenPayload retrieveTokenData(final String tokenKey)

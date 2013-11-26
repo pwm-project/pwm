@@ -25,13 +25,13 @@ package password.pwm.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import org.apache.log4j.*;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
@@ -39,9 +39,10 @@ import password.pwm.config.value.PasswordValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
 import password.pwm.health.HealthRecord;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.localdb.*;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.rest.RestChallengesServer;
@@ -208,30 +209,30 @@ public class MainClass {
         final long startTime = System.currentTimeMillis();
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setChaiProvider(pwmApplication.getProxyChaiProvider());
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setUsername("*");
 
-        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
+        final Gson gson = Helper.getGson(new GsonBuilder().disableHtmlEscaping());
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile,"UTF-8"));
-        final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;
-        for (final ChaiUser user : results.keySet()) {
-            final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(null, user);
+        for (final UserIdentity identity : results.keySet()) {
+            final ChaiUser user = pwmApplication.getProxiedChaiUser(identity);
+            final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(null, identity, user);
             if (responseSet != null) {
                 counter++;
-                out("found responses for '" + user.getEntryDN() + "', writing to output.");
+                out("found responses for '" + user + "', writing to output.");
                 final RestChallengesServer.JsonChallengesData outputData = new RestChallengesServer.JsonChallengesData();
                 outputData.challenges = responseSet.asChallengeBeans(true);
                 outputData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(true);
                 outputData.minimumRandoms = responseSet.getChallengeSet().minimumResponses();
-                outputData.username = user.getEntryDN();
+                outputData.username = identity.toDeliminatedKey();
                 writer.write(gson.toJson(outputData));
                 writer.write(systemRecordDelimiter);
             } else {
-                out("skipping '" + user.getEntryDN() + "', no stored responses.");
+                out("skipping '" + user.toString() + "', no stored responses.");
             }
         }
         writer.close();
@@ -273,12 +274,13 @@ public class MainClass {
                 return;
             }
 
-            final ChaiUser user = ChaiFactory.createChaiUser(inputData.username,pwmApplication.getProxyChaiProvider());
+            final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(inputData.username);
+            final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
             if (user.isValid()) {
                 out("writing responses to user '" + user.getEntryDN() + "'");
                 try {
                     final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
-                    final String userGuid = Helper.readLdapGuidValue(pwmApplication, user.getEntryDN());
+                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, user);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
                     pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
                 } catch (Exception e) {
@@ -332,7 +334,7 @@ public class MainClass {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
         databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
-        return LocalDBFactory.getInstance(databaseDirectory, readonly, null);
+        return LocalDBFactory.getInstance(databaseDirectory, readonly, null,null);
     }
 
     static Configuration loadConfiguration() throws Exception {
@@ -449,7 +451,7 @@ public class MainClass {
             return;
         } else {
             output.append("  name: ").append(tokenPayload.getName());
-            output.append("userDN: ").append(tokenPayload.getDN());
+            output.append("  user: ").append(tokenPayload.getUserIdentity());
             output.append("issued: ").append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(tokenPayload.getDate()));
             for (final String key : tokenPayload.getData().keySet()) {
                 final String value = tokenPayload.getData().get(key);

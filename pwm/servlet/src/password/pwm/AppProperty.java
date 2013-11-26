@@ -74,6 +74,7 @@ public enum AppProperty {
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
     LOGGING_FILE_MAX_ROLLOVER                       ("logging.file.maxRollover"),
     LOGGING_FILE_PATH                               ("logging.file.path"),
+    LOGGING_DEV_OUTPUT                              ("logging.devOutput.enable"),
     NMAS_THREADS_MAX_COUNT                          ("nmas.threads.maxCount"),
     NMAS_THREADS_MIN_SECONDS                        ("nmas.threads.minSeconds"),
     NMAS_THREADS_MAX_SECONDS                        ("nmas.threads.maxSeconds"),

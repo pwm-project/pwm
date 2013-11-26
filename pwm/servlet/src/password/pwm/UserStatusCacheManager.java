@@ -4,7 +4,6 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserStatusCacheBean;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.Base64Util;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
@@ -67,7 +66,7 @@ public class UserStatusCacheManager implements PwmService {
 
         final String jsonBean = Helper.getGson().toJson(userStatusCacheBean);
         localDB.put(DB,storageKey,jsonBean);
-        LOGGER.trace("stored cache of '" + userStatusCacheBean.getUserDN() + "', content=" + jsonBean);
+        LOGGER.trace("stored cache of '" + userStatusCacheBean.getUserIdentity() + "', content=" + jsonBean);
     }
 
     public java.util.Iterator iterator() {

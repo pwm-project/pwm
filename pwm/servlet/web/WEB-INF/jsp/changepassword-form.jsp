@@ -21,7 +21,7 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page import="password.pwm.config.PasswordStatus" %>
+<%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>

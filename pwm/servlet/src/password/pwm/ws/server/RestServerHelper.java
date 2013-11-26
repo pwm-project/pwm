@@ -22,12 +22,9 @@
 
 package password.pwm.ws.server;
 
-import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -38,7 +35,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserSearchEngine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -91,7 +88,8 @@ public abstract class RestServerHelper {
         final RestRequestBean restRequestBean = new RestRequestBean();
         restRequestBean.setAuthenticated(pwmSession.getSessionStateBean().isAuthenticated());
         restRequestBean.setExternal(determineIfRestClientIsExternal(pwmSession,request));
-        restRequestBean.setUserDN(lookupUsername(pwmApplication, pwmSession, restRequestBean.isExternal(), requestedUsername));
+        restRequestBean.setUserIdentity(
+                lookupUsername(pwmApplication, pwmSession, restRequestBean.isExternal(), servicePermissions, requestedUsername));
         restRequestBean.setPwmApplication(pwmApplication);
         restRequestBean.setPwmSession(pwmSession);
 
@@ -137,10 +135,11 @@ public abstract class RestServerHelper {
         return restRequestBean;
     }
 
-    private static String lookupUsername(
+    private static UserIdentity lookupUsername(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final boolean isExternal,
+            final ServicePermissions servicePermissions,
             final String username
     )
             throws PwmUnrecoverableException
@@ -153,45 +152,40 @@ public abstract class RestServerHelper {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED));
         }
 
-        pwmApplication.getIntruderManager().check(RecordType.USERNAME,username,pwmSession);
+        pwmApplication.getIntruderManager().check(RecordType.USERNAME,username);
 
-        try {
-            if (isExternal) {
+        if (isExternal) {
+            try {
                 if (!Permission.checkPermission(Permission.WEBSERVICE_THIRDPARTY,pwmSession,pwmApplication)) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match thirdparty webservices query filter");
                     throw new PwmUnrecoverableException(errorInformation);
                 }
-            } else {
-                if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match third-party webservices query filter");
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
             }
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
         }
+
+
+        if (!isExternal) {
+            if (servicePermissions.isHelpdeskPermitted()) {
+                try {
+                    if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match third-party webservices query filter");
+                        throw new PwmUnrecoverableException(errorInformation);
+                    }
+                } catch (ChaiUnavailableException e) {
+                    throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+                }
+            } else {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"web service is not permitted for internal third-party username");
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
-            //see if we need to a contextless search.
-            if (userSearchEngine.checkIfStringIsDN(pwmSession, username)) {
-                final ChaiUser theUser = ChaiFactory.createChaiUser(username,chaiProvider);
-                pwmApplication.getIntruderManager().check(RecordType.USER_DN,theUser.getEntryDN(),null);
-                if (theUser.isValid()) {
-                    return theUser.getEntryDN();
-                } else {
-                    throw new PwmUnrecoverableException(PwmError.ERROR_CANT_MATCH_USER);
-                }
-            } else {
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setUsername(username);
-                searchConfiguration.setChaiProvider(chaiProvider);
-                final ChaiUser theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
-                return theUser.readCanonicalDN();
-            }
-        } catch (ChaiOperationException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            return userSearchEngine.resolveUsername(pwmSession, username, null);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {

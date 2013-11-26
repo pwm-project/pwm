@@ -47,10 +47,12 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.SessionManager;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
+import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
@@ -135,19 +137,20 @@ public class NMASCrOperator implements CrOperator {
 
     public ResponseSet readResponseSet(
             final ChaiUser theUser,
-            final String user
+            final UserIdentity userIdentity,
+            final String userGuid
     )
             throws PwmUnrecoverableException
     {
         final String userDN = theUser.getEntryDN();
-        pwmApplication.getIntruderManager().check(RecordType.USER_DN,theUser.getEntryDN(),null);
+        pwmApplication.getIntruderManager().check(RecordType.USER_ID,userDN);
 
         try {
-            if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+            if (theUser.getChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
                 return null;
             }
 
-            final ResponseSet responseSet = new NMASCRResponseSet(pwmApplication, userDN);
+            final ResponseSet responseSet = new NMASCRResponseSet(pwmApplication, userIdentity);
             if (responseSet.getChallengeSet() == null) {
                 return null;
             }
@@ -161,7 +164,7 @@ public class NMASCrOperator implements CrOperator {
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, String userGUID)
+    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
             throws PwmUnrecoverableException
     {
         try {
@@ -264,24 +267,27 @@ public class NMASCrOperator implements CrOperator {
 
     public class NMASCRResponseSet implements ResponseSet, Serializable {
         private final PwmApplication pwmApplication;
-        private final String userDN;
+        private final UserIdentity userIdentity;
 
         final private ChaiConfiguration chaiConfiguration;
         private ChallengeSet challengeSet;
         private transient NMASResponseSession ldapChallengeSession;
         boolean passed;
 
-        private NMASCRResponseSet(PwmApplication pwmApplication, final String userDN)
+        private NMASCRResponseSet(PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws Exception
         {
             this.pwmApplication = pwmApplication;
-            this.userDN = userDN;
+            this.userIdentity = userIdentity;
+
+            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
 
             final Configuration config = pwmApplication.getConfig();
             final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
             final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
             final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-            chaiConfiguration = Helper.createChaiConfiguration(config, ldapURLs, proxyDN, proxyPW);
+            chaiConfiguration = LdapOperationsHelper.createChaiConfiguration(config, ldapProfile, ldapURLs, proxyDN,
+                    proxyPW);
             chaiConfiguration.setSetting(ChaiSetting.PROVIDER_IMPLEMENTATION, JLDAPProviderImpl.class.getName());
 
             cycle();
@@ -293,14 +299,14 @@ public class NMASCrOperator implements CrOperator {
                 ldapChallengeSession = null;
             }
             final LDAPConnection ldapConnection = makeLdapConnection();
-            ldapChallengeSession = new NMASResponseSession(userDN,ldapConnection);
+            ldapChallengeSession = new NMASResponseSession(userIdentity.getUserDN(),ldapConnection);
             final List<String> questions = ldapChallengeSession.getQuestions();
             challengeSet = questionsToChallengeSet(questions);
         }
 
         private LDAPConnection makeLdapConnection() throws Exception {
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, chaiProvider);
+            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
             try {
                 if (theUser.isLocked()) {
                     LOGGER.trace("user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
@@ -377,7 +383,7 @@ public class NMASCrOperator implements CrOperator {
             if (!passed) {
                 try {
                     cycle();
-                    pwmApplication.getIntruderManager().check(RecordType.USER_DN,userDN,null);
+                    pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
                     if (challengeSet == null) {
                         final String errorMsg = "unable to load next challenge set";
                         throw new ChaiUnavailableException(errorMsg, ChaiError.UNKNOWN);

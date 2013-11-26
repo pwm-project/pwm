@@ -24,14 +24,14 @@ package password.pwm.ws.server.rest;
 
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PasswordStatus;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.tag.PasswordRequirementsTag;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -68,8 +68,8 @@ public class RestStatusServer {
 
         public static JsonStatusData fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale) {
             final JsonStatusData jsonStatusData = new JsonStatusData();
-            jsonStatusData.userDN = userInfoBean.getUserDN();
-            jsonStatusData.userID = userInfoBean.getUserID();
+            jsonStatusData.userDN = userInfoBean.getUserIdentity().toDeliminatedKey();
+            jsonStatusData.userID = userInfoBean.getUsername();
             jsonStatusData.userEmailAddress = userInfoBean.getUserEmailAddress();
             jsonStatusData.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
             jsonStatusData.passwordLastModifiedTime = userInfoBean.getPasswordLastModifiedTime();
@@ -121,14 +121,13 @@ public class RestStatusServer {
 
         try {
             final UserInfoBean userInfoBean;
-            if (restRequestBean.getUserDN() != null && restRequestBean.getUserDN().length() > 0) {
+            if (restRequestBean.getUserIdentity() != null) {
                 userInfoBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
                         userInfoBean,
-                        restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        restRequestBean.getUserDN(),
+                        restRequestBean.getUserIdentity(),
                         null,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );

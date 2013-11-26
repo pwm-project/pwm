@@ -22,8 +22,8 @@
 
 package password.pwm.bean.servlet;
 
-import com.novell.ldapchai.ChaiUser;
 import password.pwm.bean.PwmSessionBean;
+import password.pwm.bean.UserIdentity;
 
 public class ActivateUserBean implements PwmSessionBean {
     private boolean tokenIssued;
@@ -32,7 +32,7 @@ public class ActivateUserBean implements PwmSessionBean {
     private boolean formValidated;
     private String tokenSendAddress;
 
-    private ChaiUser theUser;
+    private UserIdentity userIdentity;
 
     public boolean isTokenIssued() {
         return tokenIssued;
@@ -66,12 +66,12 @@ public class ActivateUserBean implements PwmSessionBean {
         this.tokenPassed = tokenPassed;
     }
 
-    public ChaiUser getTheUser() {
-        return theUser;
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setTheUser(ChaiUser theUser) {
-        this.theUser = theUser;
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
     public String getTokenSendAddress() {

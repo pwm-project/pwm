@@ -22,23 +22,21 @@
 
 package password.pwm;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.operations.UserSearchEngine;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserSearchEngine;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -313,11 +311,10 @@ public class Validator {
 
     public static void validateAttributeUniqueness(
             final PwmApplication pwmApplication,
-            final ChaiProvider chaiProvider,
             final Map<FormConfiguration,String> formValues,
             final Locale locale,
             final SessionManager sessionManager,
-            final Collection<String> excludeDN
+            final Collection<UserIdentity> excludeDN
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
@@ -381,19 +378,18 @@ public class Validator {
 
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setFilter(filter.toString());
-        searchConfiguration.setChaiProvider(chaiProvider);
 
         int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final Map<ChaiUser,Map<String,String>> results = new LinkedHashMap<ChaiUser, Map<String, String>>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<UserIdentity, Map<String, String>>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
-                for (final String loopDN : excludeDN) {
-                    for (final Iterator<ChaiUser> iterator = results.keySet().iterator(); iterator.hasNext(); ) {
-                        final ChaiUser loopUser = iterator.next();
-                        if (loopDN.equals(loopUser.getEntryDN())) {
+                for (final UserIdentity loopIgnoreIdentity : excludeDN) {
+                    for (final Iterator<UserIdentity> iterator = results.keySet().iterator(); iterator.hasNext(); ) {
+                        final UserIdentity loopUser = iterator.next();
+                        if (loopIgnoreIdentity.equals(loopUser)) {
                             iterator.remove();
                         }
                     }
@@ -401,10 +397,10 @@ public class Validator {
             }
 
             if (!results.isEmpty()) {
-                final ChaiUser theUser = results.keySet().iterator().next();
+                final UserIdentity userIdentity = results.keySet().iterator().next();
                 if (labelMap.size() == 1) { // since only one value searched, it must be that one value
                     final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace("found duplicate value for attribute '" + attributeName + "' on entry " + theUser.getEntryDN());
+                    LOGGER.trace("found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity);
                     final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{attributeName});
                     throw new PwmDataValidationException(error);
                 }
@@ -412,9 +408,10 @@ public class Validator {
                 // do a compare on a user values to find one that matches.
                 for (final String name : filterClauses.keySet()) {
                     final String value = filterClauses.get(name);
+                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
                     if (theUser.compareStringAttribute(name,value)) {
                         final String label = labelMap.get(name);
-                        LOGGER.trace("found duplicate value for attribute '" + label + "' on entry " + theUser.getEntryDN());
+                        LOGGER.trace("found duplicate value for attribute '" + label + "' on entry " + userIdentity);
                         final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{label});
                         throw new PwmDataValidationException(error);
                     }

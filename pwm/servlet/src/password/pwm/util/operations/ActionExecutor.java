@@ -40,13 +40,13 @@ import password.pwm.config.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,7 @@ public class ActionExecutor {
             final ActionExecutorSettings settings,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmOperationalException
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         for (final ActionConfiguration loopAction : configValues) {
             this.executeAction(loopAction, settings, pwmSession);
@@ -78,7 +78,7 @@ public class ActionExecutor {
             final ActionExecutorSettings actionExecutorSettings,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmOperationalException
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         switch (actionConfiguration.getType()) {
             case ldap:
@@ -92,21 +92,24 @@ public class ActionExecutor {
 
         String username = "<unknown>";
         if (actionExecutorSettings.getUserInfoBean() != null) {
-            username = actionExecutorSettings.getUserInfoBean().getUserID();
+            username = actionExecutorSettings.getUserInfoBean().getUsername();
         }
         LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully upon user " + username);
     }
 
     private void executeLdapAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings settings)
-            throws ChaiUnavailableException, PwmOperationalException
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         final String attributeName = actionConfiguration.getAttributeName();
         final String attributeValue = actionConfiguration.getAttributeValue();
         final Map<String,String> attributeMap = Collections.singletonMap(attributeName,attributeValue);
+        final ChaiUser theUser = settings.getChaiUser() != null ?
+                settings.getChaiUser() :
+                pwmApplication.getProxiedChaiUser(settings.getUserInfoBean().getUserIdentity());
 
         Helper.writeMapToLdap(
                 pwmApplication,
-                settings.getUser(),
+                theUser,
                 attributeMap,
                 settings.getUserInfoBean(),
                 settings.isExpandPwmMacros()
@@ -115,11 +118,14 @@ public class ActionExecutor {
 
     private void executeWebserviceAction(
             final ActionConfiguration actionConfiguration,
-            final ActionExecutorSettings settings) throws PwmOperationalException {
+            final ActionExecutorSettings settings
+    )
+            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         String url = actionConfiguration.getUrl();
         String body = actionConfiguration.getBody();
         final UserInfoBean userInfoBean = settings.getUserInfoBean();
-        final UserDataReader userDataReader = new UserDataReader(settings.getUser());
+        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,settings.getUserInfoBean().getUserIdentity());
 
         try {
             // expand using pwm macros
@@ -189,8 +195,8 @@ public class ActionExecutor {
 
     public static class ActionExecutorSettings {
         private UserInfoBean userInfoBean;
+        private ChaiUser chaiUser;
         private boolean expandPwmMacros = true;
-        private ChaiUser user;
 
         public UserInfoBean getUserInfoBean() {
             return userInfoBean;
@@ -208,12 +214,14 @@ public class ActionExecutor {
             this.expandPwmMacros = expandPwmMacros;
         }
 
-        public ChaiUser getUser() {
-            return user;
+        public ChaiUser getChaiUser()
+        {
+            return chaiUser;
         }
 
-        public void setUser(ChaiUser user) {
-            this.user = user;
+        public void setChaiUser(ChaiUser chaiUser)
+        {
+            this.chaiUser = chaiUser;
         }
     }
 }

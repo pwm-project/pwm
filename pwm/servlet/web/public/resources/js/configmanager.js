@@ -136,55 +136,6 @@ function readInitialTextBasedValue(key) {
     });
 }
 
-
-function importLdapCertificates() {
-    showWaitDialog();
-    dojo.xhrPost({
-        url:"ConfigEditor?processAction=manageLdapCerts&certAction=autoImport&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        contentType: "application/text;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        load: function(data){
-            closeWaitDialog();
-            if (data['error']) {
-                showError(data['errorDetail']);
-            } else {
-                showDialog('Success','Certificates imported',function(){
-                    loadMainPageBody();
-                });
-            }
-        },
-        error: function(errorObj) {
-            closeWaitDialog();
-            showError("error requesting certificate import: " + errorObj);
-        }
-    });
-}
-
-function clearLdapCertificates() {
-    showWaitDialog();
-    dojo.xhrPost({
-        url:"ConfigEditor?processAction=manageLdapCerts&certAction=clear&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-        contentType: "application/text;charset=utf-8",
-        dataType: "json",
-        handleAs: "json",
-        load: function(data){
-            closeWaitDialog();
-            if (data['error']) {
-                showError(data['errorDetail']);
-            } else {
-                showDialog('Success','Certificates removed',function(){
-                    loadMainPageBody();
-                });
-            }
-        },
-        error: function(errorObj) {
-            closeWaitDialog();
-            showError("error requesting certificate clear: " + errorObj);
-        }
-    });
-}
-
 function uploadConfigDialog() {
     var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
     body += '<div id="fileList"></div>';

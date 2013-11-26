@@ -22,12 +22,11 @@
 
 package password.pwm.util.intruder;
 
-import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
+import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -43,7 +42,7 @@ import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -148,7 +147,7 @@ public class IntruderManager implements Serializable, PwmService {
                     LOGGER.info("intruder user checking will remain disabled due to configuration settings");
                 } else {
                     recordManagers.put(RecordType.USERNAME, new RecordManagerImpl(RecordType.USERNAME, recordStore, settings));
-                    recordManagers.put(RecordType.USER_DN, new RecordManagerImpl(RecordType.USER_DN, recordStore, settings));
+                    recordManagers.put(RecordType.USER_ID, new RecordManagerImpl(RecordType.USER_ID, recordStore, settings));
                     recordManagers.put(RecordType.ATTRIBUTE, new RecordManagerImpl(RecordType.ATTRIBUTE, recordStore, settings));
                     recordManagers.put(RecordType.TOKEN_DEST, new RecordManagerImpl(RecordType.TOKEN_DEST, recordStore, settings));
                 }
@@ -190,7 +189,7 @@ public class IntruderManager implements Serializable, PwmService {
         return Collections.emptyList();
     }
 
-    public void check(final RecordType recordType, final String subject, final PwmSession pwmSession)
+    public void check(final RecordType recordType, final String subject)
             throws PwmUnrecoverableException
     {
         if (recordType == null) {
@@ -198,7 +197,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         if (subject == null || subject.length() < 1) {
-            throw new IllegalArgumentException("subject is required");
+            return;
         }
 
         final RecordManager manager = recordManagers.get(recordType);
@@ -213,7 +212,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
     }
 
-    public void clear(final RecordType recordType, final String subject, final PwmSession pwmSession)
+    public void clear(final RecordType recordType, final String subject)
             throws PwmUnrecoverableException
     {
         if (recordType == null) {
@@ -221,7 +220,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         if (subject == null || subject.length() < 1) {
-            throw new IllegalArgumentException("subject is required");
+            return;
         }
 
         final RecordManager manager = recordManagers.get(recordType);
@@ -236,7 +235,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         if (subject == null || subject.length() < 1) {
-            throw new IllegalArgumentException("subject is required");
+            return;
         }
 
         if (recordType == RecordType.ADDRESS) {
@@ -254,18 +253,14 @@ public class IntruderManager implements Serializable, PwmService {
         final RecordManager manager = recordManagers.get(recordType);
         manager.markSubject(subject);
         try {
-            check(recordType, subject, pwmSession);
+            check(recordType, subject);
         } catch (PwmUnrecoverableException e) {
             if (!manager.isAlerted(subject) ) {
-                if (recordType == RecordType.USER_DN) {
-                    try {
-                        final ChaiUser chaiUser = ChaiFactory.createChaiUser(subject, pwmApplication.getProxyChaiProvider());
-                        final String userID = Helper.readLdapUserIDValue(pwmApplication,chaiUser);
-                        final UserAuditRecord auditRecord = new UserAuditRecord(AuditEvent.INTRUDER_LOCK ,userID, subject, pwmSession);
-                        pwmApplication.getAuditManager().submit(auditRecord);
-                    } catch (ChaiException chaiException) {
-                        LOGGER.error("unexpected ldap error generating audit lockout event: " + chaiException.getMessage());
-                    }
+                if (recordType == RecordType.USER_ID) {
+                    final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication.getConfig());
+                    final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(AuditEvent.INTRUDER_LOCK,
+                            userIdentity, pwmSession);
+                    pwmApplication.getAuditManager().submit(auditRecord);
                     sendAlert(manager.readIntruderRecord(subject));
                 }
                 manager.markAlerted(subject);
@@ -307,9 +302,16 @@ public class IntruderManager implements Serializable, PwmService {
         values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
         values.put("age", TimeDuration.fromCurrent(intruderRecord.getTimeStamp()).asCompactString());
 
-        if (intruderRecord.getType() == RecordType.USER_DN) {
-            final String userDN = intruderRecord.getSubject();
-            sendIntruderNoticeEmail(pwmApplication, userDN);
+        final String bodyText = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(values);
+
+
+        if (intruderRecord.getType() == RecordType.USER_ID) {
+            try {
+                final UserIdentity identity = UserIdentity.fromDelimitedKey(intruderRecord.getSubject());
+                sendIntruderNoticeEmail(pwmApplication, identity, bodyText);
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage());
+            }
         }
     }
 
@@ -326,7 +328,7 @@ public class IntruderManager implements Serializable, PwmService {
                 rowData.put("timestamp",intruderRecord.getTimeStamp());
                 rowData.put("count",String.valueOf(intruderRecord.getAttemptCount()));
                 try {
-                    check(recordType, intruderRecord.getSubject(), null);
+                    check(recordType, intruderRecord.getSubject());
                     rowData.put("status","watching");
                 } catch (PwmException e) {
                     rowData.put("status","locked");
@@ -360,7 +362,7 @@ public class IntruderManager implements Serializable, PwmService {
         {
             if (pwmSession != null) {
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
-                check(RecordType.ADDRESS, subject, pwmSession);
+                check(RecordType.ADDRESS, subject);
                 final int maxAllowedAttempts = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.INTRUDER_SESSION_MAX_ATTEMPTS);
                 if (maxAllowedAttempts != 0 && pwmSession.getSessionStateBean().getIntruderAttempts() > maxAllowedAttempts) {
                     throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_SESSION);
@@ -373,8 +375,35 @@ public class IntruderManager implements Serializable, PwmService {
         {
             if (pwmSession != null) {
                 final String subject = pwmSession.getSessionStateBean().getSrcAddress();
-                clear(RecordType.ADDRESS, subject, pwmSession);
+                clear(RecordType.ADDRESS, subject);
                 pwmSession.getSessionStateBean().clearIntruderAttempts();
+            }
+        }
+
+        public void markUserIdentity(final UserIdentity userIdentity, final PwmSession pwmSession)
+                throws PwmUnrecoverableException
+        {
+            if (userIdentity != null) {
+                final String subject = userIdentity.toDeliminatedKey();
+                mark(RecordType.USER_ID, subject, pwmSession);
+            }
+        }
+
+        public void checkUserIdentity(final UserIdentity userIdentity)
+                throws PwmUnrecoverableException
+        {
+            if (userIdentity != null) {
+                final String subject = userIdentity.toDeliminatedKey();
+                check(RecordType.USER_ID, subject);
+            }
+        }
+
+        public void clearUserIdentity(final UserIdentity userIdentity)
+                throws PwmUnrecoverableException
+        {
+            if (userIdentity != null) {
+                final String subject = userIdentity.toDeliminatedKey();
+                clear(RecordType.USER_ID, subject);
             }
         }
 
@@ -387,21 +416,21 @@ public class IntruderManager implements Serializable, PwmService {
             }
         }
 
-        public void clearAttributes(final Map<FormConfiguration, String> formValues, final PwmSession pwmSession)
+        public void clearAttributes(final Map<FormConfiguration, String> formValues)
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList(formValues);
             for (String subject : subjects) {
-                clear(RecordType.ATTRIBUTE, subject, pwmSession);
+                clear(RecordType.ATTRIBUTE, subject);
             }
         }
 
-        public void checkAttributes(final Map<FormConfiguration, String> formValues, final PwmSession pwmSession)
+        public void checkAttributes(final Map<FormConfiguration, String> formValues)
                 throws PwmUnrecoverableException
         {
             final List<String> subjects = attributeFormToList(formValues);
             for (String subject : subjects) {
-                check(RecordType.ATTRIBUTE, subject, pwmSession);
+                check(RecordType.ATTRIBUTE, subject);
             }
         }
 
@@ -422,7 +451,8 @@ public class IntruderManager implements Serializable, PwmService {
 
     private static void sendIntruderNoticeEmail(
             final PwmApplication pwmApplication,
-            final String userDN
+            final UserIdentity userIdentity,
+            final String bodyText
     )
     {
         final Configuration config = pwmApplication.getConfig();
@@ -435,26 +465,25 @@ public class IntruderManager implements Serializable, PwmService {
         final UserInfoBean userInfoBean = new UserInfoBean();
         try {
             UserStatusHelper.populateUserInfoBean(
+                    pwmApplication,
                     null,
                     userInfoBean,
-                    pwmApplication,
                     PwmConstants.DEFAULT_LOCALE,
-                    userDN,
-                    null,
-                    pwmApplication.getProxyChaiProvider()
+                    userIdentity,
+                    null
             );
         } catch (ChaiUnavailableException e) {
-            LOGGER.error("error reading user info while sending intruder notice for user " + userDN + ", error: " + e.getMessage());
+            LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error reading user info while sending intruder notice for user " + userDN + ", error: " + e.getMessage());
+            LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }
 
         pwmApplication.getEmailQueue().submit(new EmailItemBean(
                 configuredEmailSetting.getTo(),
                 configuredEmailSetting.getFrom(),
                 configuredEmailSetting.getSubject(),
-                configuredEmailSetting.getBodyPlain(),
-                configuredEmailSetting.getBodyHtml()
+                bodyText,
+                bodyText
         ), userInfoBean, null);
     }
 

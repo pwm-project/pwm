@@ -7,6 +7,7 @@ public class ServicePermissions implements Serializable {
     private boolean adminOnly = true;
     private boolean blockExternal = true;
     private boolean authAndAdminWhenRunningRequired = false;
+    private boolean helpdeskPermitted = false;
 
     public boolean isAuthRequired() {
         return authRequired;
@@ -38,5 +39,15 @@ public class ServicePermissions implements Serializable {
 
     public void setAuthAndAdminWhenRunningRequired(boolean authAndAdminWhenRunningRequired) {
         this.authAndAdminWhenRunningRequired = authAndAdminWhenRunningRequired;
+    }
+
+    public boolean isHelpdeskPermitted()
+    {
+        return helpdeskPermitted;
+    }
+
+    public void setHelpdeskPermitted(boolean helpdeskPermitted)
+    {
+        this.helpdeskPermitted = helpdeskPermitted;
     }
 }

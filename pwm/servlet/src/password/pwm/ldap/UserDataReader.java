@@ -20,12 +20,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.operations;
+package password.pwm.ldap;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.Serializable;
 import java.util.*;
@@ -38,9 +45,36 @@ public class UserDataReader implements Serializable {
             .maximumWeightedCapacity(100)  // safety limit
             .build();
     private final ChaiUser user;
+    private final UserIdentity userIdentity;
 
-    public UserDataReader(ChaiUser user) {
+    UserDataReader(UserIdentity userIdentity, ChaiUser user) {
+        this.userIdentity = userIdentity;
         this.user = user;
+    }
+
+    public static UserDataReader appProxiedReader(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
+        return new UserDataReader(userIdentity, user);
+    }
+
+    public static UserDataReader selfProxiedReader(
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        if (!userIdentity.getLdapProfileID().equals(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID())) {
+            throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
+        }
+        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(),chaiProvider);
+        return new UserDataReader(userIdentity,chaiUser);
+
     }
 
     public String getUserDN() {
@@ -63,6 +97,13 @@ public class UserDataReader implements Serializable {
 
         return results.values().iterator().next();
     }
+
+    public Date readDateAttribute(final String attribute)
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        return user.readDateAttribute(attribute);
+    }
+
 
     public Map<String,String> readStringAttributes(final Collection<String> attributes)
             throws ChaiUnavailableException, ChaiOperationException

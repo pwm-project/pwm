@@ -22,11 +22,9 @@
 
 package password.pwm.event;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.ConfigObjectRecord;
 import org.jdom2.CDATA;
 import org.jdom2.Document;
@@ -36,6 +34,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
@@ -90,8 +89,8 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-        final ChaiUser theUser = ChaiFactory.createChaiUser(auditRecord.getTargetDN(), chaiProvider);
+        final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(auditRecord.getTargetDN());
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
 
         // settings
         final String corRecordIdentifer = COR_RECORD_ID;
@@ -140,9 +139,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             throws PwmUnrecoverableException
     {
         try {
-            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-            final ChaiUser theUser = ChaiFactory.createChaiUser(userInfoBean.getUserDN(),chaiProvider);
-
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
             final StoredHistory storedHistory = readUserHistory(pwmApplication, theUser);
             return storedHistory.asAuditRecords(userInfoBean);
         } catch (ChaiUnavailableException e) {
@@ -296,14 +293,16 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
-            final String userID = userInfoBean.getUserID();
-            final String userDN = userInfoBean.getUserDN();
-
             return new UserAuditRecord(
                     this.getAuditEvent(),
-                    userID, userDN,
+                    null,
+                    userInfoBean.getUserIdentity().getUserDN(),
                     new Date(this.getTimestamp()),
-                    this.getMessage(),null,null,this.getSourceAddress(),this.getSourceHost()
+                    this.getMessage(),
+                    null,
+                    null,
+                    this.getSourceAddress(),
+                    this.getSourceHost()
             );
         }
     }

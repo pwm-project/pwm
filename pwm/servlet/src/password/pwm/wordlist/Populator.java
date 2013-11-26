@@ -61,7 +61,7 @@ class Populator {
     private final PopulationStats overallStats = new PopulationStats();
     private PopulationStats perReportStats = new PopulationStats();
     private int totalLines;
-    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(600, 900, 10, 50 * 1000);
+    private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(600, 10, 50 * 1000);
     private int loopLines;
 
     private final Map<String,String> bufferedWords = new TreeMap<String,String>();

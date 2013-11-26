@@ -40,6 +40,9 @@ import password.pwm.config.option.CrStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.value.BooleanValue;
+import password.pwm.config.value.StringArrayValue;
+import password.pwm.config.value.StringValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -69,6 +72,8 @@ public class Configuration implements Serializable {
     private Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
     private Map<Locale,String> localeFlagMap = null;
     private long newUserPasswordPolicyCacheTime = System.currentTimeMillis();
+    private Map<String,LdapProfile> ldapProfiles;
+
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -98,6 +103,21 @@ public class Configuration implements Serializable {
 
         final StoredValue value = storedConfiguration.readSetting(setting);
         return (List<FormConfiguration>)value.toNativeObject();
+    }
+
+    public Map<String,LdapProfile> getLdapProfiles() {
+        if (ldapProfiles != null) {
+            return ldapProfiles;
+        }
+
+        final List<String> profiles = storedConfiguration.profilesForSetting(PwmSetting.LDAP_PROFILE_LIST);
+        final Map<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
+        for (final String profileID : profiles) {
+            returnList.put(profileID, LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID));
+        }
+
+        ldapProfiles = Collections.unmodifiableMap(returnList);
+        return ldapProfiles;
     }
 
     public EmailItemBean readSettingAsEmail(final PwmSetting setting, final Locale locale) {
@@ -171,22 +191,35 @@ public class Configuration implements Serializable {
     }
 
     public String readSettingAsString(final PwmSetting setting) {
-        switch (setting.getSyntax()) {
-            case STRING:
-            case TEXT_AREA:
-            case SELECT:
-            case NUMERIC:
-            case BOOLEAN:
-            case PASSWORD:
-                StoredValue value = storedConfiguration.readSetting(setting);
-                if (value == null) return null;
-                Object nativeObject = value.toNativeObject();
-                if (nativeObject == null) return null;
-                return nativeObject.toString();
+        return Converter.valueToString(storedConfiguration.readSetting(setting));
+    }
 
-            default:
-                throw new IllegalArgumentException("may not read setting as string: " + setting.toString());
+    static abstract class Converter {
+        static String valueToString(final StoredValue value) {
+            if (value == null) return null;
+            if ((!(value instanceof StringValue)) && (!(value instanceof BooleanValue))) {
+                throw new IllegalArgumentException("setting value is not readable as string");
+            }
+            final Object nativeObject = value.toNativeObject();
+            if (nativeObject == null) return null;
+            return nativeObject.toString();
         }
+
+        static List<String> valueToStringArray(final StoredValue value) {
+            if (!(value instanceof StringArrayValue)) {
+                throw new IllegalArgumentException("setting value is not readable as string array");
+            }
+
+            final List<String> results = new ArrayList<String>((List<String>)value.toNativeObject());
+            for (final Iterator iter = results.iterator(); iter.hasNext();) {
+                final Object loopString = iter.next();
+                if (loopString == null || loopString.toString().length() < 1) {
+                    iter.remove();
+                }
+            }
+            return results;
+        }
+
     }
 
     public Map<Locale,String> readLocalizedBundle(final String className, final String keyName) {
@@ -366,19 +399,7 @@ public class Configuration implements Serializable {
 
 
     public List<String> readSettingAsStringArray(final PwmSetting setting) {
-        if (PwmSettingSyntax.STRING_ARRAY != setting.getSyntax() && PwmSettingSyntax.FORM != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read STRING_ARRAY value for setting: " + setting.toString());
-        }
-
-        final StoredValue value = storedConfiguration.readSetting(setting);
-        final List<String> results = new ArrayList<String>((List<String>)value.toNativeObject());
-        for (final Iterator iter = results.iterator(); iter.hasNext();) {
-            final Object loopString = iter.next();
-            if (loopString == null || loopString.toString().length() < 1) {
-                iter.remove();
-            }
-        }
-        return results;
+        return Converter.valueToStringArray(storedConfiguration.readSetting(setting));
     }
 
     public Map<String,String> readSettingAsStringMap(final PwmSetting setting) {
@@ -460,7 +481,7 @@ public class Configuration implements Serializable {
         return returnCollection;
     }
 
-    public String readProperty(final String key) {
+    public String readProperty(final StoredConfiguration.ConfigProperty key) {
         return storedConfiguration.readConfigProperty(key);
     }
 
@@ -476,7 +497,9 @@ public class Configuration implements Serializable {
         if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read X509CERT value for setting: " + setting.toString());
         }
-
+        if (storedConfiguration.readSetting(setting) == null) {
+            return new X509Certificate[0];
+        }
         return (X509Certificate[])storedConfiguration.readSetting(setting).toNativeObject();
     }
 
@@ -485,7 +508,7 @@ public class Configuration implements Serializable {
     }
 
     public String getNotes() {
-        return storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_NOTES);
+        return storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);
     }
 
     public SecretKey getSecurityKey() throws PwmOperationalException {
@@ -547,6 +570,7 @@ public class Configuration implements Serializable {
                 return cachedPolicy;
             }
 
+            final LdapProfile defaultLdapProfile = getLdapProfiles().get(PwmConstants.DEFAULT_LDAP_PROFILE);
             final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
             if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
                 final PwmPasswordPolicy thePolicy = getGlobalPasswordPolicy(userLocale);
@@ -556,12 +580,12 @@ public class Configuration implements Serializable {
 
                 final String lookupDN;
                 if (configuredNewUserPasswordDN.equalsIgnoreCase("TESTUSER") ) {
-                    lookupDN = readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
+                    lookupDN = defaultLdapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
                 } else {
                     lookupDN = configuredNewUserPasswordDN;
                 }
 
-                final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider());
+                final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(""));
                 final PwmPasswordPolicy thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, chaiUser, userLocale);
                 newUserPasswordPolicy.put(userLocale,thePolicy);
                 return thePolicy;
@@ -671,8 +695,9 @@ public class Configuration implements Serializable {
         return true;
     }
 
-    public String getUsernameAttribute() {
-        final String configUsernameAttr = readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+    public String getUsernameAttribute(final String profileID) {
+        final LdapProfile ldapProfile = getLdapProfiles().get(profileID);
+        final String configUsernameAttr = ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
         final String ldapNamingAttribute = readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
@@ -719,4 +744,6 @@ public class Configuration implements Serializable {
             return writeMethods;
         }
     }
+
+
 }

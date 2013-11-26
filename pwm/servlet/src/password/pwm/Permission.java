@@ -22,11 +22,11 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
@@ -64,22 +64,25 @@ public enum Permission {
         LOGGER.trace(String.format("Enter: checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {
-            LOGGER.debug(String.format("Checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserID()));
-            final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
-            final ChaiUser actor = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+            LOGGER.debug(String.format("Checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
             final PwmSetting setting = permission.getPwmSetting();
-            final boolean result = testQueryMatch(actor, pwmApplication.getConfig().readSettingAsString(setting), permission.toString(), pwmSession);
+            final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting), permission.toString());
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
-            LOGGER.debug(String.format("Permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUserID(), status.toString()));
+            LOGGER.debug(String.format("Permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
             pwmSession.getUserInfoBean().setPermission(permission, status);
         }
         LOGGER.debug(String.format("Permission status: %s", status));
         return status == PERMISSION_STATUS.GRANTED;
     }
 
-    public static boolean testQueryMatch(final ChaiUser theUser, final String queryMatch, final String permissionName, final PwmSession pwmSession)
-    {
-        LOGGER.trace(pwmSession, "begin check for permission for " + theUser.getEntryDN() + " for " + permissionName + " using queryMatch: " + queryMatch);
+    public static boolean testQueryMatch(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final String queryMatch,
+            final String permissionName
+    ) throws PwmUnrecoverableException {
+        LOGGER.trace(pwmSession, "begin check for permission for " + userIdentity + " for " + permissionName + " using queryMatch: " + queryMatch);
 
         boolean result = false;
 
@@ -90,7 +93,8 @@ public enum Permission {
             result = true;
         } else {
             try {
-                LOGGER.trace(pwmSession, "checking ldap to see if " + theUser.getEntryDN() + " matches '" + queryMatch + "'");
+                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + queryMatch + "'");
+                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
                 final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
                 if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
                     result = true;
@@ -101,9 +105,9 @@ public enum Permission {
         }
 
         if (result) {
-            LOGGER.debug(pwmSession, "user " + theUser.getEntryDN() + " is a match for '" + queryMatch + "', granting privilege for " + permissionName);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch + "', granting privilege for " + permissionName);
         } else {
-            LOGGER.debug(pwmSession, "user " + theUser.getEntryDN() + " is not a match for '" + queryMatch + "', not granting privilege for " + permissionName);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch + "', not granting privilege for " + permissionName);
         }
         return result;
     }

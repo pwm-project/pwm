@@ -138,7 +138,9 @@ public enum PwmSetting {
     CHANGE_PASSWORD_WRITE_ATTRIBUTES(
             "changePassword.writeAttributes", PwmSettingSyntax.ACTION, Category.CHANGE_PASSWORD),
 
-    //ldap directory
+    //ldap directories
+    LDAP_PROFILE_LIST(
+            "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.LDAP_GLOBAL),
     LDAP_SERVER_URLS(
             "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
     LDAP_SERVER_CERTS(
@@ -149,40 +151,45 @@ public enum PwmSetting {
             "ldap.proxy.password", PwmSettingSyntax.PASSWORD, Category.LDAP),
     LDAP_CONTEXTLESS_ROOT(
             "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    LDAP_LOGIN_CONTEXTS(
-            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
     LDAP_TEST_USER_DN(
             "ldap.testuser.username", PwmSettingSyntax.STRING, Category.LDAP),
-    QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_USERNAME_SEARCH_FILTER(
-            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_READ_PASSWORD_POLICY(
-            "ldap.readPasswordPolicies", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_IDLE_TIMEOUT(
-            "ldap.idleTimeout", PwmSettingSyntax.NUMERIC, Category.LDAP),
-    LDAP_GUID_ATTRIBUTE(
-            "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_GUID_AUTO_ADD(
-            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP),
     LDAP_CHAI_SETTINGS(
             "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+    LDAP_USERNAME_SEARCH_FILTER(
+            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP),
     LDAP_USERNAME_ATTRIBUTE(
             "ldap.username.attr", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_FOLLOW_REFERRALS(
-            "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP),
+
+    // ldap global settings
+    LDAP_NAMING_ATTRIBUTE(
+            "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
+    LDAP_READ_PASSWORD_POLICY(
+            "ldap.readPasswordPolicies", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
+    LDAP_GUID_AUTO_ADD(
+            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
+    PASSWORD_LAST_UPDATE_ATTRIBUTE(
+            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
+    LDAP_IDLE_TIMEOUT(
+            "ldap.idleTimeout", PwmSettingSyntax.NUMERIC, Category.LDAP_GLOBAL),
     DEFAULT_OBJECT_CLASSES(
-            "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+            "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
+    LDAP_GUID_ATTRIBUTE(
+            "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
+    LDAP_FOLLOW_REFERRALS(
+            "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
+    LDAP_LOGIN_CONTEXTS(
+            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
+    QUERY_MATCH_PWM_ADMIN(
+            "pwmAdmin.queryMatch", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
+
 
     // email settings
     EMAIL_SERVER_ADDRESS(
             "email.smtp.address", PwmSettingSyntax.STRING, Category.EMAIL),
+    EMAIL_SERVER_PORT(
+            "email.smtp.port", PwmSettingSyntax.NUMERIC, Category.EMAIL),
     EMAIL_USERNAME(
             "email.smtp.username", PwmSettingSyntax.STRING, Category.EMAIL),
     EMAIL_PASSWORD(
@@ -447,7 +454,7 @@ public enum PwmSetting {
             "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, Category.OTP),
     QUERY_MATCH_OTP_SETUP_RESPONSE(
             "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.STRING, Category.OTP),
-    
+
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
             "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, Category.LOGGING),
@@ -733,6 +740,8 @@ public enum PwmSetting {
             "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_CLEAR_OTP_BUTTON(
             "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+    HELPDESK_USE_PROXY(
+            "helpdesk.useProxy",PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
 
     // Database
     DATABASE_CLASS(
@@ -747,6 +756,8 @@ public enum PwmSetting {
             "db.columnType.key", PwmSettingSyntax.STRING, Category.DATABASE),
     DATABASE_COLUMN_TYPE_VALUE(
             "db.columnType.value", PwmSettingSyntax.STRING, Category.DATABASE),
+    DATABASE_DEBUG_TRACE(
+            "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, Category.DATABASE),
 
     // misc
     EXTERNAL_CHANGE_METHODS(
@@ -797,26 +808,7 @@ public enum PwmSetting {
     PwmSetting(
             final String key,
             final PwmSettingSyntax syntax,
-            final Group group,
-            final Template... templates
-    ) {
-        this(key,syntax,null,group,templates);
-    }
-
-    PwmSetting(
-            final String key,
-            final PwmSettingSyntax syntax,
             final Category category,
-            final Template... templates
-    ) {
-        this(key,syntax,category,null,templates);
-    }
-
-    PwmSetting(
-            final String key,
-            final PwmSettingSyntax syntax,
-            final Category category,
-            final Group group,
             final Template... templates
     ) {
         this.key = key;
@@ -864,6 +856,16 @@ public enum PwmSetting {
         }
 
         return true;
+    }
+
+    public static List<PwmSetting> getSettings(Category category) {
+        final List<PwmSetting> returnList = new ArrayList<PwmSetting>();
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (setting.getCategory() == category) {
+                returnList.add(setting);
+            }
+        }
+        return Collections.unmodifiableList(returnList);
     }
 
     public static List<PwmSetting> getSettings(Category category, int level) {
@@ -966,12 +968,9 @@ public enum PwmSetting {
         }
     }
 
-    public enum Group {
-        LDAP,
-    }
-
     public enum Category {
-        LDAP(Type.SETTING),
+        LDAP(Type.PROFILE),
+        LDAP_GLOBAL(Type.SETTING),
         GENERAL(Type.SETTING),
         USER_INTERFACE(Type.SETTING),
         PASSWORD_POLICY(Type.SETTING),
@@ -998,23 +997,39 @@ public enum PwmSetting {
         HELPDESK(Type.MODULE),
         ;
 
+
+        public enum Type {
+            SETTING, MODULE, PROFILE
+        }
+
+        private final Type type;
+
+        private Category(final Type type) {
+            this.type = type;
+        }
+
         public String getKey() {
             return this.toString();
         }
 
-        public enum Type {
-            SETTING, MODULE
-        }
-
-        private Type type;
-
-        private Category(Type type) {
-            this.type = type;
+        public PwmSetting getProfileSetting()
+        {
+            switch (this) {
+                case LDAP:
+                    return LDAP_PROFILE_LIST;
+            }
+            throw new IllegalArgumentException("category " + this.toString() + " does not have a profileSetting value");
         }
 
         public String getLabel(final Locale locale) {
-            Element categoryElement = readCategoryXml(this);
-            Element labelElement = categoryElement.getChild("label");
+            final Element categoryElement = readCategoryXml(this);
+            if (categoryElement == null) {
+                throw new IllegalStateException("missing descriptor element for category " + this.toString());
+            }
+            final Element labelElement = categoryElement.getChild("label");
+            if (labelElement == null) {
+                throw new IllegalStateException("missing descriptor label for category " + this.toString());
+            }
             return labelElement.getText();
         }
 

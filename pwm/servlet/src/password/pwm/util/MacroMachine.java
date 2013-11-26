@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -224,11 +224,11 @@ public class MacroMachine {
         }
 
         public String replaceValue(String matchValue, PwmApplication pwmApplication, UserInfoBean uiBean, UserDataReader dataReader) {
-            if (uiBean == null || uiBean.getUserID() == null) {
+            if (uiBean == null || uiBean.getUsername() == null) {
                 return "";
             }
 
-            return uiBean.getUserID();
+            return uiBean.getUsername();
         }
     }
 

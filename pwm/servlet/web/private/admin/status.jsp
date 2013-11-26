@@ -132,20 +132,6 @@
             </tr>
             <tr>
                 <td class="key">
-                    LDAP Vendor
-                </td>
-                <td>
-                    <%
-                        String vendor = "[detection error]";
-                        try {
-                            vendor = pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString();
-                        } catch (Exception e) { /* nothing */ }
-                    %>
-                    <%= vendor %>
-                </td>
-            </tr>
-            <tr>
-                <td class="key">
                     Chai API Version
                 </td>
                 <td>
@@ -244,12 +230,12 @@
             <tr>
                 <td class="key">
                     <a href="<pwm:url url='eventlog.jsp'/>">
-                        Log Events
+                        Log Events in LocalDB
                     </a>
                 </td>
                 <td>
                     <a href="<pwm:url url='eventlog.jsp'/>">
-                        <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getStoredEventCount()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                        <%= pwmApplication.getLocalDBLogger().sizeToDebugString() %>
                     </a>
                 </td>
             </tr>
@@ -263,7 +249,7 @@
             </tr>
             <tr>
                 <td class="key">
-                    Oldest Log Event
+                    Oldest Log Event in LocalDB
                 </td>
                 <td>
                     <%= pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>

@@ -10,7 +10,7 @@ import password.pwm.error.*;
 import password.pwm.i18n.Message;
 import password.pwm.servlet.UpdateProfileServlet;
 import password.pwm.util.FormMap;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -83,11 +83,8 @@ public class RestProfileServer {
             }
             final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
-            if (restRequestBean.getUserDN() != null) {
-                UserDataReader userDataReader = new UserDataReader(ChaiFactory.createChaiUser(
-                        restRequestBean.getUserDN(),
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()));
-
+            if (restRequestBean.getUserIdentity() != null) {
+                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity());
                 UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,userDataReader);
             } else {
                 UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader());
@@ -153,8 +150,8 @@ public class RestProfileServer {
                 profileFormData.put(formConfiguration,inputFormData.get(formConfiguration.getName()));
             }
         }
-        if (restRequestBean.getUserDN() != null) {
-            final ChaiUser theUser = ChaiFactory.createChaiUser(restRequestBean.getUserDN(),restRequestBean.getPwmSession().getSessionManager().getChaiProvider());
+        if (restRequestBean.getUserIdentity() != null) {
+            final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
             UpdateProfileServlet.doProfileUpdate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),profileFormData, theUser);
         } else {
             final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor();

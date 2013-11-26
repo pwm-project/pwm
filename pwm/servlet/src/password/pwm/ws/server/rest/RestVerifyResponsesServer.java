@@ -22,14 +22,13 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -111,15 +110,14 @@ public class RestVerifyResponsesServer {
             }
 
             final ChaiUser chaiUser;
-            if (restRequestBean.getUserDN() == null) {
+            if (restRequestBean.getUserIdentity() == null) {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
             } else {
-                final String userDN = restRequestBean.getUserDN();
-                final ChaiProvider actorProvider = restRequestBean.getPwmSession().getSessionManager().getChaiProvider();
-                chaiUser = ChaiFactory.createChaiUser(userDN, actorProvider);
+                final UserIdentity userIdentity = restRequestBean.getUserIdentity();
+                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(userIdentity);
             }
 
-            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession(), chaiUser);
+            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser);
             final boolean verified = responseSet.test(jsonInput.toCrMap());
 
             final String successMsg = Message.SUCCESS_UNKNOWN.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());

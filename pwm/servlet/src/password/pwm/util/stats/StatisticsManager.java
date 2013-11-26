@@ -484,7 +484,7 @@ public class StatisticsManager implements PwmService {
             otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
 
             try {
-                otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider().getDirectoryVendor().toString());
+                otherData.put(StatsPublishBean.KEYS.LDAP_VENDOR.toString(),pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE).getDirectoryVendor().toString());
             } catch (Exception e) {
                 LOGGER.trace("unable to read ldap vendor type for stats publication: " + e.getMessage());
             }

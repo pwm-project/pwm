@@ -22,9 +22,6 @@
 
 package password.pwm.event;
 
-import password.pwm.PwmSession;
-import password.pwm.bean.UserInfoBean;
-
 import java.util.Date;
 
 /**
@@ -38,7 +35,7 @@ public class UserAuditRecord extends AuditRecord {
     protected String sourceAddress;
     protected String sourceHost;
 
-    public UserAuditRecord(
+    UserAuditRecord(
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,
@@ -57,57 +54,6 @@ public class UserAuditRecord extends AuditRecord {
         this.sourceHost = sourceHost;
     }
 
-    public UserAuditRecord(
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final PwmSession pwmSession
-    ) {
-        this(
-                eventCode,
-                perpetratorID,
-                perpetratorDN,
-                pwmSession,
-                null
-        );
-    }
-
-    public UserAuditRecord(
-            final AuditEvent eventCode,
-            final String perpetratorID,
-            final String perpetratorDN,
-            final PwmSession pwmSession,
-            final String message
-    ) {
-        this(
-                eventCode,
-                perpetratorID,
-                perpetratorDN,
-                new Date(),
-                message,
-                perpetratorID,
-                perpetratorDN,
-                pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null,
-                pwmSession != null ? pwmSession.getSessionStateBean().getSrcHostname() : null
-        );
-    }
-
-    public UserAuditRecord(
-            final AuditEvent eventCode,
-            final UserInfoBean userInfoBean,
-            final PwmSession pwmSession
-    ) {
-        this(eventCode,
-                userInfoBean.getUserID(),
-                userInfoBean.getUserDN(),
-                new Date(),
-                null,
-                userInfoBean.getUserID(),
-                userInfoBean.getUserDN(),
-                pwmSession.getSessionStateBean().getSrcAddress(),
-                pwmSession.getSessionStateBean().getSrcHostname()
-        );
-    }
 
     public String getPerpetratorID() {
         return perpetratorID;

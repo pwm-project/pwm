@@ -50,8 +50,8 @@ import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.operations.UserAuthenticator;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserAuthenticator;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -292,7 +292,7 @@ public class NewUserServlet extends TopServlet {
 
             if (tokenPayload.getDest() != null) {
                 for (final String dest : tokenPayload.getDest()) {
-                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest, null);
+                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
                 }
             }
 
@@ -384,8 +384,10 @@ public class NewUserServlet extends TopServlet {
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
 
+
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE);
         try { // create the ldap entry
-            pwmApplication.getProxyChaiProvider().createEntry(newUserDN, createObjectClasses, createAttributes);
+            chaiProvider.createEntry(newUserDN, createObjectClasses, createAttributes);
 
             LOGGER.info(pwmSession, "created user entry: " + newUserDN);
         } catch (ChaiOperationException e) {
@@ -394,7 +396,7 @@ public class NewUserServlet extends TopServlet {
             throw new PwmOperationalException(errorInformation);
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
+        final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
 
         try { //set password
             theUser.setPassword(userPassword);
@@ -406,8 +408,8 @@ public class NewUserServlet extends TopServlet {
         }
 
         // add AD-specific attributes
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, pwmApplication.getProxyChaiProvider());
-        if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == pwmApplication.getProxyChaiProvider().getDirectoryVendor()) {
+        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+        if (ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY == chaiProvider.getDirectoryVendor()) {
             try {
                 proxiedUser.writeStringAttribute("userAccountControl", "512");
             } catch (ChaiOperationException e) {
@@ -428,13 +430,14 @@ public class NewUserServlet extends TopServlet {
             final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
             settings.setExpandPwmMacros(true);
             settings.setUserInfoBean(pwmSession.getUserInfoBean());
-            settings.setUser(theUser);
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
             actionExecutor.executeActions(actions, settings, pwmSession);
         }
 
         //everything good so forward to change password page.
-        sendNewUserEmailConfirmation(pwmSession, new UserDataReader(proxiedUser), pwmApplication);
+        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,
+                new UserIdentity(newUserDN, PwmConstants.DEFAULT_LDAP_PROFILE));
+        sendNewUserEmailConfirmation(pwmSession, userDataReader ,pwmApplication);
 
         // add audit record
         pwmApplication.getAuditManager().submit(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
@@ -472,11 +475,10 @@ public class NewUserServlet extends TopServlet {
         try {
             Validator.validateAttributeUniqueness(
                     pwmApplication,
-                    pwmApplication.getProxyChaiProvider(),
                     formValues,
                     userLocale,
                     pwmSession.getSessionManager(),
-                    Collections.<String>emptyList()
+                    Collections.<UserIdentity>emptyList()
             );
         } catch (ChaiOperationException e) {
             final String userMessage = "unexpected ldap error checking attributes value uniqueness: " + e.getMessage();
@@ -489,7 +491,7 @@ public class NewUserServlet extends TopServlet {
     {
         try {
             LOGGER.warn(pwmSession, "deleting ldap user account " + userDN);
-            pwmApplication.getProxyChaiProvider().deleteEntry(userDN);
+            pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE).deleteEntry(userDN);
             LOGGER.warn(pwmSession, "ldap user account " + userDN + " has been deleted");
         } catch (ChaiUnavailableException e) {
             LOGGER.error(pwmSession, "error deleting ldap user account " + userDN + ", " + e.getMessage());
@@ -544,7 +546,7 @@ public class NewUserServlet extends TopServlet {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping send of new user email for '" + userInfoBean.getUserDN() + "' no email configured");
+            LOGGER.debug(pwmSession, "skipping send of new user email for '" + userInfoBean.getUserIdentity().getUserDN() + "' no email configured");
             return;
         }
 

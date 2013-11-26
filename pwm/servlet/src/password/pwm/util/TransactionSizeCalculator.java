@@ -24,44 +24,49 @@ package password.pwm.util;
 
 public class TransactionSizeCalculator {
 
-    private final TimeDuration setting_LowGoal;
-    private final TimeDuration setting_HighGoal;
+    private final TimeDuration setting_Goal;
     private final TimeDuration setting_OutOfRange;
     private final int setting_MaxTransactions;
     private final int setting_MinTransactions;
+    private final int initialTransactionSize;
 
     private volatile int transactionSize;
 
     public TransactionSizeCalculator(
-            final long lowTimeMS,
-            final long highTimeMS,
+            final long goalTimeMS,
             final int minTransactions,
             final int maxTransactions
     )
     {
-        this(lowTimeMS, highTimeMS, minTransactions, maxTransactions, minTransactions + 1);
+        this(goalTimeMS, minTransactions, maxTransactions, minTransactions + 1);
     }
 
     public TransactionSizeCalculator(
-            final long lowTimeMS,
-            final long highTimeMS,
+            final long goalTimeMS,
             final int minTransactions,
             final int maxTransactions,
             final int initialTransactionSize
     )
     {
-        this.setting_LowGoal = new TimeDuration(lowTimeMS);
-        this.setting_HighGoal = new TimeDuration(highTimeMS);
-        this.setting_OutOfRange = new TimeDuration(setting_HighGoal.getTotalMilliseconds() * 5);
+        this.setting_Goal = new TimeDuration(goalTimeMS);
+        this.setting_OutOfRange = new TimeDuration(setting_Goal.getTotalMilliseconds() * 5);
         this.setting_MaxTransactions = maxTransactions;
         this.setting_MinTransactions = minTransactions;
-        this.transactionSize = initialTransactionSize;
-        if (transactionSize > maxTransactions) {
-            transactionSize = maxTransactions;
+        {
+            int initialSize = initialTransactionSize;
+            if (initialSize > maxTransactions) {
+                initialSize = maxTransactions;
+            }
+            if (initialSize < minTransactions) {
+                initialSize = minTransactions;
+            }
+            this.initialTransactionSize = initialSize;
         }
-        if (transactionSize < minTransactions) {
-            transactionSize = minTransactions;
-        }
+        transactionSize = initialTransactionSize;
+    }
+
+    public void reset() {
+        transactionSize = initialTransactionSize;
     }
 
     public void recordLastTransactionDuration(final long duration) {
@@ -70,16 +75,26 @@ public class TransactionSizeCalculator {
 
     public void recordLastTransactionDuration(final TimeDuration duration)
     {
-        int newTransactionSize;
+        final long difference = Math.abs(duration.getTotalMilliseconds() - setting_Goal.getTotalMilliseconds());
 
-        if (duration.isShorterThan(setting_LowGoal)) {
-            newTransactionSize = ((int) (transactionSize + (transactionSize * 0.1)) + 1);
-        } else if (duration.isLongerThan(setting_HighGoal) && duration.isShorterThan(setting_OutOfRange)) {
+        int newTransactionSize;
+        if (duration.isShorterThan(setting_Goal)) {
+            if (difference > 100) {
+                newTransactionSize = ((int) (transactionSize + (transactionSize * 0.1)) + 1);
+            } else {
+                newTransactionSize = transactionSize + 1;
+            }
+
+        } else if (duration.isLongerThan(setting_Goal) && duration.isShorterThan(setting_OutOfRange)) {
+            if (difference > 100) {
             newTransactionSize = ((int) (transactionSize - (transactionSize * 0.1)) - 1);
+            } else {
+            newTransactionSize = transactionSize - 1;
+            }
         } else if (duration.isLongerThan(setting_OutOfRange)) {
-            newTransactionSize = (int) (transactionSize * 0.5);
+            newTransactionSize = initialTransactionSize;
         } else {
-            newTransactionSize = transactionSize + PwmRandom.getInstance().nextInt(10);
+            newTransactionSize = transactionSize;
         }
 
         newTransactionSize = newTransactionSize > setting_MaxTransactions ? setting_MaxTransactions : newTransactionSize;

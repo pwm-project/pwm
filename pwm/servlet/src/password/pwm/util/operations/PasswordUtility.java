@@ -33,15 +33,16 @@ import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
+import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -134,7 +135,7 @@ public class PasswordUtility {
         String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_NEW_PASSWORD_TEXT, userLocale);
 
         if (toNumber == null || toNumber.length() < 1) {
-            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserDN());
+            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserIdentity());
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return errorInformation;
         }
@@ -175,7 +176,7 @@ public class PasswordUtility {
                 configuredEmailSetting.getBodyHtml().replace("%TOKEN%", newPassword)
         ), userInfoBean, userDataReader);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        LOGGER.debug("new password email to " + userInfoBean.getUserDN() + " added to send queue for " + toAddress);
+        LOGGER.debug("new password email to " + userInfoBean.getUserIdentity() + " added to send queue for " + toAddress);
         return null;
     }
 
@@ -250,7 +251,7 @@ public class PasswordUtility {
 
         boolean setPasswordWithoutOld = false;
         if (oldPassword == null || oldPassword.length() < 1) {
-            if (pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+            if (pwmSession.getSessionManager().getActor().getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
                 setPasswordWithoutOld = true;
             }
         }
@@ -267,26 +268,26 @@ public class PasswordUtility {
         final long passwordSetTimestamp = System.currentTimeMillis();
         try {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), provider);
+            final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             if (setPasswordWithoutOld) {
                 theUser.setPassword(newPassword);
             } else {
                 theUser.changePassword(oldPassword, newPassword);
             }
         } catch (ChaiPasswordPolicyException e) {
-            final String errorMsg = "error setting password for user '" + uiBean.getUserDN() + "'' " + e.toString();
+            final String errorMsg = "error setting password for user '" + uiBean.getUserIdentity() + "'' " + e.toString();
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(pwmError == null ? PwmError.PASSWORD_UNKNOWN_VALIDATION : pwmError, errorMsg);
             throw new PwmOperationalException(error);
         } catch (ChaiOperationException e) {
-            final String errorMsg = "error setting password for user '" + uiBean.getUserDN() + "'' " + e.getMessage();
+            final String errorMsg = "error setting password for user '" + uiBean.getUserIdentity() + "'' " + e.getMessage();
             final PwmError pwmError = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(pwmError, errorMsg);
             throw new PwmOperationalException(error);
         }
 
         // at this point the password has been changed, so log it.
-        LOGGER.info(pwmSession, "user '" + uiBean.getUserDN() + "' successfully changed password");
+        LOGGER.info(pwmSession, "user '" + uiBean.getUserIdentity() + "' successfully changed password");
 
         // clear out the password change bean
         pwmSession.clearChangePasswordBean();
@@ -307,10 +308,10 @@ public class PasswordUtility {
         uiBean.setAuthenticationType(UserInfoBean.AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(),uiBean));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(), uiBean));
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserDN(), pwmApplication.getProxyChaiProvider());
+        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor();
 
         // update statistics
         {
@@ -329,7 +330,7 @@ public class PasswordUtility {
         invokePostChangePasswordActions(pwmSession, newPassword);
 
         // call out to external methods.
-        Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, uiBean.getUserDN(), oldPassword, newPassword);
+        Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, uiBean.getUserIdentity().getUserDN(), oldPassword, newPassword);
 
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
@@ -337,18 +338,18 @@ public class PasswordUtility {
             final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
             settings.setExpandPwmMacros(true);
             settings.setUserInfoBean(uiBean);
-            settings.setUser(proxiedUser);
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
             actionExecutor.executeActions(configValues, settings, pwmSession);
         }
 
-        performReplicaSyncCheck(pwmSession, pwmApplication, proxiedUser, passwordSetTimestamp);
+        performReplicaSyncCheck(pwmSession, pwmApplication, uiBean.getUserIdentity(), passwordSetTimestamp);
 
     }
 
     public static void helpdeskSetUserPassword(
             final PwmSession pwmSession,
             final ChaiUser chaiUser,
+            final UserIdentity userIdentity,
             final PwmApplication pwmApplication,
             final String newPassword
     )
@@ -381,29 +382,19 @@ public class PasswordUtility {
         }
 
         // at this point the password has been changed, so log it.
-        LOGGER.info(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserDN() + "' successfully changed password for " + chaiUser.getEntryDN());
+        LOGGER.info(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserIdentity() + "' successfully changed password for " + chaiUser.getEntryDN());
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = ChaiFactory.createChaiUser(chaiUser.getEntryDN(), pwmApplication.getProxyChaiProvider());
-
-        //
-        String userID = "";
-        try {
-            userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
-        } catch (ChaiOperationException e) {
-            LOGGER.error(pwmSession, "trouble reading userID for user " + chaiUser.getEntryDN());
-        }
+        final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
 
         // mark the event log
         {
-            final UserAuditRecord auditRecord = new UserAuditRecord(
+            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
+                    pwmSession.getUserInfoBean().getUserIdentity(),
                     new Date(),
                     null,
-                    userID,
-                    chaiUser.getEntryDN(),
+                    userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
@@ -420,17 +411,16 @@ public class PasswordUtility {
         // create a uib for end user
         final UserInfoBean userInfoBean = new UserInfoBean();
         UserStatusHelper.populateUserInfoBean(
-                pwmSession,
+                pwmApplication, pwmSession,
                 userInfoBean,
-                pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),
-                proxiedUser.getEntryDN(),
+                userIdentity,
                 newPassword,
                 proxiedUser.getChaiProvider()
         );
 
         {  // execute configured actions
-            LOGGER.debug(pwmSession, "executing changepassword and helpdesk post password change writeAttributes to user " + proxiedUser.getEntryDN());
+            LOGGER.debug(pwmSession, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity);
             final List<ActionConfiguration> actions = new ArrayList<ActionConfiguration>();
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
@@ -438,7 +428,6 @@ public class PasswordUtility {
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
                 settings.setUserInfoBean(userInfoBean);
-                settings.setUser(proxiedUser);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                 actionExecutor.executeActions(actions,settings,pwmSession);
             }
@@ -446,18 +435,16 @@ public class PasswordUtility {
 
         final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
-            final String userGUID = Helper.readLdapGuidValue(pwmApplication, proxiedUser.getEntryDN());
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log
-            final UserAuditRecord auditRecord = new UserAuditRecord(
+            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                    pwmSession.getUserInfoBean().getUserID(),
-                    pwmSession.getUserInfoBean().getUserDN(),
+                    pwmSession.getUserInfoBean().getUserIdentity(),
                     new Date(),
                     null,
-                    userID,
-                    chaiUser.getEntryDN(),
+                    userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
                     pwmSession.getSessionStateBean().getSrcHostname()
             );
@@ -465,7 +452,7 @@ public class PasswordUtility {
         }
 
         // send email notification
-        sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean, proxiedUser);
+        sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean);
 
         // send password
         final boolean sendPassword = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
@@ -473,7 +460,7 @@ public class PasswordUtility {
             PasswordUtility.sendNewPassword(
                     userInfoBean,
                     pwmApplication,
-                    new UserDataReader(chaiUser),
+                    UserDataReader.appProxiedReader(pwmApplication, userIdentity),
                     newPassword,
                     pwmSession.getSessionStateBean().getLocale()
             );
@@ -483,12 +470,13 @@ public class PasswordUtility {
     private static void performReplicaSyncCheck(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
-            final ChaiUser theUser,
+            final UserIdentity userIdentity,
             final long passwordSetTimestamp
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         //update the current last password update field in ldap
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
         final boolean successfullyWrotePwdUpdateAttr = UserStatusHelper.updateLastUpdateAttribute(pwmSession, pwmApplication, theUser);
         boolean doReplicaCheck = true;
 
@@ -497,7 +485,9 @@ public class PasswordUtility {
             doReplicaCheck = false;
         }
 
-        if (pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
+
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
+        if (ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
             LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
             doReplicaCheck = false;
         }
@@ -855,8 +845,7 @@ public class PasswordUtility {
     private static void sendChangePasswordHelpdeskEmailNotice(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
-            final UserInfoBean userInfoBean,
-            final ChaiUser user
+            final UserInfoBean userInfoBean
     )
             throws PwmUnrecoverableException
     {
@@ -865,10 +854,10 @@ public class PasswordUtility {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD_HELPDESK, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping send change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email configured");
+            LOGGER.debug(pwmSession, "skipping send change password email for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no email configured");
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, userInfoBean, new UserDataReader(user));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, userInfoBean, null);
     }
 }

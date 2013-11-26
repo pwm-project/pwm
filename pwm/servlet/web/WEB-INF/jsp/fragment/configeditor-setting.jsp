@@ -33,7 +33,7 @@
     final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
-    final boolean showDesc = cookie.isShowDesc();
+    final boolean showDescription = (Boolean)request.getAttribute("showDescription");
 %>
 <div id="outline_<%=loopSetting.getKey()%>" class="setting_outline">
     <%
@@ -45,10 +45,12 @@
 %>
 <div class="setting_title" id="title_<%=loopSetting.getKey()%>">
     <span class="text" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
+    <% if (!showDescription) { %>
     <div class="fa fa-question icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"></div>
+    <% } %>
     <div class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
-<div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDesc?"block":"none"%>">
+<div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDescription?"block":"none"%>">
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
@@ -81,7 +83,7 @@
             LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
         });
     </script>
-    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY) { %>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY || loopSetting.getSyntax() == PwmSettingSyntax.PROFILE) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
     </table>
     <script type="text/javascript">
@@ -158,11 +160,9 @@
     </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.X509CERT) { %>
     <div style="padding-right:15px">
-        <% for (X509Certificate certificate : (X509Certificate[])configManagerBean.getConfiguration().readSetting(loopSetting).toNativeObject()) {%>
-        <% request.setAttribute("certificate",certificate); %>
+        <% request.setAttribute("certificate",configManagerBean.getConfiguration().readSetting(loopSetting,cookie.getProfile()).toNativeObject()); %>
         <jsp:include page="setting-certificate.jsp"/>
         <br/>
-        <% } %>
     </div>
     <% } else { %>
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>

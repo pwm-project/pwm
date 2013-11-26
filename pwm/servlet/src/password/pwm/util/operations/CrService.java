@@ -22,7 +22,6 @@
 
 package password.pwm.util.operations;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.*;
 import com.novell.ldapchai.exception.*;
@@ -30,11 +29,13 @@ import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.*;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.CrStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -248,6 +249,7 @@ public class CrService implements PwmService {
 
     public ResponseInfoBean readUserResponseInfo(
             final PwmSession pwmSession,
+            final UserIdentity userIdentity,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
@@ -272,7 +274,7 @@ public class CrService implements PwmService {
 
         final String userGUID;
         if (readPreferences.contains(CrStorageMethod.DB) || readPreferences.contains(CrStorageMethod.LOCALDB)) {
-            userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, theUser);
         } else {
             userGUID = null;
         }
@@ -281,7 +283,7 @@ public class CrService implements PwmService {
             final ResponseInfoBean readResponses;
 
             LOGGER.trace(pwmSession, "attempting read of response info via storage method: " + storageMethod);
-            readResponses = operatorMap.get(storageMethod).readResponseInfo(theUser, userGUID);
+            readResponses = operatorMap.get(storageMethod).readResponseInfo(theUser, userIdentity, userGUID);
 
             if (readResponses != null) {
                 LOGGER.debug(pwmSession,"returning response info read via method " + storageMethod + " for user " + theUser.getEntryDN());
@@ -298,6 +300,7 @@ public class CrService implements PwmService {
 
     public ResponseSet readUserResponseSet(
             final PwmSession pwmSession,
+            final UserIdentity userIdentity,
             final ChaiUser theUser
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
@@ -314,6 +317,7 @@ public class CrService implements PwmService {
                 readPreferences.add(CrStorageMethod.NMASUAWS);
             }
         }
+
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES)) {
             readPreferences.add(CrStorageMethod.NMAS);
         }
@@ -322,7 +326,7 @@ public class CrService implements PwmService {
 
         final String userGUID;
         if (readPreferences.contains(CrStorageMethod.DB) || readPreferences.contains(CrStorageMethod.LOCALDB)) {
-            userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, theUser);
         } else {
             userGUID = null;
         }
@@ -331,7 +335,7 @@ public class CrService implements PwmService {
             final ResponseSet readResponses;
 
             LOGGER.trace(pwmSession, "attempting read of responses via storage method: " + storageMethod);
-            readResponses = operatorMap.get(storageMethod).readResponseSet(theUser, userGUID);
+            readResponses = operatorMap.get(storageMethod).readResponseSet(theUser, userIdentity, userGUID);
 
             if (readResponses != null) {
                 LOGGER.debug(pwmSession,"returning responses read via method " + storageMethod + " for user " + theUser.getEntryDN());
@@ -455,10 +459,9 @@ public class CrService implements PwmService {
 
         final String userDN = theUser.getEntryDN();
 
-        final ChaiProvider provider = pwmApplication.getProxyChaiProvider();
         final Configuration config = pwmApplication.getConfig();
 
-        if (!Helper.testUserMatchQueryString(provider, userDN, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
+        if (!Helper.testUserMatchQueryString(theUser, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
             return false;
         }

@@ -22,15 +22,15 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.PasswordStatus;
-
 import java.io.Serializable;
 import java.util.Date;
 
 public class UserStatusCacheBean implements Serializable {
-    public String userDN;
-    public String userID;
+    public UserIdentity userIdentity;
     public String userGUID;
+
+    public String username;
+    public String email;
 
     public Date cacheTimestamp = new Date();
 
@@ -46,20 +46,32 @@ public class UserStatusCacheBean implements Serializable {
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
 
-    public String getUserDN() {
-        return userDN;
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setUserDN(String userDN) {
-        this.userDN = userDN;
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
-    public String getUserID() {
-        return userID;
+    public String getUsername()
+    {
+        return username;
     }
 
-    public void setUserID(String userID) {
-        this.userID = userID;
+    public void setUsername(String username)
+    {
+        this.username = username;
+    }
+
+    public String getEmail()
+    {
+        return email;
+    }
+
+    public void setEmail(String email)
+    {
+        this.email = email;
     }
 
     public String getUserGUID() {
@@ -152,8 +164,9 @@ public class UserStatusCacheBean implements Serializable {
 
     public static UserStatusCacheBean cacheBeanFrmInfoBean(final UserInfoBean userInfoBean) {
         final UserStatusCacheBean userStatusCacheBean = new UserStatusCacheBean();
-        userStatusCacheBean.setUserDN(userInfoBean.getUserDN());
-        userStatusCacheBean.setUserID(userInfoBean.getUserID());
+        userStatusCacheBean.setUserIdentity(userInfoBean.getUserIdentity());
+        userStatusCacheBean.setUsername(userInfoBean.getUsername());
+        userStatusCacheBean.setEmail(userInfoBean.getUserEmailAddress());
         userStatusCacheBean.setUserGUID(userInfoBean.getUserGuid());
 
         userStatusCacheBean.setPasswordStatus(userInfoBean.getPasswordState());

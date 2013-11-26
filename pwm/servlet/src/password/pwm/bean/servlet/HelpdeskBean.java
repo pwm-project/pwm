@@ -26,7 +26,7 @@ import password.pwm.bean.PwmSessionBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.event.UserAuditRecord;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserSearchEngine;
 
 import java.io.Serializable;
 import java.util.Date;

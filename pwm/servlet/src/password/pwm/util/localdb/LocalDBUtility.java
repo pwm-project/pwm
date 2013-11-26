@@ -161,7 +161,7 @@ public class LocalDBUtility {
 
         final long startTime = System.currentTimeMillis();
         final Timer statTimer = new Timer(true);
-        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 1100, 50, 50 * 1000);
+        final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 50, 50 * 1000);
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {

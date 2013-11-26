@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -209,7 +209,7 @@ public class PwmSession implements Serializable {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.getSessionStateBean().getSessionID());
         if (this.getSessionStateBean().isAuthenticated()) {
-            final String userID = this.getUserInfoBean().getUserID();
+            final String userID = this.getUserInfoBean().getUsername();
             if (userID != null && userID.length() > 0) {
                 sb.append(",");
                 sb.append(userID);
@@ -230,8 +230,8 @@ public class PwmSession implements Serializable {
             final StringBuilder sb = new StringBuilder();
 
             sb.append("unauthenticate session from ").append(ssBean.getSrcAddress());
-            if (getUserInfoBean().getUserDN() != null) {
-                sb.append(" (").append(getUserInfoBean().getUserDN()).append(")");
+            if (getUserInfoBean().getUserIdentity() != null) {
+                sb.append(" (").append(getUserInfoBean().getUserIdentity()).append(")");
             }
 
             // mark the session state bean as no longer being authenticated
@@ -317,7 +317,7 @@ public class PwmSession implements Serializable {
                 sb.append(", ");
                 sb.append("guid=").append(getUserInfoBean().getUserGuid());
                 sb.append(", ");
-                sb.append("dn=").append(getUserInfoBean().getUserDN());
+                sb.append("dn=").append(getUserInfoBean().getUserIdentity());
                 sb.append(", ");
                 sb.append("authType=").append(getUserInfoBean().getAuthenticationType());
                 sb.append(", ");

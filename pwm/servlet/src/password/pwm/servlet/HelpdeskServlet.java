@@ -22,21 +22,17 @@
 
 package password.pwm.servlet;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.HelpdeskBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -44,6 +40,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -139,6 +138,7 @@ public class HelpdeskServlet extends TopServlet {
                 processExecuteActionRequest(req, resp, pwmApplication, pwmSession);
                 return;
             } else if (processAction.equalsIgnoreCase("continue")) {
+                // noop
             }
         }
 
@@ -181,26 +181,25 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
+            final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
             final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(helpdeskBean.getUserInfoBean().getUserDN(),provider);
+            final ChaiUser chaiUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
             settings.setUserInfoBean(helpdeskBean.getUserInfoBean());
-            settings.setUser(chaiUser);
+            settings.setChaiUser(chaiUser);
             settings.setExpandPwmMacros(true);
             actionExecutor.executeAction(action,settings,pwmSession);
             final RestResultBean restResultBean = new RestResultBean();
             // mark the event log
             {
-                final UserAuditRecord auditRecord = new UserAuditRecord(
+                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_ACTION,
-                        pwmSession.getUserInfoBean().getUserID(),
-                        pwmSession.getUserInfoBean().getUserDN(),
+                        pwmSession.getUserInfoBean().getUserIdentity(),
                         new Date(),
                         action.getName(),
-                        helpdeskBean.getUserInfoBean().getUserID(),
-                        helpdeskBean.getUserInfoBean().getUserDN(),
+                        helpdeskBean.getUserInfoBean().getUserIdentity(),
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
@@ -237,8 +236,8 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        final String userDN = UserSearchEngine.decodeUserDetailKey(userKey,pwmSession);
-        processDetailRequest(req,resp,pwmApplication,pwmSession,userDN);
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication.getConfig());
+        processDetailRequest(req, resp, pwmApplication, pwmSession, userIdentity);
     }
 
 
@@ -247,13 +246,13 @@ public class HelpdeskServlet extends TopServlet {
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final String userDN
+            final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         final HelpdeskBean helpdeskBean = (HelpdeskBean)pwmSession.getSessionBean(HelpdeskBean.class);
 
-        if (pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(userDN)) {
+        if (pwmSession.getUserInfoBean().getUserIdentity().equals(userIdentity)) {
             final String errorMsg = "cannot select self";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
@@ -262,7 +261,7 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, userDN);
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, userIdentity);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_USER_LOOKUP);
         forwardToDetailJSP(req, resp);
     }
@@ -275,6 +274,7 @@ public class HelpdeskServlet extends TopServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
         pwmSession.getHelpdeskBean().setUserInfoBean(null);
         final List<FormConfiguration> searchForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
@@ -289,11 +289,16 @@ public class HelpdeskServlet extends TopServlet {
 
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setContexts(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
+        searchConfiguration.setContexts(
+                pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
         searchConfiguration.setEnableContextValidation(false);
         searchConfiguration.setUsername(helpdeskBean.getSearchString());
         searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
-        searchConfiguration.setChaiProvider(pwmSession.getSessionManager().getChaiProvider());
+        if (!useProxy) {
+            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
+            searchConfiguration.setLdapProfiles(Collections.singletonList(ldapProfile));
+            searchConfiguration.setChaiProvider(pwmSession.getSessionManager().getChaiProvider());
+        }
 
         final UserSearchEngine.UserSearchResults results;
         try {
@@ -308,8 +313,8 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         if (results.getResults().size() == 1) {
-            final String userDN = results.getResults().keySet().iterator().next();
-            processDetailRequest(req, resp, pwmApplication, pwmSession, userDN);
+            final UserIdentity userIdentity = results.getResults().keySet().iterator().next();
+            processDetailRequest(req, resp, pwmApplication, pwmSession, userIdentity);
             return;
         }
 
@@ -321,18 +326,19 @@ public class HelpdeskServlet extends TopServlet {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HelpdeskBean helpdeskBean,
-            final String userDN
+            final UserIdentity userIdentity
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmSession.getSessionManager().getChaiProvider());
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+        final ChaiUser theUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
         if (!theUser.isValid()) {
             return;
         }
 
         final UserInfoBean uiBean = new UserInfoBean();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        UserStatusHelper.populateUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale, userDN, null, pwmSession.getSessionManager().getChaiProvider());
+        UserStatusHelper.populateUserInfoBean(pwmApplication, pwmSession, uiBean, userLocale, userIdentity, null, theUser.getChaiProvider());
         helpdeskBean.setUserInfoBean(uiBean);
         HelpdeskBean.AdditionalUserInfo additionalUserInfo = new HelpdeskBean.AdditionalUserInfo();
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);
@@ -340,25 +346,25 @@ public class HelpdeskServlet extends TopServlet {
         try {
             additionalUserInfo.setIntruderLocked(theUser.isLocked());
         } catch (Exception e) {
-            LOGGER.error(pwmSession,"unexpected error reading intruder lock status for user '" + userDN + "', " + e.getMessage());
+            LOGGER.error(pwmSession,"unexpected error reading intruder lock status for user '" + userIdentity + "', " + e.getMessage());
         }
 
         try {
             additionalUserInfo.setAccountEnabled(theUser.isAccountEnabled());
         } catch (Exception e) {
-            LOGGER.error(pwmSession,"unexpected error reading account enabled status for user '" + userDN + "', " + e.getMessage());
+            LOGGER.error(pwmSession,"unexpected error reading account enabled status for user '" + userIdentity + "', " + e.getMessage());
         }
 
         try {
             additionalUserInfo.setLastLoginTime(theUser.readLastLoginTime());
         } catch (Exception e) {
-            LOGGER.error(pwmSession,"unexpected error reading last login time for user '" + userDN + "', " + e.getMessage());
+            LOGGER.error(pwmSession,"unexpected error reading last login time for user '" + userIdentity + "', " + e.getMessage());
         }
 
         try {
             additionalUserInfo.setPwmIntruder(false);
-            pwmApplication.getIntruderManager().check(RecordType.USERNAME, uiBean.getUserID(), pwmSession);
-            pwmApplication.getIntruderManager().check(RecordType.USER_DN, uiBean.getUserDN(), pwmSession);
+            pwmApplication.getIntruderManager().check(RecordType.USERNAME, uiBean.getUsername());
+            pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
         } catch (Exception e) {
             additionalUserInfo.setPwmIntruder(true);
         }
@@ -367,12 +373,12 @@ public class HelpdeskServlet extends TopServlet {
 
             additionalUserInfo.setUserHistory(pwmApplication.getAuditManager().readUserHistory(uiBean));
         } catch (Exception e) {
-            LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userDN + "', " + e.getMessage());
+            LOGGER.error(pwmSession,"unexpected error reading userHistory for user '" + userIdentity + "', " + e.getMessage());
         }
 
         {
             final Configuration config = pwmApplication.getConfig();
-            final UserDataReader userDataReader = new UserDataReader(theUser);
+            final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmSession, userIdentity);
             final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
             final Map<FormConfiguration,String> formData = new LinkedHashMap<FormConfiguration,String>();
             for (final FormConfiguration formConfiguration : detailFormConfig) {
@@ -412,25 +418,23 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
-        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUsername());
+        pwmApplication.getIntruderManager().convenience().clearUserIdentity(
+                helpdeskBean.getUserInfoBean().getUserIdentity());
 
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
-            final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
-            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
+            final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
+            final ChaiUser chaiUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
             chaiUser.unlock();
             {
                 // mark the event log
-                final UserAuditRecord auditRecord = new UserAuditRecord(
+                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_UNLOCK_PASSWORD,
-                        pwmSession.getUserInfoBean().getUserID(),
-                        pwmSession.getUserInfoBean().getUserDN(),
+                        pwmSession.getUserInfoBean().getUserIdentity(),
                         new Date(),
                         null,
-                        userID,
-                        chaiUser.getEntryDN(),
+                        userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
@@ -450,15 +454,22 @@ public class HelpdeskServlet extends TopServlet {
             final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
             final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error resetting password for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+            LOGGER.warn(pwmSession, "error resetting password for user '" + helpdeskBean.getUserInfoBean().getUserIdentity() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         }
 
         Helper.pause(1000); // delay before re-reading data
-        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
         this.forwardToDetailJSP(req, resp);
     }
 
-    private void processClearResponses(HttpServletRequest req, HttpServletResponse resp, PwmApplication pwmApplication, PwmSession pwmSession) throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
+    private void processClearResponses(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
 
@@ -479,28 +490,25 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
-        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUsername());
+        pwmApplication.getIntruderManager().convenience().clearUserIdentity(
+                helpdeskBean.getUserInfoBean().getUserIdentity());
 
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
-            final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
-            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
-            final String GUID = Helper.readLdapGuidValue(pwmApplication, userDN);
-            
+            final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
+            final ChaiUser chaiUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
+
             CrService service = pwmApplication.getCrService();
-            service.clearResponses(pwmSession, chaiUser, GUID);
+            service.clearResponses(pwmSession, chaiUser, helpdeskBean.getUserInfoBean().getUserGuid());
             {
                 // mark the event log
-                final UserAuditRecord auditRecord = new UserAuditRecord(
+                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                        pwmSession.getUserInfoBean().getUserID(),
-                        pwmSession.getUserInfoBean().getUserDN(),
+                        pwmSession.getUserInfoBean().getUserIdentity(),
                         new Date(),
                         null,
-                        userID,
-                        chaiUser.getEntryDN(),
+                        userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
@@ -510,21 +518,16 @@ public class HelpdeskServlet extends TopServlet {
             final PwmError returnMsg = e.getError();
             final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserIdentity() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while clearing responses: " + e.toString());
             throw e;
-        } catch (ChaiOperationException e) {
-            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
-            ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         }
 
         Helper.pause(1000); // delay before re-reading data
-        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
         this.forwardToDetailJSP(req, resp);
     }
 
@@ -549,28 +552,25 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUserID(), pwmSession);
-        pwmApplication.getIntruderManager().clear(RecordType.USER_DN, helpdeskBean.getUserInfoBean().getUserDN(), pwmSession);
+        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUsername());
+        pwmApplication.getIntruderManager().convenience().clearUserIdentity(
+                helpdeskBean.getUserInfoBean().getUserIdentity());
 
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
-            final String userDN = helpdeskBean.getUserInfoBean().getUserDN();
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, provider);
-            final String userID = Helper.readLdapUserIDValue(pwmApplication, chaiUser);
-            final String GUID = Helper.readLdapGuidValue(pwmApplication, userDN);
-            
+            final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
+            final ChaiUser chaiUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
+
             OtpService service = pwmApplication.getOtpService();
-            service.clearOTPUserConfiguration(chaiUser, GUID);
+            service.clearOTPUserConfiguration(chaiUser, helpdeskBean.getUserInfoBean().getUserGuid());
             {
                 // mark the event log
-                final UserAuditRecord auditRecord = new UserAuditRecord(
+                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                        pwmSession.getUserInfoBean().getUserID(),
-                        pwmSession.getUserInfoBean().getUserDN(),
+                        pwmSession.getUserInfoBean().getUserIdentity(),
                         new Date(),
                         null,
-                        userID,
-                        chaiUser.getEntryDN(),
+                        userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
@@ -580,21 +580,16 @@ public class HelpdeskServlet extends TopServlet {
             final PwmError returnMsg = e.getError();
             final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
             ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error clearing OTP secret for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
+            LOGGER.warn(pwmSession, "error clearing OTP secret for user '" + helpdeskBean.getUserInfoBean().getUserIdentity() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
             pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
             LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while clearing OTP secret: " + e.toString());
             throw e;
-        } catch (ChaiOperationException e) {
-            final PwmError returnMsg = PwmError.forChaiError(e.getErrorCode()) == null ? PwmError.ERROR_UNKNOWN : PwmError.forChaiError(e.getErrorCode());
-            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
-            ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error clearing OTP secret for user '" + helpdeskBean.getUserInfoBean().getUserDN() + "'' " + error.toDebugStr() + ", " + e.getMessage());
         }
 
         Helper.pause(1000); // delay before re-reading data
-        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserDN());
+        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
         this.forwardToDetailJSP(req, resp);
     }
     

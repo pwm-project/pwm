@@ -137,7 +137,7 @@ public class ConfigManagerServlet extends TopServlet {
             configManagerBean.setPasswordVerified(passed);
             if (passed) {
                 pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
-                pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME,null);
+                pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
                 return false;
             } else {
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
@@ -211,7 +211,7 @@ public class ConfigManagerServlet extends TopServlet {
                 return;
             }
 
-            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
+            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
             saveConfiguration(pwmSession, req.getSession().getServletContext(), storedConfiguration);
             final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
             configManagerBean.setConfiguration(null);

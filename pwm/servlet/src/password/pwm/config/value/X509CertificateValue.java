@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -31,6 +30,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -112,6 +112,13 @@ public class X509CertificateValue implements StoredValue {
             map.put("issuer",cert.getIssuerDN().toString());
             map.put("expireDate",cert.getNotAfter().toString());
             map.put("issueDate",cert.getNotBefore().toString());
+            try {
+                map.put("md5sum",Helper.checksum(new ByteArrayInputStream(cert.getEncoded()), "MD5"));
+            } catch (IOException e) {
+                LOGGER.warn("error generating md5 sum for certificate: " + e.getMessage());
+            } catch (CertificateEncodingException e) {
+                LOGGER.warn("error generating md5 sum for certificate: " + e.getMessage());
+            }
             list.add(map);
         }
         return Helper.getGson().toJson(list);

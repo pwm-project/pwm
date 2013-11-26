@@ -72,15 +72,6 @@ function initPwmPage() {
         getObject('button_cancel').style.visibility = 'visible';
     }
 
-    {
-        var filename = PWM_GLOBAL['url-resources'] + '/font/font-awesome.css';
-        var fileref = document.createElement("link");
-        fileref.setAttribute("rel", "stylesheet");
-        fileref.setAttribute("type", "text/css");
-        fileref.setAttribute("href", filename);
-        document.getElementsByTagName("head")[0].appendChild(fileref);
-    }
-
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){
             on(document, "beforeunload", function(){
@@ -1171,7 +1162,8 @@ function pwmFormValidator(validationProps, reentrant)
             url: serviceURL,
             postData: formDataString,
             headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            contentType: "application/json;charset=utf-8",
+            contentType: "a" +
+                "pplication/json;charset=utf-8",
             encoding: "utf-8",
             handleAs: "json",
             dataType: "json",

@@ -24,13 +24,14 @@ package password.pwm.ws.server;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
 
 import java.io.Serializable;
 
 public class RestRequestBean implements Serializable {
     private boolean authenticated;
     private boolean external;
-    private String userDN;
+    private UserIdentity userIdentity;
     private PwmSession pwmSession;
     private PwmApplication pwmApplication;
 
@@ -50,12 +51,12 @@ public class RestRequestBean implements Serializable {
         this.external = external;
     }
 
-    public String getUserDN() {
-        return userDN;
+    public UserIdentity getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setUserDN(String userDN) {
-        this.userDN = userDN;
+    public void setUserIdentity(UserIdentity userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
     public PwmSession getPwmSession() {

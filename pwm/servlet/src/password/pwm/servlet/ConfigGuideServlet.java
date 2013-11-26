@@ -23,10 +23,10 @@
 package password.pwm.servlet;
 
 import com.google.gson.reflect.TypeToken;
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.ConfigGuideBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.*;
@@ -40,7 +40,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.*;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestHealthServer;
 
@@ -255,7 +255,7 @@ public class ConfigGuideServlet extends TopServlet {
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration newStoredConfig = configGuideBean.getStoredConfiguration();
         LOGGER.trace("setting template to: " + requestedTemplate);
-        newStoredConfig.writeProperty(StoredConfiguration.PROPERTY_KEY_TEMPLATE, template.toString());
+        newStoredConfig.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
 
         newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,new StringValue(""));
         newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,new StringValue(""));
@@ -276,9 +276,10 @@ public class ConfigGuideServlet extends TopServlet {
         final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
+        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.DEFAULT_LDAP_PROFILE);
         switch (configGuideBean.getStep()) {
             case LDAP:
-                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,false));
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,ldapProfile,false));
                 if (records.isEmpty()) {
                     records.add(new HealthRecord(
                             HealthStatus.GOOD,
@@ -289,7 +290,7 @@ public class ConfigGuideServlet extends TopServlet {
                 break;
 
             case LDAP2:
-                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, true));
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, true));
                 if (records.isEmpty()) {
                     records.add(new HealthRecord(
                             HealthStatus.GOOD,
@@ -303,15 +304,15 @@ public class ConfigGuideServlet extends TopServlet {
                     final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
                     searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
                     try {
-                        final Map<ChaiUser,Map<String,String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfig, maxSearchSize, Collections.<String>emptyList());
+                        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfig, maxSearchSize, Collections.<String>emptyList());
                         if (results == null || results.isEmpty()) {
                             records.add(new HealthRecord(HealthStatus.WARN,"Admin Users","No admin users are defined with the current Administration Search Filter"));
                         } else {
                             final StringBuilder sb = new StringBuilder();
                             sb.append("<ul>");
-                            for (final ChaiUser user : results.keySet()) {
+                            for (final UserIdentity user : results.keySet()) {
                                 sb.append("<li>");
-                                sb.append(user.getEntryDN());
+                                sb.append(user.getUserDN());
                                 sb.append("</li>");
                             }
                             sb.append("</ul>");
@@ -329,8 +330,8 @@ public class ConfigGuideServlet extends TopServlet {
                 break;
 
             case LDAP3:
-                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, false));
-                records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, tempApplication));
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
+                records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, ldapProfile, tempApplication));
                 break;
         }
 
@@ -465,7 +466,7 @@ public class ConfigGuideServlet extends TopServlet {
         if (configPassword != null && configPassword.length() > 0) {
             storedConfiguration.setPassword(configPassword);
         } else {
-            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_PASSWORD_HASH,null);
+            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, null);
         }
 
         { // determine Cr Preference setting.
@@ -491,7 +492,7 @@ public class ConfigGuideServlet extends TopServlet {
             // add a random security key
             storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)));
 
-            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE,"true");
+            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication);
 
             contextManager.reinitialize();

@@ -45,7 +45,7 @@ import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -111,7 +111,7 @@ public class SetupResponsesServlet extends TopServlet {
         // check to see if the user has any challenges assigned
         if (setupResponsesBean.getResponseData().getChallengeSet() == null || setupResponsesBean.getResponseData().getChallengeSet().getChallenges().isEmpty()) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES));
-            LOGGER.debug(pwmSession, "no challenge sets configured for user " + uiBean.getUserDN());
+            LOGGER.debug(pwmSession, "no challenge sets configured for user " + uiBean.getUserIdentity());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
@@ -281,7 +281,7 @@ public class SetupResponsesServlet extends TopServlet {
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
         pwmApplication.getCrService().writeResponses(theUser, userGUID, responseInfoBean);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserDN(), uiBean.getUserCurrentPassword());
+        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserIdentity(), uiBean.getUserCurrentPassword());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);

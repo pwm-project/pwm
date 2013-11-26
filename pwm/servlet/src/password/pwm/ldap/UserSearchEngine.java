@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.operations;
+package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -31,17 +31,17 @@ import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
+import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
-import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.*;
 
@@ -109,32 +109,53 @@ public class UserSearchEngine {
         return sb.toString();
     }
 
-    public static String makeUserDetailKey(final String userDN, final PwmSession pwmSession) {
+    public UserIdentity resolveUsername(
+            final PwmSession pwmSession,
+            final String username,
+            final String context
+
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
         try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
-            return Helper.SimpleTextCrypto.encryptValue(userDN, secretKey, true);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error making user detail key: " + e.getMessage());
+            //check if username is a key
+            final UserIdentity inputIdentity = UserIdentity.fromKey(username, pwmApplication.getConfig());
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+
+            //see if we need to do a contextless search.
+            if (userSearchEngine.checkIfStringIsDN(inputIdentity.getUserDN())) {
+                if (PwmConstants.DEFAULT_LDAP_PROFILE.equals(inputIdentity.getLdapProfileID())) {
+                    return userSearchEngine.resolveUserDN(inputIdentity.getUserDN());
+                } else {
+                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(inputIdentity);
+                    if (theUser.isValid()) {
+                        final String canonicalDN;
+                        try {
+                            canonicalDN = theUser.readCanonicalDN();
+                        } catch (ChaiOperationException e) {
+                            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getMessage()));
+                        }
+                        return new UserIdentity(canonicalDN, inputIdentity.getLdapProfileID());
+                    }
+                }
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
+            } else {
+                final SearchConfiguration searchConfiguration = new SearchConfiguration();
+                searchConfiguration.setUsername(username);
+                searchConfiguration.setContexts(Collections.singletonList(context));
+                return userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+            }
+        } catch (PwmOperationalException e) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
         }
-        return "error";
     }
 
-    public static String decodeUserDetailKey(final String userKey, final PwmSession pwmSession) {
-        try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(pwmSession.getSessionStateBean().getSessionVerificationKey());
-            return Helper.SimpleTextCrypto.decryptValue(userKey, secretKey, true);
-        } catch (Exception e) {
-            LOGGER.error("unexpected error decoding user detail key: " + e.getMessage());
-        }
-        return "error";
-    }
-
-    public ChaiUser performSingleUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
+    public UserIdentity performSingleUserSearch(final PwmSession pwmSession, final SearchConfiguration searchConfiguration)
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final long startTime = System.currentTimeMillis();
-        final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
-        final List<ChaiUser> results = searchResults == null ? Collections.<ChaiUser>emptyList() : new ArrayList<ChaiUser>(searchResults.keySet());
+        final Map<UserIdentity,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
+        final List<UserIdentity> results = searchResults == null ? Collections.<UserIdentity>emptyList() : new ArrayList<UserIdentity>(searchResults.keySet());
         if (results.isEmpty()) {
             final String errorMessage;
             if (searchConfiguration.getUsername() != null && searchConfiguration.getUsername().length() > 0) {
@@ -144,10 +165,9 @@ public class UserSearchEngine {
             }
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,errorMessage));
         } else if (results.size() == 1) {
-            final ChaiUser theUser = results.get(0);
-            final String userDN = theUser.getEntryDN();
+            final String userDN = results.get(0).getUserDN();
             LOGGER.debug(pwmSession, "found userDN: " + userDN + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
-            return theUser;
+            return results.get(0);
         } else {
             final String errorMessage = "multiple user matches found";
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
@@ -162,17 +182,16 @@ public class UserSearchEngine {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
         final Map<String,String> attributeHeaderMap = UserSearchResults.fromFormConfiguration(formItem,pwmSession.getSessionStateBean().getLocale());
-        final Map<ChaiUser,Map<String,String>> searchResults = performMultiUserSearch(
+        final Map<UserIdentity,Map<String,String>> searchResults = performMultiUserSearch(
                 pwmSession,
                 searchConfiguration,
                 maxResults + 1,
                 attributeHeaderMap.keySet()
         );
         final boolean resultsExceeded = searchResults.size() > maxResults;
-        final Map<String,Map<String,String>> returnData = new LinkedHashMap<String, Map<String, String>>();
-        for (final ChaiUser loopUser : searchResults.keySet()) {
-            final String userDN = loopUser.getEntryDN();
-            returnData.put(userDN, searchResults.get(loopUser));
+        final Map<UserIdentity,Map<String,String>> returnData = new LinkedHashMap<UserIdentity, Map<String, String>>();
+        for (final UserIdentity loopUser : searchResults.keySet()) {
+            returnData.put(loopUser, searchResults.get(loopUser));
             if (returnData.size() >= maxResults) {
                 break;
             }
@@ -180,9 +199,31 @@ public class UserSearchEngine {
         return new UserSearchResults(attributeHeaderMap,returnData,resultsExceeded);
     }
 
-
-    public Map<ChaiUser,Map<String,String>> performMultiUserSearch(
+    public Map<UserIdentity,Map<String,String>> performMultiUserSearch(
             final PwmSession pwmSession,
+            final SearchConfiguration searchConfiguration,
+            final int maxResults,
+            final Collection<String> returnAttributes
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+    {
+        final Collection<LdapProfile> ldapProfiles;
+        if (searchConfiguration.getLdapProfiles() == null || searchConfiguration.getLdapProfiles().isEmpty()) {
+            ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
+        } else {
+            ldapProfiles = searchConfiguration.getLdapProfiles();
+        }
+        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
+        for (final LdapProfile ldapProfile : ldapProfiles) {
+            returnMap.putAll(performMultiUserSearchImpl(pwmSession, ldapProfile, searchConfiguration, maxResults - returnMap.size(), returnAttributes));
+        }
+        return returnMap;
+    }
+
+
+    protected Map<UserIdentity,Map<String,String>> performMultiUserSearchImpl(
+            final PwmSession pwmSession,
+            final LdapProfile ldapProfile,
             final SearchConfiguration searchConfiguration,
             final int maxResults,
             final Collection<String> returnAttributes
@@ -196,7 +237,7 @@ public class UserSearchEngine {
 
         final String input_searchFilter = searchConfiguration.getFilter() != null && searchConfiguration.getFilter().length() > 1 ?
                 searchConfiguration.getFilter() :
-                pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER);
+                ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_SEARCH_FILTER);
 
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {
@@ -226,19 +267,20 @@ public class UserSearchEngine {
                 }
             }
         } else {
-            searchContexts = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
+            searchContexts = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         }
 
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null ?
-                pwmApplication.getProxyChaiProvider() :
+                pwmApplication.getProxyChaiProvider(ldapProfile.getIdentifier()) :
                 searchConfiguration.getChaiProvider();
 
-        final Map<ChaiUser,Map<String,String>> returnMap;
-        returnMap = new HashMap<ChaiUser,Map<String, String>>();
+        final Map<UserIdentity,Map<String,String>> returnMap;
+        returnMap = new LinkedHashMap<UserIdentity,Map<String, String>>();
         for (final String loopContext : searchContexts) {
-            final Map<ChaiUser,Map<String,String>> singleContextResults;
+            final Map<UserIdentity,Map<String,String>> singleContextResults;
             try {
                 singleContextResults = doSingleContextSearch(
+                        ldapProfile,
                         pwmSession,
                         searchFilter,
                         loopContext,
@@ -259,7 +301,8 @@ public class UserSearchEngine {
         return returnMap;
     }
 
-    private Map<ChaiUser,Map<String,String>> doSingleContextSearch(
+    private Map<UserIdentity,Map<String,String>> doSingleContextSearch(
+            final LdapProfile ldapProfile,
             final PwmSession pwmSession,
             final String searchFilter,
             final String context,
@@ -286,11 +329,11 @@ public class UserSearchEngine {
 
         LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
 
-        final Map<ChaiUser,Map<String,String>> returnMap = new LinkedHashMap<ChaiUser, Map<String, String>>();
+        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
         for (final String userDN : results.keySet()) {
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN, chaiProvider);
+            final UserIdentity userIdentity = new UserIdentity(userDN, ldapProfile.getIdentifier());
             final Map<String,String> attributeMap = results.get(userDN);
-            returnMap.put(chaiUser, attributeMap);
+            returnMap.put(userIdentity, attributeMap);
         }
         return returnMap;
     }
@@ -313,6 +356,7 @@ public class UserSearchEngine {
     }
 
     public static class SearchConfiguration implements Serializable {
+        private Collection<LdapProfile> ldapProfiles;
         private String filter;
         private String username;
         private List<String> contexts;
@@ -383,9 +427,19 @@ public class UserSearchEngine {
                 throw new IllegalArgumentException("username OR formValues cannot both be supplied");
             }
         }
+
+        public Collection<LdapProfile> getLdapProfiles()
+        {
+            return ldapProfiles;
+        }
+
+        public void setLdapProfiles(Collection<LdapProfile> ldapProfiles)
+        {
+            this.ldapProfiles = ldapProfiles;
+        }
     }
 
-    public boolean checkIfStringIsDN(final PwmSession pwmSession, final String input) {
+    public boolean checkIfStringIsDN(final String input) {
         if (input == null || input.length() < 1) {
             return false;
         }
@@ -393,10 +447,10 @@ public class UserSearchEngine {
         //if supplied user name starts with username attr assume its the full dn and skip the search
         final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         if (input.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
-            LOGGER.trace(pwmSession, "username appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
+            LOGGER.trace("username '" + input + "' appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
             return true;
         } else {
-            LOGGER.trace(pwmSession, "username does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
+            LOGGER.trace("username '" + input + "' does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
         }
 
         return false;
@@ -404,10 +458,10 @@ public class UserSearchEngine {
 
     public static class UserSearchResults implements Serializable {
         private final Map<String,String> headerAttributeMap;
-        private final Map<String,Map<String,String>> results;
+        private final Map<UserIdentity,Map<String,String>> results;
         private boolean sizeExceeded;
 
-        public UserSearchResults(Map<String, String> headerAttributeMap, Map<String, Map<String, String>> results, boolean sizeExceeded) {
+        public UserSearchResults(Map<String, String> headerAttributeMap, Map<UserIdentity, Map<String, String>> results, boolean sizeExceeded) {
             this.headerAttributeMap = headerAttributeMap;
             this.results = results;
             this.sizeExceeded = sizeExceeded;
@@ -417,7 +471,7 @@ public class UserSearchEngine {
             return headerAttributeMap;
         }
 
-        public Map<String, Map<String, String>> getResults() {
+        public Map<UserIdentity, Map<String, String>> getResults() {
             return results;
         }
 
@@ -425,14 +479,16 @@ public class UserSearchEngine {
             return sizeExceeded;
         }
 
-        public List<Map<String,String>> resultsAsJsonOutput(final PwmSession pwmSession) {
+        public List<Map<String,String>> resultsAsJsonOutput(final PwmApplication pwmApplication)
+                throws PwmUnrecoverableException
+        {
             final List<Map<String,String>> outputList = new ArrayList<Map<String, String>>();
-            for (final String userDN : this.getResults().keySet()) {
+            for (final UserIdentity userIdentity : this.getResults().keySet()) {
                 final Map<String,String> rowMap = new LinkedHashMap<String, String>();
                 for (final String attribute : this.getHeaderAttributeMap().keySet()) {
-                    rowMap.put(attribute,this.getResults().get(userDN).get(attribute));
+                    rowMap.put(attribute,this.getResults().get(userIdentity).get(attribute));
                 }
-                rowMap.put("userKey",makeUserDetailKey(userDN,pwmSession));
+                rowMap.put("userKey",userIdentity.toObfuscatedKey(pwmApplication.getConfig()));
                 outputList.add(rowMap);
             }
             return outputList;
@@ -446,4 +502,22 @@ public class UserSearchEngine {
             return results;
         }
     }
+
+    public UserIdentity resolveUserDN(final String userDN) throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
+        final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
+        for (final LdapProfile ldapProfile : ldapProfiles) {
+            final ChaiProvider provider = pwmApplication.getProxyChaiProvider(ldapProfile.getIdentifier());
+            final ChaiUser user = ChaiFactory.createChaiUser(userDN, provider);
+            if (user.isValid()) {
+                try {
+                    return new UserIdentity(user.readCanonicalDN(), ldapProfile.getIdentifier());
+                } catch (ChaiOperationException e) {
+                    LOGGER.error("unexpected error reading canonical userDN for '" + userDN + "', error: " + e.getMessage());
+                }
+            }
+        }
+        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
+    }
+
+
 }

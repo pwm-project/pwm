@@ -33,7 +33,7 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -126,8 +126,8 @@ public class DisplayTag extends PwmAbstractTag {
             return EVAL_PAGE;
         }
         } catch (Exception e) {
-            LOGGER.debug("error while executing jsp display tag: " + e.getMessage());
-            throw new JspTagException(e.getMessage());
+            LOGGER.debug("error while executing jsp display tag: " + e.getMessage(),e);
+            throw new JspTagException(e.getMessage(),e);
         }
         return EVAL_PAGE;
     }

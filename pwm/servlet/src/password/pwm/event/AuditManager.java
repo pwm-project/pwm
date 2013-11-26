@@ -25,12 +25,14 @@ package password.pwm.event;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -56,6 +58,97 @@ public class AuditManager implements PwmService {
 
     public AuditManager() {
     }
+
+    public UserAuditRecord createUserAuditRecord(
+            final AuditEvent eventCode,
+            final UserIdentity perpetrator,
+            final Date timestamp,
+            final String message,
+            final UserIdentity target,
+            final String sourceAddress,
+            final String sourceHost
+    )
+    {
+        String perpUserDN = null, perpUserID = null, targetUserDN = null, targetUserID = null;
+        if (perpetrator != null) {
+            perpUserDN = perpetrator.toDeliminatedKey();
+            try {
+                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
+            } catch (Exception e) {
+                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
+            }
+        }
+        if (target != null) {
+            targetUserDN = target.toDeliminatedKey();
+            try {
+                targetUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,target);
+            } catch (Exception e) {
+                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
+            }
+        }
+
+        return new UserAuditRecord(eventCode, perpUserID, perpUserDN, timestamp, message, targetUserID, targetUserDN, sourceAddress, sourceHost);
+    }
+
+    public UserAuditRecord createUserAuditRecord(
+            final AuditEvent eventCode,
+            final UserIdentity perpetrator,
+            final PwmSession pwmSession
+    )
+    {
+        return createUserAuditRecord(
+                eventCode,
+                perpetrator,
+                pwmSession,
+                null
+        );
+    }
+
+    public UserAuditRecord createUserAuditRecord(
+            final AuditEvent eventCode,
+            final UserIdentity perpetrator,
+            final PwmSession pwmSession,
+            final String message
+    )
+    {
+        return createUserAuditRecord(
+                eventCode,
+                perpetrator,
+                new Date(),
+                message,
+                perpetrator,
+                pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null,
+                pwmSession != null ? pwmSession.getSessionStateBean().getSrcHostname() : null
+        );
+    }
+
+    public UserAuditRecord createUserAuditRecord(
+            final AuditEvent eventCode,
+            final UserInfoBean userInfoBean,
+            final PwmSession pwmSession
+    )
+    {
+        return createUserAuditRecord(
+                eventCode,
+                userInfoBean.getUserIdentity(),
+                new Date(),
+                null,
+                userInfoBean.getUserIdentity(),
+                pwmSession.getSessionStateBean().getSrcAddress(),
+                pwmSession.getSessionStateBean().getSrcHostname()
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public STATUS status() {
@@ -229,7 +322,7 @@ public class AuditManager implements PwmService {
 
         final StringBuilder body = new StringBuilder();
         final String jsonRecord = Helper.getGson().toJson(record);
-        final Map<String,String> mapRecord = Helper.getGson().fromJson(jsonRecord, new TypeToken <Map<String, String >>() {
+        final Map<String,Object> mapRecord = Helper.getGson().fromJson(jsonRecord, new TypeToken <Map<String, Object>>() {
         }.getType());
 
         for (final String key : mapRecord.keySet()) {
@@ -254,7 +347,7 @@ public class AuditManager implements PwmService {
     public void submit(final AuditEvent auditEvent, final UserInfoBean userInfoBean, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        final UserAuditRecord auditRecord = new UserAuditRecord(auditEvent, userInfoBean, pwmSession);
+        final UserAuditRecord auditRecord = createUserAuditRecord(auditEvent, userInfoBean, pwmSession);
         submit(auditRecord);
     }
 

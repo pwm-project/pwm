@@ -107,6 +107,7 @@ public abstract class PwmConstants {
     public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
 
+    public static final String DEFAULT_LDAP_PROFILE = "";
     public static final String TOKEN_KEY_PWD_CHG_DATE = "lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
@@ -175,6 +176,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configeditor.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "fragment/configeditor-settings.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "fragment/configeditor-localeBundle.jsp";
+    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_PROFILE = "fragment/configeditor-profiles.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager.jsp";
     public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";

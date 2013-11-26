@@ -33,8 +33,8 @@ public class ConfigEditorCookie implements Serializable {
     private EDIT_MODE editMode = EDIT_MODE.SETTINGS;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
     private PwmSetting.Category category = PwmSetting.Category.LDAP;
-    private PwmSetting.Group group = null;
     private boolean notesSeen;
+    private String profile = PwmConstants.DEFAULT_LDAP_PROFILE;
 
     public ConfigEditorCookie() {
     }
@@ -71,8 +71,6 @@ public class ConfigEditorCookie implements Serializable {
         this.category = category;
     }
 
-
-
     public PwmConstants.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
         return localeBundle;
     }
@@ -92,5 +90,16 @@ public class ConfigEditorCookie implements Serializable {
     public static enum EDIT_MODE {
         SETTINGS,
         LOCALEBUNDLE,
+        PROFILE,
+    }
+
+    public String getProfile()
+    {
+        return profile;
+    }
+
+    public void setProfile(String profile)
+    {
+        this.profile = profile;
     }
 }

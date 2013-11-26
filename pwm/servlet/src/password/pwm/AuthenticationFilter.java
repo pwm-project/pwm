@@ -29,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.i18n.Display;
 import password.pwm.util.*;
-import password.pwm.util.operations.UserAuthenticator;
+import password.pwm.ldap.UserAuthenticator;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -126,7 +126,7 @@ public class AuthenticationFilter implements Filter {
 
             // get the current user info for logging
             final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-            LOGGER.info(pwmSession, "user info for " + uiBean.getUserDN() + " does not match current basic auth header, un-authenticating user.");
+            LOGGER.info(pwmSession, "user info for " + uiBean.getUserIdentity() + " does not match current basic auth header, un-authenticating user.");
 
             // log out their user
             pwmSession.unauthenticateUser();
@@ -135,7 +135,7 @@ public class AuthenticationFilter implements Filter {
             ssBean = pwmSession.getSessionStateBean();
 
             // send en error to user.
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserDN() + "', session will be logged out"));
+            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserIdentity() + "', session will be logged out"));
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return;
         }

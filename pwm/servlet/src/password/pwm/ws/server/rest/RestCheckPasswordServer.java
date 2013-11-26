@@ -28,6 +28,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -36,7 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.operations.UserStatusHelper;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -132,6 +133,7 @@ public class RestCheckPasswordServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
+            servicePermissions.setHelpdeskPermitted(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -144,26 +146,25 @@ public class RestCheckPasswordServer {
         }
 
         try {
-            final String userDN;
+            final UserIdentity userDN;
             final UserInfoBean uiBean;
-            if (restRequestBean.getUserDN() != null && restRequestBean.getUserDN().length() > 0) { // check for another user
-                userDN = restRequestBean.getUserDN();
+            if (restRequestBean.getUserIdentity() != null) { // check for another user
+                userDN = restRequestBean.getUserIdentity();
                 uiBean = new UserInfoBean();
                 UserStatusHelper.populateUserInfoBean(
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
                         uiBean,
-                        restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,
                         null,
                         restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else { // self check
-                userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserDN();
+                userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
                 uiBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
 
-            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, jsonInput.password1, jsonInput.password2, uiBean);
+            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN.toDeliminatedKey(), jsonInput.password1, jsonInput.password2, uiBean);
 
             if (!restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);

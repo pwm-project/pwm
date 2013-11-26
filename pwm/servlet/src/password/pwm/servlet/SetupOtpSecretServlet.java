@@ -87,7 +87,7 @@ public class SetupOtpSecretServlet extends TopServlet {
 
         // check to see if the user is permitted to setup OTP
         if (!Permission.checkPermission(Permission.SETUP_OTP_SECRET, pwmSession, pwmApplication)) {
-            LOGGER.error(String.format("User %s does not have permission to setup an OTP secret", uiBean.getUserID()));
+            LOGGER.error(String.format("User %s does not have permission to setup an OTP secret", uiBean.getUsername()));
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -122,13 +122,13 @@ public class SetupOtpSecretServlet extends TopServlet {
         // check to see if the user has an OTP configuration
         if (otpBean.getOtp() != null && !otpBean.isCleared()) {
             if (!"clearOtp".equals(actionParam)) {
-                LOGGER.info(String.format("Existing configuration found for %s", uiBean.getUserID()));
+                LOGGER.info(String.format("Existing configuration found for %s", uiBean.getUsername()));
                 forwardToSetupExistingJSP(req, resp);
                 return;
             }
         }
         if (otpBean.getOtp() == null) {
-            LOGGER.info(String.format("No existing configuration found for %s; generating new OTP secret", uiBean.getUserID()));
+            LOGGER.info(String.format("No existing configuration found for %s; generating new OTP secret", uiBean.getUsername()));
             initializeBean(pwmSession, pwmApplication, otpBean, true);
         }
         try {
@@ -259,7 +259,7 @@ public class SetupOtpSecretServlet extends TopServlet {
                 if (otpBean.getOtp() == null && newOtp) { // setup OTP
                     LOGGER.info("Setting up new OTP secret.");
                     UserInfoBean uibean = pwmSession.getUserInfoBean();
-                    String user = uibean.getUserID();
+                    String user = uibean.getUsername();
                     String hostname;
                     try {
                         URL url = new URL(pwmApplication.getSiteURL());

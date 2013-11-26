@@ -26,9 +26,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
-import password.pwm.config.PasswordStatus;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -234,7 +235,7 @@ public class CommandServlet extends TopServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
 
-        final String userDN = uiBean.getUserDN();
+        final UserIdentity userIdentity = uiBean.getUserIdentity();
 
         if (pwmSession == null) {
             return false;
@@ -245,18 +246,18 @@ public class CommandServlet extends TopServlet {
         }
 
         if (!Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
-            LOGGER.info(pwmSession, "checkProfiles: " + userDN + " is not eligible for checkProfile due to query match");
+            LOGGER.info(pwmSession, "checkProfiles: " + userIdentity.toString() + " is not eligible for checkProfile due to query match");
             return false;
         }
 
         final String checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
 
         if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
-            if (Helper.testUserMatchQueryString(pwmApplication.getProxyChaiProvider(), userDN, checkProfileQueryMatch)) {
-                LOGGER.info(pwmSession, "checkProfiles: " + userDN + " matches 'checkProfiles query match', update profile will be required by user");
+            if (Helper.testUserMatchQueryString(pwmApplication.getProxiedChaiUser(userIdentity), checkProfileQueryMatch)) {
+                LOGGER.info(pwmSession, "checkProfiles: " + userIdentity.toString() + " matches 'checkProfiles query match', update profile will be required by user");
                 return true;
             } else {
-                LOGGER.info(pwmSession, "checkProfiles: " + userDN + " does not match 'checkProfiles query match', update profile not required by user");
+                LOGGER.info(pwmSession, "checkProfiles: " + userIdentity.toString() + " does not match 'checkProfiles query match', update profile not required by user");
                 return false;
             }
         } else {
@@ -275,10 +276,10 @@ public class CommandServlet extends TopServlet {
 
             try {
                 Validator.validateParmValuesMeetRequirements(formValues, pwmSession.getSessionStateBean().getLocale());
-                LOGGER.debug(pwmSession, "checkProfile: " + userDN + " has value for attributes, update profile will not be required");
+                LOGGER.debug(pwmSession, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required");
                 return false;
             } catch (PwmDataValidationException e) {
-                LOGGER.debug(pwmSession, "checkProfile: " + userDN + " does not have good attributes (" + e.getMessage() + "), update profile will br required");
+                LOGGER.debug(pwmSession, "checkProfile: " + userIdentity + " does not have good attributes (" + e.getMessage() + "), update profile will br required");
                 return true;
             }
         }

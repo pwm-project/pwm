@@ -188,8 +188,8 @@ public class RestAppDataServer {
                 rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
                 rowData.put("idle", TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString());
                 rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
-                rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserDN() : "");
-                rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUserID() : "");
+                rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().toDeliminatedKey() : "");
+                rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
                 rowData.put("srcAddress", loopSsBean.getSrcAddress());
                 rowData.put("srcHost", loopSsBean.getSrcHostname());
                 rowData.put("lastUrl", loopSsBean.getLastRequestURL());

@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.error.ErrorInformation;
@@ -73,8 +74,9 @@ public class PwmLogger {
             final PwmLogLevel minimumDbLogLevel,
             final PwmApplication pwmApplication
     ) {
+        final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
         try {
-            PwmLogger.localDBLogger = new LocalDBLogger(pwmDB, maxEvents, maxAgeMS);
+            PwmLogger.localDBLogger = new LocalDBLogger(pwmDB, maxEvents, maxAgeMS, devDebugMode);
         } catch (LocalDBException e) {
             //nothing to do;
         }
@@ -153,7 +155,7 @@ public class PwmLogger {
     private static String makeActorString(final PwmSession pwmSession) {
         if (pwmSession != null) {
             if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                final String userDN = pwmSession.getUserInfoBean().getUserDN();
+                final String userDN = pwmSession.getUserInfoBean().getUserIdentity().getUserDN();
                 if (userDN != null && userDN.length() > 0) {
                     return userDN;
                 }

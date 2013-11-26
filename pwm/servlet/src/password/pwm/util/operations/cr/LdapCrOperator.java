@@ -30,6 +30,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -50,7 +51,7 @@ public class LdapCrOperator implements CrOperator {
     public void close() {
     }
 
-    public ResponseSet readResponseSet(final ChaiUser theUser, final String userGuid)
+    public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGuid)
             throws PwmUnrecoverableException
     {
         try {
@@ -62,11 +63,11 @@ public class LdapCrOperator implements CrOperator {
         return null;
     }
 
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, String userGUID)
+    public ResponseInfoBean readResponseInfo(ChaiUser theUser, final UserIdentity userIdentity, String userGUID)
             throws PwmUnrecoverableException
     {
         try {
-            final ResponseSet responseSet = readResponseSet(theUser,userGUID);
+            final ResponseSet responseSet = readResponseSet(theUser, userIdentity, userGUID);
             return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet);
         } catch (ChaiException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info " + e.getMessage()));

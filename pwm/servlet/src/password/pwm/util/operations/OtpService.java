@@ -29,7 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.CrStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.otp.AbstractOtpOperator;
@@ -90,7 +90,7 @@ public class OtpService implements PwmService {
         if (otpSecretStorageLocations != null) {
             final String userGUID;
             if (otpSecretStorageLocations.contains(CrStorageMethod.DB) || otpSecretStorageLocations.contains(CrStorageMethod.LOCALDB)) {
-                userGUID = Helper.readLdapGuidValue(pwmApplication, theUser.getEntryDN());
+                userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication,theUser);
             } else {
                 userGUID = null;
             }
@@ -117,11 +117,9 @@ public class OtpService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
-            final Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
-            while (locationIterator.hasNext()) {
+            for (CrStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
-                final CrStorageMethod location = locationIterator.next();
-                final OtpOperator operator = operatorMap.get(location);
+                final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
                     try {
                         operator.writeOtpUserConfiguration(theUser, userGUID, otp);
@@ -130,13 +128,13 @@ public class OtpService implements PwmService {
                         LOGGER.error(ex.getMessage(), ex);
                     }
                 } else {
-                    LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
+                    LOGGER.warn(String.format("Storage location %s not implemented", otpSecretStorageLocation.toString()));
                 }
             }
         }
 
         if (attempts == 0) {
-            final String errorMsg = "no OTP secreat save methods are available or configured";
+            final String errorMsg = "no OTP secret save methods are available or configured";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }

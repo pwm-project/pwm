@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.servlet.ChangePasswordBean;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
@@ -260,7 +261,7 @@ public class ChangePasswordServlet extends TopServlet {
 
             if (!passed) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
-                pwmApplication.getIntruderManager().mark(RecordType.USER_DN,pwmSession.getUserInfoBean().getUserDN(), pwmSession);
+                pwmApplication.getIntruderManager().convenience().markUserIdentity(pwmSession.getUserInfoBean().getUserIdentity(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
                 forwardToFormJSP(req, resp);
                 return;
@@ -279,7 +280,7 @@ public class ChangePasswordServlet extends TopServlet {
             cpb.setFormPassed(true);
         } catch (PwmOperationalException e) {
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            pwmApplication.getIntruderManager().mark(RecordType.USER_DN,pwmSession.getUserInfoBean().getUserDN(),pwmSession);
+            pwmApplication.getIntruderManager().convenience().markUserIdentity(pwmSession.getUserInfoBean().getUserIdentity(), pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
             forwardToFormJSP(req, resp);
@@ -465,7 +466,7 @@ public class ChangePasswordServlet extends TopServlet {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_CHANGEPASSWORD, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "skipping change password email for '" + pwmSession.getUserInfoBean().getUserDN() + "' no email configured");
+            LOGGER.debug(pwmSession, "skipping change password email for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no email configured");
             return;
         }
 

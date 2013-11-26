@@ -153,8 +153,8 @@ public class ResourceFileServlet extends HttpServlet {
         try {
             pwmApplication = ContextManager.getPwmApplication(request);
         } catch (PwmUnrecoverableException e) {
-            LOGGER.warn("error reading pwm session/application: " + e.getMessage());
-            response.sendError(500,"error reading pwm session/application: " + e.getMessage());
+            LOGGER.warn("error reading application: " + e.getMessage());
+            response.sendError(500,"error reading application: " + e.getMessage());
             return;
         }
 
@@ -168,7 +168,7 @@ public class ResourceFileServlet extends HttpServlet {
             LOGGER.error("unexpected error detecting/handling special request uri: " + e.getMessage());
         }
 
-        final FileResource file = resolveRequestedFile(requestURI, request, zipResources);
+        final FileResource file = resolveRequestedFile(this.getServletContext(), requestURI, request, zipResources);
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -410,14 +410,13 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static FileResource resolveRequestedFile(
+            final ServletContext servletContext,
             final String requestURI,
             final HttpServletRequest request,
             final Map<String,ZipFile> zipResources
     )
             throws UnsupportedEncodingException
     {
-        final ServletContext servletContext = request.getSession().getServletContext();
-
         // Get requested file by path info.
         final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
 

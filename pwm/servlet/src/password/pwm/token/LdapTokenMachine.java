@@ -1,17 +1,17 @@
 package password.pwm.token;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,11 +56,12 @@ class LdapTokenMachine implements TokenMachine {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
             searchConfiguration.setFilter(searchFilter);
-            final ChaiUser user = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
+            final UserIdentity user = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
             if (user == null) {
                 return null;
             }
-            final String tokenAttributeValue = user.readStringAttribute(tokenAttribute);
+            final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, user);
+            final String tokenAttributeValue = userDataReader.readStringAttribute(tokenAttribute);
             if (tokenAttribute != null && tokenAttributeValue.length() > 0) {
                 final String splitString[] = tokenAttributeValue.split(KEY_VALUE_DELIMITER);
                 if (splitString.length != 2) {
@@ -90,8 +91,8 @@ class LdapTokenMachine implements TokenMachine {
             final String md5sumToken = TokenService.makeTokenHash(tokenKey);
             final String encodedTokenPayload = tokenService.toEncryptedString(tokenPayload);
 
-            final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-            final ChaiUser chaiUser = ChaiFactory.createChaiUser(tokenPayload.getDN(), chaiProvider);
+            final UserIdentity userIdentity = tokenPayload.getUserIdentity();
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
             chaiUser.writeStringAttribute(tokenAttribute, md5sumToken + KEY_VALUE_DELIMITER + encodedTokenPayload);
         } catch (ChaiException e) {
             final String errorMsg = "unexpected ldap error saving token: " + e.getMessage();
@@ -105,10 +106,9 @@ class LdapTokenMachine implements TokenMachine {
     {
         final TokenPayload payload = retrieveToken(tokenKey);
         if (payload != null) {
-            final String userDN = payload.getDN();
+            final UserIdentity userIdentity = payload.getUserIdentity();
             try {
-                final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider();
-                final ChaiUser chaiUser = ChaiFactory.createChaiUser(userDN,chaiProvider);
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
                 chaiUser.deleteAttribute(tokenAttribute, null);
             } catch (ChaiException e) {
                 final String errorMsg = "unexpected ldap error removing token: " + e.getMessage();

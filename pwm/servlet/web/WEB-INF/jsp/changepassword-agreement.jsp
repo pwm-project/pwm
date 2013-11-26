@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.config.PasswordStatus" %>
+<%@ page import="password.pwm.bean.PasswordStatus" %>
 <%--
 ~ Password Management Servlets (PWM)
 ~ http://code.google.com/p/pwm/

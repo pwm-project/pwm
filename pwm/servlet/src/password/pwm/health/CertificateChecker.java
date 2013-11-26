@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.error.ErrorInformation;
@@ -50,15 +51,22 @@ public class CertificateChecker implements HealthChecker {
         final List<HealthRecord> returnList = new ArrayList<HealthRecord>();
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
-                returnList.addAll(doHealthCheck(configuration,setting));
+                if (setting != PwmSetting.LDAP_SERVER_CERTS) {
+                    final X509Certificate[] certs = configuration.readSettingAsCertificate(setting);
+                    returnList.addAll(doHealthCheck(configuration,setting,certs));
+                }
             }
+        }
+        for (final LdapProfile ldapProfile : configuration.getLdapProfiles().values()) {
+           final X509Certificate[] certificates = configuration.getLdapProfiles().get(ldapProfile.getIdentifier()).readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
+            returnList.addAll(doHealthCheck(configuration,PwmSetting.LDAP_SERVER_CERTS,certificates));
         }
         return Collections.unmodifiableList(returnList);
     }
 
-    private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting) {
+    private static List<HealthRecord> doHealthCheck(Configuration configuration, PwmSetting setting, X509Certificate[] certificates) {
         final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
-        final X509Certificate[] certificates = configuration.readSettingAsCertificate(setting);
+
         if (certificates != null) {
             final List<HealthRecord> returnList = new ArrayList<HealthRecord>();
             for (final X509Certificate certificate : certificates) {

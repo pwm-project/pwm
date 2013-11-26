@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.bean.PwmSessionBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 
 import java.util.List;
@@ -37,7 +38,7 @@ import password.pwm.util.otp.OTPUserConfiguration;
 public class ForgottenPasswordBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
-    private transient ChaiUser proxiedUser;
+    private transient UserIdentity proxiedUser;
     private transient ResponseSet responseSet;
     private transient OTPUserConfiguration otpConfig;
     private ChallengeSet challengeSet;
@@ -72,6 +73,10 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         this.challengeSet = challengeSet;
     }
 
+    public UserIdentity getUserIdentity() {
+        return proxiedUser;
+    }
+
     public OTPUserConfiguration getOtpConfig() {
         return otpConfig;
     }
@@ -88,11 +93,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         this.otpSatisfied = otpSatisfied;
     }
 
-    public ChaiUser getProxiedUser() {
-        return proxiedUser;
-    }
-
-    public void setProxiedUser(final ChaiUser proxiedUser) {
+    public void setUserIdentity(final UserIdentity proxiedUser) {
         this.proxiedUser = proxiedUser;
     }
 

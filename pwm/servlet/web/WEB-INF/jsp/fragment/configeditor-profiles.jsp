@@ -22,8 +22,6 @@
 
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.config.StoredConfiguration" %>
-<%@ page import="password.pwm.util.ServletHelper" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
@@ -44,6 +42,48 @@
 </div>
 <% } %>
 <br/>
+<% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
+<% cookie.setProfile(""); %>
+<div style="width: 100%; padding-bottom: 10px">
+    <a onclick="preferences['editMode'] = 'SETTINGS'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">Back to Editing</a>
+</div>
+<% request.setAttribute("setting",cookie.getCategory().getProfileSetting()); %>
+<% request.setAttribute("showDescription",true); %>
+<jsp:include page="configeditor-setting.jsp"/>
+<% } else { %>
+<% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
+<div style="width: 100%; padding-bottom: 10px">
+    <div style="float:left;display:inline-block; width:300px">
+        Current Profile:
+        <select id="profileSelect" data-dojo-type="dijit/form/Select">
+            <option onclick="gotoProfile('')">Default</option>
+            <% for (final String profile : profiles) { if (profile.length() > 0) { %>
+            <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> onclick="gotoProfile('<%=profile%>')"><%=profile%></option>
+            <% } } %>
+        </select>
+    </div>
+    <div style="text-align: right">
+        <a onclick="preferences['editMode'] = 'PROFILE'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">Define Profiles</a>
+    </div>
+</div>
+<script>
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        /*
+        require(["dojo/parser","dijit/form/Select"],function(parser,Select){
+            parser.parse('profileSelect');
+            parser.parse();
+            //new Select({},'profileSelect');
+        });
+        */
+    });
+    function gotoProfile(profile) {
+        showWaitDialog(null,null,function(){
+            preferences['profile'] = profile;
+            setConfigEditorCookie();
+            loadMainPageBody();
+        });
+    }
+</script>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>
 <% request.setAttribute("setting",loopSetting); %>
 <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
@@ -85,5 +125,6 @@
     });
     <% } %>
 </script>
+<% } %>
 <% } %>
 

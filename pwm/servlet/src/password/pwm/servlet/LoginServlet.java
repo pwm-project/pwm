@@ -25,6 +25,7 @@ package password.pwm.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -32,7 +33,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.operations.UserAuthenticator;
+import password.pwm.ldap.UserAuthenticator;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -86,8 +87,8 @@ public class
 
             try {
                 if (passwordOnly) {
-                    final String userDN = pwmSession.getUserInfoBean().getUserDN();
-                    UserAuthenticator.authenticateUser(userDN, password, null, pwmSession,pwmApplication, req.isSecure());
+                    final UserIdentity userIdentity = pwmSession.getUserInfoBean().getUserIdentity();
+                    UserAuthenticator.authenticateUser(userIdentity, password, pwmSession,pwmApplication, req.isSecure());
                 } else {
                     UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
                 }

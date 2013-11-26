@@ -12,21 +12,31 @@ http://code.google.com/p/pwm
 
 v1.7.1
 ---
-+ Functionality/option to store intruder table in DB
-+ Functionality/option to store user history in DB
-+ Intruder tracking for form values
-+ Intruder tracking for token send destinations
++ Functionality/option to store intruder table in Database
++ Functionality/option to store user event history in Database
++ Intruder tracking for form input values and token send destinations
 + Show/Hide password fields button replaced with eye hide/close icon on all pages
-+ Ajaxified all admin section tables
++ "Ajaxified" all admin section tables
 + Added support for BCRYPT, SCRYPT, SHA-256, SHA-512, PBKDF2 and MD5 stored responses
-+ Added AppProperties to allow configurable overrides for some former constant values
++ Option for helpdesk functionality to always use application proxy user
 + Send email on intruder detection to user or admin
 + Send email on system or user audit events
-- Removed "ADDB" template, replaced with extra Guide option to select responses
++ Support for multiple ldap profiles across all functionality
++ Added system audit module and events for startup, shutdown, configChange and fatal events
++ Added user audit events for helpdesk actions, token issued and token consumed events
++ Replaced most constant "hardcoded" values in application as configurable AppProperty values.
++ Updated change password UI with icon-based password guide and random password options.
++ Improved show/hide password option with per-password-field
++ Added ability to set email TO address per email, using macros, allowing for flexible per-email email user attribute configuration
 
+- Removed "ADDB" template, replaced with extra Guide option to select responses
+- Refactored and formalized rest security model
 - fixed issue with slash character in DNs (issue #416)
 - cancel button sometimes triggered with enter key on forms (issue #507)
 - Separated ConfigEditor from ConfigManager implementation and user interface
+- Improved several ldap error handling scenarios and error message reporting
+- Refactored configuration module to support profile categories
+- Enabled localDB compression to support lengthy emails and other localdb-size constrained features
 
 ! fixed issue where SHA1 responses where hashed only once regardless of iteration count setting
 

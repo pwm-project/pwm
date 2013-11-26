@@ -135,6 +135,9 @@ table td.key {
     height: 18px;
 }
 
+/* disable ie password reveal */
+input[type=password]::-ms-reveal{display: none;}
+
 .tokenInput {
     height: 130px;
     width: 80%;

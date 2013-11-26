@@ -30,7 +30,6 @@ import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.localdb.LocalDBCompressor;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 
@@ -61,6 +60,8 @@ public class LocalDBLogger implements PwmService {
 
     private final int setting_maxEvents;
     private final long setting_maxAgeMs;
+    private final long setting_maxDirtyQueueAgeMs = PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS;
+    private final boolean setting_devDebug;
 
     private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
@@ -70,15 +71,16 @@ public class LocalDBLogger implements PwmService {
     private volatile boolean writerThreadActive = false;
     private boolean hasShownReadError = false;
 
-    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(349, 2049, 3, PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
+    private final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(2049, 5, PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public LocalDBLogger(final LocalDB localDB, final int maxEvents, final long maxAgeMS)
+    public LocalDBLogger(final LocalDB localDB, final int maxEvents, final long maxAgeMS, final boolean devDebug)
             throws LocalDBException {
         final long startTime = System.currentTimeMillis();
         status = STATUS.OPENING;
         this.localDB = localDB;
+        this.setting_devDebug = devDebug;
         this.setting_maxAgeMs = maxAgeMS;
         this.localDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
@@ -144,8 +146,9 @@ public class LocalDBLogger implements PwmService {
 
         { // wait for the writer to die.
             final long startTime = System.currentTimeMillis();
-            while (writerThreadActive && (System.currentTimeMillis() - startTime) < 60 * 1000) {
-                Helper.pause(100);
+            while (writerThreadActive && TimeDuration.fromCurrent(startTime).isShorterThan(60 * 1000)) {
+                Helper.pause(1000);
+                LOGGER.debug("waiting for writer thread to close...");
             }
 
             if (writerThreadActive) {
@@ -155,7 +158,7 @@ public class LocalDBLogger implements PwmService {
 
         if (!writerThreadActive) { // try to close the queue
             final long startTime = System.currentTimeMillis();
-            while (!eventQueue.isEmpty() && (System.currentTimeMillis() - startTime) < 30 * 1000) {
+            while (!eventQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(30 * 1000)) {
                 flushQueue();
             }
         }
@@ -165,10 +168,6 @@ public class LocalDBLogger implements PwmService {
         }
 
         LOGGER.debug("LocalDBLogger close completed (" + debugStats() + ")");
-    }
-
-    public int getTransactionSize() {
-        return transactionCalculator.getTransactionSize();
     }
 
     private int flushQueue() {
@@ -189,7 +188,7 @@ public class LocalDBLogger implements PwmService {
         return tempList.size();
     }
 
-    private synchronized void doWrite(final Collection<PwmLogEvent> events) {
+    private void doWrite(final Collection<PwmLogEvent> events) {
         final List<String> transactions = new ArrayList<String>();
         try {
             for (final PwmLogEvent event : events) {
@@ -410,7 +409,7 @@ public class LocalDBLogger implements PwmService {
     }
 
 
-    public synchronized void writeEvent(final PwmLogEvent event) {
+    public void writeEvent(final PwmLogEvent event) {
         if (status == STATUS.OPEN) {
             if (setting_maxEvents > 0) {
                 boolean success = eventQueue.offer(event);
@@ -444,32 +443,37 @@ public class LocalDBLogger implements PwmService {
 
         private void loop() throws LocalDBException {
             LOGGER.debug("starting writer thread loop");
-            long lastFlushTime = System.currentTimeMillis();
 
-            int workDone = 0;
             while (status == STATUS.OPEN) {
                 long startLoopTime = System.currentTimeMillis();
-                if (TimeDuration.fromCurrent(lastFlushTime).isLongerThan(PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS) || workDone == -1) {
-                    workDone = flushQueue();
-                    lastFlushTime = System.currentTimeMillis();
-                }
+                final int writesDone = flushQueue();
 
                 final int purgeCount = determineTailRemovalCount();
+                int purgesDone = 0;
                 if (purgeCount > 0) {
-                    final int removalCount = purgeCount > transactionCalculator.getTransactionSize() + 1 ? transactionCalculator.getTransactionSize() + 1 : purgeCount;
+                    int removalCount = purgeCount > transactionCalculator.getTransactionSize() + 1 ? transactionCalculator.getTransactionSize() + 1 : purgeCount;
                     localDBListQueue.removeLast(removalCount);
                     tailTimestampMs = readTailTimestamp();
-                    workDone += removalCount;
+                    purgesDone = removalCount;
                 }
 
-                if (workDone > 0) {
-                    transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startLoopTime));
-                    //System.out.println("write tick count=" + workDone + ", " + TimeDuration.fromCurrent(startLoopTime).asCompactString());
-                    workDone = -1;
+                final int totalWork = writesDone + purgesDone;
+                if (totalWork == 0) {
+                    Helper.pause(setting_maxDirtyQueueAgeMs);
+                    if (setting_devDebug) {
+                        LOGGER.trace("no work on last cycle, sleeping for " + new TimeDuration(setting_maxDirtyQueueAgeMs).asCompactString() + " queue size=" + getPendingEventCount());
+                    }
+                } else if (totalWork < 5) {
+                    Helper.pause(setting_maxDirtyQueueAgeMs);
+                    if (setting_devDebug) {
+                        LOGGER.trace("minor work on last cycle, sleeping for " + new TimeDuration(setting_maxDirtyQueueAgeMs).asCompactString() + " queue size=" + getPendingEventCount());
+                    }
                 } else {
-                    Helper.pause(103);
-                    //System.out.println(" sleep tick count=" + workDone + ", " + TimeDuration.fromCurrent(startLoopTime).asCompactString());
-                    workDone = 0;
+                    final TimeDuration txnDuration = TimeDuration.fromCurrent(startLoopTime);
+                    transactionCalculator.recordLastTransactionDuration(txnDuration);
+                    if (setting_devDebug) {
+                        LOGGER.trace("tick writes=" + writesDone+ ", purges=" + purgesDone + ", queue=" + getPendingEventCount() + ", txnCalcSize=" + transactionCalculator.getTransactionSize() + ", txnDuration=" + txnDuration.getTotalMilliseconds());
+                    }
                 }
             }
             LOGGER.debug("exiting writer thread loop");
@@ -508,7 +512,7 @@ public class LocalDBLogger implements PwmService {
         final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
 
         if (status != STATUS.OPEN) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "LocalDBLogger", "PwmDBLogger is not open, status is " + status.toString()));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, "LocalDBLogger", "LocalDBLogger is not open, status is " + status.toString()));
             return healthRecords;
         }
 
@@ -527,6 +531,21 @@ public class LocalDBLogger implements PwmService {
     }
 
     public void init(PwmApplication pwmApplication) throws PwmException {
+    }
+
+
+    public String sizeToDebugString() {
+        final int storedEvents = this.getStoredEventCount();
+        final int maxEvents = setting_maxEvents;
+        final double percentFull = (double)storedEvents / (double)maxEvents * 100f;
+        final NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        numberFormat.setMinimumFractionDigits(3);
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.getStoredEventCount()).append(" / ").append(maxEvents);
+        sb.append(" (").append(numberFormat.format(percentFull)).append("%)");
+        return sb.toString();
     }
 }
 

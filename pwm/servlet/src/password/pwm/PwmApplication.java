@@ -24,14 +24,17 @@ package password.pwm;
 
 import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiConstant;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.log4j.*;
 import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -42,6 +45,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessor;
@@ -49,7 +53,7 @@ import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.operations.CrService;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.stats.Statistic;
@@ -109,7 +113,7 @@ public class PwmApplication {
 
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
-    private volatile ChaiProvider proxyChaiProvider;
+    private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<String, ChaiProvider>();
 
     private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
 
@@ -173,15 +177,33 @@ public class PwmApplication {
         return (IntruderManager)pwmServices.get(IntruderManager.class);
     }
 
-    public ChaiProvider getProxyChaiProvider()
-            throws PwmUnrecoverableException {
-        if (proxyChaiProvider == null) {
-            try {
-                proxyChaiProvider = openProxyChaiProvider(configuration, getStatisticsManager());
-            } catch (PwmUnrecoverableException e) {
-                setLastLdapFailure(e.getErrorInformation());
-                throw e;
-            }
+    public ChaiUser getProxiedChaiUser(final UserIdentity userIdentity)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final ChaiProvider proxiedProvider = getProxyChaiProvider(userIdentity.getLdapProfileID());
+        return ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxiedProvider);
+
+    }
+
+    public ChaiProvider getProxyChaiProvider(final String identifier)
+            throws PwmUnrecoverableException
+    {
+        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier == null ? "" : identifier);
+        if (proxyChaiProvider != null) {
+            return proxyChaiProvider;
+        }
+
+        final LdapProfile ldapProfile = getConfig().getLdapProfiles().get(identifier == null ? "" : identifier);
+        if (ldapProfile == null) {
+            throw new IllegalStateException("unknown ldap profile specified: " + identifier);
+        }
+
+        try {
+            final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(ldapProfile, configuration, getStatisticsManager());
+            proxyChaiProviders.put(identifier, newProvider);
+        } catch (PwmUnrecoverableException e) {
+            setLastLdapFailure(e.getErrorInformation());
+            throw e;
         }
         return proxyChaiProvider;
     }
@@ -200,36 +222,6 @@ public class PwmApplication {
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
         return Collections.unmodifiableList(pwmServices);
-    }
-
-    private static ChaiProvider openProxyChaiProvider(final Configuration config, final StatisticsManager statsMangager)
-            throws PwmUnrecoverableException
-    {
-        final StringBuilder debugLogText = new StringBuilder();
-        debugLogText.append("opening new ldap proxy connection");
-        LOGGER.trace(debugLogText.toString());
-
-        final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-        final String proxyPW = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-
-        try {
-            return Helper.createChaiProvider(config, proxyDN, proxyPW);
-        } catch (ChaiUnavailableException e) {
-            if (statsMangager != null) {
-                statsMangager.incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            }
-            final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append(" error connecting as proxy user: ");
-            final PwmError pwmError = PwmError.forChaiError(e.getErrorCode());
-            if (pwmError != null && pwmError != PwmError.ERROR_UNKNOWN) {
-                errorMsg.append(new ErrorInformation(pwmError,e.getMessage()).toDebugStr());
-            } else {
-                errorMsg.append(e.getMessage());
-            }
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg.toString());
-            LOGGER.fatal("check ldap proxy settings: " + errorInformation.toDebugStr());
-            throw new PwmUnrecoverableException(errorInformation);
-        }
     }
 
     public WordlistManager getWordlistManager() {
@@ -338,7 +330,7 @@ public class PwmApplication {
                     break;
 
                 default:
-                    LOGGER.trace("setting log level to TRACE because mode is not RUNNING.");
+                    LOGGER.trace("setting log level to TRACE because application mode is " + getApplicationMode());
                     break;
             }
         }
@@ -398,7 +390,7 @@ public class PwmApplication {
         // detect if config has been modified since previous startup
         try {
             final String previousHash = readAppAttribute(AppAttribute.CONFIG_HASH);
-            final String currentHash = configuration.readProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+            final String currentHash = configuration.readProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM);
             if (previousHash == null || !previousHash.equals(currentHash)) {
                 writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
                 LOGGER.warn("configuration has been modified since last startup");
@@ -424,6 +416,25 @@ public class PwmApplication {
             getAuditManager().submit(auditRecord);
         } catch (PwmException e) {
             LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
+        }
+
+        //
+        for (final String profile : configuration.getLdapProfiles().keySet()) {
+            Thread t = new Thread() {
+                @Override
+                public void run()
+                {
+                    try {
+                        getProxyChaiProvider(profile);
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error("error during ldap profile '" + profile + "' warmup: " + e.getMessage());
+                    }
+                }
+            };
+            t.setName(PwmConstants.PWM_APP_NAME + " - warmup thread for ldap profile " +
+                    (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profile) ? "default" : profile));
+            t.setDaemon(true);
+            t.start();
         }
     }
 
@@ -593,10 +604,9 @@ public class PwmApplication {
     }
 
     private void closeProxyChaiProvider() {
-        if (proxyChaiProvider != null) {
-            LOGGER.trace("closing ldap proxy connection");
-            final ChaiProvider existingProvider = proxyChaiProvider;
-            proxyChaiProvider = null;
+        LOGGER.trace("closing ldap proxy connections");
+        for (final String id : proxyChaiProviders.keySet()) {
+            final ChaiProvider existingProvider = proxyChaiProviders.get(id);
 
             try {
                 existingProvider.close();
@@ -604,6 +614,7 @@ public class PwmApplication {
                 LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
             }
         }
+        proxyChaiProviders.clear();
     }
 
 
@@ -740,7 +751,7 @@ public class PwmApplication {
             // initialize the localDB
             try {
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
-                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication);
+                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
@@ -749,7 +760,7 @@ public class PwmApplication {
 
         public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
             if (pwmApplication.getApplicationMode() == MODE.READ_ONLY) {
-                LOGGER.trace("skipping localDBLogger due to read-only mode");
+                LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
                 return;
             }
 

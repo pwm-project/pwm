@@ -24,10 +24,12 @@ package password.pwm.event;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessor;
@@ -37,7 +39,7 @@ import password.pwm.util.db.DatabaseTable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseUserHistory implements UserHistoryStore {
+class DatabaseUserHistory implements UserHistoryStore {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseUserHistory.class);
 
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
@@ -45,17 +47,17 @@ public class DatabaseUserHistory implements UserHistoryStore {
     final PwmApplication pwmApplication;
     final DatabaseAccessor databaseAccessor;
 
-    public DatabaseUserHistory(final PwmApplication pwmApplication) {
+    DatabaseUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;
         this.databaseAccessor = pwmApplication.getDatabaseAccessor();
     }
 
     @Override
     public void updateUserHistory(UserAuditRecord auditRecord) throws PwmUnrecoverableException {
-        final String targetUserDN = auditRecord.getTargetDN();
+        final UserIdentity targetUserDN = UserIdentity.fromDelimitedKey(auditRecord.getTargetDN());
         final String guid;
         try {
-            guid = Helper.readLdapGuidValue(pwmApplication, targetUserDN);
+            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, targetUserDN);
         } catch (ChaiUnavailableException e) {
             LOGGER.error("unable to read guid for user '" + targetUserDN + "', cannot update user history, error: " + e.getMessage());
             return;

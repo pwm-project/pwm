@@ -23,6 +23,7 @@
 package password.pwm.bean.servlet;
 
 import password.pwm.bean.PwmSessionBean;
+import password.pwm.bean.UserIdentity;
 
 import java.util.Date;
 
@@ -32,18 +33,18 @@ import java.util.Date;
 public class GuestRegistrationBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
-    private String updateUserDN;
+    private UserIdentity updateUserIdentity;
     private Date updateUserExpirationDate;
     private String menumode;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getUpdateUserDN() {
-        return updateUserDN;
+    public UserIdentity getUpdateUserIdentity() {
+        return updateUserIdentity;
     }
 
-    public void setUpdateUserDN(String updateUserDN) {
-        this.updateUserDN = updateUserDN;
+    public void setUpdateUserIdentity(UserIdentity updateUserIdentity) {
+        this.updateUserIdentity = updateUserIdentity;
     }
 
     public Date getUpdateUserExpirationDate() {

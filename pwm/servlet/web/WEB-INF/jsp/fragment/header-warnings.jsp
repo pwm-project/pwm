@@ -23,7 +23,9 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.health.HealthStatus" %>
+<%@ page import="java.util.Set" %>
 <% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && (pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) || PwmConstants.TRIAL_MODE; %>
+<% final Set<HealthRecord> healthRecords = pwmApplicationHeaderBody.getHealthMonitor().getHealthRecords(); %>
 <% if (showConfigHeader) { %>
 <div id="header-warning">
     <% final String configManagerUrl = request.getContextPath() + "/private/config/ConfigManager"; %>
@@ -32,6 +34,7 @@
     <% } else { %>
     <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
     <% } %>
+    <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
     <% for (HealthRecord healthRecord : pwmApplicationHeaderBody.getHealthMonitor().getHealthRecords()) { %>
     <% if (healthRecord.getStatus() == HealthStatus.WARN) { %>
     <div class="header-error">
@@ -39,6 +42,7 @@
             <%=healthRecord.getDetail(pwmSessionHeaderBody.getSessionStateBean().getLocale(),pwmApplicationHeaderBody.getConfig())%>
         </a>
     </div>
+    <% } %>
     <% } %>
     <% } %>
     <a href="#" id="header_hide_button" style="font-size: 75%" onclick="fadeOutHeader()"><pwm:Display key="Button_Hide"/></a>

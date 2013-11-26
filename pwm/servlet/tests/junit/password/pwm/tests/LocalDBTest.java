@@ -31,7 +31,7 @@ import password.pwm.util.localdb.LocalDBFactory;
 
 import java.io.File;
 
-public class PwmDBTest extends TestCase {
+public class LocalDBTest extends TestCase {
 
     private final LocalDB.DB TEST_DB = LocalDB.DB.TEMP;
     private LocalDB pwmDB;
@@ -41,7 +41,7 @@ public class PwmDBTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = LocalDBFactory.getInstance(fileLocation, false, null);
+        pwmDB = LocalDBFactory.getInstance(fileLocation, false, null, null);
         pwmDB.truncate(TEST_DB);
         Assert.assertEquals(0,pwmDB.size(TEST_DB));
     }

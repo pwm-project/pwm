@@ -136,7 +136,7 @@ public class ConfigurationReader {
             throw new PwmUnrecoverableException(errorInformation);
         }
 
-        final String configIsEditable = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_IS_EDITABLE);
+        final String configIsEditable = storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE);
         if (PwmConstants.TRIAL_MODE || (configIsEditable != null && configIsEditable.equalsIgnoreCase("true"))) {
             this.configMode = PwmApplication.MODE.CONFIGURATION;
         } else {
@@ -163,7 +163,7 @@ public class ConfigurationReader {
 
 
         { // increment the config epoch
-            String epochStrValue = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH);
+            String epochStrValue = storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH);
             try {
                 final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
                 epochStrValue = epochValue.add(BigInteger.ONE).toString();
@@ -171,7 +171,7 @@ public class ConfigurationReader {
                 LOGGER.error("error trying to parse previous config epoch property: " + e.getMessage());
                 epochStrValue = "0";
             }
-            storedConfiguration.writeProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
+            storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
         }
 
         if (backupDirectory != null && !backupDirectory.exists()) {
@@ -204,7 +204,7 @@ public class ConfigurationReader {
         }
 
         try {
-            final String storedChecksum = storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_SETTING_CHECKSUM);
+            final String storedChecksum = storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM);
             final String actualChecksum = storedConfiguration.settingChecksum();
             return !actualChecksum.equals(storedChecksum);
         } catch (Exception e) {
@@ -227,7 +227,7 @@ public class ConfigurationReader {
 
     public int getConfigurationEpoch() {
         try {
-            return Integer.parseInt(storedConfiguration.readConfigProperty(StoredConfiguration.PROPERTY_KEY_CONFIG_EPOCH));
+            return Integer.parseInt(storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH));
         } catch (Exception e) {
             return 0;
         }

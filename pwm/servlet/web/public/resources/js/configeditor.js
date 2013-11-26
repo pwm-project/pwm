@@ -65,6 +65,11 @@ function writeSetting(keyName, valueData) {
                 console.log('wrote data for setting ' + keyName);
                 var isDefault = data['isDefault'];
                 updateSettingDisplay(keyName, isDefault)
+                if (data['errorMessage']) {
+                    showError(data['errorMessage']);
+                } else {
+                    clearError();
+                }
             }
         });
     });
@@ -2004,19 +2009,21 @@ BooleanHandler.init = function(keyName) {
     var parentDiv = 'button_' + keyName;
     clearDivElements(parentDiv, true);
     require(["dijit/form/ToggleButton"],function(ToggleButton){
-        new ToggleButton({
+        var toggleButton = new ToggleButton({
             id: parentDiv,
             iconClass:'dijitCheckBoxIcon',
             disabled: true,
-            showLabel: PWM_STRINGS['Display_PleaseWait'],
-            onChange: function(){BooleanHandler.toggle(keyName,this);}
+            showLabel: PWM_STRINGS['Display_PleaseWait']
         },parentDiv);
         readSetting(keyName, function(resultValue) {
-            require(["dijit/registry"],function(registry){
+            require(["dijit/registry","dojo/on"],function(registry,on){
                 var toggleButtonWidget = registry.byId(parentDiv);
                 toggleButtonWidget.set('checked',resultValue);
                 toggleButtonWidget.set('disabled',false);
                 toggleButtonWidget.set('label','Enabled (True)');
+                on(toggleButton,"change",function(){
+                    BooleanHandler.toggle(keyName,toggleButton);
+                });
             });
         });
     });
@@ -2217,6 +2224,15 @@ function buildMenuBar() {
                             showMenu = (PWM_GLOBAL['selectedTemplate'] == 'AD');
                         }
 
+                        var allowMenuSelect = true;
+                        if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
+                            if (menuCategory['key'] != 'LDAP') {
+                               allowMenuSelect = true;
+
+                            }
+                        }
+
+
                         if (showMenu) {
                             if (preferences['editMode'] == 'SETTINGS' && menuCategory['key'] == preferences['category']) {
                                 settingInfo = {
@@ -2227,21 +2243,21 @@ function buildMenuBar() {
                                 settingInfo = {
                                     label: menuCategory['label'],
                                     onClick: function() {
-                                        if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION' && menuCategory['key'] != 'LDAP') {
-                                            var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
-                                            showDialog('Notice',message);
-                                        } else {
+                                        if (allowMenuSelect) {
                                             showWaitDialog(null,null,function(){
                                                 preferences['editMode'] = 'SETTINGS';
                                                 preferences['category'] = menuCategory['key'];
                                                 setConfigEditorCookie();
                                                 loadMainPageBody();
                                             });
+                                        } else {
+                                            var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
+                                            showDialog('Notice',message);
                                         }
                                     }
                                 };
                             }
-                            if (menuCategory['type'] == "SETTING") {
+                            if (menuCategory['type'] == "SETTING" || menuCategory['type'] == "PROFILE") {
                                 settingsMenu.addChild(new MenuItem(settingInfo));
                             } else {
                                 modulesMenu.addChild(new MenuItem(settingInfo));
@@ -2270,17 +2286,17 @@ function buildMenuBar() {
                                 label: localeMenu,
                                 onClick: function() {
                                     showWaitDialog(null,null,function(){
-                                        if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
-                                            var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
-                                            showDialog('Notice',message);
-                                        } else {
+                                        //if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
+                                        //    var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
+                                        //    showDialog('Notice',message);
+                                        //} else {
                                             showWaitDialog(null,null,function(){
                                                 preferences['editMode'] = 'LOCALEBUNDLE';
                                                 preferences['category'] = menuCategory['key'];
                                                 setConfigEditorCookie();
                                                 loadMainPageBody();
                                             });
-                                        }
+                                        //}
                                     });
                                 }
                             }));
@@ -2337,16 +2353,6 @@ function buildMenuBar() {
                             href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
                         });
                         theDialog.show();
-                    }
-                }));
-                viewMenu.addChild(new MenuSeparator());
-                viewMenu.addChild(new MenuItem({
-                    label: "Current Health",
-                    onClick: function() {
-                        showDialog('Health','<div id="healthBody" style="width: 600px"><div id="WaitDialogBlank"></div></div>');
-                        setTimeout(function(){
-                            showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
-                        },1000);
                     }
                 }));
                 topMenuBar.addChild(new PopupMenuBarItem({
@@ -2417,19 +2423,6 @@ function buildMenuBar() {
                     label: "Set Configuration Password",
                     onClick: function() {
                         setConfigurationPassword();
-                    }
-                }));
-                actionsMenu.addChild(new MenuSeparator());
-                actionsMenu.addChild(new MenuItem({
-                    label: "Import LDAP Server Certificates",
-                    onClick: function() {
-                        importLdapCertificates();
-                    }
-                }));
-                actionsMenu.addChild(new MenuItem({
-                    label: "Clear Imported LDAP Server Certificates",
-                    onClick: function() {
-                        clearLdapCertificates();
                     }
                 }));
                 actionsMenu.addChild(new MenuSeparator());
@@ -2606,4 +2599,56 @@ function handleResetClick(settingKey) {
         loadMainPageBody();
     });
 }
+
+function initConfigEditor() {
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        readConfigEditorCookie();
+        buildMenuBar();
+
+        var hasNotes = PWM_GLOBAL['configurationNotes'] && PWM_GLOBAL['configurationNotes'].length > 0;
+
+        if (hasNotes && preferences['notesSeen']) {
+            showPwmAlert(null,PWM_SETTINGS['display']['Warning_ShowNotes']);
+        }
+    });
+
+    initConfigPage();
+}
+
+function executeSettingFunction(setting, profile, name) {
+    var jsonSendData = {};
+    jsonSendData['setting'] = setting;
+    jsonSendData['profile'] = profile;
+    jsonSendData['function'] = name;
+
+    showWaitDialog(null,null,function(){
+        require(["dojo","dojo/json"],function(dojo,json){
+            dojo.xhrPost({
+                url:"ConfigEditor?processAction=executeSettingFunction&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                postData: json.stringify(jsonSendData),
+                headers: {"Accept":"application/json"},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
+                handleAs: "json",
+                dataType: "json",
+                preventCache: true,
+                load: function(data){
+                    closeWaitDialog();
+                    if (data['error']) {
+                        showDialog("Error",data['errorMessage'])
+                    } else {
+                        showDialog("Success",data['successMessage'],function(){
+                            loadMainPageBody();
+                        });
+                    }
+                },
+                error: function(errorObj) {
+                    closeWaitDialog();
+                    showError("error executing function: " + errorObj);
+                }
+            });
+        });
+    });
+}
+
 

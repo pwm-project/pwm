@@ -69,4 +69,5 @@
     </script>
     <script defer data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
+    <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%><pwm:url url='/public/resources/font/font-awesome.css'/>"/>
 </head>

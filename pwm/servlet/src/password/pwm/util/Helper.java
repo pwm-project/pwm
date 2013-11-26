@@ -23,14 +23,10 @@
 package password.pwm.util;
 
 import com.google.gson.*;
-import com.novell.ldapchai.ChaiConstant;
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.*;
-import com.novell.ldapchai.util.SearchHelper;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -39,10 +35,7 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import password.pwm.*;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.SmsItemBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -52,13 +45,12 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.intruder.RecordType;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.stats.Statistic;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
@@ -66,6 +58,8 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -91,251 +85,6 @@ public class
     private Helper() {
     }
 
-    public static ChaiProvider createChaiProvider(
-            final Configuration config,
-            final List<String> ldapURLs,
-            final String userDN,
-            final String userPassword
-    )
-            throws ChaiUnavailableException {
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
-        LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
-    }
-
-    public static ChaiProvider createChaiProvider(
-            final Configuration config,
-            final String userDN,
-            final String userPassword
-    )
-            throws ChaiUnavailableException
-    {
-        final List<String> ldapURLs = config.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
-        final ChaiConfiguration chaiConfig = createChaiConfiguration(config, ldapURLs, userDN, userPassword);
-        LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
-        return ChaiProviderFactory.createProvider(chaiConfig);
-    }
-
-    public static ChaiConfiguration createChaiConfiguration(
-            final Configuration config,
-            final List<String> ldapURLs,
-            final String userDN,
-            final String userPassword
-    )
-    {
-
-        final ChaiConfiguration chaiConfig = new ChaiConfiguration(ldapURLs, userDN, userPassword);
-
-        chaiConfig.setSetting(ChaiSetting.PROMISCUOUS_SSL, config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE));
-        chaiConfig.setSetting(ChaiSetting.EDIRECTORY_ENABLE_NMAS, Boolean.toString(config.readSettingAsBoolean(PwmSetting.EDIRECTORY_ENABLE_NMAS)));
-
-        chaiConfig.setSetting(ChaiSetting.CR_CHAI_STORAGE_ATTRIBUTE, config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE));
-        chaiConfig.setSetting(ChaiSetting.CR_ALLOW_DUPLICATE_RESPONSES, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_DUPLICATE_RESPONSES)));
-        chaiConfig.setSetting(ChaiSetting.CR_CASE_INSENSITIVE, Boolean.toString(config.readSettingAsBoolean(PwmSetting.CHALLENGE_CASE_INSENSITIVE)));
-        {
-            final String setting = config.readAppProperty(AppProperty.SECURITY_RESPONSES_HASH_ITERATIONS);
-            if (setting != null && setting.length() > 0) {
-                final int intValue = Integer.parseInt(setting);
-                chaiConfig.setSetting(ChaiSetting.CR_CHAI_SALT_COUNT, Integer.toString(intValue));
-            }
-        }
-
-        chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
-        final String storageMethodString = config.readSettingAsString(PwmSetting.CHALLENGE_STORAGE_HASHED);
-        try {
-            final Answer.FormatType formatType = Answer.FormatType.valueOf(storageMethodString);
-            chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, formatType.toString());
-        } catch (Exception e) {
-            LOGGER.error("unknown CR storage format type '" + storageMethodString + "' ");
-        }
-
-        final X509Certificate[] ldapServerCerts = config.readSettingAsCertificate(PwmSetting.LDAP_SERVER_CERTS);
-        if (ldapServerCerts != null && ldapServerCerts.length > 0) {
-            final X509TrustManager tm = new X509Utils.PwmTrustManager(ldapServerCerts);
-            chaiConfig.setTrustManager(new X509TrustManager[]{tm});
-        }
-
-        final String idleTimeoutMsString = config.readAppProperty(AppProperty.LDAP_CONNECTION_TIMEOUT);
-        chaiConfig.setSetting(ChaiSetting.LDAP_CONNECT_TIMEOUT,idleTimeoutMsString);
-
-        // set the watchdog idle timeout.
-        final int idleTimeoutMs = (int)config.readSettingAsLong(PwmSetting.LDAP_IDLE_TIMEOUT) * 1000;
-        if (idleTimeoutMs > 0) {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "true");
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_IDLE_TIMEOUT, idleTimeoutMsString);
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_CHECK_FREQUENCY, Long.toString(5 * 1000));
-        } else {
-            chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
-        }
-
-        // write out any configured values;
-        final List<String> rawValues = config.readSettingAsStringArray(PwmSetting.LDAP_CHAI_SETTINGS);
-        final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues, "=");
-        for (final String key : configuredSettings.keySet()) {
-            final ChaiSetting theSetting = ChaiSetting.forKey(key);
-            if (theSetting == null) {
-                LOGGER.error("ignoring unknown chai setting '" + key + "'");
-            } else {
-                chaiConfig.setSetting(theSetting, configuredSettings.get(key));
-            }
-        }
-
-        // set ldap referrals
-        chaiConfig.setSetting(ChaiSetting.LDAP_FOLLOW_REFERRALS,String.valueOf(config.readSettingAsBoolean(PwmSetting.LDAP_FOLLOW_REFERRALS)));
-
-        // enable wire trace;
-        if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
-            chaiConfig.setSetting(ChaiSetting.WIRETRACE_ENABLE, "true");
-        }
-
-        return chaiConfig;
-    }
-
-    public static String readLdapUserIDValue(
-            final PwmApplication pwmApplication,
-            final ChaiUser theUser
-    )
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        final String uIDattr = config.getUsernameAttribute();
-        return theUser.readStringAttribute(uIDattr);
-    }
-
-
-    public static String readLdapGuidValue(
-            final PwmApplication pwmApplication,
-            final String userDN
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-
-        final Configuration config = pwmApplication.getConfig();
-        final ChaiProvider proxyChaiProvider = pwmApplication.getProxyChaiProvider();
-        final String GUIDattributeName = config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
-        if ("DN".equalsIgnoreCase(GUIDattributeName)) {
-            return userDN;
-        }
-
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, proxyChaiProvider);
-        if ("VENDORGUID".equals(GUIDattributeName)) {
-            try {
-                final String guidValue = theUser.readGUID();
-                if (guidValue != null && guidValue.length() > 1) {
-                    LOGGER.trace("read VENDORGUID value for user " + userDN + ": " + guidValue);
-                } else {
-                    LOGGER.trace("unable to find a VENDORGUID value for user " + userDN);
-                }
-                return guidValue;
-            } catch (Exception e) {
-                LOGGER.warn("unexpected error while reading vendor GUID value for user " + userDN + ", error: " + e.getMessage());
-                return null;
-            }
-        }
-
-        try {
-            final String guidValue = theUser.readStringAttribute(GUIDattributeName);
-            if (guidValue != null && guidValue.length() > 0) {
-                return guidValue;
-            }
-
-            if (!config.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
-                LOGGER.warn("user " + userDN + " does not have a valid GUID");
-                return null;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.warn("unexpected error while reading attribute GUID value for user " + userDN + " from '" + GUIDattributeName + "', error: " + e.getMessage());
-            return null;
-        }
-
-        LOGGER.trace("assigning new GUID to user " + userDN);
-
-        final List<String> baseContexts = config.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
-        int attempts = 0;
-        while (attempts < 10) {
-            // generate a guid
-            final String newGUID;
-            {
-                final StringBuilder sb = new StringBuilder();
-                sb.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
-                while (sb.length() < 12) {
-                    sb.insert(0, "0");
-                }
-                sb.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
-                newGUID = sb.toString();
-            }
-
-
-            try {
-                // check if it is unique
-                final SearchHelper searchHelper = new SearchHelper(ChaiProvider.SEARCH_SCOPE.SUBTREE);
-                searchHelper.setFilter(GUIDattributeName, newGUID);
-                searchHelper.setMaxResults(1);
-                searchHelper.setAttributes(GUIDattributeName);
-                for (final String baseContext : baseContexts) {
-                    final Map<String, Map<String,String>> result = proxyChaiProvider.search(baseContext, searchHelper);
-                    if (result.isEmpty()) {
-                        try {
-                            // write it to the directory
-                            proxyChaiProvider.writeStringAttribute(userDN, GUIDattributeName, Collections.singleton(newGUID), false);
-                            LOGGER.info("added GUID value '" + newGUID + "' to user " + userDN);
-                            return newGUID;
-                        } catch (ChaiOperationException e) {
-                            LOGGER.warn("error writing GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userDN);
-                            return null;
-                        }
-                    }
-                }
-            } catch (ChaiOperationException e) {
-                LOGGER.warn("unexpected error while searching GUID attribute " + GUIDattributeName + " for uniqueness: " + e.getMessage() + ", cannot write GUID value to user " + userDN);
-            }
-            attempts++;
-        }
-        return null;
-    }
-
-    /**
-     * Append auxClasses    configured in the PWM configuration to the ldap user object.
-     *
-     * @param userDN     userDN userDN of the user to add to
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *          if the ldap server is unavailable
-     */
-    public static void addConfiguredUserObjectClass(
-            final String userDN,
-            final PwmApplication pwmApplication
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        final Set<String> newObjClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
-        if (newObjClasses.isEmpty()) {
-            return;
-        }
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-        addUserObjectClass(theUser, newObjClasses);
-    }
-
-    private static void addUserObjectClass(final ChaiUser theUser, final Set<String> newObjClasses)
-            throws ChaiUnavailableException {
-        String auxClass = null;
-        try {
-            final Set<String> existingObjClasses = theUser.readMultiStringAttribute(ChaiConstant.ATTR_LDAP_OBJECTCLASS);
-            newObjClasses.removeAll(existingObjClasses);
-
-            for (final String newObjClass : newObjClasses) {
-                auxClass = newObjClass;
-                theUser.addAttribute(ChaiConstant.ATTR_LDAP_OBJECTCLASS, auxClass);
-                LOGGER.info("added objectclass '" + auxClass + "' to user " + theUser.getEntryDN());
-            }
-        } catch (ChaiOperationException e) {
-            final StringBuilder errorMsg = new StringBuilder();
-
-            errorMsg.append("error adding objectclass '").append(auxClass).append("' to user ");
-            errorMsg.append(theUser.getEntryDN());
-            errorMsg.append(": ");
-            errorMsg.append(e.toString());
-
-            LOGGER.error(errorMsg.toString());
-        }
-    }
 
     public static String md5sum(final String input)
             throws IOException {
@@ -508,13 +257,12 @@ public class
     }
 
     public static boolean testUserMatchQueryString(
-            final ChaiProvider provider,
-            final String objectDN,
+            final ChaiUser theUser,
             final String queryString
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        if (objectDN == null || objectDN.length() < 1) {
-            return true;
+        if (theUser == null) {
+            return false;
         }
 
         if (queryString == null || queryString.length() < 1) {
@@ -522,6 +270,8 @@ public class
         }
 
         try {
+            final ChaiProvider provider = theUser.getChaiProvider();
+            final String objectDN = theUser.getEntryDN();
             final Map<String, Map<String,String>> results = provider.search(objectDN, queryString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.SUBTREE);
 
             if (results == null || results.size() != 1) {
@@ -1059,8 +809,10 @@ public class
     public static int figureLdapConnectionCount(final PwmApplication pwmApplication, final ContextManager contextManager) {
         int counter = 0;
         try {
-            if (pwmApplication.getProxyChaiProvider().isConnected()) {
-                counter++;
+            for (final String identifer : pwmApplication.getConfig().getLdapProfiles().keySet()) {
+                if (pwmApplication.getProxyChaiProvider(identifer).isConnected()) {
+                    counter++;
+                }
             }
 
             for (final PwmSession loopSession : contextManager.getPwmSessions()) {
@@ -1208,15 +960,53 @@ public class
         if (gsonBuilder == null) {
             gsonBuilder = new GsonBuilder();
         }
-        return gsonBuilder.registerTypeAdapter(Date.class, new DateTypeAdapter()).create();
+        return gsonBuilder
+                .registerTypeAdapter(Date.class, new DateTypeAdapter())
+                .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
+                .create();
     }
 
     public static Gson getGson() {
         return GSON_SINGLETON;
     }
 
-    private static Gson GSON_SINGLETON = new GsonBuilder().registerTypeAdapter(Date.class, new DateTypeAdapter()).create();
+    private static Gson GSON_SINGLETON = new GsonBuilder()
+            .registerTypeAdapter(Date.class, new DateTypeAdapter())
+            .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
+            .create();
 
+    /**
+     * Gson Serializer for {@link X509Certificate}.  Neccessary because sometimes X509Certs have circular refecences
+     * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
+     * the cert is used as the json format.
+     */
+    private static class X509CertificateAdapter implements JsonSerializer<X509Certificate>, JsonDeserializer<X509Certificate> {
+        private X509CertificateAdapter() {
+        }
+
+        public synchronized JsonElement serialize(X509Certificate cert, Type type, JsonSerializationContext jsonSerializationContext) {
+            try {
+                return new JsonPrimitive(Base64Util.encodeBytes(cert.getEncoded()));
+            } catch (CertificateEncodingException e) {
+                throw new IllegalStateException("unable to json-encode certificate: " + e.getMessage());
+            }
+        }
+
+        public X509Certificate deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
+                throws JsonParseException
+        {
+            try {
+                final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                return (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(Base64Util.decode(jsonElement.getAsString())));
+            } catch (Exception e) {
+                throw new JsonParseException("unable to parse x509certificate: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * GsonSerializer that stores dates in ISO 8601 format, with a deserialier that also reads local-platform format reading.
+     */
     private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
         private static final DateFormat isoDateFormat;
         private static final DateFormat gsonDateFormat;

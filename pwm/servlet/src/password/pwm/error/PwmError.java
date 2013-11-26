@@ -153,6 +153,7 @@ public enum PwmError {
     ERROR_INTRUDER_ATTR_SEARCH("Error_AttrIntruder", 5067, true),
     ERROR_AUDIT_WRITE("Error_AuditWrite", 5068, false),
     ERROR_INTRUDER_LDAP("Error_LdapIntruder", 5069, true, ChaiError.INTRUDER_LOCKOUT),
+    ERROR_NO_LDAP_CONNECTION("Error_NoLdapConnection", 5070, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.LinkedHashMap;
@@ -37,17 +38,17 @@ public interface CrOperator {
     /**
     Read a response set suitable for use in forgotten password scenarios
      */
-    public ResponseSet readResponseSet(final ChaiUser theUser, final String userGUID)
+    public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException;
 
     /**
-     * Read a response info bean suitable for examing the user's stored response data, but not for use during forgotten password.
+     * Read a response info bean suitable for examining the user's stored response data, but not for use during forgotten password.
      * @param theUser
      * @param userGUID
      * @return
      * @throws PwmUnrecoverableException
      */
-    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final String userGUID)
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException;
 
     public void clearResponses(final ChaiUser theUser, final String userGUID)

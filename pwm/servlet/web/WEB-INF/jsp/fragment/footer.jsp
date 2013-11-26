@@ -50,7 +50,7 @@
         </span>
         <div>
             <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
-            <%= pwmSessionFooter.getUserInfoBean().getUserID()%>
+            <%= pwmSessionFooter.getUserInfoBean().getUsername()%>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
             <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE))) { %>

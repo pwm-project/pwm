@@ -22,17 +22,16 @@
 
 package password.pwm.util;
 
-import com.google.gson.Gson;
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserStatusCacheBean;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.csv.CsvWriter;
-import password.pwm.util.operations.UserSearchEngine;
+import password.pwm.ldap.UserSearchEngine;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,20 +47,19 @@ public class UserReport {
         this.pwmApplication = pwmApplication;
     }
 
-    private List<ChaiUser> generateListOfUsers(final int maxResults)
+    private List<UserIdentity> generateListOfUsers(final int maxResults)
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setChaiProvider(pwmApplication.getProxyChaiProvider());
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setUsername("*");
 
         LOGGER.debug("beginning UserReport user search using parameters: " + (Helper.getGson()).toJson(searchConfiguration));
 
-        final Map<ChaiUser,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, maxResults, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, maxResults, Collections.<String>emptyList());
         LOGGER.debug("UserReport user search found " + searchResults.size() + " users for reporting");
-        return new ArrayList<ChaiUser>(searchResults.keySet());
+        return new ArrayList<UserIdentity>(searchResults.keySet());
     }
 
 
@@ -71,8 +69,9 @@ public class UserReport {
 
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<String>();
-            headerRow.add("UserID");
             headerRow.add("UserDN");
+            headerRow.add("Username");
+            headerRow.add("Email");
             headerRow.add("UserGuid");
             headerRow.add("Password Expiration Time");
             headerRow.add("Password Change Time");
@@ -86,12 +85,14 @@ public class UserReport {
         }
 
         final Iterator<UserStatusCacheBean> cacheBeanIterator = pwmApplication.getUserStatusCacheManager().iterator();
-        while (cacheBeanIterator.hasNext()) {
+        int records = 0;
+        while (cacheBeanIterator.hasNext() && records < maxResults) {
             final UserStatusCacheBean userStatusCacheBean = cacheBeanIterator.next();
             final List<String> csvRow = new ArrayList<String>();
 
-            csvRow.add(userStatusCacheBean.getUserID());
-            csvRow.add(userStatusCacheBean.getUserDN());
+            csvRow.add(userStatusCacheBean.getUserIdentity().toDeliminatedKey());
+            csvRow.add(userStatusCacheBean.getUsername());
+            csvRow.add(userStatusCacheBean.getEmail());
             csvRow.add(userStatusCacheBean.getUserGUID());
             csvRow.add(userStatusCacheBean.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userStatusCacheBean.getPasswordExpirationTime()));
             csvRow.add(userStatusCacheBean.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userStatusCacheBean.getPasswordChangeTime()));
@@ -103,6 +104,7 @@ public class UserReport {
             csvRow.add(Boolean.toString(userStatusCacheBean.getPasswordStatus().isWarnPeriod()));
 
             csvWriter.writeRecord(csvRow.toArray(new String[csvRow.size()]));
+            records++;
         }
 
         csvWriter.flush();

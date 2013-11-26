@@ -29,7 +29,7 @@ import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.File;
 
-public class PwmDBStoredQueueTest extends TestCase {
+public class LocalDBStoredQueueTest extends TestCase {
 
     private static final int SIZE = 5;
 
@@ -42,7 +42,7 @@ public class PwmDBStoredQueueTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = LocalDBFactory.getInstance(fileLocation, false, null);
+        pwmDB = LocalDBFactory.getInstance(fileLocation, false, null, null);
         storedQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.TEMP);
     }
 

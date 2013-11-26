@@ -351,6 +351,14 @@
         <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  Macros can be used within the action and will be expanded based on the loged in user.]]></description>
         <default />
     </setting>
+    <setting key="ldap.profile.list" level="0" hidden="true">
+        <label>LDAP Directory Profiles</label>
+        <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>Authentication will search the Default profile first, then any other profiles in the order shown here.]]></description>
+        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+    </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
         <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because you have manually added the public key certificate from the tree to the Java keystore or the certificate is imported into the setting <i>LDAP Server Certificates</i>.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Do not use a load-balancing device for LDAP high availability, instead use the built in LDAP server fail-over functionality.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
@@ -366,6 +374,9 @@
         <label>LDAP Certificates</label>
         <description><![CDATA[LDAP Server Certificates.  These certificates have are stored in the configuration file and used to validate the identity of your LDAP server.]]></description>
         <default/>
+        <options>
+            <option value="certificateImportFunction">password.pwm.config.function.LdapCertImportFunction</option>
+        </options>
     </setting>
     <setting key="ldap.proxy.username" level="0" required="true">
         <label>LDAP Proxy User</label>
@@ -414,7 +425,7 @@
             <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
         </default>
     </setting>
-    <setting key="ldap.usernameSearchFilter" level="1" required="true">
+    <setting key="ldap.usernameSearchFilter" level="0" required="true">
         <label>Username Search Filter</label>
         <description><![CDATA[Used to for contextless login and other functions to find users in ldap using usernames.  The value <i>%USERNAME%</i> is replaced with the actual username value.]]></description>
         <default>
@@ -487,7 +498,7 @@
     </setting>
     <setting key="ldap.username.attr" level="1">
         <label>Attribute to use for Username</label>
-        <description><![CDATA[If blank, the LDAP Naming Attribute will be used.  This configuration option allows screens that display the "Username" of a user to show something other then the LDAP Naming Attribute if appropriate.]]></description>
+        <description><![CDATA[If blank, the LDAP Naming Attribute will be used.  This option allows fields that display or store the <i>Username</i> or <i>UserID</i> of a user to show something other then the LDAP Naming Attribute if appropriate.  It is desirable that this value be unique for this system.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value />
@@ -521,6 +532,13 @@
         <regex>^[a-zA-Z0-9.-]*$</regex>
         <default>
             <value />
+        </default>
+    </setting>
+    <setting key="email.smtp.port" level="0">
+        <label>SMTP Email Server Port</label>
+        <description><![CDATA[Port Number for SMTP server]]></description>
+        <default>
+            <value>25</value>
         </default>
     </setting>
     <setting key="email.smtp.username" level="1">
@@ -651,7 +669,7 @@
     </setting>
     <setting key="sms.queueMaxAge" level="1" required="true">
         <label>Maximum SMS Queue Age</label>
-        <description><![CDATA[Maximum age (in seconds) an sms can wait in the send queue.  If an sms is in the send queue longer than this time, it will be discarded.  SMS messages only persist in the send queue if there is an IO or network error to the sms gateway server while sending the message.]]></description>
+        <description><![CDATA[Maximum age (in seconds) an sms can wait in the local send queue.  If an sms is in the send queue longer than this time, it will be discarded.  SMS messages only persist in the send queue if there is an IO or network error to the sms gateway server while sending the message.]]></description>
         <default>
             <value>300</value>
         </default>
@@ -2676,6 +2694,13 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="helpdesk.useProxy" level="1">
+        <label>User Proxy Connection</label>
+        <description><![CDATA[Use the application proxy connection for all actions initiated in the helpdesk module.  When disabled, actions are initiated using the logged in user's ldap connection, requiring that the user have appropriate privileges in the ldap directory.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="pwmDb.location" level="1" required="true">
         <label>LocalDB Location</label>
         <description><![CDATA[Location of the LocalDB directory. If the specified path is relative, the path will be considered relative to the servlet's <i>WEB-INF</i> directory.]]></description>
@@ -2720,6 +2745,13 @@
         <description><![CDATA[Database column type for value columns.  The column type is used only during schema creation.  All tables are two columns, a key and a value column.  For most databases the standard TEXT column format is appropriate for the value column.  Data stored in the value column will generally be UTF-8 formatted XML, json or other text-based value data.]]></description>
         <default>
             <value>TEXT</value>
+        </default>
+    </setting>
+    <setting key="db.debugTrace.enable" level="1" required="true">
+        <label>Database Trace Logging</label>
+        <description><![CDATA[When enabled, database read/write activity and data is logged to the TRACE debug output.  Warning!  Enabling this option can cause security-sensitive information to be sent to the debug output, including passwords.]]></description>
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <setting key="externalChangeMethod" level="0">
@@ -2809,7 +2841,11 @@
         <default />
     </setting>
     <category key="LDAP">
-        <label>LDAP Directory</label>
+        <label>LDAP Directories</label>
+        <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
+    </category>
+    <category key="LDAP_GLOBAL">
+        <label>LDAP Settings</label>
         <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="GENERAL">

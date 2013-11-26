@@ -87,7 +87,7 @@
                     UserDN
                 </td>
                 <td>
-                    <%= tokenPayload.getDN() %>
+                    <%= tokenPayload.getUserIdentity() %>
                 </td>
             </tr>
             <tr>

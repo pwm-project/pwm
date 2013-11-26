@@ -57,6 +57,7 @@ public class ConfigurationChecker implements HealthChecker {
 
         final Configuration config = pwmApplication.getConfig();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
+        /*
 
         if (config.readSettingAsBoolean(PwmSetting.HIDE_CONFIGURATION_HEALTH_WARNINGS)) {
             return records;
@@ -184,7 +185,7 @@ public class ConfigurationChecker implements HealthChecker {
                 records.addAll(healthRecords);
             }
         }
-
+*/
         return records;
     }
 

@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.GuestRegistrationBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
@@ -41,6 +42,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.*;
 import password.pwm.util.operations.*;
 import password.pwm.util.stats.Statistic;
@@ -65,8 +69,10 @@ public class GuestRegistrationServlet extends TopServlet {
 
     protected void processRequest(
             final HttpServletRequest req,
-            final HttpServletResponse resp) throws ServletException, 
-            	ChaiUnavailableException, IOException, PwmUnrecoverableException {
+            final HttpServletResponse resp
+    )
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
@@ -115,7 +121,9 @@ public class GuestRegistrationServlet extends TopServlet {
     protected void handleUpdateRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
-    ) throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
+    )
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
         //Fetch the session state bean.
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -136,16 +144,15 @@ public class GuestRegistrationServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
             //read current values from user.
-            final ChaiUser theGuest = ChaiFactory.createChaiUser(guBean.getUpdateUserDN(), pwmSession.getSessionManager().getChaiProvider());
+            final ChaiUser theGuest = pwmSession.getSessionManager().getActor(guBean.getUpdateUserIdentity());
 
             // check unique fields against ldap
             Validator.validateAttributeUniqueness(
                     pwmApplication,
-                    pwmApplication.getProxyChaiProvider(),
                     formValues,
                     ssBean.getLocale(),
                     pwmSession.getSessionManager(),
-                    Collections.singletonList(guBean.getUpdateUserDN())
+                    Collections.singletonList(guBean.getUpdateUserIdentity())
             );
 
             final Date expirationDate = readExpirationFromRequest(pwmSession, req);
@@ -161,15 +168,15 @@ public class GuestRegistrationServlet extends TopServlet {
             // send email.
             final UserInfoBean guestUserInfoBean = new UserInfoBean();
             UserStatusHelper.populateUserInfoBean(
+                    pwmApplication,
                     pwmSession,
                     guestUserInfoBean,
-                    pwmApplication,
                     pwmSession.getSessionStateBean().getLocale(),
-                    theGuest.getEntryDN(),
+                    guBean.getUpdateUserIdentity(),
                     null,
                     theGuest.getChaiProvider()
             );
-            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, theGuest, guestUserInfoBean);
+            this.sendUpdateGuestEmailConfirmation(pwmSession, pwmApplication, guestUserInfoBean);
 
             //everything good so forward to confirmation page.
             ssBean.setSessionSuccess(Message.SUCCESS_UPDATE_GUEST, null);
@@ -191,7 +198,6 @@ public class GuestRegistrationServlet extends TopServlet {
     private void sendUpdateGuestEmailConfirmation(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
-            final ChaiUser theGuest,
             final UserInfoBean guestUserInfoBean
     )
             throws PwmUnrecoverableException
@@ -205,7 +211,7 @@ public class GuestRegistrationServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, null);
     }
 
     protected void handleSearchRequest(
@@ -235,7 +241,7 @@ public class GuestRegistrationServlet extends TopServlet {
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
 
         try {
-            final ChaiUser theGuest = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             final FormMap formProps = pwmSession.getSessionStateBean().getLastParameterValues();
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
@@ -245,11 +251,12 @@ public class GuestRegistrationServlet extends TopServlet {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
-                final Map<String,String> userAttrValues = theGuest.readStringAttributes(involvedAttrs);
+                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmSession,theGuest);
+                final Map<String,String> userAttrValues = userDataReader.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
                     if (origAdminDn != null && origAdminDn.length() > 0) {
-                        if (!pwmSession.getUserInfoBean().getUserDN().equalsIgnoreCase(origAdminDn)) {
+                        if (!pwmSession.getUserInfoBean().getUserIdentity().getUserDN().equalsIgnoreCase(origAdminDn)) {
                             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_ORIG_ADMIN_ONLY);
                             ssBean.setSessionError(info);
                             LOGGER.warn(pwmSession, info);
@@ -259,7 +266,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 }
                 final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
                 if (expirationAttribute != null && expirationAttribute.length() > 0) {
-                    final Date expiration = theGuest.readDateAttribute(expirationAttribute);
+                    final Date expiration = userDataReader.readDateAttribute(expirationAttribute);
                     if (expiration != null) {
                         guBean.setUpdateUserExpirationDate(expiration);
                     }
@@ -273,7 +280,7 @@ public class GuestRegistrationServlet extends TopServlet {
                     }
                 }
 
-                guBean.setUpdateUserDN(theGuest.getEntryDN());
+                guBean.setUpdateUserIdentity(theGuest);
 
                 this.forwardToUpdateJSP(req, resp);
                 return;
@@ -329,7 +336,7 @@ public class GuestRegistrationServlet extends TopServlet {
             }
 
             // Write creator DN
-            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserDN());
+            createAttributes.put(config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE), pwmSession.getUserInfoBean().getUserIdentity().getUserDN());
 
             // read the creation object classes.
             final Set<String> createObjectClasses = new HashSet<String>(config.readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
@@ -338,6 +345,7 @@ public class GuestRegistrationServlet extends TopServlet {
             LOGGER.info(pwmSession, "created user object: " + guestUserDN);
 
             final ChaiUser theUser = ChaiFactory.createChaiUser(guestUserDN, provider);
+            final UserIdentity userIdentity = new UserIdentity(guestUserDN, pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
 
             // write the expiration date:
             if (expirationDate != null) {
@@ -350,11 +358,10 @@ public class GuestRegistrationServlet extends TopServlet {
             theUser.setPassword(newPassword);
             final UserInfoBean guestUserInfoBean = new UserInfoBean();
             UserStatusHelper.populateUserInfoBean(
-                    pwmSession,
+                    pwmApplication, pwmSession,
                     guestUserInfoBean,
-                    pwmApplication,
                     pwmSession.getSessionStateBean().getLocale(),
-                    theUser.getEntryDN(),
+                    userIdentity,
                     newPassword,
                     theUser.getChaiProvider()
             );
@@ -366,7 +373,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
                 settings.setUserInfoBean(guestUserInfoBean);
-                settings.setUser(theUser);
+                settings.setChaiUser(theUser);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                 actionExecutor.executeActions(actions, settings, pwmSession);
             }
@@ -461,11 +468,11 @@ public class GuestRegistrationServlet extends TopServlet {
         final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_GUEST, locale);
 
         if (configuredEmailSetting == null) {
-            LOGGER.debug(pwmSession, "unable to send guest registration email for '" + userInfoBean.getUserDN() + "' no email configured");
+            LOGGER.debug(pwmSession, "unable to send guest registration email for '" + userInfoBean.getUserIdentity() + "' no email configured");
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, new UserDataReader(theGuest));
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, null);
     }
 
     private void forwardToJSP(
@@ -511,7 +518,6 @@ public class GuestRegistrationServlet extends TopServlet {
             }
         }
     }
-
 }
 
 

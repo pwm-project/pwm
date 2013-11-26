@@ -23,6 +23,7 @@
 package password.pwm.util.db;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -31,7 +32,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.DataStore;
@@ -63,6 +63,7 @@ public class DatabaseAccessor implements PwmService {
     private DBConfiguration dbConfiguration;
     private Driver driver;
     private String instanceID;
+    private boolean traceLogging;
     private volatile Connection connection;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
     private ErrorInformation lastError;
@@ -95,6 +96,7 @@ public class DatabaseAccessor implements PwmService {
                 );
 
         this.instanceID = pwmApplication.getInstanceID();
+        this.traceLogging = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
 
         if (this.dbConfiguration.isEmpty()) {
             status = PwmService.STATUS.CLOSED;
@@ -269,8 +271,11 @@ public class DatabaseAccessor implements PwmService {
 
     public boolean put(final DatabaseTable table, final String key, final String value)
             throws DatabaseException {
-        LOGGER.trace("attempting put operation for table=" + table + ", key=" + key);
+
         preOperationCheck();
+        if (traceLogging) {
+            LOGGER.trace("attempting put operation for table=" + table + ", key=" + key);
+        }
         if (!contains(table, key)) {
             final String sqlText = "INSERT INTO " + table.toString() + "(" + KEY_COLUMN + ", " + VALUE_COLUMN + ") VALUES(?,?)";
             PreparedStatement statement = null;
@@ -306,7 +311,14 @@ public class DatabaseAccessor implements PwmService {
             close(statement);
         }
 
-        LOGGER.trace("put operation succeeded for table=" + table + ", key=" + key);
+        if (traceLogging) {
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            debugOutput.put("table",table);
+            debugOutput.put("key",key);
+            debugOutput.put("value",value);
+            LOGGER.trace("put operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+        }
+
         return true;
     }
 
@@ -390,28 +402,38 @@ public class DatabaseAccessor implements PwmService {
     public boolean contains(final DatabaseTable table, final String key)
             throws DatabaseException
     {
-        return get(table, key) != null;
+        final boolean result = get(table, key) != null;
+        if (traceLogging) {
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            debugOutput.put("table",table);
+            debugOutput.put("key",key);
+            debugOutput.put("result",result);
+            LOGGER.trace("contains operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+        }
+        return result;
     }
 
     public String get(final DatabaseTable table, final String key)
             throws DatabaseException
     {
-        LOGGER.trace("attempting get operation for table=" + table + ", key=" + key);
+        if (traceLogging) {
+            LOGGER.trace("attempting get operation for table=" + table + ", key=" + key);
+        }
         preOperationCheck();
         final StringBuilder sb = new StringBuilder();
         sb.append("SELECT * FROM ").append(table.toString()).append(" WHERE " + KEY_COLUMN + " = ?");
 
         PreparedStatement statement = null;
         ResultSet resultSet = null;
+        String returnValue = null;
         try {
             statement = connection.prepareStatement(sb.toString());
             statement.setString(1, key);
             statement.setMaxRows(1);
             resultSet = statement.executeQuery();
+
             if (resultSet.next()) {
-                final String value = resultSet.getString(VALUE_COLUMN);
-                LOGGER.trace("get operation succeeded for table=" + table + ", key=" + key + ((value != null && value.length() > 0) ? ", value found" : ", no value found"));
-                return value;
+                returnValue = resultSet.getString(VALUE_COLUMN);
             }
         } catch (SQLException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get operation failed: " + e.getMessage());
@@ -421,41 +443,61 @@ public class DatabaseAccessor implements PwmService {
             close(statement);
             close(resultSet);
         }
-        return null;
+
+        if (traceLogging) {
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            debugOutput.put("table",table);
+            debugOutput.put("key",key);
+            debugOutput.put("result",returnValue);
+            LOGGER.trace("get operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+        }
+
+        return returnValue;
     }
 
     public DataStore.DataStoreIterator<String> iterator(final DatabaseTable table)
-            throws DatabaseException, DatabaseException
+            throws DatabaseException
     {
         preOperationCheck();
         return new DBIterator<String>(table);
     }
 
     public boolean remove(final DatabaseTable table, final String key)
-            throws DatabaseException, DatabaseException {
-        LOGGER.trace("attempting remove operation for table=" + table + ", key=" + key);
-        if (!contains(table, key)) { // pre-operation check is called by contains
-            return false;
+            throws DatabaseException
+    {
+        if (traceLogging) {
+            LOGGER.trace("attempting remove operation for table=" + table + ", key=" + key);
         }
 
-        final StringBuilder sqlText = new StringBuilder();
-        sqlText.append("DELETE FROM ").append(table.toString()).append(" WHERE " + KEY_COLUMN + "=?");
+        boolean result = contains(table, key);
+        if (result) {
+            final StringBuilder sqlText = new StringBuilder();
+            sqlText.append("DELETE FROM ").append(table.toString()).append(" WHERE " + KEY_COLUMN + "=?");
 
-        PreparedStatement statement = null;
-        try {
-            statement = connection.prepareStatement(sqlText.toString());
-            statement.setString(1, key);
-            statement.executeUpdate();
-            LOGGER.trace("remove operation succeeded for table=" + table + ", key=" + key);
-        } catch (SQLException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"remove operation failed: " + e.getMessage());
-            lastError = errorInformation;
-            throw new DatabaseException(errorInformation);
-        } finally {
-            close(statement);
+            PreparedStatement statement = null;
+            try {
+                statement = connection.prepareStatement(sqlText.toString());
+                statement.setString(1, key);
+                statement.executeUpdate();
+                LOGGER.trace("remove operation succeeded for table=" + table + ", key=" + key);
+            } catch (SQLException e) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"remove operation failed: " + e.getMessage());
+                lastError = errorInformation;
+                throw new DatabaseException(errorInformation);
+            } finally {
+                close(statement);
+            }
         }
 
-        return true;
+        if (traceLogging) {
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            debugOutput.put("table",table);
+            debugOutput.put("key",key);
+            debugOutput.put("result",result);
+            LOGGER.trace("remove operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+        }
+
+        return result;
     }
 
     public int size(final DatabaseTable table) throws

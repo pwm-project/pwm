@@ -19,7 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package password.pwm.util.operations;
+package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -31,20 +31,24 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PasswordStatus;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.CommandServlet;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
+
+import password.pwm.util.operations.CrService;
+import password.pwm.util.operations.OtpService;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.otp.OTPUserConfiguration;
 
 public class UserStatusHelper {
@@ -156,21 +160,35 @@ public class UserStatusHelper {
     public static void populateActorUserInfoBean(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
-            final String userDN,
+            final UserIdentity userIdentity,
             final String userCurrentPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        populateUserInfoBean(pwmSession, uiBean, pwmApplication, pwmSession.getSessionStateBean().getLocale(), userDN, userCurrentPassword, provider);
+        populateUserInfoBean(pwmApplication, pwmSession, uiBean, pwmSession.getSessionStateBean().getLocale(), userIdentity, userCurrentPassword, provider);
     }
 
     public static void populateUserInfoBean(
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserInfoBean uiBean,
-            final PwmApplication pwmApplication,
             final Locale userLocale,
-            final String userDN,
+            final UserIdentity userIdentity,
+            final String userCurrentPassword
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        populateUserInfoBean(pwmApplication, pwmSession, uiBean, userLocale, userIdentity, userCurrentPassword, provider);
+    }
+
+    public static void populateUserInfoBean(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserInfoBean uiBean,
+            final Locale userLocale,
+            final UserIdentity userIdentity,
             final String userCurrentPassword,
             final ChaiProvider provider
     )
@@ -178,23 +196,23 @@ public class UserStatusHelper {
         final Configuration config = pwmApplication.getConfig();
         final long methodStartTime = System.currentTimeMillis();
 
-        if (userDN != null && userDN.length() < 1) {
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
             throw new NullPointerException("userDN can not be null");
         }
 
         //attempt to add the object class to the user
-        Helper.addConfiguredUserObjectClass(userDN, pwmApplication);
+        LdapOperationsHelper.addConfiguredUserObjectClass(userIdentity, pwmApplication);
 
         uiBean.setUserCurrentPassword(userCurrentPassword);
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, provider);
-        final UserDataReader userDataReader = new UserDataReader(theUser);
+        final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
+        final UserDataReader userDataReader = new UserDataReader(userIdentity, theUser);
 
         try {
-            uiBean.setUserDN(theUser.readCanonicalDN());
+            uiBean.setUserIdentity(new UserIdentity(theUser.readCanonicalDN(),userIdentity.getLdapProfileID()));
         } catch (ChaiOperationException e) {
             LOGGER.warn("error reading canonical DN" + e);
-            uiBean.setUserDN(userDN);
+            uiBean.setUserIdentity(userIdentity);
         }
 
         populateLocaleSpecificUserInfoBean(pwmSession, uiBean, pwmApplication, userLocale);
@@ -216,16 +234,16 @@ public class UserStatusHelper {
         }
 
         {// set userID
-            final String uIDattr = config.getUsernameAttribute();
+            final String uIDattr = config.getUsernameAttribute(userIdentity.getLdapProfileID());
             try {
-                uiBean.setUserID(userDataReader.readStringAttribute(uIDattr));
+                uiBean.setUsername(userDataReader.readStringAttribute(uIDattr));
             } catch (ChaiOperationException e) {
                 LOGGER.error(pwmSession, "error reading userID attribute: " + e.getMessage());
             }
         }
 
         { // set guid
-            final String userGuid = Helper.readLdapGuidValue(pwmApplication, userDN);
+            final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
             uiBean.setUserGuid(userGuid);
         }
 
@@ -267,7 +285,7 @@ public class UserStatusHelper {
         uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));
 
         // fetch last password modification time;
-        final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, config, theUser);
+        final Date pwdLastModifedDate = determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         // read user last login time:
@@ -279,7 +297,7 @@ public class UserStatusHelper {
 
         pwmApplication.getUserStatusCacheManager().updateUserCache(uiBean);
 
-        LOGGER.trace(pwmSession, "populateUserInfoBean for " + userDN + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+        LOGGER.trace(pwmSession, "populateUserInfoBean for " + userIdentity + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
     public static void populateLocaleSpecificUserInfoBean(
@@ -291,11 +309,11 @@ public class UserStatusHelper {
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final long startTime = System.currentTimeMillis();
 
-        if (uiBean == null || uiBean.getUserDN() == null) {
+        if (uiBean == null || uiBean.getUserIdentity() == null) {
             return;
         }
 
-        final ChaiUser theUser = ChaiFactory.createChaiUser(uiBean.getUserDN(), pwmApplication.getProxyChaiProvider());
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(uiBean.getUserIdentity());
 
         //populate password policy
         uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
@@ -303,7 +321,7 @@ public class UserStatusHelper {
         //populate c/r challenge set.
         {
             final CrService crService = pwmApplication.getCrService();
-            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, theUser);
+            final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, uiBean.getUserIdentity(), theUser);
             final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
             uiBean.setChallengeSet(challengeSet);
             uiBean.setResponseInfoBean(responseInfoBean);
@@ -328,12 +346,13 @@ public class UserStatusHelper {
     }
 
     public static Date determinePwdLastModified(
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final Configuration config,
-            final ChaiUser theUser
+            final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException {
+            throws ChaiUnavailableException, PwmUnrecoverableException {
         // fetch last password modification time from pwm last update attribute operation
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
@@ -344,7 +363,7 @@ public class UserStatusHelper {
             LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
         }
 
-        final String pwmLastSetAttr = config.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        final String pwmLastSetAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
                 final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);

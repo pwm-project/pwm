@@ -59,7 +59,7 @@
                             <pwm:Display key="Field_Username"/>
                         </td>
                         <td>
-                            <%= StringEscapeUtils.escapeHtml(uiBean.getUserID()) %>
+                            <%= StringEscapeUtils.escapeHtml(uiBean.getUsername()) %>
                         </td>
                     </tr>
                     <%--

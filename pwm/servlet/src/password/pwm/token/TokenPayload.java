@@ -1,5 +1,7 @@
 package password.pwm.token;
 
+import password.pwm.bean.UserIdentity;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
@@ -10,15 +12,15 @@ public class TokenPayload implements Serializable {
     private final java.util.Date date;
     private final String name;
     private final Map<String,String> data;
-    private final String dn;
+    private final UserIdentity user;
     private final Set<String> dest;
     private final String guid;
 
-    TokenPayload(final String name, final Map<String, String> data, final String dn, final Set<String> dest, final String guid) {
+    TokenPayload(final String name, final Map<String, String> data, final UserIdentity user, final Set<String> dest, final String guid) {
         this.date = new Date();
         this.data = data == null ? Collections.<String,String>emptyMap() : Collections.unmodifiableMap(data);
         this.name = name;
-        this.dn = dn;
+        this.user = user;
         this.dest = dest == null ? Collections.<String>emptySet() : Collections.unmodifiableSet(dest);
         this.guid = guid;
     }
@@ -35,8 +37,8 @@ public class TokenPayload implements Serializable {
         return data;
     }
 
-    public String getDN() {
-        return dn;
+    public UserIdentity getUserIdentity() {
+        return user;
     }
 
     public Set<String> getDest() {

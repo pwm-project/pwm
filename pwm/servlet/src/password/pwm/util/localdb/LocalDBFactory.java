@@ -46,22 +46,26 @@ public class LocalDBFactory {
     public static synchronized LocalDB getInstance(
             final File dbDirectory,
             final boolean readonly,
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            Configuration config
     )
             throws Exception
     {
+        if (config == null && pwmApplication != null) {
+            config = pwmApplication.getConfig();
+        }
 
         final long startTime = System.currentTimeMillis();
 
         final String className;
         final Map<String, String> initParameters;
-        if (pwmApplication == null) {
+        if (config == null) {
             className = AppProperty.LOCALDB_IMPLEMENTATION.getDefaultValue();
             final String initStrings = AppProperty.LOCALDB_INIT_STRING.getDefaultValue();
             initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         } else {
-            className = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
-            final String initStrings = pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_INIT_STRING);
+            className = config.readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
+            final String initStrings = config.readAppProperty(AppProperty.LOCALDB_INIT_STRING);
             initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         }
 
@@ -73,7 +77,7 @@ public class LocalDBFactory {
         initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
-        db = wrapWithCompressor(db,pwmApplication);
+        db = wrapWithCompressor(db,config);
 
         LOGGER.trace("clearing TEMP db");
         if (!readonly) {
@@ -126,14 +130,14 @@ public class LocalDBFactory {
         LOGGER.trace("db init completed for " + theClass);
     }
 
-    private static LocalDB wrapWithCompressor(final LocalDB localDB, final PwmApplication pwmApplication) {
-        if (localDB == null || pwmApplication == null || pwmApplication.getConfig() == null) {
+    private static LocalDB wrapWithCompressor(final LocalDB localDB, final Configuration config) {
+        if (config == null) {
             return LocalDBCompressor.createLocalDBCompressor(localDB, 1024, false);
         }
 
-        final boolean enableCompression = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
-        final boolean enableDecompression = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
-        final int compressionMinSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
+        final boolean enableCompression = Boolean.parseBoolean(config.readAppProperty(AppProperty.LOCALDB_COMPRESSION_ENABLED));
+        final boolean enableDecompression = Boolean.parseBoolean(config.readAppProperty(AppProperty.LOCALDB_DECOMPRESSION_ENABLED));
+        final int compressionMinSize = Integer.parseInt(config.readAppProperty(AppProperty.LOCALDB_COMPRESSION_MINSIZE));
 
         if (enableCompression || enableDecompression) {
             return LocalDBCompressor.createLocalDBCompressor(localDB, compressionMinSize, enableCompression);

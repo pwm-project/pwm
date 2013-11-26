@@ -31,6 +31,7 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -58,12 +59,12 @@ public class NMASUAWSOperator implements CrOperator {
     }
 
     @Override
-    public ResponseSet readResponseSet(ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
+    public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID) throws PwmUnrecoverableException {
         return readResponsesFromNovellUA(pwmApplication,theUser);
     }
 
     @Override
-    public ResponseInfoBean readResponseInfo(ChaiUser theUser, String userGUID) throws PwmUnrecoverableException {
+    public ResponseInfoBean readResponseInfo(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID) throws PwmUnrecoverableException {
         final ResponseSet responseSet = readResponsesFromNovellUA(pwmApplication,theUser);
         if (responseSet == null) {
             return null;

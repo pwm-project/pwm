@@ -73,7 +73,7 @@
         <xsd:element maxOccurs="1" minOccurs="1" name="showReturnLink" type="xsd:boolean"/>
         <xsd:element maxOccurs="1" minOccurs="1" name="showHint" type="xsd:boolean"/>
         <xsd:element maxOccurs="1" minOccurs="1" name="showFullDN" type="xsd:boolean"/>
-        <xsd:element maxOccurs="1" minOccurs="1" name="userDN" type="xsd:string"/>
+        <xsd:element maxOccurs="1" minOccurs="1" name="userIdentity" type="xsd:string"/>
         <xsd:element maxOccurs="1" minOccurs="1" name="userDisplayDN" type="xsd:string"/>
         <xsd:element maxOccurs="1" minOccurs="1" name="user" type="xsd:string"/>
         <xsd:element maxOccurs="1" minOccurs="1" name="error" type="xsd:boolean"/>

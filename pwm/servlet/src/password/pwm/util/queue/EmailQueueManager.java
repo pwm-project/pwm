@@ -39,7 +39,7 @@ import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.util.operations.UserDataReader;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -63,6 +63,7 @@ public class EmailQueueManager extends AbstractQueueManager {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
+    private Properties javaMailProps = new Properties();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -77,6 +78,7 @@ public class EmailQueueManager extends AbstractQueueManager {
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
+        javaMailProps = makeJavaMailProps(pwmApplication.getConfig());
         final Settings settings = new Settings(
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))),
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_RETRY_TIMEOUT_MS))),
@@ -164,34 +166,24 @@ public class EmailQueueManager extends AbstractQueueManager {
         // create a new MimeMessage object (using the Session created above)
         try {
             final Message message = convertEmailItemToMessage(emailItemBean, this.pwmApplication.getConfig());
-            final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
             final String mailuser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
             final String mailpassword = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_PASSWORD);
 
             // Login to SMTP server first if both username and password is given
             final String logText;
             if (mailuser == null || mailuser.length() < 1 || mailpassword == null || mailpassword.length() < 1) {
-                // Login is not necessary, use old method
-                logText = "";
+
+                logText = "plaintext";
                 Transport.send(message);
             } else {
-                //Create a properties item to start setting up the mail
-                final Properties props = new Properties();
-
                 // createSharedHistoryManager a new Session object for the message
-                final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
+                final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
-                //Specify the desired SMTP server
-                props.put("mail.smtp.host", this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
+                final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
+                final int mailport = (int)this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT);
 
-                //Specify configured advanced settings.
-                final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(this.pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
-                for (final String key : advancedSettingValues.keySet()) {
-                    props.put(key, advancedSettingValues.get(key));
-                }
-
-                Transport tr = session.getTransport("smtp");
-                tr.connect(mailhost, mailuser, mailpassword);
+                final Transport tr = session.getTransport("smtp");
+                tr.connect(mailhost, mailport, mailuser, mailpassword);
                 message.saveChanges();
                 tr.sendMessage(message, message.getAllRecipients());
                 tr.close();
@@ -227,20 +219,9 @@ public class EmailQueueManager extends AbstractQueueManager {
         final boolean hasPlainText = emailItemBean.getBodyPlain() != null && emailItemBean.getBodyPlain().length() > 0;
         final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
 
-        //Create a properties item to start setting up the mail
-        final Properties props = new Properties();
 
         // createSharedHistoryManager a new Session object for the message
-        final javax.mail.Session session = javax.mail.Session.getInstance(props, null);
-
-        //Specify the desired SMTP server
-        props.put("mail.smtp.host", config.readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
-
-        //Specify configured advanced settings.
-        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
-        for (final String key : advancedSettingValues.keySet()) {
-            props.put(key, advancedSettingValues.get(key));
-        }
+        final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
         final Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(emailItemBean.getFrom()));
@@ -264,6 +245,25 @@ public class EmailQueueManager extends AbstractQueueManager {
         }
 
         return message;
+    }
+
+    protected static Properties makeJavaMailProps(final Configuration config) {
+        //Create a properties item to start setting up the mail
+        final Properties props = new Properties();
+
+        //Specify the desired SMTP server
+        props.put("mail.smtp.host", config.readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS));
+
+        //Specify SMTP server port
+        props.put("mail.smtp.port",(int)config.readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT));
+
+        //Specify configured advanced settings.
+        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
+        for (final String key : advancedSettingValues.keySet()) {
+            props.put(key, advancedSettingValues.get(key));
+        }
+
+        return props;
     }
 
 }
