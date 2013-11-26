@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.operations;
+package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
@@ -32,6 +32,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -39,14 +40,14 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.UserAuditRecord;
+import password.pwm.event.AuditManager;
 import password.pwm.util.*;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.intruder.RecordType;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
-import java.util.Collections;
 import java.util.Date;
 
 public class UserAuthenticator {
@@ -55,8 +56,32 @@ public class UserAuthenticator {
 
     public static void authenticateUser(
             final String username,
-            String password,
+            final String password,
             final String context,
+            final PwmSession pwmSession,
+            final PwmApplication pwmApplication,
+            final boolean secure
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        pwmApplication.getIntruderManager().check(RecordType.USERNAME, username);
+        final UserIdentity userIdentity;
+        try {
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            userIdentity = userSearchEngine.resolveUsername(pwmSession, username, context);
+        } catch (PwmOperationalException e) {
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.AUTHENTICATION_FAILURES);
+            pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            throw e;
+        }
+        authenticateUser(userIdentity, password, pwmSession, pwmApplication, secure);
+    }
+
+
+    public static void authenticateUser(
+            final UserIdentity userIdentity,
+            final String password,
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final boolean secure
@@ -67,18 +92,15 @@ public class UserAuthenticator {
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
 
-        final String userDN = resolveUsername(pwmApplication, pwmSession, username, context);
-
-        intruderManager.check(RecordType.USERNAME, username, pwmSession);
-        intruderManager.check(RecordType.USER_DN, userDN, pwmSession);
+        intruderManager.convenience().checkUserIdentity(userIdentity);
         intruderManager.convenience().checkAddressAndSession(pwmSession);
 
         boolean allowBindAsUser = true;
         try {
-            testCredentials(userDN, password, pwmSession);
+            testCredentials(userIdentity, password, pwmSession);
         } catch (PwmOperationalException e) {
             final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD);
-            final boolean ldapVendorIsAD = pwmApplication.getProxyChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
+            final boolean ldapVendorIsAD = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
             if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() // handle stupid ad case where it denies bind with valid password
                     && ldapVendorIsAD
                     && configAlwaysUseProxy) {
@@ -91,10 +113,9 @@ public class UserAuthenticator {
                 allowBindAsUser = false;
             } else {
                 // auth failed, presumably due to wrong password.
-                LOGGER.info(pwmSession, "login attempt for " + userDN + " failed: " + e.getErrorInformation().toDebugStr());
+                LOGGER.info(pwmSession, "login attempt for " + userIdentity + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-                intruderManager.mark(RecordType.USERNAME, username, pwmSession);
-                intruderManager.mark(RecordType.USER_DN, userDN, pwmSession);
+                intruderManager.mark(RecordType.USER_ID, userIdentity.getUserDN(), pwmSession);
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 throw e;
             }
@@ -103,25 +124,22 @@ public class UserAuthenticator {
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("successful ");
         debugMsg.append(secure ? "ssl" : "plaintext");
-        debugMsg.append(" authentication for ").append(userDN);
+        debugMsg.append(" authentication for ").append(userIdentity);
         debugMsg.append(" (").append(TimeDuration.fromCurrent(methodStartTime).asCompactString()).append(")");
         LOGGER.info(pwmSession, debugMsg);
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);
         statisticsManager.updateEps(Statistic.EpsType.AUTHENTICATION, 1);
 
-        postAuthenticationSequence(pwmApplication, pwmSession, userDN, password, allowBindAsUser, methodStartTime);
+        postAuthenticationSequence(pwmApplication, pwmSession, userIdentity, password, allowBindAsUser, methodStartTime);
         final UserInfoBean.AuthenticationType authenticationType = allowBindAsUser ? UserInfoBean.AuthenticationType.AUTHENTICATED : UserInfoBean.AuthenticationType.AUTH_BIND_INHIBIT;
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
-        pwmSession.getUserInfoBean().clearPermissions();
         LOGGER.debug(pwmSession, "user authenticated with authentication type: " + authenticationType);
-        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getUserInfoBean().getUserIdentity(),
                 new Date(),
                 authenticationType.toString(),
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getUserInfoBean().getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),
                 pwmSession.getSessionStateBean().getSrcHostname()
         ));
@@ -136,9 +154,9 @@ public class UserAuthenticator {
     )
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
-        final String userDN = resolveUsername(pwmApplication, pwmSession, username, null);
-        final ChaiUser theUser = ChaiFactory.createChaiUser(userDN, pwmApplication.getProxyChaiProvider());
-        authUserWithUnknownPassword(theUser, pwmSession, pwmApplication, secure, authenticationType);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserIdentity userIdentity = userSearchEngine.resolveUsername(pwmSession, username, null);
+        authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, secure, authenticationType);
     }
 
     /**
@@ -151,7 +169,7 @@ public class UserAuthenticator {
      * It is up to the caller to insure that any security requirements have been met BEFORE calling
      * this method, such as validiting challenge/responses.
      *
-     * @param theUser    User to authenticate
+     * @param userIdentity    User to authenticate
      * @param pwmSession A PwmSession instance
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException
      *          If ldap becomes unreachable
@@ -162,7 +180,7 @@ public class UserAuthenticator {
      *          if the temporary password generated can't be due to an impossible policy
      */
     public static void authUserWithUnknownPassword(
-            final ChaiUser theUser,
+            final UserIdentity userIdentity,
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final boolean secure,
@@ -172,15 +190,18 @@ public class UserAuthenticator {
         LOGGER.trace(pwmSession, "beginning auth processes for user with unknown password");
         long startAuthenticationTimestamp = System.currentTimeMillis();
 
-        if (theUser == null || theUser.getEntryDN() == null) {
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
             throw new NullPointerException("invalid user (null)");
         }
+
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
 
         // use chai (nmas) to retrieve user password
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_READ_USER_PWD)) {
             String currentPass = null;
             try {
-                final String readPassword = theUser.readPassword();
+                final String readPassword = chaiUser.readPassword();
                 if (readPassword != null && readPassword.length() > 0) {
                     currentPass = readPassword;
                     LOGGER.debug(pwmSession, "successfully retrieved user's current password from ldap, now conducting standard authentication");
@@ -192,7 +213,7 @@ public class UserAuthenticator {
             // actually do the authentication since we have user pw.
             if (currentPass != null && currentPass.length() > 0) {
                 try {
-                    authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
+                    authenticateUser(userIdentity.getUserDN(), currentPass, null, pwmSession, pwmApplication, secure);
                     return;
                 } catch (PwmOperationalException e) {
                     final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs; error: " + e.getMessage();
@@ -212,7 +233,7 @@ public class UserAuthenticator {
             LOGGER.debug(pwmSession, "attempting to set temporary random password");
             String currentPass = null;
             try {
-                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale());
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, chaiUser, pwmSession.getSessionStateBean().getLocale());
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user
@@ -220,17 +241,17 @@ public class UserAuthenticator {
 
                 // write the random password for the user.
                 try {
-                    theUser.setPassword(currentPass);
-                    LOGGER.info(pwmSession, "user " + theUser.getEntryDN() + " password has been set to random value for pwm to use for user authentication");
+                    chaiUser.setPassword(currentPass);
+                    LOGGER.info(pwmSession, "user " + userIdentity + " password has been set to random value for pwm to use for user authentication");
                     // force a user password change.
                     pwmSession.getUserInfoBean().setRequiresNewPassword(true);
                     Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY_MS);
                 } catch (ChaiPasswordPolicyException e) {
-                    final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
+                    final String errorStr = "error setting random password for user " + userIdentity + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
                 } catch (ChaiOperationException e) {
-                    final String errorStr = "error setting random password for user " + theUser.getEntryDN() + " " + e.getMessage();
+                    final String errorStr = "error setting random password for user " + userIdentity + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION_PASSWORD, errorStr));
                 }
@@ -240,7 +261,7 @@ public class UserAuthenticator {
 
             // actually do the authentication since we have user pw.
             try {
-                authenticateUser(theUser.getEntryDN(), currentPass, null, pwmSession, pwmApplication, secure);
+                authenticateUser(userIdentity, currentPass, pwmSession, pwmApplication, secure);
 
                 // close any outstanding ldap connections (since they cache the old password)
                 pwmSession.getSessionManager().closeConnections();
@@ -254,67 +275,31 @@ public class UserAuthenticator {
         }
 
 
-        postAuthenticationSequence(pwmApplication, pwmSession, theUser.getEntryDN(), null, false, startAuthenticationTimestamp);
+        postAuthenticationSequence(pwmApplication, pwmSession, userIdentity, null, false, startAuthenticationTimestamp);
 
         pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
-        pwmSession.getUserInfoBean().clearPermissions();
         LOGGER.debug(pwmSession,"user authenticated with authentication type: " + authenticationType);
 
-        pwmApplication.getAuditManager().submit(new UserAuditRecord(
+        pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getUserInfoBean().getUserIdentity(),
                 new Date(),
                 authenticationType.toString(),
-                pwmSession.getUserInfoBean().getUserID(),
-                pwmSession.getUserInfoBean().getUserDN(),
+                pwmSession.getUserInfoBean().getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),
                 pwmSession.getSessionStateBean().getSrcHostname()
         ));
     }
 
-    private static String resolveUsername(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final String username,
-            final String context
-
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
-    {
-        final String userDN;
-        try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-
-            //see if we need to a contextless search.
-            if (userSearchEngine.checkIfStringIsDN(pwmSession, username)) {
-                userDN = username;
-            } else {
-                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setUsername(username);
-                searchConfiguration.setContexts(Collections.singletonList(context));
-                final ChaiUser theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
-                userDN = theUser.getEntryDN();
-            }
-        } catch (PwmOperationalException e) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.AUTHENTICATION_FAILURES);
-            pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession);
-            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,e.getErrorInformation().getDetailedErrorMsg(),e.getErrorInformation().getFieldValues()));
-        }
-
-        return userDN;
-    }
-
     public static void testCredentials(
-            final String userDN,
+            final UserIdentity userIdentity,
             final String password,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
         LOGGER.trace(pwmSession, "beginning testCredentials process");
 
-        if (userDN == null || userDN.length() < 1) {
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
             final String errorMsg = "attempt to authenticate with null userDN";
             LOGGER.debug(pwmSession, errorMsg);
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
@@ -330,13 +315,13 @@ public class UserAuthenticator {
         LOGGER.trace(pwmSession, "attempting authentication using ldap BIND");
         try {
             //get a provider using the user's DN and password.
-            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(userDN, password);
+            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(userIdentity, password);
 
             //issue a read operation to trigger a bind.
-            testProvider.readStringAttribute(userDN, ChaiConstant.ATTR_LDAP_OBJECTCLASS);
+            testProvider.readStringAttribute(userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS);
         } catch (ChaiException e) {
             if (e.getErrorCode() != null && e.getErrorCode() == ChaiError.INTRUDER_LOCKOUT) {
-                final String errorMsg = "intruder lockout detected for user " + userDN + " marking session as locked out: " + e.getMessage();
+                final String errorMsg = "intruder lockout detected for user " + userIdentity + " marking session as locked out: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP, errorMsg);
                 LOGGER.warn(pwmSession, errorInformation.toDebugStr());
                 pwmSession.getSessionStateBean().setSessionError(errorInformation);
@@ -358,7 +343,7 @@ public class UserAuthenticator {
     private static void postAuthenticationSequence(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final String userDN,
+            final UserIdentity userIdentity,
             final String userPassword,
             final boolean bindAsUser,
             final long startAuthenticationTimestamp
@@ -389,25 +374,24 @@ public class UserAuthenticator {
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         if (!bindAsUser) {
             UserStatusHelper.populateUserInfoBean(
-                    pwmSession,
+                    pwmApplication, pwmSession,
                     userInfoBean,
-                    pwmApplication,
                     ssBean.getLocale(),
-                    userDN,
+                    userIdentity,
                     userPassword,
-                    pwmApplication.getProxyChaiProvider()
+                    pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
             );
         } else {
             UserStatusHelper.populateActorUserInfoBean(
                     pwmSession,
                     pwmApplication,
-                    userDN,
+                    userIdentity,
                     userPassword);
         }
 
         //notify the intruder manager with a successful login
-        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfoBean().getUserID(), pwmSession);
-        intruderManager.clear(RecordType.USER_DN, userDN, pwmSession);
+        intruderManager.clear(RecordType.USERNAME, pwmSession.getUserInfoBean().getUsername());
+        intruderManager.convenience().clearUserIdentity(userIdentity);
         intruderManager.convenience().clearAddressAndSession(pwmSession);
 
         //mark the auth time
