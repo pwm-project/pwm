@@ -28,6 +28,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
@@ -48,6 +49,7 @@ public class AuditManager implements PwmService {
 
     private STATUS status = STATUS.NEW;
     private Settings settings = new Settings();
+    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
 
     private SyslogAuditService syslogManager;
     private ErrorInformation lastError;
@@ -140,22 +142,10 @@ public class AuditManager implements PwmService {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-    @Override
     public STATUS status() {
         return status;
     }
 
-    @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
@@ -182,25 +172,30 @@ public class AuditManager implements PwmService {
         {
             final UserEventStorageMethod userEventStorageMethod = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.INTRUDER_STORAGE_METHOD, UserEventStorageMethod.class);
             final String debugMsg;
+            final DataStorageMethod storageMethodUsed;
             switch (userEventStorageMethod) {
                 case AUTO:
                     if (pwmApplication.getConfig().hasDbConfigured()) {
                         debugMsg = "starting using auto-configured data store, Remote Database selected";
                         this.userHistoryStore = new DatabaseUserHistory(pwmApplication);
+                        storageMethodUsed = DataStorageMethod.DB;
                     } else {
                         debugMsg = "starting using auto-configured data store, LDAP selected";
                         this.userHistoryStore = new LdapXmlUserHistory(pwmApplication);
+                        storageMethodUsed = DataStorageMethod.LDAP;
                     }
                     break;
 
                 case DATABASE:
                     this.userHistoryStore = new DatabaseUserHistory(pwmApplication);
                     debugMsg = "starting using Remote Database data store";
+                    storageMethodUsed = DataStorageMethod.DB;
                     break;
 
                 case LDAP:
                     this.userHistoryStore = new LdapXmlUserHistory(pwmApplication);
                     debugMsg = "starting using LocalDB data store";
+                    storageMethodUsed = DataStorageMethod.LDAP;
                     break;
 
                 default:
@@ -209,7 +204,7 @@ public class AuditManager implements PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-
+            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
         }
         {
             final TimeDuration maxRecordAge = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_AUDIT_MAX_AGE) * 1000);
@@ -456,5 +451,10 @@ public class AuditManager implements PwmService {
         private List<String> userEmailAddresses = new ArrayList<String>();
         private String alertFromAddress = "";
         private Set<AuditEvent> ignoredEvents = new HashSet<AuditEvent>();
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return serviceInfo;
     }
 }

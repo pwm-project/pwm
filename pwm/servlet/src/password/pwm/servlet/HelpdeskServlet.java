@@ -556,17 +556,17 @@ public class HelpdeskServlet extends TopServlet {
         pwmApplication.getIntruderManager().convenience().clearUserIdentity(
                 helpdeskBean.getUserInfoBean().getUserIdentity());
 
-        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         try {
             final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
-            final ChaiUser chaiUser = useProxy ? pwmApplication.getProxiedChaiUser(userIdentity) : pwmSession.getSessionManager().getActor(userIdentity);
 
             OtpService service = pwmApplication.getOtpService();
-            service.clearOTPUserConfiguration(chaiUser, helpdeskBean.getUserInfoBean().getUserGuid());
+            service.clearOTPUserConfiguration(userIdentity, helpdeskBean.getUserInfoBean().getUserGuid());
             {
                 // mark the event log
+                //@todo
+                /*
                 final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
-                        AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                        AuditEvent.EVENT,
                         pwmSession.getUserInfoBean().getUserIdentity(),
                         new Date(),
                         null,
@@ -575,6 +575,7 @@ public class HelpdeskServlet extends TopServlet {
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
                 pwmApplication.getAuditManager().submit(auditRecord);
+                */
             }
         } catch (PwmOperationalException e) {
             final PwmError returnMsg = e.getError();

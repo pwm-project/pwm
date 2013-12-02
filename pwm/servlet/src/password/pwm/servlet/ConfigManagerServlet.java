@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -317,6 +318,21 @@ public class ConfigManagerServlet extends TopServlet {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords(true);
             final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
+            zipOutput.write(recordJson.getBytes("UTF8"));
+            zipOutput.closeEntry();
+        }
+        {
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "services.json"));
+            final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<String, Object>();
+            for (final PwmService service : pwmApplication.getPwmServices()) {
+                final LinkedHashMap<String,Object> serviceOutput = new LinkedHashMap<String, Object>();
+                serviceOutput.put("name", service.getClass().getSimpleName());
+                serviceOutput.put("status",service.status());
+                serviceOutput.put("health",service.healthCheck());
+                serviceOutput.put("serviceInfo",service.serviceInfo());
+                outputMap.put(service.getClass().getSimpleName(),serviceOutput);
+            }
+            final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();
         }

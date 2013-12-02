@@ -133,18 +133,11 @@ public class LdapOperationsHelper {
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        return readLdapGuidValue(pwmApplication, chaiUser);
-    }
 
-    public static String readLdapGuidValue(
-            final PwmApplication pwmApplication,
-            final ChaiUser theUser
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
         final Configuration config = pwmApplication.getConfig();
-        final String GUIDattributeName = config.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        final String GUIDattributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
         if ("DN".equalsIgnoreCase(GUIDattributeName)) {
             return theUser.getEntryDN();
         }
@@ -170,7 +163,7 @@ public class LdapOperationsHelper {
                 return guidValue;
             }
 
-            if (!config.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+            if (!ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
                 LOGGER.warn("user " + theUser.getEntryDN() + " does not have a valid GUID");
                 return null;
             }

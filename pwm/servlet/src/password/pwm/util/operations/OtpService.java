@@ -21,12 +21,12 @@
  */
 package password.pwm.util.operations;
 
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
 import password.pwm.*;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.CrStorageMethod;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -47,7 +47,7 @@ public class OtpService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(OtpService.class);
 
-    private final Map<CrStorageMethod, OtpOperator> operatorMap = new EnumMap<CrStorageMethod, OtpOperator>(CrStorageMethod.class);
+    private final Map<DataStorageMethod, OtpOperator> operatorMap = new EnumMap<DataStorageMethod, OtpOperator>(DataStorageMethod.class);
     private PwmApplication pwmApplication;
 
     public OtpService() {
@@ -61,10 +61,9 @@ public class OtpService implements PwmService {
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
-        //operatorMap.put(Configuration.STORAGE_METHOD.DB, new DbCrOperator(pwmApplication));
-        operatorMap.put(CrStorageMethod.LDAP, new LdapOtpOperator(pwmApplication.getConfig()));
-        operatorMap.put(CrStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
-        operatorMap.put(CrStorageMethod.DB, new DbOtpOperator(pwmApplication));
+        operatorMap.put(DataStorageMethod.LDAP, new LdapOtpOperator(pwmApplication));
+        operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbOtpOperator(pwmApplication.getLocalDB(), pwmApplication.getConfig()));
+        operatorMap.put(DataStorageMethod.DB, new DbOtpOperator(pwmApplication));
     }
 
     @Override
@@ -80,23 +79,24 @@ public class OtpService implements PwmService {
         return Collections.emptyList();
     }
 
-    public OTPUserConfiguration readOTPUserConfiguration(final ChaiUser theUser)
+    public OTPUserConfiguration readOTPUserConfiguration(final UserIdentity theUser)
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final long methodStartTime = System.currentTimeMillis();
         OTPUserConfiguration otpConfig = null;
 
-        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
             final String userGUID;
-            if (otpSecretStorageLocations.contains(CrStorageMethod.DB) || otpSecretStorageLocations.contains(CrStorageMethod.LOCALDB)) {
+            if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
+                    DataStorageMethod.LOCALDB)) {
                 userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication,theUser);
             } else {
                 userGUID = null;
             }
-            Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
+            Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (otpConfig == null && locationIterator.hasNext()) {
-                final CrStorageMethod location = locationIterator.next();
+                final DataStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
                     otpConfig = operator.readOtpUserConfiguration(theUser, userGUID);
@@ -110,14 +110,14 @@ public class OtpService implements PwmService {
         return otpConfig;
     }
 
-    public void writeOTPUserConfiguration(final ChaiUser theUser, final String userGUID, final OTPUserConfiguration otp) throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException {
+    public void writeOTPUserConfiguration(final UserIdentity theUser, final String userGUID, final OTPUserConfiguration otp) throws PwmOperationalException, ChaiUnavailableException, ChaiValidationException {
         LOGGER.trace(String.format("Enter: writeOTPUserConfiguration(%s, %s, %s)", theUser, userGUID, otp));
 
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
-        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
-            for (CrStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
+            for (DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
                 final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
@@ -146,17 +146,17 @@ public class OtpService implements PwmService {
         }
     }
 
-    public void clearOTPUserConfiguration(final ChaiUser theUser, final String userGUID) throws PwmOperationalException, ChaiUnavailableException {
+    public void clearOTPUserConfiguration(final UserIdentity theUser, final String userGUID) throws PwmOperationalException, ChaiUnavailableException {
         LOGGER.trace(String.format("Enter: clearOTPUserConfiguration(%s, %s)", theUser, userGUID));
 
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
-        final List<CrStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
         if (otpSecretStorageLocations != null) {
-            final Iterator<CrStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
+            final Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (locationIterator.hasNext()) {
                 attempts++;
-                final CrStorageMethod location = locationIterator.next();
+                final DataStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
                     try {
@@ -188,7 +188,7 @@ public class OtpService implements PwmService {
 
     public boolean checkIfOtpSetupNeeded(
             final PwmSession pwmSession,
-            final ChaiUser theUser,
+            final UserIdentity theUser,
             final OTPUserConfiguration otpConfig
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
@@ -200,5 +200,10 @@ public class OtpService implements PwmService {
         Configuration config = pwmApplication.getConfig();
         AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
         return format.supportsRecoveryCodes();
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     }
 }

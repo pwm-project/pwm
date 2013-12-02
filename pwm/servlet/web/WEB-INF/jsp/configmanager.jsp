@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
+<%@ page import="password.pwm.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -122,14 +123,23 @@
             </tr>
             <% } %>
             <tr style="border:0">
+                <script type="text/javascript">
+                    function makeSupportBundle() {
+                        <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
+                        showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
+                        <% } else { %>
+                        window.location='ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                        <% } %>
+                    }
+                </script>
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
+                    <a class="menubutton" href="#" onclick="makeSupportBundle()">
                         <i class="fa fa-suitcase"></i>&nbsp;
-                        Make Support Bundle
+                        Make Troubleshooting Bundle
                     </a>
                 </td>
                 <td style="border:0">
-                    <p>Generate a support ZIP file that contains </p>
+                    <p>Generate a support ZIP file that contains information useful for troubleshooitng.</p>
                 </td>
             </tr>
             <tr style="border:0">

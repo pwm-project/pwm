@@ -140,7 +140,7 @@ public class PwmApplication {
             VersionChecker.class,
             IntruderManager.class,
             CrService.class,
-            UserStatusCacheManager.class,
+            UserCacheService.class,
             CrService.class,
             OtpService.class
     ));
@@ -201,11 +201,11 @@ public class PwmApplication {
         try {
             final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(ldapProfile, configuration, getStatisticsManager());
             proxyChaiProviders.put(identifier, newProvider);
+            return newProvider;
         } catch (PwmUnrecoverableException e) {
             setLastLdapFailure(e.getErrorInformation());
             throw e;
         }
-        return proxyChaiProvider;
     }
 
     public LocalDBLogger getLocalDBLogger() {
@@ -294,8 +294,8 @@ public class PwmApplication {
         return (DatabaseAccessor)pwmServices.get(DatabaseAccessor.class);
     }
 
-    public UserStatusCacheManager getUserStatusCacheManager() {
-        return (UserStatusCacheManager)pwmServices.get(UserStatusCacheManager.class);
+    public UserCacheService getUserStatusCacheManager() {
+        return (UserCacheService)pwmServices.get(UserCacheService.class);
     }
 
     private void initialize() {
@@ -416,25 +416,6 @@ public class PwmApplication {
             getAuditManager().submit(auditRecord);
         } catch (PwmException e) {
             LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
-        }
-
-        //
-        for (final String profile : configuration.getLdapProfiles().keySet()) {
-            Thread t = new Thread() {
-                @Override
-                public void run()
-                {
-                    try {
-                        getProxyChaiProvider(profile);
-                    } catch (PwmUnrecoverableException e) {
-                        LOGGER.error("error during ldap profile '" + profile + "' warmup: " + e.getMessage());
-                    }
-                }
-            };
-            t.setName(PwmConstants.PWM_APP_NAME + " - warmup thread for ldap profile " +
-                    (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profile) ? "default" : profile));
-            t.setDaemon(true);
-            t.start();
         }
     }
 
@@ -765,7 +746,7 @@ public class PwmApplication {
             }
 
             // initialize the localDBLogger
-            final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalLevel();
+            final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
             try {
                 final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
                 final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);

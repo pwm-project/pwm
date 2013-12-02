@@ -1347,3 +1347,42 @@ function toggleFullscreen(iconObj,divName) {
         PWM_GLOBAL['displayGrid'].resize();
     }
 }
+
+function showHeaderHealth() {
+    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
+    require(["dojo"],function(dojo){
+        var parentDiv = getObject('headerHealthData');
+        var headerDiv = getObject('header-warning');
+        if (parentDiv && headerDiv) {
+            dojo.xhrGet({
+                url: refreshUrl,
+                handleAs: "json",
+                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
+                timeout: 60 * 1000,
+                preventCache: true,
+                load: function(data) {
+                    var healthRecords = data['data']['records'];
+                    var htmlBody = '';
+                    for (var i = 0; i < healthRecords.length; i++) {
+                        var healthData = healthRecords[i];
+                        if (healthData['status'] == 'WARN') {
+                            headerDiv.style.display = 'block';
+                            htmlBody += '<div class="header-error">';
+                            htmlBody += healthData['status'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['topic'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['detail'];
+                            htmlBody += '</div>';
+                        }
+                    }
+                    parentDiv.innerHTML = htmlBody;
+                },
+                error: function(error) {
+                    console.log('unable to read header health status: ' + error);
+                }
+            });
+        }
+    });
+}
+

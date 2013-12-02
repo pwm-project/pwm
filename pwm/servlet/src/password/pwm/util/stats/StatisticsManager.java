@@ -34,6 +34,7 @@ import password.pwm.PwmService;
 import password.pwm.bean.StatsPublishBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
@@ -549,5 +550,14 @@ public class StatisticsManager implements PwmService {
         }
 
         return counter;
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        } else {
+            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        }
     }
 }

@@ -5,6 +5,7 @@
 package password.pwm.util.operations.otp;
 
 import com.novell.ldapchai.ChaiUser;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.otp.OTPUserConfiguration;
 
@@ -14,13 +15,13 @@ import password.pwm.util.otp.OTPUserConfiguration;
  */
 public interface OtpOperator {
     
-    public OTPUserConfiguration readOtpUserConfiguration(final ChaiUser theUser, final String userGUID)
+    public OTPUserConfiguration readOtpUserConfiguration(final UserIdentity theUser, final String userGUID)
             throws PwmUnrecoverableException;
 
-    public void writeOtpUserConfiguration(final ChaiUser theUser, final String userGuid, final OTPUserConfiguration otpConfig)
+    public void writeOtpUserConfiguration(final UserIdentity theUser, final String userGuid, final OTPUserConfiguration otpConfig)
             throws PwmUnrecoverableException;
 
-    public void clearOtpUserConfiguration(final ChaiUser theUser, final String userGuid)
+    public void clearOtpUserConfiguration(final UserIdentity theUser, final String userGuid)
             throws PwmUnrecoverableException;
 
     public void close();

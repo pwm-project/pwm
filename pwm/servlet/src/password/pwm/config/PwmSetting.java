@@ -139,44 +139,44 @@ public enum PwmSetting {
             "changePassword.writeAttributes", PwmSettingSyntax.ACTION, Category.CHANGE_PASSWORD),
 
     //ldap directories
-    LDAP_PROFILE_LIST(
-            "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.LDAP_GLOBAL),
     LDAP_SERVER_URLS(
-            "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+            "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_SERVER_CERTS(
-            "ldap.serverCerts", PwmSettingSyntax.X509CERT, Category.LDAP),
+            "ldap.serverCerts", PwmSettingSyntax.X509CERT, Category.LDAP_PROFILE),
     LDAP_PROXY_USER_DN(
-            "ldap.proxy.username", PwmSettingSyntax.STRING, Category.LDAP),
+            "ldap.proxy.username", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
     LDAP_PROXY_USER_PASSWORD(
-            "ldap.proxy.password", PwmSettingSyntax.PASSWORD, Category.LDAP),
+            "ldap.proxy.password", PwmSettingSyntax.PASSWORD, Category.LDAP_PROFILE),
     LDAP_CONTEXTLESS_ROOT(
-            "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+            "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_TEST_USER_DN(
-            "ldap.testuser.username", PwmSettingSyntax.STRING, Category.LDAP),
+            "ldap.testuser.username", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
     AUTO_ADD_OBJECT_CLASSES(
-            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
+            "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_USERNAME_SEARCH_FILTER(
-            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP),
+            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
     LDAP_USERNAME_ATTRIBUTE(
-            "ldap.username.attr", PwmSettingSyntax.STRING, Category.LDAP),
+            "ldap.username.attr", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
+    LDAP_GUID_AUTO_ADD(
+            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP_PROFILE),
+    LDAP_GUID_ATTRIBUTE(
+            "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
 
     // ldap global settings
+    LDAP_PROFILE_LIST(
+            "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.LDAP_GLOBAL),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_READ_PASSWORD_POLICY(
             "ldap.readPasswordPolicies", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
-    LDAP_GUID_AUTO_ADD(
-            "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_IDLE_TIMEOUT(
             "ldap.idleTimeout", PwmSettingSyntax.NUMERIC, Category.LDAP_GLOBAL),
     DEFAULT_OBJECT_CLASSES(
             "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
-    LDAP_GUID_ATTRIBUTE(
-            "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_FOLLOW_REFERRALS(
             "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
     LDAP_LOGIN_CONTEXTS(
@@ -969,7 +969,7 @@ public enum PwmSetting {
     }
 
     public enum Category {
-        LDAP(Type.PROFILE),
+        LDAP_PROFILE(Type.PROFILE),
         LDAP_GLOBAL(Type.SETTING),
         GENERAL(Type.SETTING),
         USER_INTERFACE(Type.SETTING),
@@ -1015,7 +1015,7 @@ public enum PwmSetting {
         public PwmSetting getProfileSetting()
         {
             switch (this) {
-                case LDAP:
+                case LDAP_PROFILE:
                     return LDAP_PROFILE_LIST;
             }
             throw new IllegalArgumentException("category " + this.toString() + " does not have a profileSetting value");

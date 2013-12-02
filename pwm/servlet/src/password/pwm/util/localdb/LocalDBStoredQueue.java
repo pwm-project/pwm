@@ -44,7 +44,7 @@ public class
     private final static String KEY_HEAD_POSITION = "_HEAD_POSITION";
     private final static String KEY_TAIL_POSITION = "_TAIL_POSITION";
     private final static String KEY_VERSION = "_KEY_VERSION";
-    private final static String VALUE_VERSION = "7";
+    private final static String VALUE_VERSION = "7a";
 
     private final InternalQueue internalQueue;
 

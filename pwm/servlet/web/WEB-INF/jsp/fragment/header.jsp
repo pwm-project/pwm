@@ -26,9 +26,6 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.AppProperty" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.util.PwmServletURLHelper" %>
-<%@ page import="password.pwm.util.Helper" %>
-<%@ page import="password.pwm.util.PwmRandom" %>
 <%@ page import="password.pwm.ws.server.rest.RestAppDataServer" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%

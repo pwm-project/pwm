@@ -458,7 +458,15 @@
             <value><![CDATA[pwmLastPwdUpdate]]></value>
         </default>
     </setting>
-    <setting key="ldap.namingAttribute" level="1" required="true">
+    <setting key="ldap.guidAttribute" level="0" required="true">
+        <label>LDAP GUID Attribute</label>
+        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[VENDORGUID]]></value>
+        </default>
+    </setting>
+    <setting key="ldap.namingAttribute" level="0" required="true">
         <label>LDAP Naming Attribute</label>
         <description><![CDATA[Attribute name used as the naming attribute on ldap user entries. This value is also the first part of the distinguished name of a user.  This name is constant depending on directory vendor type, even if a different attribute is used for the login search filter.  Typically the naming attribute is <i>cn</i> or <i>uid</i>.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
@@ -466,19 +474,11 @@
             <value><![CDATA[cn]]></value>
         </default>
     </setting>
-    <setting key="ldap.idleTimeout" level="1" required="true">
+    <setting key="ldap.idleTimeout" level="0" required="true">
         <label>LDAP Idle Timeout</label>
         <description><![CDATA[Amount of seconds the LDAP connection for a given session can remain idle before closing. If zero, then an ldap connection will be maintained throughout the lifetime of the http session.]]></description>
         <default>
             <value>30</value>
-        </default>
-    </setting>
-    <setting key="ldap.guidAttribute" level="1" required="true">
-        <label>LDAP GUID Attribute</label>
-        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
-        <default>
-            <value><![CDATA[VENDORGUID]]></value>
         </default>
     </setting>
     <setting key="ldap.guid.autoAddValue" level="1" required="true">
@@ -1597,7 +1597,7 @@
             <option value="WARN">Warn</option>
             <option value="ERROR">Error</option>
             <option value="FATAL">Fatal</option>
-            <option value="Off">Off - no logging to stdout</option>
+            <option value="Off">Off - no logging to LocalDB</option>
         </options>
     </setting>
     <setting key="events.fileAppender.level" level="0" required="true">
@@ -1613,7 +1613,7 @@
             <option value="WARN">Warn</option>
             <option value="ERROR">Error</option>
             <option value="FATAL">Fatal</option>
-            <option value="Off">Off - no logging to stdout</option>
+            <option value="Off">Off - no logging to file</option>
         </options>
     </setting>
     <setting key="events.user.storageMethod" level="1" required="true">
@@ -2840,8 +2840,8 @@
         <description><![CDATA[External Web Auth Methods]]></description>
         <default />
     </setting>
-    <category key="LDAP">
-        <label>LDAP Directories</label>
+    <category key="LDAP_PROFILE">
+        <label>LDAP Directory Profiles</label>
         <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="LDAP_GLOBAL">

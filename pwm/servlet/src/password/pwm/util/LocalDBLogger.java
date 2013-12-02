@@ -26,6 +26,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.PwmSession;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
@@ -148,7 +149,9 @@ public class LocalDBLogger implements PwmService {
             final long startTime = System.currentTimeMillis();
             while (writerThreadActive && TimeDuration.fromCurrent(startTime).isShorterThan(60 * 1000)) {
                 Helper.pause(1000);
-                LOGGER.debug("waiting for writer thread to close...");
+                if (writerThreadActive) {
+                    LOGGER.debug("waiting for writer thread to close...");
+                }
             }
 
             if (writerThreadActive) {
@@ -476,7 +479,7 @@ public class LocalDBLogger implements PwmService {
                     }
                 }
             }
-            LOGGER.debug("exiting writer thread loop");
+            LOGGER.debug("writer thread exiting");
         }
     }
 
@@ -546,6 +549,11 @@ public class LocalDBLogger implements PwmService {
         sb.append(this.getStoredEventCount()).append(" / ").append(maxEvents);
         sb.append(" (").append(numberFormat.format(percentFull)).append("%)");
         return sb.toString();
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
     }
 }
 

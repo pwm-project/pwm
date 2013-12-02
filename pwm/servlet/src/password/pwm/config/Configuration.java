@@ -36,7 +36,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.config.option.CrStorageMethod;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.TokenStorageMethod;
@@ -220,6 +220,13 @@ public class Configuration implements Serializable {
             return results;
         }
 
+        static boolean valueToBoolean(final StoredValue value) {
+            if (!(value instanceof BooleanValue)) {
+                throw new IllegalArgumentException("may not read BOOLEAN value for setting");
+            }
+
+            return (Boolean)value.toNativeObject();
+        }
     }
 
     public Map<Locale,String> readLocalizedBundle(final String className, final String keyName) {
@@ -236,7 +243,7 @@ public class Configuration implements Serializable {
         return localizedMap;
     }
 
-    public PwmLogLevel getEventLogLocalLevel() {
+    public PwmLogLevel getEventLogLocalDBLevel() {
         final String value = readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL);
         for (final PwmLogLevel logLevel : PwmLogLevel.values()) {
             if (logLevel.toString().equalsIgnoreCase(value)) {
@@ -486,11 +493,7 @@ public class Configuration implements Serializable {
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting) {
-        if (PwmSettingSyntax.BOOLEAN != setting.getSyntax()) {
-            throw new IllegalArgumentException("may not read BOOLEAN value for setting: " + setting.toString());
-        }
-
-        return (Boolean)storedConfiguration.readSetting(setting).toNativeObject();
+        return Converter.valueToBoolean(storedConfiguration.readSetting(setting));
     }
 
     public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
@@ -535,21 +538,21 @@ public class Configuration implements Serializable {
         }
     }
 
-    public List<CrStorageMethod> getResponseStorageLocations(final PwmSetting setting) {
+    public List<DataStorageMethod> getResponseStorageLocations(final PwmSetting setting) {
 
         return getGenericStorageLocations(setting);
     }
 
-    public List<CrStorageMethod> getOtpSecretStorageLocations(final PwmSetting setting) {
+    public List<DataStorageMethod> getOtpSecretStorageLocations(final PwmSetting setting) {
         return getGenericStorageLocations(setting);
     }
 
-    private List<CrStorageMethod> getGenericStorageLocations(final PwmSetting setting) {
+    private List<DataStorageMethod> getGenericStorageLocations(final PwmSetting setting) {
         final String input = readSettingAsString(setting);
-        final List<CrStorageMethod> storageMethods = new ArrayList<CrStorageMethod>();
+        final List<DataStorageMethod> storageMethods = new ArrayList<DataStorageMethod>();
         for (final String rawValue : input.split("-")) {
             try {
-                storageMethods.add(CrStorageMethod.valueOf(rawValue));
+                storageMethods.add(DataStorageMethod.valueOf(rawValue));
             } catch (IllegalArgumentException e) {
                 LOGGER.error("unknown STORAGE_METHOD found: " + rawValue);
             }
@@ -671,7 +674,7 @@ public class Configuration implements Serializable {
 
     public boolean shouldHaveDbConfigured() {
         for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-            if (getResponseStorageLocations(loopSetting).contains(CrStorageMethod.DB)) {
+            if (getResponseStorageLocations(loopSetting).contains(DataStorageMethod.DB)) {
                 return true;
             }
         }
@@ -713,33 +716,47 @@ public class Configuration implements Serializable {
 
     private Convenience helper = new Convenience();
 
-    public Convenience getHelper() {
+    public Convenience helper() {
         return helper;
     }
 
     public class Convenience {
-        public List<CrStorageMethod> getCrReadPreference() {
-            final List<CrStorageMethod> writeMethods = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
-            if (writeMethods.size() == 1 && writeMethods.get(0) == CrStorageMethod.AUTO) {
-                writeMethods.clear();
+        public List<DataStorageMethod> getCrReadPreference() {
+            final List<DataStorageMethod> readPreferences = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE);
+            if (readPreferences.size() == 1 && readPreferences.get(0) == DataStorageMethod.AUTO) {
+                readPreferences.clear();
                 if (hasDbConfigured()) {
-                    writeMethods.add(CrStorageMethod.DB);
+                    readPreferences.add(DataStorageMethod.DB);
                 } else {
-                    writeMethods.add(CrStorageMethod.LDAP);
+                    readPreferences.add(DataStorageMethod.LDAP);
                 }
             }
-            return writeMethods;
+
+                final String wsURL = readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
+                if (wsURL != null && wsURL.length() > 0) {
+                    readPreferences.add(DataStorageMethod.NMASUAWS);
+                }
+
+
+            if (readSettingAsBoolean(PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES)) {
+                readPreferences.add(DataStorageMethod.NMAS);
+            }
+
+            return readPreferences;
         }
 
-        public List<CrStorageMethod> getCrWritePreference() {
-            final List<CrStorageMethod> writeMethods = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
-            if (writeMethods.size() == 1 && writeMethods.get(0) == CrStorageMethod.AUTO) {
+        public List<DataStorageMethod> getCrWritePreference() {
+            final List<DataStorageMethod> writeMethods = getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE);
+            if (writeMethods.size() == 1 && writeMethods.get(0) == DataStorageMethod.AUTO) {
                 writeMethods.clear();
                 if (hasDbConfigured()) {
-                    writeMethods.add(CrStorageMethod.DB);
+                    writeMethods.add(DataStorageMethod.DB);
                 } else {
-                    writeMethods.add(CrStorageMethod.LDAP);
+                    writeMethods.add(DataStorageMethod.LDAP);
                 }
+            }
+            if (readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
+                writeMethods.add(DataStorageMethod.NMAS);
             }
             return writeMethods;
         }

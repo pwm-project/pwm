@@ -22,11 +22,12 @@
 
 package password.pwm.config.option;
 
-public enum CrStorageMethod implements ConfigurationOption {
+public enum DataStorageMethod implements ConfigurationOption {
     AUTO,
     DB,
     LDAP,
     LOCALDB,
     NMAS,
-    NMASUAWS
+    NMASUAWS,
+    CRYPTO
 }

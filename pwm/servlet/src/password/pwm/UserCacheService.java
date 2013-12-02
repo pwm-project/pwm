@@ -2,6 +2,7 @@ package password.pwm;
 
 import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.UserStatusCacheBean;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
@@ -13,9 +14,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class UserStatusCacheManager implements PwmService {
+public class UserCacheService implements PwmService {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserStatusCacheManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserCacheService.class);
     private static final LocalDB.DB DB = LocalDB.DB.USER_CACHE;
 
     private STATUS status;
@@ -120,4 +121,10 @@ public class UserStatusCacheManager implements PwmService {
     public List<HealthRecord> healthCheck() {
         return Collections.emptyList();
     }
+
+    public ServiceInfo serviceInfo()
+    {
+        return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+    }
+
 }

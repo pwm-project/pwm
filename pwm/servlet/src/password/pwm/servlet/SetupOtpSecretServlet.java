@@ -26,6 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
@@ -211,7 +212,7 @@ public class SetupOtpSecretServlet extends TopServlet {
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final OtpService otpService = pwmApplication.getOtpService();
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor();
+            final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             otpService.writeOTPUserConfiguration(theUser, userGUID, otpBean.getOtp());
             pwmSession.getUserInfoBean().setRequiresOtpConfig(false);
@@ -252,7 +253,7 @@ public class SetupOtpSecretServlet extends TopServlet {
         if (newOtp || !otpBean.hasValidOtp()) {
             try {
                 final OtpService service = pwmApplication.getOtpService();
-                final ChaiUser theUser = pwmSession.getSessionManager().getActor();
+                final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
                 if (!newOtp) {
                     otpBean.setOtp(service.readOTPUserConfiguration(theUser));
                 }

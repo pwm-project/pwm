@@ -25,6 +25,7 @@ package password.pwm.wordlist;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;

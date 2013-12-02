@@ -61,17 +61,28 @@ public enum Permission {
     public static boolean checkPermission(final Permission permission, final PwmSession pwmSession, final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        LOGGER.trace(String.format("Enter: checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
+        final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+        if (devDebugMode) {
+            LOGGER.trace(pwmSession, String.format("entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
+        }
+
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (devDebugMode) {
+                LOGGER.trace(pwmSession, "user is not authenticated, returning false for permission check");
+            }
+            return false;
+        }
+
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {
-            LOGGER.debug(String.format("Checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
+            LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
             final PwmSetting setting = permission.getPwmSetting();
             final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting), permission.toString());
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
-            LOGGER.debug(String.format("Permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
+            LOGGER.debug(pwmSession, String.format("permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
             pwmSession.getUserInfoBean().setPermission(permission, status);
         }
-        LOGGER.debug(String.format("Permission status: %s", status));
+        LOGGER.debug(pwmSession, String.format("permission status: %s", status));
         return status == PERMISSION_STATUS.GRANTED;
     }
 
@@ -81,7 +92,13 @@ public enum Permission {
             final UserIdentity userIdentity,
             final String queryMatch,
             final String permissionName
-    ) throws PwmUnrecoverableException {
+    )
+            throws PwmUnrecoverableException
+    {
+        if (userIdentity == null) {
+            return false;
+        }
+
         LOGGER.trace(pwmSession, "begin check for permission for " + userIdentity + " for " + permissionName + " using queryMatch: " + queryMatch);
 
         boolean result = false;

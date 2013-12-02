@@ -25,6 +25,7 @@ package password.pwm.util.queue;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -247,6 +248,15 @@ public abstract class AbstractQueueManager implements PwmService {
 
         public String getDebugName() {
             return debugName;
+        }
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        } else {
+            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
     }
 }

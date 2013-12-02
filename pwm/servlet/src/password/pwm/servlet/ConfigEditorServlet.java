@@ -50,13 +50,15 @@ public class ConfigEditorServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigEditorServlet.class);
     public static final String DEFAULT_PW = "DEFAULT-PW";
 
+    private static final String COOKIE_NAME_PREFERENCES = "preferences";
+
     public static ConfigEditorCookie readConfigEditorCookie(
             final HttpServletRequest request,
             final HttpServletResponse response
     ) {
         ConfigEditorCookie cookie = null;
         try {
-            final String jsonString = ServletHelper.readCookie(request, "preferences");
+            final String jsonString = ServletHelper.readCookie(request, COOKIE_NAME_PREFERENCES);
             cookie = Helper.getGson().fromJson(jsonString, ConfigEditorCookie.class);
         } catch (Exception e) {
             LOGGER.warn("error parsing cookie preferences: " + e.getMessage());
@@ -64,7 +66,7 @@ public class ConfigEditorServlet extends TopServlet {
         if (cookie == null) {
             cookie = new ConfigEditorCookie();
             final String jsonString = Helper.getGson().toJson(cookie);
-            ServletHelper.writeCookie(response, "preferences", jsonString);
+            ServletHelper.writeCookie(response, COOKIE_NAME_PREFERENCES, jsonString);
         }
 
         return cookie;
@@ -81,6 +83,8 @@ public class ConfigEditorServlet extends TopServlet {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
+
+        validateCookieProfile(readConfigEditorCookie(req,resp),configManagerBean.getConfiguration(),resp);
 
         final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
@@ -435,8 +439,35 @@ public class ConfigEditorServlet extends TopServlet {
         resp.sendRedirect(url);
     }
 
+    static void validateCookieProfile(
+            final ConfigEditorCookie configEditorCookie,
+            final StoredConfiguration storedConfiguration,
+            final HttpServletResponse resp
+    ) {
+        if (null == configEditorCookie.getProfile() || "".equals(configEditorCookie.getProfile())) {
+            return;
+        }
 
-// -------------------------- ENUMERATIONS --------------------------
 
+        if (configEditorCookie.getCategory() == null) {
+            configEditorCookie.setCategory(PwmSetting.Category.LDAP_PROFILE);
+        }
 
+        if (configEditorCookie.getEditMode() == null) {
+            configEditorCookie.setEditMode(ConfigEditorCookie.EDIT_MODE.SETTINGS);
+        }
+
+        final PwmSetting.Category category = configEditorCookie.getCategory();
+
+        if (category.getType() != PwmSetting.Category.Type.PROFILE) {
+            configEditorCookie.setProfile("");
+        } else {
+            final Collection<String> validProfiles = storedConfiguration.profilesForSetting(category.getProfileSetting());
+            if (!validProfiles.contains(configEditorCookie.getProfile())) {
+                configEditorCookie.setProfile("");
+            }
+        }
+
+        ServletHelper.writeCookie(resp,COOKIE_NAME_PREFERENCES,Helper.getGson().toJson(configEditorCookie));
+    }
 }

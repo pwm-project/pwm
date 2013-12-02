@@ -29,6 +29,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="password.pwm.*" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -335,6 +336,9 @@
                 Status
             </td>
             <td style="font-weight:bold;">
+                Storage
+            </td>
+            <td style="font-weight:bold;">
                 Health
             </td>
         </tr>
@@ -346,6 +350,14 @@
             <td>
                 <%= loopService.status() %>
                 <% List<HealthRecord> healthRecords = loopService.healthCheck(); %>
+            </td>
+            <td>
+                <% if (loopService.serviceInfo() != null && loopService.serviceInfo().getUsedStorageMethods() != null) { %>
+                <% for (DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
+                <%=loopMethod.toString()%>
+                <br/>
+                <% } %>
+                <% } %>
             </td>
             <td>
                 <% if (healthRecords != null && !healthRecords.isEmpty()) { %>

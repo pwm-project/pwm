@@ -348,26 +348,32 @@ public class StoredConfiguration implements Serializable {
     public String toString(final boolean linebreaks) {
         domModifyLock.readLock().lock();
         try {
-            final LinkedHashMap<String,Object> outputObject = new LinkedHashMap<String,Object>();
+            final TreeMap<String,Object> outputObject = new TreeMap<String,Object>();
 
             for (final PwmSetting setting : PwmSetting.values()) {
-                if (setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
                     if (!isDefaultValue(setting,null)) {
                         final StoredValue value = readSetting(setting);
                         outputObject.put(setting.getKey(), value.toDebugString());
                     }
-                } else if (setting.getSyntax() == PwmSettingSyntax.PROFILE) {
-                    for (final String profileID : new String[] {"","jason"}) {
-                        final LinkedHashMap<String,Object> profileObject = new LinkedHashMap<String,Object>();
-                        for (final PwmSetting profileSetting : PwmSetting.getSettings(setting.getCategory())) {
+                }
+            }
+
+            for (final PwmSetting.Category category : PwmSetting.Category.values()) {
+                if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+                    final TreeMap<String,Object> profiles = new TreeMap<String,Object>();
+                    for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
+                        final TreeMap<String,String> profileObject = new TreeMap<String,String>();
+                        for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                             if (!isDefaultValue(profileSetting, profileID)) {
                                 final StoredValue value = readSetting(profileSetting, profileID);
                                 profileObject.put(profileSetting.getKey(), value.toDebugString());
                             }
                         }
-                        final String key = setting.getKey() + "=" + (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profileID) ? "default" : profileID);
-                        outputObject.put(key,profileObject);
+                        final String key = "".equals(profileID) ? "default" : profileID;
+                        profiles.put(key,profileObject);
                     }
+                    outputObject.put(category.getProfileSetting().getKey(),profiles);
                 }
             }
 
@@ -408,8 +414,9 @@ public class StoredConfiguration implements Serializable {
             profileSetting = pwmSetting.getCategory().getProfileSetting();
         }
 
+        final List<String> settingValues = (List<String>)readSetting(profileSetting).toNativeObject();
         final LinkedList<String> profiles = new LinkedList<String>();
-        profiles.addAll((List<String>)readSetting(profileSetting).toNativeObject());
+        profiles.addAll(settingValues);
         for (Iterator<String> iterator = profiles.iterator(); iterator.hasNext();) {
             final String profile = iterator.next();
             if (profile == null || profile.length() < 1) {

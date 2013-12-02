@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.util.operations.otp.LdapOtpOperator;
@@ -48,8 +50,9 @@ public class LdapOtpOperatorTest extends TestCase {
         //final File fileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmDBlocation"));
         final File configFileLocation = new File(password.pwm.tests.TestHelper.getParameter("pwmConfigurationLocation"));
         final ConfigurationReader reader = new ConfigurationReader(configFileLocation);
+        final PwmApplication pwmApplication = new PwmApplication(config, PwmApplication.MODE.RUNNING, configFileLocation);
         config = reader.getConfiguration();
-        operator = new LdapOtpOperator(config);
+        operator = new LdapOtpOperator(pwmApplication);
     }
     
     @After

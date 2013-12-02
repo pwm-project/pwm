@@ -30,6 +30,7 @@ import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.*;
@@ -71,7 +72,7 @@ public class TokenService implements PwmService {
     private SecretKey secretKey;
     private long counter;
 
-
+    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     private STATUS status = STATUS.NEW;
 
     private ErrorInformation errorInformation = null;
@@ -122,24 +123,29 @@ public class TokenService implements PwmService {
 
         try {
             secretKey = configuration.getSecurityKey();
-
+            DataStorageMethod usedStorageMethod = null;
             switch (storageMethod) {
                 case STORE_LOCALDB:
                     tokenMachine = new PwmDBTokenMachine(this, pwmApplication.getLocalDB());
+                    usedStorageMethod = DataStorageMethod.LOCALDB;
                     break;
 
                 case STORE_DB:
                     tokenMachine = new DBTokenMachine(this, pwmApplication.getDatabaseAccessor());
+                    usedStorageMethod = DataStorageMethod.DB;
                     break;
 
                 case STORE_CRYPTO:
                     tokenMachine = new CryptoTokenMachine(this);
+                    usedStorageMethod = DataStorageMethod.CRYPTO;
                     break;
 
                 case STORE_LDAP:
                     tokenMachine = new LdapTokenMachine(this, pwmApplication);
+                    usedStorageMethod = DataStorageMethod.LDAP;
                     break;
             }
+            serviceInfo = new ServiceInfo(Collections.singletonList(usedStorageMethod));
         } catch (PwmException e) {
             final String errorMsg = "unable to start token manager: " + e.getErrorInformation().getDetailedErrorMsg();
             final ErrorInformation newErrorInformation = new ErrorInformation(e.getError(), errorMsg);
@@ -459,6 +465,11 @@ public class TokenService implements PwmService {
         final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken, secretKey, true);
         final Gson gson = Helper.getGson();
         return gson.fromJson(decryptedString,TokenPayload.class);
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return serviceInfo;
     }
 
 }

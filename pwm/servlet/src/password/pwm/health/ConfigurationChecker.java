@@ -22,26 +22,13 @@
 
 package password.pwm.health;
 
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingSyntax;
-import password.pwm.config.option.CrStorageMethod;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.operations.PasswordUtility;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -169,7 +156,7 @@ public class ConfigurationChecker implements HealthChecker {
         final boolean hasResponseAttribute = config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE) != null && config.readSettingAsString(PwmSetting.CHALLENGE_USER_ATTRIBUTE).length() > 0;
         if (!hasResponseAttribute) {
             for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
-                if (config.getResponseStorageLocations(loopSetting).contains(CrStorageMethod.LDAP)) {
+                if (config.getResponseStorageLocations(loopSetting).contains(DataStorageMethod.LDAP)) {
                     final String value1 = loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
                             + " -> " + loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
                     final String value2 = PwmSetting.CHALLENGE_USER_ATTRIBUTE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)

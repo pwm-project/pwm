@@ -265,6 +265,5 @@ public class EmailQueueManager extends AbstractQueueManager {
 
         return props;
     }
-
 }
 

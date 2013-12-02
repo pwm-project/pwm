@@ -220,8 +220,8 @@ public class UserStatusHelper {
         //populate OTP data
         if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
-            final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(theUser);
-            uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, theUser, otpConfig));
+            final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(userIdentity);
+            uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, userIdentity, otpConfig));
         }
 
         //populate cached password rule attributes

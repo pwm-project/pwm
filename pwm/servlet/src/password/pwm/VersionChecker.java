@@ -29,6 +29,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthRecord;
@@ -44,6 +45,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -232,5 +234,10 @@ public class VersionChecker implements PwmService {
         public String getCurrentBuild() {
             return currentBuild;
         }
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     }
 }

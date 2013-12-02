@@ -280,7 +280,7 @@ public class MainClass {
                 out("writing responses to user '" + user.getEntryDN() + "'");
                 try {
                     final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
-                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, user);
+                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
                     pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
                 } catch (Exception e) {

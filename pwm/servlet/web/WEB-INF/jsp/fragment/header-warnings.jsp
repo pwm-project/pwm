@@ -24,34 +24,28 @@
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.health.HealthStatus" %>
 <%@ page import="java.util.Set" %>
-<% final boolean showConfigHeader = !request.getRequestURI().contains("configmanager") && (pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) || PwmConstants.TRIAL_MODE; %>
-<% final Set<HealthRecord> healthRecords = pwmApplicationHeaderBody.getHealthMonitor().getHealthRecords(); %>
-<% if (showConfigHeader) { %>
-<div id="header-warning">
+<%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.util.PwmServletURLHelper" %>
+<% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
+<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
+<% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody); %>
+<% if (showHeader || healthCheck) { %>
+<div id="header-warning" <%=showHeader?"":"style=\"display: none\""%>>
     <% final String configManagerUrl = request.getContextPath() + "/private/config/ConfigManager"; %>
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:Display key="Header_ConfigModeTrial" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
-    <% } else { %>
+    <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
     <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
     <% } %>
-    <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
-    <% for (HealthRecord healthRecord : pwmApplicationHeaderBody.getHealthMonitor().getHealthRecords()) { %>
-    <% if (healthRecord.getStatus() == HealthStatus.WARN) { %>
-    <div class="header-error">
-        <a href="<%=configManagerUrl%>">
-            <%=healthRecord.getDetail(pwmSessionHeaderBody.getSessionStateBean().getLocale(),pwmApplicationHeaderBody.getConfig())%>
-        </a>
+    <div id="headerHealthData" onclick="window.location = '<%=configManagerUrl%>'" style="cursor: pointer">
     </div>
-    <% } %>
-    <% } %>
-    <% } %>
-    <a href="#" id="header_hide_button" style="font-size: 75%" onclick="fadeOutHeader()"><pwm:Display key="Button_Hide"/></a>
 </div>
+<% if (healthCheck) { %>
 <script type="text/javascript">
-    function fadeOutHeader() {
-        require(["dojo/json","dojo/fx"], function(json,fx){
-            fx.wipeOut({node:getObject("header-warning")}).play();
-        });
-    }
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        showHeaderHealth();
+    });
 </script>
+<% } %>
+<% } %>
 <% } %>

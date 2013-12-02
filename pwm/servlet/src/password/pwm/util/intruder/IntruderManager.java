@@ -31,6 +31,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
@@ -62,6 +63,8 @@ public class IntruderManager implements Serializable, PwmService {
 
     private final Map<RecordType, RecordManager> recordManagers = new HashMap<RecordType, password.pwm.util.intruder.RecordManager>();
 
+    private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+
     public IntruderManager() {
         for (RecordType recordType : RecordType.values()) {
             recordManagers.put(recordType, new StubRecordManager());
@@ -91,24 +94,29 @@ public class IntruderManager implements Serializable, PwmService {
         {
             final IntruderStorageMethod intruderStorageMethod = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.INTRUDER_STORAGE_METHOD, IntruderStorageMethod.class);
             final String debugMsg;
+            final DataStorageMethod storageMethodUsed;
             switch (intruderStorageMethod) {
                 case AUTO:
                     dataStore = DataStoreFactory.autoDbOrLocalDBstore(pwmApplication, DatabaseTable.INTRUDER, LocalDB.DB.INTRUDER);
                     if (dataStore instanceof DatabaseDataStore) {
                         debugMsg = "starting using auto-configured data store, Remote Database selected";
+                        storageMethodUsed = DataStorageMethod.DB;
                     } else {
-                        debugMsg = "starting using auto-configured data store, Remote Database selected";
+                        debugMsg = "starting using auto-configured data store, LocalDB selected";
+                        storageMethodUsed = DataStorageMethod.LOCALDB;
                     }
                     break;
 
                 case DATABASE:
                     dataStore = new DatabaseDataStore(pwmApplication.getDatabaseAccessor(), DatabaseTable.INTRUDER);
                     debugMsg = "starting using Remote Database data store";
+                    storageMethodUsed = DataStorageMethod.DB;
                     break;
 
                 case LOCALDB:
                     dataStore = new LocalDBDataStore(pwmApplication.getLocalDB(), LocalDB.DB.INTRUDER);
                     debugMsg = "starting using LocalDB data store";
+                    storageMethodUsed = DataStorageMethod.LOCALDB;
                     break;
 
                 default:
@@ -117,7 +125,7 @@ public class IntruderManager implements Serializable, PwmService {
                     return;
             }
             LOGGER.info(debugMsg);
-
+            serviceInfo = new ServiceInfo(Collections.singletonList(storageMethodUsed));
         }
         final RecordStore recordStore;
         {
@@ -487,4 +495,8 @@ public class IntruderManager implements Serializable, PwmService {
         ), userInfoBean, null);
     }
 
+    public ServiceInfo serviceInfo()
+    {
+        return serviceInfo;
+    }
 }

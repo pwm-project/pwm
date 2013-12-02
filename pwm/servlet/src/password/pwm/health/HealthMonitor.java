@@ -25,6 +25,7 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 
@@ -155,5 +156,10 @@ public class HealthMonitor implements PwmService {
         healthRecords = Collections.unmodifiableSet(sortedRecordList);
         lastHealthCheckDate = new Date();
         LOGGER.trace("health check process completed");
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     }
 }

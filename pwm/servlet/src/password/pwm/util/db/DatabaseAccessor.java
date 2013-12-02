@@ -29,6 +29,7 @@ import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -660,6 +661,15 @@ public class DatabaseAccessor implements PwmService {
                 }
             }
             return false;
+        }
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        } else {
+            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
     }
 }

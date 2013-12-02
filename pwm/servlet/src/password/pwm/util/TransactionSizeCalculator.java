@@ -28,9 +28,12 @@ public class TransactionSizeCalculator {
     private final TimeDuration setting_OutOfRange;
     private final int setting_MaxTransactions;
     private final int setting_MinTransactions;
+    private final int setting_MaxOutOfRangeCount = 3;
+
     private final int initialTransactionSize;
 
     private volatile int transactionSize;
+    private volatile int outOfRangeCount;
 
     public TransactionSizeCalculator(
             final long goalTimeMS,
@@ -78,6 +81,7 @@ public class TransactionSizeCalculator {
         final long difference = Math.abs(duration.getTotalMilliseconds() - setting_Goal.getTotalMilliseconds());
 
         int newTransactionSize;
+        boolean outOfRange = false;
         if (duration.isShorterThan(setting_Goal)) {
             if (difference > 100) {
                 newTransactionSize = ((int) (transactionSize + (transactionSize * 0.1)) + 1);
@@ -91,10 +95,22 @@ public class TransactionSizeCalculator {
             } else {
             newTransactionSize = transactionSize - 1;
             }
-        } else if (duration.isLongerThan(setting_OutOfRange)) {
-            newTransactionSize = initialTransactionSize;
+
+            if (duration.isLongerThan(setting_OutOfRange)) {
+                outOfRange = true;
+            }
         } else {
             newTransactionSize = transactionSize;
+        }
+
+        if (outOfRange) {
+            outOfRangeCount++;
+            if (outOfRangeCount > setting_MaxOutOfRangeCount) {
+                newTransactionSize = initialTransactionSize;
+                outOfRangeCount = 0;
+            }
+        } else {
+            outOfRangeCount = 0;
         }
 
         newTransactionSize = newTransactionSize > setting_MaxTransactions ? setting_MaxTransactions : newTransactionSize;

@@ -24,6 +24,7 @@ package password.pwm.wordlist;
 
 import password.pwm.*;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.*;
@@ -32,6 +33,7 @@ import password.pwm.util.localdb.LocalDBException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -457,5 +459,14 @@ public class SharedHistoryManager implements Wordlist {
         private int hashIterations;
         private long maxAgeMs;
         private boolean caseInsensitive;
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        if (status == STATUS.OPEN) {
+            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        } else {
+            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        }
     }
 }

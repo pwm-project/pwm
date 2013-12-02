@@ -141,16 +141,13 @@ public class RestHealthServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(false);
             servicePermissions.setBlockExternal(false);
+            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
         try {
-            if (restRequestBean.isExternal() && !Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-            }
-
             processRefreshImmediate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),requestImmediateParam);
             final JsonOutput jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             if (restRequestBean.isExternal()) {

@@ -32,7 +32,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.CrStorageMethod;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -50,7 +50,7 @@ import java.util.*;
 public class CrService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrService.class);
 
-    private final Map<CrStorageMethod,CrOperator> operatorMap = new HashMap<CrStorageMethod,CrOperator>();
+    private final Map<DataStorageMethod,CrOperator> operatorMap = new HashMap<DataStorageMethod,CrOperator>();
     private PwmApplication pwmApplication;
 
     public CrService() {
@@ -64,11 +64,11 @@ public class CrService implements PwmService {
     @Override
     public void init(PwmApplication pwmApplication) throws PwmException {
         this.pwmApplication = pwmApplication;
-        operatorMap.put(CrStorageMethod.DB, new DbCrOperator(pwmApplication));
-        operatorMap.put(CrStorageMethod.LDAP, new LdapCrOperator(pwmApplication.getConfig()));
-        operatorMap.put(CrStorageMethod.LOCALDB, new LocalDbCrOperator(pwmApplication.getLocalDB()));
-        operatorMap.put(CrStorageMethod.NMAS, new NMASCrOperator(pwmApplication));
-        operatorMap.put(CrStorageMethod.NMASUAWS, new NMASUAWSOperator(pwmApplication));
+        operatorMap.put(DataStorageMethod.DB, new DbCrOperator(pwmApplication));
+        operatorMap.put(DataStorageMethod.LDAP, new LdapCrOperator(pwmApplication.getConfig()));
+        operatorMap.put(DataStorageMethod.LOCALDB, new LocalDbCrOperator(pwmApplication.getLocalDB()));
+        operatorMap.put(DataStorageMethod.NMAS, new NMASCrOperator(pwmApplication));
+        operatorMap.put(DataStorageMethod.NMASUAWS, new NMASUAWSOperator(pwmApplication));
     }
 
     @Override
@@ -258,28 +258,19 @@ public class CrService implements PwmService {
 
         LOGGER.trace(pwmSession, "beginning read of user response sequence");
 
-        final List<CrStorageMethod> readPreferences = config.getHelper().getCrReadPreference();
-        {
-            final String wsURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (wsURL != null && wsURL.length() > 0) {
-                readPreferences.add(CrStorageMethod.NMASUAWS);
-            }
-        }
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES)) {
-            readPreferences.add(CrStorageMethod.NMAS);
-        }
+        final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
 
         final String debugMsg = "will attempt to read the following storage methods: " + Helper.getGson().toJson(readPreferences) + " for response info for user " + theUser.getEntryDN();
         LOGGER.debug(pwmSession, debugMsg);
 
         final String userGUID;
-        if (readPreferences.contains(CrStorageMethod.DB) || readPreferences.contains(CrStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, theUser);
+        if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
         } else {
             userGUID = null;
         }
 
-        for (final CrStorageMethod storageMethod : readPreferences) {
+        for (final DataStorageMethod storageMethod : readPreferences) {
             final ResponseInfoBean readResponses;
 
             LOGGER.trace(pwmSession, "attempting read of response info via storage method: " + storageMethod);
@@ -309,29 +300,19 @@ public class CrService implements PwmService {
 
         LOGGER.trace(pwmSession, "beginning read of user response sequence");
 
-        final List<CrStorageMethod> readPreferences = config.getHelper().getCrReadPreference();
+        final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
 
-        {
-            final String wsURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
-            if (wsURL != null && wsURL.length() > 0) {
-                readPreferences.add(CrStorageMethod.NMASUAWS);
-            }
-        }
-
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_USE_NMAS_RESPONSES)) {
-            readPreferences.add(CrStorageMethod.NMAS);
-        }
         final String debugMsg = "will attempt to read the following storage methods: " + Helper.getGson().toJson(readPreferences) + " for user " + theUser.getEntryDN();
         LOGGER.debug(pwmSession, debugMsg);
 
         final String userGUID;
-        if (readPreferences.contains(CrStorageMethod.DB) || readPreferences.contains(CrStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, theUser);
+        if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
         } else {
             userGUID = null;
         }
 
-        for (final CrStorageMethod storageMethod : readPreferences) {
+        for (final DataStorageMethod storageMethod : readPreferences) {
             final ResponseSet readResponses;
 
             LOGGER.trace(pwmSession, "attempting read of responses via storage method: " + storageMethod);
@@ -359,16 +340,12 @@ public class CrService implements PwmService {
     {
 
         int attempts = 0, successes = 0;
-        final Map<CrStorageMethod,String> errorMessages = new LinkedHashMap<CrStorageMethod, String>();
+        final Map<DataStorageMethod,String> errorMessages = new LinkedHashMap<DataStorageMethod, String>();
         final Configuration config = pwmApplication.getConfig();
 
-        final List<CrStorageMethod> writeMethods = config.getHelper().getCrWritePreference();
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
-            writeMethods.add(CrStorageMethod.NMAS);
-        }
+        final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
 
-
-        for (final CrStorageMethod loopWriteMethod : writeMethods) {
+        for (final DataStorageMethod loopWriteMethod : writeMethods) {
             try {
                 attempts++;
                 operatorMap.get(loopWriteMethod).writeResponses(theUser,userGUID,responseInfoBean);
@@ -410,18 +387,9 @@ public class CrService implements PwmService {
 
         LOGGER.trace(pwmSession, "beginning clear response operation for user " + theUser.getEntryDN() + " guid=" + userGUID);
 
-        final List<CrStorageMethod> writeMethods = config.getHelper().getCrWritePreference();
-        if (writeMethods.size() == 1 && writeMethods.get(0) == CrStorageMethod.AUTO) {
-            writeMethods.clear();
-            if (config.hasDbConfigured()) {
+        final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
 
-            }
-        }
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.EDIRECTORY_STORE_NMAS_RESPONSES)) {
-            writeMethods.add(CrStorageMethod.NMAS);
-        }
-
-        for (final CrStorageMethod loopWriteMethod : writeMethods) {
+        for (final DataStorageMethod loopWriteMethod : writeMethods) {
             try {
                 attempts++;
                 operatorMap.get(loopWriteMethod).clearResponses(theUser, userGUID);
@@ -489,4 +457,12 @@ public class CrService implements PwmService {
         }
     }
 
+    @Override
+    public ServiceInfo serviceInfo()
+    {
+        final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<DataStorageMethod>();
+        usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrReadPreference());
+        usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrWritePreference());
+        return new ServiceInfo(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));
+    }
 }

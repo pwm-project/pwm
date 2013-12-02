@@ -23,6 +23,7 @@
 package password.pwm.wordlist;
 
 import password.pwm.PwmService;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -379,5 +380,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             return Collections.singletonList(healthRecord);
         }
         return null;
+    }
+
+    public ServiceInfo serviceInfo()
+    {
+        if (status() == STATUS.OPEN) {
+            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        } else {
+            return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        }
     }
 }

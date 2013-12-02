@@ -22,9 +22,12 @@
 
 package password.pwm;
 
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 public interface PwmService {
@@ -43,4 +46,20 @@ public interface PwmService {
     void close();
 
     List<HealthRecord> healthCheck();
+
+    ServiceInfo serviceInfo();
+
+    public class ServiceInfo implements Serializable {
+        public Collection<DataStorageMethod> usedStorageMethods;
+
+        public ServiceInfo(Collection<DataStorageMethod> usedStorageMethods)
+        {
+            this.usedStorageMethods = usedStorageMethods;
+        }
+
+        public Collection<DataStorageMethod> getUsedStorageMethods()
+        {
+            return usedStorageMethods;
+        }
+    }
 }

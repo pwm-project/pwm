@@ -27,6 +27,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>

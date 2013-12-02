@@ -396,7 +396,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+        final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
         final OTPUserConfiguration otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(theUser);
 
         LOGGER.trace("loaded one time password configuration for user");
@@ -407,7 +407,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         forgottenPasswordBean.setOtpConfig(null);
 
-        final String errorMsg = "could not find a one time password configuration for " + theUser.getEntryDN();
+        final String errorMsg = "could not find a one time password configuration for " + theUser;
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
         throw new PwmOperationalException(errorInformation);
     }

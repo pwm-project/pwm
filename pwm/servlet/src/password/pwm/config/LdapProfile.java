@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LdapProfile {
-    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP));
+    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP_PROFILE));
 
     final protected String identifier;
     final protected Map<PwmSetting,StoredValue> storedValueMap;
@@ -71,35 +71,7 @@ public class LdapProfile {
         return new X509Certificate[0];
     }
 
-
-    /*
-    LDAP_SERVER_URLS(
-            "ldap.serverUrls", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    LDAP_SERVER_CERTS(
-            "ldap.serverCerts", PwmSettingSyntax.X509CERT, Category.LDAP),
-    LDAP_PROXY_USER_DN(
-            "ldap.proxy.username", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_PROXY_USER_PASSWORD(
-            "ldap.proxy.password", PwmSettingSyntax.PASSWORD, Category.LDAP),
-    LDAP_CONTEXTLESS_ROOT(
-            "ldap.rootContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    LDAP_TEST_USER_DN(
-            "ldap.testuser.username", PwmSettingSyntax.STRING, Category.LDAP),
-    QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_USERNAME_SEARCH_FILTER(
-            "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP),
-    AUTO_ADD_OBJECT_CLASSES(
-            "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-    LDAP_USERNAME_ATTRIBUTE(
-            "ldap.username.attr", PwmSettingSyntax.STRING, Category.LDAP),
-    LDAP_FOLLOW_REFERRALS(
-            "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP),
-    LDAP_LOGIN_CONTEXTS(
-            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP),
-*/
+    public boolean readSettingAsBoolean(final PwmSetting setting) {
+        return Configuration.Converter.valueToBoolean(storedValueMap.get(setting));
+    }
 }
