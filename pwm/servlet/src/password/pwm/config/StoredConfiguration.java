@@ -79,16 +79,20 @@ public class StoredConfiguration implements Serializable {
     private static final DateFormat CONFIG_ATTR_DATETIME_FORMAT;
     private static final String XML_FORMAT_VERSION = "3";
 
-    private static final String XML_ELEMENT_ROOT = "PwmConfiguration";
+    private static final String XML_ELEMENT_ROOT = PwmConstants.PWM_APP_NAME.toUpperCase().substring(0,1) +
+            PwmConstants.PWM_APP_NAME.toLowerCase().substring(1,PwmConstants.PWM_APP_NAME.length()) +
+            "Configuration";
     private static final String XML_ELEMENT_PROPERTIES = "properties";
     private static final String XML_ELEMENT_PROPERTY = "property";
     private static final String XML_ATTRIBUTE_TYPE = "type";
     private static final String XML_ATTRIBUTE_KEY = "key";
+    private static final String XML_ATTRIBUTE_VALUE_APP = "app";
+    private static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
 
     private Date createTime = new Date();
     private Date modifyTime = new Date();
 
-    private Element rootElement = new Element(XML_ELEMENT_ROOT);
+    private Document document = new Document(new Element(XML_ELEMENT_ROOT));
 
     private boolean locked = false;
     private boolean setting_writeLabels = false;
@@ -119,7 +123,7 @@ public class StoredConfiguration implements Serializable {
         final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
         try {
             final Element rootElement = inputDocument.getRootElement();
-            newConfiguration.rootElement = rootElement;
+            newConfiguration.document = inputDocument;
             final String createTimeString = rootElement.getAttributeValue("createTime");
             final String modifyTimeString = rootElement.getAttributeValue("modifyTime");
             if (createTimeString == null) {
@@ -130,7 +134,7 @@ public class StoredConfiguration implements Serializable {
             }
             newConfiguration.createTime = CONFIG_ATTR_DATETIME_FORMAT.parse(createTimeString);
             newConfiguration.modifyTime = CONFIG_ATTR_DATETIME_FORMAT.parse(modifyTimeString);
-            fixupMandatoryElements(rootElement,newConfiguration);
+            fixupMandatoryElements(inputDocument, newConfiguration);
             newConfiguration.validateValues();
         } catch (Exception e) {
             final String errorMsg = "error reading configuration file format, error=" + e.getMessage();
@@ -144,7 +148,7 @@ public class StoredConfiguration implements Serializable {
 
     public StoredConfiguration()
     {
-        fixupMandatoryElements(rootElement,this);
+        fixupMandatoryElements(document, this);
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
@@ -159,7 +163,7 @@ public class StoredConfiguration implements Serializable {
 
     public String readConfigProperty(final ConfigProperty propertyName) {
         final XPathExpression xp = XPathBuilder.xpathForConfigProperty(propertyName);
-        final Element propertyElement = (Element)xp.evaluateFirst(rootElement);
+        final Element propertyElement = (Element)xp.evaluateFirst(document);
         return propertyElement == null ? null : propertyElement.getText();
     }
 
@@ -168,11 +172,12 @@ public class StoredConfiguration implements Serializable {
             final String value
     ) {
         preModifyActions();
+
         domModifyLock.writeLock().lock();
         try {
 
             final XPathExpression xp = XPathBuilder.xpathForConfigProperty(propertyName);
-            final List<Element> propertyElements = xp.evaluate(rootElement);
+            final List<Element> propertyElements = xp.evaluate(document);
             for (final Element propertyElement : propertyElements) {
                 propertyElement.detach();
             }
@@ -181,8 +186,14 @@ public class StoredConfiguration implements Serializable {
             propertyElement.setAttribute(new Attribute(XML_ATTRIBUTE_KEY,propertyName.getKey()));
             propertyElement.setContent(new Text(value));
 
+            if (null == XPathBuilder.xpathForConfigProperties().evaluateFirst(document)) {
+                Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
+                configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,XML_ATTRIBUTE_VALUE_CONFIG));
+                document.getRootElement().addContent(configProperties);
+            }
+
             final XPathExpression xp2 = XPathBuilder.xpathForConfigProperties();
-            final Element propertiesElement = (Element)xp2.evaluateFirst(rootElement);
+            final Element propertiesElement = (Element)xp2.evaluateFirst(document);
             propertiesElement.addContent(propertyElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -193,7 +204,7 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.readLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForAppProperty(propertyName);
-            final Element propertyElement = (Element)xp.evaluateFirst(rootElement);
+            final Element propertyElement = (Element)xp.evaluateFirst(document);
             return propertyElement == null ? null : propertyElement.getText();
         } finally {
             domModifyLock.readLock().unlock();
@@ -202,10 +213,12 @@ public class StoredConfiguration implements Serializable {
 
     public void writeAppProperty(final AppProperty propertyName, final String value) {
         preModifyActions();
+
         domModifyLock.writeLock().lock();
+
         try {
             final XPathExpression xp = XPathBuilder.xpathForAppProperty(propertyName);
-            final List<Element> propertyElements = xp.evaluate(rootElement);
+            final List<Element> propertyElements = xp.evaluate(document);
             for (final Element properElement : propertyElements) {
                 properElement.detach();
             }
@@ -214,8 +227,14 @@ public class StoredConfiguration implements Serializable {
             propertyElement.setAttribute(new Attribute(XML_ATTRIBUTE_KEY,propertyName.getKey()));
             propertyElement.setContent(new Text(value));
 
+            if (null == XPathBuilder.xpathForAppProperties().evaluateFirst(document)) {
+                Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
+                configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,XML_ATTRIBUTE_VALUE_APP));
+                document.getRootElement().addContent(configProperties);
+            }
+
             final XPathExpression xp2 = XPathBuilder.xpathForAppProperties();
-            final Element propertiesElement = (Element)xp2.evaluateFirst(rootElement);
+            final Element propertiesElement = (Element)xp2.evaluateFirst(document);
             propertiesElement.addContent(propertyElement);
         } finally {
             domModifyLock.writeLock().unlock();
@@ -230,7 +249,7 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.readLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForLocaleBundleSetting(bundleName, keyName);
-            final Element localeBundleElement = (Element)xp.evaluateFirst(rootElement);
+            final Element localeBundleElement = (Element)xp.evaluateFirst(document);
             if (localeBundleElement != null) {
                 final Map<String,String> bundleMap = new LinkedHashMap<String, String>();
                 for (final Element valueElement : localeBundleElement.getChildren("value")) {
@@ -252,7 +271,7 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.writeLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForLocaleBundleSetting(bundleName, keyName);
-            final List<Element> oldBundleElements = xp.evaluate(rootElement);
+            final List<Element> oldBundleElements = xp.evaluate(document);
             if (oldBundleElements != null) {
                 for (final Element element : oldBundleElements) {
                     element.detach();
@@ -272,7 +291,7 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.writeLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
-            final List<Element> oldSettingElements = xp.evaluate(rootElement);
+            final List<Element> oldSettingElements = xp.evaluate(document);
             if (oldSettingElements != null) {
                 for (final Element element : oldSettingElements) {
                     element.detach();
@@ -391,14 +410,12 @@ public class StoredConfiguration implements Serializable {
     public String toXml()
             throws IOException
     {
-        final Element pwmConfigElement = this.rootElement;
-        fixupMandatoryElements(pwmConfigElement,this);
+        fixupMandatoryElements(document,this);
+
         final Format format = Format.getPrettyFormat();
         format.setEncoding("UTF-8");
         final XMLOutputter outputter = new XMLOutputter();
         outputter.setFormat(format);
-        pwmConfigElement.detach();
-        final Document document = new Document(pwmConfigElement);
         return outputter.outputString(document);
     }
 
@@ -481,7 +498,7 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.readLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
-            final Element settingElement = (Element)xp.evaluateFirst(rootElement);
+            final Element settingElement = (Element)xp.evaluateFirst(document);
 
             if (settingElement == null) {
                 return defaultValue(setting, getTemplate());
@@ -539,7 +556,7 @@ public class StoredConfiguration implements Serializable {
             valueElement.setContent(new CDATA(localeMap.get(locale)));
             localeBundleElement.addContent(valueElement);
         }
-        rootElement.addContent(localeBundleElement);
+        document.getRootElement().addContent(localeBundleElement);
     }
 
 
@@ -553,6 +570,11 @@ public class StoredConfiguration implements Serializable {
             final StoredValue value
     ) {
         final Class correctClass = setting.getSyntax().getStoredValueImpl();
+
+        if (profileID != null && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+            throw new IllegalArgumentException("cannot specify profile for non-profile setting");
+        }
+
         if (!correctClass.equals(value.getClass())) {
             throw new IllegalArgumentException("value must be of class " + correctClass.getName() + " for setting " + setting.toString());
         }
@@ -584,7 +606,7 @@ public class StoredConfiguration implements Serializable {
                 settingElement.addContent(value.toXmlValues("value"));
             }
 
-            rootElement.addContent(settingElement);
+            document.getRootElement().addContent(settingElement);
         } finally {
             domModifyLock.writeLock().unlock();
         }
@@ -645,7 +667,7 @@ public class StoredConfiguration implements Serializable {
         private static XPathExpression xpathForAppProperty(final AppProperty appProperty) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"app\"]/"
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + appProperty.getKey() + "\"]";
             return xpfac.compile(xpathString);
         }
@@ -653,14 +675,14 @@ public class StoredConfiguration implements Serializable {
         private static XPathExpression xpathForAppProperties() {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"app\"]";
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_APP + "\"]";
             return xpfac.compile(xpathString);
         }
 
         private static XPathExpression xpathForConfigProperty(final ConfigProperty configProperty) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"config\" or (not (@" + XML_ATTRIBUTE_TYPE + "))]/"
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\" or (not (@" + XML_ATTRIBUTE_TYPE + "))]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + configProperty.getKey() + "\"]";
             return xpfac.compile(xpathString);
         }
@@ -668,21 +690,13 @@ public class StoredConfiguration implements Serializable {
         private static XPathExpression xpathForConfigProperties() {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"config\"]";
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]";
             return xpfac.compile(xpathString);
         }
     }
 
-    private static void fixupMandatoryElements(final Element rootElement, final StoredConfiguration storedConfiguration) {
-        if (null == XPathBuilder.xpathForConfigProperties().evaluateFirst(rootElement)) {
-            Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
-            configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,"config"));
-        }
-
-        if (null == XPathBuilder.xpathForAppProperties().evaluateFirst(rootElement)) {
-            Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
-            configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,"app"));
-        }
+    private static void fixupMandatoryElements(final Document document, final StoredConfiguration storedConfiguration) {
+        final Element rootElement = document.getRootElement();
 
         {
             final XPathExpression commentXPath = XPathFactory.instance().compile("//comment()[1]");

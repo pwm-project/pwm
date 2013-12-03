@@ -133,13 +133,13 @@
                     }
                 </script>
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="makeSupportBundle()">
+                    <a class="menubutton" href="#" oinclick="makeSupportBundle()">
                         <i class="fa fa-suitcase"></i>&nbsp;
                         Make Troubleshooting Bundle
                     </a>
                 </td>
                 <td style="border:0">
-                    <p>Generate a support ZIP file that contains information useful for troubleshooitng.</p>
+                    <p>Generate a support ZIP file that contains information useful for troubleshooting.</p>
                 </td>
             </tr>
             <tr style="border:0">

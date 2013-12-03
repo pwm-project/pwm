@@ -29,8 +29,10 @@
 
 <% final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting"); %>
 <% X509Certificate[] certificates = (X509Certificate[])request.getAttribute("certificate"); %>
+<% final boolean hideActions = Boolean.parseBoolean((String)request.getAttribute("hideActions")); %>
 <% for (X509Certificate certificate : certificates) {%>
 <% final String md5sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "MD5"); %>
+<% final String sha1sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "SHA1"); %>
 <table style="width:100%" id="table_certificate0">
     <tr><td colspan="2" class="key" style="text-align: center">
         Certificate
@@ -45,7 +47,11 @@
 </table>
 <script type="text/javascript">
     function showCert_<%=md5sum%>() {
-        var body = '<pre>' + '<%=StringEscapeUtils.escapeJavaScript(certificate.toString())%>' + '</pre>';
+        var body = '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+        body += 'md5sum: <%=md5sum%>\n';
+        body += 'sha1sum: <%=sha1sum%>\n';
+        body += '<%=StringEscapeUtils.escapeJavaScript(certificate.toString())%>';
+        body += '</pre>'
         require(["dijit/Dialog"], function(Dialog){
             new Dialog({
                 title: "Certificate Detail",
@@ -55,6 +61,7 @@
     }
 </script>
 <% } %>
+<% if (!hideActions) { %>
 <button id="<%=loopSetting.getKey()%>_ClearButton" data-dojo-type="dijit.form.Button">Clear</button>
 <button id="<%=loopSetting.getKey()%>_AutoImportButton" data-dojo-type="dijit.form.Button">Import From LDAP Server</button>
 <script type="text/javascript">
@@ -69,3 +76,4 @@
         });
     });
 </script>
+<% } %>

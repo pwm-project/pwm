@@ -468,6 +468,10 @@ function showAppHealth(parentDivID, options, refreshNow) {
     var showTimestamp = inputOpts['showTimestamp'];
     var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
     var finishFunction = inputOpts['finishFunction'];
+
+    refreshUrl += refreshUrl.contains('?') ? '&' : '?';
+    refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo","dojo/date/stamp"],function(dojo,stamp){
         var parentDiv = dojo.byId(parentDivID);

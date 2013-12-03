@@ -25,6 +25,7 @@
 <%@ page import="java.math.RoundingMode" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
+<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -57,7 +58,7 @@
                     Active LDAP Connections
                 </td>
                 <td>
-                    <%= Helper.figureLdapConnectionCount(pwmApplication,ContextManager.getContextManager(session)) %>
+                    <%= Helper.figureLdapConnectionCount(pwmApplication, ContextManager.getContextManager(session)) %>
                 </td>
             </tr>
         </table>

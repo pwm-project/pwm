@@ -60,15 +60,13 @@
                     LDAP Server Certificates
                 </div>
                 <div class="setting_body">
-                    LDAP Server Certificates for <%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>.
+                    The following are the LDAP server certificates read from <b><%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%></b>.
                     Please verify these certificates match your LDAP server.
                     <div>
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                            <% for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
-                            <% request.setAttribute("certificate",certificate); %>
+                            <% request.setAttribute("certificate",configGuideBean.getLdapCertificates()); %>
+                            <% request.setAttribute("hideActions","true"); %>
                             <jsp:include page="fragment/setting-certificate.jsp"/>
-                            <br/>
-                            <% } %>
                         </div>
                     </div>
                 </div>

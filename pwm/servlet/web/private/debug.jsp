@@ -23,6 +23,7 @@
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="java.text.DateFormat" %>
+<%@ page import="password.pwm.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -41,7 +42,11 @@
         <table>
             <tr>
                 <td class="key">UserDN</td>
-                <td><%=pwmSessionHeader.getUserInfoBean().getUserDN()%></td>
+                <td><%=pwmSessionHeader.getUserInfoBean().getUserIdentity().getUserDN()%></td>
+            </tr>
+            <tr>
+                <td class="key">Ldap Profile</td>
+                <td><%="".equals(pwmSessionHeader.getUserInfoBean().getUserIdentity().getLdapProfileID()) ? "default" : pwmSessionHeader.getUserInfoBean().getUserIdentity().getLdapProfileID()%></td>
             </tr>
             <tr>
                 <td class="key">AuthType</td>
@@ -60,6 +65,15 @@
                 <td><%=pwmSessionHeader.getSessionStateBean().getLogoutURL()%></td>
             </tr>
         </table>
+        <table>
+            <% for (final Permission permission : Permission.values()) { %>
+            <tr>
+                <td class="key">Permission.<%=permission.toString()%></td>
+                <td><%=Permission.checkPermission(permission,pwmSessionHeader,pwmApplicationHeader)%></td>
+            </tr>
+            <% } %>
+        </table>
+
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">

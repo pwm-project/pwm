@@ -123,7 +123,7 @@ public class ConfigGuideServlet extends TopServlet {
         req.getSession().setMaxInactiveInterval(15 * 60);
 
         if (configGuideBean.getStep() == STEP.LDAPCERT) {
-            final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS).toNativeObject()).get(0);
+            final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS, PwmConstants.DEFAULT_LDAP_PROFILE).toNativeObject()).get(0);
             try {
                 final URI ldapServerUri = new URI(ldapServerString);
                 if ("ldaps".equalsIgnoreCase(ldapServerUri.getScheme())) {
@@ -214,6 +214,7 @@ public class ConfigGuideServlet extends TopServlet {
                 new X509CertificateValue(new X509Certificate[0]);
         configGuideBean.getStoredConfiguration().writeSetting(
                 PwmSetting.LDAP_SERVER_CERTS,
+                PwmConstants.DEFAULT_LDAP_PROFILE,
                 newStoredValue
         );
         ServletHelper.outputJsonResult(resp,new RestResultBean());
@@ -420,14 +421,14 @@ public class ConfigGuideServlet extends TopServlet {
 
             final String newLdapURI = "ldap" + (ldapServerSecure ? "s" : "") +  "://" + ldapServerIP + ":" + ldapServerPort;
             final StringArrayValue newValue = new StringArrayValue(Collections.singletonList(newLdapURI));
-            storedConfiguration.writeSetting(PwmSetting.LDAP_SERVER_URLS, newValue);
+            storedConfiguration.writeSetting(PwmSetting.LDAP_SERVER_URLS, PwmConstants.DEFAULT_LDAP_PROFILE, newValue);
         }
 
         { // proxy/admin account
             final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
             final String ldapAdminPW = ldapForm.get(PARAM_LDAP_ADMIN_PW);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, new StringValue(ldapAdminDN));
-            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, new PasswordValue(ldapAdminPW));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, PwmConstants.DEFAULT_LDAP_PROFILE, new StringValue(ldapAdminDN));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, PwmConstants.DEFAULT_LDAP_PROFILE, new PasswordValue(ldapAdminPW));
         }
 
         // set context based on ldap dn
@@ -439,16 +440,16 @@ public class ConfigGuideServlet extends TopServlet {
             }
             ldapForm.put(PARAM_LDAP2_CONTEXT, contextDN);
         }
-        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP2_CONTEXT))));
+        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, PwmConstants.DEFAULT_LDAP_PROFILE, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP2_CONTEXT))));
 
         {  // set context based on ldap dn
             final String ldapContext = ldapForm.get(PARAM_LDAP2_CONTEXT);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, new StringArrayValue(Collections.singletonList(ldapContext)));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, PwmConstants.DEFAULT_LDAP_PROFILE, new StringArrayValue(Collections.singletonList(ldapContext)));
         }
 
         {  // set context based on ldap dn
             final String ldapTestUserDN = ldapForm.get(PARAM_LDAP2_TEST_USER);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, new StringValue(ldapTestUserDN));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, PwmConstants.DEFAULT_LDAP_PROFILE, new StringValue(ldapTestUserDN));
         }
 
         {  // set admin query
