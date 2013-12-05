@@ -115,6 +115,9 @@ public class ConfigEditorServlet extends TopServlet {
         } else if ("setConfigurationPassword".equalsIgnoreCase(processActionParam)) {
             doSetConfigurationPassword(req);
             return;
+        } else if ("readChangeLog".equalsIgnoreCase(processActionParam)) {
+            restReadChangeLog(resp, pwmSession, configManagerBean);
+            return;
         } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
             doCancelEditing(req, resp, configManagerBean);
         } else if ("setOption".equalsIgnoreCase(processActionParam)) {
@@ -354,6 +357,9 @@ public class ConfigEditorServlet extends TopServlet {
             restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
         } else {
             try {
+                if (!configManagerBean.getConfiguration().isModified()) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Will not save: No changes have been made to the configuration."));
+                }
                 ConfigManagerServlet.saveConfiguration(pwmSession, req.getSession().getServletContext(), configManagerBean.getConfiguration());
                 configManagerBean.setConfiguration(null);
                 restResultBean.setError(false);
@@ -469,5 +475,18 @@ public class ConfigEditorServlet extends TopServlet {
         }
 
         ServletHelper.writeCookie(resp,COOKIE_NAME_PREFERENCES,Helper.getGson().toJson(configEditorCookie));
+    }
+
+    void restReadChangeLog(
+            final HttpServletResponse resp,
+            final PwmSession pwmSession,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException
+    {
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale));
+        ServletHelper.outputJsonResult(resp,restResultBean);
     }
 }

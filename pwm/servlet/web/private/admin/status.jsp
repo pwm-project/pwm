@@ -30,6 +30,7 @@
 <%@ page import="password.pwm.*" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
+<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -292,7 +293,8 @@
                     LocalDB Free Space
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
+                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(
+                            Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
         </table>

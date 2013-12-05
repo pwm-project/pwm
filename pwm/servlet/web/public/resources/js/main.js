@@ -387,7 +387,7 @@ function showWaitDialog(title, body, loadFunction) {
             closable: false,
             draggable: false,
             title: title,
-            style: "width: 350px",
+            style: "min-width: 350px",
             content: body
         });
         dojo.style(theDialog.closeButtonNode,"display","none");
@@ -469,8 +469,10 @@ function showAppHealth(parentDivID, options, refreshNow) {
     var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
     var finishFunction = inputOpts['finishFunction'];
 
-    refreshUrl += refreshUrl.contains('?') ? '&' : '?';
-    refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    {
+        refreshUrl += refreshUrl.contains('?') ? '&' : '?';
+        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    }
 
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
     require(["dojo","dojo/date/stamp"],function(dojo,stamp){

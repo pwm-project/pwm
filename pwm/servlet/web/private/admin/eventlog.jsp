@@ -21,13 +21,11 @@
   --%>
 
 <%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.util.LocalDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogEvent" %>
-<%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.TimeZone" %>
+<%@ page import="password.pwm.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>

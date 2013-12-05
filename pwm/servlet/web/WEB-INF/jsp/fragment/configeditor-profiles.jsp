@@ -54,13 +54,17 @@
 <% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
 <div style="width: 100%; padding-bottom: 10px">
     <div style="float:left;display:inline-block; width:300px">
-        Current Profile:
+        <% if (profiles.size() > 1) { %>
+        Selected Profile:
         <select id="profileSelect" data-dojo-type="dijit/form/Select">
             <option onclick="gotoProfile('')">Default</option>
             <% for (final String profile : profiles) { if (profile.length() > 0) { %>
             <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> onclick="gotoProfile('<%=profile%>')"><%=profile%></option>
             <% } } %>
         </select>
+        <% } else {%>
+        <span style="font-style: italic">Editing default profile</span>
+        <% } %>
     </div>
     <div style="text-align: right">
         <a onclick="preferences['editMode'] = 'PROFILE'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">Define Profiles</a>

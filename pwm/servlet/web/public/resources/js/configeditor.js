@@ -2021,9 +2021,11 @@ BooleanHandler.init = function(keyName) {
                 toggleButtonWidget.set('checked',resultValue);
                 toggleButtonWidget.set('disabled',false);
                 toggleButtonWidget.set('label','Enabled (True)');
-                on(toggleButton,"change",function(){
-                    BooleanHandler.toggle(keyName,toggleButton);
-                });
+                setTimeout(function(){
+                    on(toggleButton,"change",function(){
+                        BooleanHandler.toggle(keyName,toggleButton);
+                    });
+                },100);
             });
         });
     });
@@ -2227,7 +2229,7 @@ function buildMenuBar() {
                         var allowMenuSelect = true;
                         if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
                             if (menuCategory['key'] != 'LDAP') {
-                               allowMenuSelect = true;
+                                allowMenuSelect = true;
 
                             }
                         }
@@ -2286,17 +2288,10 @@ function buildMenuBar() {
                                 label: localeMenu,
                                 onClick: function() {
                                     showWaitDialog(null,null,function(){
-                                        //if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
-                                        //    var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
-                                        //    showDialog('Notice',message);
-                                        //} else {
-                                            showWaitDialog(null,null,function(){
-                                                preferences['editMode'] = 'LOCALEBUNDLE';
-                                                preferences['category'] = menuCategory['key'];
-                                                setConfigEditorCookie();
-                                                loadMainPageBody();
-                                            });
-                                        //}
+                                        preferences['editMode'] = 'LOCALEBUNDLE';
+                                        preferences['localeBundle'] = localeKey;
+                                        setConfigEditorCookie();
+                                        loadMainPageBody();
                                     });
                                 }
                             }));
@@ -2355,6 +2350,14 @@ function buildMenuBar() {
                         theDialog.show();
                     }
                 }));
+                viewMenu.addChild(new MenuSeparator());
+                viewMenu.addChild(new MenuItem({
+                    label: "Changes",
+                    onClick: function() {
+                        showChangeLog();
+                    }
+                }));
+
                 topMenuBar.addChild(new PopupMenuBarItem({
                     label: "View",
                     popup: viewMenu
@@ -2430,8 +2433,7 @@ function buildMenuBar() {
                     label: "Save",
                     iconClass: "dijitEditorIcon dijitEditorIconSave",
                     onClick: function() {
-                        showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_SaveConfig'],function(){saveConfiguration(true)});
-                        buildMenuBar();
+                        saveConfiguration(true);
                     }
                 }));
                 actionsMenu.addChild(new MenuItem({
@@ -2453,30 +2455,66 @@ function buildMenuBar() {
 }
 
 function saveConfiguration(waitForReload) {
-    showWaitDialog('Saving Configuration...', null, function(){
-        require(["dojo"],function(dojo){
+    showWaitDialog(null,null,function(){
+        require(["dojo","dojo/json"],function(dojo,json){
             dojo.xhrGet({
-                url:"ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                preventCache: true,
-                dataType: "json",
+                url:"ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept":"application/json"},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
                 handleAs: "json",
+                dataType: "json",
+                preventCache: true,
                 load: function(data){
-                    if (data['error'] == true) {
-                        closeWaitDialog();
-                        showError(data['errorDetail']);
+                    closeWaitDialog();
+                    if (data['error']) {
+                        showDialog("Error",data['errorMessage'])
                     } else {
-                        if (waitForReload) {
-                            var currentTime = new Date().getTime();
-                            showError('Waiting for server restart');
-                            waitForRestart(currentTime);
-                        } else {
-                            window.location = "ConfigManager";
-                        }
+                        var bodyText = '<div style="max-width: 590px;">';
+                        bodyText += PWM_SETTINGS['display']['MenuDisplay_SaveConfig'];
+                        bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+                        bodyText += data['data'];
+                        bodyText +='</pre></div>';
+                        showConfirmDialog(
+                            null,
+                            bodyText,
+                            function(){
+                                showWaitDialog('Saving Configuration...', null, function(){
+                                    require(["dojo"],function(dojo){
+                                        dojo.xhrGet({
+                                            url:"ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                                            preventCache: true,
+                                            dataType: "json",
+                                            handleAs: "json",
+                                            load: function(data){
+                                                if (data['error'] == true) {
+                                                    closeWaitDialog();
+                                                    showError(data['errorDetail']);
+                                                } else {
+                                                    if (waitForReload) {
+                                                        var currentTime = new Date().getTime();
+                                                        showError('Waiting for server restart');
+                                                        waitForRestart(currentTime);
+                                                    } else {
+                                                        window.location = "ConfigManager";
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    });
+                                });
+                            }
+                        );
                     }
+                },
+                error: function(errorObj) {
+                    closeWaitDialog();
+                    showError("error executing function: " + errorObj);
                 }
             });
         });
     });
+
 }
 
 
@@ -2651,4 +2689,34 @@ function executeSettingFunction(setting, profile, name) {
     });
 }
 
+function showChangeLog() {
+    showWaitDialog(null,null,function(){
+        require(["dojo","dojo/json"],function(dojo,json){
+            dojo.xhrGet({
+                url:"ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept":"application/json"},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
+                handleAs: "json",
+                dataType: "json",
+                preventCache: true,
+                load: function(data){
+                    closeWaitDialog();
+                    if (data['error']) {
+                        showDialog("Error",data['errorMessage'])
+                    } else {
+                        var bodyText = '<div style="max-width: 590px;"><pre style="white-space: pre-wrap; word-wrap: break-word">';
+                        bodyText += data['data'];
+                        bodyText +='</pre></div>';
+                        showDialog("Unsaved Configuration Editor Changes",bodyText);
+                    }
+                },
+                error: function(errorObj) {
+                    closeWaitDialog();
+                    showError("error executing function: " + errorObj);
+                }
+            });
+        });
+    });
+}
 

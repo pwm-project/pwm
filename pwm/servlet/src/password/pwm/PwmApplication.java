@@ -394,12 +394,6 @@ public class PwmApplication {
             if (previousHash == null || !previousHash.equals(currentHash)) {
                 writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
                 LOGGER.warn("configuration has been modified since last startup");
-                this.getAuditManager().submit(new SystemAuditRecord(
-                        AuditEvent.MODIFY_CONFIGURATION,
-                        new Date(),
-                        configuration.toDebugString(),
-                        this.getInstanceID()
-                ));
             }
         } catch (Exception e) {
             LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());

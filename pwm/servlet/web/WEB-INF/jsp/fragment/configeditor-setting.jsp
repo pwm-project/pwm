@@ -143,16 +143,20 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/Select"],function(Select){
-                new Select({
+                var selectWidget = new Select({
                     id: 'setting_<%=loopSetting.getKey()%>',
-                    onChange: function(){writeSetting('<%=loopSetting.getKey()%>',this.value)},
                     style: 'width: 350px'
                 }, 'setting_<%=loopSetting.getKey()%>');
                 readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
-                    require(["dijit/registry"],function(registry){
+                    require(["dijit/registry","dojo/on"],function(registry,on){
                         var dijitElement = registry.byId('setting_<%=loopSetting.getKey()%>');
-                        dijitElement.setDisabled(false);
                         dijitElement.set('value',dataValue);
+                        dijitElement.setDisabled(false);
+                        setTimeout(function(){
+                            on(selectWidget,"change",function(){
+                                writeSetting('<%=loopSetting.getKey()%>',selectWidget.value)
+                            });
+                        },100);
                     });
                 });
             });
@@ -185,7 +189,7 @@
             });
         });
     </script>
-    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
+    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING || loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

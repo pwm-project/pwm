@@ -75,13 +75,15 @@ public enum Permission {
 
         PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
         if (status == PERMISSION_STATUS.UNCHECKED) {
-            LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
+            if (devDebugMode) {
+                LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
+            }
             final PwmSetting setting = permission.getPwmSetting();
             final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting), permission.toString());
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
             pwmSession.getUserInfoBean().setPermission(permission, status);
+            LOGGER.debug(pwmSession, String.format("permission %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
         }
-        LOGGER.debug(pwmSession, String.format("permission status %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
         return status == PERMISSION_STATUS.GRANTED;
     }
 

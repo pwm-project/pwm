@@ -22,6 +22,7 @@
 
 package password.pwm.config;
 
+import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -29,6 +30,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.SystemAuditRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
@@ -183,6 +186,15 @@ public class ConfigurationReader {
         LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
         Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
         LOGGER.info("saved configuration " + storedConfiguration.toString());
+        if (pwmApplication.getAuditManager() != null) {
+            final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE);
+            pwmApplication.getAuditManager().submit(new SystemAuditRecord(
+                    AuditEvent.MODIFY_CONFIGURATION,
+                    new Date(),
+                    modifyMessage,
+                    pwmApplication.getInstanceID()
+            ));
+        }
 
         if (backupDirectory != null) {
             final String configFileName = configFile.getName();

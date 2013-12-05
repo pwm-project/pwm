@@ -132,91 +132,138 @@ public class LdapOperationsHelper {
             final PwmApplication pwmApplication,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
-        final Configuration config = pwmApplication.getConfig();
-        final String GUIDattributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
-        if ("DN".equalsIgnoreCase(GUIDattributeName)) {
-            return theUser.getEntryDN();
-        }
-
-        if ("VENDORGUID".equals(GUIDattributeName)) {
-            try {
-                final String guidValue = theUser.readGUID();
-                if (guidValue != null && guidValue.length() > 1) {
-                    LOGGER.trace("read VENDORGUID value for user " + theUser + ": " + guidValue);
-                } else {
-                    LOGGER.trace("unable to find a VENDORGUID value for user " + theUser.getEntryDN());
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final String existingValue = GUIDHelper.readExistingGuidValue(pwmApplication, userIdentity);
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(
+                userIdentity.getLdapProfileID());
+        final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+        if (existingValue == null || existingValue.length() < 1) {
+            if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
+                if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
+                    LOGGER.trace("assigning new GUID to user " + userIdentity);
+                    return GUIDHelper.assignGuidToUser(pwmApplication, userIdentity, guidAttributeName);
                 }
-                return guidValue;
-            } catch (Exception e) {
-                LOGGER.warn("unexpected error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage());
-                return null;
             }
-        }
-
-        try {
-            final String guidValue = theUser.readStringAttribute(GUIDattributeName);
-            if (guidValue != null && guidValue.length() > 0) {
-                return guidValue;
-            }
-
-            if (!ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
-                LOGGER.warn("user " + theUser.getEntryDN() + " does not have a valid GUID");
-                return null;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.warn("unexpected error while reading attribute GUID value for user " + theUser.getEntryDN() + " from '" + GUIDattributeName + "', error: " + e.getMessage());
+            LOGGER.warn("user " + userIdentity + " does not have a valid GUID");
             return null;
         }
-
-        LOGGER.trace("assigning new GUID to user " + theUser.getEntryDN());
-
-        int attempts = 0;
-        while (attempts < 10) {
-            // generate a guid
-            final String newGUID;
-            {
-                final StringBuilder sb = new StringBuilder();
-                sb.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
-                while (sb.length() < 12) {
-                    sb.insert(0, "0");
-                }
-                sb.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
-                newGUID = sb.toString();
-            }
-
-            boolean exists = false;
-            try {
-                // check if it is unique
-                UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-                searchConfiguration.setFilter("(" + GUIDattributeName + "=" + newGUID + ")");
-                UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-                final UserIdentity result = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
-                exists = result != null;
-            } catch (PwmOperationalException e) {
-                LOGGER.warn("error while searching to verify new unique GUID value: " + e.getError());
-            }
-
-            if (!exists) {
-                try {
-                    // write it to the directory
-                    theUser.writeStringAttribute(GUIDattributeName,newGUID);
-                    LOGGER.info("added GUID value '" + newGUID + "' to user " + theUser.getEntryDN());
-                    return newGUID;
-                } catch (ChaiOperationException e) {
-                    final String errorMsg = "unable to write GUID value to user attribute " + GUIDattributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + theUser.getEntryDN();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                    LOGGER.error(errorInformation.toDebugStr());
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
-            }
-            attempts++;
-        }
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate unique GUID value for user " + theUser.getEntryDN()));
+        return existingValue;
     }
+
+    private static class GUIDHelper {
+        private static String readExistingGuidValue(
+                final PwmApplication pwmApplication,
+                final UserIdentity userIdentity
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
+            final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+
+            if ("DN".equalsIgnoreCase(guidAttributeName)) {
+                return userIdentity.toDeliminatedKey();
+            }
+
+            if ("VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
+                try {
+                    final String guidValue = theUser.readGUID();
+                    if (guidValue != null && guidValue.length() > 1) {
+                        LOGGER.trace("read VENDORGUID value for user " + theUser + ": " + guidValue);
+                    } else {
+                        LOGGER.trace("unable to find a VENDORGUID value for user " + theUser.getEntryDN());
+                    }
+                    return guidValue;
+                } catch (Exception e) {
+                    LOGGER.warn("unexpected error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage());
+                    return null;
+                }
+            }
+
+            try {
+                return theUser.readStringAttribute(guidAttributeName);
+            } catch (ChaiOperationException e) {
+                LOGGER.warn("unexpected error while reading attribute GUID value for user " + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage());
+                return null;
+            }
+        }
+
+        private static boolean searchForExistingGuidValue(
+                final PwmApplication pwmApplication,
+                final String guidValue
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            boolean exists = false;
+            for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
+                final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
+                if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
+                    try {
+                        // check if it is unique
+                        UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                        searchConfiguration.setFilter("(" + guidAttributeName + "=" + guidValue + ")");
+                        UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+                        final UserIdentity result = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
+                        exists = result != null;
+                    } catch (PwmOperationalException e) {
+                        if (e.getError() != PwmError.ERROR_CANT_MATCH_USER) {
+                            LOGGER.warn("error while searching to verify new unique GUID value: " + e.getError());
+                        }
+                    }
+                }
+            }
+            return exists;
+        }
+
+        private static String assignGuidToUser(
+                final PwmApplication pwmApplication,
+                final UserIdentity userIdentity,
+                final String guidAttributeName
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            int attempts = 0;
+            String newGuid = null;
+
+            while (attempts < 10 && newGuid == null) {
+                attempts++;
+                newGuid = generateGuidValue();
+                if (searchForExistingGuidValue(pwmApplication, newGuid)) {
+                    newGuid = null;
+                }
+            }
+
+            if (newGuid == null) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unable to generate unique GUID value for user " + userIdentity));
+            }
+
+            addConfiguredUserObjectClass(userIdentity, pwmApplication);
+            try {
+                // write it to the directory
+                final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
+                chaiUser.writeStringAttribute(guidAttributeName, newGuid);
+                LOGGER.info("added GUID value '" + newGuid + "' to user " + userIdentity);
+                return newGuid;
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userIdentity;
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+                LOGGER.error(errorInformation.toDebugStr());
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        private static String generateGuidValue() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
+            while (sb.length() < 12) {
+                sb.insert(0, "0");
+            }
+            sb.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
+            return sb.toString();
+        }
+    }
+
 
     public static ChaiProvider createChaiProvider(
             final LdapProfile ldapProfile,
@@ -298,6 +345,10 @@ public class LdapOperationsHelper {
         } else {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
+
+        // enable caching
+        //chaiConfig.setSetting(ChaiSetting.CACHE_ENABLE, "true");
+        //chaiConfig.setSetting(ChaiSetting.CACHE_MAXIMUM_SIZE, "5000");
 
         // write out any configured values;
         final List<String> rawValues = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CHAI_SETTINGS);

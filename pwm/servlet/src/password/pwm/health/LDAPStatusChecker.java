@@ -408,7 +408,7 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
     private static String makeTopic(final String profileID, final Configuration configuration) {
-        if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 1) {
+        if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 2) {
             return TOPIC;
         }
         return TOPIC + "-" + ("".equals(profileID) ? "Default" : profileID);

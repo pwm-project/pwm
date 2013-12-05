@@ -29,7 +29,7 @@
 
 <% final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting"); %>
 <% X509Certificate[] certificates = (X509Certificate[])request.getAttribute("certificate"); %>
-<% final boolean hideActions = Boolean.parseBoolean((String)request.getAttribute("hideActions")); %>
+<% final boolean hideActions = request.getAttribute("hideActions") != null && Boolean.parseBoolean((String)request.getAttribute("hideActions")); %>
 <% for (X509Certificate certificate : certificates) {%>
 <% final String md5sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "MD5"); %>
 <% final String sha1sum = Helper.checksum(new ByteArrayInputStream(certificate.getEncoded()), "SHA1"); %>

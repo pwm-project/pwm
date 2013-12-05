@@ -256,7 +256,6 @@ public class UserInfoBean implements PwmSessionBean {
     }
 
     public void setPermission(final Permission permission, final Permission.PERMISSION_STATUS status) {
-        LOGGER.trace(String.format("Enter: setPermission(%s, %s)", permission, status));
         permissions.put(permission, status);
     }
 

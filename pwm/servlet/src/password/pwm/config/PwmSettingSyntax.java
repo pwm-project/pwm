@@ -27,6 +27,7 @@ import password.pwm.config.value.StringValue;
 
 public enum PwmSettingSyntax {
     STRING(StringValue.class),
+    USER_PERMISSION(StringValue.class),
     STRING_ARRAY(StringArrayValue.class),
     TEXT_AREA(StringValue.class),
     LOCALIZED_STRING(LocalizedStringValue.class),

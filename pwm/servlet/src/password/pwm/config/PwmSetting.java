@@ -112,7 +112,7 @@ public enum PwmSetting {
 
     // change password
     QUERY_MATCH_CHANGE_PASSWORD(
-            "password.allowChange.queryMatch", PwmSettingSyntax.STRING, Category.CHANGE_PASSWORD),
+            "password.allowChange.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHANGE_PASSWORD),
     LOGOUT_AFTER_PASSWORD_CHANGE(
             "logoutAfterPasswordChange", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD),
     PASSWORD_REQUIRE_FORM(
@@ -182,7 +182,7 @@ public enum PwmSetting {
     LDAP_LOGIN_CONTEXTS(
             "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
     QUERY_MATCH_PWM_ADMIN(
-            "pwmAdmin.queryMatch", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
+            "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.LDAP_GLOBAL),
 
 
     // email settings
@@ -453,7 +453,7 @@ public enum PwmSetting {
     OTP_SECRET_LDAP_ATTRIBUTE(
             "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, Category.OTP),
     QUERY_MATCH_OTP_SETUP_RESPONSE(
-            "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.STRING, Category.OTP),
+            "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.OTP),
 
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
@@ -520,9 +520,9 @@ public enum PwmSetting {
     CHALLENGE_HELPDESK_MIN_RANDOM_SETUP(
             "challenge.helpdesk.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE),
     QUERY_MATCH_SETUP_RESPONSE(
-            "challenge.allowSetup.queryMatch", PwmSettingSyntax.STRING, Category.CHALLENGE),
+            "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
-            "command.checkResponses.queryMatch", PwmSettingSyntax.STRING, Category.CHALLENGE),
+            "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE),
     CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
             "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
 
@@ -633,7 +633,7 @@ public enum PwmSetting {
     ACTIVATE_USER_SEARCH_FILTER(
             "activateUser.searchFilter", PwmSettingSyntax.STRING, Category.ACTIVATION),
     ACTIVATE_USER_QUERY_MATCH(
-            "activateUser.queryMatch", PwmSettingSyntax.STRING, Category.ACTIVATION),
+            "activateUser.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.ACTIVATION),
     ACTIVATE_USER_PRE_WRITE_ATTRIBUTES(
             "activateUser.writePreAttributes", PwmSettingSyntax.ACTION, Category.ACTIVATION),
     ACTIVATE_USER_POST_WRITE_ATTRIBUTES(
@@ -647,13 +647,13 @@ public enum PwmSetting {
     UPDATE_PROFILE_AGREEMENT_MESSAGE(
             "display.updateAttributes.agreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.UPDATE),
     UPDATE_PROFILE_QUERY_MATCH(
-            "updateAttributes.queryMatch", PwmSettingSyntax.STRING, Category.UPDATE),
+            "updateAttributes.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.UPDATE),
     UPDATE_PROFILE_WRITE_ATTRIBUTES(
             "updateAttributes.writeAttributes", PwmSettingSyntax.ACTION, Category.UPDATE),
     UPDATE_PROFILE_FORM(
             "updateAttributes.form", PwmSettingSyntax.FORM, Category.UPDATE),
     UPDATE_PROFILE_CHECK_QUERY_MATCH(
-            "updateAttributes.check.queryMatch", PwmSettingSyntax.STRING, Category.UPDATE),
+            "updateAttributes.check.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.UPDATE),
     UPDATE_PROFILE_SHOW_CONFIRMATION(
             "updateAttributes.showConfirmation", PwmSettingSyntax.BOOLEAN, Category.UPDATE),
 
@@ -669,7 +669,7 @@ public enum PwmSetting {
     PEOPLE_SEARCH_ENABLE(
             "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, Category.PEOPLE_SEARCH),
     PEOPLE_SEARCH_QUERY_MATCH(
-            "peopleSearch.queryMatch", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
+            "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.PEOPLE_SEARCH),
     PEOPLE_SEARCH_SEARCH_FILTER(
             "peopleSearch.searchFilter", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
     PEOPLE_SEARCH_SEARCH_BASE(
@@ -709,7 +709,7 @@ public enum PwmSetting {
     HELPDESK_ENABLE(
             "helpdesk.enable", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_QUERY_MATCH(
-            "helpdesk.queryMatch", PwmSettingSyntax.STRING, Category.HELPDESK),
+            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.HELPDESK),
     HELPDESK_SEARCH_FILTER(
             "helpdesk.filter", PwmSettingSyntax.STRING, Category.HELPDESK),
     HELPDESK_SEARCH_FORM(
@@ -781,7 +781,7 @@ public enum PwmSetting {
     ENABLE_WEBSERVICES_READANSWERS(
             "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, Category.MISC),
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
-            "webservices.thirdParty.queryMatch", PwmSettingSyntax.STRING, Category.MISC),
+            "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.MISC),
     EXTERNAL_WEB_AUTH_METHODS(
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
 

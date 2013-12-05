@@ -93,6 +93,7 @@ public class StoredConfiguration implements Serializable {
     private Date modifyTime = new Date();
 
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
+    private ChangeLog changeLog = new ChangeLog();
 
     private boolean locked = false;
     private boolean setting_writeLabels = false;
@@ -211,20 +212,20 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public void writeAppProperty(final AppProperty propertyName, final String value) {
+    public void writeAppProperty(final AppProperty appProperty, final String value) {
         preModifyActions();
+        changeLog.updateChangeLog(appProperty, value);
 
         domModifyLock.writeLock().lock();
-
         try {
-            final XPathExpression xp = XPathBuilder.xpathForAppProperty(propertyName);
+            final XPathExpression xp = XPathBuilder.xpathForAppProperty(appProperty);
             final List<Element> propertyElements = xp.evaluate(document);
             for (final Element properElement : propertyElements) {
                 properElement.detach();
             }
 
             final Element propertyElement = new Element(XML_ELEMENT_PROPERTY);
-            propertyElement.setAttribute(new Attribute(XML_ATTRIBUTE_KEY,propertyName.getKey()));
+            propertyElement.setAttribute(new Attribute(XML_ATTRIBUTE_KEY,appProperty.getKey()));
             propertyElement.setContent(new Text(value));
 
             if (null == XPathBuilder.xpathForAppProperties().evaluateFirst(document)) {
@@ -358,10 +359,7 @@ public class StoredConfiguration implements Serializable {
 
     public String toString(final PwmSetting setting, final String profileID ) {
         final StoredValue storedValue = readSetting(setting, profileID);
-        final StringBuilder outputString = new StringBuilder();
-        outputString.append(setting.getKey()).append("=");
-        outputString.append(storedValue.toDebugString());
-        return outputString.toString();
+        return setting.getKey() + "=" + storedValue.toDebugString();
     }
 
     public String toString(final boolean linebreaks) {
@@ -543,7 +541,9 @@ public class StoredConfiguration implements Serializable {
             LOGGER.info("cleared locale bundle map for bundle=" + bundleName + ", key=" + keyName);
             return;
         }
+
         preModifyActions();
+        changeLog.updateChangeLog(bundleName, keyName, localeMap);
         domModifyLock.writeLock().lock();
         final Element localeBundleElement = new Element("localeBundle");
         localeBundleElement.setAttribute("bundle",bundleName);
@@ -580,6 +580,7 @@ public class StoredConfiguration implements Serializable {
         }
 
         preModifyActions();
+        changeLog.updateChangeLog(setting, profileID, value);
 
         resetSetting(setting, profileID);
         domModifyLock.writeLock().lock();
@@ -734,4 +735,160 @@ public class StoredConfiguration implements Serializable {
         return commentText.toString();
     }
 
+
+    private static class ChangeRecord {
+        private RecordType recordType;
+        private Object recordID;
+        private String profileID;
+
+        enum RecordType {
+            SETTING,
+            APP_PROPERTY,
+            LOCALE_BUNDLE,
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ChangeRecord that = (ChangeRecord) o;
+
+            if (profileID != null ? !profileID.equals(that.profileID) : that.profileID != null) return false;
+            if (recordID != null ? !recordID.equals(that.recordID) : that.recordID != null) return false;
+            if (recordType != that.recordType) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int result = recordType != null ? recordType.hashCode() : 0;
+            result = 31 * result + (recordID != null ? recordID.hashCode() : 0);
+            result = 31 * result + (profileID != null ? profileID.hashCode() : 0);
+            return result;
+        }
+    }
+
+    public String changeLogAsDebugString(final Locale locale) {
+        return changeLog.changeLogAsDebugString(locale);
+    }
+
+    public boolean isModified() {
+        return changeLog.isModified();
+    }
+
+    private class ChangeLog {
+        /* values contain the _original_ toJson version of the value. */
+        private Map<ChangeRecord,String> changeLog = new LinkedHashMap<ChangeRecord, String>();
+
+        public boolean isModified() {
+            return !changeLog.isEmpty();
+        }
+
+        public String changeLogAsDebugString(final Locale locale) {
+            final StringBuilder output = new StringBuilder();
+            for (final ChangeRecord changeRecord : changeLog.keySet()) {
+                switch (changeRecord.recordType) {
+                    case SETTING: {
+                        final StoredValue currentValue = readSetting((PwmSetting)changeRecord.recordID, changeRecord.profileID);
+                        final String debugValue = currentValue.toDebugString();
+                        final PwmSetting pwmSetting = (PwmSetting)changeRecord.recordID;
+                        output.append(pwmSetting.getCategory().getLabel(locale));
+                        output.append(" -> ");
+                        output.append(pwmSetting.getLabel(locale));
+                        if (changeRecord.profileID != null && changeRecord.profileID.length() > 0) {
+                            output.append(" -> ");
+                            output.append(changeRecord.recordID);
+                        }
+                        output.append("\n");
+                        output.append(" Value: ");
+                        output.append(debugValue);
+                        output.append("\n");
+                    }
+                    break;
+
+                    case LOCALE_BUNDLE: {
+                        final String key = (String)changeRecord.recordID;
+                        final String bundleName = key.split("!")[0];
+                        final String keyName = key.split("!")[1];
+                        final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keyName);
+                        final String debugValue = Helper.getGson().toJson(currentValue);
+                        output.append("LocaleBundle");
+                        output.append(" -> ");
+                        output.append(bundleName).append(" ").append(keyName);
+                        output.append("\n");
+                        output.append(" Value: ");
+                        output.append(debugValue);
+                        output.append("\n");
+                    }
+                    break;
+
+                    case APP_PROPERTY: {
+                        final AppProperty appProperty = (AppProperty)changeRecord.recordID;
+                        final String debugValue = readAppProperty(appProperty);
+                        output.append("AppProperty");
+                        output.append(" -> ");
+                        output.append(appProperty.getKey());
+                        output.append("\n");
+                        output.append(" Value: ");
+                        output.append(debugValue);
+                        output.append("\n");
+                    }
+                    break;
+                }
+            }
+            if (output.length() < 1) {
+                output.append("No changes.");
+            }
+            return output.toString();
+        }
+
+        public void updateChangeLog(final AppProperty appProperty, final String newValue) {
+            final String currentJsonValue = readAppProperty(appProperty);
+            final ChangeRecord changeRecord = new ChangeRecord();
+            changeRecord.profileID = null;
+            changeRecord.recordType = ChangeRecord.RecordType.APP_PROPERTY;
+            changeRecord.recordID = appProperty;
+            updateChangeLog(changeRecord,currentJsonValue,newValue);
+        }
+
+        public void updateChangeLog(final String bundleName, final String keyName, final Map<String,String> localeValueMap) {
+            final String key = bundleName + "!" + keyName;
+            final Map<String,String> currentValue = readLocaleBundleMap(bundleName, keyName);
+            final String currentJsonValue = Helper.getGson().toJson(currentValue);
+            final String newJsonValue = Helper.getGson().toJson(localeValueMap);
+            final ChangeRecord changeRecord = new ChangeRecord();
+            changeRecord.profileID = null;
+            changeRecord.recordType = ChangeRecord.RecordType.LOCALE_BUNDLE;
+            changeRecord.recordID = key;
+            updateChangeLog(changeRecord,currentJsonValue,newJsonValue);
+        }
+
+        public void updateChangeLog(final PwmSetting setting, final String profileID, final StoredValue newValue) {
+            final StoredValue currentValue = readSetting(setting, profileID);
+            final String currentJsonValue = Helper.getGson().toJson(currentValue);
+            final String newJsonValue = Helper.getGson().toJson(newValue);
+            final ChangeRecord changeRecord = new ChangeRecord();
+            changeRecord.profileID = profileID;
+            changeRecord.recordType = ChangeRecord.RecordType.SETTING;
+            changeRecord.recordID = setting;
+            updateChangeLog(changeRecord,currentJsonValue,newJsonValue);
+        }
+
+        public void updateChangeLog(final ChangeRecord changeRecord, final String currentValueString, final String newValueString) {
+            if (changeLog.containsKey(changeRecord)) {
+                final String storedJson = changeLog.get(changeRecord);
+                if (storedJson.equals(newValueString)) {
+                    changeLog.remove(changeRecord);
+                }
+            } else {
+                if (!currentValueString.equals(newValueString)) {
+                    changeLog.put(changeRecord,currentValueString);
+                }
+            }
+        }
+    }
 }

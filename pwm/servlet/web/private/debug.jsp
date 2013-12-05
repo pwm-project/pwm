@@ -24,6 +24,9 @@
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="password.pwm.*" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.PwmSettingSyntax" %>
+<%@ page import="password.pwm.ldap.LdapOperationsHelper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -68,12 +71,11 @@
         <table>
             <% for (final Permission permission : Permission.values()) { %>
             <tr>
-                <td class="key">Permission.<%=permission.toString()%></td>
+                <td class="key"><%=permission.toString()%></td>
                 <td><%=Permission.checkPermission(permission,pwmSessionHeader,pwmApplicationHeader)%></td>
             </tr>
             <% } %>
         </table>
-
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">

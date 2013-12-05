@@ -25,10 +25,10 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.util.MacroMachine" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
+<%@ page import="password.pwm.util.MacroMachine" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionFooter = null;
