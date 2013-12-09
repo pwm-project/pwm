@@ -28,6 +28,7 @@ v1.7.1
 + Updated change password UI with icon-based password guide and random password options.
 + Improved show/hide password option with per-password-field
 + Added ability to set email TO address per email, using macros, allowing for flexible per-email email user attribute configuration
++ Added setting for smtp port
 
 - Removed "ADDB" template, replaced with extra Guide option to select responses
 - Refactored and formalized rest security model

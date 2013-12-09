@@ -265,7 +265,7 @@ public class NewUserServlet extends TopServlet {
 
         final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userSuppliedTokenKey);
+            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userSuppliedTokenKey);
             if (tokenPayload != null && !TOKEN_NAME.equals(tokenPayload.getName())) {
                 throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token name/type"));
             }
@@ -296,7 +296,7 @@ public class NewUserServlet extends TopServlet {
                 }
             }
 
-            pwmApplication.getTokenManager().markTokenAsClaimed(userSuppliedTokenKey, pwmSession);
+            pwmApplication.getTokenService().markTokenAsClaimed(userSuppliedTokenKey, pwmSession);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             this.advancedToNextStage(req,resp);
             return;
@@ -699,8 +699,8 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toNum));
-                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload,pwmSession);
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toNum));
+                    tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,pwmSession);
                     LOGGER.trace(pwmSession, "generated new user token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -723,8 +723,8 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toAddress));
-                    tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload, pwmSession);
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toAddress));
+                    tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
                     LOGGER.trace(pwmSession, "generated new user token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());

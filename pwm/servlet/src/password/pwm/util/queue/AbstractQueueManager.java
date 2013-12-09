@@ -136,7 +136,8 @@ public abstract class AbstractQueueManager implements PwmService {
         }
 
         sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, DB);
-        timerThread = new Timer(PwmConstants.PWM_APP_NAME + "-" + settings.getDebugName() + " timer thread",true);
+        final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer thread";
+        timerThread = new Timer(threadName,true);
         status = PwmService.STATUS.OPEN;
         LOGGER.debug(settings.getDebugName() + " is now open");
         timerThread.schedule(new QueueProcessorTask(),1,QUEUE_POLL_INTERVAL);

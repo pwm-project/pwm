@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -80,7 +79,7 @@ public class ConfigurationReader {
 
         LOGGER.debug("configuration mode: " + configMode);
 
-        if (modifiedSincePWMSave()) {
+        if (modifiedSinceSave()) {
             LOGGER.warn("configuration settings have been modified since the file was saved by pwm");
         }
     }
@@ -186,7 +185,12 @@ public class ConfigurationReader {
         LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
         Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
         LOGGER.info("saved configuration " + storedConfiguration.toString());
-        if (pwmApplication.getAuditManager() != null) {
+        if (pwmApplication != null) {
+            final String actualChecksum = storedConfiguration.settingChecksum();
+            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
+        }
+
+        if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
             final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE);
             pwmApplication.getAuditManager().submit(new SystemAuditRecord(
                     AuditEvent.MODIFY_CONFIGURATION,
@@ -210,7 +214,7 @@ public class ConfigurationReader {
         return !currentChecksum.equals(configFileChecksum);
     }
 
-    public boolean modifiedSincePWMSave() {
+    public boolean modifiedSinceSave() {
         if (this.getConfigMode() == PwmApplication.MODE.NEW) {
             return false;
         }
@@ -235,14 +239,6 @@ public class ConfigurationReader {
 
     public Date getConfigurationReadTime() {
         return configurationReadTime;
-    }
-
-    public int getConfigurationEpoch() {
-        try {
-            return Integer.parseInt(storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH));
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
     public ErrorInformation getConfigFileError() {

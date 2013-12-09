@@ -172,7 +172,7 @@ public class SharedHistoryManager implements Wordlist {
         return result;
     }
 
-    private void init(final long maxAgeMs) {
+    private void init(final PwmApplication pwmApplication, final long maxAgeMs) {
         status = STATUS.OPENING;
         final long startTime = System.currentTimeMillis();
 
@@ -199,7 +199,7 @@ public class SharedHistoryManager implements Wordlist {
                 LOGGER.trace("no oldestEntry timestamp stored, will rescan");
             } else {
                 oldestEntry = Long.parseLong(oldestEntryStr);
-                LOGGER.trace("oldest timestamp loaded from pwmDB, age is " + TimeDuration.fromCurrent(oldestEntry).asCompactString());
+                LOGGER.trace("oldest timestamp loaded from localDB, age is " + TimeDuration.fromCurrent(oldestEntry).asCompactString());
             }
         } catch (LocalDBException e) {
             LOGGER.error("unexpected error loading oldest-entry meta record, will remain closed: " + e.getMessage(), e);
@@ -229,7 +229,8 @@ public class SharedHistoryManager implements Wordlist {
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
             LOGGER.debug("scheduling cleaner task to run once every " + new TimeDuration(frequencyMs).asCompactString());
-            cleanerTimer = new Timer(PwmConstants.PWM_APP_NAME + "-SharedHistoryManager timer", true);
+            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            cleanerTimer = new Timer(threadName, true);
             cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
     }
@@ -432,25 +433,20 @@ public class SharedHistoryManager implements Wordlist {
         if (settings.maxAgeMs < 1) {
             LOGGER.debug("max age=" + settings.maxAgeMs + ", will remain closed");
 
-            new Thread(new Runnable() {
-                public void run() {
-                    LOGGER.trace("clearing wordlist");
-                    try {
-                        localDB.truncate(WORDS_DB);
-                    } catch (Exception e) {
-                        LOGGER.error("error during wordlist truncate", e);
-                    }
-                }
-            }, PwmConstants.PWM_APP_NAME + "-SharedHistoryManager wordlist truncate").start();
-            return;
+            LOGGER.trace("clearing wordlist");
+            try {
+                localDB.truncate(WORDS_DB);
+            } catch (Exception e) {
+                LOGGER.error("error during wordlist truncate", e);
+            }
         }
 
         new Thread(new Runnable() {
             public void run() {
                 LOGGER.debug("starting up in background thread");
-                init(settings.maxAgeMs);
+                init(pwmApplication, settings.maxAgeMs);
             }
-        }, PwmConstants.PWM_APP_NAME + "-SharedHistoryManager initializer").start();
+        }, Helper.makeThreadName(pwmApplication, this.getClass()) + " initializer").start();
     }
 
     private static class Settings {

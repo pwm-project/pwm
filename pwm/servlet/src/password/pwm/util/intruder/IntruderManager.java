@@ -130,7 +130,8 @@ public class IntruderManager implements Serializable, PwmService {
         final RecordStore recordStore;
         {
             recordStore = new DataStoreRecordStore(dataStore, this);
-            timer = new Timer(PwmConstants.PWM_APP_NAME + "-IntruderManager cleaner",true);
+            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            timer = new Timer(threadName, true);
             final long maxRecordAge = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_RETENTION_TIME_MS));
             final long cleanerRunFrequency = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_CLEANUP_FREQUENCY_MS));
             timer.schedule(new TimerTask() {

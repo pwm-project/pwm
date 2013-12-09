@@ -547,8 +547,8 @@ public class ActivateUserServlet extends TopServlet {
         final String tokenKey;
         TokenPayload tokenPayload = null;
         try {
-            tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
-            tokenKey = pwmApplication.getTokenManager().generateNewToken(tokenPayload, pwmSession);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
+            tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -575,10 +575,10 @@ public class ActivateUserServlet extends TopServlet {
         UserIdentity userIdentity = null;
         TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
                 LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
-                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
+                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenService().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
 
@@ -634,7 +634,7 @@ public class ActivateUserServlet extends TopServlet {
                     pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
                 }
             }
-            pwmApplication.getTokenManager().markTokenAsClaimed(userEnteredCode, pwmSession);
+            pwmApplication.getTokenService().markTokenAsClaimed(userEnteredCode, pwmSession);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             advanceToNextStage(req, resp);

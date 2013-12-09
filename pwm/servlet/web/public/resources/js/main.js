@@ -126,15 +126,17 @@ function initPwmPage() {
 }
 
 function preloadResources(finishFunction) {
+    var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
+    var images = [
+        prefix + 'a11y/indeterminate_progress.gif',
+        prefix + 'nihilo/images/progressBarAnim.gif',
+        prefix + 'nihilo/images/progressBarEmpty.png',
+        prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
+        prefix + 'nihilo/images/titleBar.png'
+    ];
+    preloadImages(images);
     require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
         "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
-        var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
-        var images = [prefix + 'a11y/indeterminate_progress.gif',
-            prefix + 'nihilo/images/progressBarAnim.gif',
-            prefix + 'nihilo/images/progressBarEmpty.png',
-            prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
-            prefix + 'nihilo/images/titleBar.png']
-        preloadImages(images);
         if (finishFunction) {
             finishFunction();
         }
@@ -1196,8 +1198,8 @@ function preloadImages(arr){
     var newimages=[]
     var arr=(typeof arr!="object")? [arr] : arr //force arr parameter to always be an array
     for (var i=0; i<arr.length; i++){
-        newimages[i]=new Image()
-        newimages[i].src=arr[i]
+        newimages[i]=new Image();
+        newimages[i].src=arr[i];
     }
 }
 

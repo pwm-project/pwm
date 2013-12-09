@@ -49,7 +49,7 @@ public class JarMain {
     {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(PwmConstants.PWM_APP_NAME + " v" + PwmConstants.PWM_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n");
+        sb.append(PwmConstants.PWM_APP_NAME + " v" + PwmConstants.BUILD_VERSION + " (" + PwmConstants.BUILD_TYPE + ")\n");
         sb.append("\n");
         sb.append("Build Information: \n");
 

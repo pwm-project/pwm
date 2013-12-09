@@ -220,10 +220,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         UserIdentity userIdentity = null;
         final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenManager().retrieveTokenData(userEnteredCode);
+            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userEnteredCode);
             if (tokenPayload != null) {
                 LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
-                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenManager().supportsName()) {
+                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenService().supportsName()) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
                 }
 
@@ -279,7 +279,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 }
             }
 
-            pwmApplication.getTokenManager().markTokenAsClaimed(userEnteredCode, pwmSession);
+            pwmApplication.getTokenService().markTokenAsClaimed(userEnteredCode, pwmSession);
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             LOGGER.debug(pwmSession, "token validation has been passed");
             this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
@@ -918,8 +918,8 @@ public class ForgottenPasswordServlet extends TopServlet {
         final String token;
         TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenManager().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
-            token = pwmApplication.getTokenManager().generateNewToken(tokenPayload, pwmSession);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
+            token = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }

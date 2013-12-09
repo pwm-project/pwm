@@ -55,7 +55,7 @@ public class BuildChecksumMaker {
         output("executing Build Checksum Maker " + args[0] + " " + args[1]);
 
         if (!new File(args[0]).exists()) {
-            output("error: can't find pwm.war");
+            output("error: can't find input war");
             System.exit(-1);
         }
 

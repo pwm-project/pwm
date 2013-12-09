@@ -113,6 +113,7 @@ function makeSelectOptionsDistinct() {
                     getObject(questionID).value = '';
                     makeSelectOptionsDistinct();
                     validateResponses();
+                    getObject(questionID).focus();
                 });
             }(responseID));
         }

@@ -272,7 +272,8 @@ public class StatisticsManager implements PwmService {
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
         { // setup a timer to rull over at 0Zula and one to write current stats every 10 seconds
-            daemonTimer = new Timer(PwmConstants.PWM_APP_NAME + "-StatisticsManager timer",true);
+            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
             daemonTimer.schedule(new NightlyTask(), nextDate());
         }
@@ -496,7 +497,7 @@ public class StatisticsManager implements PwmService {
                     statData,
                     configuredSettings,
                     PwmConstants.BUILD_NUMBER,
-                    PwmConstants.PWM_VERSION,
+                    PwmConstants.BUILD_VERSION,
                     otherData
             );
         }

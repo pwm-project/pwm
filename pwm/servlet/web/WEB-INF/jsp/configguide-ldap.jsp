@@ -199,7 +199,7 @@
         <br/>
         <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer" onclick="loadHealth();">
             <div style="text-align: center">
-                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto" onclick="loadHealth();">Check Settings</a>
+                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
             </div>
         </div>
         <div id="buttonbar">

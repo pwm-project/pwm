@@ -159,7 +159,8 @@ public class ContextManager implements Serializable {
         }
 
         if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
-            taskMaster = new Timer(PwmConstants.PWM_APP_NAME + "-ContextManager timer", true);
+            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+            taskMaster = new Timer(threadName, true);
             taskMaster.schedule(new ConfigFileWatcher(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
             taskMaster.schedule(new SessionWatcherTask(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
         }

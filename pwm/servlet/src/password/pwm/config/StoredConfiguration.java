@@ -290,26 +290,20 @@ public class StoredConfiguration implements Serializable {
     public void resetSetting(final PwmSetting setting, final String profileID) {
         preModifyActions();
         domModifyLock.writeLock().lock();
+        changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplate()));
+
         try {
             final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
             final List<Element> oldSettingElements = xp.evaluate(document);
             if (oldSettingElements != null) {
-                for (final Element element : oldSettingElements) {
-                    element.detach();
+                for (final Element settingElement : oldSettingElements) {
+                    final Element parent = settingElement.getParentElement();
+                    parent.removeContent(settingElement);
                 }
             }
         } finally {
             domModifyLock.writeLock().unlock();
         }
-    }
-
-    public String settingChecksum() throws IOException {
-        //@todo
-        final StringBuilder sb = new StringBuilder();
-        sb.append(modifyTime);
-        sb.append(createTime);  //@todo
-        final InputStream is = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
-        return Helper.md5sum(is);
     }
 
     public boolean isDefaultValue(final PwmSetting setting) {
@@ -613,6 +607,39 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
+    public String settingChecksum() throws IOException {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("PwmSettingsChecksum");
+
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                if (!isDefaultValue(setting,null)) {
+                    final StoredValue value = readSetting(setting);
+                    sb.append(setting.getKey()).append(Helper.getGson().toJson(value));
+                }
+            }
+        }
+
+        for (final PwmSetting.Category category : PwmSetting.Category.values()) {
+            if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+                for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
+                    for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
+                        if (!isDefaultValue(profileSetting, profileID)) {
+                            final StoredValue value = readSetting(profileSetting, profileID);
+                            sb.append(profileSetting.getKey()).append(profileID).append(Helper.getGson().toJson(value));
+                        }
+                    }
+                }
+            }
+        }
+
+        sb.append(modifyTime);
+        sb.append(createTime);
+
+        final InputStream is = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
+        return Helper.md5sum(is);
+    }
+
 
     private void preModifyActions() {
         if (locked) {
@@ -709,7 +736,7 @@ public class StoredConfiguration implements Serializable {
             rootElement.addContent(0,comment);
         }
 
-        rootElement.setAttribute("pwmVersion", PwmConstants.PWM_VERSION);
+        rootElement.setAttribute("pwmVersion", PwmConstants.BUILD_VERSION);
         rootElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
         rootElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
         rootElement.setAttribute("createTime", CONFIG_ATTR_DATETIME_FORMAT.format(storedConfiguration.createTime));
@@ -885,8 +912,10 @@ public class StoredConfiguration implements Serializable {
                     changeLog.remove(changeRecord);
                 }
             } else {
-                if (!currentValueString.equals(newValueString)) {
-                    changeLog.put(changeRecord,currentValueString);
+                if (currentValueString != null) {
+                    if (!currentValueString.equals(newValueString)) {
+                        changeLog.put(changeRecord,currentValueString);
+                    }
                 }
             }
         }

@@ -79,7 +79,7 @@ public class LDAPStatusChecker implements HealthChecker {
             if (profileRecords.isEmpty()) {
                 profileRecords.add(new HealthRecord(
                         HealthStatus.GOOD,
-                        makeTopic(profileID, config),
+                        makeLdapTopic(profileID, config),
                         LocaleHelper.getLocalizedMessage("Health_LDAP_OK",config,Admin.class)
                 ));
 
@@ -130,7 +130,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
             returnRecords.add(new HealthRecord(
                     HealthStatus.WARN,
-                    makeTopic(ldapProfile, config),
+                    makeLdapTopic(ldapProfile, config),
                     LocaleHelper.getLocalizedMessage(null,"Health_LDAP_ProxyTestSameUser",config,Admin.class,new String[]{setting1,setting2})
             ));
             return returnRecords;
@@ -152,13 +152,13 @@ public class LDAPStatusChecker implements HealthChecker {
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             } catch (Throwable e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             }
@@ -168,7 +168,7 @@ public class LDAPStatusChecker implements HealthChecker {
             } catch (ChaiException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()})));
                 return returnRecords;
             }
@@ -196,13 +196,13 @@ public class LDAPStatusChecker implements HealthChecker {
                     } catch (ChaiPasswordPolicyException e) {
                         returnRecords.add(new HealthRecord(
                                 HealthStatus.WARN,
-                                makeTopic(ldapProfile, config),
+                                makeLdapTopic(ldapProfile, config),
                                 LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()})));
                         return returnRecords;
                     } catch (Exception e) {
                         returnRecords.add(new HealthRecord(
                                 HealthStatus.WARN,
-                                makeTopic(ldapProfile, config),
+                                makeLdapTopic(ldapProfile, config),
                                 LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
                         return returnRecords;
                     }
@@ -212,7 +212,7 @@ public class LDAPStatusChecker implements HealthChecker {
             if (userPassword == null) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class)));
                 return returnRecords;
             }
@@ -224,13 +224,13 @@ public class LDAPStatusChecker implements HealthChecker {
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         "unable to read test user data: " + e.getMessage()));
                 return returnRecords;
             } catch (PwmUnrecoverableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         "unable to read test user data: " + e.getMessage()));
                 return returnRecords;
             }
@@ -243,7 +243,7 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        returnRecords.add(new HealthRecord(HealthStatus.GOOD, makeTopic(ldapProfile, config), LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
+        returnRecords.add(new HealthRecord(HealthStatus.GOOD, makeLdapTopic(ldapProfile, config), LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
         return returnRecords;
     }
 
@@ -269,7 +269,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 final String errorString = "error connecting to ldap server '" + loopURL + "': " + e.getMessage();
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         errorString));
             } finally {
                 if (chaiProvider != null) {
@@ -320,7 +320,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 }
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
-                        makeTopic(ldapProfile, config),
+                        makeLdapTopic(ldapProfile, config),
                         errorString.toString()));
                 pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
@@ -347,11 +347,11 @@ public class LDAPStatusChecker implements HealthChecker {
 
                         if (objectClasses == null || objectClasses.isEmpty()) {
                             final String errorString = "ldap context setting '" + loopContext + "' is not valid";
-                            returnRecords.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), errorString));
+                            returnRecords.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), errorString));
                         }
                     } catch (Exception e) {
                         final String errorString = "ldap root context '" + loopContext + "' is not valid: " + e.getMessage();
-                        returnRecords.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), errorString));
+                        returnRecords.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), errorString));
                     }
                 }
             }
@@ -371,19 +371,19 @@ public class LDAPStatusChecker implements HealthChecker {
             try {
                 if (!urlUsingHostname(loopURL)) {
                     final String msg = localizedString(pwmApplication,"Health_LDAP_AD_StaticIP",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
+                    returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
                 }
 
                 final URI uri= URI.create(loopURL);
                 final String scheme = uri.getScheme();
                 if ("ldap".equalsIgnoreCase(scheme)) {
                     final String msg = localizedString(pwmApplication,"Health_LDAP_AD_Unsecure",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), msg));
+                    returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), msg));
                 }
             } catch (MalformedURLException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), loopURL + " is not a valid url"));
+                returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " is not a valid url"));
             } catch (UnknownHostException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, makeTopic(ldapProfile, config), loopURL + " is not a valid host"));
+                returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " is not a valid host"));
             }
         }
         return returnList;
@@ -403,11 +403,17 @@ public class LDAPStatusChecker implements HealthChecker {
         return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
     }
 
-    private static String makeTopic(final LdapProfile ldapProfile, final Configuration configuration) {
-        return makeTopic(ldapProfile.getIdentifier(), configuration);
+    private static String makeLdapTopic(
+            final LdapProfile ldapProfile,
+            final Configuration configuration
+    ) {
+        return makeLdapTopic(ldapProfile.getIdentifier(), configuration);
     }
 
-    private static String makeTopic(final String profileID, final Configuration configuration) {
+    private static String makeLdapTopic(
+            final String profileID,
+            final Configuration configuration
+    ) {
         if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 2) {
             return TOPIC;
         }

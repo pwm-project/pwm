@@ -120,6 +120,7 @@ public class ConfigEditorServlet extends TopServlet {
             return;
         } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
             doCancelEditing(req, resp, configManagerBean);
+            return;
         } else if ("setOption".equalsIgnoreCase(processActionParam)) {
             setOptions(req);
         }

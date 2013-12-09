@@ -71,7 +71,7 @@ public class SessionStateBean implements PwmSessionBean {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
-    private String sessionVerificationKey;
+    private String sessionVerificationKey = "key";
     private String restClientKey;
 
     private boolean passedCaptcha;
@@ -91,7 +91,6 @@ public class SessionStateBean implements PwmSessionBean {
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public SessionStateBean() {
-        regenerateSessionVerificationKey();
     }
 
     public boolean isPasswordModified() {

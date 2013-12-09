@@ -427,7 +427,7 @@ public class MainClass {
         final File workingFolder = new File(".").getCanonicalFile();
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
 
-        final TokenService tokenService = pwmApplication.getTokenManager();
+        final TokenService tokenService = pwmApplication.getTokenService();
         TokenPayload tokenPayload = null;
         Exception lookupError = null;
         try {

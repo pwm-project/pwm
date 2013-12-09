@@ -59,7 +59,7 @@
                 boolean tokenExpired = false;
                 String lookupError = null;
                 try {
-                    tokenPayload = pwmApplicationHeader.getTokenManager().retrieveTokenData(tokenKey);
+                    tokenPayload = pwmApplicationHeader.getTokenService().retrieveTokenData(tokenKey);
                 } catch (PwmOperationalException e) {
                     tokenExpired= e.getError() == PwmError.ERROR_TOKEN_EXPIRED;
                     lookupError = e.getMessage();

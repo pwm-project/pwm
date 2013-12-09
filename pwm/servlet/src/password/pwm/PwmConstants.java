@@ -27,6 +27,7 @@ import password.pwm.i18n.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
@@ -40,18 +41,20 @@ public abstract class PwmConstants {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    public static final String BUILD_TIME           = readBuildInfoBundle("build.time");
-    public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number");
-    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type");
-    public static final String BUILD_USER           = readBuildInfoBundle("build.user");
-    public static final String BUILD_REVISION       = readBuildInfoBundle("build.revision");
+    public static final String BUILD_TIME           = readBuildInfoBundle("build.time",SimpleDateFormat.getDateTimeInstance().format(new Date()));
+    public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
+    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","Development");
+    public static final String BUILD_USER           = readBuildInfoBundle("build.user",System.getProperty("user.name"));
+    public static final String BUILD_REVISION       = readBuildInfoBundle("build.revision","0");
     public static final String BUILD_JAVA_VENDOR    = readBuildInfoBundle("build.java.vendor");
     public static final String BUILD_JAVA_VERSION   = readBuildInfoBundle("build.java.version");
-    public static final String PWM_VERSION          = readBuildInfoBundle("pwm.version");
+    public static final String BUILD_VERSION        = readBuildInfoBundle("build.version","");
 
-    public static final String SERVLET_VERSION = "v" + PWM_VERSION + " b" + BUILD_NUMBER +
-            (BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "") +
-            " (" + BUILD_TYPE + ")";
+    public static final String SERVLET_VERSION =
+                    (BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "") +
+                    (BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "") +
+                    (BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "") +
+                    (BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "").trim();
 
     public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
     public static final String CONFIG_FILE_FILENAME = readPwmConstantsBundle("configFilename");
@@ -88,7 +91,7 @@ public abstract class PwmConstants {
     public static final int PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
     public static final boolean CLEAR_SESSIONS_ON_RESTART = Boolean.parseBoolean(readPwmConstantsBundle("clearSessionsOnRestart"));
     public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
-    public static final boolean TRIAL_MODE = Boolean.parseBoolean(readBuildInfoBundle("trial.enabled"));
+    public static final boolean TRIAL_MODE = Boolean.parseBoolean(readPwmConstantsBundle("trial"));
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
     public static final int TRIAL_MAX_TOTAL_AUTH = 10000;
 
@@ -252,7 +255,7 @@ public abstract class PwmConstants {
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
     };
-    
+
     public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync
     public final static int TOTP_FUTURE_INTERVALS = 1;  // Allows one newer TOTP token - compensate for clock out of sync
     public final static int TOTP_INTERVAL = 30;         // 30 second interval
@@ -265,7 +268,15 @@ public abstract class PwmConstants {
     }
 
     private static String readBuildInfoBundle(final String key) {
-        return  ResourceBundle.getBundle("password.pwm.BuildInformation").getString(key);
+        return readBuildInfoBundle(key, null);
+    }
+    private static String readBuildInfoBundle(final String key, final String defaultValue) {
+        final ResourceBundle resourceBundle = ResourceBundle.getBundle("password.pwm.BuildInformation");
+        if (resourceBundle.containsKey(key)) {
+            return resourceBundle.getString(key);
+        }
+
+        return defaultValue;
     }
 
 // -------------------------- ENUMERATIONS --------------------------

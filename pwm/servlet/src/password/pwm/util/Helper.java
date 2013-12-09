@@ -1040,4 +1040,13 @@ public class
             }
         }
     }
+
+    public static String makeThreadName(final PwmApplication pwmApplication, final Class theClass) {
+        String instanceName = "-";
+        if (pwmApplication != null && pwmApplication.getInstanceID() != null) {
+            instanceName = pwmApplication.getInstanceID();
+        }
+
+        return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
+    }
 }

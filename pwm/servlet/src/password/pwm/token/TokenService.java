@@ -155,7 +155,8 @@ public class TokenService implements PwmService {
             return;
         }
 
-        timer = new Timer(PwmConstants.PWM_APP_NAME + "-TokenManager timer",true);
+        final String threadName = Helper.makeThreadName(pwmApplication,this.getClass()) + " timer";
+        timer = new Timer(threadName, true);
         final TimerTask cleanerTask = new CleanerTask();
 
         final long cleanerFrequency = (maxTokenAgeMS*0.5) > MAX_CLEANER_INTERVAL_MS ? MAX_CLEANER_INTERVAL_MS : (maxTokenAgeMS*0.5) < MIN_CLEANER_INTERVAL_MS ? MIN_CLEANER_INTERVAL_MS : (long)(maxTokenAgeMS*0.5);

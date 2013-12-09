@@ -274,7 +274,7 @@ public class PwmApplication {
     // -------------------------- OTHER METHODS --------------------------
 
 
-    public TokenService getTokenManager() {
+    public TokenService getTokenService() {
         return (TokenService)pwmServices.get(TokenService.class);
     }
 
@@ -394,6 +394,15 @@ public class PwmApplication {
             if (previousHash == null || !previousHash.equals(currentHash)) {
                 writeAppAttribute(AppAttribute.CONFIG_HASH, currentHash);
                 LOGGER.warn("configuration has been modified since last startup");
+                if (this.getAuditManager() != null) {
+                    final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
+                    this.getAuditManager().submit(new SystemAuditRecord(
+                            AuditEvent.MODIFY_CONFIGURATION,
+                            new Date(),
+                            modifyMessage,
+                            this.getInstanceID()
+                    ));
+                }
             }
         } catch (Exception e) {
             LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());

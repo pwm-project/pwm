@@ -79,7 +79,7 @@
     </div>
     <div id="centerbody-config">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="cancelEditing"
+        <form action="<pwm:url url='ConfigEditor'/>" method="post" name="cancelEditing"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="cancelEditing"/>
             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

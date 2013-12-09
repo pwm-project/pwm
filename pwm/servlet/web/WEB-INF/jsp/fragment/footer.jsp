@@ -74,5 +74,13 @@
             <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
         </script>
         <% } %>
+        <script type="text/javascript">
+            PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';
+            PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
+            PWM_GLOBAL['clientEtag']='<%=RestAppDataServer.makeClientEtag(request,pwmApplicationHeader,pwmSessionHeader)%>';
+            PWM_GLOBAL['restClientKey']='<%=pwmSessionHeader.getRestClientKey()%>';
+        </script>
+        <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+        <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
     </div>
 </div>
