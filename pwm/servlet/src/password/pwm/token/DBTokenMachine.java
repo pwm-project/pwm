@@ -2,16 +2,16 @@ package password.pwm.token;
 
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseTable;
 
 import java.util.Iterator;
 
 class DBTokenMachine implements TokenMachine {
-    private DatabaseAccessor databaseAccessor;
+    private DatabaseAccessorImpl databaseAccessor;
     private TokenService tokenService;
 
-    DBTokenMachine(TokenService tokenService, DatabaseAccessor databaseAccessor) {
+    DBTokenMachine(TokenService tokenService, DatabaseAccessorImpl databaseAccessor) {
         this.tokenService = tokenService;
         this.databaseAccessor = databaseAccessor;
     }

@@ -42,10 +42,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -79,7 +76,7 @@ public class ConfigManagerServlet extends TopServlet {
             doGenerateXml(req, resp);
             return;
         } else if ("generateSupportZip".equalsIgnoreCase(processActionParam)) {
-            doGenerateSupportZip(req, resp, pwmApplication);
+            doGenerateSupportZip(req, resp, pwmApplication, pwmSession);
             return;
         } else if ("uploadConfig".equalsIgnoreCase(processActionParam)) {
             if (pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION) {
@@ -161,7 +158,7 @@ public class ConfigManagerServlet extends TopServlet {
             throws IOException, PwmUnrecoverableException, ServletException
     {
         if (configManagerBean.getConfiguration() == null) {
-            final StoredConfiguration loadedConfig = readCurrentConfiguration(req);
+            final StoredConfiguration loadedConfig = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
             configManagerBean.setConfiguration(loadedConfig);
         }
 
@@ -203,7 +200,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(req);
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
             if (!storedConfiguration.hasPassword()) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Please set a configuration password before locking the configuration");
                 final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
@@ -287,7 +284,7 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = readCurrentConfiguration(req);
+        final StoredConfiguration storedConfiguration = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
         final String output = storedConfiguration.toXml();
         resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.CONFIG_FILE_FILENAME);
         resp.setContentType("text/xml;charset=utf-8");
@@ -297,19 +294,38 @@ public class ConfigManagerServlet extends TopServlet {
     private void doGenerateSupportZip(
             final HttpServletRequest req,
             final HttpServletResponse resp,
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
     )
-            throws IOException, ServletException, PwmUnrecoverableException
+            throws IOException, ServletException
     {
-        resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "Support.zip");
+        resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
         resp.setContentType("application/zip");
 
-        final String pathPrefix = PwmConstants.PWM_APP_NAME + "Support" + "/";
+        final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
         final ZipOutputStream zipOutput = new ZipOutputStream(resp.getOutputStream());
+        try {
+            final ContextManager contextManager = ContextManager.getContextManager(req.getSession());
+            outputZipDebugFile(pwmApplication,pwmSession,contextManager,zipOutput,pathPrefix);
+        } catch (Exception e) {
+            LOGGER.error(pwmSession, "error during zip debug building: " + e.getMessage());
+        }
+        zipOutput.close();
+    }
+
+    private void outputZipDebugFile(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ContextManager contextManager,
+            final ZipOutputStream zipOutput,
+            final String pathPrefix
+    )
+            throws IOException, PwmUnrecoverableException
+    {
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.CONFIG_FILE_FILENAME));
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(req);
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(contextManager);
             final String output = storedConfiguration.toXml();
             zipOutput.write(output.getBytes("UTF8"));
             zipOutput.closeEntry();
@@ -336,6 +352,17 @@ public class ConfigManagerServlet extends TopServlet {
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();
         }
+        if (pwmApplication.getPwmApplicationPath() != null) {
+            try {
+                zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
+                final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getPwmApplicationPath());
+                final String json = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
+                zipOutput.write(json.getBytes("UTF8"));
+                zipOutput.closeEntry(); 
+            } catch (Exception e) {
+                LOGGER.error(pwmSession,"unable to generate fileMd5sums during zip debug building: " + e.getMessage());
+            }
+        }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "debug.log"));
             final int maxCount = 100 * 1000;
@@ -348,13 +375,12 @@ public class ConfigManagerServlet extends TopServlet {
             }
             zipOutput.closeEntry();
         }
-        zipOutput.close();
     }
 
-    private static StoredConfiguration readCurrentConfiguration(final HttpServletRequest req)
+    private static StoredConfiguration readCurrentConfiguration(final ContextManager contextManager)
             throws PwmUnrecoverableException
     {
-        final ConfigurationReader runningConfigReader = ContextManager.getContextManager(req.getSession()).getConfigReader();
+        final ConfigurationReader runningConfigReader = contextManager.getConfigReader();
         final File configurationFile = runningConfigReader.getConfigFile();
         final ConfigurationReader newConfigReader = new ConfigurationReader(configurationFile);
         return newConfigReader.getStoredConfiguration();

@@ -77,8 +77,8 @@
         <script type="text/javascript">
             PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';
             PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
-            PWM_GLOBAL['clientEtag']='<%=RestAppDataServer.makeClientEtag(request,pwmApplicationHeader,pwmSessionHeader)%>';
-            PWM_GLOBAL['restClientKey']='<%=pwmSessionHeader.getRestClientKey()%>';
+            PWM_GLOBAL['clientEtag']='<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationFooter,pwmSessionFooter)%>';
+            PWM_GLOBAL['restClientKey']='<%=pwmSessionFooter.getRestClientKey()%>';
         </script>
         <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
         <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>

@@ -182,6 +182,9 @@
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
+                    onKeyPress: function() {
+                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                    },
                     value: "[<pwm:Display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");

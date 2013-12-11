@@ -22,82 +22,86 @@
 
 package password.pwm.util;
 
-import password.pwm.PwmConstants;
+import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.io.*;
+import java.util.*;
 
 public class BuildChecksumMaker {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final String[] IGNORE_LIST = new String[]{
-            "MANIFEST.MF",
-            PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME
-    };
-
-// --------------------------- main() method ---------------------------
 
     public static void main(final String[] args)
-            throws IOException {
+            throws IOException
+    {
+        makeBuildChecksumFile(args);
+    }
+
+    public static void makeBuildChecksumFile(final String[] args)
+            throws IOException
+    {
         if (args == null || args.length < 2) {
-            output("usage: BuildManifestMaker <pwm.war_file_location> <output path>");
+            output("usage: BuildManifestMaker <directory source> <output file>");
             System.exit(-1);
         }
 
-        output("executing Build Checksum Maker " + args[0] + " " + args[1]);
+        makeBuildChecksumFile(new File(args[0]),new File(args[1]));
+    }
 
-        if (!new File(args[0]).exists()) {
-            output("error: can't find input war");
+    public static void makeBuildChecksumFile(final File rootDirectory, final File outputFile)
+            throws IOException
+    {
+        if (!rootDirectory.exists()) {
+            output("error: can't find input directory");
             System.exit(-1);
         }
 
-        if (!new File(args[1]).exists()) {
-            output("error: can't find output path");
+        if (!rootDirectory.isDirectory()) {
+            output("error: input file must be a directory");
             System.exit(-1);
         }
 
-        if (!new File(args[1]).isDirectory()) {
-            output("error: output path must be a directory");
+        if (outputFile.exists()) {
+            output("error: output file cant already exist");
             System.exit(-1);
         }
 
+        output("executing Build Checksum Maker rootDirectory=" + rootDirectory + " outputFile=" + outputFile);
+        final LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
+        results.putAll(readDirectorySums(rootDirectory));
 
-        final ZipFile war = new ZipFile(args[0]);
-        final Map<String, String> props = new TreeMap<String, String>();
-        for (Enumeration warEnum = war.entries(); warEnum.hasMoreElements();) {
-            final ZipEntry entry = (ZipEntry) warEnum.nextElement();
-            if (!entry.isDirectory()) {
-                boolean ignore = false;
+        final Writer outputWriter = new BufferedWriter(new FileWriter(outputFile));
+        outputWriter.write(Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(results));
+        outputWriter.close();
+        output("build Build Checksum Maker completed successfully");
+    }
 
-                for (final String badFile : IGNORE_LIST) {
-                    if (entry.getName().endsWith(badFile)) {
-                        ignore = true;
-                    }
-                }
+    public static Map<String,String> readDirectorySums(final File rootFile)
+            throws IOException
+    {
+        return readDirectorySums(rootFile,"");
+    }
 
-                if (!ignore) {
-                    final InputStream is = war.getInputStream(entry);
-                    final String md5sum = Helper.md5sum(is);
-                    props.put(entry.getName(), md5sum);
-                }
+    private static Map<String,String> readDirectorySums(final File rootFile, final String relativePath)
+            throws IOException
+    {
+        final LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
+        for (final File loopFile : rootFile.listFiles()) {
+            final String path = relativePath + loopFile.getName();
+            if (loopFile.isDirectory()) {
+                results.putAll(readDirectorySums(loopFile,path + "/"));
+            } else {
+                results.put(path,md5sumFile(loopFile));
             }
         }
+        return results;
+    }
 
-        // sort the props.
-        final Properties outputProps = new Properties();
-        outputProps.putAll(props);
-
-        outputProps.store(new FileOutputStream(new File(args[1] + File.separator + PwmConstants.DEFAULT_BUILD_CHECKSUM_FILENAME)), "");
-
-        output("build Build Checksum Maker completed successfully");
+    private static String md5sumFile(final File file)
+            throws IOException
+    {
+        final InputStream is = new FileInputStream(file);
+        return Helper.md5sum(is);
     }
 
     private static void output(final String output) {

@@ -472,7 +472,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
     var finishFunction = inputOpts['finishFunction'];
 
     {
-        refreshUrl += refreshUrl.contains('?') ? '&' : '?';
+        refreshUrl += refreshUrl.indexOf('?') == -1 ? '?' : '&';
         refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     }
 

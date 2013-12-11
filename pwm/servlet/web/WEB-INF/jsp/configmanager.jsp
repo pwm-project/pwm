@@ -128,12 +128,14 @@
                         <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
                         showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
                         <% } else { %>
-                        window.location='ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                        getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                        showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
                         <% } %>
                     }
                 </script>
+                <iframe id="downloadFrame" style="display:none"></iframe>
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" oinclick="makeSupportBundle()">
+                    <a class="menubutton" onclick="makeSupportBundle()">
                         <i class="fa fa-suitcase"></i>&nbsp;
                         Make Troubleshooting Bundle
                     </a>

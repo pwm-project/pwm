@@ -32,7 +32,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 
@@ -45,7 +45,7 @@ class DatabaseUserHistory implements UserHistoryStore {
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
     final PwmApplication pwmApplication;
-    final DatabaseAccessor databaseAccessor;
+    final DatabaseAccessorImpl databaseAccessor;
 
     DatabaseUserHistory(final PwmApplication pwmApplication) {
         this.pwmApplication = pwmApplication;

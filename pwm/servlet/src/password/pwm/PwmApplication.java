@@ -48,7 +48,7 @@ import password.pwm.health.HealthMonitor;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
@@ -127,7 +127,7 @@ public class PwmApplication {
 
     private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(
             SharedHistoryManager.class,
-            DatabaseAccessor.class,
+            DatabaseAccessorImpl.class,
             HealthMonitor.class,
             AuditManager.class,
             StatisticsManager.class,
@@ -289,9 +289,9 @@ public class PwmApplication {
         return applicationMode;
     }
 
-    public synchronized DatabaseAccessor getDatabaseAccessor()
+    public synchronized DatabaseAccessorImpl getDatabaseAccessor()
     {
-        return (DatabaseAccessor)pwmServices.get(DatabaseAccessor.class);
+        return (DatabaseAccessorImpl)pwmServices.get(DatabaseAccessorImpl.class);
     }
 
     public UserCacheService getUserStatusCacheManager() {

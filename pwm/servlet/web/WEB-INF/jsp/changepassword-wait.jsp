@@ -24,9 +24,8 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<noscript>
-<meta http-equiv="refresh" content="0;url='<%=request.getAttribute("nextURL").toString()%>'">
-</noscript>
+<meta http-equiv="refresh"
+      content="0;url='<%=request.getAttribute("nextURL").toString()%>'">
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
@@ -41,8 +40,8 @@
     </div>
     <div class="push"></div>
 </div>
-<script type="text/javascript">
-
-</script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

@@ -33,7 +33,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.db.DatabaseAccessor;
+import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 
@@ -65,7 +65,7 @@ public class DbCrOperator implements CrOperator {
         }
 
         try {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessorImpl databaseAccessor = pwmApplication.getDatabaseAccessor();
             final String responseStringBlob = databaseAccessor.get(DatabaseTable.PWM_RESPONSES, userGUID);
             if (responseStringBlob != null && responseStringBlob.length() > 0) {
                 final ResponseSet userResponseSet = ChaiResponseSet.parseChaiResponseSetXML(responseStringBlob, theUser);
@@ -105,7 +105,7 @@ public class DbCrOperator implements CrOperator {
         }
 
         try {
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessorImpl databaseAccessor = pwmApplication.getDatabaseAccessor();
             databaseAccessor.remove(DatabaseTable.PWM_RESPONSES, userGUID);
             LOGGER.info("cleared responses for user " + theUser.getEntryDN() + " in remote database");
         } catch (DatabaseException e) {
@@ -136,7 +136,7 @@ public class DbCrOperator implements CrOperator {
                     responseInfoBean.getCsIdentifier()
             );
 
-            final DatabaseAccessor databaseAccessor = pwmApplication.getDatabaseAccessor();
+            final DatabaseAccessorImpl databaseAccessor = pwmApplication.getDatabaseAccessor();
             databaseAccessor.put(DatabaseTable.PWM_RESPONSES, userGUID, responseSet.stringValue());
             LOGGER.info("saved responses for " + theUser.getEntryDN() + " in remote database (key=" + userGUID + ")");
         } catch (ChaiException e) {

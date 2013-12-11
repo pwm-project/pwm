@@ -46,6 +46,7 @@ public enum AppProperty {
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
     HTTP_HEADER_SEND_XAMB                           ("http.header.sendXAmb"),
+    HTTP_HEADER_SEND_XFRAMEDENY                     ("http.header.sendXFrameDeny"),
     HTTP_HEADER_SEND_XINSTANCE                      ("http.header.sendXInstance"),
     HTTP_HEADER_SEND_XNOISE                         ("http.header.sendXNoise"),
     HTTP_HEADER_SEND_XVERSION                       ("http.header.sendXVersion"),

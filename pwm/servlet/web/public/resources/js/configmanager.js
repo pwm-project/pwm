@@ -117,8 +117,9 @@ function startConfigurationEditor() {
             alert('Internet Explorer 7 and below is not able to edit the configuration.  Please use a newer version of Internet Explorer or a different browser.');
             document.forms['cancelEditing'].submit();
         } else {
-            showWaitDialog('Loading...','');
-            window.location = "ConfigManager?processAction=startEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            showWaitDialog('Loading...','',function(){
+                window.location = "ConfigManager?processAction=startEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            });
         }
     });
 }

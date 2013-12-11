@@ -26,13 +26,11 @@ import password.pwm.PwmService;
 import password.pwm.error.PwmDataStoreException;
 import password.pwm.util.DataStore;
 
-import java.util.Iterator;
-
 public class DatabaseDataStore implements DataStore {
-    private final DatabaseAccessor databaseAccessor;
+    private final DatabaseAccessorImpl databaseAccessor;
     private final DatabaseTable table;
 
-    public DatabaseDataStore(DatabaseAccessor databaseAccessor, DatabaseTable table) {
+    public DatabaseDataStore(DatabaseAccessorImpl databaseAccessor, DatabaseTable table) {
         this.databaseAccessor = databaseAccessor;
         this.table = table;
     }

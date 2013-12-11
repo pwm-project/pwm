@@ -26,7 +26,6 @@
         <echo>PWM Build Script</echo>
         <echo> current directory: ${basedir}</echo>
         <echo> ant version: ${ant.version}</echo>
-        <echo> java home: ${ant.home}</echo>
         <echo> java version: ${ant.java.version}</echo>
         <echo> </echo>
         <echo>settings:</echo>
@@ -54,38 +53,30 @@
         <delete dir="${artifacts.root}"/>
     </target>
 
-    <target name="svnExport" depends="init">
+    <target name="svnInit" depends="init">
         <typedef resource="org/tigris/subversion/svnant/svnantlib.xml">
             <classpath>
                 <fileset dir="${build.lib}/ant" includes="*.jar"/>
             </classpath>
         </typedef>
-        <echo> svn source: ${svn.url}</echo>
-
         <svnSetting javahl="false" svnkit="true" username="${svn.username}" password="${svn.password}" id="svn.settings"/>
+        <echo> svn source: ${svn.url}</echo>
+    </target>
+
+    <target name="svnExport" depends="init,svnInit">
+
 
         <echo>Beginning export of ${svn.url}</echo>
         <mkdir dir="${svnExportDir}"/>
         <svn refid="svn.settings">
-            <!--
             <checkout url="${svn.url}" destpath="${svnExportDir}" recurse="true"/>
-            -->
-            <export srcurl="${svn.url}" destPath="${svnExportDir}"/>
         </svn>
         <echo>SVN Checkout Complete</echo>
     </target>
 
-    <target name="svnRevisionRead" depends="init">
-        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml">
-            <classpath>
-                <fileset dir="${build.lib}/ant" includes="*.jar"/>
-            </classpath>
-        </typedef>
-        <echo> svn source: ${svn.url}</echo>
-
+    <target name="svnRevisionRead" depends="init,svnInit">
         <delete dir="${svnTempDir}"/>
         <mkdir dir="${svnTempDir}"/>
-        <svnSetting javahl="false" svnkit="true" username="${svn.username}" password="${svn.password}" id="svn.settings"/>
         <svn refid="svn.settings"> <!-- single checkout to determine revision -->
             <checkout url="${svn.url}" destpath="${svnTempDir}" recurse="false"/>
             <status path="${svnTempDir}" revisionproperty="svn.revision"/>
@@ -173,5 +164,4 @@
             <zipfileset dir="${javaDocOutput}/." prefix="javadoc"/>
         </zip>
     </target>
-
 </project>
