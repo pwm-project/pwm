@@ -295,17 +295,18 @@ public class PasswordRequirementsTag extends TagSupport {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final Configuration config = pwmApplication.getConfig();
 
-            final String configuredRuleText = config.readSettingAsLocalizedString(PwmSetting.PASSWORD_POLICY_RULE_TEXT, pwmSession.getSessionStateBean().getLocale());
 
+            final PwmPasswordPolicy passwordPolicy;
+            if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
+                passwordPolicy = config.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
+            } else {
+                passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
+            }
+
+            final String configuredRuleText = passwordPolicy.getRuleText();
             if (configuredRuleText != null && configuredRuleText.length() > 0) {
                 pageContext.getOut().write(configuredRuleText);
             } else {
-                final PwmPasswordPolicy passwordPolicy;
-                if (getForm() != null && getForm().equalsIgnoreCase("newuser")) {
-                    passwordPolicy = config.getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
-                } else {
-                    passwordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
-                }
                 final String pre = prepend != null && prepend.length() > 0 ? prepend : "";
                 final String sep = separator != null && separator.length() > 0 ? separator : "<br/>";
                 final List<String> requirementsList = getPasswordRequirementsStrings(passwordPolicy, config, pwmSession.getSessionStateBean().getLocale());

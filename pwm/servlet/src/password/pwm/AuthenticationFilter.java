@@ -90,9 +90,9 @@ public class AuthenticationFilter implements Filter {
 
             //user is already authenticated
             if (ssBean.isAuthenticated()) {
-                this.processAuthenticatedSession(req, resp, chain);
+                this.processAuthenticatedSession(req, resp, pwmApplication, pwmSession, chain);
             } else {
-                this.processUnAuthenticatedSession(req, resp, chain);
+                this.processUnAuthenticatedSession(req, resp, pwmApplication, pwmSession, chain);
             }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(e.toString());
@@ -108,14 +108,15 @@ public class AuthenticationFilter implements Filter {
     private void processAuthenticatedSession(
             final HttpServletRequest req,
             final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
             final FilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
         SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // get the basic auth info out of the header (if it exists);
-        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(req);
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, req);
 
         final BasicAuthInfo originalBasicAuthInfo = ssBean.getOriginalBasicAuthInfo();
 
@@ -157,12 +158,12 @@ public class AuthenticationFilter implements Filter {
     private void processUnAuthenticatedSession(
             final HttpServletRequest req,
             final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
             final FilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // attempt external methods;
@@ -172,7 +173,7 @@ public class AuthenticationFilter implements Filter {
 
         //try to authenticate user with basic auth
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(req);
+            final BasicAuthInfo authInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, req);
             if (authInfo != null) {
                 try {
                     authUserUsingBasicHeader(req, authInfo);

@@ -134,7 +134,7 @@ public class RestSetPasswordServer {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
                 final String newPassword;
                 if (random) {
-                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), chaiUser, restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser, restRequestBean.getPwmSession().getSessionStateBean().getLocale());
                     newPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), passwordPolicy, restRequestBean.getPwmApplication());
                 } else {
                     newPassword = password;

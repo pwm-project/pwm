@@ -35,6 +35,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
+import password.pwm.util.localdb.LocalDBUtility;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
@@ -74,6 +75,9 @@ public class ConfigManagerServlet extends TopServlet {
             return;
         } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
             doGenerateXml(req, resp);
+            return;
+        } else if ("exportLocalDB".equalsIgnoreCase(processActionParam)) {
+            doExportLocalDB(req, resp, pwmApplication);
             return;
         } else if ("generateSupportZip".equalsIgnoreCase(processActionParam)) {
             doGenerateSupportZip(req, resp, pwmApplication, pwmSession);
@@ -358,7 +362,7 @@ public class ConfigManagerServlet extends TopServlet {
                 final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getPwmApplicationPath());
                 final String json = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
                 zipOutput.write(json.getBytes("UTF8"));
-                zipOutput.closeEntry(); 
+                zipOutput.closeEntry();
             } catch (Exception e) {
                 LOGGER.error(pwmSession,"unable to generate fileMd5sums during zip debug building: " + e.getMessage());
             }
@@ -384,6 +388,24 @@ public class ConfigManagerServlet extends TopServlet {
         final File configurationFile = runningConfigReader.getConfigFile();
         final ConfigurationReader newConfigReader = new ConfigurationReader(configurationFile);
         return newConfigReader.getStoredConfiguration();
+    }
+
+    private void doExportLocalDB(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        resp.setHeader("Content-Disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
+        resp.setContentType("application/octet-stream");
+        resp.setHeader("Content-Transfer-Encoding", "binary");
+        final LocalDBUtility localDBUtility = new LocalDBUtility(pwmApplication.getLocalDB());
+        try {
+            localDBUtility.exportLocalDB(resp.getOutputStream(),new PrintStream(new ByteArrayOutputStream()),false);
+        } catch (Exception e) {
+            LOGGER.error("error downloading export localdb: " + e.getMessage());
+        }
     }
 }
 

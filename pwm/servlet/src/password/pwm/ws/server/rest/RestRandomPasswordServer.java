@@ -25,6 +25,7 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -216,13 +217,16 @@ public class RestRandomPasswordServer {
                 randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession(),
+                        restRequestBean.getUserIdentity(),
                         theUser,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
             } else {
                 randomConfig.setPasswordPolicy(restRequestBean.getPwmSession().getUserInfoBean().getPasswordPolicy());
             }
         } else {
-            randomConfig.setPasswordPolicy(restRequestBean.getPwmApplication().getConfig().getGlobalPasswordPolicy(restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
+            randomConfig.setPasswordPolicy(restRequestBean.getPwmApplication().getConfig().getPasswordPolicy(
+                    PwmConstants.DEFAULT_PASSWORD_PROFILE,
+                    restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
         }
 
         final String randomPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), randomConfig, restRequestBean.getPwmApplication());

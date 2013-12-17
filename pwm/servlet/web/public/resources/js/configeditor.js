@@ -2206,6 +2206,12 @@ function buildMenuBar() {
                 popup: settingsMenu
             }));
 
+            var profilesMenu = new Menu({});
+            topMenuBar.addChild(new PopupMenuBarItem({
+                label: "Profiles",
+                popup: profilesMenu
+            }));
+
             var modulesMenu = new Menu({});
             topMenuBar.addChild(new PopupMenuBarItem({
                 label: "Modules",
@@ -2234,9 +2240,11 @@ function buildMenuBar() {
                             }
                         }
 
+                        var currentSelection = preferences['editMode'] == 'SETTINGS' && menuCategory['key'] == preferences['category'];
+
 
                         if (showMenu) {
-                            if (preferences['editMode'] == 'SETTINGS' && menuCategory['key'] == preferences['category']) {
+                            if (currentSelection) {
                                 settingInfo = {
                                     label: menuCategory['label'],
                                     disabled: true
@@ -2259,8 +2267,10 @@ function buildMenuBar() {
                                     }
                                 };
                             }
-                            if (menuCategory['type'] == "SETTING" || menuCategory['type'] == "PROFILE") {
+                            if (menuCategory['type'] == "SETTING") {
                                 settingsMenu.addChild(new MenuItem(settingInfo));
+                            } else if (menuCategory['type'] == "PROFILE") {
+                                profilesMenu.addChild(new MenuItem(settingInfo));
                             } else {
                                 modulesMenu.addChild(new MenuItem(settingInfo));
                             }

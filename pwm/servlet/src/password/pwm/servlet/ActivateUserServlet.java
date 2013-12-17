@@ -169,7 +169,7 @@ public class ActivateUserServlet extends TopServlet {
 
             final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
             if (!Permission.testQueryMatch(pwmApplication, pwmSession,
-                    userIdentity, queryString, Permission.ACTIVATE_USER.toString())) {
+                    userIdentity, queryString)) {
                 final String errorMsg = "user " + userIdentity + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
                 pwmApplication.getIntruderManager().mark(RecordType.USER_ID, userIdentity.getUserDN(), pwmSession);

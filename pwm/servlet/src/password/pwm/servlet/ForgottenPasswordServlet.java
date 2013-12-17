@@ -618,7 +618,8 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, pwmSession.getSessionStateBean().getLocale());
+            final Locale locale = pwmSession.getSessionStateBean().getLocale();
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity(), theUser, locale);
             final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, null, pwmApplication, theUser, passwordPolicy, null);
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {

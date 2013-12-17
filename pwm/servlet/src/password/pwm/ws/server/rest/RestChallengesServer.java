@@ -34,6 +34,7 @@ import password.pwm.error.*;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.operations.CrService;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -51,11 +52,18 @@ import java.util.*;
 
 @Path("/challenges")
 public class RestChallengesServer {
+    public static class Policy {
+        public List<ChallengeBean> challenges;
+        public List<ChallengeBean> helpdeskChallenges;
+        public int minimumRandoms;
+    }
+
     public static class JsonChallengesData implements Serializable {
         public String username;
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
         public int minimumRandoms;
+        public Policy policy;
 
         public ResponseInfoBean toResponseInfoBean(final Locale locale, final String csIdentifier)
                 throws PwmOperationalException
@@ -130,32 +138,60 @@ public class RestChallengesServer {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"retrieval of answers is not permitted"));
             }
 
-            final ChaiUser chaiUser;
+            // gather data
+            final ResponseSet responseSet;
+            final ChallengeSet challengeSet;
+            final ChallengeSet helpdeskChallengeSet;
+            final String outputUsername;
+
             if (restRequestBean.getUserIdentity() == null) {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                final CrService crService = restRequestBean.getPwmApplication().getCrService();
+                responseSet = crService.readUserResponseSet(null, restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
+                challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeSet();
+                helpdeskChallengeSet = restRequestBean.getPwmApplication().getConfig().getHelpdeskChallengeSet(restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+                outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
-            }
-            final CrService crService = restRequestBean.getPwmApplication().getCrService();
-            final ResponseSet responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser);
-            final JsonChallengesData jsonData;
-            if (responseSet != null) {
-                jsonData = new JsonChallengesData();
-                jsonData.username = chaiUser.getEntryDN();
-                jsonData.challenges = responseSet.asChallengeBeans(answers);
-                jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
-                if (helpdesk && responseSet.getChallengeSet() != null) {
-                    jsonData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(answers);
-                }
-            } else {
-                jsonData = null;
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
+                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
+                final CrService crService = restRequestBean.getPwmApplication().getCrService();
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(), chaiUser);
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(),chaiUser,userLocale);
+                challengeSet = crService.readUserChallengeSet(chaiUser,passwordPolicy,userLocale);
+                outputUsername = restRequestBean.getUserIdentity().toDeliminatedKey();
+                helpdeskChallengeSet = restRequestBean.getPwmApplication().getConfig().getHelpdeskChallengeSet(restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             }
 
+           // build output
+            final JsonChallengesData jsonData = new JsonChallengesData();
+            {
+                jsonData.username = outputUsername;
+                if (responseSet != null) {
+                    jsonData.challenges = responseSet.asChallengeBeans(answers);
+                    if (helpdesk) {
+                        jsonData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(answers);
+                    }
+                    jsonData.minimumRandoms = responseSet.getChallengeSet().getMinRandomRequired();
+                }
+                final Policy policy = new Policy();
+                if (challengeSet != null) {
+                    policy.challenges = challengesToBeans(challengeSet.getChallenges());
+                    policy.minimumRandoms = challengeSet.getMinRandomRequired();
+                }
+                if (helpdeskChallengeSet != null && helpdesk) {
+                    policy.helpdeskChallenges = challengesToBeans(helpdeskChallengeSet.getChallenges());
+                }
+                if (policy.challenges != null || policy.helpdeskChallenges != null) {
+                    jsonData.policy = policy;
+                }
+            }
+
+            // update statistics
             if (!restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHALLENGES);
             }
 
-            RestResultBean resultBean = new RestResultBean();
+            final RestResultBean resultBean = new RestResultBean();
             resultBean.setData(jsonData);
             return resultBean.asJsonResponse();
         } catch (PwmException e) {
@@ -277,5 +313,13 @@ public class RestChallengesServer {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
+    }
+
+    private static List<ChallengeBean> challengesToBeans(final List<Challenge> challenges) {
+        final List<ChallengeBean> returnList = new ArrayList<ChallengeBean>();
+        for (final Challenge challenge : challenges) {
+            returnList.add(challenge.asChallengeBean());
+        }
+        return returnList;
     }
 }

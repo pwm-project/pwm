@@ -70,6 +70,20 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, Category.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, Category.GENERAL),
+    WORDLIST_FILENAME(
+            "pwm.wordlist.location", PwmSettingSyntax.STRING, Category.GENERAL),
+    PASSWORD_SHAREDHISTORY_ENABLE(
+            "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, Category.GENERAL),
+    PASSWORD_SHAREDHISTORY_MAX_AGE(
+            "password.sharedHistory.age", PwmSettingSyntax.NUMERIC, Category.GENERAL),
+    WORDLIST_CASE_SENSITIVE(
+            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.GENERAL),
+    PASSWORD_WORDLIST_WORDSIZE(
+            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.GENERAL),
+    PASSWORD_POLICY_SOURCE(
+            "password.policy.source", PwmSettingSyntax.SELECT, Category.GENERAL),
+    PASSWORD_POLICY_CASE_SENSITIVITY(
+            "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.GENERAL),
 
 
     // user interface
@@ -166,7 +180,7 @@ public enum PwmSetting {
 
     // ldap global settings
     LDAP_PROFILE_LIST(
-            "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.LDAP_GLOBAL),
+            "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_READ_PASSWORD_POLICY(
@@ -276,8 +290,10 @@ public enum PwmSetting {
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, Category.SMS),
 
     //global password policy settings
-    PASSWORD_POLICY_SOURCE(
-            "password.policy.source", PwmSettingSyntax.SELECT, Category.PASSWORD_POLICY),
+    PASSWORD_PROFILE_LIST(
+            "password.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
+    PASSWORD_POLICY_QUERY_MATCH(
+            "password.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LENGTH(
             "password.policy.minimumLength", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MAXIMUM_LENGTH(
@@ -328,8 +344,6 @@ public enum PwmSetting {
             "password.policy.maximumOldPasswordChars", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LIFETIME(
             "password.policy.minimumLifetime", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
-    PASSWORD_POLICY_CASE_SENSITIVITY(
-            "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_AD_COMPLEXITY(
@@ -342,22 +356,12 @@ public enum PwmSetting {
             "password.policy.disallowedValues", PwmSettingSyntax.STRING_ARRAY, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_DISALLOWED_ATTRIBUTES(
             "password.policy.disallowedAttributes", PwmSettingSyntax.STRING_ARRAY, Category.PASSWORD_POLICY),
-    PASSWORD_SHAREDHISTORY_ENABLE(
-            "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
-    PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_STRENGTH(
             "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_RULE_TEXT(
             "password.policy.ruleText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY),
-    WORDLIST_FILENAME(
-            "pwm.wordlist.location", PwmSettingSyntax.STRING, Category.PASSWORD_POLICY),
-    WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
-    PASSWORD_WORDLIST_WORDSIZE(
-            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_DISALLOW_CURRENT(
             "password.policy.disallowCurrent", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
 
@@ -973,7 +977,7 @@ public enum PwmSetting {
         LDAP_GLOBAL(Type.SETTING),
         GENERAL(Type.SETTING),
         USER_INTERFACE(Type.SETTING),
-        PASSWORD_POLICY(Type.SETTING),
+        PASSWORD_POLICY(Type.PROFILE),
         CHALLENGE(Type.SETTING),
         EMAIL(Type.SETTING),
         SMS(Type.SETTING),
@@ -1017,6 +1021,8 @@ public enum PwmSetting {
             switch (this) {
                 case LDAP_PROFILE:
                     return LDAP_PROFILE_LIST;
+                case PASSWORD_POLICY:
+                    return PASSWORD_PROFILE_LIST;
             }
             throw new IllegalArgumentException("category " + this.toString() + " does not have a profileSetting value");
         }

@@ -71,15 +71,6 @@
     </div>
 </div>
 <script>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        /*
-        require(["dojo/parser","dijit/form/Select"],function(parser,Select){
-            parser.parse('profileSelect');
-            parser.parse();
-            //new Select({},'profileSelect');
-        });
-        */
-    });
     function gotoProfile(profile) {
         showWaitDialog(null,null,function(){
             preferences['profile'] = profile;
@@ -89,9 +80,11 @@
     }
 </script>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>
+<% if (!"true".equalsIgnoreCase(loopSetting.getOptions().get("HideForDefaultProfile")) || !"".equals(cookie.getProfile())) { %>
 <% request.setAttribute("setting",loopSetting); %>
 <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
 <jsp:include page="configeditor-setting.jsp"/>
+<% } %>
 <% } %>
 <% final List<PwmSetting> advancedSettings = PwmSetting.getSettings(category,1);%>
 <% final boolean showAdvanced = cookie.getLevel() > 1; %>
@@ -100,9 +93,11 @@
 <div id="advancedSettings" style="display: none">
     <hr/>
     <% for (final PwmSetting loopSetting : advancedSettings) { %>
+    <% if (!"true".equalsIgnoreCase(loopSetting.getOptions().get("HideForDefaultProfile")) || !"".equals(cookie.getProfile())) { %>
     <% request.setAttribute("setting",loopSetting); %>
     <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
     <jsp:include page="configeditor-setting.jsp"/>
+    <% } %>
     <% } %>
     <% if (!showAdvanced) { %>
     <a onclick="toggleAdvancedSettingsDisplay()" style="cursor:pointer">Hide Advanced Settings</a>

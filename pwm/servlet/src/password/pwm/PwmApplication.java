@@ -341,7 +341,6 @@ public class PwmApplication {
         LOGGER.info("initializing, application mode=" + getApplicationMode());
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
-        LOGGER.info("loaded global password policy: " + configuration.getGlobalPasswordPolicy(PwmConstants.DEFAULT_LOCALE));
 
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);

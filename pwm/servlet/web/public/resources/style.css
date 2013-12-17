@@ -161,7 +161,6 @@ input[type=password]::-ms-reveal{display: none;}
     max-width: 150px;
     padding: 4px 11px;
     display: block;
-    white-space: nowrap;
     border-radius: 3px;
     border: 10px;
     color: black;

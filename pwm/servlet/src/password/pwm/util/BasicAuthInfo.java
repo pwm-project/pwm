@@ -22,10 +22,13 @@
 
 package password.pwm.util;
 
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 
 /**
  * Simple data object containing username/password info derived from a "Basic" Authorization HTTP Header.
@@ -48,7 +51,10 @@ public class BasicAuthInfo implements Serializable {
      * @param req http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
-    public static BasicAuthInfo parseAuthHeader(final HttpServletRequest req) {
+    public static BasicAuthInfo parseAuthHeader(
+            final PwmApplication pwmApplication,
+            final HttpServletRequest req
+    ) {
         final String authHeader = req.getHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH);
 
         if (authHeader != null) {
@@ -60,7 +66,8 @@ public class BasicAuthInfo implements Serializable {
 
                 try {
                     // ***** Decode the username/chpass string
-                    final String decoded = new String(Base64Util.decode(encoded),PwmConstants.HTTP_BASIC_AUTH_DECODE_CHARSET);
+                    final String charSet = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BASIC_AUTH_CHARSET);
+                    final String decoded = new String(Base64Util.decode(encoded), charSet);
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"

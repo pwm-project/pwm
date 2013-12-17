@@ -144,9 +144,8 @@ public class ConfigEditorServlet extends TopServlet {
         final String functionName = requestMap.get("function");
         final String profileID = requestMap.get("profile");
 
-        final String className = pwmSetting.getOptions().get(functionName);
         try {
-            Class implementingClass = Class.forName(className);
+            Class implementingClass = Class.forName(functionName);
             SettingUIFunction function = (SettingUIFunction)implementingClass.newInstance();
             final String result = function.provideFunction(pwmApplication, configManagerBean.getConfiguration(), pwmSetting, profileID);
             RestResultBean restResultBean = new RestResultBean();

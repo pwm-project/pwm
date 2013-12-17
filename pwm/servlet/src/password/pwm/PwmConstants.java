@@ -43,7 +43,7 @@ public abstract class PwmConstants {
     // ------------------------- PUBLIC CONSTANTS -------------------------
     public static final String BUILD_TIME           = readBuildInfoBundle("build.time",SimpleDateFormat.getDateTimeInstance().format(new Date()));
     public static final String BUILD_NUMBER         = readBuildInfoBundle("build.number","0");
-    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","Development");
+    public static final String BUILD_TYPE           = readBuildInfoBundle("build.type","");
     public static final String BUILD_USER           = readBuildInfoBundle("build.user",System.getProperty("user.name"));
     public static final String BUILD_REVISION       = readBuildInfoBundle("build.revision","0");
     public static final String BUILD_JAVA_VENDOR    = readBuildInfoBundle("build.java.vendor");
@@ -111,6 +111,7 @@ public abstract class PwmConstants {
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
 
     public static final String DEFAULT_LDAP_PROFILE = "";
+    public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String TOKEN_KEY_PWD_CHG_DATE = "lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
@@ -119,7 +120,6 @@ public abstract class PwmConstants {
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
     public static final String HTTP_HEADER_X_FORWARDED_FOR = readPwmConstantsBundle("httpHeaderXForwardedFor");
     public static final String HTTP_HEADER_REST_CLIENT_KEY = readPwmConstantsBundle("httpRestClientKey");
-    public static final String HTTP_BASIC_AUTH_DECODE_CHARSET = readPwmConstantsBundle("httpBasicAuthDecodeCharset");
 
     public static final String DEFAULT_BAD_PASSWORD_ATTEMPT = readPwmConstantsBundle("defaultBadPasswordAttempt");
 

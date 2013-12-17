@@ -288,10 +288,13 @@ public class StoredConfiguration implements Serializable {
     }
 
     public void resetSetting(final PwmSetting setting, final String profileID) {
-        preModifyActions();
-        domModifyLock.writeLock().lock();
         changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplate()));
+        resetSettingInternal(setting,profileID);
+    }
 
+    protected void resetSettingInternal(final PwmSetting setting, final String profileID) {
+        domModifyLock.writeLock().lock();
+        preModifyActions();
         try {
             final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
             final List<Element> oldSettingElements = xp.evaluate(document);
@@ -402,7 +405,7 @@ public class StoredConfiguration implements Serializable {
     public String toXml()
             throws IOException
     {
-        fixupMandatoryElements(document,this);
+        fixupMandatoryElements(document, this);
 
         final Format format = Format.getPrettyFormat();
         format.setEncoding("UTF-8");
@@ -575,8 +578,7 @@ public class StoredConfiguration implements Serializable {
 
         preModifyActions();
         changeLog.updateChangeLog(setting, profileID, value);
-
-        resetSetting(setting, profileID);
+        resetSettingInternal(setting, profileID);
         domModifyLock.writeLock().lock();
         try {
             final Element settingElement = new Element("setting");
@@ -816,59 +818,55 @@ public class StoredConfiguration implements Serializable {
         }
 
         public String changeLogAsDebugString(final Locale locale) {
-            final StringBuilder output = new StringBuilder();
+            final Map<String,String> outputMap = new TreeMap<String,String>();
             for (final ChangeRecord changeRecord : changeLog.keySet()) {
                 switch (changeRecord.recordType) {
                     case SETTING: {
                         final StoredValue currentValue = readSetting((PwmSetting)changeRecord.recordID, changeRecord.profileID);
-                        final String debugValue = currentValue.toDebugString();
                         final PwmSetting pwmSetting = (PwmSetting)changeRecord.recordID;
-                        output.append(pwmSetting.getCategory().getLabel(locale));
-                        output.append(" -> ");
-                        output.append(pwmSetting.getLabel(locale));
+                        final StringBuilder keyName = new StringBuilder();
+                        keyName.append(pwmSetting.getCategory().getLabel(locale));
+                        keyName.append(" -> ");
+                        keyName.append(pwmSetting.getLabel(locale));
                         if (changeRecord.profileID != null && changeRecord.profileID.length() > 0) {
-                            output.append(" -> ");
-                            output.append(changeRecord.recordID);
+                            keyName.append(" -> ");
+                            keyName.append(changeRecord.profileID);
                         }
-                        output.append("\n");
-                        output.append(" Value: ");
-                        output.append(debugValue);
-                        output.append("\n");
+                        final String debugValue = currentValue.toDebugString();
+                        outputMap.put(keyName.toString(),debugValue);
                     }
                     break;
 
                     case LOCALE_BUNDLE: {
                         final String key = (String)changeRecord.recordID;
                         final String bundleName = key.split("!")[0];
-                        final String keyName = key.split("!")[1];
-                        final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keyName);
+                        final String keys = key.split("!")[1];
+                        final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
                         final String debugValue = Helper.getGson().toJson(currentValue);
-                        output.append("LocaleBundle");
-                        output.append(" -> ");
-                        output.append(bundleName).append(" ").append(keyName);
-                        output.append("\n");
-                        output.append(" Value: ");
-                        output.append(debugValue);
-                        output.append("\n");
+                        outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
                     }
                     break;
 
                     case APP_PROPERTY: {
                         final AppProperty appProperty = (AppProperty)changeRecord.recordID;
                         final String debugValue = readAppProperty(appProperty);
-                        output.append("AppProperty");
-                        output.append(" -> ");
-                        output.append(appProperty.getKey());
-                        output.append("\n");
-                        output.append(" Value: ");
-                        output.append(debugValue);
-                        output.append("\n");
+                        outputMap.put("AppProperty" + " -> " + appProperty.getKey(),debugValue);
                     }
                     break;
                 }
             }
-            if (output.length() < 1) {
+            final StringBuilder output = new StringBuilder();
+            if (outputMap.isEmpty()) {
                 output.append("No changes.");
+            } else {
+                for (final String keyName : outputMap.keySet()) {
+                    final String value = outputMap.get(keyName);
+                    output.append(keyName);
+                    output.append("\n");
+                    output.append(" Value: ");
+                    output.append(value);
+                    output.append("\n");
+                }
             }
             return output.toString();
         }
@@ -907,16 +905,15 @@ public class StoredConfiguration implements Serializable {
 
         public void updateChangeLog(final ChangeRecord changeRecord, final String currentValueString, final String newValueString) {
             if (changeLog.containsKey(changeRecord)) {
-                final String storedJson = changeLog.get(changeRecord);
-                if (storedJson.equals(newValueString)) {
+                final String currentRecord = changeLog.get(changeRecord);
+
+                if (currentRecord == null && newValueString == null) {
+                    changeLog.remove(changeRecord);
+                } else if (currentRecord != null && currentRecord.equals(newValueString)) {
                     changeLog.remove(changeRecord);
                 }
             } else {
-                if (currentValueString != null) {
-                    if (!currentValueString.equals(newValueString)) {
-                        changeLog.put(changeRecord,currentValueString);
-                    }
-                }
+                changeLog.put(changeRecord,currentValueString);
             }
         }
     }

@@ -80,7 +80,7 @@ public abstract class RestServerHelper {
         LOGGER.debug(pwmSession,logMsg);
 
         try {
-            handleAuthentication(request,pwmSession);
+            handleAuthentication(request,pwmApplication,pwmSession);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
         }
@@ -194,15 +194,19 @@ public abstract class RestServerHelper {
     }
 
 
-    private static void handleAuthentication(HttpServletRequest request, PwmSession pwmSession)
+    private static void handleAuthentication(
+            final HttpServletRequest request,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
             throws PwmUnrecoverableException, ChaiUnavailableException {
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
             return;
         }
 
-        if (BasicAuthInfo.parseAuthHeader(request) != null) {
+        if (BasicAuthInfo.parseAuthHeader(pwmApplication, request) != null) {
             try {
-                AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(request));
+                AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(pwmApplication,request));
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             }

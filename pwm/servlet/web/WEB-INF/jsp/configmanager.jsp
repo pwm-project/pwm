@@ -88,6 +88,28 @@
                 </td>
             </tr>
             <tr style="border:0">
+                <script type="text/javascript">
+                    function makeSupportBundle() {
+                        <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
+                        showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
+                        <% } else { %>
+                        getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+                        showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
+                        <% } %>
+                    }
+                </script>
+                <iframe id="downloadFrame" style="display:none"></iframe>
+                <td class="menubutton_key">
+                    <a class="menubutton" onclick="makeSupportBundle()">
+                        <i class="fa fa-suitcase"></i>&nbsp;
+                        Make Troubleshooting Bundle
+                    </a>
+                </td>
+                <td style="border:0">
+                    <p>Generate a support ZIP file that contains information useful for troubleshooting.</p>
+                </td>
+            </tr>
+            <tr style="border:0">
                 <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
                         <i class="fa fa-upload"></i>&nbsp;
@@ -123,25 +145,14 @@
             </tr>
             <% } %>
             <tr style="border:0">
-                <script type="text/javascript">
-                    function makeSupportBundle() {
-                        <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
-                        showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
-                        <% } else { %>
-                        getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-                        showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
-                        <% } %>
-                    }
-                </script>
-                <iframe id="downloadFrame" style="display:none"></iframe>
                 <td class="menubutton_key">
-                    <a class="menubutton" onclick="makeSupportBundle()">
-                        <i class="fa fa-suitcase"></i>&nbsp;
-                        Make Troubleshooting Bundle
+                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=exportLocalDB&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
+                        <i class="fa fa-upload"></i>&nbsp;
+                        Export LocalDB
                     </a>
                 </td>
                 <td style="border:0">
-                    <p>Generate a support ZIP file that contains information useful for troubleshooting.</p>
+                    <p>Export the LocalDB</p>
                 </td>
             </tr>
             <tr style="border:0">

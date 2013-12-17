@@ -141,6 +141,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         try {
             try {
+
                 chaiProvider = LdapOperationsHelper.createChaiProvider(
                         ldapProfile,
                         config,
@@ -149,6 +150,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 );
 
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
+
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,
@@ -187,8 +189,10 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (userPassword == null) {
                     try {
                         final Locale locale = PwmConstants.DEFAULT_LOCALE;
+                        final UserIdentity userIdentity = new UserIdentity(ldapProfile.getIdentifier(), testUserDN);
+
                         final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
-                                pwmApplication, null, theUser, locale);
+                                pwmApplication, null, userIdentity, theUser, locale);
                         final String newPassword = RandomPasswordGenerator.createRandomPassword(null, passwordPolicy,
                                 pwmApplication);
                         theUser.setPassword(newPassword);

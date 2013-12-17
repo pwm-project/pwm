@@ -194,6 +194,18 @@
     </script>
     <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING || loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+    <% if (loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
+    <button id="<%=loopSetting.getKey()%>_ViewMatchesButton" data-dojo-type="dijit.form.Button">View Matches</button>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/form/Button"],function(parser,Button){
+                new Button({
+                    onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'password.pwm.config.function.UserMatchViewerFunction')}
+                },'<%=loopSetting.getKey()%>_ViewMatchesButton');
+            });
+        });
+    </script>
+    <% } %>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){

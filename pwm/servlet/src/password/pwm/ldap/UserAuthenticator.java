@@ -233,7 +233,7 @@ public class UserAuthenticator {
             LOGGER.debug(pwmSession, "attempting to set temporary random password");
             String currentPass = null;
             try {
-                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, chaiUser, pwmSession.getSessionStateBean().getLocale());
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, userIdentity, chaiUser, pwmSession.getSessionStateBean().getLocale());
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user

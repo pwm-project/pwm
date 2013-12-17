@@ -50,6 +50,10 @@ public class PwmPasswordPolicy implements Serializable {
 
     private transient final ChaiPasswordPolicy chaiPasswordPolicy;
 
+    private String profile;
+    private String queryMatch;
+    private String ruleText;
+
 // -------------------------- STATIC METHODS --------------------------
 
     static {
@@ -119,6 +123,36 @@ public class PwmPasswordPolicy implements Serializable {
 
     public String getValue(final PwmPasswordRule rule) {
         return policyMap.get(rule.getKey());
+    }
+
+    public String getProfile()
+    {
+        return profile;
+    }
+
+    public void setProfile(String profile)
+    {
+        this.profile = profile;
+    }
+
+    public String getQueryMatch()
+    {
+        return queryMatch;
+    }
+
+    public void setQueryMatch(String queryMatch)
+    {
+        this.queryMatch = queryMatch;
+    }
+
+    public String getRuleText()
+    {
+        return ruleText;
+    }
+
+    public void setRuleText(String ruleText)
+    {
+        this.ruleText = ruleText;
     }
 
     public PwmPasswordPolicy merge(final PwmPasswordPolicy otherPolicy) {

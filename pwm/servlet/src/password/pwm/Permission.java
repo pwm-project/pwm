@@ -79,7 +79,7 @@ public enum Permission {
                 LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
             }
             final PwmSetting setting = permission.getPwmSetting();
-            final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting), permission.toString());
+            final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting));
             status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
             pwmSession.getUserInfoBean().setPermission(permission, status);
             LOGGER.debug(pwmSession, String.format("permission %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
@@ -91,8 +91,7 @@ public enum Permission {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserIdentity userIdentity,
-            final String queryMatch,
-            final String permissionName
+            final String queryMatch
     )
             throws PwmUnrecoverableException
     {
@@ -100,16 +99,17 @@ public enum Permission {
             return false;
         }
 
-        LOGGER.trace(pwmSession, "begin check for permission for " + userIdentity + " for " + permissionName + " using queryMatch: " + queryMatch);
+        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + queryMatch);
 
         boolean result = false;
 
         if (queryMatch == null || queryMatch.length() < 1) {
-            LOGGER.trace(pwmSession, "no " + permissionName + " defined, skipping check for " + permissionName);
-        } else if ("(objectClass=*)".equals(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
-            LOGGER.trace(pwmSession, "permission check is guaranteed to be true, skipping ldap query");
+
+            LOGGER.trace(pwmSession, "missing queryMatch value, skipping check");
+        } else if ("(objectClass=*)".equalsIgnoreCase(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
+            LOGGER.trace(pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query");
             result = true;
-        } else if (userIdentity != null) {
+        } else {
             try {
                 LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + queryMatch + "'");
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
@@ -118,14 +118,14 @@ public enum Permission {
                     result = true;
                 }
             } catch (ChaiException e) {
-                LOGGER.warn(pwmSession, "LDAP error during check for " + permissionName + " using " + queryMatch + ", " + e.getMessage());
+                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + queryMatch + ", error:" + e.getMessage());
             }
         }
 
         if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch + "', granting privilege for " + permissionName);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch);
         } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch + "', not granting privilege for " + permissionName);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch);
         }
         return result;
     }

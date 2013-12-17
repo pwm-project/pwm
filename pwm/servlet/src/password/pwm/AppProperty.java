@@ -43,6 +43,7 @@ public enum AppProperty {
     HTTP_RESOURCES_NONCE_PATH_PREFIX                ("http.resources.pathNoncePrefix"),
     HTTP_COOKIE_NAME_THEME                          ("http.cookie.theme"),
     HTTP_COOKIE_NAME_LOCALE                         ("http.cookie.locale"),
+    HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
     HTTP_HEADER_SEND_XAMB                           ("http.header.sendXAmb"),

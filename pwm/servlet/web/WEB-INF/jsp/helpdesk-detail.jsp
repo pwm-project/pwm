@@ -85,10 +85,10 @@
         <table>
             <% for (FormConfiguration formItem : helpdeskBean.getAdditionalUserInfo().getSearchDetails().keySet()) { %>
             <tr>
-                <td class="key">
+                <td class="key" id="key_<%=formItem.getName()%>">
                     <%= formItem.getLabel(pwmSession.getSessionStateBean().getLocale())%>
                 </td>
-                <td>
+                <td id="value_<%=formItem.getName()%>">
                     <% final String loopValue = helpdeskBean.getAdditionalUserInfo().getSearchDetails().get(formItem); %>
                     <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
                 </td>
@@ -282,6 +282,14 @@
                     <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>
                     <pwm:Display key="Value_NotApplicable"/>
                     <% } %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
+                    Profile
+                </td>
+                <td>
+                    <%= searchedUserInfo.getPasswordPolicy().getProfile() == null ? "" : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getProfile()) ? "Default" : searchedUserInfo.getPasswordPolicy().getProfile()%>
                 </td>
             </tr>
             <tr>

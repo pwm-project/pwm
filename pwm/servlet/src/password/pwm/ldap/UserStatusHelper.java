@@ -316,7 +316,7 @@ public class UserStatusHelper {
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(uiBean.getUserIdentity());
 
         //populate password policy
-        uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, userLocale));
+        uiBean.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, uiBean.getUserIdentity(), theUser, userLocale));
 
         //populate c/r challenge set.
         {

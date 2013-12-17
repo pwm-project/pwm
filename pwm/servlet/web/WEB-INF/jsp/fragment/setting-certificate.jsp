@@ -71,7 +71,7 @@
                 onClick:function(){handleResetClick('<%=loopSetting.getKey()%>') }
             },'<%=loopSetting.getKey()%>_ClearButton');
             new Button({
-                onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'certificateImportFunction')}
+                onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'password.pwm.config.function.LdapCertImportFunction')}
             },'<%=loopSetting.getKey()%>_AutoImportButton');
         });
     });

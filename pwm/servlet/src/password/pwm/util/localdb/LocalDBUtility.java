@@ -56,46 +56,46 @@ public class LocalDBUtility {
         this.localDB = localDB;
     }
 
-    public void exportLocalDB(final File outputFile, final PrintStream out)
+    public void exportLocalDB(final OutputStream outputFileStream, final PrintStream debugOutput, final boolean showLineCount)
             throws PwmOperationalException, IOException
     {
-        if (outputFile == null) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportLocalDB cannot be null");
+        if (outputFileStream == null) {
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFileStream for exportLocalDB cannot be null");
         }
 
-        if (outputFile.exists()) {
-            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFile for exportLocalDB cannot already exist");
-        }
-
-
-        writeStringToOut(out,"counting lines...");
-        exportLineCounter = 0;
-        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
-                exportLineCounter += localDB.size(loopDB);
+        writeStringToOut(debugOutput,"counting lines...");
+        final int totalLines;
+        if (showLineCount) {
+            exportLineCounter = 0;
+            for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
+                if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
+                    exportLineCounter += localDB.size(loopDB);
+                }
             }
+            totalLines = exportLineCounter;
+            writeStringToOut(debugOutput," total lines: " + totalLines);
+        } else {
+            totalLines = 0;
         }
-        final int totalLines = exportLineCounter;
-        writeStringToOut(out," total lines: " + totalLines);
         exportLineCounter = 0;
 
-        writeStringToOut(out,"export beginning");
+        writeStringToOut(debugOutput,"export beginning");
         final long startTime = System.currentTimeMillis();
         final Timer statTimer = new Timer(true);
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                final float percentComplete = ((float) exportLineCounter / (float) totalLines);
+                final String percentComplete = showLineCount ? String.valueOf((float) exportLineCounter / (float) totalLines) : "n/a";
                 final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
 
-                writeStringToOut(out," exported " + exportLineCounter + " records, " + percentStr + " complete");
+                writeStringToOut(debugOutput," exported " + exportLineCounter + " records, " + percentStr + " complete");
             }
         },30 * 1000, 30 * 1000);
 
 
         CsvWriter csvWriter = null;
         try {
-            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(outputFile))),',');
+            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(outputFileStream)),',');
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
                     for (final Iterator<String> iter = localDB.iterator(loopDB); iter.hasNext();) {
@@ -112,7 +112,7 @@ public class LocalDBUtility {
             }
         }
 
-        writeStringToOut(out, "export complete, exported " + exportLineCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
+        writeStringToOut(debugOutput, "export complete, exported " + exportLineCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
         statTimer.cancel();
     }
 

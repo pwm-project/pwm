@@ -373,9 +373,14 @@ public class MainClass {
         }
 
         final File outputFile = new File(args[1]);
+        if (outputFile.exists()) {
+            out("outputFile for exportLocalDB cannot already exist");
+            return;
+        }
+
         final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
         try {
-            pwmDBUtility.exportLocalDB(outputFile, System.out);
+            pwmDBUtility.exportLocalDB(new FileOutputStream(outputFile), System.out, true);
         } catch (PwmOperationalException e) {
             out("error during export: " + e.getMessage());
         }

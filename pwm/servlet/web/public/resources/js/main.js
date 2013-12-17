@@ -521,7 +521,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
                         htmlBody += (date ? date.toLocaleString() : "") + '&nbsp;&nbsp;&nbsp;&nbsp;';
                     }
                     if (showRefresh) {
-                        htmlBody += '<a href="#"; onclick="showAppHealth(\'' + parentDivID + '\',null,true)">refresh</a>';
+                        htmlBody += '<a href="#"; onclick="showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">refresh</a>';
                     }
                     htmlBody += "</td></tr>";
                 }

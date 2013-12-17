@@ -646,6 +646,7 @@ public class PasswordUtility {
     public static PwmPasswordPolicy readPasswordPolicyForUser(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
+            final UserIdentity userIdentity,
             final ChaiUser theUser,
             final Locale locale
     ) throws ChaiUnavailableException
@@ -656,7 +657,7 @@ public class PasswordUtility {
         final PwmPasswordPolicy returnPolicy;
         switch (ppSource) {
             case MERGE:
-                final PwmPasswordPolicy pwmPolicy = pwmApplication.getConfig().getGlobalPasswordPolicy(locale);
+                final PwmPasswordPolicy pwmPolicy = determineConfiguredPolicyProfileForUser(pwmApplication,pwmSession,userIdentity,locale);
                 final PwmPasswordPolicy userPolicy = readLdapPasswordPolicy(pwmApplication, theUser);
                 LOGGER.trace(pwmSession, "read user policy for '" + theUser.getEntryDN() + "', policy: " + userPolicy.toString());
                 returnPolicy = pwmPolicy.merge(userPolicy);
@@ -669,7 +670,7 @@ public class PasswordUtility {
                 break;
 
             case PWM:
-                returnPolicy = pwmApplication.getConfig().getGlobalPasswordPolicy(locale);
+                returnPolicy = determineConfiguredPolicyProfileForUser(pwmApplication,pwmSession,userIdentity,locale);
                 break;
 
             default:
@@ -678,6 +679,41 @@ public class PasswordUtility {
 
         LOGGER.trace(pwmSession, "readPasswordPolicyForUser completed in " + TimeDuration.fromCurrent(startTime).asCompactString());
         return returnPolicy;
+    }
+
+    protected static PwmPasswordPolicy determineConfiguredPolicyProfileForUser(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final Locale locale
+    ) {
+        final List<String> profiles = pwmApplication.getConfig().getPasswordProfiles();
+        if (profiles.isEmpty()) {
+            throw new IllegalStateException("no available configured password profiles");
+        } else if (profiles.size() == 1) {
+            LOGGER.trace(pwmSession, "only one password policy profile defined, returning default");
+            return pwmApplication.getConfig().getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE,locale);
+        }
+
+        for (final String profile : profiles) {
+            if (!PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(profile)) {
+                final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy(profile,locale);
+                final String queryMatch = loopPolicy.getQueryMatch();
+                if (queryMatch != null && queryMatch.length() > 0) {
+                    LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
+                    try {
+                        boolean match = Permission.testQueryMatch(pwmApplication,pwmSession,userIdentity,queryMatch);
+                        if (match) {
+                            return loopPolicy;
+                        }
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
+        return pwmApplication.getConfig().getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE,locale);
     }
 
 

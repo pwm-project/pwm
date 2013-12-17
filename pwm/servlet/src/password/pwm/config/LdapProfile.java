@@ -54,11 +54,11 @@ public class LdapProfile {
     }
 
     public String readSettingAsString(final PwmSetting setting) {
-         return Configuration.Converter.valueToString(storedValueMap.get(setting));
+         return Configuration.JavaTypeConverter.valueToString(storedValueMap.get(setting));
     }
 
     public List<String> readSettingAsStringArray(final PwmSetting setting) {
-        return Configuration.Converter.valueToStringArray(storedValueMap.get(setting));
+        return Configuration.JavaTypeConverter.valueToStringArray(storedValueMap.get(setting));
     }
 
     public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
@@ -72,6 +72,6 @@ public class LdapProfile {
     }
 
     public boolean readSettingAsBoolean(final PwmSetting setting) {
-        return Configuration.Converter.valueToBoolean(storedValueMap.get(setting));
+        return Configuration.JavaTypeConverter.valueToBoolean(storedValueMap.get(setting));
     }
 }

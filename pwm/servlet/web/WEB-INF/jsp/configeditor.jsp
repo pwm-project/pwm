@@ -67,9 +67,14 @@
     <div id="header" style="height: 25px; text-align: center">
         <div id="header-title">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-            <%=category.getType() == PwmSetting.Category.Type.SETTING || category.getType() == PwmSetting.Category.Type.PROFILE ? "Settings - " : "Modules - "%>
-            <%=category.getLabel(locale)%>
-            <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.LOCALEBUNDLE) { %>
+            <% if (category.getType() == PwmSetting.Category.Type.SETTING) { %>
+            Settings - <%=category.getLabel(locale)%>
+            <% } else if (category.getType() == PwmSetting.Category.Type.PROFILE) { %>
+            Profile - <%=category.getLabel(locale)%>
+            <% } else { %>
+            Modules - <%=category.getLabel(locale)%>
+            <% } %>
+            <% } else { %>
             <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
             Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
             <% } %>

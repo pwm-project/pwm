@@ -114,7 +114,9 @@
         <jar destfile="${artifacts.root}/${artifacts.jar}">
             <fileset dir="${compileOutput}"/>
             <zipfileset dir="${sourceDir}" prefix="src"/>
-            <zipfileset dir="${sourceDir}" includes="**/*.properties"/>
+            <zipfileset dir="${sourceDir}" includes="**/*.properties">
+                <exclude name="**/BuildInformation.properties"/>
+            </zipfileset>
             <zipfileset dir="${sourceDir}" includes="**/*.xml"/>
             <manifest>
                 <attribute name="Main-Class" value="password.pwm.util.JarMain"/>

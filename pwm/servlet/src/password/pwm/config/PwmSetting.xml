@@ -374,9 +374,6 @@
         <label>LDAP Certificates</label>
         <description><![CDATA[LDAP Server Certificates.  These certificates have are stored in the configuration file and used to validate the identity of your LDAP server.]]></description>
         <default/>
-        <options>
-            <option value="certificateImportFunction">password.pwm.config.function.LdapCertImportFunction</option>
-        </options>
     </setting>
     <setting key="ldap.proxy.username" level="0" required="true">
         <label>LDAP Proxy User</label>
@@ -852,6 +849,24 @@
         <default>
             <value>false</value>
         </default>
+    </setting>
+    <setting key="password.profile.list" level="0" hidden="true">
+        <label>Password Policies</label>
+        <description><![CDATA[List of Password policies.  ]]></description>
+        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+    </setting>
+    <setting key="password.policy.queryMatch">
+        <label>Password Policy Query Match</label>
+        <description><![CDATA[Password Policy Query Match]]></description>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+        <options>
+            <option value="HideForDefaultProfile">true</option>
+        </options>
     </setting>
     <setting key="password.policy.source" level="1" required="true">
         <label>Password Policy Source</label>

@@ -353,7 +353,7 @@ public class GuestRegistrationServlet extends TopServlet {
                 theUser.writeDateAttribute(expirationAttr, expirationDate);
             }
 
-            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, theUser, locale);
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, userIdentity, theUser, locale);
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, pwmApplication);
             theUser.setPassword(newPassword);
             final UserInfoBean guestUserInfoBean = new UserInfoBean();

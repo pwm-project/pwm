@@ -23,6 +23,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
 <%@ page import="password.pwm.ldap.UserSearchEngine" %>
+<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
