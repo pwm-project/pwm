@@ -1581,6 +1581,93 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         </tr>
     </table>
 </div>
+<div data-dojo-type="dijit.layout.ContentPane" title="verifyotp">
+    <table>
+        <tr>
+            <td class="key" style="width:50px">url</td>
+            <td><a href="<%=request.getContextPath()%>/public/rest/verifyotp"><%=request.getContextPath()%>/public/rest/verifyresponses</a></td>
+        </tr>
+        <tr>
+        </tr>
+        <tr>
+            <td class="key" style="width:50px">POST Method</td>
+            <td>
+                <table>
+                    <tr>
+                        <td class="key">Description</td>
+                        <td>Validate supplied one time password against a user's stored secret.</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Authentication</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Accept Header</td>
+                        <td>
+                            application/json
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Content-Type Header</td>
+                        <td>
+                            application/json
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Parameter username</td>
+                        <td>
+                            username=user1234
+                            <br/>
+                            <i>Optional username or ldap DN of a user on which to verify the one time password.</i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Parameter token</td>
+                        <td>
+                            token=123456
+                            <br/>
+                            <i>One time password to be verified.</i>
+                        </td>
+                    </tr>
+                </table>
+                <table style="max-width: 100%">
+                    <tr>
+                        <td class="title" style="font-size: smaller" colspan="2">Example 1</td>
+                    </tr>
+                    <tr>
+                        <td class="key">Request</td>
+                <td class="exampleTD">
+<pre>
+POST <%=request.getContextPath()%>/public/rest/verifyotp HTTP/1.1
+Accept-Language: en
+Accept: application/json
+Content-Type: application/json
+Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+
+{
+   "token": 123456
+}
+</pre>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="key">Response</td>
+                <td class="exampleTD">
+<pre>
+{
+    "error": false,
+    "errorCode": 0,
+    "successMessage": "The operation has been successfully completed.",
+    "data": false
+}
+</pre>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
 <div data-dojo-type="dijit.layout.ContentPane" title="verifyresponses">
     <table>
         <tr>
