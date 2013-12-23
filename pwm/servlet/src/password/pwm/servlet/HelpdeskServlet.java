@@ -295,8 +295,7 @@ public class HelpdeskServlet extends TopServlet {
         searchConfiguration.setUsername(helpdeskBean.getSearchString());
         searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
         if (!useProxy) {
-            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
-            searchConfiguration.setLdapProfiles(Collections.singletonList(ldapProfile));
+            searchConfiguration.setLdapProfile(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
             searchConfiguration.setChaiProvider(pwmSession.getSessionManager().getChaiProvider());
         }
 

@@ -32,6 +32,7 @@ import org.apache.log4j.*;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
@@ -152,7 +153,8 @@ public class MainClass {
     static void handleExportLogs(final String[] args) throws Exception {
         final Configuration config = loadConfiguration();
         final LocalDB pwmDB = loadPwmDB(config, true);
-        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.EVENTLOG_EVENTS);
+        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmDB,
+                LocalDB.DB.EVENTLOG_EVENTS);
 
         if (args.length < 2) {
             out("must specify file to write log data to");
@@ -279,7 +281,9 @@ public class MainClass {
             if (user.isValid()) {
                 out("writing responses to user '" + user.getEntryDN() + "'");
                 try {
-                    final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                    final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
+                            userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                    final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
                     final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
                     pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );

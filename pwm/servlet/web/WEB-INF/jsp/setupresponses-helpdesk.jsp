@@ -49,17 +49,9 @@
             <jsp:include page="fragment/setupresponses-form.jsp"/>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="setHelpdeskResponses"/>
-                <input type="submit" name="setResponses" class="btn" id="setresponses_button"
-                       value="<pwm:Display key="Button_SetResponses"/>"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" name="reset" class="btn"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <input type="submit" name="setResponses" class="btn" id="setresponses_button" value="<pwm:Display key="Button_SetResponses"/>"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

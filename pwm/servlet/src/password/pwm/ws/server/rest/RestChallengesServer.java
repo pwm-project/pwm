@@ -29,6 +29,7 @@ import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.i18n.Message;
@@ -148,8 +149,8 @@ public class RestChallengesServer {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(null, restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
-                challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeSet();
-                helpdeskChallengeSet = restRequestBean.getPwmApplication().getConfig().getHelpdeskChallengeSet(restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+                challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
+                helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
@@ -157,9 +158,11 @@ public class RestChallengesServer {
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(), chaiUser);
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(),chaiUser,userLocale);
-                challengeSet = crService.readUserChallengeSet(chaiUser,passwordPolicy,userLocale);
+                final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
+                        restRequestBean.getUserIdentity(), chaiUser, passwordPolicy, userLocale);
+                challengeSet = challengeProfile.getChallengeSet();
+                helpdeskChallengeSet = challengeProfile.getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getUserIdentity().toDeliminatedKey();
-                helpdeskChallengeSet = restRequestBean.getPwmApplication().getConfig().getHelpdeskChallengeSet(restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             }
 
            // build output
@@ -233,16 +236,17 @@ public class RestChallengesServer {
             if (restRequestBean.getUserIdentity() == null) {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
-                csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeSet().getIdentifier();
+                csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet().getIdentifier();
             } else {
                 final UserIdentity userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(userIdentity);
                 userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(),userIdentity);
-                final ChallengeSet challengeSet = crService.readUserChallengeSet(
+                final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
+                        userIdentity,
                         chaiUser,
                         PwmPasswordPolicy.defaultPolicy(),
                         request.getLocale());
-                csIdentifer = challengeSet.getIdentifier();
+                csIdentifer = challengeProfile.getChallengeSet().getIdentifier();
             }
 
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean(request.getLocale(), csIdentifer);

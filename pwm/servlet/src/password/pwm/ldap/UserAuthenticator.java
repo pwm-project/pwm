@@ -40,7 +40,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.AuditManager;
 import password.pwm.util.*;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.intruder.RecordType;
@@ -58,6 +57,7 @@ public class UserAuthenticator {
             final String username,
             final String password,
             final String context,
+            final String profile,
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final boolean secure
@@ -68,7 +68,7 @@ public class UserAuthenticator {
         final UserIdentity userIdentity;
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            userIdentity = userSearchEngine.resolveUsername(pwmSession, username, context);
+            userIdentity = userSearchEngine.resolveUsername(pwmSession, username, context, profile);
         } catch (PwmOperationalException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.AUTHENTICATION_FAILURES);
             pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession);
@@ -155,7 +155,7 @@ public class UserAuthenticator {
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-        final UserIdentity userIdentity = userSearchEngine.resolveUsername(pwmSession, username, null);
+        final UserIdentity userIdentity = userSearchEngine.resolveUsername(pwmSession, username, null, null);
         authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, secure, authenticationType);
     }
 
@@ -213,7 +213,7 @@ public class UserAuthenticator {
             // actually do the authentication since we have user pw.
             if (currentPass != null && currentPass.length() > 0) {
                 try {
-                    authenticateUser(userIdentity.getUserDN(), currentPass, null, pwmSession, pwmApplication, secure);
+                    authenticateUser(userIdentity.getUserDN(), currentPass, null, null, pwmSession, pwmApplication, secure);
                     return;
                 } catch (PwmOperationalException e) {
                     final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs; error: " + e.getMessage();
@@ -296,7 +296,8 @@ public class UserAuthenticator {
             final String password,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
         LOGGER.trace(pwmSession, "beginning testCredentials process");
 
         if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
@@ -336,6 +337,47 @@ public class UserAuthenticator {
             }
             LOGGER.debug(pwmSession, errorInformation.toDebugStr());
             throw new PwmOperationalException(errorInformation);
+        }
+    }
+
+    public static void simulateBadPassword(
+            final UserIdentity userIdentity,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException
+    {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD)) {
+            return;
+        } else {
+            LOGGER.trace(pwmSession, "performing bad-password login attempt against ldap directory as a result of forgotten password recovery invalid attempt against " + userIdentity);
+        }
+
+        if (userIdentity == null || userIdentity.getUserDN() == null || userIdentity.getUserDN().length() < 1) {
+            LOGGER.error(pwmSession, "attempt to simulateBadPassword with null userDN");
+            return;
+        }
+
+        LOGGER.trace(pwmSession, "beginning simulateBadPassword process");
+
+        final String bogusPassword = PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT;
+
+        //try authenticating the user using a normal ldap BIND operation.
+        LOGGER.trace(pwmSession, "attempting authentication using ldap BIND");
+        try {
+            //get a provider using the user's DN and password.
+            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(userIdentity, bogusPassword);
+
+            //issue a read operation to trigger a bind.
+            testProvider.readStringAttribute(userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS);
+
+            LOGGER.warn(pwmSession, "bad-password login attempt succeeded for " + userIdentity + "! (this should always fail)");
+        } catch (ChaiException e) {
+            if (e.getErrorCode() == ChaiError.PASSWORD_BADPASSWORD) {
+                LOGGER.trace(pwmSession, "bad-password login simulation succeeded for; " + userIdentity + " result: " + e.getMessage());
+            } else {
+                LOGGER.debug(pwmSession, "unexpected error during bad-password login attempt for " + userIdentity + "; result: " + e.getMessage());
+            }
         }
     }
 
@@ -396,7 +438,7 @@ public class UserAuthenticator {
 
         //mark the auth time
         userInfoBean.setLocalAuthTime(new Date());
-        
+
         //clear permission cache - needs rechecking after login
         LOGGER.debug("Clearing permission cache");
         userInfoBean.clearPermissions();

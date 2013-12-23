@@ -152,8 +152,8 @@ public class SessionManager implements Serializable {
 
         final LdapProfile profile = config.getLdapProfiles().get(userIdentity.getLdapProfileID());
         if (authIsBindInhibit || (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent))) {
-            final String proxyDN = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            final String proxyPassword = config.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            final String proxyDN = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+            final String proxyPassword = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             return LdapOperationsHelper.createChaiProvider(profile, config, proxyDN, proxyPassword);
         }
 

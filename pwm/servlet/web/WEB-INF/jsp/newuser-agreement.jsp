@@ -59,19 +59,15 @@
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
                     key="Button_Agree"/></label>
-                <input type="hidden"
-                       name="processAction"
-                       value="agree"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Continue"/>"
-                       id="submitBtn"/>
+                <input type="hidden" name="processAction" value="agree"/>
+                <input type="submit" name="button" class="btn" value="<pwm:Display key="Button_Continue"/>" id="submitBtn"/>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
         <div style="text-align: center">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='NewUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
-                <input type="hidden" name="processAction" value="reset"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="submit" name="button" class="btn"
                        value="<pwm:Display key="Button_Cancel"/>"
                        id="button_reset"/>

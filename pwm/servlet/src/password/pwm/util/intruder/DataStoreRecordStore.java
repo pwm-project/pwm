@@ -82,7 +82,7 @@ class DataStoreRecordStore implements RecordStore {
         try {
             dataStore.put(key, jsonRecord);
         } catch (PwmDataStoreException e) {
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error writing to LocalDB: " + e.getMessage()));
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error writing to LocalDB: " + e.getMessage()));
         }
     }
 

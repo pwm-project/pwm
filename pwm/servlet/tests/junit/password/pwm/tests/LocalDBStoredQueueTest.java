@@ -43,7 +43,7 @@ public class LocalDBStoredQueueTest extends TestCase {
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
         pwmDB = LocalDBFactory.getInstance(fileLocation, false, null, null);
-        storedQueue = LocalDBStoredQueue.createPwmDBStoredQueue(pwmDB, LocalDB.DB.TEMP);
+        storedQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmDB, LocalDB.DB.TEMP);
     }
 
     private void populatedQueue(final int n, final LocalDBStoredQueue storedQueue) {

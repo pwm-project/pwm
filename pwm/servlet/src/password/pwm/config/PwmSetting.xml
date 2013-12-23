@@ -493,6 +493,37 @@
             <value />
         </default>
     </setting>
+    <setting key="ldap.duplicateMode" level="0">
+        <label>LDAP Duplicate Mode</label>
+        <description><![CDATA[Control how the application will handle the situation when multiple user matches are found for a search, such as during authentication.]]></description>
+        <default>
+            <value>NONE</value>
+        </default>
+        <options>
+            <option value="FIRST_ALL">Match first user - Use first user discovered in any context or profile, ignore any duplicates</option>
+            <option value="FIRST_PROFILE">Match first ldap profile - Use the first user discovered in the first profile that has only a single match</option>
+            <option value="NONE">No duplicates Permitted - Fail whenever duplicate users are found in any context or profile</option>
+        </options>
+    </setting>
+    <setting key="ldap.selectableContextMode" level="0">
+        <label>User Selectable LDAP Context/Profile</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>NONE</value>
+        </default>
+        <options>
+            <option value="SHOW_PROFILE">Show the ldap profile</option>
+            <option value="SHOW_CONTEXTS">Show the available ldap contexts</option>
+            <option value="NONE">Do not show </option>
+        </options>
+    </setting>
+    <setting key="ldap.profile.displayName" level="1">
+        <label>LDAP Profile Display Name</label>
+        <description><![CDATA[Display name used for this LDAP Profile.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting key="ldap.username.attr" level="1">
         <label>Attribute to use for Username</label>
         <description><![CDATA[If blank, the LDAP Naming Attribute will be used.  This option allows fields that display or store the <i>Username</i> or <i>UserID</i> of a user to show something other then the LDAP Naming Attribute if appropriate.  It is desirable that this value be unique for this system.]]></description>
@@ -1849,6 +1880,24 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="challenge.profile.list" level="0" hidden="true">
+        <label>Challenge Policies</label>
+        <description><![CDATA[List of Password policies.  ]]></description>
+        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+    </setting>
+    <setting key="challenge.policy.queryMatch">
+        <label>ChalengePolicy Query Match</label>
+        <description><![CDATA[Challenge Policy Query Match]]></description>
+        <default>
+            <value><![CDATA[]]></value>
+        </default>
+        <options>
+            <option value="HideForDefaultProfile">true</option>
+        </options>
+    </setting>
     <setting key="recovery.enable" level="0">
         <label>Enable Forgotten Password</label>
         <description><![CDATA[If enabled, forgotten password recovery will be available to users.]]></description>
@@ -2876,8 +2925,12 @@
         <description><![CDATA[This password policy is applied to all users, regardless of any other password policy that may be configured in the directory.  If so configured, The password policy configured for the user in the directory is read and is <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
     </category>
     <category key="CHALLENGE">
-        <label>Challenge Policy</label>
+        <label>Challenge Settings</label>
         <description><![CDATA[Challenge Policy.  If a challenge policy is read from the directory, that policy will override the settings listed here.]]></description>
+    </category>
+    <category key="CHALLENGE_POLICY">
+        <label>Challenge Policy</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="EMAIL">
         <label>Email</label>

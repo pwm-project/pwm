@@ -22,9 +22,9 @@
 
 package password.pwm.bean;
 
-import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 
@@ -62,7 +62,7 @@ public class UserInfoBean implements PwmSessionBean {
     private PasswordStatus passwordState = new PasswordStatus();
 
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
-    private ChallengeSet challengeSet = null;
+    private ChallengeProfile challengeProfile = null;
     private ResponseInfoBean responseInfoBean = null;
 
     private Date passwordExpirationTime;
@@ -115,12 +115,12 @@ public class UserInfoBean implements PwmSessionBean {
         this.lastLdapLoginTime = lastLdapLoginTime;
     }
 
-    public ChallengeSet getChallengeSet() {
-        return challengeSet;
+    public ChallengeProfile getChallengeProfile() {
+        return challengeProfile;
     }
 
-    public void setChallengeSet(final ChallengeSet challengeSet) {
-        this.challengeSet = challengeSet;
+    public void setChallengeSet(final ChallengeProfile challengeSet) {
+        this.challengeProfile = challengeSet;
     }
 
     public PwmPasswordPolicy getPasswordPolicy() {

@@ -23,7 +23,6 @@
 package password.pwm.util.queue;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
@@ -135,7 +134,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        sendQueue = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, DB);
+        sendQueue = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, DB);
         final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer thread";
         timerThread = new Timer(threadName,true);
         status = PwmService.STATUS.OPEN;

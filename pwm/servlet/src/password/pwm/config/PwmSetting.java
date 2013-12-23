@@ -177,6 +177,12 @@ public enum PwmSetting {
             "ldap.guid.autoAddValue", PwmSettingSyntax.BOOLEAN, Category.LDAP_PROFILE),
     LDAP_GUID_ATTRIBUTE(
             "ldap.guidAttribute", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
+    LDAP_LOGIN_CONTEXTS(
+            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
+    LDAP_PROFILE_DISPLAY_NAME(
+            "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, Category.LDAP_PROFILE),
+
+
 
     // ldap global settings
     LDAP_PROFILE_LIST(
@@ -193,10 +199,12 @@ public enum PwmSetting {
             "ldap.defaultObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
     LDAP_FOLLOW_REFERRALS(
             "ldap.followReferrals", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
-    LDAP_LOGIN_CONTEXTS(
-            "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_GLOBAL),
     QUERY_MATCH_PWM_ADMIN(
             "pwmAdmin.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.LDAP_GLOBAL),
+    LDAP_DUPLICATE_MODE(
+            "ldap.duplicateMode", PwmSettingSyntax.SELECT, Category.LDAP_GLOBAL),
+    LDAP_SELECTABLE_CONTEXT_MODE(
+            "ldap.selectableContextMode", PwmSettingSyntax.SELECT, Category.LDAP_GLOBAL),
 
 
     // email settings
@@ -499,14 +507,6 @@ public enum PwmSetting {
             "challenge.enable", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
     CHALLENGE_FORCE_SETUP(
             "challenge.forceSetup", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
-    CHALLENGE_RANDOM_CHALLENGES(
-            "challenge.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
-    CHALLENGE_REQUIRED_CHALLENGES(
-            "challenge.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
-    CHALLENGE_MIN_RANDOM_REQUIRED(
-            "challenge.minRandomRequired", PwmSettingSyntax.NUMERIC, Category.CHALLENGE),
-    CHALLENGE_MIN_RANDOM_SETUP(
-            "challenge.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE),
     CHALLENGE_SHOW_CONFIRMATION(
             "challenge.showConfirmation", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
     CHALLENGE_CASE_INSENSITIVE(
@@ -517,18 +517,32 @@ public enum PwmSetting {
             "challenge.allowDuplicateResponses", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
     CHALLENGE_APPLY_WORDLIST(
             "challenge.applyWorldlist", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
-    CHALLENGE_HELPDESK_RANDOM_CHALLENGES(
-            "challenge.helpdesk.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
-    CHALLENGE_HELPDESK_REQUIRED_CHALLENGES(
-            "challenge.helpdesk.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE),
-    CHALLENGE_HELPDESK_MIN_RANDOM_SETUP(
-            "challenge.helpdesk.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
             "command.checkResponses.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE),
     CHALLENGE_ENFORCE_MINIMUM_PASSWORD_LIFETIME(
             "challenge.enforceMinimumPasswordLifetime", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
+
+    // challenge policy profile
+    CHALLENGE_PROFILE_LIST(
+            "challenge.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
+    CHALLENGE_POLICY_QUERY_MATCH(
+            "challenge.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE_POLICY),
+    CHALLENGE_RANDOM_CHALLENGES(
+            "challenge.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+    CHALLENGE_REQUIRED_CHALLENGES(
+            "challenge.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+    CHALLENGE_MIN_RANDOM_REQUIRED(
+            "challenge.minRandomRequired", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
+    CHALLENGE_MIN_RANDOM_SETUP(
+            "challenge.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
+    CHALLENGE_HELPDESK_RANDOM_CHALLENGES(
+            "challenge.helpdesk.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+    CHALLENGE_HELPDESK_REQUIRED_CHALLENGES(
+            "challenge.helpdesk.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+    CHALLENGE_HELPDESK_MIN_RANDOM_SETUP(
+            "challenge.helpdesk.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
 
 
     // recovery settings
@@ -973,12 +987,13 @@ public enum PwmSetting {
     }
 
     public enum Category {
+        GENERAL(Type.SETTING),
         LDAP_PROFILE(Type.PROFILE),
         LDAP_GLOBAL(Type.SETTING),
-        GENERAL(Type.SETTING),
         USER_INTERFACE(Type.SETTING),
         PASSWORD_POLICY(Type.PROFILE),
         CHALLENGE(Type.SETTING),
+        CHALLENGE_POLICY(Type.PROFILE),
         EMAIL(Type.SETTING),
         SMS(Type.SETTING),
         SECURITY(Type.SETTING),
@@ -1023,6 +1038,8 @@ public enum PwmSetting {
                     return LDAP_PROFILE_LIST;
                 case PASSWORD_POLICY:
                     return PASSWORD_PROFILE_LIST;
+                case CHALLENGE_POLICY:
+                    return CHALLENGE_PROFILE_LIST;
             }
             throw new IllegalArgumentException("category " + this.toString() + " does not have a profileSetting value");
         }

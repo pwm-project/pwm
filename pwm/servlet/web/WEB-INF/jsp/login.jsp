@@ -37,14 +37,7 @@
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="password"
               onsubmit="return handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <% //check to see if any locations are configured.
-                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
-            %>
-            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context" class="inputfield">
-                <pwm:DisplayLocationOptions name="context"/>
-            </select>
-            <% } %>
+            <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
             <input type="text" name="username" id="username" class="inputfield" required="required"
                    value="<pwm:ParamValue name='username'/>" autofocus/>
@@ -57,17 +50,9 @@
                        name="button"
                        value="<pwm:Display key="Button_Login"/>"
                        id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" class="btn"
-                       name="reset"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="login">
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

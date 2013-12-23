@@ -75,7 +75,7 @@
                 <input type="hidden" name="processAction" value="reset"/>
                 <input type="submit" name="button" class="btn"
                        value="<pwm:Display key="Button_Cancel"/>"
-                       id="button_reset"/>
+                       id="buttonCancel"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>

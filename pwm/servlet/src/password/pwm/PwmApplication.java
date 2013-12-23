@@ -319,7 +319,7 @@ public class PwmApplication {
                     break;
             }
 
-            PwmInitializer.initializeLogger(configuration, log4jFile, consoleLevel, pwmApplicationPath, fileLevel);
+            Initializer.initializeLogger(configuration, log4jFile, consoleLevel, pwmApplicationPath, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -335,8 +335,8 @@ public class PwmApplication {
             }
         }
 
-        PwmInitializer.initializeLocalDB(this);
-        PwmInitializer.initializePwmDBLogger(this);
+        Initializer.initializeLocalDB(this);
+        Initializer.initializeLocalDBLogger(this);
 
         LOGGER.info("initializing, application mode=" + getApplicationMode());
         // log the loaded configuration
@@ -615,7 +615,7 @@ public class PwmApplication {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    private static class PwmInitializer {
+    private static class Initializer {
         private static void initializeLogger(
                 final Configuration config,
                 final File log4jConfigFile,
@@ -724,7 +724,7 @@ public class PwmApplication {
                 final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
                 databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.pwmApplicationPath);
             } catch (Exception e) {
-                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
+                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
                 return;
             }
@@ -736,12 +736,12 @@ public class PwmApplication {
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
                 pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig());
             } catch (Exception e) {
-                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
+                pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
             }
         }
 
-        public static void initializePwmDBLogger(final PwmApplication pwmApplication) {
+        public static void initializeLocalDBLogger(final PwmApplication pwmApplication) {
             if (pwmApplication.getApplicationMode() == MODE.READ_ONLY) {
                 LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
                 return;

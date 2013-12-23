@@ -57,7 +57,10 @@ public class
         internalQueue = new InternalQueue(localDB, DB);
     }
 
-    public static synchronized LocalDBStoredQueue createPwmDBStoredQueue(final LocalDB pwmDB, final LocalDB.DB DB)
+    public static synchronized LocalDBStoredQueue createLocalDBStoredQueue(
+            final LocalDB pwmDB,
+            final LocalDB.DB DB
+    )
             throws LocalDBException {
         return new LocalDBStoredQueue(pwmDB, DB);
     }

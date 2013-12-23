@@ -36,15 +36,7 @@
               name="searchForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <% //check to see if any locations are configured.
-                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
-            %>
-            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context" class="inputfield">
-                <pwm:DisplayLocationOptions name="context"/>
-            </select>
-            <br/>
-            <% } %>
+            <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <br/>
             <% request.setAttribute("form",PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -57,16 +49,8 @@
                        name="search"
                        value="<pwm:Display key="Button_Search"/>"
                        id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" class="btn"
-                       name="reset" onclick="clearForm('searchForm');return false;"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

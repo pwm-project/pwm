@@ -147,51 +147,53 @@ function uploadConfigDialog() {
     var uploadUrl = window.location.pathname + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
     console.log('uploading config file to url ' + uploadUrl);
 
-    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
-        dojo,Dialog,Uploader,FileList,Button){
-        var idName = 'dialogPopup';
-        clearDijitWidget(idName);
-        var theDialog = new Dialog({
-            id: idName,
-            title: 'Upload Configuration',
-            style: "width: 300px",
-            content: body
-        });
-        theDialog.show();
-        var fileMask = [
-            ["XML File", 	"*.xml"],
-            ["TXT File", 	"*.txt"]
-        ];
-        var uploader = new dojox.form.Uploader({
-            multiple: false,
-            name: "uploadFile",
-            label: 'Select File',
-            required:true,
-            fileMask: fileMask,
-            url: uploadUrl,
-            isDebug: true,
-            devMode: true
-        },'uploadFile');
-        uploader.startup();
-        var uploadButton = new Button({
-            label: 'Upload',
-            type: 'submit'
-        },"uploadButton");
-        uploadButton.startup();
-        new FileList({
-            uploaderId: 'uploadFile'
-        },"fileList")
-        dojo.connect(uploader, "onComplete", function(data){
-            if (data['error'] == true) {
-                showDialog('Upload Error', data['errorDetail']);
-            } else {
-                clearDijitWidget(idName);
-                showWaitDialog(null,null,function(){
-                    setTimeout(function(){
+    showWaitDialog(null,null,function(){
+        closeWaitDialog();
+        require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
+            dojo,Dialog,Uploader,FileList,Button){
+            var idName = 'dialogPopup';
+            clearDijitWidget(idName);
+            var theDialog = new Dialog({
+                id: idName,
+                title: 'Upload Configuration',
+                style: "width: 300px",
+                content: body
+            });
+            theDialog.show();
+            var fileMask = [
+                ["XML File", 	"*.xml"],
+                ["TXT File", 	"*.txt"]
+            ];
+            var uploader = new dojox.form.Uploader({
+                multiple: false,
+                name: "uploadFile",
+                label: 'Select File',
+                required:true,
+                fileMask: fileMask,
+                url: uploadUrl,
+                isDebug: true,
+                devMode: true
+            },'uploadFile');
+            uploader.startup();
+            var uploadButton = new Button({
+                label: 'Upload',
+                type: 'submit'
+            },"uploadButton");
+            uploadButton.startup();
+            new FileList({
+                uploaderId: 'uploadFile'
+            },"fileList")
+            dojo.connect(uploader, "onComplete", function(data){
+                if (data['error'] == true) {
+                    showDialog('Upload Error', data['errorDetail']);
+                } else {
+                    closeWaitDialog();
+                    clearDijitWidget(idName);
+                    showWaitDialog(null,null,function(){
                         waitForRestart(new Date().getTime());
-                    },5000);
-                });
-            }
+                    });
+                }
+            });
         });
     });
 }
@@ -223,3 +225,11 @@ function initConfigPage() {
     });
 }
 
+function openLogViewer(level) {
+    if (!level) {
+        level = 'INFO';
+    }
+    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog&level=' + level;
+    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
+    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
+}

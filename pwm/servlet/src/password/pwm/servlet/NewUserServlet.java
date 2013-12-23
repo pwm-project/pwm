@@ -422,7 +422,7 @@ public class NewUserServlet extends TopServlet {
         LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user");
 
         //authenticate the user to pwm
-        UserAuthenticator.authenticateUser(theUser.getEntryDN(), userPassword, null, pwmSession, pwmApplication, true);
+        UserAuthenticator.authenticateUser(theUser.getEntryDN(), userPassword, null, null, pwmSession, pwmApplication, true);
 
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());

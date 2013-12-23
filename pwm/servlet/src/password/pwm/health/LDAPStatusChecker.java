@@ -189,7 +189,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 if (userPassword == null) {
                     try {
                         final Locale locale = PwmConstants.DEFAULT_LOCALE;
-                        final UserIdentity userIdentity = new UserIdentity(ldapProfile.getIdentifier(), testUserDN);
+                        final UserIdentity userIdentity = new UserIdentity(testUserDN, ldapProfile.getIdentifier());
 
                         final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                                 pwmApplication, null, userIdentity, theUser, locale);

@@ -257,7 +257,8 @@ public class AuthenticationFilter implements Filter {
 
         //user isn't already authed and has an auth header, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user using basic auth header (username=" + basicAuthInfo.getUsername() + ")");
-        UserAuthenticator.authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, pwmSession, pwmApplication, req.isSecure());
+        UserAuthenticator.authenticateUser(basicAuthInfo.getUsername(), basicAuthInfo.getPassword(), null, null,
+                pwmSession, pwmApplication, req.isSecure());
 
         pwmSession.getSessionStateBean().setOriginalBasicAuthInfo(basicAuthInfo);
     }

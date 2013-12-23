@@ -83,7 +83,7 @@ public class LocalDBLogger implements PwmService {
         this.localDB = localDB;
         this.setting_devDebug = devDebug;
         this.setting_maxAgeMs = maxAgeMS;
-        this.localDBListQueue = LocalDBStoredQueue.createPwmDBStoredQueue(this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
+        this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (maxEvents == 0) {
             LOGGER.info("maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed");

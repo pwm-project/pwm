@@ -81,7 +81,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_PromiscuousLDAP")));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_PromiscuousLDAP","AppProperty -> " + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey())));
         }
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
@@ -194,5 +194,11 @@ public class ConfigurationChecker implements HealthChecker {
 
     private String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
         return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
+    }
+
+    private String settingToHealthLabel(final PwmSetting setting, final String profileID) {
+        return setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
+                + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE);
+
     }
 }

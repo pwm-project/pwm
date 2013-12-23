@@ -41,7 +41,7 @@ public class UserIdentity implements Serializable {
 
     public UserIdentity(final String userDN, final String ldapProfile) {
         if (userDN == null || userDN.length() < 1) {
-            throw new IllegalArgumentException("userDN value cannot be empty");
+            throw new IllegalArgumentException("UserIdentity: userDN value cannot be empty");
         }
         this.userDN = userDN;
         this.ldapProfile = ldapProfile == null ? "" : ldapProfile;

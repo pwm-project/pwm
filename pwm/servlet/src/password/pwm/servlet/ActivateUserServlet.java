@@ -65,9 +65,6 @@ public class ActivateUserServlet extends TopServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ActivateUserServlet.class);
-
-    private static final String CONTEXT_PARAM_NAME = "context";
-
     private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
 
@@ -149,7 +146,10 @@ public class ActivateUserServlet extends TopServlet {
             pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
 
             // read the context attr
-            final String contextParam = Validator.readStringFromRequest(req, CONTEXT_PARAM_NAME, 1024, "");
+            final String contextParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT, 1024, "");
+
+            // read the profile attr
+            final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE, 1024, "");
 
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
@@ -162,6 +162,7 @@ public class ActivateUserServlet extends TopServlet {
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
                 searchConfiguration.setFilter(config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
+                searchConfiguration.setLdapProfile(ldapProfile);
                 userIdentity = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
 

@@ -74,7 +74,7 @@ public class VersionChecker implements PwmService {
                     versionCheckInfoCache = gson.fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
             } catch (LocalDBException e) {
-                LOGGER.error("error reading version check info out of PwmDB: " + e.getMessage());
+                LOGGER.error("error reading version check info out of LocalDB: " + e.getMessage());
             }
         }
 
@@ -105,6 +105,10 @@ public class VersionChecker implements PwmService {
 
     public boolean isVersionCurrent() {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+            return true;
+        }
+
+        if (PwmConstants.BUILD_NUMBER == null || PwmConstants.BUILD_NUMBER.length() < 1) {
             return true;
         }
 
@@ -155,7 +159,7 @@ public class VersionChecker implements PwmService {
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
                 pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
             } catch (LocalDBException e) {
-                LOGGER.error("error writing version check info out of PwmDB: " + e.getMessage());
+                LOGGER.error("error writing version check info out of LocalDB: " + e.getMessage());
             }
         }
 
@@ -192,10 +196,10 @@ public class VersionChecker implements PwmService {
             if (checkInfoCache.getLastError() == null) {
                 if (!isVersionCurrent()) {
                     final StringBuilder healthMsg = new StringBuilder();
-                    healthMsg.append("This version of PWM is out of date.");
+                    healthMsg.append("This version of " + PwmConstants.PWM_APP_NAME + " is out of date.");
                     healthMsg.append("  The current version is ").append(versionCheckInfoCache.getCurrentVersion());
                     healthMsg.append(" (b").append(versionCheckInfoCache.getCurrentBuild()).append(").");
-                    healthMsg.append("  Check the PWM project page for more information.");
+                    healthMsg.append("  Check the project page for more information.");
                     returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"Version",healthMsg.toString()));
                 }
             } else {

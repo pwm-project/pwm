@@ -27,6 +27,7 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
+import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -439,6 +440,15 @@ public class RestAppDataServer {
             settingMap.put("localeDisplayNames",localeDisplayNames);
             settingMap.put("localeFlags",localeFlags);
             settingMap.put("defaultLocale",PwmConstants.DEFAULT_LOCALE.toString());
+        }
+
+        if (pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class) != SelectableContextMode.NONE) {
+            final Map<String,Map<String,String>> ldapProfiles = new LinkedHashMap<String, Map<String, String>>();
+            for (final String ldapProfile : pwmApplication.getConfig().getLdapProfiles().keySet()) {
+                final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getLoginContexts();
+                ldapProfiles.put(ldapProfile,contexts);
+            }
+            settingMap.put("ldapProfiles",ldapProfiles);
         }
 
         return settingMap;

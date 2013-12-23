@@ -70,54 +70,83 @@ function updateDisplay(resultInfo)
 function makeSelectOptionsDistinct() {
     require(["dojo","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore","dojo/store/Memory"],
         function(dojo,registry,array,dojoOn,ObjectStore,Memory){
-        console.log('entering makeSelectOptionsDistinct()');
-        var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
-        var initialChoiceText = showString('Display_SelectionIndicator');
-        var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
-        var currentlySelectedTexts = [];
+            var startTime = (new Date()).getTime();
+            console.log('entering makeSelectOptionsDistinct()');
 
-        for (var responseID in simpleRandomSelectElements) {
-            (function(responseID){
-                var selectWidget = registry.byId(responseID);
-                var selectedValue = selectWidget.get('value');
-                currentlySelectedTexts.push(selectedValue);
-            }(responseID));
-        }
-
-        for (var responseID in simpleRandomSelectElements) {
-            (function(responseID){
-                var questionID = simpleRandomSelectElements[responseID];
-                var selectWidget = registry.byId(responseID);
-                selectWidget.set('onchange',null);
-                var selectedValue = selectWidget.get('value');
-                var dataOptions = [];
-                if (selectedValue == 'UNSELECTED') {
-                    getObject(questionID).disabled = true;
-                    getObject(questionID).readonly = true;
-                    dataOptions.push({id:'UNSELECTED',label:'&nbsp;&nbsp---' + initialChoiceText + '---'})
-                } else {
-                    selectWidget.removeOption('UNSELECTED');
-                    getObject(questionID).disabled = false;
-                    getObject(questionID).readonly = false;
+            // cancel all the existing onchange events so they dont trigger while this function manipulates the select elements
+            if (PWM_GLOBAL['randomSelectEventHandlers']) {
+                for (var eventHandler in PWM_GLOBAL['randomSelectEventHandlers']) {
+                    (function(eventHandler){
+                        PWM_GLOBAL['randomSelectEventHandlers'][eventHandler].remove();
+                    }(eventHandler));
                 }
-                for (var i = 0; i < allPossibleTexts.length; i++) {
+            }
+            PWM_GLOBAL['randomSelectEventHandlers'] = new Array();
+
+            // all possible random questions (populated by the jsp)
+            var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
+
+            // string that is used at the top of unconfigured select list
+            var initialChoiceText = showString('Display_SelectionIndicator');
+
+            // the HTML select elements (populated by the jsp)
+            var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
+
+            // texts that are in use
+            var currentlySelectedTexts = [];
+
+            for (var responseID in simpleRandomSelectElements) {
+                (function(responseID){
+                    var selectWidget = registry.byId(responseID);
+                    var selectedValue = selectWidget.get('value');
+                    currentlySelectedTexts.push(selectedValue);
+                }(responseID));
+            }
+
+            // repopulate the select elements
+            for (var responseID in simpleRandomSelectElements) {
+                (function(responseID){
+                    var questionID = simpleRandomSelectElements[responseID];
+                    var selectWidget = registry.byId(responseID);
+                    var selectedValue = selectWidget.get('value');
+                    var dataOptions = [];
+                    if (selectedValue == 'UNSELECTED') {
+                        getObject(questionID).disabled = true;
+                        getObject(questionID).readonly = true;
+                        dataOptions.push({id:'UNSELECTED',label:'&nbsp;&nbsp---' + initialChoiceText + '---'})
+                    } else {
+                        selectWidget.removeOption('UNSELECTED');
+                        getObject(questionID).disabled = false;
+                        getObject(questionID).readonly = false;
+                    }
+                    for (var i = 0; i < allPossibleTexts.length; i++) {
                         var loopText = allPossibleTexts[i];
                         if (loopText == selectedValue || array.indexOf(currentlySelectedTexts,loopText) == -1) {
                             dataOptions.push({id:loopText,label:loopText});
                         }
-                }
-                var store = new Memory({data:dataOptions});
-                var os = new ObjectStore({ objectStore: store });
-                selectWidget.setStore(os,selectedValue);
-                dojoOn.once(selectWidget,"change",function(){
-                    getObject(questionID).value = '';
-                    makeSelectOptionsDistinct();
-                    validateResponses();
-                    getObject(questionID).focus();
-                });
-            }(responseID));
-        }
-    });
+                    }
+                    var store = new Memory({data:dataOptions});
+                    var os = new ObjectStore({ objectStore: store });
+                    selectWidget.setStore(os,selectedValue);
+                }(responseID));
+            }
+
+            // add the onchange events (and store so they can be removed on next event execution
+            for (var responseID in simpleRandomSelectElements) {
+                (function(responseID){
+                    var questionID = simpleRandomSelectElements[responseID];
+                    var selectWidget = registry.byId(responseID);
+                    var eventHandler = dojoOn(selectWidget,"change",function(){
+                        getObject(questionID).value = '';
+                        makeSelectOptionsDistinct();
+                        validateResponses();
+                        getObject(questionID).focus();
+                    });
+                    PWM_GLOBAL['randomSelectEventHandlers'].push(eventHandler);
+                }(responseID));
+            }
+            console.log('exiting makeSelectOptionsDistinct(), duration:' + (((new Date()).getTime()) - startTime) + "ms");
+        });
 }
 
 function startupResponsesPage()

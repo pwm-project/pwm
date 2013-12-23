@@ -45,7 +45,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
     private static String buildOptionListHTML(final HttpServletRequest request, final String selectedValue) throws PwmUnrecoverableException {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
 
-        final Map<String,String> locationsMap = pwmApplication.getConfig().getLoginContexts();
+        final Map<String,String> locationsMap = null;
 
         if (locationsMap == null || locationsMap.isEmpty()) {
             return "";

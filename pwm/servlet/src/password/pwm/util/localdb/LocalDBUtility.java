@@ -85,8 +85,13 @@ public class LocalDBUtility {
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                final String percentComplete = showLineCount ? String.valueOf((float) exportLineCounter / (float) totalLines) : "n/a";
-                final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
+                final String percentStr;
+                if (showLineCount) {
+                    final String percentComplete = String.valueOf((float) exportLineCounter / (float) totalLines);
+                    percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
+                } else {
+                    percentStr = "n/a";
+                }
 
                 writeStringToOut(debugOutput," exported " + exportLineCounter + " records, " + percentStr + " complete");
             }

@@ -48,6 +48,7 @@
                        name="search"
                        value="<pwm:Display key="Button_CheckCode"/>"
                        id="submitBtn"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>

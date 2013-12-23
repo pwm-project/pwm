@@ -44,7 +44,7 @@ public class LocalDbAuditVault implements AuditVault {
     private Date oldestRecord;
 
     public LocalDbAuditVault(final LocalDB localDB) throws LocalDBException {
-        this.auditDB = LocalDBStoredQueue.createPwmDBStoredQueue(localDB, LocalDB.DB.AUDIT_EVENTS);
+        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, LocalDB.DB.AUDIT_EVENTS);
     }
 
     public void init(final Settings settings) {

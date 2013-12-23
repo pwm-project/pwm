@@ -216,9 +216,8 @@ public class PeopleSearchServlet extends TopServlet {
 
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         if (!config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
-            final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
             final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
-            searchConfiguration.setLdapProfiles(Collections.singletonList(ldapProfile));
+            searchConfiguration.setLdapProfile(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
             searchConfiguration.setChaiProvider(chaiProvider);
         }
 

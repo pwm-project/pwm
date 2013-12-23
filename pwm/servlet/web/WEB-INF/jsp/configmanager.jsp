@@ -78,7 +78,7 @@
             </tr>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="var viewLog = window.open('<%=request.getContextPath()%><pwm:url url='/public/CommandServlet'/>?processAction=viewLog','logViewer','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1');viewLog.focus;return false">
+                    <a class="menubutton" style="cursor: pointer" onclick="openLogViewer()">
                         <i class="fa fa-list-alt"></i>&nbsp;
                         <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
@@ -112,7 +112,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
-                        <i class="fa fa-upload"></i>&nbsp;
+                        <i class="fa fa-download"></i>&nbsp;
                         <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
                 </td>
@@ -124,7 +124,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a class="menubutton" href="#" onclick="showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_UploadConfig'],function(){uploadConfigDialog()},null)">
-                        <i class="fa fa-download"></i>&nbsp;
+                        <i class="fa fa-upload"></i>&nbsp;
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                 </td>

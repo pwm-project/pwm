@@ -44,6 +44,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,9 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         Validator.validatePwmFormID(req);
 
+        final String contextParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE);
+
         final List<FormConfiguration> forgottenUsernameForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.FORGOTTEN_USERNAME_FORM);
 
         //read the values from the request
@@ -105,6 +109,8 @@ public class ForgottenUsernameServlet extends TopServlet {
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
             searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER));
             searchConfiguration.setFormValues(formValues);
+            searchConfiguration.setLdapProfile(ldapProfile);
+            searchConfiguration.setContexts(Collections.singletonList(contextParam));
             final UserIdentity userIdentity = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
 
             if (userIdentity == null) {

@@ -35,6 +35,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DuplicateMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -112,8 +113,8 @@ public class UserSearchEngine {
     public UserIdentity resolveUsername(
             final PwmSession pwmSession,
             final String username,
-            final String context
-
+            final String context,
+            final String profile
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
@@ -143,6 +144,7 @@ public class UserSearchEngine {
                 final SearchConfiguration searchConfiguration = new SearchConfiguration();
                 searchConfiguration.setUsername(username);
                 searchConfiguration.setContexts(Collections.singletonList(context));
+                searchConfiguration.setLdapProfile(profile);
                 return userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
         } catch (PwmOperationalException e) {
@@ -154,7 +156,9 @@ public class UserSearchEngine {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final long startTime = System.currentTimeMillis();
-        final Map<UserIdentity,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
+        final DuplicateMode dupeMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class);
+        final int searchCount = (dupeMode == DuplicateMode.FIRST_ALL) ? 1 : 2;
+        final Map<UserIdentity,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, searchCount, Collections.<String>emptyList());
         final List<UserIdentity> results = searchResults == null ? Collections.<UserIdentity>emptyList() : new ArrayList<UserIdentity>(searchResults.keySet());
         if (results.isEmpty()) {
             final String errorMessage;
@@ -168,10 +172,20 @@ public class UserSearchEngine {
             final String userDN = results.get(0).getUserDN();
             LOGGER.debug(pwmSession, "found userDN: " + userDN + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
             return results.get(0);
-        } else {
-            final String errorMessage = "multiple user matches found";
-            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
         }
+        if (dupeMode == DuplicateMode.FIRST_PROFILE) {
+            final String profile1 = results.get(0).getLdapProfileID();
+            final String profile2 = results.get(1).getLdapProfileID();
+            if (profile1 == null && profile2 == null || (profile1 != null && profile1.equals(profile2))) {
+                return results.get(0);
+            } else {
+                final String errorMessage = "multiple user matches in single profile";
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
+            }
+
+        }
+        final String errorMessage = "multiple user matches found";
+        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, errorMessage));
     }
 
     public UserSearchResults performMultiUserSearchFromForm(
@@ -208,10 +222,10 @@ public class UserSearchEngine {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final Collection<LdapProfile> ldapProfiles;
-        if (searchConfiguration.getLdapProfiles() == null || searchConfiguration.getLdapProfiles().isEmpty()) {
-            ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
+        if (searchConfiguration.getLdapProfile() != null && pwmApplication.getConfig().getLdapProfiles().containsKey(searchConfiguration.getLdapProfile())) {
+            ldapProfiles = Collections.singletonList(pwmApplication.getConfig().getLdapProfiles().get(searchConfiguration.getLdapProfile()));
         } else {
-            ldapProfiles = searchConfiguration.getLdapProfiles();
+            ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
         }
         final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
         for (final LdapProfile ldapProfile : ldapProfiles) {
@@ -263,7 +277,7 @@ public class UserSearchEngine {
 
             if (searchConfiguration.isEnableContextValidation()) {
                 for (final String searchContext : searchContexts) {
-                    validateSpecifiedContext(pwmApplication, searchContext);
+                    validateSpecifiedContext(pwmApplication, ldapProfile, searchContext);
                 }
             }
         } else {
@@ -338,10 +352,10 @@ public class UserSearchEngine {
         return returnMap;
     }
 
-    private static void validateSpecifiedContext(final PwmApplication pwmApplication, final String context)
+    private static void validateSpecifiedContext(final PwmApplication pwmApplication, final LdapProfile profile, final String context)
             throws PwmOperationalException
     {
-        Collection<String> loginContexts = pwmApplication.getConfig().getLoginContexts().keySet();
+        final Collection<String> loginContexts = profile.getLoginContexts().keySet();
         if (loginContexts == null || loginContexts.isEmpty()) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"context specified, but no selectable contexts are configured");
         }
@@ -356,7 +370,7 @@ public class UserSearchEngine {
     }
 
     public static class SearchConfiguration implements Serializable {
-        private Collection<LdapProfile> ldapProfiles;
+        private String ldapProfile;
         private String filter;
         private String username;
         private List<String> contexts;
@@ -428,14 +442,14 @@ public class UserSearchEngine {
             }
         }
 
-        public Collection<LdapProfile> getLdapProfiles()
+        public String getLdapProfile()
         {
-            return ldapProfiles;
+            return ldapProfile;
         }
 
-        public void setLdapProfiles(Collection<LdapProfile> ldapProfiles)
+        public void setLdapProfile(String ldapProfile)
         {
-            this.ldapProfiles = ldapProfiles;
+            this.ldapProfile = ldapProfile;
         }
     }
 

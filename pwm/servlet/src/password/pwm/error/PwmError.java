@@ -132,7 +132,7 @@ public enum PwmError {
     ERROR_NEW_USER_FAILURE("Error_NewUser_Failure",5049, false),
     ERROR_ACTIVATION("Error_Activation",5050, false),
     ERROR_DB_UNAVAILABLE("Error_DB_Unavailable",5051, false),
-    ERROR_PWMDB_UNAVAILABLE("Error_PwmDB_Unavailable",5052, false),
+    ERROR_LOCALDB_UNAVAILABLE("Error_LocalDB_Unavailable",5052, false),
     ERROR_PWM_UNAVAILABLE("Error_Pwm_Unavailable",5053, false),
     ERROR_UNREACHABLE_CLOUD_SERVICE("Error_UnreachableCloudService", 5054, false),
     ERROR_INVALID_SECURITY_KEY("Error_InvalidSecurityKey", 5055, false),

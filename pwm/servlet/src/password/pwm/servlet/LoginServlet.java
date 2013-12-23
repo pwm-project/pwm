@@ -71,7 +71,8 @@ public class
             Validator.validatePwmFormID(req);
             final String username = Validator.readStringFromRequest(req, "username");
             final String password = Validator.readStringFromRequest(req, "password");
-            final String context = Validator.readStringFromRequest(req, "context");
+            final String context = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT);
+            final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE);
 
             if (!passwordOnly && (username.length() < 1)) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
@@ -90,7 +91,7 @@ public class
                     final UserIdentity userIdentity = pwmSession.getUserInfoBean().getUserIdentity();
                     UserAuthenticator.authenticateUser(userIdentity, password, pwmSession,pwmApplication, req.isSecure());
                 } else {
-                    UserAuthenticator.authenticateUser(username, password, context, pwmSession, pwmApplication, req.isSecure());
+                    UserAuthenticator.authenticateUser(username, password, context, ldapProfile, pwmSession, pwmApplication, req.isSecure());
                 }
 
                 // recycle the session to prevent session fixation attack.

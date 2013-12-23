@@ -80,15 +80,8 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <input type="submit" name="checkResponses" class="btn"
                        value="<pwm:Display key="Button_RecoverPassword"/>"
                        id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" name="reset" class="btn"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

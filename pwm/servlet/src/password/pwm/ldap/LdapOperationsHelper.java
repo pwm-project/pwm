@@ -346,6 +346,8 @@ public class LdapOperationsHelper {
             chaiConfig.setSetting(ChaiSetting.WATCHDOG_ENABLE, "false");
         }
 
+        //chaiConfig.setSetting(ChaiSetting.AD_SET_POLICY_HINTS_ON_PW_SET,"true");
+
         // enable caching
         //chaiConfig.setSetting(ChaiSetting.CACHE_ENABLE, "true");
         //chaiConfig.setSetting(ChaiSetting.CACHE_MAXIMUM_SIZE, "5000");

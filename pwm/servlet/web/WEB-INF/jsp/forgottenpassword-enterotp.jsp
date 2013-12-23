@@ -56,16 +56,9 @@
                                name="search"
                                value="<pwm:Display key="Button_CheckCode"/>"
                                id="submitBtn"/>
-                        <input type="reset" class="btn"
-                               name="reset"
-                               value="<pwm:Display key="Button_Reset"/>"/>
+                        <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                         <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
-                        <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                        <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();
-                                return false">
-                            <pwm:Display key="Button_Cancel"/>
-                        </button>
-                        <% }%>
+                        <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                     </div>
                 </form>

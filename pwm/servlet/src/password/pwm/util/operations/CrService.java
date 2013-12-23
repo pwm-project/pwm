@@ -30,6 +30,7 @@ import com.novell.ldapchai.provider.*;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -84,7 +85,8 @@ public class CrService implements PwmService {
         return Collections.emptyList();
     }
 
-    public ChallengeSet readUserChallengeSet(
+    public ChallengeProfile readUserChallengeProfile(
+            final UserIdentity userIdentity,
             final ChaiUser theUser,
             final PwmPasswordPolicy policy,
             final Locale locale
@@ -119,20 +121,52 @@ public class CrService implements PwmService {
         }
 
         // use PWM policies if PWM is configured and either its all that is configured OR the NMAS policy read was not successfull
+        final String challengeProfileID = determineChallengeProfileForUser(pwmApplication, userIdentity, locale);
+        final ChallengeProfile challengeProfile = config.getChallengeProfile(challengeProfileID, locale);
+
         if (returnSet == null) {
-            returnSet = config.getGlobalChallengeSet(locale);
-            if (returnSet != null) {
-                LOGGER.debug("using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+            LOGGER.debug("no detected c/r policy for user " + theUser.getEntryDN() + " in ldap ");
+            LOGGER.trace("readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+            return challengeProfile;
+        }
+
+        LOGGER.debug("using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+        LOGGER.trace("readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+        return challengeProfile.overrideChallengeSet(returnSet);
+    }
+
+    protected static String determineChallengeProfileForUser(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity,
+            final Locale locale
+    ) {
+        final List<String> profiles = pwmApplication.getConfig().getChallengeProfiles();
+        if (profiles.isEmpty()) {
+            throw new IllegalStateException("no available challenge profiles");
+        } else if (profiles.size() == 1) {
+            LOGGER.trace("only one challenge profile defined, returning default");
+            return "";
+        }
+
+        for (final String profile : profiles) {
+            if (!PwmConstants.DEFAULT_CHALLENGE_PROFILE.equalsIgnoreCase(profile)) {
+                final ChallengeProfile loopPolicy = pwmApplication.getConfig().getChallengeProfile(profile, locale);
+                final String queryMatch = loopPolicy.getQueryString();
+                if (queryMatch != null && queryMatch.length() > 0) {
+                    LOGGER.debug("testing challenge profiles '" + profile + "'");
+                    try {
+                        boolean match = Permission.testQueryMatch(pwmApplication,null,userIdentity,queryMatch);
+                        if (match) {
+                            return profile;
+                        }
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error("unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+                    }
+                }
             }
         }
 
-        if (returnSet == null) {
-            LOGGER.warn("no available c/r policy for user" + theUser.getEntryDN() + ": ");
-        }
-
-        LOGGER.trace("readUserChallengeSet completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
-
-        return returnSet;
+        return PwmConstants.DEFAULT_CHALLENGE_PROFILE;
     }
 
     public void validateResponses(

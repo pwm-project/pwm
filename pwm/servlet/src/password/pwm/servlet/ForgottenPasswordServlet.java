@@ -146,7 +146,8 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
-        final String contextParam = Validator.readStringFromRequest(req, "context");
+        final String contextParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE);
 
         // clear the bean
         pwmSession.clearForgottenPasswordBean();
@@ -175,6 +176,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
+                searchConfiguration.setLdapProfile(ldapProfile);
                 theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
 
@@ -288,7 +290,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         LOGGER.debug(pwmSession, "token validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        simulateBadLogin(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity());
+        UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
         pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);
         pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
         this.forwardToEnterCodeJSP(req, resp);
@@ -320,7 +322,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         LOGGER.debug(pwmSession, "one time password validation has failed");
         pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
         final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
-        simulateBadLogin(pwmApplication, pwmSession, userDN);
+        UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
         pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
         pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
         this.forwardToEnterOtpTokenJSP(req, resp);
@@ -359,7 +361,9 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
 
             // read the user's assigned response set.
-            final ChallengeSet challengeSet = pwmApplication.getCrService().readUserChallengeSet(theUser, null, responseSetLocale);
+            final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
+                    forgottenPasswordBean.getUserIdentity(), theUser, null, responseSetLocale);
+            final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
 
             try {
                 if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
@@ -448,7 +452,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
             pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(), pwmSession);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            simulateBadLogin(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity());
+            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
             this.forwardToResponsesJSP(req, resp);
             return;
         }
@@ -496,7 +500,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     ssBean.setSessionError(errorInformation);
                     LOGGER.debug(pwmSession,errorInformation.toDebugStr());
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                    simulateBadLogin(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity());
+                    UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
                     pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(), pwmSession);
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                     this.forwardToResponsesJSP(req, resp);
@@ -958,32 +962,6 @@ public class ForgottenPasswordServlet extends TopServlet {
                 smsMessage,
                 tokenKey
         );
-    }
-
-    private static void simulateBadLogin(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        if (userIdentity == null) {
-            return;
-        }
-
-        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_SIMULATE_LDAP_BAD_PASSWORD)) {
-            try {
-                LOGGER.trace(pwmSession, "performing bad-password login attempt against ldap directory as a result of forgotten password recovery invalid attempt against " + userIdentity);
-                UserAuthenticator.testCredentials(userIdentity, PwmConstants.DEFAULT_BAD_PASSWORD_ATTEMPT, pwmSession);
-                LOGGER.warn(pwmSession, "bad-password login attempt succeeded for " + userIdentity + "! (this should always fail)");
-            } catch (PwmOperationalException e) {
-                if (e.getError() == PwmError.ERROR_WRONGPASSWORD) {
-                    LOGGER.trace(pwmSession, "bad-password login attempt succeeded for; " + userIdentity + " result: " + e.getMessage());
-                } else {
-                    LOGGER.debug(pwmSession, "unexpected error during bad-password login attempt for " + userIdentity + "; result: " + e.getMessage());
-                }
-            }
-        }
     }
 
     private List<FormConfiguration> figureAttributeForm(

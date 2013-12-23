@@ -2231,6 +2231,9 @@ function buildMenuBar() {
                         if (menuCategory['key'] == 'ACTIVE_DIRECTORY') {
                             showMenu = (PWM_GLOBAL['selectedTemplate'] == 'AD');
                         }
+                        if (menuCategory['hidden'] == true) {
+                            showMenu = false;
+                        }
 
                         var allowMenuSelect = true;
                         if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
@@ -2286,7 +2289,7 @@ function buildMenuBar() {
                 }));
 
                 for (var localeMenu in PWM_SETTINGS['locales']) {
-                    (function() {
+                    (function(localeMenu) {
                         var localeKey = PWM_SETTINGS['locales'][localeMenu]['key'];
                         if (preferences['editMode'] == 'LOCALEBUNDLE' && preferences['localeBundle'] == localeKey) {
                             displayMenu.addChild(new MenuItem({
@@ -2306,7 +2309,7 @@ function buildMenuBar() {
                                 }
                             }));
                         }
-                    })();
+                    })(localeMenu);
                 }
             }
             {
@@ -2320,7 +2323,7 @@ function buildMenuBar() {
                 var viewMenu = new Menu({});
                 var advancedIsChecked = preferences['level'] && preferences['level'] > 1;
                 viewMenu.addChild(new CheckedMenuItem({
-                    label: "Advanced Settings",
+                    label: "Always Show Advanced Settings",
                     checked: advancedIsChecked,
                     onClick: function() {
                         preferences['level'] = advancedIsChecked ? 1 : 2;

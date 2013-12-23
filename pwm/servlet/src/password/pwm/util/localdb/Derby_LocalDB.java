@@ -130,7 +130,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             resultSet = statement.executeQuery(sb.toString());
         } catch (SQLException e) {
             final String errorMsg = "table doesn't exist or some other error: " + e.getCause();
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,errorMsg));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,errorMsg));
         } finally {
             close(statement);
             close(resultSet);
@@ -227,7 +227,7 @@ public class Derby_LocalDB implements LocalDBProvider {
                 return resultSet.getString(VALUE_COLUMN);
             }
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.readLock().unlock();
             close(statement);
@@ -261,7 +261,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             dbIterators.add(iterator);
             return iterator;
         } catch (Exception e) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,e.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,e.getMessage()));
         }
     }
 
@@ -293,7 +293,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             insertStatement.executeBatch();
             dbConnection.commit();
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(removeStatement);
@@ -317,7 +317,7 @@ public class Derby_LocalDB implements LocalDBProvider {
                 statement.executeUpdate();
                 dbConnection.commit();
             } catch (SQLException ex) {
-                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
             } finally {
                 LOCK.writeLock().unlock();
                 close(statement);
@@ -336,7 +336,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             statement.executeUpdate();
             dbConnection.commit();
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -364,7 +364,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             statement.executeUpdate();
             dbConnection.commit();
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -390,7 +390,7 @@ public class Derby_LocalDB implements LocalDBProvider {
                 return resultSet.getInt(1);
             }
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.readLock().unlock();
             close(statement);
@@ -415,7 +415,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             dbConnection.commit();
             initTable(dbConnection, db);
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -440,7 +440,7 @@ public class Derby_LocalDB implements LocalDBProvider {
             statement.executeBatch();
             dbConnection.commit();
         } catch (SQLException ex) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
         } finally {
             LOCK.writeLock().unlock();
             close(statement);
@@ -463,7 +463,7 @@ public class Derby_LocalDB implements LocalDBProvider {
         } catch (Throwable e) {
             final String errorMsg = "error opening DB: " + e.getMessage();
             LOGGER.error(errorMsg, e);
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,errorMsg));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,errorMsg));
         }
     }
 
@@ -490,7 +490,7 @@ public class Derby_LocalDB implements LocalDBProvider {
                 final PreparedStatement statement = dbConnection.prepareStatement(sb.toString());
                 resultSet = statement.executeQuery();
             } catch (SQLException ex) {
-                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,ex.getMessage()));
+                throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,ex.getMessage()));
             }
         }
 
@@ -548,7 +548,7 @@ public class Derby_LocalDB implements LocalDBProvider {
 
     private void preCheck(final boolean write) throws LocalDBException {
         if (status != LocalDB.Status.OPEN) {
-            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE,"LocalDB is not open, cannot begin a new transaction"));
+            throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"LocalDB is not open, cannot begin a new transaction"));
         }
 
         if (write && readOnly) {

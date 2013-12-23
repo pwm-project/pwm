@@ -43,40 +43,15 @@
               name="searchForm"
               onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
-
-
-            <% //check to see if any locations are configured.
-                if (!ContextManager.getPwmApplication(session).getConfig().getLoginContexts().isEmpty()) {
-            %>
-            <h2><label for="context"><pwm:Display key="Field_Location"/></label></h2>
-            <select name="context" id="context" class="inputfield">
-                <pwm:DisplayLocationOptions name="context"/>
-            </select>
-            <% } %>
-
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
             <input type="text" id="username" name="username" class="inputfield"
                    value="<pwm:ParamValue name='username'/>"/>
 
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_Search"/>"
-                       id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-
-                <input type="reset" class="btn"
-                       name="reset" onclick="clearForm('searchForm');return false;"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <input type="hidden" name="processAction" value="search"/>
+                <input type="submit" class="btn" name="search" value="<pwm:Display key="Button_Search"/>" id="submitBtn"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

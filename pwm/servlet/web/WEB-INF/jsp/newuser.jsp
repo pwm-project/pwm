@@ -48,10 +48,7 @@
                 <input type="submit" name="Create" class="btn"
                        value="<pwm:Display key="Button_Create"/>"
                        id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" name="reset" class="btn"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

@@ -51,11 +51,7 @@
                        name="button"
                        value="<pwm:Display key="Button_Login"/>"
                        id="submitBtn"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-                <input type="reset" class="btn"
-                       name="reset"
-                       value="<pwm:Display key="Button_Reset"/>"/>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="document.location='<%=request.getContextPath()%>';return false">
                     <pwm:Display key="Button_Cancel"/>

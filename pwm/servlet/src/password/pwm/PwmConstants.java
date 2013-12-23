@@ -110,8 +110,10 @@ public abstract class PwmConstants {
     public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
     public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
 
-    public static final String DEFAULT_LDAP_PROFILE = "";
+    public static final String DEFAULT_LDAP_PROFILE = "_default";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
+    public static final String DEFAULT_CHALLENGE_PROFILE = "";
+
     public static final String TOKEN_KEY_PWD_CHG_DATE = "lastPwdChange";
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
@@ -209,6 +211,8 @@ public abstract class PwmConstants {
     public static final String PARAM_FORM_ID = "pwmFormID";
     public static final String PARAM_OTP_TOKEN = "otpToken";
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
+    public static final String PARAM_CONTEXT = "context";
+    public static final String PARAM_LDAP_PROFILE = "ldapProfile";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
     public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");

@@ -192,6 +192,7 @@ function handleFormClear() {
             }
         }
     }
+    return false;
 }
 
 function checkForCapsLock(e) {
@@ -1394,3 +1395,20 @@ function showHeaderHealth() {
     });
 }
 
+function updateLoginContexts() {
+    var ldapProfileElement = getObject('ldapProfile');
+    var contextElement = getObject('context');
+    if (contextElement && ldapProfileElement) {
+        var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
+        contextElement.options.length = 0;
+        for (var key in PWM_GLOBAL['ldapProfiles'][selectedProfile]) {
+            (function(key) {
+                var display = PWM_GLOBAL['ldapProfiles'][selectedProfile][key];
+                var optionElement = document.createElement('option');
+                optionElement.setAttribute('value', key);
+                optionElement.appendChild(document.createTextNode(display));
+                contextElement.appendChild(optionElement);
+            }(key));
+        }
+    }
+}

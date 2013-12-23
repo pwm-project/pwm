@@ -5,7 +5,6 @@
  */
 package password.pwm.util.operations.otp;
 
-import com.novell.ldapchai.ChaiUser;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -41,7 +40,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             final String errorMsg = "LocalDB is not available, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -81,7 +80,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             final String errorMsg = "LocalDB is not available, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -117,7 +116,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             final String errorMsg = "LocalDB is not available, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 

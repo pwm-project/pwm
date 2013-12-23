@@ -327,7 +327,7 @@ public class PwmSession implements Serializable {
                 sb.append(", ");
                 sb.append("needsNewProfile=").append(getUserInfoBean().isRequiresUpdateProfile());
                 sb.append(", ");
-                sb.append("hasCRPolicy=").append(getUserInfoBean().getChallengeSet() != null);
+                sb.append("hasCRPolicy=").append(getUserInfoBean().getChallengeProfile() != null && getUserInfoBean().getChallengeProfile().getChallengeSet() != null);
             }
             sb.append(", ");
             sb.append("locale=").append(getSessionStateBean().getLocale());

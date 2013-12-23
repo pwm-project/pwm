@@ -22,11 +22,10 @@
 
 package password.pwm.config;
 
+import password.pwm.PwmConstants;
+
 import java.security.cert.X509Certificate;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LdapProfile {
     final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP_PROFILE));
@@ -46,7 +45,7 @@ public class LdapProfile {
     static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<PwmSetting, StoredValue>();
         for (final PwmSetting setting : LDAP_SETTINGS) {
-            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
+            final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.DEFAULT_LDAP_PROFILE.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);
         }
         return new LdapProfile(identifier, valueMap);
@@ -74,4 +73,19 @@ public class LdapProfile {
     public boolean readSettingAsBoolean(final PwmSetting setting) {
         return Configuration.JavaTypeConverter.valueToBoolean(storedValueMap.get(setting));
     }
+
+    public Map<String, String> getLoginContexts() {
+        final List<String> values = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
+        return Configuration.convertStringListToNameValuePair(values, ":::");
+    }
+
+    public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
+        return Configuration.JavaTypeConverter.valueToLocalizedString(storedValueMap.get(setting), locale);
+    }
+
+    public String getDisplayName(final Locale locale) {
+        final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
+        return displayName == null || displayName.length() < 1 ? identifier : displayName;
+    }
+
 }

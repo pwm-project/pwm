@@ -62,7 +62,7 @@ public class LocalDbCrOperator implements CrOperator {
 
         if (localDB == null) {
             final String errorMsg = "LocalDB is not available, unable to search for user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -103,7 +103,7 @@ public class LocalDbCrOperator implements CrOperator {
 
         if (localDB == null) {
             final String errorMsg = "LocalDB is not available, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -127,7 +127,7 @@ public class LocalDbCrOperator implements CrOperator {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             final String errorMsg = "LocalDB is not available, unable to write user responses";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWMDB_UNAVAILABLE, errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 

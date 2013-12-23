@@ -70,8 +70,11 @@ public class CommandServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication  = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
         final String action = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         LOGGER.trace(pwmSession, "received request for action " + action);
 
@@ -94,7 +97,7 @@ public class CommandServlet extends TopServlet {
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
             processPageLeaveNotice(req, resp);
         } else if (action.equalsIgnoreCase("viewLog")) {
-            processViewLog(req, resp);
+            processViewLog(req, resp, pwmApplication, pwmSession);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -439,14 +442,24 @@ public class CommandServlet extends TopServlet {
         }
     }
 
-    private void processViewLog(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmUnrecoverableException, IOException, ServletException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+    private void processViewLog(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
 
         final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
-
-        if (configMode == PwmApplication.MODE.RUNNING) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"cannot view log in RUNNING mode"));
+        if (configMode != PwmApplication.MODE.CONFIGURATION) {
+            try {
+                if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
+                }
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error while checking permission for log activity"));
+            }
         }
 
         final ServletContext servletContext = req.getSession().getServletContext();

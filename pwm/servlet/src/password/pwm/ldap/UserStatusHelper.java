@@ -23,7 +23,6 @@ package password.pwm.ldap;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -33,6 +32,7 @@ import password.pwm.PwmSession;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
@@ -322,10 +322,11 @@ public class UserStatusHelper {
         {
             final CrService crService = pwmApplication.getCrService();
             final ResponseInfoBean responseInfoBean = crService.readUserResponseInfo(pwmSession, uiBean.getUserIdentity(), theUser);
-            final ChallengeSet challengeSet = crService.readUserChallengeSet(theUser, uiBean.getPasswordPolicy(), userLocale);
-            uiBean.setChallengeSet(challengeSet);
+            final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(uiBean.getUserIdentity(),
+                    theUser, uiBean.getPasswordPolicy(), userLocale);
+            uiBean.setChallengeSet(challengeProfile);
             uiBean.setResponseInfoBean(responseInfoBean);
-            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession, theUser, challengeSet, responseInfoBean));
+            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession, theUser, challengeProfile.getChallengeSet(), responseInfoBean));
         }
 
         LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime).asCompactString());

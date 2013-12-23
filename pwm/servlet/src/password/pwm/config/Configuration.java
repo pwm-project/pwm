@@ -41,10 +41,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.config.option.TokenStorageMethod;
-import password.pwm.config.value.BooleanValue;
-import password.pwm.config.value.LocalizedStringValue;
-import password.pwm.config.value.StringArrayValue;
-import password.pwm.config.value.StringValue;
+import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -109,8 +106,11 @@ public class Configuration implements Serializable {
         }
 
         final List<String> profiles = storedConfiguration.profilesForSetting(PwmSetting.LDAP_PROFILE_LIST);
-        final Map<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
-        for (final String profileID : profiles) {
+        final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
+        for (String profileID : profiles) {
+            if ("".equals(profileID)) {
+                profileID = PwmConstants.DEFAULT_LDAP_PROFILE;
+            }
             returnList.put(profileID, LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID));
         }
 
@@ -178,14 +178,9 @@ public class Configuration implements Serializable {
         if (PwmSettingSyntax.LOCALIZED_STRING_ARRAY != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value for setting: " + setting.toString());
         }
-        final Map<String, List<String>> storedValues = (Map<String, List<String>>)readStoredValue(setting).toNativeObject();
-        final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
-        for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
-        }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
-        return availableLocaleMap.get(matchedLocale);
+        final StoredValue value = readStoredValue(setting);
+        return JavaTypeConverter.valueToLocalizedStringArray(value, locale);
     }
 
     public String readSettingAsString(final PwmSetting setting) {
@@ -240,6 +235,20 @@ public class Configuration implements Serializable {
 
             return availableLocaleMap.get(matchedLocale);
         }
+
+        static List<String> valueToLocalizedStringArray(final StoredValue value, final Locale locale) {
+            if (!(value instanceof LocalizedStringArrayValue)) {
+                throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value");
+            }
+            final Map<String, List<String>> storedValues = (Map<String, List<String>>)value.toNativeObject();
+            final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
+            for (final String localeStr : storedValues.keySet()) {
+                availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+            }
+            final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+
+            return availableLocaleMap.get(matchedLocale);
+        }
     }
 
     public Map<Locale,String> readLocalizedBundle(final String className, final String keyName) {
@@ -275,107 +284,26 @@ public class Configuration implements Serializable {
         return PwmLogLevel.TRACE;
     }
 
-    public ChallengeSet getGlobalChallengeSet(final Locale locale) {
-        return readChallengeSet(
-                locale,
-                PwmSetting.CHALLENGE_REQUIRED_CHALLENGES,
-                PwmSetting.CHALLENGE_RANDOM_CHALLENGES,
-                (int) readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_REQUIRED)
-        );
+    public List<String> getChallengeProfiles() {
+        return storedConfiguration.profilesForSetting(PwmSetting.CHALLENGE_PROFILE_LIST);
     }
 
-    public ChallengeSet getHelpdeskChallengeSet(final Locale locale) {
-        return readChallengeSet(
-                locale,
-                PwmSetting.CHALLENGE_HELPDESK_REQUIRED_CHALLENGES,
-                PwmSetting.CHALLENGE_HELPDESK_RANDOM_CHALLENGES,
-                1
-        );
-    }
-
-    private ChallengeSet readChallengeSet(
-            final Locale locale,
-            final PwmSetting requiredChallenges,
-            final PwmSetting randomChallenges,
-            int minimumRands
-    )
-    {
-        final List<String> requiredQuestions = readSettingAsLocalizedStringArray(requiredChallenges, locale);
-        final List<String> randomQuestions = readSettingAsLocalizedStringArray(randomChallenges, locale);
-
-        final List<Challenge> challenges = new ArrayList<Challenge>();
-
-        if (requiredQuestions != null) {
-            for (final String question : requiredQuestions) {
-                final Challenge challenge = parseConfigStringToChallenge(question, true);
-                if (challenge != null) {
-                    challenges.add(challenge);
-                }
-            }
+    public ChallengeProfile getChallengeProfile(final String profile, final Locale locale) {
+        if (!"".equals(profile) && !getChallengeProfiles().contains(profile)) {
+            throw new IllegalArgumentException("unknown challenge profileID specified: " + profile);
         }
 
-        if (randomQuestions != null) {
-            for (final String question : randomQuestions) {
-                final Challenge challenge = parseConfigStringToChallenge(question, false);
-                if (challenge != null) {
-                    challenges.add(challenge);
-                }
-            }
-
-            if (minimumRands > randomQuestions.size()) {
-                minimumRands = randomQuestions.size();
-            }
-        } else {
-            minimumRands = 0;
+        if (!dataCache.challengeProfile.containsKey(profile)) {
+            dataCache.challengeProfile.put(profile,new HashMap<Locale,ChallengeProfile>());
         }
 
-
-
-        try {
-            return new ChaiChallengeSet(challenges, minimumRands, locale, "pwm-defined " + PwmConstants.SERVLET_VERSION);
-        } catch (ChaiValidationException e) {
-            LOGGER.warn("invalid challenge set configuration: " + e.getMessage());
-        }
-        return null;
-    }
-
-
-
-
-    private Challenge parseConfigStringToChallenge(String inputString, final boolean required) {
-        if (inputString == null || inputString.length() < 1) {
-            return null;
+        if (dataCache.challengeProfile.get(profile).containsKey(locale)) {
+            return dataCache.challengeProfile.get(profile).get(locale);
         }
 
-        int minLength = 2;
-        int maxLength = 255;
-
-        final String[] s1 = inputString.split("::");
-        if (s1.length > 0) {
-            inputString = s1[0].trim();
-        }
-        if (s1.length > 1) {
-            try {
-                minLength = Integer.parseInt(s1[1]);
-            } catch (Exception e) {
-                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
-            }
-        }
-        if (s1.length > 2) {
-            try {
-                maxLength = Integer.parseInt(s1[2]);
-            } catch (Exception e) {
-                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
-            }
-        }
-
-        boolean adminDefined = true;
-        if (inputString != null && inputString.equalsIgnoreCase("%user%")) {
-            inputString = null;
-            adminDefined = false;
-        }
-
-        return new ChaiChallenge(required, inputString, minLength, maxLength, adminDefined);
+        final ChallengeProfile challengeProfile = new ChallengeProfile(profile,locale,storedConfiguration);
+        dataCache.challengeProfile.get(profile).put(locale,challengeProfile);
+        return challengeProfile;
     }
 
     public long readSettingAsLong(final PwmSetting setting) {
@@ -460,11 +388,6 @@ public class Configuration implements Serializable {
 
     public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
         return JavaTypeConverter.valueToLocalizedString(readStoredValue(setting), locale);
-    }
-
-    public Map<String, String> getLoginContexts() {
-        final List<String> values = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        return Configuration.convertStringListToNameValuePair(values, ":::");
     }
 
     public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
@@ -616,7 +539,7 @@ public class Configuration implements Serializable {
                 }
 
                 final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE));
-                final UserIdentity userIdentity = new UserIdentity(PwmConstants.DEFAULT_LDAP_PROFILE,lookupDN);
+                final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_LDAP_PROFILE);
                 final PwmPasswordPolicy thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
                 dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);
                 return thePolicy;
@@ -809,6 +732,7 @@ public class Configuration implements Serializable {
 
     private static class DataCache implements Serializable {
         private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<String,Map<Locale,PwmPasswordPolicy>>();
+        private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<String,Map<Locale,ChallengeProfile>>();
         private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;

@@ -215,7 +215,11 @@ public class ContextManager implements Serializable {
     public void reinitialize() {
         if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
             restartRequestedFlag = true;
-            taskMaster.schedule(new ConfigFileWatcher(),0);
+            try {
+                taskMaster.schedule(new ConfigFileWatcher(),0);
+            } catch (IllegalStateException e) {
+                LOGGER.debug("could not schedule config file watcher, timer is in illegal state: " + e.getMessage());
+            }
         } else {
             LOGGER.info("skipping application restart due to web.xml configChange-reload=false");
         }

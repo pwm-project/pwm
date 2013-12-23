@@ -38,6 +38,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.servlet.SetupResponsesBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.ChallengeProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
@@ -482,18 +483,19 @@ public class SetupResponsesServlet extends TopServlet {
 
     private void initializeBean(final PwmSession pwmSession, final PwmApplication pwmApplication, final SetupResponsesBean setupResponsesBean)
     {
+        final ChallengeProfile challengeProfile = pwmSession.getUserInfoBean().getChallengeProfile();
         if (setupResponsesBean.getResponseData() == null) { //setup user challenge data
-            final ChallengeSet userChallengeSet = pwmSession.getUserInfoBean().getChallengeSet();
-            final int minRandomSetup = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+            final ChallengeSet userChallengeSet = challengeProfile.getChallengeSet();
+            final int minRandomSetup = (int)challengeProfile.readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
             final SetupResponsesBean.SetupData userSetupData = populateSetupData(userChallengeSet,minRandomSetup);
             setupResponsesBean.setResponseData(userSetupData);
         }
         if (setupResponsesBean.getHelpdeskResponseData() == null) { //setup helpdesk challenge data
-            final ChallengeSet helpdeskChallengeSet = pwmApplication.getConfig().getHelpdeskChallengeSet(pwmSession.getSessionStateBean().getLocale());
+            final ChallengeSet helpdeskChallengeSet = challengeProfile.getHelpdeskChallengeSet();
             if (helpdeskChallengeSet == null) {
                 setupResponsesBean.setHelpdeskResponseData(new SetupResponsesBean.SetupData());
             } else {
-                final int minRandomHelpdeskSetup = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP);
+                final int minRandomHelpdeskSetup = (int)challengeProfile.readSettingAsLong(PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP);
                 final SetupResponsesBean.SetupData helpdeskSetupData = populateSetupData(helpdeskChallengeSet,minRandomHelpdeskSetup);
                 setupResponsesBean.setHelpdeskResponseData(helpdeskSetupData);
             }

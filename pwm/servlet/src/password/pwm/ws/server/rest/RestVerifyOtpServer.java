@@ -21,11 +21,10 @@
  */
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -33,8 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import password.pwm.Permission;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -89,7 +87,8 @@ public class RestVerifyOtpServer {
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
                 ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
-                userIdentity = userSearchEngine.resolveUsername(restRequestBean.getPwmSession(), chaiUser.readUsername(), null);
+                userIdentity = userSearchEngine.resolveUsername(restRequestBean.getPwmSession(), chaiUser.readUsername(), null,
+                        null);
             }
             
             final OTPUserConfiguration otp = restRequestBean.getPwmApplication().getOtpService().readOTPUserConfiguration(userIdentity);
