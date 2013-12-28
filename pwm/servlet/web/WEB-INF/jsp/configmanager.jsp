@@ -102,7 +102,7 @@
                 <td class="menubutton_key">
                     <a class="menubutton" onclick="makeSupportBundle()">
                         <i class="fa fa-suitcase"></i>&nbsp;
-                        Make Troubleshooting Bundle
+                        Download Troubleshooting Bundle
                     </a>
                 </td>
                 <td style="border:0">

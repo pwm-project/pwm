@@ -149,7 +149,7 @@ public abstract class AbstractQueueManager implements PwmService {
         if (!sendQueue.isEmpty()) {
             timerThread.schedule(new QueueProcessorTask(),1);
             LOGGER.warn("waiting up to 5 seconds for " + sendQueue.size() + " items in the queue to process");
-            while (sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
+            while (!sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
                 Helper.pause(100);
             }
         }

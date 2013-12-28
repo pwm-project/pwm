@@ -34,6 +34,11 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.PwmLogger;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -502,7 +507,7 @@ public enum PwmSetting {
             "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
 
 
-    // challenge policy
+    // challenge settings
     CHALLENGE_ENABLE(
             "challenge.enable", PwmSettingSyntax.BOOLEAN, Category.CHALLENGE),
     CHALLENGE_FORCE_SETUP(
@@ -530,17 +535,17 @@ public enum PwmSetting {
     CHALLENGE_POLICY_QUERY_MATCH(
             "challenge.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.CHALLENGE_POLICY),
     CHALLENGE_RANDOM_CHALLENGES(
-            "challenge.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+            "challenge.randomChallenges", PwmSettingSyntax.CHALLENGE, Category.CHALLENGE_POLICY),
     CHALLENGE_REQUIRED_CHALLENGES(
-            "challenge.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+            "challenge.requiredChallenges", PwmSettingSyntax.CHALLENGE, Category.CHALLENGE_POLICY),
     CHALLENGE_MIN_RANDOM_REQUIRED(
             "challenge.minRandomRequired", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
     CHALLENGE_MIN_RANDOM_SETUP(
             "challenge.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
     CHALLENGE_HELPDESK_RANDOM_CHALLENGES(
-            "challenge.helpdesk.randomChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+            "challenge.helpdesk.randomChallenges", PwmSettingSyntax.CHALLENGE, Category.CHALLENGE_POLICY),
     CHALLENGE_HELPDESK_REQUIRED_CHALLENGES(
-            "challenge.helpdesk.requiredChallenges", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.CHALLENGE_POLICY),
+            "challenge.helpdesk.requiredChallenges", PwmSettingSyntax.CHALLENGE, Category.CHALLENGE_POLICY),
     CHALLENGE_HELPDESK_MIN_RANDOM_SETUP(
             "challenge.helpdesk.minRandomsSetup", PwmSettingSyntax.NUMERIC, Category.CHALLENGE_POLICY),
 
@@ -1154,6 +1159,7 @@ public enum PwmSetting {
     private static Document xmlDocCache = null;
     private static Document readXml() {
         if (xmlDocCache == null) {
+            validateXmlSchema();
             InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xml");
             final SAXBuilder builder = new SAXBuilder();
             try {
@@ -1165,6 +1171,19 @@ public enum PwmSetting {
             }
         }
         return xmlDocCache;
+    }
+
+    private static void validateXmlSchema() {
+        try {
+            final InputStream xsdInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xsd");
+            final InputStream xmlInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xml");
+            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            final Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(xmlInputStream));
+        } catch (Exception e) {
+             throw new IllegalStateException("error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage());
+        }
     }
 }
 

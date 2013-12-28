@@ -24,48 +24,55 @@ package password.pwm.config.value;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.ChallengeItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
 
 import java.util.*;
 
 public class ChallengeValue implements StoredValue {
-    final Map<String,ChallengeItemBean> values;
+    final static private PwmLogger LOGGER = PwmLogger.getLogger(ChallengeValue.class);
+    final Map<String, List<ChallengeItemBean>> values;
 
-    ChallengeValue(final Map<String, ChallengeItemBean> values) {
+    ChallengeValue(final Map<String, List<ChallengeItemBean>> values) {
         this.values = values;
     }
 
     static ChallengeValue fromJson(final String input) {
         if (input == null) {
-            return new ChallengeValue(Collections.<String,ChallengeItemBean>emptyMap());
+            return new ChallengeValue(Collections.<String,List<ChallengeItemBean>>emptyMap());
         } else {
             final Gson gson = Helper.getGson();
-            Map<String,ChallengeItemBean> srcList = gson.fromJson(input, new TypeToken<Map<String,ChallengeItemBean>>() {
+            Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<ChallengeItemBean>>>() {
             }.getType());
-
-            srcList = srcList == null ? Collections.<String,ChallengeItemBean>emptyMap() : srcList;
-            srcList.remove(null);
-            return new ChallengeValue(Collections.unmodifiableMap(srcList));
+            srcMap = srcMap == null ? Collections.<String,List<ChallengeItemBean>>emptyMap() : new TreeMap<String, List<ChallengeItemBean>>(srcMap);
+            return new ChallengeValue(Collections.unmodifiableMap(srcMap));
         }
     }
 
-    static ChallengeValue fromXmlElement(Element settingElement) throws PwmOperationalException {
-        final Map<String,ChallengeItemBean> values = new HashMap<String,ChallengeItemBean>();
-        final Gson gson = Helper.getGson();
-        {
-            final List valueElements = settingElement.getChildren("value");
-            for (final Object loopValue : valueElements) {
-                final Element loopValueElement = (Element) loopValue;
-                final String value = loopValueElement.getText();
-                if (value != null && value.length() > 0) {
-                    String localeValue = loopValueElement.getAttribute("locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
-                    values.put(localeValue, gson.fromJson(value, ChallengeItemBean.class));
-                }
+    static ChallengeValue fromXmlElement(final Element settingElement) {
+        final List valueElements = settingElement.getChildren("value");
+        final Map<String, List<ChallengeItemBean>> values = new TreeMap<String, List<ChallengeItemBean>>();
+        final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals(settingElement.getAttributeValue("syntax"));
+        for (final Object loopValue : valueElements) {
+            final Element loopValueElement = (Element) loopValue;
+            final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
+            final String value = loopValueElement.getText();
+            if (!values.containsKey(localeString)) {
+                values.put(localeString, new ArrayList<ChallengeItemBean>());
+            }
+            final ChallengeItemBean challengeItemBean;
+            if (oldStyle) {
+                challengeItemBean = parseOldVersionString(value);
+            } else {
+                challengeItemBean = Helper.getGson().fromJson(value,ChallengeItemBean.class);
+            }
+            if (challengeItemBean != null) {
+                values.get(localeString).add(challengeItemBean);
             }
         }
         return new ChallengeValue(values);
@@ -73,20 +80,20 @@ public class ChallengeValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<Element>();
-        final Gson gson = Helper.getGson();
-        for (final String localeValue : values.keySet()) {
-            final ChallengeItemBean emailItemBean = values.get(localeValue);
-            final Element valueElement = new Element(valueElementName);
-            if (localeValue.length() > 0) {
-                valueElement.setAttribute("locale",localeValue);
+        for (final String locale : values.keySet()) {
+            for (final ChallengeItemBean value : values.get(locale)) {
+                final Element valueElement = new Element(valueElementName);
+                valueElement.addContent(new CDATA(Helper.getGson().toJson(value)));
+                if (locale != null && locale.length() > 0) {
+                    valueElement.setAttribute("locale", locale);
+                }
+                returnList.add(valueElement);
             }
-            valueElement.addContent(gson.toJson(emailItemBean));
-            returnList.add(valueElement);
         }
         return returnList;
     }
 
-    public Map<String,ChallengeItemBean> toNativeObject() {
+    public Map<String, List<ChallengeItemBean>> toNativeObject() {
         return Collections.unmodifiableMap(values);
     }
 
@@ -96,15 +103,19 @@ public class ChallengeValue implements StoredValue {
 
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
-            if (values == null || values.size() < 1 || values.get(0) == null) {
+            if (values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1) {
                 return Collections.singletonList("required value missing");
             }
         }
 
-        for (final String loopLocale : values.keySet()) {
-            final ChallengeItemBean emailItemBean = values.get(loopLocale);
-
-            //@todo
+        if (values != null) {
+            for (final String localeKey : values.keySet()) {
+                for (final ChallengeItemBean itemBean : values.get(localeKey)) {
+                    if (itemBean.isAdminDefined() && (itemBean.getText() == null || itemBean.getText().length() < 1)) {
+                        return Collections.singletonList("admin-defined challenge must contain text (locale='" + localeKey + "')");
+                    }
+                }
+            }
         }
 
         return Collections.emptyList();
@@ -113,4 +124,45 @@ public class ChallengeValue implements StoredValue {
     public String toDebugString() {
         return toString();
     }
+
+
+    private static ChallengeItemBean parseOldVersionString(
+            final String inputString
+    ) {
+        if (inputString == null || inputString.length() < 1) {
+            return null;
+        }
+
+        int minLength = 2;
+        int maxLength = 255;
+
+        String challengeText = "";
+        final String[] s1 = inputString.split("::");
+        if (s1.length > 0) {
+            challengeText = s1[0].trim();
+        }
+        if (s1.length > 1) {
+            try {
+                minLength = Integer.parseInt(s1[1]);
+            } catch (Exception e) {
+                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
+            }
+        }
+        if (s1.length > 2) {
+            try {
+                maxLength = Integer.parseInt(s1[2]);
+            } catch (Exception e) {
+                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
+            }
+        }
+
+        boolean adminDefined = true;
+        if ("%user%".equalsIgnoreCase(challengeText)) {
+            challengeText = "";
+            adminDefined = false;
+        }
+
+        return new ChallengeItemBean(challengeText, minLength, maxLength, adminDefined);
+    }
+
 }

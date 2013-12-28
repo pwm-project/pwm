@@ -27,13 +27,14 @@ import com.novell.ldapchai.cr.ChaiChallengeSet;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
+import password.pwm.ChallengeItemBean;
 import password.pwm.PwmConstants;
+import password.pwm.config.value.ChallengeValue;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class ChallengeProfile implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChallengeProfile.class);
@@ -141,27 +142,27 @@ public class ChallengeProfile implements Serializable {
             int minimumRands
     )
     {
-        final List<String> requiredQuestions = Configuration.JavaTypeConverter.valueToLocalizedStringArray(
+        final List<ChallengeItemBean> requiredQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(requiredChallenges, profileID), locale);
-        final List<String> randomQuestions = Configuration.JavaTypeConverter.valueToLocalizedStringArray(
+        final List<ChallengeItemBean> randomQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(randomChallenges, profileID), locale);
 
         final List<Challenge> challenges = new ArrayList<Challenge>();
 
         if (requiredQuestions != null) {
-            for (final String question : requiredQuestions) {
-                final Challenge challenge = parseConfigStringToChallenge(question, true);
-                if (challenge != null) {
-                    challenges.add(challenge);
+            for (final ChallengeItemBean item : requiredQuestions) {
+                if (item != null) {
+                    final Challenge chaiChallenge = new ChaiChallenge(true, item.getText(), item.getMinLength(), item.getMaxLength(), item.isAdminDefined());
+                    challenges.add(chaiChallenge);
                 }
             }
         }
 
         if (randomQuestions != null) {
-            for (final String question : randomQuestions) {
-                final Challenge challenge = parseConfigStringToChallenge(question, false);
-                if (challenge != null) {
-                    challenges.add(challenge);
+            for (final ChallengeItemBean item : randomQuestions) {
+                if (item != null) {
+                    final Challenge chaiChallenge = new ChaiChallenge(false, item.getText(), item.getMinLength(), item.getMaxLength(), item.isAdminDefined());
+                    challenges.add(chaiChallenge);
                 }
             }
 
@@ -180,41 +181,21 @@ public class ChallengeProfile implements Serializable {
         return null;
     }
 
-    private static Challenge parseConfigStringToChallenge(String inputString, final boolean required) {
-        if (inputString == null || inputString.length() < 1) {
-            return null;
+    static List<ChallengeItemBean> valueToChallengeItemArray(
+            final StoredValue value,
+            final Locale locale
+    ) {
+        if (!(value instanceof ChallengeValue)) {
+            throw new IllegalArgumentException("may not read ChallengeValue value");
         }
+        final Map<String, List<ChallengeItemBean>> storedValues = (Map<String, List<ChallengeItemBean>>)value.toNativeObject();
+        final Map<Locale, List<ChallengeItemBean>> availableLocaleMap = new LinkedHashMap<Locale, List<ChallengeItemBean>>();
+        for (final String localeStr : storedValues.keySet()) {
+            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+        }
+        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
-        int minLength = 2;
-        int maxLength = 255;
-
-        final String[] s1 = inputString.split("::");
-        if (s1.length > 0) {
-            inputString = s1[0].trim();
-        }
-        if (s1.length > 1) {
-            try {
-                minLength = Integer.parseInt(s1[1]);
-            } catch (Exception e) {
-                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
-            }
-        }
-        if (s1.length > 2) {
-            try {
-                maxLength = Integer.parseInt(s1[2]);
-            } catch (Exception e) {
-                LOGGER.debug("unexpected error parsing config input '" + inputString + "' " + e.getMessage());
-            }
-        }
-
-        boolean adminDefined = true;
-        if (inputString != null && inputString.equalsIgnoreCase("%user%")) {
-            inputString = null;
-            adminDefined = false;
-        }
-
-        return new ChaiChallenge(required, inputString, minLength, maxLength, adminDefined);
+        return availableLocaleMap.get(matchedLocale);
     }
-
 
 }

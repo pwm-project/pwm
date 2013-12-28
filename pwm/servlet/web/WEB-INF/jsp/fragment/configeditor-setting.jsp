@@ -102,6 +102,17 @@
             MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
         });
     </script>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.CHALLENGE) { %>
+    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
+        <tr>
+            <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            ChallengeTableHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
+        });
+    </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>

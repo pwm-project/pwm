@@ -41,6 +41,11 @@ import password.pwm.util.BCrypt;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -79,9 +84,7 @@ public class StoredConfiguration implements Serializable {
     private static final DateFormat CONFIG_ATTR_DATETIME_FORMAT;
     private static final String XML_FORMAT_VERSION = "3";
 
-    private static final String XML_ELEMENT_ROOT = PwmConstants.PWM_APP_NAME.toUpperCase().substring(0,1) +
-            PwmConstants.PWM_APP_NAME.toLowerCase().substring(1,PwmConstants.PWM_APP_NAME.length()) +
-            "Configuration";
+    private static final String XML_ELEMENT_ROOT = "PwmConfiguration";
     private static final String XML_ELEMENT_PROPERTIES = "properties";
     private static final String XML_ELEMENT_PROPERTY = "property";
     private static final String XML_ATTRIBUTE_TYPE = "type";
@@ -113,6 +116,8 @@ public class StoredConfiguration implements Serializable {
     public static StoredConfiguration fromXml(final String xmlData)
             throws PwmUnrecoverableException
     {
+        validateXmlSchema(xmlData);
+
         final SAXBuilder builder = new SAXBuilder();
         final Document inputDocument;
         try {
@@ -403,7 +408,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public String toXml()
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         fixupMandatoryElements(document, this);
 
@@ -411,7 +416,9 @@ public class StoredConfiguration implements Serializable {
         format.setEncoding("UTF-8");
         final XMLOutputter outputter = new XMLOutputter();
         outputter.setFormat(format);
-        return outputter.outputString(document);
+        final String outputString = outputter.outputString(document);
+        validateXmlSchema(outputString);
+        return outputString;
     }
 
     public List<String> profilesForSetting(final PwmSetting pwmSetting) {
@@ -916,5 +923,23 @@ public class StoredConfiguration implements Serializable {
                 changeLog.put(changeRecord,currentValueString);
             }
         }
+    }
+
+    public static void validateXmlSchema(final String xmlDocument)
+            throws PwmUnrecoverableException
+    {
+        return;
+        /*
+        try {
+            final InputStream xsdInputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/StoredConfiguration.xsd");
+            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            final Schema schema = factory.newSchema(new StreamSource(xsdInputStream));
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(new StringReader(xmlDocument)));
+        } catch (Exception e) {
+            final String errorMsg = "error while validating setting file schema definition: " + e.getMessage();
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg));
+        }
+        */
     }
 }

@@ -23,7 +23,6 @@
 package password.pwm.ws.server.rest;
 
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
@@ -164,7 +163,7 @@ public class RestCheckPasswordServer {
                 uiBean = restRequestBean.getPwmSession().getUserInfoBean();
             }
 
-            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN.toDeliminatedKey(), jsonInput.password1, jsonInput.password2, uiBean);
+            final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, jsonInput.password1, jsonInput.password2, uiBean);
 
             if (!restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
@@ -184,19 +183,19 @@ public class RestCheckPasswordServer {
     }
 
     private static class PasswordCheckRequest {
-        final String userDN;
+        final UserIdentity userDN;
         final String password1;
         final String password2;
         final UserInfoBean userInfoBean;
 
-        private PasswordCheckRequest(String userDN, String password1, String password2, UserInfoBean userInfoBean) {
-            this.userDN = userDN;
+        private PasswordCheckRequest(UserIdentity userDN, String password1, String password2, UserInfoBean userInfoBean) {
+            this.userDN= userDN;
             this.password1 = password1;
             this.password2 = password2;
             this.userInfoBean = userInfoBean;
         }
 
-        public String getUserDN() {
+        public UserIdentity getUserIdentity() {
             return userDN;
         }
 
@@ -218,7 +217,7 @@ public class RestCheckPasswordServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
-        final ChaiUser user = ChaiFactory.createChaiUser(checkRequest.getUserDN(), pwmSession.getSessionManager().getChaiProvider());
+        final ChaiUser user = pwmSession.getSessionManager().getActor(checkRequest.getUserIdentity());
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),
@@ -232,7 +231,7 @@ public class RestCheckPasswordServer {
         final JsonData result = JsonData.fromPasswordCheckInfo(passwordCheckInfo);
         {
             final StringBuilder sb = new StringBuilder();
-            sb.append("real-time password validator called for ").append(checkRequest.getUserDN());
+            sb.append("real-time password validator called for ").append(checkRequest.getUserIdentity());
             sb.append("\n");
             sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append("\n");

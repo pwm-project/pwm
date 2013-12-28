@@ -25,7 +25,41 @@ package password.pwm;
 import java.io.Serializable;
 
 public class ChallengeItemBean implements Serializable {
-    private String challengeText;
-    private int minimumLength;
-    private int maximumLength;
+    private String text;
+    private int minLength;
+    private int maxLength;
+    private boolean adminDefined;
+
+    public ChallengeItemBean(
+            String challengeText,
+            int minimumLength,
+            int maximumLength,
+            boolean adminDefined
+    )
+    {
+        this.text = challengeText;
+        this.minLength = minimumLength;
+        this.maxLength = maximumLength;
+        this.adminDefined = adminDefined;
+    }
+
+    public String getText()
+    {
+        return text;
+    }
+
+    public int getMinLength()
+    {
+        return minLength;
+    }
+
+    public int getMaxLength()
+    {
+        return maxLength;
+    }
+
+    public boolean isAdminDefined()
+    {
+        return adminDefined;
+    }
 }

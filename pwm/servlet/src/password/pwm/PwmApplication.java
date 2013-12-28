@@ -195,7 +195,8 @@ public class PwmApplication {
 
         final LdapProfile ldapProfile = getConfig().getLdapProfiles().get(identifier == null ? "" : identifier);
         if (ldapProfile == null) {
-            throw new IllegalStateException("unknown ldap profile specified: " + identifier);
+            final String errorMsg = "unknown ldap profile requested connection: " + identifier;
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
         }
 
         try {

@@ -224,12 +224,3 @@ function initConfigPage() {
         });
     });
 }
-
-function openLogViewer(level) {
-    if (!level) {
-        level = 'INFO';
-    }
-    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog&level=' + level;
-    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
-    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
-}

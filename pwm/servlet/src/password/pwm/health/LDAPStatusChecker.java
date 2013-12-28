@@ -421,6 +421,6 @@ public class LDAPStatusChecker implements HealthChecker {
         if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 2) {
             return TOPIC;
         }
-        return TOPIC + "-" + ("".equals(profileID) ? "Default" : profileID);
+        return TOPIC + "-" + (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profileID) ? "Default" : profileID);
     }
 }

@@ -2035,164 +2035,194 @@ BooleanHandler.toggle = function(keyName,widget) {
     writeSetting(keyName,widget.checked);
 }
 
+// -------------------------- challenge handler ------------------------------------
 
-var ResponseTableHandler = {};
+var ChallengeTableHandler = {};
+ChallengeTableHandler.defaultItem = {text:'Question',minLength:4,maxLength:255,adminDefined:true};
 
-ResponseTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regExPattern) {
-    console.log('ResponseTableHandler init for ' + keyName);
+ChallengeTableHandler.init = function(parentDiv, keyName) {
+    console.log('ChallengeTableHandler init for ' + keyName);
     clearDivElements(parentDiv, true);
     readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
-        ResponseTableHandler.draw(parentDiv, keyName, regExPattern);
+        ChallengeTableHandler.draw(parentDiv, keyName);
     });
 };
 
-ResponseTableHandler.draw = function(parentDiv, keyName, regExPattern) {
+ChallengeTableHandler.draw = function(parentDiv, keyName) {
     var resultValue = clientSettingCache[keyName];
-    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
-        clearDivElements(parentDiv, false);
-        for (var localeName in resultValue) {
-            var localeTableRow = document.createElement("tr");
-            localeTableRow.setAttribute("style", "border-width: 0;");
+    require(["dojo","dijit/registry","dojo/parser","dojo/json","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/form/NumberSpinner","dijit/form/ToggleButton"],
+        function(dojo,registry,dojoParser,json){
+            clearDivElements(parentDiv, false);
+            for (var localeName in resultValue) {
+                (function(localeKey) {
+                    var localeTableRow = document.createElement("tr");
+                    localeTableRow.setAttribute("style", "border-width: 0;");
 
-            var localeTdName = document.createElement("td");
-            localeTdName.setAttribute("style", "border-width: 0; width:15px");
-            localeTdName.innerHTML = localeName;
-            localeTableRow.appendChild(localeTdName);
+                    var localeTdName = document.createElement("td");
+                    localeTdName.setAttribute("style", "border-width: 0; width:15px");
+                    localeTdName.innerHTML = localeName;
+                    localeTableRow.appendChild(localeTdName);
 
-            var localeTdContent = document.createElement("td");
-            localeTdContent.setAttribute("style", "border-width: 0; width: 525px");
-            localeTableRow.appendChild(localeTdContent);
+                    var localeTdContent = document.createElement("td");
+                    localeTdContent.setAttribute("style", "border-width: 0; width: 525px");
+                    localeTableRow.appendChild(localeTdContent);
 
-            var localeTableElement = document.createElement("table");
-            localeTableElement.setAttribute("style", "border-width: 2px; width:525px; margin:0");
-            localeTdContent.appendChild(localeTableElement);
+                    var localeTableElement = document.createElement("table");
+                    localeTableElement.setAttribute("style", "border-width: 2px; width:525px; margin:0");
+                    localeTdContent.appendChild(localeTableElement);
 
-            var multiValues = resultValue[localeName];
+                    var multiValues = resultValue[localeName];
 
-            for (var iteration in multiValues) {
+                    for (var iteration in multiValues) {
+                        (function(rowKey) {
 
-                var valueTableRow = document.createElement("tr");
+                            var valueTableRow = document.createElement("tr");
 
-                var valueTd1 = document.createElement("td");
-                valueTd1.setAttribute("style", "border-width: 0;");
+                            var valueTd1 = document.createElement("td");
+                            valueTd1.setAttribute("colspan", "200");
+                            valueTd1.setAttribute("style", "border-width: 0;");
 
-                // clear the old dijit node (if it exists)
-                var inputID = "value-" + keyName + "-" + localeName + "-" + iteration;
-                var oldDijitNode = registry.byId(inputID);
-                if (oldDijitNode != null) {
-                    try {
-                        oldDijitNode.destroy();
-                    } catch (error) {
+                            // clear the old dijit node (if it exists)
+                            var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
+                            var oldDijitNode = registry.byId(inputID);
+                            if (oldDijitNode != null) {
+                                try {
+                                    oldDijitNode.destroy();
+                                } catch (error) {
+                                }
+                            }
+
+                            var inputElement = document.createElement("textarea");
+                            inputElement.setAttribute("id", inputID);
+                            inputElement.setAttribute("value", multiValues[rowKey]['text']);
+                            inputElement.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + localeKey + "']['" + rowKey + "']['text'] = this.value;ChallengeTableHandler.write('" + keyName + "')");
+                            inputElement.setAttribute("style", "width: 490px");
+                            inputElement.setAttribute("required","true");
+                            inputElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
+                            inputElement.setAttribute("disabled", !multiValues[rowKey]['adminDefined']);
+                            valueTd1.appendChild(inputElement);
+                            valueTableRow.appendChild(valueTd1);
+
+                            // add remove button
+                            var imgElement = document.createElement("div");
+                            imgElement.setAttribute("style", "width: 10px; height: 10px;");
+                            imgElement.setAttribute("class", "fa fa-times icon_button");
+                            imgElement.setAttribute("onclick", "ChallengeTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + rowKey + "',null)");
+                            valueTd1.appendChild(imgElement);
+
+                            localeTableElement.appendChild(valueTableRow);
+
+                            // options row
+                            var optionRow = document.createElement("tr");
+                            optionRow.setAttribute("style","padding-bottom: 5px; border-bottom: 1px solid #d3d3d3");
+                            var optionRowHtml = '<td style="border-width:0px">&nbsp;&nbsp;&nbsp;';
+                            var currentLabel = (multiValues[rowKey]['adminDefined']) ? 'Admin Defined' : 'User Defined';
+                            optionRowHtml += 'Text: <button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="checked:true,showLabel:true,label:\'' + currentLabel + '\',checked:' + multiValues[rowKey]['adminDefined'] + '"';
+                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'adminDefined\']=this.checked;';
+                            optionRowHtml += 'ChallengeTableHandler.write(\'' + keyName + '\');';
+                            optionRowHtml += 'ChallengeTableHandler.handleAdminToggled(this,\'' + inputID + '\')"></button>';
+                            optionRowHtml += '</td><td style="border-width:0px">';
+                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['minLength'] + '"';
+                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'minLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Minimum Length';
+                            optionRowHtml += '</td><td style="border-width:0px">';
+                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '"';
+                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Maximum Length';
+                            optionRowHtml += '</td>';
+                            optionRow.innerHTML = optionRowHtml;
+                            localeTableElement.appendChild(optionRow);
+
+                        }(iteration));
                     }
-                }
 
-                var inputElement = document.createElement("input");
-                inputElement.setAttribute("id", inputID);
-                inputElement.setAttribute("value", multiValues[iteration]);
-                inputElement.setAttribute("onchange", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',this.value,'" + regExPattern + "')");
-                inputElement.setAttribute("style", "width: 490px");
-                inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-                inputElement.setAttribute("regExp", regExPattern);
-                inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
-                valueTd1.appendChild(inputElement);
-                valueTableRow.appendChild(valueTd1);
-                localeTableElement.appendChild(valueTableRow);
+                    { // add row button for this locale group
+                        var newTableRow = document.createElement("tr");
+                        newTableRow.setAttribute("style", "border-width: 0");
+                        newTableRow.setAttribute("colspan", "5");
 
-                // add remove button
-                var imgElement = document.createElement("div");
-                imgElement.setAttribute("style", "width: 10px; height: 10px;");
-                imgElement.setAttribute("class", "fa fa-times icon_button");
-                imgElement.setAttribute("onclick", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + iteration + "',null,'" + regExPattern + "')");
-                valueTd1.appendChild(imgElement);
+                        var newTableData = document.createElement("td");
+                        newTableData.setAttribute("style", "border-width: 0;");
 
-                var optionsRow = document.createElement("td");
-                var minLengthInput = document.createElement("input");
-                optionsRow.appendChild(minLengthInput);
+                        var addItemButton = document.createElement("button");
+                        addItemButton.setAttribute("type", "[button");
+                        addItemButton.setAttribute("onclick", "clientSettingCache['" + keyName + "']['" + localeName + "'].push(" + json.stringify(ChallengeTableHandler.defaultItem) + ");ChallengeTableHandler.write('" + keyName + "',true)");
+                        addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
+                        addItemButton.innerHTML = "Add Value";
+                        newTableData.appendChild(addItemButton);
 
-                localeTableElement.appendChild(optionsRow);
+                        newTableRow.appendChild(newTableData);
+                        localeTableElement.appendChild(newTableRow);
+                    }
+
+
+                    if (localeName != '') { // add remove locale x
+                        var imgElement2 = document.createElement("div");
+                        imgElement2.setAttribute("style", "width: 12px; height: 12px;");
+                        imgElement2.setAttribute("class", "fa fa-times icon_button");
+                        imgElement2.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + localeName + "'];ChallengeTableHandler.write('" + keyName + "',true)");
+                        var tdElement = document.createElement("td");
+                        tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
+
+                        localeTableRow.appendChild(tdElement);
+                        tdElement.appendChild(imgElement2);
+                    }
+
+                    var parentDivElement = getObject(parentDiv);
+                    parentDivElement.appendChild(localeTableRow);
+
+                    { // add a spacer row
+                        var spacerTableRow = document.createElement("tr");
+                        spacerTableRow.setAttribute("style", "border-width: 0");
+                        parentDivElement.appendChild(spacerTableRow);
+
+                        var spacerTableData = document.createElement("td");
+                        spacerTableData.setAttribute("style", "border-width: 0");
+                        spacerTableData.innerHTML = "&nbsp;";
+                        spacerTableRow.appendChild(spacerTableData);
+                    }
+                }(localeName));
             }
 
-            { // add row button for this locale group
-                var newTableRow = document.createElement("tr");
-                newTableRow.setAttribute("style", "border-width: 0");
-                newTableRow.setAttribute("colspan", "5");
+            var addLocaleFunction = function() {
+                require(["dijit/registry"],function(registry){
+                    var localeValue = registry.byId(keyName + "-addLocaleValue").value;
+                    clientSettingCache[keyName][localeValue] = [];
+                    clientSettingCache[keyName][localeValue][0] = ChallengeTableHandler.defaultItem;
+                    ChallengeTableHandler.write(keyName, true);
+                });
+            };
 
-                var newTableData = document.createElement("td");
-                newTableData.setAttribute("style", "border-width: 0;");
-
-                var addItemButton = document.createElement("button");
-                addItemButton.setAttribute("type", "[button");
-                addItemButton.setAttribute("onclick", "clientSettingCache['" + keyName + "']['" + localeName + "'].push('');ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "',null,null,null,'" + regExPattern + "')");
-                addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
-                addItemButton.innerHTML = "Add Value";
-                newTableData.appendChild(addItemButton);
-
-                newTableRow.appendChild(newTableData);
-                localeTableElement.appendChild(newTableRow);
-            }
-
-
-            if (localeName != '') { // add remove locale x
-                var imgElement2 = document.createElement("div");
-                imgElement2.setAttribute("style", "width: 12px; height: 12px;");
-                imgElement2.setAttribute("class", "fa fa-times icon_button");
-                imgElement2.setAttribute("onclick", "ResponseTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "',null,null,'" + regExPattern + "')");
-                var tdElement = document.createElement("td");
-                tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
-
-                localeTableRow.appendChild(tdElement);
-                tdElement.appendChild(imgElement2);
-            }
-
-            var parentDivElement = getObject(parentDiv);
-            parentDivElement.appendChild(localeTableRow);
-
-            { // add a spacer row
-                var spacerTableRow = document.createElement("tr");
-                spacerTableRow.setAttribute("style", "border-width: 0");
-                parentDivElement.appendChild(spacerTableRow);
-
-                var spacerTableData = document.createElement("td");
-                spacerTableData.setAttribute("style", "border-width: 0");
-                spacerTableData.innerHTML = "&nbsp;";
-                spacerTableRow.appendChild(spacerTableData);
-            }
-        }
-
-        var addLocaleFunction = function() {
-            require(["dijit/registry"],function(registry){
-                ResponseTableHandler.writeMultiLocaleSetting(keyName, registry.byId(keyName + "-addLocaleValue").value, 0, '', regExPattern);
-            });
-        };
-
-        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
-        clientSettingCache[keyName] = resultValue;
-        dojoParser.parse(parentDiv);
-    });
+            addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+            dojoParser.parse(parentDiv);
+        });
 };
 
-ResponseTableHandler.writeMultiLocaleSetting = function(settingKey, locale, iteration, value, regExPattern) {
-    if (locale != null) {
-        if (clientSettingCache[settingKey][locale] == null) {
-            clientSettingCache[settingKey][locale] = [ "" ];
-        }
-
-        if (iteration == null) {
-            delete clientSettingCache[settingKey][locale];
+ChallengeTableHandler.handleAdminToggled = function(toggleElement,inputID) {
+    require(["dojo","dijit/registry"],function(dojo,registry){
+        var inputElement = registry.byId(inputID);
+        if (toggleElement.checked) {
+            toggleElement.set('label','Admin Defined');
+            inputElement.set('disabled',false);
+            inputElement.set('value','Question');
         } else {
-            if (value == null) {
-                clientSettingCache[settingKey][locale].splice(iteration,1);
-            } else {
-                clientSettingCache[settingKey][locale][iteration] = value;
-            }
+            toggleElement.set('label','User Defined');
+            inputElement.set('disabled',true);
+            inputElement.set('value','');
         }
-    }
+    });
+}
 
+ChallengeTableHandler.write = function(settingKey,redraw) {
     writeSetting(settingKey, clientSettingCache[settingKey]);
-    var parentDiv = 'table_setting_' + settingKey;
-    ResponseTableHandler.draw(parentDiv, settingKey, regExPattern);
+    if (redraw) {
+        var parentDiv = 'table_setting_' + settingKey;
+        ChallengeTableHandler.draw(parentDiv, settingKey);
+    }
 };
+
+
+
+// ---------------------- menu bar section ---------------------------------------------------
 
 function buildMenuBar() {
     clearDijitWidget('topMenuBar');
@@ -2220,8 +2250,8 @@ function buildMenuBar() {
 
             { // Settings & Modules Menu
                 for (var category in PWM_SETTINGS['categories']) {
-                    (function() {
-                        var menuCategory = PWM_SETTINGS['categories'][category];
+                    (function(loopCategory) {
+                        var menuCategory = PWM_SETTINGS['categories'][loopCategory];
                         var settingInfo = {};
 
                         var showMenu = true;
@@ -2278,7 +2308,7 @@ function buildMenuBar() {
                                 modulesMenu.addChild(new MenuItem(settingInfo));
                             }
                         }
-                    })();
+                    })(category);
                 }
             }
             { // Display menu

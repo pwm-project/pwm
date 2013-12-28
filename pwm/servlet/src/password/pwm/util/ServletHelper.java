@@ -310,7 +310,11 @@ public class ServletHelper {
         return inputData.toString();
     }
 
-    public static void addPwmResponseHeaders(final PwmApplication pwmApplication, final HttpServletResponse resp, boolean fromServlet) {
+    public static void addPwmResponseHeaders(
+            final PwmApplication pwmApplication,
+            final HttpServletResponse resp,
+            boolean fromServlet
+    ) {
         if (!resp.isCommitted()) {
             final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
             final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
@@ -329,7 +333,7 @@ public class ServletHelper {
                 resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
             }
 
-            if (includeXFrameDeny) {
+            if (includeXFrameDeny && fromServlet) {
                 resp.setHeader("X-Frame-Options", "DENY");
             }
         }

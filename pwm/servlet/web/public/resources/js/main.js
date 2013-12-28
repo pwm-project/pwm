@@ -27,6 +27,7 @@ var PWM_STRINGS = PWM_STRINGS || {};
 
 function pwmPageLoadHandler() {
     require(["dojo"],function(dojo){
+        PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
         var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client/" + PWM_GLOBAL['clientEtag'];
         dojo.xhrGet({
             url: displayStringsUrl,
@@ -44,7 +45,9 @@ function pwmPageLoadHandler() {
             },
             error: function(error) {
                 console.log('unable to read app-data: ' + error + ', will retry.');
-                pwmPageLoadHandler();
+                if (PWM_GLOBAL['app-data-client-retry-count'] < 50) {
+                    pwmPageLoadHandler();
+                }
             }
         });
     });
@@ -1386,6 +1389,9 @@ function showHeaderHealth() {
                         }
                     }
                     parentDiv.innerHTML = htmlBody;
+                    setTimeout(function(){
+                        showHeaderHealth()
+                    },60 * 1000);
                 },
                 error: function(error) {
                     console.log('unable to read header health status: ' + error);
@@ -1411,4 +1417,10 @@ function updateLoginContexts() {
             }(key));
         }
     }
+}
+
+function openLogViewer(level) {
+    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog' + ((level) ? '&level=' + level : '');
+    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
+    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
 }

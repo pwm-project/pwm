@@ -27,8 +27,9 @@
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.util.PwmServletURLHelper" %>
 <% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
-<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
-<% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody); %>
+<% final boolean adminUser = Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody); %>
+<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE || adminUser; %>
+<% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser; %>
 <% if (showHeader || healthCheck) { %>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
     <% final String configManagerUrl = request.getContextPath() + "/private/config/ConfigManager"; %>
@@ -36,6 +37,8 @@
     <pwm:Display key="Header_ConfigModeTrial" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
     <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
+    <% } else if (adminUser) { %>
+    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
     <% } %>
     &nbsp;&nbsp;<a onclick="openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>

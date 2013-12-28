@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -103,7 +104,7 @@ public class UserIdentity implements Serializable {
 
         final StringTokenizer st = new StringTokenizer(key, DELIM_SEPARATOR);
         if (st.countTokens() < 2) {
-            return new UserIdentity(st.nextToken(),"");
+            return new UserIdentity(st.nextToken(), PwmConstants.DEFAULT_LDAP_PROFILE);
         } else if (st.countTokens() > 2) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"too many string tokens while parsing delimited identity key"));
         }

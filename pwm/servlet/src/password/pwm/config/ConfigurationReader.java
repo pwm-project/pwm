@@ -182,8 +182,10 @@ public class ConfigurationReader {
             }
         }
 
+        LOGGER.trace("generating xml string configuration blob");
+        final String configXmlBlob = storedConfiguration.toXml();
         LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
-        Helper.writeFileAsString(configFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
+        Helper.writeFileAsString(configFile, configXmlBlob, CONFIG_FILE_CHARSET);
         LOGGER.info("saved configuration " + storedConfiguration.toString());
         if (pwmApplication != null) {
             final String actualChecksum = storedConfiguration.settingChecksum();
@@ -205,7 +207,7 @@ public class ConfigurationReader {
             final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
             final File backupFile = new File(backupFilePath);
             Helper.rotateBackups(backupFile, backupRotations);
-            Helper.writeFileAsString(backupFile, storedConfiguration.toXml(), CONFIG_FILE_CHARSET);
+            Helper.writeFileAsString(backupFile, configXmlBlob, CONFIG_FILE_CHARSET);
         }
     }
 

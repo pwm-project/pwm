@@ -31,8 +31,18 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
-<% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "INFO");%>
+<% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "");%>
 <body onload="pwmPageLoadHandler();" class="nihilo">
+<% if ("".equals(selectedLevel)) { %>
+<div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        showWaitDialog(null,null,function(){
+            openLogViewer('INFO');
+        });
+    });
+</script>
+<% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -63,9 +73,13 @@
     final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, "", "", maxTime, logType);
 %>
 <pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
+<% } %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['idle_suspendTimeout'] = true;
+    });
+</script>
 </body>
 </html>

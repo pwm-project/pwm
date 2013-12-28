@@ -1727,62 +1727,60 @@
     <setting key="challenge.randomChallenges" level="0">
         <label>Random Questions</label>
         <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses, this is controlled by the "Minimum Random Challenges Required During Setup" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
-        <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
-            <value><![CDATA[What is the name of the main character in your favorite book?::4::200]]></value>
-            <value><![CDATA[What is the name of your favorite teacher?::4::200]]></value>
-            <value><![CDATA[What is the name of your favorite pet?::4::200]]></value>
-            <value><![CDATA[What was the name of your childhood best friend?::4::200]]></value>
-            <value><![CDATA[What was your favorite show as a child?::4::200]]></value>
-            <value><![CDATA[Who is your favorite author?::4::200]]></value>
-            <value><![CDATA[What is your favorite food?::4::200]]></value>
-            <value><![CDATA[What is your partner's nickname?::4::200]]></value>
-            <value><![CDATA[What is your favorite team?::4::200]]></value>
-            <value><![CDATA[What street did you grow up on?::4::200]]></value>
-            <value><![CDATA[What city / town were you born in?::4::200]]></value>
-            <value><![CDATA[What is your favorite vehicle?::4::200]]></value>
-            <value><![CDATA[If you could meet someone from history, who would it be?::4::200]]></value>
-            <value><![CDATA[What is your least favorite film of all time?::4::200]]></value>
-            <value><![CDATA[Who was your least favorite teacher?::4::200]]></value>
-            <value><![CDATA[What food do you dislike the most?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est le nom du personnage principal de votre livre préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est le nom de votre professeur préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est le nom de votre animal préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel était le nom de votre meilleur ami d'enfance?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel a été votre émission préférée comme un enfant?::4::200]]></value>
-            <value locale="fr"><![CDATA[Qui est votre auteur préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est votre plat préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est le surnom de votre partenaire?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quelle est votre équipe préférée?::4::200]]></value>
-            <value locale="fr"><![CDATA[Dans quelle rue avez-vous grandi?::4::200]]></value>
-            <value locale="fr"><![CDATA[Dans quelle ville / ville êtes-vous né?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est votre véhicule préféré?::4::200]]></value>
-            <value locale="fr"><![CDATA[Si vous pouviez rencontrer quelqu'un de l'histoire, ce serait qui?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quel est ton film préféré moins de tous les temps?::4::200]]></value>
-            <value locale="fr"><![CDATA[Qui était votre professeur préféré moins?::4::200]]></value>
-            <value locale="fr"><![CDATA[Quels sont les aliments que vous aimez le plus?::4::200]]></value>
-            <value locale="nl"><![CDATA[Hoe heet de hoofdpersoon in uw favoriete boek?::4::200]]></value>
-            <value locale="nl"><![CDATA[Hoe heet uw favoriete leraar?::4::200]]></value>
-            <value locale="nl"><![CDATA[Hoe heet uw favoriete huisdier?::4::200]]></value>
-            <value locale="nl"><![CDATA[Hoe heette uw beste vriend(in) uit uw jeugd?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat was uw favoriete TV-programma in uw jeugd?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wie is uw favoriete schrijver?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat is uw lievelingseten?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat is de bijnaam van uw partner?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat is uw favoriete team?::4::200]]></value>
-            <value locale="nl"><![CDATA[In welke straat bent u opgegroeid?::4::200]]></value>
-            <value locale="nl"><![CDATA[In welke stad of plaats bent u geboren?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat is uw favoriete voertuig?::4::200]]></value>
-            <value locale="nl"><![CDATA[Als u een historisch persoon zou kunnen ontmoeten, wie zou dat zijn?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wat is uw favoriete film aller tijden?::4::200]]></value>
-            <value locale="nl"><![CDATA[Wie was uw minst geliefde leraar?::4::200]]></value>
-            <value locale="nl"><![CDATA[Van welk eten houdt u het minst?::4::200]]></value>
+            <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is the name of your favorite pet?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What was the name of your childhood best friend?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What was your favorite show as a child?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"Who is your favorite author?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is your favorite food?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is your partner's nickname?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is your favorite team?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What street did you grow up on?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What city / town were you born in?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is your favorite vehicle?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"If you could meet someone from history, who would it be?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What is your least favorite film of all time?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"Who was your least favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value><![CDATA[{"text":"What food do you dislike the most?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom du personnage principal de votre livre préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre professeur préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le nom de votre animal préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel était le nom de votre meilleur ami d'enfance?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel a été votre émission préférée comme un enfant?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui est votre auteur préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre plat préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est le surnom de votre partenaire?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quelle est votre équipe préférée?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Dans quelle rue avez-vous grandi?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Dans quelle ville / ville êtes-vous né?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est votre véhicule préféré?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Si vous pouviez rencontrer quelqu'un de l'histoire, ce serait qui?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quel est ton film préféré moins de tous les temps?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Qui était votre professeur préféré moins?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="fr"><![CDATA[{"text":"Quels sont les aliments que vous aimez le plus?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet de hoofdpersoon in uw favoriete boek?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete leraar?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heet uw favoriete huisdier?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Hoe heette uw beste vriend(in) uit uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat was uw favoriete TV-programma in uw jeugd?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie is uw favoriete schrijver?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw lievelingseten?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is de bijnaam van uw partner?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete team?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke straat bent u opgegroeid?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"In welke stad of plaats bent u geboren?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete voertuig?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Als u een historisch persoon zou kunnen ontmoeten, wie zou dat zijn?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wat is uw favoriete film aller tijden?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Wie was uw minst geliefde leraar?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
+            <value locale="nl"><![CDATA[{"text":"Van welk eten houdt u het minst?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
         </default>
     </setting>
     <setting key="challenge.requiredChallenges" level="0">
         <label>Required Questions</label>
         <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be suppled during forgotten password.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
-        <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value />
         </default>
@@ -1839,7 +1837,6 @@
     <setting key="challenge.helpdesk.randomChallenges" level="0">
         <label>Helpdesk Random Questions</label>
         <description><![CDATA[The user may be required to supply answers to all or some of these questions when setting up their responses, as controlled by the "Minimum Helpdesk Random Challenges Required During Setup" setting.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
-        <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value />
         </default>
@@ -1847,7 +1844,6 @@
     <setting key="challenge.helpdesk.requiredChallenges" level="0">
         <label>Helpdesk Required Questions</label>
         <description><![CDATA[The user must supply answers for all of these questions when setting up their responses.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
-        <regex>^.+::[0-9]+::[0-9]+$</regex>
         <default>
             <value />
         </default>

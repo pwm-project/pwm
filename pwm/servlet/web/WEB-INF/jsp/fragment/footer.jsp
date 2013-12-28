@@ -44,6 +44,7 @@
 <% boolean segmentDisplayed = false; %>
 <%-- begin pwm footer --%>
 <div id="footer">
+    <% if (!"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT))) { %>
     <div id="footer-content">
         <span class="infotext">
             <pwm:Display key="Display_FooterInfoText"/>&nbsp;
@@ -68,19 +69,20 @@
             </span>
             <% segmentDisplayed = true; } %>
         </div>
-        <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
-        <% if (customScript != null && customScript.length() > 0) { %>
-        <script type="text/javascript">
-            <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
-        </script>
-        <% } %>
-        <script type="text/javascript">
-            PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';
-            PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
-            PWM_GLOBAL['clientEtag']='<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationFooter,pwmSessionFooter)%>';
-            PWM_GLOBAL['restClientKey']='<%=pwmSessionFooter.getRestClientKey()%>';
-        </script>
-        <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-        <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
     </div>
+    <% } %>
+    <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
+    <% if (customScript != null && customScript.length() > 0) { %>
+    <script type="text/javascript">
+        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
+    </script>
+    <% } %>
+    <script type="text/javascript">
+        PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';
+        PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
+        PWM_GLOBAL['clientEtag']='<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationFooter,pwmSessionFooter)%>';
+        PWM_GLOBAL['restClientKey']='<%=pwmSessionFooter.getRestClientKey()%>';
+    </script>
+    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
 </div>

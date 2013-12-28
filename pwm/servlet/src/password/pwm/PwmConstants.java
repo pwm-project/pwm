@@ -133,6 +133,7 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_SHOW_LOCALE = "pwm.showLocale";
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
+    public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
