@@ -24,8 +24,9 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<meta http-equiv="refresh"
-      content="0;url='<%=request.getAttribute("nextURL").toString()%>'">
+<noscript>
+    <meta http-equiv="refresh" content="0;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
+</noscript>
 <%@ include file="fragment/header.jsp" %>
 <body onload="pwmPageLoadHandler();" class="nihilo">
 <div id="wrapper">
@@ -35,13 +36,64 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:Display key="Display_PleaseWaitPassword"/></p>
-        <div id="buttonbar"></div>
-        <div id="WaitDialogBlank"></div>
+        <div style="width:400px; margin-left: auto; margin-right: auto; padding-bottom: 100px; padding-top: 100px">
+            <div data-dojo-type="dijit/ProgressBar" style="width:400px" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
+        </div>
+
     </div>
     <div class="push"></div>
 </div>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        setTimeout(function(){
+            refreshChangePasswordStatus();
+        },1000);
+    });
+
+    function refreshChangePasswordStatus() {
+        require(["dojo","dijit/registry"],function(dojo,registry){
+            var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+            dojo.xhrGet({
+                url: displayStringsUrl,
+                handleAs: 'json',
+                timeout: 30 * 1000,
+                headers: { "Accept": "application/json" },
+                load: function(data) {
+                    //getObject('completed').innerHTML = data['data']['complete'];
+                    //getObject('percentage').innerHTML = data['data']['percentComplete'] + '%';
+
+                    var progressBar = registry.byId('passwordProgressBar');
+                    progressBar.set("value",data['data']['percentComplete']);
+
+                    if (data['data']['complete'] == true) {
+                        showWaitDialog(null,null,function(){
+                            setTimeout(function(){
+                                window.location = completedUrl;
+                            },1000);
+                        });
+                    } else {
+                        setTimeout(function(){
+                            refreshChangePasswordStatus();
+                        },3000);
+                    }
+                },
+                error: function(error) {
+                    console.log('unable to read password change status: ' + error);
+                }
+            });
+        });
+    }
+</script>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_GLOBAL['idle_suspendTimeout'] = true;
+        require(["dojo/parser", "dijit/ProgressBar"], function(parser,registry){
+            parser.parse();
+        });
+    });
+</script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

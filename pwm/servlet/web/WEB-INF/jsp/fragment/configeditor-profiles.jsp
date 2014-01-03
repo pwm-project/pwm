@@ -84,7 +84,7 @@
 <% } %>
 <% } %>
 <% final List<PwmSetting> advancedSettings = PwmSetting.getSettings(category,1);%>
-<% final boolean showAdvanced = cookie.getLevel() > 1; %>
+<% boolean showAdvanced = cookie.getLevel() > 1; %>
 <% if (!advancedSettings.isEmpty()) { %>
 <a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="toggleAdvancedSettingsDisplay()">Show <%=advancedSettings.size()%> Advanced Settings</a>
 <div id="advancedSettings" style="display: none">
@@ -100,27 +100,7 @@
     <a onclick="toggleAdvancedSettingsDisplay()" style="cursor:pointer">Hide Advanced Settings</a>
     <% } %>
 </div>
-<script type="text/javascript">
-    var advancedSettingsAreVisible = false;
-    function toggleAdvancedSettingsDisplay() {
-        require(['dojo/fx'], function(fx) {
-            var advSetElement = getObject('advancedSettings');
-            if (advancedSettingsAreVisible) {
-                fx.wipeOut({node:advSetElement }).play();
-                getObject('showAdvancedSettingsButton').style.display='block';
-            } else {
-                fx.wipeIn({ node:advSetElement }).play();
-                getObject('showAdvancedSettingsButton').style.display='none';
-            }
-            advancedSettingsAreVisible = !advancedSettingsAreVisible;
-        });
-    }
-    <% if (showAdvanced) { %>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        toggleAdvancedSettingsDisplay();
-    });
-    <% } %>
-</script>
+<jsp:include page="settings-scripts.jsp"/>
 <% } %>
 <% } %>
 

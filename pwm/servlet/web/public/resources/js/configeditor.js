@@ -2287,12 +2287,15 @@ function buildMenuBar() {
                                     label: menuCategory['label'],
                                     onClick: function() {
                                         if (allowMenuSelect) {
-                                            showWaitDialog(null,null,function(){
-                                                preferences['editMode'] = 'SETTINGS';
-                                                preferences['category'] = menuCategory['key'];
-                                                setConfigEditorCookie();
-                                                loadMainPageBody();
-                                            });
+                                            gotoSetting(menuCategory['key']);
+                                            /*
+                                             showWaitDialog(null,null,function(){
+                                             preferences['editMode'] = 'SETTINGS';
+                                             preferences['category'] = ;
+                                             setConfigEditorCookie();
+                                             loadMainPageBody();
+                                             });
+                                             */
                                         } else {
                                             var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
                                             showDialog('Notice',message);
@@ -2465,6 +2468,13 @@ function buildMenuBar() {
             }
             { // Actions
                 var actionsMenu = new Menu({});
+                actionsMenu.addChild(new MenuItem({
+                    label: "Search Settings",
+                    onClick: function() {
+                        searchDialog();
+                    }
+                }));
+                actionsMenu.addChild(new MenuSeparator());
                 actionsMenu.addChild(new MenuItem({
                     label: "Set Configuration Password",
                     onClick: function() {
@@ -2763,3 +2773,110 @@ function showChangeLog() {
     });
 }
 
+function searchDialog(reentrant) {
+    if (reentrant) {
+        var validationProps = {};
+        validationProps['serviceURL'] = "ConfigEditor?processAction=search";
+        validationProps['readDataFunction'] = function(){ return {search:getObject('settingSearchInput').value}}
+        validationProps['typeWaitTimeMs'] = 50;
+        validationProps['messageWorking'] = "Searching...";
+        validationProps['processResultsFunction'] = function(data) {
+            if (data['error']) {
+                try { getObject('message').id = "base-message"; } catch (e) {}
+                showDialog("Error",data['errorMessage'])
+            } else {
+                var bodyText = '';
+                var resultCount = 0;
+                if (isEmpty(data['data'])) {
+                    showSuccess(PWM_STRINGS['Display_SearchResultsNone']);
+                } else {
+                    for (var categoryIter in data['data']) {
+                        var category = data['data'][categoryIter];
+                        bodyText += '<span style="font-weight: bold">' + categoryIter + '</span><br/>';
+                        for (var settingIter in category) {
+                            var setting = category[settingIter];
+                            var profileID = setting['profile'];
+                            var functionText;
+                            if (profileID) {
+                                functionText = 'gotoSetting(\'' + setting['category'] + '\',\'' + settingIter + '\',\'' + profileID + '\')';
+                            } else {
+                                functionText = 'gotoSetting(\'' + setting['category'] + '\',\'' + settingIter + '\')';
+                            }
+
+                            bodyText += '<span>&nbsp;&nbsp;</span>';
+                            var settingID = "search_" + (profileID ? profileID + '_' : '') +  settingIter;
+                            bodyText += '<span id="' + settingID + '" style="text-indent: 1.5em; margin-left 10px; cursor: pointer; text-decoration: underline" onclick="' + functionText + '">';
+                            bodyText += setting['label'];
+                            bodyText += '</span><br/>';
+                            resultCount++;
+                        }
+                    }
+                }
+                getObject('settingSearchResults').innerHTML = bodyText;
+                if (!isEmpty(data['data'])) {
+                    (function(){
+                        require(["dijit/Tooltip"],function(Tooltip){
+                            for (var categoryIter in data['data']) {
+                                var category = data['data'][categoryIter];
+                                for (var settingIter in category) {
+                                    var setting = category[settingIter];
+                                    var profileID = setting['profile'];
+                                    var settingID = "search_" + (profileID ? profileID + '_' : '') +  settingIter;
+                                    var toolBody = '<div style="max-width: 650px"><span style="font-weight: bold">Setting</span>';
+                                    toolBody += '<br/>' + setting['label'] + '<br/><br/>';
+                                    toolBody += '<span style="font-weight: bold">Description</span>';
+                                    toolBody += '<br/>' + setting['description'] + '<br/><br/>';
+                                    toolBody += '<span style="font-weight: bold">Value</span>';
+                                    toolBody += '<br/>' + setting['value'] + '<br/></div>';
+                                    new Tooltip({
+                                        connectId: [settingID],
+                                        label: toolBody,
+                                        position: ['above']
+                                    });
+                                }
+                            }
+                        });
+                    }());
+                }
+                showSuccess(resultCount + ' Results');
+            }
+        };
+        getObject('settingSearchResults').innerHTML = '<div id="WaitDialogBlank" style="vertical-align: middle"/>';
+        getObject('settingSearchResults').click();
+        pwmFormValidator(validationProps);
+    } else {
+        var htmlBody = '<div>';
+        htmlBody += '<span id="message" class="message message-info" style="width: 400">Search setting names, descriptions and values.</span><br/>';
+        htmlBody += '<input type="search" id="settingSearchInput" style="width: 400px" onkeyup="searchDialog(true)"/>';
+        htmlBody += '<br/><br/>';
+        htmlBody += '<div id="settingSearchResults" style="max-height: 200px; min-height: 200px;overflow-y: auto"></div>';
+        htmlBody += '<br/><br/><button class="btn" onclick="closeWaitDialog();getObject(\'base-message\').id = \'message\'">Ok</button>';
+        htmlBody += '</div>';
+        try { getObject('message').id = "base-message"; } catch (e) {}
+        var theDialog = new dijit.Dialog({
+            id: 'dialogPopup',
+            title: 'Search Settings',
+            style: "width: 500px",
+            content: htmlBody,
+            hide: function(){
+                closeWaitDialog();
+                getObject('base-message').id = "message";
+            }
+        });
+        theDialog.show();
+    }
+}
+
+function gotoSetting(category,settingKey,profile) {
+    console.log('going to setting...');
+    showWaitDialog(null,null,function(){
+        preferences['editMode'] = 'SETTINGS';
+        preferences['category'] = category;
+        preferences['setting'] = settingKey ? settingKey : '';
+        if (profile) {
+            preferences['profile'] = profile;
+        }
+        setConfigEditorCookie();
+        loadMainPageBody();
+    });
+}

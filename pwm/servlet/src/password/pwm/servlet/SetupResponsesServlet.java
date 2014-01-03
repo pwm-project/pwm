@@ -103,7 +103,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         // check if the locale has changed since first seen.
         if (pwmSession.getSessionStateBean().getLocale() != setupResponsesBean.getUserLocale()) {
-            pwmSession.clearUserBean(SetupResponsesBean.class);
+            pwmSession.clearSessionBean(SetupResponsesBean.class);
             setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
             setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
         }
@@ -133,7 +133,7 @@ public class SetupResponsesServlet extends TopServlet {
             } else if ("confirmResponses".equalsIgnoreCase(actionParam)) {
                 setupResponsesBean.setConfirmed(true);
             } else if ("changeResponses".equalsIgnoreCase(actionParam)) {
-                pwmSession.clearUserBean(SetupResponsesBean.class);
+                pwmSession.clearSessionBean(SetupResponsesBean.class);
                 setupResponsesBean = (SetupResponsesBean)pwmSession.getSessionBean(SetupResponsesBean.class);
                 this.initializeBean(pwmSession, pwmApplication, setupResponsesBean);
                 setupResponsesBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
@@ -184,7 +184,7 @@ public class SetupResponsesServlet extends TopServlet {
                     setupResponsesBean.getHelpdeskResponseData().getResponseMap()
             );
             saveResponses(pwmSession, pwmApplication, responses);
-            pwmSession.clearUserBean(SetupResponsesBean.class);
+            pwmSession.clearSessionBean(SetupResponsesBean.class);
             ServletHelper.forwardToSuccessPage(req, resp);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
@@ -403,7 +403,8 @@ public class SetupResponsesServlet extends TopServlet {
                     helpdeskResponses,
                     challengeSet.getLocale(),
                     challengeSet.getMinRandomRequired(),
-                    challengeSet.getIdentifier()
+                    challengeSet.getIdentifier(),
+                    null
             );
 
             final ChaiResponseSet responseSet = ChaiCrFactory.newChaiResponseSet(

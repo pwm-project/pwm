@@ -70,6 +70,7 @@ public class UserReport {
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<String>();
             headerRow.add("UserDN");
+            headerRow.add("LDAP Profile");
             headerRow.add("Username");
             headerRow.add("Email");
             headerRow.add("UserGuid");
@@ -77,6 +78,7 @@ public class UserReport {
             headerRow.add("Password Change Time");
             headerRow.add("Response Save Time");
             headerRow.add("Has Valid Responses");
+            headerRow.add("Response Storage Method");
             headerRow.add("Password Expired");
             headerRow.add("Password Pre-Expired");
             headerRow.add("Password Violates Policy");
@@ -90,7 +92,8 @@ public class UserReport {
             final UserStatusCacheBean userStatusCacheBean = cacheBeanIterator.next();
             final List<String> csvRow = new ArrayList<String>();
 
-            csvRow.add(userStatusCacheBean.getUserIdentity().toDeliminatedKey());
+            csvRow.add(userStatusCacheBean.getUserDN());
+            csvRow.add(userStatusCacheBean.getLdapProfile());
             csvRow.add(userStatusCacheBean.getUsername());
             csvRow.add(userStatusCacheBean.getEmail());
             csvRow.add(userStatusCacheBean.getUserGUID());
@@ -98,6 +101,7 @@ public class UserReport {
             csvRow.add(userStatusCacheBean.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userStatusCacheBean.getPasswordChangeTime()));
             csvRow.add(userStatusCacheBean.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(userStatusCacheBean.getResponseSetTime()));
             csvRow.add(Boolean.toString(userStatusCacheBean.isHasResponses()));
+            csvRow.add(userStatusCacheBean.getResponseStorageMethod() == null ? "n/a" : userStatusCacheBean.getResponseStorageMethod().toString());
             csvRow.add(Boolean.toString(userStatusCacheBean.getPasswordStatus().isExpired()));
             csvRow.add(Boolean.toString(userStatusCacheBean.getPasswordStatus().isPreExpired()));
             csvRow.add(Boolean.toString(userStatusCacheBean.getPasswordStatus().isViolatesPolicy()));

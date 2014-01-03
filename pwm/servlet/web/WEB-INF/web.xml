@@ -363,6 +363,7 @@
     <servlet-mapping>
         <servlet-name>ConfigEditorServlet</servlet-name>
         <url-pattern>/private/config/ConfigEditor</url-pattern>
+        <url-pattern>/private/config/ConfigEditor/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>ConfigManagerServlet</servlet-name>

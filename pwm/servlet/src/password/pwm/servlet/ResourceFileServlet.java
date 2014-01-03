@@ -83,7 +83,7 @@ public class ResourceFileServlet extends HttpServlet {
     {
         final PwmApplication pwmApplication;
         try {
-            pwmApplication = ContextManager.getContextManager(this.getServletContext()).getPwmApplication();
+            pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
         } catch (PwmUnrecoverableException e) {
             throw new ServletException(e);
         }
@@ -161,7 +161,7 @@ public class ResourceFileServlet extends HttpServlet {
         final String requestURI = stripNonceFromURI(request.getRequestURI());
 
         try {
-            if (handleSpecialURIs(requestURI, request, response)) {
+            if (handleSpecialURIs(pwmApplication, requestURI, request, response)) {
                 return;
             }
         } catch (Exception e) {
@@ -464,6 +464,7 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private boolean handleSpecialURIs(
+            final PwmApplication pwmApplication,
             final String requestURI,
             final HttpServletRequest request,
             final HttpServletResponse response
@@ -471,10 +472,10 @@ public class ResourceFileServlet extends HttpServlet {
             throws PwmUnrecoverableException, IOException, ServletException {
         if (requestURI != null) {
             if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/style.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_EMBED, request, response);
+                writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_EMBED, response);
                 return true;
             } else if (requestURI.startsWith(request.getContextPath() + "/public/resources/themes/embed/mobileStyle.css")) {
-                writeConfigSettingToBody(PwmSetting.DISPLAY_CSS_MOBILE_EMBED, request, response);
+                writeConfigSettingToBody(pwmApplication, PwmSetting.DISPLAY_CSS_MOBILE_EMBED, response);
                 return true;
             }
         }
@@ -482,12 +483,12 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private void writeConfigSettingToBody(
+            final PwmApplication pwmApplication,
             final PwmSetting pwmSetting,
-            final HttpServletRequest request,
             final HttpServletResponse response
     )
-            throws PwmUnrecoverableException, IOException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            throws PwmUnrecoverableException, IOException
+    {
         final String bodyText = pwmApplication.getConfig().readSettingAsString(pwmSetting);
         try {
             response.setContentType("text/css");

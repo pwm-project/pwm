@@ -127,7 +127,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 this.processEnterForgottenOtpToken(req, resp, pwmApplication, pwmSession);
                 return;
             } else if (processAction.equalsIgnoreCase("reset")) {
-                pwmSession.clearUserBean(ForgottenPasswordBean.class);
+                pwmSession.clearSessionBean(ForgottenPasswordBean.class);
                 return;
             } else if (!tokenNeeded && !responsesNeeded && processAction.equalsIgnoreCase("selectUnlock")) {
                 this.processUnlock(pwmApplication, pwmSession, req, resp);

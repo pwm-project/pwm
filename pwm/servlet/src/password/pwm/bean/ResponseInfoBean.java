@@ -23,6 +23,7 @@
 package password.pwm.bean;
 
 import com.novell.ldapchai.cr.Challenge;
+import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -35,14 +36,16 @@ public class ResponseInfoBean implements Serializable {
     final private Locale locale;
     final private int minRandoms;
     final private String csIdentifier;
+    final private DataStorageMethod dataStorageMethod;
     private Date timestamp;
 
-    public ResponseInfoBean(Map<Challenge, String> crMap, Map<Challenge,String> helpdeskCrMap, Locale locale, int minRandoms, String csIdentifier) {
+    public ResponseInfoBean(Map<Challenge, String> crMap, Map<Challenge,String> helpdeskCrMap, Locale locale, int minRandoms, String csIdentifier, DataStorageMethod dataSource) {
         this.crMap = crMap;
         this.helpdeskCrMap = helpdeskCrMap;
         this.locale = locale;
         this.minRandoms = minRandoms;
         this.csIdentifier = csIdentifier;
+        this.dataStorageMethod = dataSource;
     }
 
     public Map<Challenge, String> getCrMap() {
@@ -71,5 +74,10 @@ public class ResponseInfoBean implements Serializable {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public DataStorageMethod getDataStorageMethod()
+    {
+        return dataStorageMethod;
     }
 }

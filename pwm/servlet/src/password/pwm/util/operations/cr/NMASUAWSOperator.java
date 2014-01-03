@@ -33,6 +33,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -85,7 +86,8 @@ public class NMASUAWSOperator implements CrOperator {
                     helpdeskCrMap,
                     PwmConstants.DEFAULT_LOCALE,
                     responseSet.getChallengeSet().getMinRandomRequired(),
-                    responseSet.getChallengeSet().getIdentifier()
+                    responseSet.getChallengeSet().getIdentifier(),
+                    DataStorageMethod.NMASUAWS
             );
         } catch (ChaiValidationException e) {
             LOGGER.error("unexpected error converting NMASUserAppWebService ResponseSet to ResponseInfoBean: " + e.getMessage());

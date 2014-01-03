@@ -40,21 +40,11 @@ import javax.servlet.http.HttpSessionListener;
  * @author Jason D. Rivard
  */
 public class HttpEventManager implements ServletContextListener, HttpSessionListener, HttpSessionActivationListener {
-// ------------------------------ FIELDS ------------------------------
-
-    // ----------------------------- CONSTANTS ----------------------------
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HttpEventManager.class);
-
-// --------------------------- CONSTRUCTORS ---------------------------
 
     public HttpEventManager()
     {
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface HttpSessionListener ---------------------
 
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
@@ -76,7 +66,7 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
 
             LOGGER.trace(pwmSession, "http session created");
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to establish pwm session: " + e.getMessage());
+            LOGGER.error("unable to establish session: " + e.getMessage());
         }
 
     }
@@ -85,14 +75,14 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
     {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-            LOGGER.trace(pwmSession, "http session destroyed");
+            final String traceMsg = "http session destroyed for " + pwmSession.toString();
+            LOGGER.trace(pwmSession, traceMsg);
             pwmSession.getSessionManager().closeConnections();
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to destroy pwm session: " + e.getMessage());
+            LOGGER.error("unable to destroy session: " + e.getMessage());
         }
     }
 
-// --------------------- Interface ServletContextListener ---------------------
 
     public void contextInitialized(final ServletContextEvent servletContextEvent)
     {
@@ -126,8 +116,6 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
         }
     }
 
-
-// --------------------- Interface HttpSessionActivationListener ---------------------
 
     public void sessionWillPassivate(final HttpSessionEvent event)
     {

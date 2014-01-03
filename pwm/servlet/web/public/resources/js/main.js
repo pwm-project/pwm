@@ -1112,7 +1112,6 @@ function messageDivFloatHandler() { // called by message.jsp
 
 function pwmFormValidator(validationProps, reentrant)
 {
-    var TYPE_WAIT_TIME_MS = PWM_GLOBAL['client.ajaxTypingWait'];
     var AJAX_TIMEOUT = PWM_GLOBAL['client.ajaxTypingTimeout'];
     var CONSOLE_DEBUG = true;
 
@@ -1120,6 +1119,7 @@ function pwmFormValidator(validationProps, reentrant)
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
     var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : showString('Display_PleaseWait');
+    var typeWaitTimeMs = validationProps['typeWaitTimeMs'] ? validationProps['typeWaitTimeMs'] : PWM_GLOBAL['client.ajaxTypingWait'];
 
     if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
     //init vars;
@@ -1146,9 +1146,9 @@ function pwmFormValidator(validationProps, reentrant)
     }
 
     // check to see if user is still typing.  if yes, then come back later.
-    if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < TYPE_WAIT_TIME_MS) {
+    if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < typeWaitTimeMs) {
         showInfo(showString('Display_TypingWait'));
-        setTimeout(function(){pwmFormValidator(validationProps, true)}, TYPE_WAIT_TIME_MS + 1);
+        setTimeout(function(){pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
         return;
     }

@@ -43,6 +43,7 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusHelper;
+import password.pwm.servlet.ChangePasswordServlet;
 import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -241,7 +242,7 @@ public class PasswordUtility {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,uiBean.getPasswordPolicy());
             pwmPasswordRuleValidator.testPassword(newPassword,null,uiBean,pwmSession.getSessionManager().getActor());
         } catch (PwmDataValidationException e) {
-            final String errorMsg = "attempt to setUserPassword, but password does not pass PWM validator";
+            final String errorMsg = "attempt to setUserPassword, but password does not pass local policy validator";
             final ErrorInformation errorInformation = new ErrorInformation(e.getErrorInformation().getError(), errorMsg);
             throw new PwmOperationalException(errorInformation);
         }
@@ -270,7 +271,7 @@ public class PasswordUtility {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             if (setPasswordWithoutOld) {
-                theUser.setPassword(newPassword);
+                theUser.setPassword(newPassword, true);
             } else {
                 theUser.changePassword(oldPassword, newPassword);
             }
@@ -288,9 +289,6 @@ public class PasswordUtility {
 
         // at this point the password has been changed, so log it.
         LOGGER.info(pwmSession, "user '" + uiBean.getUserIdentity() + "' successfully changed password");
-
-        // clear out the password change bean
-        pwmSession.clearChangePasswordBean();
 
         // update the session state bean's password modified flag
         pwmSession.getSessionStateBean().setPasswordModified(true);
@@ -342,8 +340,8 @@ public class PasswordUtility {
             actionExecutor.executeActions(configValues, settings, pwmSession);
         }
 
-        performReplicaSyncCheck(pwmSession, pwmApplication, uiBean.getUserIdentity(), passwordSetTimestamp);
-
+        //update the current last password update field in ldap
+        UserStatusHelper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedUser);
     }
 
     public static void helpdeskSetUserPassword(
@@ -467,7 +465,7 @@ public class PasswordUtility {
         }
     }
 
-    private static void performReplicaSyncCheck(
+    public static ChangePasswordServlet.PasswordChangeProgress performReplicaSyncCheck(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final UserIdentity userIdentity,
@@ -523,6 +521,8 @@ public class PasswordUtility {
                 Helper.pause(500);
             }
         }
+
+        return null;
     }
 
 
@@ -822,7 +822,11 @@ public class PasswordUtility {
     }
 
 
-    private static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(final boolean caseSensitive, final String password1, final String password2) {
+    public static PasswordCheckInfo.MATCH_STATUS figureMatchStatus(
+            final boolean caseSensitive,
+            final String password1,
+            final String password2
+    ) {
         final PasswordCheckInfo.MATCH_STATUS matchStatus;
         if (password2 == null || password2.length() < 1) {
             matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;

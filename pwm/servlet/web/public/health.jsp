@@ -240,5 +240,7 @@
         PWM_GLOBAL['idle_suspendTimeout'] = true;
     });
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

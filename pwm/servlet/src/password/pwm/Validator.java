@@ -209,6 +209,20 @@ public class Validator {
     public static String readStringFromRequest(
             final HttpServletRequest req,
             final String value,
+            final String defaultValue
+    ) throws PwmUnrecoverableException {
+
+        final String result = readStringFromRequest(req, value, PwmConstants.HTTP_PARAMETER_READ_LENGTH);
+        if (result == null || result.length() < 1) {
+            return defaultValue;
+        }
+
+        return result;
+    }
+
+    public static String readStringFromRequest(
+            final HttpServletRequest req,
+            final String value,
             final int maxLength
     ) throws PwmUnrecoverableException {
         final Set<String> results = readStringsFromRequest(req, value, maxLength);

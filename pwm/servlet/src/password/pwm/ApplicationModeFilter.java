@@ -39,25 +39,33 @@ public class ApplicationModeFilter implements Filter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
+    private ServletContext servletContext;
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        this.servletContext = filterConfig.getServletContext();
     }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException
     {
-        // check for valid config
+        // add request url to request attribute
         servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, ((HttpServletRequest) servletRequest).getRequestURI());
-        try {
-            if (checkConfigModes((HttpServletRequest)servletRequest, (HttpServletResponse)servletResponse)) {
-                return;
+
+        // ignore if resource request
+        if (!PwmServletURLHelper.isResourceURL((HttpServletRequest)servletRequest)) {
+            // check for valid config
+            try {
+                if (checkConfigModes((HttpServletRequest)servletRequest, (HttpServletResponse)servletResponse, servletContext)) {
+                    return;
+                }
+            } catch (PwmUnrecoverableException e) {
+                if (e.getError() == PwmError.ERROR_UNKNOWN) {
+                    try { LOGGER.error(e.getMessage()); } catch (Exception ignore) { /* noop */ }
+                }
+                throw new ServletException(e.getErrorInformation().toDebugStr());
             }
-        } catch (PwmUnrecoverableException e) {
-            if (e.getError() == PwmError.ERROR_UNKNOWN) {
-                try { LOGGER.error(e.getMessage()); } catch (Exception ignore) { /* noop */ }
-            }
-            throw new ServletException(e.getErrorInformation().toDebugStr());
         }
 
         filterChain.doFilter(servletRequest,servletResponse);
@@ -69,13 +77,12 @@ public class ApplicationModeFilter implements Filter {
 
     private static boolean checkConfigModes(
             final HttpServletRequest req,
-            final HttpServletResponse resp
+            final HttpServletResponse resp,
+            final ServletContext servletContext
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final PwmApplication theManager = ContextManager.getPwmApplication(req.getSession());
+        final PwmApplication theManager = ContextManager.getPwmApplication(servletContext);
 
         if (theManager == null) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to load PwmApplication instance"));
@@ -96,7 +103,7 @@ public class ApplicationModeFilter implements Filter {
             if (PwmServletURLHelper.isConfigGuideURL(req)) {
                 return false;
             } else {
-                LOGGER.debug(pwmSession, "unable to find a valid configuration, redirecting " + req.getRequestURI() + " to ConfigGuide");
+                LOGGER.debug("unable to find a valid configuration, redirecting " + req.getRequestURI() + " to ConfigGuide");
                 resp.sendRedirect(req.getContextPath() + "/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
                 return true;
             }
@@ -107,6 +114,8 @@ public class ApplicationModeFilter implements Filter {
             if (rootError == null) {
                 rootError = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "Application startup failed.");
             }
+            final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
             ssBean.setSessionError(rootError);
             ServletHelper.forwardToErrorPage(req, resp, true);
             return true;

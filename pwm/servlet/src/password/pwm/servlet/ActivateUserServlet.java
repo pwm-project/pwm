@@ -112,7 +112,7 @@ public class ActivateUserServlet extends TopServlet {
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterTokenCode(req, resp, pwmApplication, pwmSession);
             } else if ("reset".equalsIgnoreCase(processAction)) {
-                pwmSession.clearUserBean(ActivateUserBean.class);
+                pwmSession.clearSessionBean(ActivateUserBean.class);
                 advanceToNextStage(req, resp);
             } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted activate user agreement");

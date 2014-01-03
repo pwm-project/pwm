@@ -24,6 +24,8 @@ package password.pwm.bean.servlet;
 
 import password.pwm.bean.PwmSessionBean;
 
+import java.util.Date;
+
 /**
  * @author Jason D. Rivard
  */
@@ -31,20 +33,15 @@ public class ChangePasswordBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     // ------------------------- PUBLIC CONSTANTS -------------------------
-    private String newPassword;
     private boolean agreementPassed;
     private boolean currentPasswordRequired;
     private boolean currentPasswordPassed;
     private boolean formPassed;
     private boolean allChecksPassed;
 
+    private Date changeBeginTime;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getNewPassword()
-    {
-        return newPassword;
-    }
 
     public boolean isAgreementPassed() {
         return agreementPassed;
@@ -86,16 +83,14 @@ public class ChangePasswordBean implements PwmSessionBean {
         this.allChecksPassed = allChecksPassed;
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
-    public void clearPassword()
+    public Date getChangeBeginTime()
     {
-        newPassword = null;
+        return changeBeginTime;
     }
 
-    public void setNewPassword(final String newPassword)
+    public void setChangeBeginTime(Date changeBeginTime)
     {
-        this.newPassword = newPassword;
+        this.changeBeginTime = changeBeginTime;
     }
 }
 

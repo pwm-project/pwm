@@ -51,6 +51,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
@@ -172,7 +173,7 @@ public class NMASCrOperator implements CrOperator {
             if (responseSet == null) {
                 return null;
             }
-            final ResponseInfoBean responseInfoBean = CrOperators.convertToNoAnswerInfoBean(responseSet);
+            final ResponseInfoBean responseInfoBean = CrOperators.convertToNoAnswerInfoBean(responseSet,DataStorageMethod.NMAS);
             responseInfoBean.setTimestamp(null);
             return responseInfoBean;
         } catch (ChaiException e) {

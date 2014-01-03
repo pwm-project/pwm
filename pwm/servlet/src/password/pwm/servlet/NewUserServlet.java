@@ -127,7 +127,7 @@ public class NewUserServlet extends TopServlet {
             } else if ("doCreate".equalsIgnoreCase(processAction)) {
                 handleDoCreateRequest(req, resp);
             } else if ("reset".equalsIgnoreCase(processAction)) {
-                pwmSession.clearUserBean(NewUserBean.class);
+                pwmSession.clearSessionBean(NewUserBean.class);
                 advancedToNextStage(req,resp);
             } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted newuser agreement");
@@ -314,7 +314,7 @@ public class NewUserServlet extends TopServlet {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        pwmSession.clearUserBean(NewUserBean.class);
+        pwmSession.clearSessionBean(NewUserBean.class);
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         final Map<String, String> formValues = Validator.readRequestParametersAsMap(req);

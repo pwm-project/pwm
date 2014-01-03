@@ -22,7 +22,6 @@
 
 package password.pwm;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
@@ -34,7 +33,6 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -45,7 +43,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
-import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.LdapConnectionService;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessorImpl;
@@ -92,7 +90,6 @@ public class PwmApplication {
         CONFIG_HASH("configurationSettingHash"),
         LAST_LDAP_ERROR("lastLdapError"),
         TOKEN_COUNTER("tokenCounter"),
-
         ;
 
         private String key;
@@ -113,21 +110,20 @@ public class PwmApplication {
 
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
-    private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<String, ChaiProvider>();
 
     private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
-    private ErrorInformation lastLdapFailure = null;
     private ErrorInformation lastLocalDBFailure = null;
     private File pwmApplicationPath; //typically the WEB-INF servlet path
 
     private MODE applicationMode;
 
     private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(
-            SharedHistoryManager.class,
+            LdapConnectionService.class,
             DatabaseAccessorImpl.class,
+            SharedHistoryManager.class,
             HealthMonitor.class,
             AuditManager.class,
             StatisticsManager.class,
@@ -188,25 +184,7 @@ public class PwmApplication {
     public ChaiProvider getProxyChaiProvider(final String identifier)
             throws PwmUnrecoverableException
     {
-        final ChaiProvider proxyChaiProvider = proxyChaiProviders.get(identifier == null ? "" : identifier);
-        if (proxyChaiProvider != null) {
-            return proxyChaiProvider;
-        }
-
-        final LdapProfile ldapProfile = getConfig().getLdapProfiles().get(identifier == null ? "" : identifier);
-        if (ldapProfile == null) {
-            final String errorMsg = "unknown ldap profile requested connection: " + identifier;
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
-        }
-
-        try {
-            final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(ldapProfile, configuration, getStatisticsManager());
-            proxyChaiProviders.put(identifier, newProvider);
-            return newProvider;
-        } catch (PwmUnrecoverableException e) {
-            setLastLdapFailure(e.getErrorInformation());
-            throw e;
-        }
+        return getLdapConnectionService().getProxyChaiProvider(identifier);
     }
 
     public LocalDBLogger getLocalDBLogger() {
@@ -254,7 +232,7 @@ public class PwmApplication {
     }
 
     public ErrorInformation getLastLdapFailure() {
-        return lastLdapFailure;
+        return getLdapConnectionService().getLastLdapFailure();
     }
 
     public ErrorInformation getLastLocalDBFailure() {
@@ -262,14 +240,7 @@ public class PwmApplication {
     }
 
     public void setLastLdapFailure(final ErrorInformation errorInformation) {
-        this.lastLdapFailure = errorInformation;
-        if (errorInformation == null) {
-            writeAppAttribute(AppAttribute.LAST_LDAP_ERROR, null);
-        } else {
-            final Gson gson = Helper.getGson();
-            final String jsonString = gson.toJson(errorInformation);
-            writeAppAttribute(AppAttribute.LAST_LDAP_ERROR, jsonString);
-        }
+        getLdapConnectionService().setLastLdapFailure(errorInformation);
     }
 
     // -------------------------- OTHER METHODS --------------------------
@@ -277,6 +248,10 @@ public class PwmApplication {
 
     public TokenService getTokenService() {
         return (TokenService)pwmServices.get(TokenService.class);
+    }
+
+    public LdapConnectionService getLdapConnectionService() {
+        return (LdapConnectionService)pwmServices.get(LdapConnectionService.class);
     }
 
     public Configuration getConfig() {
@@ -346,9 +321,6 @@ public class PwmApplication {
         // get the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
-
-        // read the lastLoginTime
-        this.lastLdapFailure = readLastLdapFailure();
 
         // get the pwm installation date
         installTime = fetchInstallDate(startupTime);
@@ -465,15 +437,6 @@ public class PwmApplication {
         return newInstanceID;
     }
 
-    private ErrorInformation readLastLdapFailure() {
-        final String lastLdapFailureStr = readAppAttribute(AppAttribute.LAST_LDAP_ERROR);
-        if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
-            final Gson gson = Helper.getGson();
-            return gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
-        }
-        return null;
-    }
-
     private static String logEnvironment() {
         final StringBuilder sb = new StringBuilder();
         sb.append("environment info: ");
@@ -582,25 +545,8 @@ public class PwmApplication {
             localDB = null;
         }
 
-        closeProxyChaiProvider();
-
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " closed for bidness, cya!");
     }
-
-    private void closeProxyChaiProvider() {
-        LOGGER.trace("closing ldap proxy connections");
-        for (final String id : proxyChaiProviders.keySet()) {
-            final ChaiProvider existingProvider = proxyChaiProviders.get(id);
-
-            try {
-                existingProvider.close();
-            } catch (Exception e) {
-                LOGGER.error("error closing ldap proxy connection: " + e.getMessage(), e);
-            }
-        }
-        proxyChaiProviders.clear();
-    }
-
 
     public Date getStartupTime() {
         return startupTime;

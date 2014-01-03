@@ -55,17 +55,12 @@ public class SessionFilter implements Filter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SessionFilter.class);
 
-// -------------------------- STATIC METHODS --------------------------
-
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Filter ---------------------
+    private ServletContext servletContext;
 
     public void init(final FilterConfig filterConfig)
-            throws ServletException {
-        //servletContext = filterConfig.getServletContext();
+            throws ServletException
+    {
+        servletContext = filterConfig.getServletContext();
     }
 
     public void doFilter(
@@ -89,9 +84,8 @@ public class SessionFilter implements Filter {
     private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
             throws PwmUnrecoverableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(servletContext);
         final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-        final ServletContext servletContext = req.getSession().getServletContext();
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req.getSession());
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         ServletHelper.handleRequestInitialization(req, pwmApplication, pwmSession);
@@ -245,7 +239,7 @@ public class SessionFilter implements Filter {
     }
 
     public void destroy() {
-        //servletContext = null;
+        servletContext = null;
     }
 
     public static String rewriteURL(final String url, final ServletRequest request, final ServletResponse response) throws PwmUnrecoverableException {

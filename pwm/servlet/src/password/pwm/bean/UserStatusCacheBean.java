@@ -22,11 +22,14 @@
 
 package password.pwm.bean;
 
+import password.pwm.config.option.DataStorageMethod;
+
 import java.io.Serializable;
 import java.util.Date;
 
 public class UserStatusCacheBean implements Serializable {
-    public UserIdentity userIdentity;
+    public String userDN;
+    public String ldapProfile;
     public String userGUID;
 
     public String username;
@@ -37,21 +40,34 @@ public class UserStatusCacheBean implements Serializable {
     public PasswordStatus passwordStatus;
     public Date passwordExpirationTime;
     public Date passwordChangeTime;
-    public Date responseSetTime;
     public Date lastLoginTime;
 
     public boolean hasResponses;
+    public Date responseSetTime;
+    public DataStorageMethod responseStorageMethod;
 
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
 
-    public UserIdentity getUserIdentity() {
-        return userIdentity;
+    public String getUserDN()
+    {
+        return userDN;
     }
 
-    public void setUserIdentity(UserIdentity userIdentity) {
-        this.userIdentity = userIdentity;
+    public void setUserDN(String userDN)
+    {
+        this.userDN = userDN;
+    }
+
+    public String getLdapProfile()
+    {
+        return ldapProfile;
+    }
+
+    public void setLdapProfile(String ldapProfile)
+    {
+        this.ldapProfile = ldapProfile;
     }
 
     public String getUsername()
@@ -162,9 +178,20 @@ public class UserStatusCacheBean implements Serializable {
         this.requiresProfileUpdate = requiresProfileUpdate;
     }
 
+    public DataStorageMethod getResponseStorageMethod()
+    {
+        return responseStorageMethod;
+    }
+
+    public void setResponseStorageMethod(DataStorageMethod responseStorageMethod)
+    {
+        this.responseStorageMethod = responseStorageMethod;
+    }
+
     public static UserStatusCacheBean cacheBeanFrmInfoBean(final UserInfoBean userInfoBean) {
         final UserStatusCacheBean userStatusCacheBean = new UserStatusCacheBean();
-        userStatusCacheBean.setUserIdentity(userInfoBean.getUserIdentity());
+        userStatusCacheBean.setUserDN(userInfoBean.getUserIdentity().getUserDN());
+        userStatusCacheBean.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
         userStatusCacheBean.setUsername(userInfoBean.getUsername());
         userStatusCacheBean.setEmail(userInfoBean.getUserEmailAddress());
         userStatusCacheBean.setUserGUID(userInfoBean.getUserGuid());
@@ -173,10 +200,13 @@ public class UserStatusCacheBean implements Serializable {
 
         userStatusCacheBean.setPasswordChangeTime(userInfoBean.getPasswordExpirationTime());
         userStatusCacheBean.setPasswordExpirationTime(userInfoBean.getPasswordExpirationTime());
-        userStatusCacheBean.setResponseSetTime(userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getTimestamp() : null);
         userStatusCacheBean.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
 
         userStatusCacheBean.setHasResponses(userInfoBean.isRequiresResponseConfig());
+        userStatusCacheBean.setResponseSetTime(
+                userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getTimestamp() : null);
+        userStatusCacheBean.setResponseStorageMethod(
+                userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getDataStorageMethod() : null);
 
         userStatusCacheBean.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
         userStatusCacheBean.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());

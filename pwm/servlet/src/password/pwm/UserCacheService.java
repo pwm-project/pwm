@@ -67,7 +67,7 @@ public class UserCacheService implements PwmService {
 
         final String jsonBean = Helper.getGson().toJson(userStatusCacheBean);
         localDB.put(DB,storageKey,jsonBean);
-        LOGGER.trace("stored cache of '" + userStatusCacheBean.getUserIdentity() + "', content=" + jsonBean);
+        LOGGER.trace("stored cache of '" + userStatusCacheBean.getUserDN() + "', content=" + jsonBean);
     }
 
     public java.util.Iterator iterator() {

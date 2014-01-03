@@ -98,7 +98,8 @@ public class RestChallengesServer {
                     helpdeskCrMap,
                     locale,
                     minimumRandoms,
-                    csIdentifier
+                    csIdentifier,
+                    null
             );
             responseInfoBean.setTimestamp(new Date());
             return responseInfoBean;

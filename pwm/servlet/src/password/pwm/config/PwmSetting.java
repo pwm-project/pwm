@@ -210,6 +210,8 @@ public enum PwmSetting {
             "ldap.duplicateMode", PwmSettingSyntax.SELECT, Category.LDAP_GLOBAL),
     LDAP_SELECTABLE_CONTEXT_MODE(
             "ldap.selectableContextMode", PwmSettingSyntax.SELECT, Category.LDAP_GLOBAL),
+    LDAP_IGNORE_UNREACHABLE_PROFILES(
+            "ldap.ignoreUnreachableProfiles", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
 
 
     // email settings
@@ -708,25 +710,27 @@ public enum PwmSetting {
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
-            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.enableNmas", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, Template.NOVL),
     EDIRECTORY_STORE_NMAS_RESPONSES(
-            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.storeNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, Template.NOVL),
     EDIRECTORY_USE_NMAS_RESPONSES(
-            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.useNmasResponses", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, Template.NOVL),
     EDIRECTORY_READ_USER_PWD(
-            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.readUserPwd", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, Template.NOVL),
     EDIRECTORY_READ_CHALLENGE_SET(
-            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.readChallengeSets", PwmSettingSyntax.BOOLEAN, Category.EDIRECTORY, Template.NOVL),
     EDIRECTORY_PWD_MGT_WEBSERVICE_URL(
-            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, Category.EDIRECTORY, new Template[]{Template.NOVL}),
+            "ldap.edirectory.ws.pwdMgtURL", PwmSettingSyntax.STRING, Category.EDIRECTORY, Template.NOVL),
 
     // active directory
     AD_USE_PROXY_FOR_FORGOTTEN(
-            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
+            "ldap.ad.proxyForgotten", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
     AD_ALLOW_AUTH_REQUIRE_NEW_PWD(
-            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
+            "ldap.ad.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
     AD_ALLOW_AUTH_EXPIRED(
-            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, new Template[]{Template.AD}),
+            "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
+    AD_ENFORCE_PW_HISTORY_ON_SET(
+            "ldap.ad.enforcePwHistoryOnSet", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
 
     // helpdesk
     HELPDESK_ENABLE(
@@ -1020,7 +1024,6 @@ public enum PwmSetting {
         PEOPLE_SEARCH(Type.MODULE),
         HELPDESK(Type.MODULE),
         ;
-
 
         public enum Type {
             SETTING, MODULE, PROFILE

@@ -27,20 +27,23 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URLEncoder;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -52,9 +55,6 @@ import java.util.Set;
 public abstract class TopServlet extends HttpServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    /**
-     * Logger used by this class *
-     */
     private static final PwmLogger LOGGER = PwmLogger.getLogger(TopServlet.class);
 
     // -------------------------- OTHER METHODS --------------------------
@@ -66,70 +66,159 @@ public abstract class TopServlet extends HttpServlet {
         this.handleRequest(req, resp);
     }
 
-    private void handleRequest(
+    public void doPost(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws ServletException, IOException {
+        this.handleRequest(req, resp);
+    }
 
-        PwmSession pwmSession = null;
-        PwmApplication pwmApplication = null;
-        SessionStateBean ssBean = null;
+    private void handleRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws ServletException, IOException
+    {
         try {
-            pwmApplication = ContextManager.getPwmApplication(req.getSession());
-            pwmSession = PwmSession.getPwmSession(req);
-            ssBean = pwmSession.getSessionStateBean();
-            setLastParameters(req,ssBean);
+            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            setLastParameters(req,pwmSession.getSessionStateBean());
+        } catch (Exception e2) {
+            //noop
+        }
+
+
+        try {
             this.processRequest(req, resp);
-        } catch (ChaiUnavailableException e) {
-            try {
-                pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-            } catch (Throwable e1) {
-                // oh well
-            }
-            LOGGER.fatal(pwmSession, "unable to contact ldap directory: " + e.getMessage());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-        } catch (PwmUnrecoverableException e) {
-            switch (e.getError()) {
-                case ERROR_UNKNOWN:
-                    LOGGER.warn(pwmSession, "unexpected pwm error during page generation: " + e.getMessage(), e);
-                    try { // try to update stats
-                        if (pwmSession != null) {
-                            pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
-                        }
-                    } catch (Throwable e1) {
-                        // oh well
-                    }
-                    break;
-
-                case ERROR_PASSWORD_REQUIRED:
-                    LOGGER.warn("attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
-                    //store the original requested url
-                    final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-                    pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
-
-                    LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
-                    resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
-                    return;
-
-                default:
-                    LOGGER.error(pwmSession, "pwm error during page generation: " + e.getMessage());
-            }
-
-            if (ssBean != null) {
-                ssBean.setSessionError(e.getErrorInformation());
-            }
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "unexpected error during page generation: " + e.getMessage(), e);
-            if (ssBean != null) {
-                ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
+            final PwmApplication pwmApplication;
+            try {
+                pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
+            } catch (Exception e2) {
+                try {
+                    LOGGER.fatal("exception occurred, but exception handler unable to load Application instance; error=" + e.getMessage(),e);
+                } catch (Exception e3) {
+                    e3.printStackTrace();
+                }
+                throw new ServletException(e);
             }
+
+            final PwmSession pwmSession;
+            try {
+                pwmSession = PwmSession.getPwmSession(req);
+            } catch (Exception e2) {
+                try {
+                    LOGGER.fatal("exception occurred, but exception handler unable to load Session wrapper instance; error=" + e.getMessage(),e);
+                } catch (Exception e3) {
+                    e3.printStackTrace();
+                }
+                throw new ServletException(e);
+            }
+
+            final PwmUnrecoverableException pue = convertToPwmUnrecoverableException(e);
+
+            if (processUnrecoverableException(req,resp,pwmApplication,pwmSession,pue)) {
+                return;
+            }
+
+            outputUnrecoverableException(req,resp,pwmApplication,pwmSession,pue);
+        }
+    }
+
+    private PwmUnrecoverableException convertToPwmUnrecoverableException(
+            final Exception e
+    )
+    {
+        if (e instanceof PwmUnrecoverableException) {
+            return (PwmUnrecoverableException)e;
+        }
+
+        if (e instanceof PwmException) {
+            return new PwmUnrecoverableException(((PwmException)e).getErrorInformation());
+        }
+
+        if (e instanceof ChaiUnavailableException) {
+            final String errorMsg = "unable to contact ldap directory: " + e.getMessage();
+            return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
+        }
+
+        final StringWriter errorStack = new StringWriter();
+        e.printStackTrace(new PrintWriter(errorStack));
+        final String errorMsg ="unexpected error processing request: " + e.getMessage()  + "\n" + errorStack.toString();
+        return new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+    }
+
+
+    private boolean processUnrecoverableException(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final PwmUnrecoverableException e
+    )
+            throws IOException
+    {
+        switch (e.getError()) {
+            case ERROR_DIRECTORY_UNAVAILABLE:
+                LOGGER.fatal(pwmSession, e.getErrorInformation().toDebugStr());
+                try {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
+                    pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
+                } catch (Throwable e1) {
+                    //noop
+                }
+                break;
+
+            case ERROR_UNKNOWN:
+                LOGGER.fatal(e.getErrorInformation().toDebugStr());
+                try { // try to update stats
+                    if (pwmSession != null) {
+                        pwmApplication.getStatisticsManager().incrementValue(Statistic.PWM_UNKNOWN_ERRORS);
+                    }
+                } catch (Throwable e1) {
+                    //noop
+                }
+                break;
+
+            case ERROR_PASSWORD_REQUIRED:
+                LOGGER.warn("attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
+                //store the original requested url
+                final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
+                if (pwmSession != null && pwmSession.getSessionStateBean() != null) {
+                    pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
+                }
+
+                LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
+                resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
+                return true;
+
+            default:
+                LOGGER.error(pwmSession, "error during page generation: " + e.getMessage());
+        }
+        return false;
+    }
+
+    private void outputUnrecoverableException(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final PwmUnrecoverableException e
+    )
+            throws IOException, ServletException
+    {
+
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        ssBean.setSessionError(e.getErrorInformation());
+        final String acceptHeader = req.getHeader("Accept");
+        if (acceptHeader.contains("application/json")) {
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation());
+            ServletHelper.outputJsonResult(resp,restResultBean);
+        } else {
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
         }
     }
+
 
     private void setLastParameters(final HttpServletRequest req, final SessionStateBean ssBean) throws PwmUnrecoverableException {
         final Set keyNames = req.getParameterMap().keySet();
@@ -143,20 +232,12 @@ public abstract class TopServlet extends HttpServlet {
         ssBean.setLastParameterValues(newParamProperty);
     }
 
-
     protected abstract void processRequest(
             HttpServletRequest req,
             HttpServletResponse resp
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException;
 
-    public void doPost(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws ServletException, IOException {
-        this.handleRequest(req, resp);
-    }
 
     static boolean convertURLtokenCommand(
             final HttpServletRequest req,

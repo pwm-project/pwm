@@ -35,6 +35,7 @@ public class ConfigEditorCookie implements Serializable {
     private PwmSetting.Category category = PwmSetting.Category.LDAP_PROFILE;
     private boolean notesSeen;
     private String profile = PwmConstants.DEFAULT_LDAP_PROFILE;
+    private String setting = "";
 
     public ConfigEditorCookie() {
     }
@@ -101,5 +102,15 @@ public class ConfigEditorCookie implements Serializable {
     public void setProfile(String profile)
     {
         this.profile = profile;
+    }
+
+    public String getSetting()
+    {
+        return setting;
+    }
+
+    public void setSetting(String setting)
+    {
+        this.setting = setting;
     }
 }

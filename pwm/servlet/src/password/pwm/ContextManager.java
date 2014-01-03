@@ -69,6 +69,10 @@ public class ContextManager implements Serializable {
         return getContextManager(session.getServletContext()).getPwmApplication();
     }
 
+    public static PwmApplication getPwmApplication(final ServletContext theContext) throws PwmUnrecoverableException {
+        return getContextManager(theContext).getPwmApplication();
+    }
+
     public static ContextManager getContextManager(final HttpSession session) throws PwmUnrecoverableException {
         return getContextManager(session.getServletContext());
     }

@@ -23,10 +23,7 @@
 package password.pwm.util.intruder;
 
 import password.pwm.PwmService;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataStoreException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.*;
 import password.pwm.util.DataStore;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -48,7 +45,9 @@ class DataStoreRecordStore implements RecordStore {
         this.intruderManager = intruderManager;
     }
 
-    public IntruderRecord read(final String key) {
+    public IntruderRecord read(final String key)
+            throws PwmUnrecoverableException
+    {
         if (key == null || key.length() < 1) {
             return null;
         }
@@ -58,6 +57,9 @@ class DataStoreRecordStore implements RecordStore {
             value = dataStore.get(key);
         } catch (PwmDataStoreException e) {
             LOGGER.error("error reading stored intruder record: " + e.getMessage());
+            if (e.getError() == PwmError.ERROR_DB_UNAVAILABLE) {
+                throw new PwmUnrecoverableException(e.getErrorInformation());
+            }
             return null;
         }
 
@@ -110,7 +112,11 @@ class DataStoreRecordStore implements RecordStore {
         @Override
         public IntruderRecord next() {
             final String key = dbIterator.next();
-            return read(key);
+            try {
+                return read(key);
+            } catch (PwmUnrecoverableException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         @Override
@@ -171,6 +177,8 @@ class DataStoreRecordStore implements RecordStore {
                 }
             }
         } catch (PwmDataStoreException e) {
+            LOGGER.error("unable to perform intruder table cleanup: " + e.getMessage());
+        } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to perform intruder table cleanup: " + e.getMessage());
         } finally {
             if (dbIterator != null) {

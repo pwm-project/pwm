@@ -118,6 +118,9 @@ public class ConfigEditorServlet extends TopServlet {
         } else if ("readChangeLog".equalsIgnoreCase(processActionParam)) {
             restReadChangeLog(resp, pwmSession, configManagerBean);
             return;
+        } else if ("search".equalsIgnoreCase(processActionParam)) {
+            restSearchSettings(req, resp, pwmSession, configManagerBean);
+            return;
         } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
             doCancelEditing(req, resp, configManagerBean);
             return;
@@ -487,6 +490,56 @@ public class ConfigEditorServlet extends TopServlet {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale));
+        ServletHelper.outputJsonResult(resp,restResultBean);
+    }
+
+    void restSearchSettings(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmSession pwmSession,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String bodyData = ServletHelper.readRequestBody(req);
+        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyData,
+                new TypeToken<Map<String, String>>() {
+                }.getType());
+        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final RestResultBean restResultBean = new RestResultBean();
+        final String searchTerm = valueMap.get("search");
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            final ArrayList<StoredConfiguration.ConfigRecordID> searchResults = new ArrayList(configManagerBean.getConfiguration().search(searchTerm,locale));
+            final LinkedHashMap<String,Map<String,Map<String,String>>> returnData = new LinkedHashMap<String,Map<String,Map<String,String>>>();
+
+            for (final StoredConfiguration.ConfigRecordID recordID : searchResults) {
+                if (recordID.getRecordType() == StoredConfiguration.ConfigRecordID.RecordType.SETTING) {
+                    final PwmSetting setting = (PwmSetting)recordID.getRecordID();
+                    final LinkedHashMap<String,String> settingData = new LinkedHashMap<String,String>();
+                    settingData.put("category", setting.getCategory().toString());
+                    settingData.put("description", setting.getDescription(locale));
+                    settingData.put("value", configManagerBean.getConfiguration().readSetting(setting,recordID.getProfileID()).toDebugString());
+                    settingData.put("label", setting.getLabel(locale));
+
+                    String returnCategory = setting.getCategory().getLabel(locale);
+                    if (recordID.getProfileID() != null && !recordID.getProfileID().isEmpty()) {
+                        settingData.put("profile", recordID.getProfileID());
+                        returnCategory += " -> " + recordID.getProfileID();
+                    }
+
+                    if (!returnData.containsKey(returnCategory)) {
+                        returnData.put(returnCategory,new LinkedHashMap<String, Map<String, String>>());
+                    }
+
+                    returnData.get(returnCategory).put(setting.getKey(), settingData);
+                }
+            }
+
+            restResultBean.setData(returnData);
+        } else {
+            restResultBean.setData(new ArrayList<StoredConfiguration.ConfigRecordID>());
+        }
+
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 }

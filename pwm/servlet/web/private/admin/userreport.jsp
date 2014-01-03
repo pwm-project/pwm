@@ -58,14 +58,16 @@
 <script>
     var grid;
     var headers = {
-        "userID":"User ID",
+        "username":"Username",
         "userDN":"User DN",
+        "ldapProfile":"Ldap Profile",
         "userGUID":"GUID",
         "passwordExpirationTime":"Password Expiration Time",
         "passwordChangeTime":"Password Change Time",
         "responseSetTime":"Response Set Time",
         "lastLoginTime":"Last LDAP Login Time",
         "hasResponses":"Has Responses",
+        "responseStorageMethod":"Response Storage Method",
         "requiresPasswordUpdate":"Requires Password Update",
         "requiresResponseUpdate":"Requires Response Update",
         "requiresProfileUpdate":"Requires Profile Update"

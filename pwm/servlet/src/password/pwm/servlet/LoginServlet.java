@@ -71,8 +71,8 @@ public class
             Validator.validatePwmFormID(req);
             final String username = Validator.readStringFromRequest(req, "username");
             final String password = Validator.readStringFromRequest(req, "password");
-            final String context = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT);
-            final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE);
+            final String context = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT, null);
+            final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE, null);
 
             if (!passwordOnly && (username.length() < 1)) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));

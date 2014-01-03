@@ -170,16 +170,10 @@ public class PwmSession implements Serializable {
         sessionBeans.remove(ActivateUserBean.class);
     }
 
-    public boolean clearUserBean(final Class userBeanClass) {
+    public boolean clearSessionBean(final Class userBeanClass) {
         final boolean exists = sessionBeans.containsKey(userBeanClass);
         sessionBeans.remove(userBeanClass);
         return exists;
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    public void clearChangePasswordBean() {
-        sessionBeans.remove(ChangePasswordBean.class);
     }
 
     public void clearSessionBeans() // clears all but the session state bean.

@@ -36,6 +36,8 @@ import java.util.zip.GZIPOutputStream;
 
 public class GZIPFilter implements Filter {
 
+    private ServletContext servletContext;
+
     public void doFilter(ServletRequest req, ServletResponse res,
                          FilterChain chain) throws IOException, ServletException {
         if (req instanceof HttpServletRequest) {
@@ -44,7 +46,7 @@ public class GZIPFilter implements Filter {
 
             boolean gzipEnabled = false;
             try {
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+                final PwmApplication pwmApplication = ContextManager.getPwmApplication(servletContext);
                 gzipEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
             } catch (PwmUnrecoverableException e) { /* noop */ }
 
@@ -62,11 +64,11 @@ public class GZIPFilter implements Filter {
     }
 
     public void init(FilterConfig filterConfig) {
-        // noop
+        this.servletContext = filterConfig.getServletContext();
     }
 
     public void destroy() {
-        // noop
+        this.servletContext = null;
     }
 
     public static class GZIPResponseWrapper extends HttpServletResponseWrapper {

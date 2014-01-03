@@ -22,6 +22,7 @@
 
 package password.pwm.wordlist;
 
+import org.apache.commons.lang.CharSet;
 import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -31,6 +32,10 @@ import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringBufferInputStream;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -44,7 +49,6 @@ public class SharedHistoryManager implements Wordlist {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SharedHistoryManager.class);
 
-    private static final String KEY_SALT = "salt";
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
 
@@ -139,19 +143,6 @@ public class SharedHistoryManager implements Wordlist {
         }
     }
 
-
-    private void checkSalt()
-            throws Exception {
-        salt = localDB.get(META_DB, KEY_SALT);
-        if (salt == null || salt.length() < 1) {
-            LOGGER.info("no salt found in DB, creating new salt and clearing global history");
-            localDB.truncate(WORDS_DB);
-            salt = PwmRandom.getInstance().alphaNumericString(64);
-            localDB.put(META_DB, KEY_SALT, salt);
-            localDB.remove(META_DB, KEY_OLDEST_ENTRY);
-        }
-    }
-
     private boolean checkDbVersion()
             throws Exception {
         LOGGER.trace("checking version number stored in pwmDB");
@@ -184,13 +175,6 @@ public class SharedHistoryManager implements Wordlist {
             return;
         }
 
-        try {
-            checkSalt();
-        } catch (Exception e) {
-            LOGGER.error("unexpected error examining salt in DB, will remain closed: " + e.getMessage(), e);
-            status = STATUS.CLOSED;
-            return;
-        }
 
         try {
             final String oldestEntryStr = localDB.get(META_DB, KEY_OLDEST_ENTRY);
@@ -421,7 +405,6 @@ public class SharedHistoryManager implements Wordlist {
         settings.hashIterations = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_SHAREDHISTORY_HASH_ITERATIONS));
         settings.version = "2" + "_" + settings.hashName + "_" + settings.hashIterations + "_" + settings.caseInsensitive;
 
-
         this.localDB = pwmApplication.getLocalDB();
 
         if (localDB == null) {
@@ -438,6 +421,23 @@ public class SharedHistoryManager implements Wordlist {
                 localDB.truncate(WORDS_DB);
             } catch (Exception e) {
                 LOGGER.error("error during wordlist truncate", e);
+            }
+        }
+
+        {
+            final String securityKey = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
+            if (securityKey == null || securityKey.length() < 1) {
+                LOGGER.info("securityKey is not available, will remain closed");
+                status = STATUS.CLOSED;
+                return;
+            }
+            try {
+                this.salt = Helper.checksum(new ByteArrayInputStream(securityKey.getBytes("UTF8")),"SHA512");
+            } catch (IOException e) {
+                LOGGER.info(
+                        "unable to create checksum-derived salt value from security key, will remain closed; error: " + e.getMessage());
+                status = STATUS.CLOSED;
+                return;
             }
         }
 

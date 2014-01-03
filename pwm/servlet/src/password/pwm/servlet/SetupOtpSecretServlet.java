@@ -21,7 +21,6 @@
  */
 package password.pwm.servlet;
 
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
@@ -216,7 +215,7 @@ public class SetupOtpSecretServlet extends TopServlet {
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             otpService.writeOTPUserConfiguration(theUser, userGUID, otpBean.getOtp());
             pwmSession.getUserInfoBean().setRequiresOtpConfig(false);
-            pwmSession.clearUserBean(SetupOtpBean.class);
+            pwmSession.clearSessionBean(SetupOtpBean.class);
             ServletHelper.forwardToSuccessPage(req, resp);
             return;
         }

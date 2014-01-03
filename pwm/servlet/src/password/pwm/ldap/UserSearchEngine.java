@@ -36,10 +36,8 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DuplicateMode;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
@@ -227,9 +225,28 @@ public class UserSearchEngine {
         } else {
             ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
         }
+
+        final boolean ignoreUnreachableProfiles = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LDAP_IGNORE_UNREACHABLE_PROFILES);
         final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
+
+        final List<String> errors = new ArrayList<String>();
+
         for (final LdapProfile ldapProfile : ldapProfiles) {
-            returnMap.putAll(performMultiUserSearchImpl(pwmSession, ldapProfile, searchConfiguration, maxResults - returnMap.size(), returnAttributes));
+            if (returnMap.size() < maxResults) {
+                try {
+                    returnMap.putAll(performMultiUserSearchImpl(pwmSession, ldapProfile, searchConfiguration, maxResults - returnMap.size(), returnAttributes));
+                } catch (PwmUnrecoverableException e) {
+                    if (ignoreUnreachableProfiles && e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
+                        errors.add(e.getErrorInformation().getDetailedErrorMsg());
+                        if (errors.size() >= ldapProfiles.size()) {
+                            final String errorMsg = "all ldap profiles are unreachable; errors: " + Helper.getGson().toJson(errors);
+                            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
+                        }
+                    } else {
+                        throw e;
+                    }
+                }
+            }
         }
         return returnMap;
     }

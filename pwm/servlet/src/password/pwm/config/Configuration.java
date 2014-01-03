@@ -410,10 +410,6 @@ public class Configuration implements Serializable {
         return returnMap;
     }
 
-    public Date getModifyTime() {
-        return storedConfiguration.getModifyTime();
-    }
-
     public boolean isDefaultValue(final PwmSetting pwmSetting) {
         return storedConfiguration.isDefaultValue(pwmSetting);
     }

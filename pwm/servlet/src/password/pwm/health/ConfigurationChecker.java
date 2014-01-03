@@ -64,7 +64,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-            records.add(new HealthRecord(HealthStatus.WARN, TOPIC, localizedString(pwmApplication,"Health_Config_ConfigMode")));
+            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_ConfigMode")));
         }
 
         if (PwmConstants.UNCONFIGURED_URL_VALUE.equals(pwmApplication.getSiteURL())) {

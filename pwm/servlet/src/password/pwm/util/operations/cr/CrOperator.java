@@ -29,6 +29,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.LinkedHashMap;
@@ -60,7 +61,8 @@ public interface CrOperator {
     public void close();
 
     static class CrOperators {
-        static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet)
+        static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet, final DataStorageMethod dataSource
+        )
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
         {
             final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
@@ -73,7 +75,8 @@ public interface CrOperator {
                     responseSet.getHelpdeskResponses(),
                     responseSet.getLocale(),
                     responseSet.getChallengeSet().getMinRandomRequired(),
-                    responseSet.getChallengeSet().getIdentifier()
+                    responseSet.getChallengeSet().getIdentifier(),
+                    dataSource
             );
             responseInfoBean.setTimestamp(responseSet.getTimestamp());
             return responseInfoBean;

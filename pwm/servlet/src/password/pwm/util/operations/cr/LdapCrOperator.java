@@ -33,6 +33,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -68,7 +69,7 @@ public class LdapCrOperator implements CrOperator {
     {
         try {
             final ResponseSet responseSet = readResponseSet(theUser, userIdentity, userGUID);
-            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet);
+            return responseSet == null ? null : CrOperators.convertToNoAnswerInfoBean(responseSet, DataStorageMethod.LDAP);
         } catch (ChaiException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES,"unexpected error reading response info " + e.getMessage()));
         }

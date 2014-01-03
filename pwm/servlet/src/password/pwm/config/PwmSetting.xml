@@ -238,14 +238,14 @@
     </setting>
     <setting key="display.css.customStyle" level="1">
         <label>Embedded CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/pwmStyle.css</b>.]]></description>
+        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/style.css</b>.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="display.css.customMobileStyle" level="1">
         <label>Embedded Mobile CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/pwmMobileStyle.css</b>.]]></description>
+        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/mobileStyle.css</b>.]]></description>
         <default>
             <value />
         </default>
@@ -493,7 +493,7 @@
             <value />
         </default>
     </setting>
-    <setting key="ldap.duplicateMode" level="0">
+    <setting key="ldap.duplicateMode" level="1">
         <label>LDAP Duplicate Mode</label>
         <description><![CDATA[Control how the application will handle the situation when multiple user matches are found for a search, such as during authentication.]]></description>
         <default>
@@ -505,7 +505,7 @@
             <option value="NONE">No duplicates Permitted - Fail whenever duplicate users are found in any context or profile</option>
         </options>
     </setting>
-    <setting key="ldap.selectableContextMode" level="0">
+    <setting key="ldap.selectableContextMode" level="1">
         <label>User Selectable LDAP Context/Profile</label>
         <description><![CDATA[]]></description>
         <default>
@@ -516,6 +516,13 @@
             <option value="SHOW_CONTEXTS">Show the available ldap contexts</option>
             <option value="NONE">Do not show </option>
         </options>
+    </setting>
+    <setting key="ldap.ignoreUnreachableProfiles" level="1">
+        <label>Ignore Unreachable LDAP Profiles</label>
+        <description><![CDATA[When multiple LDAP profiles exist, ignore unreachable profiles.  A Directory Unavailble error will only be thrown during a user search when there is anly a single LDAP Profile configured or all LDAP Profiles are unrechable.]]></description>
+        <default>
+            <value>true</value>
+        </default>
     </setting>
     <setting key="ldap.profile.displayName" level="1">
         <label>LDAP Profile Display Name</label>
@@ -2589,6 +2596,13 @@
     <setting key="ldap.ad.allowAuth.expired" level="0" required="true">
         <label>Allow Authentication When Password Expired</label>
         <description><![CDATA[Active Directory will fail an ldap login attempt when the current date is after the user's password expiration date.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="ldap.ad.enforcePwHistoryOnSet" level="0" required="true">
+        <label>Enforce Password Policy During Forgotten Password</label>
+        <description><![CDATA[Enforce password policy during forgotten password when <i>Use Proxy When Password Forgotten</i> is also set to true.  This setting requires that the AD servers be at <b>Windows 2008 Server R2 SP1 or later</b>.  More specifically, it requires that the AD servers support the LDAP_SERVER_POLICY_HINTS_OID (1.2.840.113556.1.4.2066) LDAP modification control.]]></description>
         <default>
             <value>false</value>
         </default>

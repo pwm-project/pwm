@@ -63,6 +63,8 @@
 
 .inputfield {
     box-shadow: 2px 2px 2px 2px #f1f1f1;
+    padding-left: 3px;
+    pagging-right: 3px;
 }
 
 .changepasswordfield {
