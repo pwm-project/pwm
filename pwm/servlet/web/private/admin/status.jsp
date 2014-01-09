@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,17 +20,16 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
+<%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.servlet.ResourceFileServlet" %>
+<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.*" %>
-<%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.config.option.DataStorageMethod" %>
-<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -41,7 +40,7 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler()">
+<body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="System"/>

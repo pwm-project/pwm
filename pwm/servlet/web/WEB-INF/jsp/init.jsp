@@ -4,7 +4,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 <% final String nextURL = (String)request.getAttribute("Location"); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler();" class="nihilo">
+<body class="nihilo">
 <meta id="meta-redirect" http-equiv="refresh" content="30;url='<%=StringEscapeUtils.escapeHtml(nextURL)%>'"><%-- failsafe... --%>
 <div id="wrapper">
     <div style="height:100px">&nbsp;</div>
@@ -56,7 +56,7 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        preloadResources(function(){
+        PWM_MAIN.preloadResources(function(){
             window.location.replace('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
         });
     });

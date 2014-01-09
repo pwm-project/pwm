@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,9 @@
 
 var PWM_GLOBAL = PWM_GLOBAL || {};
 var PWM_STRINGS = PWM_STRINGS || {};
+var PWM_MAIN = PWM_MAIN || {};
 
-function pwmPageLoadHandler() {
+PWM_MAIN.pageLoadHandler = function() {
     require(["dojo"],function(dojo){
         PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
         var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client/" + PWM_GLOBAL['clientEtag'];
@@ -41,19 +42,19 @@ function pwmPageLoadHandler() {
                 for (var globalProp in data['data']['PWM_GLOBAL']) {
                     PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
                 }
-                initPwmPage();
+                PWM_MAIN.initPage();
             },
             error: function(error) {
                 console.log('unable to read app-data: ' + error + ', will retry.');
                 if (PWM_GLOBAL['app-data-client-retry-count'] < 50) {
-                    pwmPageLoadHandler();
+                    PWM_MAIN.pageLoadHandler();
                 }
             }
         });
     });
 }
 
-function initPwmPage() {
+PWM_MAIN.initPage = function() {
     for (var j = 0; j < document.forms.length; j++) {
         var loopForm = document.forms[j];
         loopForm.setAttribute('autocomplete', 'off');
@@ -67,7 +68,7 @@ function initPwmPage() {
 
     require(["dojo","dojo/on"], function(dojo,on){
         on(document, "keypress", function(event){
-            checkForCapsLock(event);
+            PWM_MAIN.checkForCapsLock(event);
         });
     });
 
@@ -94,8 +95,8 @@ function initPwmPage() {
                 return;
             }
 
-            on(window, "resize", function(){ messageDivFloatHandler() });
-            on(window, "scroll", function(){ messageDivFloatHandler() });
+            on(window, "resize", function(){ PWM_MAIN.messageDivFloatHandler() });
+            on(window, "scroll", function(){ PWM_MAIN.messageDivFloatHandler() });
         });
     }
 
@@ -111,7 +112,7 @@ function initPwmPage() {
         if (PWM_GLOBAL['enableIdleTimeout']) {
             IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
         }
-        initLocaleSelectorMenu('localeSelectionMenu');
+        PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
     });
 
     if (getObject('logoutDiv')) {
@@ -124,11 +125,15 @@ function initPwmPage() {
     }
 
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        PWM_GLOBAL['startupFunctions'][i]();
+        try {
+            PWM_GLOBAL['startupFunctions'][i]();
+        } catch (e) {
+            alert('error executing startupFunction ' + e);
+        }
     }
 }
 
-function preloadResources(finishFunction) {
+PWM_MAIN.preloadResources = function(finishFunction) {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
     var images = [
         prefix + 'a11y/indeterminate_progress.gif',
@@ -137,7 +142,7 @@ function preloadResources(finishFunction) {
         prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
         prefix + 'nihilo/images/titleBar.png'
     ];
-    preloadImages(images);
+    PWM_MAIN.preloadImages(images);
     require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
         "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
         if (finishFunction) {
@@ -198,7 +203,7 @@ function handleFormClear() {
     return false;
 }
 
-function checkForCapsLock(e) {
+PWM_MAIN.checkForCapsLock = function(e) {
     require(["dojo","dojo/_base/fx","dojo/domReady!"],function(dojo,fx){
         var capsLockWarningElement = getObject('capslockwarning');
         if (capsLockWarningElement == null) {
@@ -262,11 +267,6 @@ function checkForCapsLock(e) {
     });
 }
 
-function setFocus(elementName) {
-    var object = getObject(elementName);
-    object.focus();
-}
-
 
 function getObject(name) {
     var ns4 = document.layers;
@@ -285,7 +285,7 @@ function getObject(name) {
     return false;
 }
 
-function trimString(sInString) {
+PWM_MAIN.trimString = function(sInString) {
     sInString = sInString.replace(/^\s+/g, "");
     // strip leading
     return sInString.replace(/\s+$/g, "");
@@ -310,7 +310,7 @@ function clearDijitWidget(widgetName) {
     });
 }
 
-function initLocaleSelectorMenu(attachNode) {
+PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
     if (getObject(attachNode) == null) {
         return;
     }
@@ -318,7 +318,7 @@ function initLocaleSelectorMenu(attachNode) {
     for (var localeKey in PWM_GLOBAL['localeFlags']) {
         var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] +  '/public/resources/flags/png/' + PWM_GLOBAL['localeFlags'][localeKey] + '.png)';
         var cssSelector = '.flagLang_' + localeKey;
-        createCSSClass(cssSelector,cssBody);
+        PWM_MAIN.createCSSClass(cssSelector,cssBody);
     }
 
 
@@ -466,7 +466,7 @@ function closeWaitDialog() {
     });
 }
 
-function showAppHealth(parentDivID, options, refreshNow) {
+PWM_MAIN.showAppHealth = function(parentDivID, options, refreshNow) {
     var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
     PWM_GLOBAL['showPwmHealthOptions'] = options;
     var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
@@ -525,7 +525,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
                         htmlBody += (date ? date.toLocaleString() : "") + '&nbsp;&nbsp;&nbsp;&nbsp;';
                     }
                     if (showRefresh) {
-                        htmlBody += '<a href="#"; onclick="showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">refresh</a>';
+                        htmlBody += '<a href="#"; onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">refresh</a>';
                     }
                     htmlBody += "</td></tr>";
                 }
@@ -535,7 +535,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['healthCheckInProgress'] = false;
                 if (refreshTime > 0) {
                     setTimeout(function() {
-                        showAppHealth(parentDivID, options);
+                        PWM_MAIN.showAppHealth(parentDivID, options);
                     }, refreshTime);
                 }
                 if (finishFunction) {
@@ -550,7 +550,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
                 htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
                 htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
                 if (showRefresh) {
-                    htmlBody += '<a href="#" onclick="showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
+                    htmlBody += '<a href="#" onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
                 }
                 htmlBody += '</div>';
                 parentDiv.innerHTML = htmlBody;
@@ -558,7 +558,7 @@ function showAppHealth(parentDivID, options, refreshNow) {
                 PWM_GLOBAL['pwm-health'] = 'WARN';
                 if (refreshTime > 0) {
                     setTimeout(function() {
-                        showAppHealth(parentDivID, options);
+                        PWM_MAIN.showAppHealth(parentDivID, options);
                     }, refreshTime);
                 }
                 if (finishFunction) {
@@ -830,13 +830,13 @@ function doShow(destClass, message, fromFloatHandler) {
                 messageElement.className = "message " + destClass;
             }
             if (!fromFloatHandler) {
-                messageDivFloatHandler();
+                PWM_MAIN.messageDivFloatHandler();
             }
         }
     });
 }
 
-function showStatChart(statName,days,divName) {
+PWM_MAIN.showStatChart = function(statName,days,divName) {
     var epsTypes = PWM_GLOBAL['epsTypes'];
     var epsDurations = PWM_GLOBAL['epsDurations'];
     require(["dojo",
@@ -944,8 +944,7 @@ function showStatChart(statName,days,divName) {
         });
 }
 
-function createCSSClass(selector, style)
-{
+PWM_MAIN.createCSSClass = function(selector, style) {
     // using information found at: http://www.quirksmode.org/dom/w3c_css.html
     // doesn't work in older versions of Opera (< 9) due to lack of styleSheets support
     if(!document.styleSheets) return;
@@ -1027,13 +1026,13 @@ function createCSSClass(selector, style)
     }
 }
 
-function flashDomElement(flashColor,elementName,durationMS) {
+PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
     if (!getObject(elementName)) {
         return;
     }
 
     require(["dojo","dojo/window","dojo/domReady!"],function(dojo) {
-        var originalBGColor = getRenderedStyle(elementName,'background-color');
+        var originalBGColor = PWM_MAIN.getRenderedStyle(elementName,'background-color');
         getObject(elementName).style.backgroundColor = flashColor;
         dojo.animateProperty({
             node:elementName,
@@ -1043,7 +1042,7 @@ function flashDomElement(flashColor,elementName,durationMS) {
     });
 }
 
-function getRenderedStyle(el,styleProp) {
+PWM_MAIN.getRenderedStyle = function(el,styleProp) {
     var x = document.getElementById(el);
     if (x.currentStyle) {
         return x.currentStyle[styleProp];
@@ -1056,7 +1055,7 @@ function getRenderedStyle(el,styleProp) {
     return null;
 }
 
-function elementInViewport(el, includeWidth) {
+PWM_MAIN.elementInViewport = function(el, includeWidth) {
     var top = el.offsetTop;
     var left = el.offsetLeft;
     var width = el.offsetWidth;
@@ -1080,7 +1079,7 @@ function elementInViewport(el, includeWidth) {
         );
 }
 
-function messageDivFloatHandler() { // called by message.jsp
+PWM_MAIN.messageDivFloatHandler = function() {
     var messageObj = getObject('message');
     var messageWrapperObj = getObject('message_wrapper');
     if (!messageObj || !messageWrapperObj) {
@@ -1091,10 +1090,10 @@ function messageDivFloatHandler() { // called by message.jsp
         return;
     }
 
-    if (PWM_GLOBAL['message_scrollToggle'] != elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
-        PWM_GLOBAL['message_scrollToggle'] = elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
+    if (PWM_GLOBAL['message_scrollToggle'] != PWM_MAIN.elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
+        PWM_GLOBAL['message_scrollToggle'] = PWM_MAIN.elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
 
-        if (elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
+        if (PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
             messageObj.style.cssText = '';
             doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         } else {
@@ -1110,7 +1109,7 @@ function messageDivFloatHandler() { // called by message.jsp
     }
 }
 
-function pwmFormValidator(validationProps, reentrant)
+PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
 {
     var AJAX_TIMEOUT = PWM_GLOBAL['client.ajaxTypingTimeout'];
     var CONSOLE_DEBUG = true;
@@ -1148,7 +1147,7 @@ function pwmFormValidator(validationProps, reentrant)
     // check to see if user is still typing.  if yes, then come back later.
     if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < typeWaitTimeMs) {
         showInfo(showString('Display_TypingWait'));
-        setTimeout(function(){pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
+        setTimeout(function(){PWM_MAIN.pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
         return;
     }
@@ -1192,15 +1191,15 @@ function pwmFormValidator(validationProps, reentrant)
                 delete PWM_GLOBAL['validationLastType'];
                 PWM_GLOBAL['validationCache'][formKey] = data;
                 if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
-                pwmFormValidator(validationProps, true);
+                PWM_MAIN.pwmFormValidator(validationProps, true);
             }
         });
     });
 }
 
-function preloadImages(arr){
+PWM_MAIN.preloadImages = function(imgArray){
     var newimages=[]
-    var arr=(typeof arr!="object")? [arr] : arr //force arr parameter to always be an array
+    var arr=(typeof imgArray!="object")? [imgArray] : imgArray //force arr parameter to always be an array
     for (var i=0; i<arr.length; i++){
         newimages[i]=new Image();
         newimages[i].src=arr[i];
@@ -1208,15 +1207,104 @@ function preloadImages(arr){
 }
 
 
-function isEmpty(o) {
+PWM_MAIN.isEmpty = function(o) {
     for (var key in o) if (o.hasOwnProperty(key)) return false;
     return true;
 }
 
-function itemCount(o) {
+PWM_MAIN.itemCount = function(o) {
     var i = 0;
     for (var key in o) if (o.hasOwnProperty(key)) i++;
     return i;
+}
+
+PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
+    var obj = getObject(divName);
+
+    var storedStyleName = 'fullscreen-style-' + divName;
+    if (PWM_GLOBAL[storedStyleName]) {
+        iconObj.className = "icon-fullscreen";
+        obj.style = PWM_GLOBAL[storedStyleName];
+        delete PWM_GLOBAL[storedStyleName];
+    } else {
+        PWM_GLOBAL[storedStyleName] = obj.style;
+        iconObj.className = "icon-resize-full";
+        obj.style.position = 'fixed';
+        obj.style.top = '0';
+        obj.style.left = '0';
+        obj.style.bottom = '0';
+        obj.style.right = '0';
+        obj.style.zIndex = '100';
+        obj.style.background = 'white';
+    }
+    if (PWM_GLOBAL['displayGrid']) {
+        PWM_GLOBAL['displayGrid'].resize();
+    }
+}
+
+PWM_MAIN.showHeaderHealth = function() {
+    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
+    require(["dojo"],function(dojo){
+        var parentDiv = getObject('headerHealthData');
+        var headerDiv = getObject('header-warning');
+        if (parentDiv && headerDiv) {
+            dojo.xhrGet({
+                url: refreshUrl,
+                handleAs: "json",
+                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
+                timeout: 60 * 1000,
+                preventCache: true,
+                load: function(data) {
+                    var healthRecords = data['data']['records'];
+                    var htmlBody = '';
+                    for (var i = 0; i < healthRecords.length; i++) {
+                        var healthData = healthRecords[i];
+                        if (healthData['status'] == 'WARN') {
+                            headerDiv.style.display = 'block';
+                            htmlBody += '<div class="header-error">';
+                            htmlBody += healthData['status'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['topic'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['detail'];
+                            htmlBody += '</div>';
+                        }
+                    }
+                    parentDiv.innerHTML = htmlBody;
+                    setTimeout(function(){
+                        PWM_MAIN.showHeaderHealth()
+                    },60 * 1000);
+                },
+                error: function(error) {
+                    console.log('unable to read header health status: ' + error);
+                }
+            });
+        }
+    });
+}
+
+PWM_MAIN.updateLoginContexts = function() {
+    var ldapProfileElement = getObject('ldapProfile');
+    var contextElement = getObject('context');
+    if (contextElement && ldapProfileElement) {
+        var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
+        contextElement.options.length = 0;
+        for (var key in PWM_GLOBAL['ldapProfiles'][selectedProfile]) {
+            (function(key) {
+                var display = PWM_GLOBAL['ldapProfiles'][selectedProfile][key];
+                var optionElement = document.createElement('option');
+                optionElement.setAttribute('value', key);
+                optionElement.appendChild(document.createTextNode(display));
+                contextElement.appendChild(optionElement);
+            }(key));
+        }
+    }
+}
+
+PWM_MAIN.openLogViewer = function(level) {
+    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog' + ((level) ? '&level=' + level : '');
+    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
+    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
 }
 
 var ShowHidePasswordHandler = {};
@@ -1335,92 +1423,3 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
         }
     });
 };
-
-function toggleFullscreen(iconObj,divName) {
-    var obj = getObject(divName);
-
-    var storedStyleName = 'fullscreen-style-' + divName;
-    if (PWM_GLOBAL[storedStyleName]) {
-        iconObj.className = "icon-fullscreen";
-        obj.style = PWM_GLOBAL[storedStyleName];
-        delete PWM_GLOBAL[storedStyleName];
-    } else {
-        PWM_GLOBAL[storedStyleName] = obj.style;
-        iconObj.className = "icon-resize-full";
-        obj.style.position = 'fixed';
-        obj.style.top = '0';
-        obj.style.left = '0';
-        obj.style.bottom = '0';
-        obj.style.right = '0';
-        obj.style.zIndex = '100';
-        obj.style.background = 'white';
-    }
-    if (PWM_GLOBAL['displayGrid']) {
-        PWM_GLOBAL['displayGrid'].resize();
-    }
-}
-
-function showHeaderHealth() {
-    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
-    require(["dojo"],function(dojo){
-        var parentDiv = getObject('headerHealthData');
-        var headerDiv = getObject('header-warning');
-        if (parentDiv && headerDiv) {
-            dojo.xhrGet({
-                url: refreshUrl,
-                handleAs: "json",
-                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-                timeout: 60 * 1000,
-                preventCache: true,
-                load: function(data) {
-                    var healthRecords = data['data']['records'];
-                    var htmlBody = '';
-                    for (var i = 0; i < healthRecords.length; i++) {
-                        var healthData = healthRecords[i];
-                        if (healthData['status'] == 'WARN') {
-                            headerDiv.style.display = 'block';
-                            htmlBody += '<div class="header-error">';
-                            htmlBody += healthData['status'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['topic'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['detail'];
-                            htmlBody += '</div>';
-                        }
-                    }
-                    parentDiv.innerHTML = htmlBody;
-                    setTimeout(function(){
-                        showHeaderHealth()
-                    },60 * 1000);
-                },
-                error: function(error) {
-                    console.log('unable to read header health status: ' + error);
-                }
-            });
-        }
-    });
-}
-
-function updateLoginContexts() {
-    var ldapProfileElement = getObject('ldapProfile');
-    var contextElement = getObject('context');
-    if (contextElement && ldapProfileElement) {
-        var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
-        contextElement.options.length = 0;
-        for (var key in PWM_GLOBAL['ldapProfiles'][selectedProfile]) {
-            (function(key) {
-                var display = PWM_GLOBAL['ldapProfiles'][selectedProfile][key];
-                var optionElement = document.createElement('option');
-                optionElement.setAttribute('value', key);
-                optionElement.appendChild(document.createTextNode(display));
-                contextElement.appendChild(optionElement);
-            }(key));
-        }
-    }
-}
-
-function openLogViewer(level) {
-    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog' + ((level) ? '&level=' + level : '');
-    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
-    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
-}

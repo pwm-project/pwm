@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,10 @@ import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.servlet.ResourceFileServlet;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.MacroMachine;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
@@ -346,7 +349,7 @@ public class RestAppDataServer {
         for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
             String displayValue = Display.getLocalizedMessage(userLocale, key, config);
             try {
-                displayValue = MacroMachine.expandMacros(displayValue, pwmApplication, pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getUserDataReader());
+                displayValue = MacroMachine.expandMacros(displayValue, pwmApplication, pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getUserDataReader(pwmApplication));
             } catch (Exception e) {
                 LOGGER.error(pwmSession,"error expanding macro for display value " + displayValue);
             }
@@ -387,7 +390,7 @@ public class RestAppDataServer {
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());
-            passwordGuideText = MacroMachine.expandMacros(passwordGuideText, pwmApplication, pwmSession.getUserInfoBean(), pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getSessionManager().getUserDataReader() : null);
+            passwordGuideText = MacroMachine.expandMacros(passwordGuideText, pwmApplication, pwmSession.getUserInfoBean(), pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getSessionManager().getUserDataReader(pwmApplication) : null);
             settingMap.put("passwordGuideText",passwordGuideText);
         }
 
@@ -517,7 +520,7 @@ public class RestAppDataServer {
                             displayValue,
                             restRequestBean.getPwmApplication(),
                             restRequestBean.getPwmSession().getUserInfoBean(),
-                            restRequestBean.getPwmSession().getSessionManager().getUserDataReader()
+                            restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication())
                     );
                 } catch (Exception e) {
                     LOGGER.error(restRequestBean.getPwmSession(),"error expanding macro for display value " + displayValue);

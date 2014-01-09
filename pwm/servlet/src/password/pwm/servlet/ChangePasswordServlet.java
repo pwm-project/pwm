@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,16 +26,22 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.PasswordStatus;
-import password.pwm.bean.servlet.ChangePasswordBean;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.bean.servlet.ChangePasswordBean;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.util.*;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
@@ -47,7 +53,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.*;
 
 /**
@@ -149,7 +154,7 @@ public class ChangePasswordServlet extends TopServlet {
         // check the password meets the requirements
         try {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,pwmSession.getUserInfoBean().getPasswordPolicy());
-            pwmPasswordRuleValidator.testPassword(password1,null,pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getActor());
+            pwmPasswordRuleValidator.testPassword(password1,null,pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getActor(pwmApplication));
         } catch (PwmDataValidationException e) {
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());
@@ -245,7 +250,7 @@ public class ChangePasswordServlet extends TopServlet {
             //read the values from the request
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
 
-            validateParamsAgainstLDAP(formValues, pwmSession, pwmSession.getSessionManager().getActor());
+            validateParamsAgainstLDAP(formValues, pwmSession, pwmSession.getSessionManager().getActor(pwmApplication));
 
             cpb.setFormPassed(true);
         } catch (PwmOperationalException e) {
@@ -405,7 +410,7 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader(pwmApplication));
     }
 
     private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)

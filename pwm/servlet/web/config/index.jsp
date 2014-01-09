@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
-<body onload="pwmPageLoadHandler();">
+<body>
 <meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

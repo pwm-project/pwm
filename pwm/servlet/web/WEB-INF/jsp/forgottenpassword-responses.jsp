@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
+<%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
@@ -37,7 +37,7 @@
 in the body onload below, the true parameter toggles the hide button an extra time to default the page to hiding the responses.
 this is handled this way so on browsers where hiding fields is not possible, the default is to show the fields.
 --%>
-<body onload="pwmPageLoadHandler();" class="nihilo">
+<body class="nihilo">
 <div id="wrapper">
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,14 +21,14 @@
   --%>
 
 <%@ page import="password.pwm.ContextManager" %>
-<%@ page import="password.pwm.PwmSession" %>
-<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
+<%@ page import="password.pwm.util.MacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
-<%@ page import="password.pwm.util.MacroMachine" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionFooter = null;
@@ -74,15 +74,18 @@
     <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
-        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader())%>
+        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader(pwmApplicationFooter))%>
     </script>
     <% } %>
     <script type="text/javascript">
-        PWM_GLOBAL["url-context"]='<%=request.getContextPath()%>';
+        PWM_GLOBAL['url-context']='<%=request.getContextPath()%>';
         PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
         PWM_GLOBAL['clientEtag']='<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationFooter,pwmSessionFooter)%>';
         PWM_GLOBAL['restClientKey']='<%=pwmSessionFooter.getRestClientKey()%>';
     </script>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
+    <% if (!"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT))) { %>
+    <script type="text/javascript">PWM_MAIN.pageLoadHandler()</script>
+    <% } %>
 </div>

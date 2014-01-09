@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
 import password.pwm.ldap.LdapConnectionService;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseAccessorImpl;
@@ -51,7 +52,7 @@ import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.operations.CrService;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
 import password.pwm.util.stats.Statistic;
@@ -68,7 +69,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
-import password.pwm.util.operations.OtpService;
 
 /**
  * A repository for objects common to the servlet context.  A singleton
@@ -231,17 +231,10 @@ public class PwmApplication {
         return (VersionChecker)pwmServices.get(VersionChecker.class);
     }
 
-    public ErrorInformation getLastLdapFailure() {
-        return getLdapConnectionService().getLastLdapFailure();
-    }
-
     public ErrorInformation getLastLocalDBFailure() {
         return lastLocalDBFailure;
     }
 
-    public void setLastLdapFailure(final ErrorInformation errorInformation) {
-        getLdapConnectionService().setLastLdapFailure(errorInformation);
-    }
 
     // -------------------------- OTHER METHODS --------------------------
 
@@ -438,26 +431,26 @@ public class PwmApplication {
     }
 
     private static String logEnvironment() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("environment info: ");
-        sb.append("java.vm.vendor=").append(System.getProperty("java.vm.vendor"));
-        sb.append(", java.vm.version=").append(System.getProperty("java.vm.version"));
-        sb.append(", java.vm.name=").append(System.getProperty("java.vm.name"));
-        sb.append(", java.home=").append(System.getProperty("java.home"));
-        sb.append(", memmax=").append(Runtime.getRuntime().maxMemory());
-        sb.append(", threads=").append(Thread.activeCount());
-        sb.append(", ldapChai API version: ").append(ChaiConstant.CHAI_API_VERSION).append(", b").append(ChaiConstant.CHAI_API_BUILD_INFO);
-        return sb.toString();
+        final Map<String,Object> envStats = new LinkedHashMap<String, Object>();
+        envStats.put("java.vm.vendor",System.getProperty("java.vm.vendor"));
+        envStats.put("java.vm.version",System.getProperty("java.vm.version"));
+        envStats.put("java.vm.name",System.getProperty("java.vm.name"));
+        envStats.put("java.home",System.getProperty("java.home"));
+
+        envStats.put("memmax",Runtime.getRuntime().maxMemory());
+        envStats.put("threads",Thread.activeCount());
+        envStats.put("chaiApi",ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
+
+        return "environment info: " + Helper.getGson().toJson(envStats);
     }
 
     private static String logDebugInfo() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("debug info:");
-        sb.append(", memfree=").append(Runtime.getRuntime().freeMemory());
-        sb.append(", memallocd=").append(Runtime.getRuntime().totalMemory());
-        sb.append(", memmax=").append(Runtime.getRuntime().maxMemory());
-        sb.append(", threads=").append(Thread.activeCount());
-        return sb.toString();
+        final Map<String,Object> debugStats = new LinkedHashMap<String, Object>();
+        debugStats.put("memfree",Runtime.getRuntime().freeMemory());
+        debugStats.put("memallocd",Runtime.getRuntime().totalMemory());
+        debugStats.put("memmax",Runtime.getRuntime().maxMemory());
+        debugStats.put("threads",Thread.activeCount());
+        return "debug info:" + Helper.getGson().toJson(debugStats);
     }
 
     public StatisticsManager getStatisticsManager() {

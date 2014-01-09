@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2013 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
---%>
+  --%>
 <!--
 
 TODO: focus on input field
@@ -34,7 +34,7 @@ TODO: support HOTP
 <% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
 <html dir="<pwm:LocaleOrientation/>">
     <%@ include file="fragment/header.jsp" %>
-    <body class="nihilo" onload="pwmPageLoadHandler();">
+    <body class="nihilo">
         <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
         <div id="wrapper">
             <jsp:include page="fragment/header-body.jsp">

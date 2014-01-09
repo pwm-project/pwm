@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,8 +194,6 @@ public enum PwmSetting {
             "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
-    LDAP_READ_PASSWORD_POLICY(
-            "ldap.readPasswordPolicies", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_IDLE_TIMEOUT(

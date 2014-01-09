@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,12 +29,12 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmSession;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
-import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmDataValidationException;
@@ -43,13 +43,12 @@ import password.pwm.servlet.CommandServlet;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmPasswordRuleValidator;
 import password.pwm.util.TimeDuration;
-
-import java.util.*;
-
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.otp.OTPUserConfiguration;
+
+import java.util.*;
 
 public class UserStatusHelper {
 
@@ -164,7 +163,7 @@ public class UserStatusHelper {
             final String userCurrentPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         populateUserInfoBean(pwmApplication, pwmSession, uiBean, pwmSession.getSessionStateBean().getLocale(), userIdentity, userCurrentPassword, provider);
     }
@@ -280,6 +279,11 @@ public class UserStatusHelper {
 
         // read password state
         uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, pwmApplication, theUser, uiBean.getPasswordPolicy(), uiBean));
+
+        // mark if new pw required
+        if (uiBean.getPasswordState().isExpired() || uiBean.getPasswordState().isPreExpired()) {
+           uiBean.setRequiresNewPassword(true);
+        }
 
         // check if responses need to be updated
         uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));

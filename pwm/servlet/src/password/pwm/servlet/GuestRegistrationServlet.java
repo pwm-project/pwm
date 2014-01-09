@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.UserIdentity;
-import password.pwm.bean.servlet.GuestRegistrationBean;
 import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.servlet.GuestRegistrationBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -46,7 +46,8 @@ import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.*;
-import password.pwm.util.operations.*;
+import password.pwm.util.operations.ActionExecutor;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -144,7 +145,7 @@ public class GuestRegistrationServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
             //read current values from user.
-            final ChaiUser theGuest = pwmSession.getSessionManager().getActor(guBean.getUpdateUserIdentity());
+            final ChaiUser theGuest = pwmSession.getSessionManager().getActor(pwmApplication, guBean.getUpdateUserIdentity());
 
             // check unique fields against ldap
             Validator.validateAttributeUniqueness(
@@ -223,7 +224,7 @@ public class GuestRegistrationServlet extends TopServlet {
     	LOGGER.trace("Enter: handleSearchRequest(...)");
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
         final Configuration config = pwmApplication.getConfig();
 
         final String adminDnAttribute = config.readSettingAsString(PwmSetting.GUEST_ADMIN_ATTRIBUTE);
@@ -251,7 +252,7 @@ public class GuestRegistrationServlet extends TopServlet {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
-                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmSession,theGuest);
+                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmApplication,pwmSession,theGuest);
                 final Map<String,String> userAttrValues = userDataReader.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);
@@ -322,7 +323,7 @@ public class GuestRegistrationServlet extends TopServlet {
             final String guestUserDN = determineUserDN(formValues, config);
 
             // get a chai provider to make the user
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
 
             // set up the user creation attributes
             final Map<String,String> createAttributes = new HashMap<String, String>();

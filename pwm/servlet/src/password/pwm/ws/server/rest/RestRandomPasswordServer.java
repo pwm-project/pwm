@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -212,8 +212,9 @@ public class RestRandomPasswordServer {
         }
 
         if (!jsonInput.noUser && restRequestBean.getPwmSession().getSessionStateBean().isAuthenticated()) {
-            if (jsonInput.username != null && jsonInput.username.length() > 0) {
-                final ChaiUser theUser = ChaiFactory.createChaiUser(jsonInput.username, restRequestBean.getPwmSession().getSessionManager().getChaiProvider());
+            final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username,restRequestBean.getPwmApplication().getConfig());
+            if (userIdentity != null) {
+                final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
                 randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession(),

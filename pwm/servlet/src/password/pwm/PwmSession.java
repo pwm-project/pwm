@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,16 +23,17 @@
 package password.pwm;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.jasig.cas.client.util.AbstractCasFilter;
-import password.pwm.bean.*;
+import password.pwm.bean.PwmSessionBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.servlet.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
-import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -50,17 +51,17 @@ public class PwmSession implements Serializable {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmSession.class);
 
-    private final SessionStateBean sessionStateBean = new SessionStateBean();
+    private SessionStateBean sessionStateBean = new SessionStateBean();
 
     private final Map<Class,PwmSessionBean> sessionBeans = new HashMap<Class, PwmSessionBean>();
 
     private transient SessionManager sessionManager;
 
-    private transient HttpSession httpSession;
-
 // -------------------------- STATIC METHODS --------------------------
 
-    public static PwmSession getPwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
+    public static PwmSession getPwmSession(final PwmApplication pwmApplication, final HttpSession httpSession)
+            throws PwmUnrecoverableException
+    {
         if (httpSession == null) {
             final RuntimeException e = new NullPointerException("cannot fetch a pwmSession using a null httpSession");
             LOGGER.warn("attempt to fetch a pwmSession with a null session", e);
@@ -69,34 +70,28 @@ public class PwmSession implements Serializable {
 
         PwmSession returnSession = (PwmSession) httpSession.getAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
         if (returnSession == null) {
-            final PwmSession newPwmSession = new PwmSession(httpSession);
+            final PwmSession newPwmSession = new PwmSession(pwmApplication);
             httpSession.setAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION, newPwmSession);
             returnSession = newPwmSession;
-        } else if (returnSession.httpSession == null) { // stale session (was previously passivated)
-            returnSession.httpSession = httpSession;
-            ContextManager.getContextManager(httpSession.getServletContext()).addPwmSession(returnSession);
-            final String oldSessionID = returnSession.getSessionStateBean().getSessionID();
-            if (!oldSessionID.contains("~")) {
-                returnSession.getSessionStateBean().setSessionID(oldSessionID + "~");
-            }
         }
 
         return returnSession;
     }
 
     public static PwmSession getPwmSession(final HttpServletRequest httpRequest) throws PwmUnrecoverableException {
-        return PwmSession.getPwmSession(httpRequest.getSession());
+        return getPwmSession(httpRequest.getSession());
+    }
+
+    public static PwmSession getPwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
+        return getPwmSession(ContextManager.getPwmApplication(httpSession),httpSession);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private PwmSession(final HttpSession httpSession) throws PwmUnrecoverableException {
-        this.httpSession = httpSession;
-
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
+    private PwmSession(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
 
         if (pwmApplication == null) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
+            throw new IllegalStateException("PwmApplication must be available during session creation");
         }
 
         this.getSessionStateBean().setSessionID("");
@@ -137,7 +132,7 @@ public class PwmSession implements Serializable {
 
     public SessionManager getSessionManager() {
         if (sessionManager == null) {
-            sessionManager = new SessionManager(this, httpSession);
+            sessionManager = new SessionManager(this);
         }
         return sessionManager;
     }
@@ -186,16 +181,6 @@ public class PwmSession implements Serializable {
     }
 
     public boolean isValid() {
-        if (httpSession == null) {
-            return false;
-        }
-
-        try {
-            httpSession.getAttribute("test");
-        } catch (IllegalStateException e) {
-            return false;
-        }
-
         return true;
     }
 
@@ -213,7 +198,7 @@ public class PwmSession implements Serializable {
     }
 
     /**
-     * Unautenticate the pwmSession
+     * Unauthenticate the pwmSession
      */
     public void unauthenticateUser() {
         final SessionStateBean ssBean = getSessionStateBean();
@@ -241,14 +226,17 @@ public class PwmSession implements Serializable {
         clearSessionBeans();
 
         // clear CAS session if it exists.
+        // @todo add this back if needed (but recycle session should also take care of this
+        /*
         try {
             if (httpSession.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION) != null) {
                 httpSession.removeAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
                 LOGGER.debug("CAS assertion removed");
             }
         } catch (Exception e) {
-            /* session already invalided */
+            // session already invalided
         }
+        */
     }
 
     public SetupResponsesBean getSetupResponseBean() {
@@ -263,18 +251,20 @@ public class PwmSession implements Serializable {
         return (NewUserBean) getSessionBean(NewUserBean.class);
     }
 
+    protected void finalize()
+            throws Throwable
+    {
+        super.finalize();
+        invalidate();
+    }
+
     public void invalidate() {
-        clearSessionBeans();
-
-        try {
-            this.unauthenticateUser();
-        } catch (Exception e) {
-            //ignore
-        }
-
-        if (httpSession != null) {
-            LOGGER.debug(this, "invalidating PwmSession");
-            try { httpSession.invalidate(); } catch (Exception e) { /* nothing to do */ }
+        LOGGER.debug(this, "invalidating session");
+        sessionStateBean = new SessionStateBean();
+        sessionBeans.clear();
+        if (sessionManager != null) {
+            sessionManager.closeConnections();
+            sessionManager = null;
         }
     }
 
@@ -291,12 +281,8 @@ public class PwmSession implements Serializable {
         return sessionBeans.get(theClass);
     }
 
-    public long getLastAccessedTime() {
-        if (httpSession != null) {
-            return httpSession.getLastAccessedTime();
-        } else {
-            return 0;
-        }
+    public Date getLastAccessedTime() {
+        return sessionStateBean.getSessionLastAccessedTime();
     }
 
     public String toString() {
@@ -334,15 +320,9 @@ public class PwmSession implements Serializable {
         return sb.toString();
     }
 
-    public void setHttpSession(HttpSession httpSession) {
-        this.httpSession = httpSession;
-    }
-
-    public boolean setLocale(final String localeString)
+    public boolean setLocale(final PwmApplication pwmApplication, final String localeString)
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
-
         if (pwmApplication == null) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
         }

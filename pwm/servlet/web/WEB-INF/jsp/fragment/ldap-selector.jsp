@@ -1,17 +1,15 @@
-<%@ page import="password.pwm.error.ErrorInformation" %>
-<%@ page import="password.pwm.PwmSession" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.config.LdapProfile" %>
-<%@ page import="password.pwm.config.option.SelectableContextMode" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.Validator" %>
 <%@ page import="password.pwm.config.Configuration" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.config.LdapProfile" %>
+<%@ page import="password.pwm.config.option.SelectableContextMode" %>
+<%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2013 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -37,7 +35,7 @@
 <% final boolean showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0; %>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
 <h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:Display key="Field_LdapProfile"/></label></h2>
-<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="inputfield" onclick="updateLoginContexts()">
+<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="inputfield" onclick="PWM_MAIN.updateLoginContexts()">
     <% for (final String profileID : ldapProfiles.keySet()) { %>
     <% final String displayName = ldapProfiles.get(profileID).getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale()); %>
     <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringEscapeUtils.escapeHtml(displayName)%></option>

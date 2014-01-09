@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -156,7 +156,7 @@ public class RestCheckPasswordServer {
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,
                         null,
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider(restRequestBean.getPwmApplication())
                 );
             } else { // self check
                 userDN = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity();
@@ -217,7 +217,7 @@ public class RestCheckPasswordServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
-        final ChaiUser user = pwmSession.getSessionManager().getActor(checkRequest.getUserIdentity());
+        final ChaiUser user = pwmSession.getSessionManager().getActor(pwmApplication, checkRequest.getUserIdentity());
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),

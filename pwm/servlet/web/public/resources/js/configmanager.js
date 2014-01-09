@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,7 +198,7 @@ function uploadConfigDialog() {
     });
 }
 
-function initConfigPage() {
+function initConfigPage(nextFunction) {
     require(["dojo"],function(dojo){
         var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-config";
         dojo.xhrGet({
@@ -213,13 +213,14 @@ function initConfigPage() {
                     for (var settingKey in data['data']) {
                         PWM_SETTINGS[settingKey] = data['data'][settingKey];
                     }
-                    pwmPageLoadHandler();
+                }
+                if (nextFunction) {
+                    nextFunction();
                 }
             },
             error: function(error) {
                 showError('Unable to read settings app-data from server, please reload page (' + error + ')');
                 console.log('unable to read settings app-data: ' + error);
-                pwmPageLoadHandler();
             }
         });
     });

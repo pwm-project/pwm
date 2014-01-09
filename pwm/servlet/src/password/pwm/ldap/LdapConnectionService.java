@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.ldap;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
@@ -36,16 +37,13 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LdapConnectionService implements PwmService {
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LdapConnectionService.class);
 
-    private ErrorInformation lastLdapFailure = null;
     private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<String, ChaiProvider>();
+    private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<LdapProfile, ErrorInformation>();
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
 
@@ -60,7 +58,7 @@ public class LdapConnectionService implements PwmService {
         this.pwmApplication = pwmApplication;
 
         // read the lastLoginTime
-        this.lastLdapFailure = readLastLdapFailure();
+        this.lastLdapErrors.putAll(readLastLdapFailure());
 
         status = STATUS.OPEN;
     }
@@ -117,32 +115,40 @@ public class LdapConnectionService implements PwmService {
             proxyChaiProviders.put(identifier, newProvider);
             return newProvider;
         } catch (PwmUnrecoverableException e) {
-            setLastLdapFailure(e.getErrorInformation());
+            setLastLdapFailure(ldapProfile,e.getErrorInformation());
             throw e;
         }
     }
 
-    public void setLastLdapFailure(final ErrorInformation errorInformation) {
-        this.lastLdapFailure = errorInformation;
-        if (errorInformation == null) {
-            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, null);
-        } else {
-            final Gson gson = Helper.getGson();
-            final String jsonString = gson.toJson(errorInformation);
-            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString);
-        }
+    public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
+        lastLdapErrors.put(ldapProfile, errorInformation);
+        final Gson gson = Helper.getGson();
+        final String jsonString = gson.toJson(lastLdapErrors);
+        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString);
     }
 
-    public ErrorInformation getLastLdapFailure() {
-        return lastLdapFailure;
+    public Map<LdapProfile,ErrorInformation> getLastLdapFailure() {
+        return Collections.unmodifiableMap(lastLdapErrors);
     }
 
-    private ErrorInformation readLastLdapFailure() {
-        final String lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
-        if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
-            final Gson gson = Helper.getGson();
-            return gson.fromJson(lastLdapFailureStr, ErrorInformation.class);
+    public Date getLastLdapFailureTime(final LdapProfile ldapProfile) {
+        final ErrorInformation errorInformation = lastLdapErrors.get(ldapProfile);
+        if (errorInformation != null) {
+            return errorInformation.getDate();
         }
         return null;
+    }
+
+    private Map<LdapProfile,ErrorInformation> readLastLdapFailure() {
+        try {
+            final String lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
+            if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
+
+                return Helper.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<LdapProfile, ErrorInformation>>() {}.getType());
+            }
+        } catch (Exception e) {
+            LOGGER.error("unexpected error loading cached lastLdapFailure statuses: " + e.getMessage());
+        }
+        return Collections.emptyMap();
     }
 }

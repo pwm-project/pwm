@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,10 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiChallenge;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.cr.bean.ChallengeBean;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
@@ -147,15 +150,14 @@ public class RestChallengesServer {
             final String outputUsername;
 
             if (restRequestBean.getUserIdentity() == null) {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(null, restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
                 challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
                 helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
-                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(), chaiUser);
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(),chaiUser,userLocale);
@@ -235,12 +237,12 @@ public class RestChallengesServer {
             final String csIdentifer;
             final CrService crService = restRequestBean.getPwmApplication().getCrService();
             if (restRequestBean.getUserIdentity() == null) {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
                 csIdentifer = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet().getIdentifier();
             } else {
                 final UserIdentity userIdentity = restRequestBean.getUserIdentity();
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(userIdentity);
+                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
                 userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(),userIdentity);
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                         userIdentity,
@@ -293,10 +295,10 @@ public class RestChallengesServer {
             final ChaiUser chaiUser;
             final String userGUID;
             if (restRequestBean.getUserIdentity() == null) {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
             } else {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
+                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(), restRequestBean.getUserIdentity());
             }
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,9 +75,11 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
     {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-            final String traceMsg = "http session destroyed for " + pwmSession.toString();
-            LOGGER.trace(pwmSession, traceMsg);
-            pwmSession.getSessionManager().closeConnections();
+            if (pwmSession != null) {
+                final String traceMsg = "http session destroyed for " + pwmSession.toString();
+                LOGGER.trace(pwmSession, traceMsg);
+                pwmSession.getSessionManager().closeConnections();
+            }
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to destroy session: " + e.getMessage());
         }

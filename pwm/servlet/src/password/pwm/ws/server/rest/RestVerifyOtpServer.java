@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,15 +24,6 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.Serializable;
-import java.net.URISyntaxException;
-
 import password.pwm.Permission;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.ErrorInformation;
@@ -46,6 +37,14 @@ import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.Serializable;
+import java.net.URISyntaxException;
 
 @Path("/verifyotp")
 public class RestVerifyOtpServer {
@@ -86,7 +85,7 @@ public class RestVerifyOtpServer {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication());
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
-                ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+                ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userIdentity = userSearchEngine.resolveUsername(restRequestBean.getPwmSession(), chaiUser.readUsername(), null,
                         null);
             }

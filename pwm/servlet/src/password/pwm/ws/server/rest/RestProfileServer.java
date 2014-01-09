@@ -1,16 +1,40 @@
+/*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2014 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package password.pwm.ws.server.rest;
 
-import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.servlet.UpdateProfileServlet;
 import password.pwm.util.FormMap;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -84,10 +108,10 @@ public class RestProfileServer {
             final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             if (restRequestBean.getUserIdentity() != null) {
-                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity());
+                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity());
                 UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,userDataReader);
             } else {
-                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader());
+                UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));
             }
 
             for (FormConfiguration formConfig : formData.keySet()) {
@@ -151,10 +175,10 @@ public class RestProfileServer {
             }
         }
         if (restRequestBean.getUserIdentity() != null) {
-            final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
+            final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
             UpdateProfileServlet.doProfileUpdate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),profileFormData, theUser);
         } else {
-            final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor();
+            final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
             UpdateProfileServlet.doProfileUpdate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),profileFormData, theUser);
         }
         final RestResultBean restResultBean = new RestResultBean();

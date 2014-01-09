@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,9 @@
 
 package password.pwm.tag;
 
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
-import password.pwm.bean.UserInfoBean;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -55,7 +56,8 @@ public class LdapValueTag extends TagSupport {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final String ldapValue = pwmSession.getSessionManager().getUserDataReader().readStringAttribute(name);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            final String ldapValue = pwmSession.getSessionManager().getUserDataReader(pwmApplication).readStringAttribute(name);
             if (ldapValue != null && ldapValue.length() > 0) {
                 pageContext.getOut().write(ldapValue);
             }

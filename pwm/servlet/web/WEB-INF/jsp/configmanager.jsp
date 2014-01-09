@@ -1,11 +1,11 @@
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
-<%@ page import="password.pwm.util.*" %>
+<%@ page import="password.pwm.util.PwmLogLevel" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<body class="nihilo" onload="initConfigPage()">
+<body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">
@@ -48,18 +48,13 @@
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <%--
-        <% final String configLoadTime = ContextManager.getContextManager(session).getConfigReader().getConfigurationReadTime().toString(); %>
-        <% final String configEpoch = String.valueOf(ContextManager.getContextManager(session).getConfigReader().getConfigurationEpoch()); %>
-        <pwm:Display key="Display_ConfigManagerConfiguration" bundle="Config" value1="<%=configLoadTime%>" value2="<%=configEpoch%>"/>
-        --%>
             <div id="healthBody" style="border:0; margin:0; padding:0">
                 <div id="WaitDialogBlank"></div>
             </div>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     require(["dojo/domReady!"],function(){
-                        showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
+                        PWM_MAIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
                     });
                 });
             </script>
@@ -78,7 +73,7 @@
             </tr>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a class="menubutton" style="cursor: pointer" onclick="openLogViewer()">
+                    <a class="menubutton" style="cursor: pointer" onclick="PWM_MAIN.openLogViewer()">
                         <i class="fa fa-list-alt"></i>&nbsp;
                         <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
@@ -178,6 +173,10 @@
     });
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<%@ include file="fragment/footer.jsp" %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
+<div><%@ include file="fragment/footer.jsp" %></div>
+<script type="text/javascript">
+    initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
+</script>
 </body>
 </html>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -240,7 +240,7 @@ public class PasswordUtility {
         // but we do it just in case.
         try {
             final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication,uiBean.getPasswordPolicy());
-            pwmPasswordRuleValidator.testPassword(newPassword,null,uiBean,pwmSession.getSessionManager().getActor());
+            pwmPasswordRuleValidator.testPassword(newPassword,null,uiBean,pwmSession.getSessionManager().getActor(pwmApplication));
         } catch (PwmDataValidationException e) {
             final String errorMsg = "attempt to setUserPassword, but password does not pass local policy validator";
             final ErrorInformation errorInformation = new ErrorInformation(e.getErrorInformation().getError(), errorMsg);
@@ -252,7 +252,7 @@ public class PasswordUtility {
 
         boolean setPasswordWithoutOld = false;
         if (oldPassword == null || oldPassword.length() < 1) {
-            if (pwmSession.getSessionManager().getActor().getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+            if (pwmSession.getSessionManager().getActor(pwmApplication).getChaiProvider().getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
                 setPasswordWithoutOld = true;
             }
         }
@@ -268,7 +268,7 @@ public class PasswordUtility {
 
         final long passwordSetTimestamp = System.currentTimeMillis();
         try {
-            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
             if (setPasswordWithoutOld) {
                 theUser.setPassword(newPassword, true);
@@ -306,10 +306,10 @@ public class PasswordUtility {
         uiBean.setAuthenticationType(UserInfoBean.AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(), uiBean.getPasswordPolicy(), uiBean));
+        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(pwmApplication), uiBean.getPasswordPolicy(), uiBean));
 
         // create a proxy user object for pwm to update/read the user.
-        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor();
+        final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor(pwmApplication);
 
         // update statistics
         {

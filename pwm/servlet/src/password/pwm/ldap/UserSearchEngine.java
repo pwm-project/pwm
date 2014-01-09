@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
@@ -36,7 +37,10 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DuplicateMode;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -231,19 +235,37 @@ public class UserSearchEngine {
 
         final List<String> errors = new ArrayList<String>();
 
+        final long profileRetryDelayMS = Long.valueOf(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROFILE_RETRY_DELAY));
         for (final LdapProfile ldapProfile : ldapProfiles) {
             if (returnMap.size() < maxResults) {
-                try {
-                    returnMap.putAll(performMultiUserSearchImpl(pwmSession, ldapProfile, searchConfiguration, maxResults - returnMap.size(), returnAttributes));
-                } catch (PwmUnrecoverableException e) {
-                    if (ignoreUnreachableProfiles && e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
-                        errors.add(e.getErrorInformation().getDetailedErrorMsg());
-                        if (errors.size() >= ldapProfiles.size()) {
-                            final String errorMsg = "all ldap profiles are unreachable; errors: " + Helper.getGson().toJson(errors);
-                            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
+                boolean skipProfile = false;
+                final Date lastLdapFailure = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile);
+                if (ldapProfiles.size() > 1 && lastLdapFailure != null && TimeDuration.fromCurrent(lastLdapFailure).isShorterThan(profileRetryDelayMS)) {
+                    LOGGER.info("skipping user search on ldap profile " + ldapProfile.getIdentifier() + " due to recent unreachable status (" + TimeDuration.fromCurrent(lastLdapFailure).asCompactString() + ")");
+                    skipProfile = true;
+                }
+                if (!skipProfile) {
+                    try {
+                        returnMap.putAll(performMultiUserSearchImpl(
+                                pwmSession,
+                                ldapProfile,
+                                searchConfiguration,
+                                maxResults - returnMap.size(),
+                                returnAttributes)
+                        );
+                    } catch (PwmUnrecoverableException e) {
+                        if (e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
+                            pwmApplication.getLdapConnectionService().setLastLdapFailure(ldapProfile,e.getErrorInformation());
+                            if (ignoreUnreachableProfiles) {
+                                errors.add(e.getErrorInformation().getDetailedErrorMsg());
+                                if (errors.size() >= ldapProfiles.size()) {
+                                    final String errorMsg = "all ldap profiles are unreachable; errors: " + Helper.getGson().toJson(errors);
+                                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
+                                }
+                            } else {
+                                throw e;
+                            }
                         }
-                    } else {
-                        throw e;
                     }
                 }
             }
@@ -349,7 +371,7 @@ public class UserSearchEngine {
         searchHelper.setFilter(searchFilter);
         searchHelper.setAttributes(returnAttributes);
 
-        LOGGER.debug(pwmSession, "performing ldap search for user, base=" + context + " filter=" + searchHelper.toString());
+        LOGGER.debug(pwmSession, "performing ldap search for user, profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString());
 
         final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
 
@@ -536,6 +558,8 @@ public class UserSearchEngine {
 
     public UserIdentity resolveUserDN(final String userDN) throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
         final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
+        final boolean ignoreUnreachableProfiles = pwmApplication.getConfig().readSettingAsBoolean(
+                PwmSetting.LDAP_IGNORE_UNREACHABLE_PROFILES);
         for (final LdapProfile ldapProfile : ldapProfiles) {
             final ChaiProvider provider = pwmApplication.getProxyChaiProvider(ldapProfile.getIdentifier());
             final ChaiUser user = ChaiFactory.createChaiUser(userDN, provider);

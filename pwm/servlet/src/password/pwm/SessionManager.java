@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,14 +32,12 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.PwmLogger;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.util.PwmLogger;
 
-import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +61,6 @@ public class SessionManager implements Serializable {
     private transient volatile ChaiProvider chaiProvider;
 
     final private PwmSession pwmSession;
-    final private transient HttpSession session;
 
     final Lock providerLock = new ReentrantLock();
 
@@ -79,22 +76,18 @@ public class SessionManager implements Serializable {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public SessionManager(final PwmSession pwmSession, final HttpSession httpSession) {
+    public SessionManager(final PwmSession pwmSession) {
         this.pwmSession = pwmSession;
-        this.session = httpSession;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public ChaiProvider getChaiProvider(final UserIdentity userIdentity, final String userPassword)
+    public ChaiProvider getChaiProvider(final PwmApplication pwmApplication, final UserIdentity userIdentity, final String userPassword)
             throws ChaiUnavailableException, PwmUnrecoverableException {
         try {
             providerLock.lock();
             closeConnectionImpl();
-            if (session == null) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"invalid session handle"));
-            }
-            final Configuration config = ContextManager.getPwmApplication(session).getConfig();
+            final Configuration config = pwmApplication.getConfig();
             chaiProvider = makeChaiProvider(pwmSession, userIdentity, userPassword, config);
             return chaiProvider;
         } finally {
@@ -102,7 +95,7 @@ public class SessionManager implements Serializable {
         }
     }
 
-    public ChaiProvider getChaiProvider()
+    public ChaiProvider getChaiProvider(final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final String userPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
@@ -121,11 +114,7 @@ public class SessionManager implements Serializable {
             }
 
             if (chaiProvider == null) {
-                if (session == null) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_BAD_SESSION,"invalid session handle"));
-                }
-
-                final Configuration config = ContextManager.getPwmApplication(session).getConfig();
+                final Configuration config = pwmApplication.getConfig();
                 chaiProvider = makeChaiProvider(pwmSession, userDN, userPassword, config);
             }
 
@@ -205,7 +194,7 @@ public class SessionManager implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public ChaiUser getActor()
+    public ChaiUser getActor(final PwmApplication pwmApplication)
             throws ChaiUnavailableException, PwmUnrecoverableException {
 
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -218,7 +207,7 @@ public class SessionManager implements Serializable {
             throw new IllegalStateException("user not logged in");
         }
 
-        return ChaiFactory.createChaiUser(userDN.getUserDN(), this.getChaiProvider());
+        return ChaiFactory.createChaiUser(userDN.getUserDN(), this.getChaiProvider(pwmApplication));
     }
 
     public boolean hasActiveLdapConnection() {
@@ -253,7 +242,7 @@ public class SessionManager implements Serializable {
         getLruTypingCache().put(key,value);
     }
 
-    public ChaiUser getActor(final UserIdentity userIdentity)
+    public ChaiUser getActor(final PwmApplication pwmApplication, final UserIdentity userIdentity)
             throws PwmUnrecoverableException, ChaiUnavailableException {
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
@@ -262,18 +251,17 @@ public class SessionManager implements Serializable {
         if (thisIdentity.getLdapProfileID() == null || userIdentity.getLdapProfileID() == null) {
             throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
         }
-        final ChaiProvider provider = this.getChaiProvider();
+        final ChaiProvider provider = this.getChaiProvider(pwmApplication);
         return ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
     }
 
-    public UserDataReader getUserDataReader() throws PwmUnrecoverableException, ChaiUnavailableException {
+    public UserDataReader getUserDataReader(final PwmApplication pwmApplication) throws PwmUnrecoverableException, ChaiUnavailableException {
         if (pwmSession == null || !pwmSession.getSessionStateBean().isAuthenticated()) {
             return null;
         }
 
         if (userDataReader == null) {
-            userDataReader = UserDataReader.appProxiedReader(ContextManager.getPwmApplication(session),
-                    pwmSession.getUserInfoBean().getUserIdentity());
+            userDataReader = UserDataReader.appProxiedReader(pwmApplication, pwmSession.getUserInfoBean().getUserIdentity());
         }
         return userDataReader;
     }

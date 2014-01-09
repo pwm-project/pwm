@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,12 @@ package password.pwm.servlet;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
-import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
@@ -52,7 +53,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import password.pwm.config.Configuration;
 
 /**
  * Processes a variety of different commands sent in an HTTP Request, including logoff.
@@ -271,7 +271,7 @@ public class CommandServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
             for (final FormConfiguration formItem : updateFormFields) {
                 try {
-                    formValues.put(formItem, pwmSession.getSessionManager().getUserDataReader().readStringAttribute(formItem.getName()));
+                    formValues.put(formItem, pwmSession.getSessionManager().getUserDataReader(pwmApplication).readStringAttribute(formItem.getName()));
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession,"error reading attribute while executing checkProfile, attribute=" + formItem.getName() + ", error: " + e.getMessage());
                 }

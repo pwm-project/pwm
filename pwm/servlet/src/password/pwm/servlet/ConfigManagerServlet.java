@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,10 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -342,16 +345,25 @@ public class ConfigManagerServlet extends TopServlet {
             zipOutput.closeEntry();
         }
         {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "services.json"));
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "info.json"));
             final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<String, Object>();
-            for (final PwmService service : pwmApplication.getPwmServices()) {
-                final LinkedHashMap<String,Object> serviceOutput = new LinkedHashMap<String, Object>();
-                serviceOutput.put("name", service.getClass().getSimpleName());
-                serviceOutput.put("status",service.status());
-                serviceOutput.put("health",service.healthCheck());
-                serviceOutput.put("serviceInfo",service.serviceInfo());
-                outputMap.put(service.getClass().getSimpleName(),serviceOutput);
+
+            { // services info
+                final LinkedHashMap<String,Object> servicesMap = new LinkedHashMap<String, Object>();
+                for (final PwmService service : pwmApplication.getPwmServices()) {
+                    final LinkedHashMap<String,Object> serviceOutput = new LinkedHashMap<String, Object>();
+                    serviceOutput.put("name", service.getClass().getSimpleName());
+                    serviceOutput.put("status",service.status());
+                    serviceOutput.put("health",service.healthCheck());
+                    serviceOutput.put("serviceInfo",service.serviceInfo());
+                    servicesMap.put(service.getClass().getSimpleName(), serviceOutput);
+                }
+                outputMap.put("services",servicesMap);
             }
+
+            // java threads
+            outputMap.put("threads",Thread.getAllStackTraces());
+
             final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
   --%>
 
 <%@ page import="password.pwm.util.LocalDBLogger" %>
-<%@ page import="password.pwm.util.*" %>
+<%@ page import="password.pwm.util.PwmLogEvent" %>
+<%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
 <!DOCTYPE html>
 
@@ -32,13 +33,13 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
 <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "");%>
-<body onload="pwmPageLoadHandler();" class="nihilo">
+<body class="nihilo">
 <% if ("".equals(selectedLevel)) { %>
 <div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         showWaitDialog(null,null,function(){
-            openLogViewer('INFO');
+            PWM_MAIN.openLogViewer('INFO');
         });
     });
 </script>
@@ -46,11 +47,11 @@
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a style="cursor: pointer" onclick="showWaitDialog(null,null,function(){openLogViewer('<%=selectedLevel%>')});">refresh</a>
+    <a style="cursor: pointer" onclick="showWaitDialog(null,null,function(){PWM_MAIN.openLogViewer('<%=selectedLevel%>')});">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a style="cursor: pointer" onclick="self.close()">close</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;showWaitDialog(null,null,function(){openLogViewer(level)});">
+    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;showWaitDialog(null,null,function(){PWM_MAIN.openLogViewer(level)});">
         <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
         </option>
         <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR

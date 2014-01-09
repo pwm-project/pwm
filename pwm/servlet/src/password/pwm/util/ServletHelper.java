@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -506,7 +506,11 @@ public class ServletHelper {
         final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
         while (oldSessionAttrNames.hasMoreElements()) {
             final String attrName = (String)oldSessionAttrNames.nextElement();
-            sessionAttributes.put(attrName,oldSession.getAttribute(attrName));
+            sessionAttributes.put(attrName, oldSession.getAttribute(attrName));
+        } 
+
+        for (final String attrName : sessionAttributes.keySet()) {
+            oldSession.removeAttribute(attrName);
         }
 
         //invalidate the old session
@@ -519,7 +523,6 @@ public class ServletHelper {
         for (final String attrName : sessionAttributes.keySet()) {
             newSession.setAttribute(attrName, sessionAttributes.get(attrName));
         }
-        pwmSession.setHttpSession(newSession);
 
         //require session validation again
         pwmSession.getSessionStateBean().setSessionVerified(false);
@@ -540,6 +543,7 @@ public class ServletHelper {
         // mark if first request
         if (ssBean.getSessionCreationTime() == null) {
             ssBean.setSessionCreationTime(new Date());
+            ssBean.setSessionLastAccessedTime(new Date());
         }
 
         // mark session ip address
@@ -574,7 +578,7 @@ public class ServletHelper {
         final String localeCookie = ServletHelper.readCookie(req,localeCookieName);
         if (localeCookieName.length() > 0 && localeCookie != null) {
             LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
-            pwmSession.setLocale(localeCookie);
+            pwmSession.setLocale(pwmApplication, localeCookie);
         } else {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
             final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);

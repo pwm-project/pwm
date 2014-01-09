@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -393,7 +393,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
             newTableRow.appendChild(td1);
 
 
-            if (itemCount(clientSettingCache[settingKey]) > 1) {
+            if (PWM_MAIN.itemCount(clientSettingCache[settingKey]) > 1) {
                 var imgElement = document.createElement("img");
                 imgElement.setAttribute("style", "width: 10px; height: 10px");
                 imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
@@ -603,7 +603,7 @@ FormTableHandler.redraw = function(keyName) {
     clearDivElements(parentDiv, false);
     var parentDivElement = getObject(parentDiv);
 
-    if (!isEmpty(resultValue)) {
+    if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
         headerRow.setAttribute("style", "border-width: 0");
 
@@ -1438,7 +1438,7 @@ ActionHandler.redraw = function(keyName) {
     clearDivElements(parentDiv, false);
     var parentDivElement = getObject(parentDiv);
 
-    if (!isEmpty(resultValue)) {
+    if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
         headerRow.setAttribute("style", "border-width: 0");
 
@@ -1825,7 +1825,7 @@ EmailTableHandler.draw = function(keyName) {
                 EmailTableHandler.drawRow(keyName,localeName,parentDiv)
             }
 
-            if (isEmpty(resultValue)) {
+            if (PWM_MAIN.isEmpty(resultValue)) {
                 var newTableRow = document.createElement("tr");
                 newTableRow.setAttribute("style", "border-width: 0");
                 newTableRow.setAttribute("colspan", "5");
@@ -1941,7 +1941,7 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
                 spacerTableRow.appendChild(spacerTableData);
             }
 
-            if (localeName != '' || itemCount(clientSettingCache[keyName])){ // add remove locale x
+            if (localeName != '' || PWM_MAIN.itemCount(clientSettingCache[keyName])){ // add remove locale x
                 var imgElement2 = document.createElement("img");
                 imgElement2.setAttribute("style", "width: 12px; height: 12px;");
                 imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
@@ -2691,19 +2691,19 @@ function handleResetClick(settingKey) {
     });
 }
 
-function initConfigEditor() {
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        readConfigEditorCookie();
-        buildMenuBar();
+function initConfigEditor(nextFunction) {
+    readConfigEditorCookie();
+    buildMenuBar();
 
-        var hasNotes = PWM_GLOBAL['configurationNotes'] && PWM_GLOBAL['configurationNotes'].length > 0;
+    var hasNotes = PWM_GLOBAL['configurationNotes'] && PWM_GLOBAL['configurationNotes'].length > 0;
 
-        if (hasNotes && preferences['notesSeen']) {
-            showPwmAlert(null,PWM_SETTINGS['display']['Warning_ShowNotes']);
-        }
-    });
+    if (hasNotes && preferences['notesSeen']) {
+        showPwmAlert(null,PWM_SETTINGS['display']['Warning_ShowNotes']);
+    }
 
-    initConfigPage();
+    if (nextFunction) {
+        nextFunction();
+    }
 }
 
 function executeSettingFunction(setting, profile, name) {
@@ -2787,7 +2787,7 @@ function searchDialog(reentrant) {
             } else {
                 var bodyText = '';
                 var resultCount = 0;
-                if (isEmpty(data['data'])) {
+                if (PWM_MAIN.isEmpty(data['data'])) {
                     showSuccess(PWM_STRINGS['Display_SearchResultsNone']);
                 } else {
                     for (var categoryIter in data['data']) {
@@ -2813,7 +2813,7 @@ function searchDialog(reentrant) {
                     }
                 }
                 getObject('settingSearchResults').innerHTML = bodyText;
-                if (!isEmpty(data['data'])) {
+                if (!PWM_MAIN.isEmpty(data['data'])) {
                     (function(){
                         require(["dijit/Tooltip"],function(Tooltip){
                             for (var categoryIter in data['data']) {
@@ -2843,7 +2843,7 @@ function searchDialog(reentrant) {
         };
         getObject('settingSearchResults').innerHTML = '<div id="WaitDialogBlank" style="vertical-align: middle"/>';
         getObject('settingSearchResults').click();
-        pwmFormValidator(validationProps);
+        PWM_MAIN.pwmFormValidator(validationProps);
     } else {
         var htmlBody = '<div>';
         htmlBody += '<span id="message" class="message message-info" style="width: 400">Search setting names, descriptions and values.</span><br/>';

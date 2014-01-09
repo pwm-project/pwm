@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,15 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.health.HealthRecord" %>
-<%@ page import="password.pwm.health.HealthStatus" %>
-<%@ page import="java.util.Set" %>
 <%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.util.PwmServletURLHelper" %>
 <% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
 <% final boolean adminUser = Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody); %>
-<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE || adminUser; %>
+<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
 <% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser; %>
 <% if (showHeader || healthCheck) { %>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
@@ -40,7 +37,7 @@
     <% } else if (adminUser) { %>
     <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
     <% } %>
-    &nbsp;&nbsp;<a onclick="openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
+    &nbsp;&nbsp;<a onclick="PWM_MAIN.openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
     <div id="headerHealthData" onclick="window.location = '<%=configManagerUrl%>'" style="cursor: pointer">
     </div>
@@ -48,7 +45,7 @@
 <% if (healthCheck) { %>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        showHeaderHealth();
+        PWM_MAIN.showHeaderHealth();
     });
 </script>
 <% } %>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,10 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.RandomPasswordGenerator;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.PasswordUtility;
@@ -97,7 +100,7 @@ public class UserAuthenticator {
 
         boolean allowBindAsUser = true;
         try {
-            testCredentials(userIdentity, password, pwmSession);
+            testCredentials(userIdentity, password, pwmApplication, pwmSession);
         } catch (PwmOperationalException e) {
             final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD);
             final boolean ldapVendorIsAD = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
@@ -294,6 +297,7 @@ public class UserAuthenticator {
     public static void testCredentials(
             final UserIdentity userIdentity,
             final String password,
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
@@ -316,7 +320,7 @@ public class UserAuthenticator {
         LOGGER.trace(pwmSession, "attempting authentication using ldap BIND");
         try {
             //get a provider using the user's DN and password.
-            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(userIdentity, password);
+            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication, userIdentity, password);
 
             //issue a read operation to trigger a bind.
             testProvider.readStringAttribute(userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS);
@@ -366,7 +370,7 @@ public class UserAuthenticator {
         LOGGER.trace(pwmSession, "attempting authentication using ldap BIND");
         try {
             //get a provider using the user's DN and password.
-            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(userIdentity, bogusPassword);
+            final ChaiProvider testProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication, userIdentity, bogusPassword);
 
             //issue a read operation to trigger a bind.
             testProvider.readStringAttribute(userIdentity.getUserDN(), ChaiConstant.ATTR_LDAP_OBJECTCLASS);

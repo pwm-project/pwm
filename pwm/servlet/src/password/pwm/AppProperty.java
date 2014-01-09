@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,8 @@ public enum AppProperty {
     INTRUDER_DELAY_MAX_JITTER_MS                    ("intruder.delayMaxJitterMS"),
     HEALTH_CERTIFICATE_WARN_SECONDS                 ("health.certificate.warnSeconds"),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ("health.ldap.cautionDurationMS"),
-    LDAP_CONNECTION_TIMEOUT                         ("ldap.connectionTimeoutMS"),
+    LDAP_CONNECTION_TIMEOUT                         ("ldap.connection.timeoutMS"),
+    LDAP_PROFILE_RETRY_DELAY                        ("ldap.profile.retryDelayMS"),
     LDAP_PROMISCUOUS_ENABLE                         ("ldap.promiscuousEnable"),
     LOGGING_PATTERN                                 ("logging.pattern"),
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
@@ -92,10 +93,6 @@ public enum AppProperty {
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),
 
-
-
-
-
     ;
 
     public static final String VALUE_SEPARATOR = ";;;";
@@ -110,6 +107,15 @@ public enum AppProperty {
 
     public String getKey() {
         return key;
+    }
+
+    public static AppProperty forKey(final String key) {
+        for (final AppProperty appProperty : AppProperty.values()) {
+            if (appProperty.getKey().equals(key)) {
+                return appProperty;
+            }
+        }
+        return null;
     }
 
     public String getDefaultValue() {

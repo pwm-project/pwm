@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -131,7 +131,7 @@ public class RestSetPasswordServer {
 
             /* helpdesk set password */
             if (restRequestBean.getUserIdentity() != null) {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getUserIdentity());
+                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 final String newPassword;
                 if (random) {
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser, restRequestBean.getPwmSession().getSessionStateBean().getLocale());
@@ -153,7 +153,7 @@ public class RestSetPasswordServer {
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
                         newPassword,
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider(restRequestBean.getPwmApplication())
                 );
                 jsonResultData.password = null;
                 jsonResultData.username = restRequestBean.getUserIdentity().toDeliminatedKey();

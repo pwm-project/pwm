@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,20 +27,19 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.PeopleSearchBean;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -52,8 +51,6 @@ import java.util.*;
 public class PeopleSearchServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PeopleSearchServlet.class);
-
-    private static final String KEY_RESULTS_EXCEEDED = "KEY_RESULTS_EXCEEDED";
 
     @Override
     protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
@@ -163,9 +160,10 @@ public class PeopleSearchServlet extends TopServlet {
             }
 
             if (!ldapResults.isEmpty()) {
-                final boolean resultsExceeded = ldapResults.containsKey(KEY_RESULTS_EXCEEDED);
-                ldapResults.remove(KEY_RESULTS_EXCEEDED);
                 final Map<UserIdentity,Map<String,String>> outputMap = Collections.unmodifiableMap(ldapResults);
+
+                final int maxResults = (int)config.readSettingAsLong(PwmSetting.PEOPLE_SEARCH_RESULT_LIMIT);
+                final boolean resultsExceeded = ldapResults.size() > maxResults;
                 return new UserSearchEngine.UserSearchResults(attributeHeaderMap,outputMap,resultsExceeded);
             }
         } catch (ChaiOperationException e) {
@@ -193,7 +191,7 @@ public class PeopleSearchServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
         final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.PEOPLE_SEARCH_DETAIL_FORM);
         final Map<String,String> attributeHeaderMap = UserSearchEngine.UserSearchResults.fromFormConfiguration(detailFormConfig, pwmSession.getSessionStateBean().getLocale());
-        final ChaiUser theUser = pwmSession.getSessionManager().getActor(userIdentity);
+        final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
         Map<String,String> values = null;
         try {
             values = theUser.readStringAttributes(attributeHeaderMap.keySet());
@@ -216,7 +214,7 @@ public class PeopleSearchServlet extends TopServlet {
 
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         if (!config.readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY)) {
-            final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
+            final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
             searchConfiguration.setLdapProfile(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
             searchConfiguration.setChaiProvider(chaiProvider);
         }

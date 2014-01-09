@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,7 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
     public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
+    public static final String REQUEST_ATTR_NO_PWM_MAIN_INIT = "pwm.noPwmMainInit";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 

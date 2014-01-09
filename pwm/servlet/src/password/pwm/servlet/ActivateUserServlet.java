@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,8 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserAuthenticator;
-import password.pwm.ldap.UserDataReader;import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusHelper;
 import password.pwm.token.TokenPayload;
 import password.pwm.util.Helper;
@@ -47,7 +48,7 @@ import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
-import password.pwm.util.operations.*;
+import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -453,7 +454,7 @@ public class ActivateUserServlet extends TopServlet {
             return false;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader());
+        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader(pwmApplication));
         return true;
     }
 
@@ -463,7 +464,7 @@ public class ActivateUserServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
-        final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader();
+        final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
         String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);

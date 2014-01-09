@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.i18n.Display;
-import password.pwm.util.*;
 import password.pwm.ldap.UserAuthenticator;
+import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.*;
@@ -179,7 +179,6 @@ public class AuthenticationFilter implements Filter {
                     authUserUsingBasicHeader(req, authInfo);
                 } catch (ChaiUnavailableException e) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-                    pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
                     ssBean.setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
                     ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
                     return;
@@ -379,7 +378,6 @@ public class AuthenticationFilter implements Filter {
             }
         } catch (ChaiUnavailableException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage()));
             pwmSession.getSessionStateBean().setSessionError(PwmError.ERROR_DIRECTORY_UNAVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return true;

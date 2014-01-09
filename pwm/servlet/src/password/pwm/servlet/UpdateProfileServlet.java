@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.servlet.UpdateProfileBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.servlet.UpdateProfileBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
@@ -41,12 +41,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.ActionExecutor;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
@@ -124,7 +124,6 @@ public class UpdateProfileServlet extends TopServlet {
     {
         boolean success = true;
         String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UPDATE_FORM, pwmApplication.getConfig());
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
 
         try {
@@ -188,7 +187,7 @@ public class UpdateProfileServlet extends TopServlet {
         if (!updateProfileBean.isFormSubmitted()) {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
             final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-            populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader());
+            populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
             forwardToJSP(req,resp);
             return;
         }
@@ -227,7 +226,7 @@ public class UpdateProfileServlet extends TopServlet {
 
         try {
             // write the form values
-            final ChaiUser theUser = pwmSession.getSessionManager().getActor();
+            final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             doProfileUpdate(pwmApplication, pwmSession, formValues, theUser);
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UPDATE_ATTRIBUTES, null);
             ServletHelper.forwardToSuccessPage(req, resp);
@@ -348,7 +347,7 @@ public class UpdateProfileServlet extends TopServlet {
         // write values.
         LOGGER.info("updating profile for " + pwmSession.getUserInfoBean().getUserIdentity());
 
-        pwmSession.getSessionManager().getChaiProvider();
+        pwmSession.getSessionManager().getChaiProvider(pwmApplication);
 
         Helper.writeFormValuesToLdap(pwmApplication, pwmSession, theUser, formValues, false);
 
@@ -403,7 +402,7 @@ public class UpdateProfileServlet extends TopServlet {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         //read current values from user.
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
+        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
 
         // see if the values meet form requirements.
         Validator.validateParmValuesMeetRequirements(formValues, userLocale);

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,12 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="java.math.BigDecimal" %>
-<%@ page import="java.math.RoundingMode" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -35,7 +33,7 @@
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body class="nihilo" onload="pwmPageLoadHandler();">
+<body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Activity"/>
@@ -144,9 +142,9 @@
         require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
             dojoParser.parse();
 
-            showStatChart('PASSWORD_CHANGES',14,'statsChart');
+            PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
             setInterval(function(){
-                showStatChart('PASSWORD_CHANGES',14,'statsChart');
+                PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
             }, 11 * 1000);
         });
     }

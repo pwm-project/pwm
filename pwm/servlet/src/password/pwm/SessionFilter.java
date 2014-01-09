@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -405,7 +405,7 @@ public class SessionFilter implements Filter {
         final String requestedLocale = Validator.readStringFromRequest(request, localeParamName);
         if (requestedLocale != null && requestedLocale.length() > 0) {
             LOGGER.debug(pwmSession, "detected locale request parameter " + localeParamName+ " with value " + requestedLocale);
-            if (pwmSession.setLocale(requestedLocale)) {
+            if (pwmSession.setLocale(pwmApplication,requestedLocale)) {
                 final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
                 newCookie.setMaxAge(PwmConstants.USER_COOKIE_MAX_AGE_SECONDS);
                 newCookie.setPath(request.getContextPath() + "/");

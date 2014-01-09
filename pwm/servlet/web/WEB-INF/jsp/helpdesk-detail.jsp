@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,24 +20,23 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
+<%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
+<%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.servlet.HelpdeskServlet" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
-<%@ page import="password.pwm.config.PwmPasswordRule" %>
-<%@ page import="password.pwm.ldap.UserSearchEngine" %>
-<%@ page import="password.pwm.bean.ResponseInfoBean" %>
-<%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.i18n.Display" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -51,9 +50,8 @@
 <% final String obfuscatedDN = helpdeskBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmApplication.getConfig()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<body onload="pwmPageLoadHandler()" class="nihilo">
-<script type="text/javascript"
-        src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<body class="nihilo">
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>

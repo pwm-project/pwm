@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,16 @@
 
 package password.pwm.ws.server.rest;
 
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.bean.PasswordStatus;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.tag.PasswordRequirementsTag;
 import password.pwm.ldap.UserStatusHelper;
+import password.pwm.tag.PasswordRequirementsTag;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -129,7 +129,7 @@ public class RestStatusServer {
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
                         null,
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider(restRequestBean.getPwmApplication())
                 );
             } else {
                 userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();

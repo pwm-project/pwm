@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -41,7 +41,7 @@
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = cookie.getCategory(); %>
-<body class="nihilo" onload="initConfigEditor()">
+<body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript">
@@ -104,6 +104,10 @@
     <div class="push"></div>
 </div>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
+<script type="text/javascript">
+    initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
+</script>
 </body>
 </html>

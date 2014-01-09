@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,10 @@ import password.pwm.bean.ConfigEditorCookie;
 import password.pwm.bean.servlet.ConfigManagerBean;
 import password.pwm.config.*;
 import password.pwm.config.value.ValueFactory;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -540,6 +543,66 @@ public class ConfigEditorServlet extends TopServlet {
             restResultBean.setData(new ArrayList<StoredConfiguration.ConfigRecordID>());
         }
 
+        ServletHelper.outputJsonResult(resp,restResultBean);
+    }
+
+    private void restReadProperties(
+            final ConfigManagerBean configManagerBean,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, PwmUnrecoverableException {
+        final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
+        final LinkedHashMap<String,String> returnMap = new LinkedHashMap<String, String>();
+        for (final AppProperty appProperty : AppProperty.values()) {
+            final String value = storedConfig.readAppProperty(appProperty);
+            if (value != null) {
+                returnMap.put(appProperty.getKey(),value);
+            }
+        }
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(returnMap);
+        ServletHelper.outputJsonResult(resp, restResultBean);
+    }
+
+    private void restWriteProperties(
+            final ConfigManagerBean configManagerBean,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final String bodyString = ServletHelper.readRequestBody(req);
+        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyString,
+                new TypeToken<Map<String, String>>() {
+                }.getType());
+
+
+        final Set<AppProperty> storedProperties = new LinkedHashSet<AppProperty>();
+        for (final AppProperty appProperty : AppProperty.values()) {
+            final String value = configManagerBean.getConfiguration().readAppProperty(appProperty);
+            if (value != null) {
+                storedProperties.add(appProperty);
+            }
+        }
+
+        final Set<AppProperty> seenProperties = new LinkedHashSet<AppProperty>();
+        for (final String key : valueMap.keySet()) {
+            final AppProperty appProperty = AppProperty.forKey(key);
+            if (appProperty != null) {
+                configManagerBean.getConfiguration().writeAppProperty(appProperty,valueMap.get(key));
+                seenProperties.add(appProperty);
+            }
+        }
+
+        final Set<AppProperty> removedProps = new LinkedHashSet<AppProperty>();
+        removedProps.addAll(storedProperties);
+        removedProps.removeAll(seenProperties);
+        for (final AppProperty appProperty : removedProps) {
+            configManagerBean.getConfiguration().writeAppProperty(appProperty,null);
+        }
+
+        final RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 }

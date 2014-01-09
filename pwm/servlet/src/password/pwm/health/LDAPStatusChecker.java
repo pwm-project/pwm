@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,21 +89,23 @@ public class LDAPStatusChecker implements HealthChecker {
             returnRecords.addAll(profileRecords);
         }
 
-        final ErrorInformation errorInfo = pwmApplication.getLastLdapFailure();
-        if (errorInfo != null) {
-            final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
+        for (LdapProfile ldapProfile : pwmApplication.getLdapConnectionService().getLastLdapFailure().keySet()) {
+            final ErrorInformation errorInfo = pwmApplication.getLdapConnectionService().getLastLdapFailure().get(ldapProfile);
+            if (errorInfo != null) {
+                final TimeDuration errorAge = TimeDuration.fromCurrent(errorInfo.getDate().getTime());
 
-            final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
-            if (errorAge.isShorterThan(cautionDurationMS)) {
-                final String ageString = errorAge.asLongString();
-                final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
-                final String errorMsg = errorInfo.toDebugStr();
-                returnRecords.add(
-                        new HealthRecord(
-                                HealthStatus.CAUTION,
-                                TOPIC,
-                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_RecentlyUnreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
-                        ));
+                final long cautionDurationMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_LDAP_CAUTION_DURATION_MS));
+                if (errorAge.isShorterThan(cautionDurationMS)) {
+                    final String ageString = errorAge.asLongString();
+                    final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
+                    final String errorMsg = errorInfo.toDebugStr();
+                    returnRecords.add(
+                            new HealthRecord(
+                                    HealthStatus.CAUTION,
+                                    makeLdapTopic(ldapProfile,pwmApplication.getConfig()),
+                                    LocaleHelper.getLocalizedMessage(null,"Health_LDAP_RecentlyUnreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
+                            ));
+                }
             }
         }
 
@@ -326,7 +328,8 @@ public class LDAPStatusChecker implements HealthChecker {
                         HealthStatus.WARN,
                         makeLdapTopic(ldapProfile, config),
                         errorString.toString()));
-                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
+                pwmApplication.getLdapConnectionService().setLastLdapFailure(ldapProfile,
+                        new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
             } catch (Exception e) {
                 HealthRecord record = new HealthRecord(
@@ -335,7 +338,8 @@ public class LDAPStatusChecker implements HealthChecker {
                         HealthMessage.LDAP_No_Connection,
                         new String[]{e.getMessage()});
                 returnRecords.add(record);
-                pwmApplication.setLastLdapFailure(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
+                pwmApplication.getLdapConnectionService().setLastLdapFailure(ldapProfile,
+                        new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));
                 return returnRecords;
             }
 
