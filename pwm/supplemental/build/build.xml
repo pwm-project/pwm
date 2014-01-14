@@ -118,6 +118,7 @@
                 <exclude name="**/BuildInformation.properties"/>
             </zipfileset>
             <zipfileset dir="${sourceDir}" includes="**/*.xml"/>
+            <zipfileset dir="${sourceDir}" includes="**/*.xsd"/>
             <manifest>
                 <attribute name="Main-Class" value="password.pwm.util.JarMain"/>
             </manifest>
