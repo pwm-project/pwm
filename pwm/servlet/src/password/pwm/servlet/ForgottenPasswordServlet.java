@@ -31,6 +31,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.*;
+import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.servlet.ForgottenPasswordBean;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
@@ -70,6 +71,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
 // -------------------------- OTHER METHODS --------------------------
 
+    @Override
     public void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -250,7 +252,6 @@ public class ForgottenPasswordServlet extends TopServlet {
                         if (userLastPasswordChange != null && dateStringInToken != null) {
                             final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
                             if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
-                                tokenPass = false;
                                 final String errorString = "user password has changed since token issued, token rejected";
                                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
                                 LOGGER.error(pwmSession, errorInfo.toDebugStr());
@@ -275,7 +276,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (tokenPass) {
             forgottenPasswordBean.setUserIdentity(userIdentity);
             forgottenPasswordBean.setTokenSatisfied(true);
-            if (tokenPayload.getDest() != null) {
+            if (tokenPayload != null && tokenPayload.getDest() != null) {
                 for (final String dest : tokenPayload.getDest()) {
                     pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
                 }
@@ -356,7 +357,11 @@ public class ForgottenPasswordServlet extends TopServlet {
             Locale responseSetLocale = pwmSession.getSessionStateBean().getLocale();
             try {
                 responseSetLocale = responseSet.getLocale();
-            } catch (Exception e) {
+            } catch (ChaiOperationException e) {
+                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
+            } catch (ChaiUnavailableException e) {
+                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
+            } catch (IllegalStateException e) {
                 LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
             }
 
@@ -898,7 +903,11 @@ public class ForgottenPasswordServlet extends TopServlet {
                 tokenSendDisplay.append(toEmailAddr);
                 dest.add(toEmailAddr);
             }
-        } catch (Exception e) {
+        } catch (ChaiOperationException e) {
+            LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
+        } catch (ChaiUnavailableException e) {
+            LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
+        } catch (PwmUnrecoverableException e) {
             LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
         }
 
@@ -915,7 +924,11 @@ public class ForgottenPasswordServlet extends TopServlet {
                 tokenSendDisplay.append(toSmsNumber);
                 dest.add(toSmsNumber);
             }
-        } catch (Exception e) {
+        } catch (ChaiOperationException e) {
+            LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
+        } catch (ChaiUnavailableException e) {
+            LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
+        } catch (PwmUnrecoverableException e) {
             LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
         }
         forgottenPasswordBean.setTokenSendAddress(tokenSendDisplay.toString());
@@ -1009,10 +1022,12 @@ public class ForgottenPasswordServlet extends TopServlet {
     )
     {
         final PostChangePasswordAction postAction = new PostChangePasswordAction() {
+            @Override
             public String getLabel() {
                 return "Forgotten Password Post Actions";
             }
 
+            @Override
             public boolean doAction(final PwmSession pwmSession, final String newPassword)
                     throws PwmUnrecoverableException {
                 try {
