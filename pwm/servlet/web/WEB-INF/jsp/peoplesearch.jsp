@@ -38,7 +38,7 @@
     </jsp:include>
     <div id="centerbody">
         <form action="<pwm:url url='PeopleSearch'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="return handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
             <%@ include file="fragment/message.jsp" %>
             <p>&nbsp;</p>
 
@@ -101,7 +101,7 @@
         <script async="async">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 require(["dojo/domReady!"],function(){
-                    getObject("waitMessage").style.display = 'inline';
+                    PWM_MAIN.getObject("waitMessage").style.display = 'inline';
                     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
                             function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
                                 var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmApplicationHeader))%>;
@@ -121,7 +121,7 @@
                                     var row = grid.row(evt);
                                     loadDetails(row.data['userKey']);
                                 });
-                                getObject("waitMessage").style.display = 'none';
+                                PWM_MAIN.getObject("waitMessage").style.display = 'none';
                             });
                 });
             });
@@ -151,16 +151,16 @@
 </form>
 <script type="text/javascript">
     function loadDetails(userKey) {
-        showWaitDialog(null,null,function(){
+        PWM_MAIN.showWaitDialog(null,null,function(){
             setTimeout(function(){
-                getObject("userKey").value = userKey;
-                getObject("loadDetailsForm").submit();
+                PWM_MAIN.getObject("userKey").value = userKey;
+                PWM_MAIN.getObject("loadDetailsForm").submit();
             },10);
         });
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('username').focus();
+        PWM_MAIN.getObject('username').focus();
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

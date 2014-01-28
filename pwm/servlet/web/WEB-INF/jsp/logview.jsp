@@ -38,8 +38,8 @@
 <div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        showWaitDialog(null,null,function(){
-            PWM_MAIN.openLogViewer('INFO');
+        PWM_MAIN.showWaitDialog(null,null,function(){
+            PWM_CONFIG.openLogViewer('INFO');
         });
     });
 </script>
@@ -47,11 +47,11 @@
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a style="cursor: pointer" onclick="showWaitDialog(null,null,function(){PWM_MAIN.openLogViewer('<%=selectedLevel%>')});">refresh</a>
+    <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog(null,null,function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')});">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a style="cursor: pointer" onclick="self.close()">close</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;showWaitDialog(null,null,function(){PWM_MAIN.openLogViewer(level)});">
+    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;PWM_MAIN.showWaitDialog(null,null,function(){PWM_CONFIG.openLogViewer(level)});">
         <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
         </option>
         <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR
@@ -67,7 +67,7 @@
     </select>
 </div>
 <%
-    final PwmLogLevel logLevel = PwmLogLevel.valueOf(selectedLevel);
+    PwmLogLevel logLevel; try { logLevel=PwmLogLevel.valueOf(selectedLevel); } catch (Exception e) { logLevel=PwmLogLevel.INFO; }
     final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     final int eventCount = 1000;
     final long maxTime = 10000;
@@ -77,6 +77,7 @@
 <% } %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;

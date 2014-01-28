@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import com.google.gson.*;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.*;
+import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -35,7 +35,10 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import password.pwm.*;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -44,8 +47,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.util.intruder.RecordType;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 
 import javax.crypto.Cipher;
@@ -388,11 +392,11 @@ public class
             throw newException;
         }
 
-        // krowten made me do this shit
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
             if (expandPwmMacros) {
-                attrValue = MacroMachine.expandMacros(attrValue, pwmApplication, userInfoBean, null);
+                final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, null);
+                attrValue = macroMachine.expandMacros(attrValue);
             }
             if (!attrValue.equals(currentValues.get(attrName))) {
                 if (attrValue.length() > 0) {
@@ -714,6 +718,15 @@ public class
                 }
             }
         }
+    }
+
+    public static Date nextZuluZeroTime() {
+        final Calendar nextZuluMidnight = GregorianCalendar.getInstance(TimeZone.getTimeZone("Zulu"));
+        nextZuluMidnight.set(Calendar.HOUR_OF_DAY,0);
+        nextZuluMidnight.set(Calendar.MINUTE,0);
+        nextZuluMidnight.set(Calendar.SECOND, 0);
+        nextZuluMidnight.add(Calendar.HOUR, 24);
+        return nextZuluMidnight.getTime();
     }
 
     public static class SimpleTextCrypto {

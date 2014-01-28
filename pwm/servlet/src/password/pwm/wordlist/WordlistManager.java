@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,19 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
     }
 
 
-    public void init(final LocalDB pwmDB, final WordlistConfiguration wordlistConfiguration) {
+    protected Map<String,String> getWriteTxnForValue(final String value) {
+        return Collections.singletonMap(value,"");
+    }
+
+    public void init(final PwmApplication pwmApplication) throws PwmException {
+        super.init(pwmApplication);
+        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
+        final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
+        final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
+        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
+        final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
+        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive, checkSize);
+
         this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Wordlist";
         this.META_DB = LocalDB.DB.WORDLIST_META;
         this.WORD_DB = LocalDB.DB.WORDLIST_WORDS;
@@ -62,30 +74,15 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
             {
                 LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
                 try {
-                    startup(pwmDB, wordlistConfiguration);
+                    startup(pwmApplication.getLocalDB(), wordlistConfiguration);
                 } catch (Exception e) {
                     try {
                         LOGGER.warn("error during startup: " + e.getMessage());
                     } catch (Exception moreE) { /* probably due to shut down */ }
                 }
             }
-        }, PwmConstants.PWM_APP_NAME + "-WordlistManager initializer/populator");
+        }, Helper.makeThreadName(pwmApplication, WordlistManager.class));
 
         t.start();
-    }
-
-    protected Map<String,String> getWriteTxnForValue(final String value) {
-        return Collections.singletonMap(value,"");
-    }
-
-    public void init(PwmApplication pwmApplication) throws PwmException {
-        final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.WORDLIST_FILENAME);
-        final File wordlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
-        final boolean caseSensitive = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.WORDLIST_CASE_SENSITIVE);
-        final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
-        final int checkSize = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_WORDLIST_WORDSIZE);
-        final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(wordlistFile, loadFactor, caseSensitive, checkSize);
-
-        init(pwmApplication.getLocalDB(),wordlistConfiguration);
     }
 }

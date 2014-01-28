@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
-import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.net.URI;
 import java.util.Collections;
@@ -126,12 +126,13 @@ public class ActionExecutor {
         String body = actionConfiguration.getBody();
         final UserInfoBean userInfoBean = settings.getUserInfoBean();
         final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,settings.getUserInfoBean().getUserIdentity());
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, userDataReader);
 
         try {
             // expand using pwm macros
             if (settings.isExpandPwmMacros()) {
-                url = MacroMachine.expandMacros(url, pwmApplication, userInfoBean, userDataReader, new MacroMachine.URLEncoderReplacer());
-                body = body == null ? "" : MacroMachine.expandMacros(body, pwmApplication, userInfoBean, userDataReader, new MacroMachine.URLEncoderReplacer());
+                url = macroMachine.expandMacros(url, new MacroMachine.URLEncoderReplacer());
+                body = body == null ? "" : macroMachine.expandMacros(body, new MacroMachine.URLEncoderReplacer());
             }
 
             LOGGER.debug("sending HTTP request: " + url);
@@ -163,7 +164,7 @@ public class ActionExecutor {
             if (actionConfiguration.getHeaders() != null) {
                 for (final String headerName : actionConfiguration.getHeaders().keySet()) {
                     String headerValue = actionConfiguration.getHeaders().get(headerName);
-                    headerValue = headerValue == null ? "" : MacroMachine.expandMacros(headerValue, pwmApplication, userInfoBean, userDataReader);
+                    headerValue = headerValue == null ? "" : macroMachine.expandMacros(headerValue);
                     httpRequest.setHeader(headerName,headerValue);
                 }
             }

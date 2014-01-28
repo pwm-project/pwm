@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,20 +20,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.bean;
+package password.pwm.util.report;
 
+import password.pwm.bean.PasswordStatus;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.option.DataStorageMethod;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public class UserStatusCacheBean implements Serializable {
+public class UserCacheRecord implements Serializable {
     public String userDN;
     public String ldapProfile;
     public String userGUID;
 
     public String username;
     public String email;
+
+    public String summaryEpoch;
 
     public Date cacheTimestamp = new Date();
 
@@ -49,6 +53,16 @@ public class UserStatusCacheBean implements Serializable {
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
+
+    public String getSummaryEpoch()
+    {
+        return summaryEpoch;
+    }
+
+    public void setSummaryEpoch(String summaryEpoch)
+    {
+        this.summaryEpoch = summaryEpoch;
+    }
 
     public String getUserDN()
     {
@@ -188,31 +202,29 @@ public class UserStatusCacheBean implements Serializable {
         this.responseStorageMethod = responseStorageMethod;
     }
 
-    public static UserStatusCacheBean cacheBeanFrmInfoBean(final UserInfoBean userInfoBean) {
-        final UserStatusCacheBean userStatusCacheBean = new UserStatusCacheBean();
-        userStatusCacheBean.setUserDN(userInfoBean.getUserIdentity().getUserDN());
-        userStatusCacheBean.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
-        userStatusCacheBean.setUsername(userInfoBean.getUsername());
-        userStatusCacheBean.setEmail(userInfoBean.getUserEmailAddress());
-        userStatusCacheBean.setUserGUID(userInfoBean.getUserGuid());
+    public void addUiBeanData(final UserInfoBean userInfoBean) {
+        this.setUserDN(userInfoBean.getUserIdentity().getUserDN());
+        this.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
+        this.setUsername(userInfoBean.getUsername());
+        this.setEmail(userInfoBean.getUserEmailAddress());
+        this.setUserGUID(userInfoBean.getUserGuid());
 
-        userStatusCacheBean.setPasswordStatus(userInfoBean.getPasswordState());
+        this.setPasswordStatus(userInfoBean.getPasswordState());
 
-        userStatusCacheBean.setPasswordChangeTime(userInfoBean.getPasswordExpirationTime());
-        userStatusCacheBean.setPasswordExpirationTime(userInfoBean.getPasswordExpirationTime());
-        userStatusCacheBean.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
+        this.setPasswordChangeTime(userInfoBean.getPasswordExpirationTime());
+        this.setPasswordExpirationTime(userInfoBean.getPasswordExpirationTime());
+        this.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
 
-        userStatusCacheBean.setHasResponses(userInfoBean.isRequiresResponseConfig());
-        userStatusCacheBean.setResponseSetTime(
+        this.setHasResponses(!userInfoBean.isRequiresResponseConfig());
+        this.setResponseSetTime(
                 userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getTimestamp() : null);
-        userStatusCacheBean.setResponseStorageMethod(
+        this.setResponseStorageMethod(
                 userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getDataStorageMethod() : null);
 
-        userStatusCacheBean.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
-        userStatusCacheBean.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());
-        userStatusCacheBean.setRequiresProfileUpdate(userInfoBean.isRequiresUpdateProfile());
-
-        return userStatusCacheBean;
+        this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
+        this.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());
+        this.setRequiresProfileUpdate(userInfoBean.isRequiresUpdateProfile());
+        this.setCacheTimestamp(new Date());
     }
 
 }

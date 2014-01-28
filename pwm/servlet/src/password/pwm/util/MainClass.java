@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,9 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import org.apache.log4j.*;
-import password.pwm.*;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.ChallengeProfile;
@@ -41,10 +43,11 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
-import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.localdb.*;
+import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -65,7 +68,7 @@ public class MainClass {
             out("  | ExportResponses [location]    Export all saved responses");
             out("  | ImportResponses [location]    Import responses from files");
             out("  | ClearLocalResponses           Clear all responses from the LocalDB");
-            out("  | UserReport      [outputFile]  Dump a user report to the output file (csv format)");
+            out("  | UserReportService      [outputFile]  Dump a user report to the output file (csv format)");
             out("  | ExportLocalDB   [outputFile]  Export the entire LocalDB contents to a backup file");
             out("  | ImportLocalDB   [inputFile]   Import the entire LocalDB contents from a backup file");
             out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
@@ -85,7 +88,7 @@ public class MainClass {
                 handleImportResponses(args);
             } else if ("ClearLocalResponses".equalsIgnoreCase(args[0])) {
                 handleClearLocalResponses();
-            } else if ("UserReport".equalsIgnoreCase(args[0])) {
+            } else if ("UserReportService".equalsIgnoreCase(args[0])) {
                 handleUserReport(args);
             } else if ("ExportLocalDB".equalsIgnoreCase(args[0])) {
                 handleExportLocalDB(args);
@@ -132,7 +135,7 @@ public class MainClass {
         final File workingFolder = new File(".").getCanonicalFile();
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
 
-        final UserReport userReport = new UserReport(pwmApplication);
+        final ReportService userReport = pwmApplication.getUserReportService();
         userReport.outputToCsv(outputFileStream,true,50*1000);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }

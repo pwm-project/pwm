@@ -30,8 +30,8 @@
 <body class="nihilo">
 <script type="text/javascript">
     function updateContinueButton() {
-        var checkBox = getObject("agreeCheckBox");
-        var continueButton = getObject("submitBtn");
+        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+        var continueButton = PWM_MAIN.getObject("submitBtn");
         if (checkBox != null && continueButton != null) {
             if (checkBox.checked) {
                 continueButton.removeAttribute('disabled');
@@ -47,14 +47,15 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
+        <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = MacroMachine.expandMacros(agreementText, pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader()); %>
+        <% final String expandedText = macroMachine.expandMacros(agreementText); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded"
-                  onsubmit="handleFormSubmit('submitBtn',this);return false"
+                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
                   style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"

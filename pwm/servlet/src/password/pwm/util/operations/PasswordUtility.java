@@ -36,15 +36,15 @@ import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
+import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.servlet.ChangePasswordServlet;
-import password.pwm.servlet.HelpdeskServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
@@ -306,7 +306,8 @@ public class PasswordUtility {
         uiBean.setAuthenticationType(UserInfoBean.AuthenticationType.AUTHENTICATED);
 
         // update the uibean's "password expired flag".
-        uiBean.setPasswordState(UserStatusHelper.readPasswordStatus(pwmSession, newPassword, pwmApplication, pwmSession.getSessionManager().getActor(pwmApplication), uiBean.getPasswordPolicy(), uiBean));
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        uiBean.setPasswordState(userStatusReader.readPasswordStatus(pwmSession, newPassword, pwmSession.getSessionManager().getActor(pwmApplication), uiBean.getPasswordPolicy(), uiBean));
 
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = pwmSession.getSessionManager().getActor(pwmApplication);
@@ -341,7 +342,7 @@ public class PasswordUtility {
         }
 
         //update the current last password update field in ldap
-        UserStatusHelper.updateLastUpdateAttribute(pwmSession, pwmApplication, proxiedUser);
+        userStatusReader.updateLastUpdateAttribute(pwmSession, proxiedUser);
     }
 
     public static void helpdeskSetUserPassword(
@@ -408,8 +409,9 @@ public class PasswordUtility {
 
         // create a uib for end user
         final UserInfoBean userInfoBean = new UserInfoBean();
-        UserStatusHelper.populateUserInfoBean(
-                pwmApplication, pwmSession,
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        userStatusReader.populateUserInfoBean(
+                pwmSession,
                 userInfoBean,
                 pwmSession.getSessionStateBean().getLocale(),
                 userIdentity,
@@ -431,8 +433,9 @@ public class PasswordUtility {
             }
         }
 
-        final HelpdeskServlet.SETTING_CLEAR_RESPONSES settingClearResponses = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
-        if (settingClearResponses == HelpdeskServlet.SETTING_CLEAR_RESPONSES.yes) {
+        final HelpdeskClearResponseMode settingClearResponses = HelpdeskClearResponseMode.valueOf(
+                pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
+        if (settingClearResponses == HelpdeskClearResponseMode.yes) {
             final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
@@ -475,7 +478,8 @@ public class PasswordUtility {
     {
         //update the current last password update field in ldap
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        final boolean successfullyWrotePwdUpdateAttr = UserStatusHelper.updateLastUpdateAttribute(pwmSession, pwmApplication, theUser);
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        final boolean successfullyWrotePwdUpdateAttr = userStatusReader.updateLastUpdateAttribute(pwmSession, theUser);
         boolean doReplicaCheck = true;
 
         if (!successfullyWrotePwdUpdateAttr) {

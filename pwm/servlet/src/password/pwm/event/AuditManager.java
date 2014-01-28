@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -160,10 +160,10 @@ public class AuditManager implements PwmService {
             return;
         }
 
-        final List<String> syslogConfigStrings = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_SYSLOG_SERVERS);
-        if (!syslogConfigStrings.isEmpty()) {
+        final String syslogConfigString = pwmApplication.getConfig().readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
+        if (syslogConfigString != null && !syslogConfigString.isEmpty()) {
             try {
-                syslogManager = new SyslogAuditService(pwmApplication.getConfig());
+                syslogManager = new SyslogAuditService(pwmApplication);
             } catch (Exception e) {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, "startup error: " + e.getMessage());
                 LOGGER.error(errorInformation.toDebugStr());

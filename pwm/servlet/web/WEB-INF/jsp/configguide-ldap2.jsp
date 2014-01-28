@@ -139,7 +139,7 @@
     }
 
     function clearHealthDiv() {
-        var healthBodyObj = getObject('healthBody');
+        var healthBodyObj = PWM_MAIN.getObject('healthBody');
         var newHtml = '<div style="text-align: center">';
         newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
         newHtml += '</div>';
@@ -155,9 +155,9 @@
 
     function checkIfNextEnabled() {
         if (PWM_GLOBAL['pwm-health'] === 'GOOD' || PWM_GLOBAL['pwm-health'] === 'CONFIG') {
-            getObject('button_next').disabled = false;
+            PWM_MAIN.getObject('button_next').disabled = false;
         } else {
-            getObject('button_next').disabled = true;
+            PWM_MAIN.getObject('button_next').disabled = true;
         }
     }
 
@@ -167,10 +167,10 @@
         options['showRefresh'] = false;
         options['refreshTime'] = -1;
         options['finishFunction'] = function(){
-            closeWaitDialog();
+            PWM_MAIN.closeWaitDialog();
             checkIfNextEnabled();
         };
-        showWaitDialog();
+        PWM_MAIN.showWaitDialog();
         PWM_MAIN.showAppHealth('healthBody', options);
     }
 </script>

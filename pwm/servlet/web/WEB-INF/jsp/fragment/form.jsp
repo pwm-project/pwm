@@ -1,21 +1,21 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="password.pwm.error.PwmError" %>
-<%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.i18n.Display" %>
 
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% // read parameters from calling jsp;
     final PwmSetting formSetting = (PwmSetting)request.getAttribute("form");
@@ -90,7 +91,7 @@
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
-        <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
+        <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
        maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
 <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
 <h2>
@@ -141,7 +142,7 @@
 <table style="border:0; margin: 0; padding: 0">
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0; width:60%">
-            <input type="password" name="password1" id="password1" class="changepasswordfield" onkeypress="getObject('password2').value=''" style="margin-left:5px"/>
+            <input type="password" name="password1" id="password1" class="changepasswordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
         </td>
         <td style="border:0;">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>

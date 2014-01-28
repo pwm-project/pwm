@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,12 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.ContextManager;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -34,12 +36,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -58,6 +62,8 @@ import java.util.Locale;
 
 @Path("/health")
 public class RestHealthServer {
+    final private static PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
+
 
     public static class JsonOutput implements Serializable {
         public Date timestamp;
@@ -93,18 +99,17 @@ public class RestHealthServer {
     @Context
     HttpServletRequest request;
 
+    @Context
+    ServletContext context;
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String doPwmHealthPlainGet(
             @QueryParam("refreshImmediate") final boolean requestImmediateParam
     ) {
+        final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(false);
-            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
@@ -135,13 +140,9 @@ public class RestHealthServer {
     public Response doPwmHealthJsonGet(
             @QueryParam("refreshImmediate") final boolean requestImmediateParam
     ) {
+        final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(false);
-            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -205,5 +206,18 @@ public class RestHealthServer {
             final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
             healthMonitor.getHealthRecords(true);
         }
+    }
+
+    private ServicePermissions figurePermissions() {
+        ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
+        try {
+            final Configuration config = ContextManager.getContextManager(context).getPwmApplication().getConfig();
+            if (config.readSettingAsBoolean(PwmSetting.PUBLIC_HEALTH_STATS_WEBSERVICES)) {
+                servicePermissions = ServicePermissions.PUBLIC;
+            }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to read service permissions, defaulting to non-public; error: " + e.getMessage());
+        }
+        return servicePermissions;
     }
 }

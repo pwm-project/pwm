@@ -354,8 +354,8 @@
     </setting>
     <setting key="ldap.profile.list" level="0" hidden="true">
         <label>LDAP Directory Profiles</label>
-        <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>Authentication will search the Default profile first, then any other profiles in the order shown here.]]></description>
-        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>Authentication will search the Default profile first, then any other profiles in the order shown here.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
         <default>
             <value><![CDATA[]]></value>
         </default>
@@ -524,6 +524,16 @@
         <default>
             <value />
         </default>
+    </setting>
+    <setting key="ldap.profile.enabled" level="1">
+        <label>LDAP Profile Enabled</label>
+        <description><![CDATA[Indicate if this ldap profile should be in use.  For maintenance reasons, it may be helpful to remove an LDAP Profile from use instead of deleting the profile's configuration entirely.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+        <options>
+            <option value="HideForDefaultProfile">true</option>
+        </options>
     </setting>
     <setting key="ldap.username.attr" level="1">
         <label>Attribute to use for Username</label>
@@ -794,7 +804,7 @@
     </setting>
     <setting key="sms.responseOkRegex" level="1">
         <label>Response Regular Expressions</label>
-        <description><![CDATA[Regular expressions that can be used to determine whether the SMS has been sent succesfully. If the response matches any of the expressions, the transmission is considered succesful. If no expressions are entered, all transmissions are assumed successful. NOTE: the string must match an entire line. Use <tt>.*</tt> to match anything after the required texts.]]></description>
+        <description><![CDATA[Regular expressions that can be used to determine whether the SMS has been sent successfully. If the response matches any of the expressions, the transmission is considered succesful. If no expressions are entered, all transmissions are assumed successful. NOTE: the string must match an entire line. Use <tt>.*</tt> to match anything after the required texts.]]></description>
         <default>
             <value />
         </default>
@@ -883,15 +893,15 @@
         </default>
     </setting>
     <setting key="password.profile.list" level="0" hidden="true">
-        <label>Password Policies</label>
-        <description><![CDATA[List of Password policies.  ]]></description>
-        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <label>Password Policy Profiles</label>
+        <description><![CDATA[List of Password Policy Profiles.  When multiple password policy profiles are configured, all profiles except for the default are evaluated in order to check if the <i>Password Policy Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="password.policy.queryMatch">
-        <label>Password Policy Query Match</label>
+        <label>Password Policy Profile Query Match</label>
         <description><![CDATA[Password Policy Query Match]]></description>
         <default>
             <value><![CDATA[]]></value>
@@ -1118,14 +1128,14 @@
     </setting>
     <setting key="password.policy.regExMatch" level="1">
         <label>Required Regular Expression Matches</label>
-        <description><![CDATA[A Regular Expression pattern the password must match in order to be allowed.  Multiple patterns can be listed.   Patterns must follow the rules listed for <a href=http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html">Pattern</a>.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
+        <description><![CDATA[A Regular Expression pattern the password must match in order to be allowed.  Multiple patterns can be listed.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="password.policy.regExNoMatch" level="1">
         <label>Disallowed Regular Expression Matches</label>
-        <description><![CDATA[A Regular Expression pattern the password must <b>not</b> match in order to be allowed.  Multiple patterns can be listed.   Patterns must follow the rules listed for <a href=http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html">Pattern</a>. A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
+        <description><![CDATA[A Regular Expression pattern the password must <b>not</b> match in order to be allowed.  Multiple patterns can be listed.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
         <default>
             <value />
         </default>
@@ -1454,7 +1464,7 @@
     </setting>
     <setting key="audit.syslog.servers" level="0" required="false">
         <label>Syslog Audit Servers</label>
-        <description><![CDATA[Syslog audit servers.  When configured, all audit events will be forwarded to the specified syslog servers.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
+        <description><![CDATA[Syslog audit server.  When configured, all audit events will be forwarded to the specified syslog server.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
         <default>
             <value/>
         </default>
@@ -1594,11 +1604,11 @@
             <value>120</value>
         </default>
     </setting>
-    <setting key="events.java.stdoutLevel" level="0">
+    <setting key="events.java.stdoutLevel" level="1">
         <label>Java StdOut Log Level</label>
         <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
         <default>
-            <value><![CDATA[INFO]]></value>
+            <value><![CDATA[Off]]></value>
         </default>
         <options>
             <option value="TRACE">Trace</option>
@@ -1878,16 +1888,16 @@
         </default>
     </setting>
     <setting key="challenge.profile.list" level="0" hidden="true">
-        <label>Challenge Policies</label>
-        <description><![CDATA[List of Password policies.  ]]></description>
-        <regex>^[a-zA-Z0-9-]{2,15}$</regex>
+        <label>Challenge Profile</label>
+        <description><![CDATA[List of Challenge Profiles.  When multiple challenge policies are configured, all profiles except for the default are evaluated in order to check if the <i>Challenge Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="challenge.policy.queryMatch">
-        <label>ChalengePolicy Query Match</label>
-        <description><![CDATA[Challenge Policy Query Match]]></description>
+        <label>Challenge Profile Query Match</label>
+        <description><![CDATA[Challenge Profile Query Match]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
@@ -2763,7 +2773,7 @@
         </default>
     </setting>
     <setting key="helpdesk.useProxy" level="1">
-        <label>User Proxy Connection</label>
+        <label>Use Proxy Connection</label>
         <description><![CDATA[Use the application proxy connection for all actions initiated in the helpdesk module.  When disabled, actions are initiated using the logged in user's ldap connection, requiring that the user have appropriate privileges in the ldap directory.]]></description>
         <default>
             <value>false</value>
@@ -2820,6 +2830,55 @@
         <description><![CDATA[When enabled, database read/write activity and data is logged to the TRACE debug output.  Warning!  Enabling this option can cause security-sensitive information to be sent to the debug output, including passwords.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="reporting.enable" level="0">
+        <label>Enable Directory Reporting</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting key="reporting.ldap.searchFilter" level="0">
+        <label>Reporting Search Filter</label>
+        <description><![CDATA[LDAP search filter to be used when running a reporting job.  If blank a filter based on the login query setting will be auto-generated.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="reporting.maxCacheAge" level="0">
+        <label>Maximum Cache Age</label>
+        <description><![CDATA[Seconds]]></description>
+        <default>
+            <value>7776000</value>
+        </default>
+    </setting>
+    <setting key="reporting.minCacheAge" level="0">
+        <label>Minimum Cache Age</label>
+        <description><![CDATA[Seconds]]></description>
+        <default>
+            <value>86400</value>
+        </default>
+    </setting>
+    <setting key="reporting.reportRestTimeMS" level="0">
+        <label>Engine User Search Rest Time</label>
+        <description><![CDATA[Milliseconds.  Time between each user read interval.  Having this rest interval will prevent slow performing systems from being overloaded when the report engine runs.  If the default of value of <i>-1</i> is used, the system will compute a value that will result in roughly a 50% slowdown in speed.]]></description>
+        <default>
+            <value>-1</value>
+        </default>
+    </setting>
+    <setting key="reporting.ldap.maxQuerySize" level="1">
+        <label>Maximum LDAP Query Size</label>
+        <description><![CDATA[Maximum number of records read during a reporting query search.  Setting this value to larger sizes will require more Java heap memory.]]></description>
+        <default>
+            <value>100000</value>
+        </default>
+    </setting>
+    <setting key="reporting.job.timeOffset" level="1">
+        <label>Reporting Job Time Offset</label>
+        <description><![CDATA[Number of seconds past midnight (GMT) when the update job is processed.  Setting to -1 will disable the nightly job processor.]]></description>
+        <default>
+            <value>0</value>
         </default>
     </setting>
     <setting key="externalChangeMethod" level="0">
@@ -2887,14 +2946,21 @@
         </default>
     </setting>
     <setting key="webservices.enableReadAnswers" level="0">
-        <label>Allow WebServices Read Answers</label>
+        <label>Allow Web Services Read Answers</label>
         <description><![CDATA[Allow web services to be used to read stored challenge/response answers of users.  The read responses will be available in whatever hashing method format is being used.]]></description>
         <default>
             <value>false</value>
         </default>
     </setting>
+    <setting key="webservices.healthStats.makePublic" level="0">
+        <label>Enable Public Health and Statistics Web Services</label>
+        <description><![CDATA[Allow the Health and Statistics web services to be enabled publicly.  Normally these require authentication as there may be security sensitive data available.  Enabling this option allows the web services to be used without authentication.  This is setting is required to be enabled for the public (non-authenticated) page at <i>/public/health.jsp</i> to be functional.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="webservices.thirdParty.queryMatch" level="0">
-        <label>WebServices Third Party Query String</label>
+        <label>Web Services Third Party Query String</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
         <default>
             <value><![CDATA[(groupMembership=cn=RestUsers,ou=Groups,o=example)]]></value>
@@ -2908,8 +2974,18 @@
         <description><![CDATA[External Web Auth Methods]]></description>
         <default />
     </setting>
+    <setting key="external.macros.urls" level="1">
+        <label>External Macro URLs</label>
+        <description><![CDATA[]]></description>
+        <default />
+    </setting>
+    <setting key="webservice.userAttributes" level="1">
+        <label>Web Service User Attributes</label>
+        <description><![CDATA[User attributes that are used by various web services and are presented as part of the user's data set.]]></description>
+        <default />
+    </setting>
     <category key="LDAP_PROFILE">
-        <label>LDAP Directory Profiles</label>
+        <label>LDAP Profiles</label>
         <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="LDAP_GLOBAL">
@@ -2925,7 +3001,7 @@
         <description><![CDATA[These settings control overall features and displays that are visible to the end user.]]></description>
     </category>
     <category key="PASSWORD_POLICY">
-        <label>Password Policy</label>
+        <label>Password Policy Profiles</label>
         <description><![CDATA[This password policy is applied to all users, regardless of any other password policy that may be configured in the directory.  If so configured, The password policy configured for the user in the directory is read and is <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
     </category>
     <category key="CHALLENGE">
@@ -2933,7 +3009,7 @@
         <description><![CDATA[Challenge Policy.  If a challenge policy is read from the directory, that policy will override the settings listed here.]]></description>
     </category>
     <category key="CHALLENGE_POLICY">
-        <label>Challenge Policy</label>
+        <label>Challenge Profiles</label>
         <description><![CDATA[]]></description>
     </category>
     <category key="EMAIL">
@@ -2971,6 +3047,10 @@
     <category key="DATABASE">
         <label>Database</label>
         <description><![CDATA[Optional database configuration settings.  Two types of databases are used.<h2>LocalDB</h2>The LocalDB is a local, embedded database that is used for storage of local data.  In most cases, the LocalDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured,  a traditional RDBMS database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple server instances can be configured for the same database instance.]]></description>
+    </category>
+    <category key="REPORTING">
+        <label>Reporting</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="MISC" level="1">
         <label>Integration / Developer</label>

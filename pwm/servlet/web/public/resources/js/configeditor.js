@@ -32,7 +32,7 @@ function readSetting(keyName, valueWriter) {
             dataType: "json",
             handleAs: "json",
             error: function(errorObj) {
-                showError("Unable to communicate with server.  Please refresh page.");
+                PWM_MAIN.showError("Unable to communicate with server.  Please refresh page.");
                 console.log("error loading " + keyName + ", reason: " + errorObj);
             },
             load: function(data) {
@@ -58,7 +58,7 @@ function writeSetting(keyName, valueData) {
             handleAs: "json",
             preventCache: true,
             error: function(errorObj) {
-                showError("Unable to communicate with server.  Please refresh page.");
+                PWM_MAIN.showError("Unable to communicate with server.  Please refresh page.");
                 console.log("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
@@ -66,9 +66,9 @@ function writeSetting(keyName, valueData) {
                 var isDefault = data['isDefault'];
                 updateSettingDisplay(keyName, isDefault)
                 if (data['errorMessage']) {
-                    showError(data['errorMessage']);
+                    PWM_MAIN.showError(data['errorMessage']);
                 } else {
-                    clearError();
+                    PWM_MAIN.clearError();
                 }
             }
         });
@@ -87,7 +87,7 @@ function resetSetting(keyName) {
             handleAs: "json",
             sync: true,
             error: function(errorObj) {
-                showError("error resetting setting " + keyName + ", reason: " + errorObj)
+                PWM_MAIN.showError("error resetting setting " + keyName + ", reason: " + errorObj)
             },
             load: function() {
                 console.log('reset data for ' + keyName);
@@ -97,18 +97,18 @@ function resetSetting(keyName) {
 }
 
 function updateSettingDisplay(keyName, isDefault) {
-    var resetImageButton = getObject('resetButton-' + keyName);
+    var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
     if (!isDefault) {
         resetImageButton.style.visibility = 'visible';
         try {
-            getObject('title_' + keyName).classList.add("modified");
+            PWM_MAIN.getObject('title_' + keyName).classList.add("modified");
         } catch (e) {
             console.log('error adding "modified" css class to "title_' + keyName + '" elementID, error=' + e);
         }
     } else {
         resetImageButton.style.visibility = 'hidden';
         try {
-            getObject('title_' + keyName).classList.remove("modified");
+            PWM_MAIN.getObject('title_' + keyName).classList.remove("modified");
         } catch (e) {
             console.log('error removing "modified" css class to "title_' + keyName + '" elementID, error=' + e);
         }
@@ -116,7 +116,7 @@ function updateSettingDisplay(keyName, isDefault) {
 }
 
 function clearDivElements(parentDiv, showLoading) {
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
     if (parentDivElement != null) {
         if (parentDivElement.hasChildNodes()) {
             while (parentDivElement.childNodes.length >= 1) {
@@ -157,7 +157,7 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
     td1.appendChild(addButton);
 
     newTableRow.appendChild(td1);
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
     require(["dijit/form/Select","dijit/form/Button"],function(Select,Button){
@@ -170,14 +170,14 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
             }
         }
 
-        clearDijitWidget(keyName + '-addLocaleValue');
+        PWM_MAIN.clearDijitWidget(keyName + '-addLocaleValue');
         new Select({
             id: keyName + '-addLocaleValue',
             options: localeMenu,
             style: 'width: 175px'
         }, keyName + '-addLocaleValue');
 
-        clearDijitWidget(keyName + '-addLocaleButton');
+        PWM_MAIN.clearDijitWidget(keyName + '-addLocaleButton');
         new Button({
             id: keyName + '-addLocaleButton',
             onClick: addFunction
@@ -226,7 +226,7 @@ LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeStr
     var inputID = 'value-' + settingKey + '-' + localeString;
 
     // clear the old dijit node (if it exists)
-    clearDijitWidget(inputID);
+    PWM_MAIN.clearDijitWidget(inputID);
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -275,7 +275,7 @@ LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeStr
             td2.appendChild(imgElement);
         }
     }
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 };
 
@@ -284,7 +284,7 @@ LocaleTableHandler.writeLocaleSetting = function(settingKey, locale, value) {
     var currentValues = { };
     for (var i in existingValues) {
         var inputID = 'value-' + settingKey + '-' + i;
-        currentValues[i] = getObject(inputID).value;
+        currentValues[i] = PWM_MAIN.getObject(inputID).value;
     }
     if (value == null) {
         delete currentValues[locale];
@@ -304,7 +304,7 @@ LocaleTableHandler.addLocaleSetting = function(keyName, parentDiv, regExPattern,
     require(["dijit/registry"],function(registry){
         var inputValue = registry.byId(keyName + '-addLocaleValue').value;
         try {
-            var existingElementForLocale = getObject('value-' + keyName + '-' + inputValue);
+            var existingElementForLocale = PWM_MAIN.getObject('value-' + keyName + '-' + inputValue);
             if (existingElementForLocale == null) {
                 LocaleTableHandler.writeLocaleSetting(keyName, inputValue, '');
                 LocaleTableHandler.draw(keyName);
@@ -352,7 +352,7 @@ MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
         newTableData.appendChild(addItemButton);
 
         newTableRow.appendChild(newTableData);
-        var parentDivElement = getObject(parentDiv);
+        var parentDivElement = PWM_MAIN.getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
     }
     require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
@@ -401,7 +401,7 @@ MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, 
                 td1.appendChild(imgElement);
             }
         }
-        var parentDivElement = getObject(parentDiv);
+        var parentDivElement = PWM_MAIN.getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
     });
 };
@@ -533,7 +533,7 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
                 tdElement.appendChild(imgElement2);
             }
 
-            var parentDivElement = getObject(parentDiv);
+            var parentDivElement = PWM_MAIN.getObject(parentDiv);
             parentDivElement.appendChild(localeTableRow);
 
             { // add a spacer row
@@ -601,7 +601,7 @@ FormTableHandler.redraw = function(keyName) {
     var resultValue = clientSettingCache[keyName];
     var parentDiv = 'table_setting_' + keyName;
     clearDivElements(parentDiv, false);
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
@@ -651,10 +651,10 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     var inputID = 'value_' + settingKey + '_' + iteration + "_";
 
     // clear the old dijit node (if it exists)
-    clearDijitWidget(inputID + "name");
-    clearDijitWidget(inputID + "label");
-    clearDijitWidget(inputID + "type");
-    clearDijitWidget(inputID + "optionsButton");
+    PWM_MAIN.clearDijitWidget(inputID + "name");
+    PWM_MAIN.clearDijitWidget(inputID + "label");
+    PWM_MAIN.clearDijitWidget(inputID + "type");
+    PWM_MAIN.clearDijitWidget(inputID + "optionsButton");
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -734,7 +734,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             newTableRow.appendChild(tdFinal);
         }
     }
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 };
 
@@ -807,22 +807,22 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         }
         bodyText += '</table>';
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Options for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 FormTableHandler.redraw(keyName);
             }
         });
         theDialog.show();
 
-        clearDijitWidget(inputID + "description");
+        PWM_MAIN.clearDijitWidget(inputID + "description");
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['description'][''],
             readonly: true,
@@ -830,20 +830,20 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             onKeyPress: function(){FormTableHandler.showDescriptionDialog(keyName,iteration);}
         },inputID + "description");
 
-        clearDijitWidget(inputID + "required");
+        PWM_MAIN.clearDijitWidget(inputID + "required");
         new dijit.form.CheckBox({
             checked: clientSettingCache[keyName][iteration]['required'],
             onChange: function(){clientSettingCache[keyName][iteration]['required'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "required");
 
-        clearDijitWidget(inputID + "confirmationRequired");
+        PWM_MAIN.clearDijitWidget(inputID + "confirmationRequired");
         new dijit.form.CheckBox({
             checked: clientSettingCache[keyName][iteration]['confirmationRequired'],
             onChange: function(){clientSettingCache[keyName][iteration]['confirmationRequired'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "confirmationRequired");
 
         if (clientSettingCache[keyName + '_options']['readonly'] == 'show') {
-            clearDijitWidget(inputID + "readonly");
+            PWM_MAIN.clearDijitWidget(inputID + "readonly");
             new dijit.form.CheckBox({
                 checked: clientSettingCache[keyName][iteration]['readonly'],
                 onChange: function(){clientSettingCache[keyName][iteration]['readonly'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
@@ -851,14 +851,14 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         }
 
         if (clientSettingCache[keyName + '_options']['unique'] == 'show') {
-            clearDijitWidget(inputID + "unique");
+            PWM_MAIN.clearDijitWidget(inputID + "unique");
             new dijit.form.CheckBox({
                 checked: clientSettingCache[keyName][iteration]['unique'],
                 onChange: function(){clientSettingCache[keyName][iteration]['unique'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
             },inputID + "unique");
         }
 
-        clearDijitWidget(inputID + "minimumLength");
+        PWM_MAIN.clearDijitWidget(inputID + "minimumLength");
         new dijit.form.NumberSpinner({
             value: clientSettingCache[keyName][iteration]['minimumLength'],
             onChange: function(){clientSettingCache[keyName][iteration]['minimumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
@@ -866,7 +866,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             style: "width: 70px"
         },inputID + "minimumLength");
 
-        clearDijitWidget(inputID + "maximumLength");
+        PWM_MAIN.clearDijitWidget(inputID + "maximumLength");
         new dijit.form.NumberSpinner({
             value: clientSettingCache[keyName][iteration]['maximumLength'],
             onChange: function(){clientSettingCache[keyName][iteration]['maximumLength'] = this.value;FormTableHandler.writeFormSetting(keyName)},
@@ -874,13 +874,13 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             style: "width: 70px"
         },inputID + "maximumLength");
 
-        clearDijitWidget(inputID + "regex");
+        PWM_MAIN.clearDijitWidget(inputID + "regex");
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['regex'],
             onChange: function(){clientSettingCache[keyName][iteration]['regex'] = this.value;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "regex");
 
-        clearDijitWidget(inputID + "regexErrors");
+        PWM_MAIN.clearDijitWidget(inputID + "regexErrors");
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['regexErrors'][''],
             readonly: true,
@@ -888,13 +888,13 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             onKeyPress: function(){FormTableHandler.showRegexErrorsDialog(keyName,iteration);}
         },inputID + "regexErrors");
 
-        clearDijitWidget(inputID + "placeholder");
+        PWM_MAIN.clearDijitWidget(inputID + "placeholder");
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['placeholder'],
             onChange: function(){clientSettingCache[keyName][iteration]['placeholder'] = this.value;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "placeholder");
 
-        clearDijitWidget(inputID + "javascript");
+        PWM_MAIN.clearDijitWidget(inputID + "javascript");
         new dijit.form.Textarea({
             value: clientSettingCache[keyName][iteration]['javascript'],
             onChange: function(){clientSettingCache[keyName][iteration]['javascript'] = this.value;FormTableHandler.writeFormSetting(keyName)}
@@ -921,16 +921,16 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
         }
         bodyText += '</tr></table>';
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Label for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 FormTableHandler.redraw(keyName);
             }
         });
@@ -939,7 +939,7 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
         for (var localeName in clientSettingCache[keyName][iteration]['labels']) {
             var value = clientSettingCache[keyName][iteration]['labels'][localeName];
             var loopID = inputID + localeName;
-            clearDijitWidget(loopID);
+            PWM_MAIN.clearDijitWidget(loopID);
             new dijit.form.Textarea({
                 onChange: function(){clientSettingCache[keyName][iteration]['labels'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
@@ -990,16 +990,16 @@ FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
         }
         bodyText += '</tr></table>';
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Regular Expression Error Message for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 FormTableHandler.showOptionsDialog(keyName,iteration);
             }
         });
@@ -1008,7 +1008,7 @@ FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
         for (var localeName in clientSettingCache[keyName][iteration]['regexErrors']) {
             var value = clientSettingCache[keyName][iteration]['regexErrors'][localeName];
             var loopID = inputID + localeName;
-            clearDijitWidget(loopID);
+            PWM_MAIN.clearDijitWidget(loopID);
             new dijit.form.Textarea({
                 onChange: function(){clientSettingCache[keyName][iteration]['regexErrors'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
@@ -1065,14 +1065,14 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Select Options for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 FormTableHandler.showOptionsDialog(keyName,iteration);
             }
         });
@@ -1081,27 +1081,27 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         for (var optionName in clientSettingCache[keyName][iteration]['selectOptions']) {
             var value = clientSettingCache[keyName][iteration]['selectOptions'][optionName];
             var loopID = inputID + optionName;
-            clearDijitWidget(loopID);
+            PWM_MAIN.clearDijitWidget(loopID);
             new TextBox({
                 onChange: function(){clientSettingCache[keyName][iteration]['selectOptions'][optionName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
         }
 
-        clearDijitWidget("addSelectOptionName");
+        PWM_MAIN.clearDijitWidget("addSelectOptionName");
         new ValidationTextBox({
             placeholder: "Name",
             id: "addSelectOptionName",
             constraints: {min: 1}
         },"addSelectOptionName");
 
-        clearDijitWidget("addSelectOptionValue");
+        PWM_MAIN.clearDijitWidget("addSelectOptionValue");
         new ValidationTextBox({
             placeholder: "Display Value",
             id: "addSelectOptionValue",
             constraints: {min: 1}
         },"addSelectOptionValue");
 
-        clearDijitWidget("addSelectOptionButton");
+        PWM_MAIN.clearDijitWidget("addSelectOptionButton");
         new Button({
             label: "Add",
             onClick: function() {
@@ -1158,16 +1158,16 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
         }
         bodyText += '</tr></table>';
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');FormTableHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Description for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 FormTableHandler.showOptionsDialog(keyName,iteration);
             }
         });
@@ -1176,7 +1176,7 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
         for (var localeName in clientSettingCache[keyName][iteration]['description']) {
             var value = clientSettingCache[keyName][iteration]['description'][localeName];
             var loopID = inputID + localeName;
-            clearDijitWidget(loopID);
+            PWM_MAIN.clearDijitWidget(loopID);
             new dijit.form.Textarea({
                 onChange: function(){clientSettingCache[keyName][iteration]['description'][localeName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
@@ -1233,11 +1233,11 @@ ChangePasswordHandler.validatePasswordPopupFields = function() {
 
         var matchStatus = "";
 
-        getObject('password_button').disabled = true;
+        PWM_MAIN.getObject('password_button').disabled = true;
         if (password2.length > 0) {
             if (password1 == password2) {
                 matchStatus = "MATCH";
-                getObject('password_button').disabled = false;
+                PWM_MAIN.getObject('password_button').disabled = false;
             } else {
                 matchStatus = "NO_MATCH";
             }
@@ -1249,28 +1249,28 @@ ChangePasswordHandler.validatePasswordPopupFields = function() {
 
 ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
     if (matchStatus == "MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'visible';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '15';
-        getObject("confirmCrossMark").width = '0';
+        PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
+        PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+        PWM_MAIN.getObject("confirmCheckMark").width = '15';
+        PWM_MAIN.getObject("confirmCrossMark").width = '0';
     } else if (matchStatus == "NO_MATCH") {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'visible';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '15';
+        PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+        PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
+        PWM_MAIN.getObject("confirmCheckMark").width = '0';
+        PWM_MAIN.getObject("confirmCrossMark").width = '15';
     } else {
-        getObject("confirmCheckMark").style.visibility = 'hidden';
-        getObject("confirmCrossMark").style.visibility = 'hidden';
-        getObject("confirmCheckMark").width = '0';
-        getObject("confirmCrossMark").width = '0';
+        PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+        PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+        PWM_MAIN.getObject("confirmCheckMark").width = '0';
+        PWM_MAIN.getObject("confirmCrossMark").width = '0';
     }
 };
 
 ChangePasswordHandler.doChange = function(settingKey) {
     var password1 = clientSettingCache[settingKey]['settings']['p1'];
-    clearDijitWidget('dialogPopup');
+    PWM_MAIN.clearDijitWidget('dialogPopup');
     writeSetting(settingKey,password1);
-    showInfo(clientSettingCache[settingKey]['settings']['name'] + ' password recorded ');
+    PWM_MAIN.showInfo(clientSettingCache[settingKey]['settings']['name'] + ' password recorded ');
     clear(settingKey);
 };
 
@@ -1296,8 +1296,8 @@ ChangePasswordHandler.generateRandom = function(settingKey) {
         postData.minLength = length;
         postData.chars = charMap;
         postData.noUser = true;
-        getObject('generateButton').disabled = true;
-        getObject('generateButton').innerHTML = PWM_STRINGS['Display_PleaseWait'];
+        PWM_MAIN.getObject('generateButton').disabled = true;
+        PWM_MAIN.getObject('generateButton').innerHTML = PWM_STRINGS['Display_PleaseWait'];
 
         dojo.xhrPost({
             url:PWM_GLOBAL['url-restservice'] + "/randompassword",
@@ -1309,12 +1309,12 @@ ChangePasswordHandler.generateRandom = function(settingKey) {
             load: function(data) {
                 registry.byId('password1').set('value',data['data']['password']);
                 registry.byId('password2').set('value','');
-                getObject('generateButton').disabled = false;
-                getObject('generateButton').innerHTML = "Random";
+                PWM_MAIN.getObject('generateButton').disabled = false;
+                PWM_MAIN.getObject('generateButton').innerHTML = "Random";
             },
             error: function(error) {
-                getObject('generateButton').disabled = false;
-                getObject('generateButton').innerHTML = "Random";
+                PWM_MAIN.getObject('generateButton').disabled = false;
+                PWM_MAIN.getObject('generateButton').innerHTML = "Random";
                 alert('error reading random password: ' + error);
             }
         });
@@ -1348,14 +1348,14 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
             bodyText += '&nbsp;&nbsp;<input type="checkbox" id="show" data-dojo-type="dijit/form/CheckBox" data-dojo-props="checked:' + clientSettingCache[settingKey]['settings']['showFields'] + '" value="10"/>Show';
             bodyText += '</div>';
 
-            clearDijitWidget('dialogPopup');
+            PWM_MAIN.clearDijitWidget('dialogPopup');
             var theDialog = new dijit.Dialog({
                 id: 'dialogPopup',
                 title: 'Store Password',
                 style: "width: 550px",
                 content: bodyText,
                 hide: function(){
-                    clearDijitWidget('dialogPopup');
+                    PWM_MAIN.clearDijitWidget('dialogPopup');
                     ChangePasswordHandler.clear(settingKey);
                 }
             });
@@ -1365,7 +1365,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
                 ChangePasswordHandler.changePasswordPopup(settingKey);
             });
 
-            dojoParser.parse(getObject('changePasswordDialogDiv'));
+            dojoParser.parse(PWM_MAIN.getObject('changePasswordDialogDiv'));
 
             var p1 = clientSettingCache[settingKey]['settings']['p1'];
             var p2 = clientSettingCache[settingKey]['settings']['p2'];
@@ -1410,7 +1410,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
                     value: p2
                 },'password2');
             }
-            getObject('password1').focus();
+            PWM_MAIN.getObject('password1').focus();
             ChangePasswordHandler.validatePasswordPopupFields();
         });
 };
@@ -1436,7 +1436,7 @@ ActionHandler.redraw = function(keyName) {
     var resultValue = clientSettingCache[keyName];
     var parentDiv = 'table_setting_' + keyName;
     clearDivElements(parentDiv, false);
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
         var headerRow = document.createElement("tr");
@@ -1486,10 +1486,10 @@ ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     var inputID = 'value_' + settingKey + '_' + iteration + "_";
 
     // clear the old dijit node (if it exists)
-    clearDijitWidget(inputID + "name");
-    clearDijitWidget(inputID + "description");
-    clearDijitWidget(inputID + "type");
-    clearDijitWidget(inputID + "optionsButton");
+    PWM_MAIN.clearDijitWidget(inputID + "name");
+    PWM_MAIN.clearDijitWidget(inputID + "description");
+    PWM_MAIN.clearDijitWidget(inputID + "type");
+    PWM_MAIN.clearDijitWidget(inputID + "optionsButton");
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -1565,7 +1565,7 @@ ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         tdFinal.appendChild(imgElement);
         newTableRow.appendChild(tdFinal);
     }
-    var parentDivElement = getObject(parentDiv);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 };
 
@@ -1632,23 +1632,23 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr>';
         bodyText += '</table>';
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="clearDijitWidget(\'dialogPopup\');ActionHandler.redraw(\'' + keyName + '\')">OK</button>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\');ActionHandler.redraw(\'' + keyName + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Options for ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 650px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 ActionHandler.redraw(keyName);
             }
         });
         theDialog.show();
 
         if (clientSettingCache[keyName][iteration]['type'] == 'webservice') {
-            clearDijitWidget(inputID + "method");
+            PWM_MAIN.clearDijitWidget(inputID + "method");
             new dijit.form.Select({
                 value: clientSettingCache[keyName][iteration]['method'],
                 options: [
@@ -1661,34 +1661,34 @@ ActionHandler.showOptionsDialog = function(keyName, iteration) {
                 onChange: function(){clientSettingCache[keyName][iteration]['method'] = this.value;ActionHandler.writeFormSetting(keyName)}
             },inputID + "method");
 
-            //clearDijitWidget(inputID + "clientSide");
+            //PWM_MAIN.clearDijitWidget(inputID + "clientSide");
             //new dijit.form.CheckBox({
             //    checked: clientSettingCache[keyName][iteration]['clientSide'],
             //    onChange: function(){clientSettingCache[keyName][iteration]['clientSide'] = this.checked;ActionHandler.writeFormSetting(keyName)}
             //},inputID + "clientSide");
 
-            clearDijitWidget(inputID + "url");
+            PWM_MAIN.clearDijitWidget(inputID + "url");
             new dijit.form.Textarea({
                 value: clientSettingCache[keyName][iteration]['url'],
                 required: true,
                 onChange: function(){clientSettingCache[keyName][iteration]['url'] = this.value;ActionHandler.writeFormSetting(keyName)}
             },inputID + "url");
 
-            clearDijitWidget(inputID + "body");
+            PWM_MAIN.clearDijitWidget(inputID + "body");
             new dijit.form.Textarea({
                 value: clientSettingCache[keyName][iteration]['body'],
                 onChange: function(){clientSettingCache[keyName][iteration]['body'] = this.value;ActionHandler.writeFormSetting(keyName)}
             },inputID + "body");
 
         } else if (clientSettingCache[keyName][iteration]['type'] == 'ldap') {
-            clearDijitWidget(inputID + "attributeName");
+            PWM_MAIN.clearDijitWidget(inputID + "attributeName");
             new dijit.form.ValidationTextBox({
                 value: clientSettingCache[keyName][iteration]['attributeName'],
                 required: true,
                 onChange: function(){clientSettingCache[keyName][iteration]['attributeName'] = this.value;ActionHandler.writeFormSetting(keyName)}
             },inputID + "attributeName");
 
-            clearDijitWidget(inputID + "attributeValue");
+            PWM_MAIN.clearDijitWidget(inputID + "attributeValue");
             new dijit.form.Textarea({
                 value: clientSettingCache[keyName][iteration]['attributeValue'],
                 required: true,
@@ -1726,14 +1726,14 @@ ActionHandler.showHeadersDialog = function(keyName, iteration) {
         bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="ActionHandler.showOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')">OK</button>';
 
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Http Headers for webservice ' + clientSettingCache[keyName][iteration]['name'],
             style: "width: 450px",
             content: bodyText,
             hide: function(){
-                clearDijitWidget('dialogPopup');
+                PWM_MAIN.clearDijitWidget('dialogPopup');
                 ActionHandler.showOptionsDialog(keyName,iteration);
             }
         });
@@ -1742,27 +1742,27 @@ ActionHandler.showHeadersDialog = function(keyName, iteration) {
         for (var headerName in clientSettingCache[keyName][iteration]['headers']) {
             var value = clientSettingCache[keyName][iteration]['headers'][headerName];
             var loopID = inputID + headerName;
-            clearDijitWidget(loopID);
+            PWM_MAIN.clearDijitWidget(loopID);
             new TextBox({
                 onChange: function(){clientSettingCache[keyName][iteration]['headers'][headerName] = this.value;ActionHandler.writeFormSetting(keyName)}
             },loopID);
         }
 
-        clearDijitWidget("addHeaderName");
+        PWM_MAIN.clearDijitWidget("addHeaderName");
         new ValidationTextBox({
             placeholder: "Name",
             id: "addHeaderName",
             constraints: {min: 1}
         },"addHeaderName");
 
-        clearDijitWidget("addHeaderValue");
+        PWM_MAIN.clearDijitWidget("addHeaderValue");
         new ValidationTextBox({
             placeholder: "Display Value",
             id: "addHeaderValue",
             constraints: {min: 1}
         },"addHeaderValue");
 
-        clearDijitWidget("addHeaderButton");
+        PWM_MAIN.clearDijitWidget("addHeaderButton");
         new Button({
             label: "Add",
             onClick: function() {
@@ -1841,7 +1841,7 @@ EmailTableHandler.draw = function(keyName) {
                 newTableData.appendChild(addItemButton);
 
                 newTableRow.appendChild(newTableData);
-                var parentDivElement = getObject(parentDiv);
+                var parentDivElement = PWM_MAIN.getObject(parentDiv);
                 parentDivElement.appendChild(newTableRow);
             } else {
                 var addLocaleFunction = function() {
@@ -1895,10 +1895,10 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
             htmlBody += '</div></td></tr>';
             htmlBody += "</table>"
             dojoHtml.set(localeTableElement,htmlBody);
-            var parentDivElement = getObject(parentDiv);
+            var parentDivElement = PWM_MAIN.getObject(parentDiv);
             parentDivElement.appendChild(localeTableRow);
 
-            clearDijitWidget(idPrefix + "_to");
+            PWM_MAIN.clearDijitWidget(idPrefix + "_to");
             new ValidationTextBox({
                 value: clientSettingCache[keyName][localeName]['to'],
                 style: 'width: 450px',
@@ -1906,7 +1906,7 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
                 onChange: function(){clientSettingCache[keyName][localeName]['to'] = this.value;EmailTableHandler.writeSetting(keyName)}
             },idPrefix + "_to");
 
-            clearDijitWidget(idPrefix + "_from");
+            PWM_MAIN.clearDijitWidget(idPrefix + "_from");
             new ValidationTextBox({
                 value: clientSettingCache[keyName][localeName]['from'],
                 style: 'width: 450px',
@@ -1914,7 +1914,7 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
                 onChange: function(){clientSettingCache[keyName][localeName]['from'] = this.value;EmailTableHandler.writeSetting(keyName)}
             },idPrefix + "_from");
 
-            clearDijitWidget(idPrefix + "_subject");
+            PWM_MAIN.clearDijitWidget(idPrefix + "_subject");
             new ValidationTextBox({
                 value: clientSettingCache[keyName][localeName]['subject'],
                 style: 'width: 450px',
@@ -1922,7 +1922,7 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
                 onChange: function(){clientSettingCache[keyName][localeName]['subject'] = this.value;EmailTableHandler.writeSetting(keyName)}
             },idPrefix + "_subject");
 
-            clearDijitWidget(idPrefix + "_bodyPlain");
+            PWM_MAIN.clearDijitWidget(idPrefix + "_bodyPlain");
             new Textarea({
                 value: clientSettingCache[keyName][localeName]['bodyPlain'],
                 style: 'width: 450px',
@@ -1964,9 +1964,9 @@ EmailTableHandler.popupEditor = function(keyName, localeName) {
             var bodyText = '';
             bodyText += '<div id="' + idValue + '" style="border:2px solid #EAEAEA; min-height: 200px;"></div>'
             bodyText += '<br/>'
-            bodyText += '<button class="btn" onclick="EmailTableHandler.writeSetting(\'' + keyName + '\',true);clearDijitWidget(\'' + idValueDialog + '\')"> OK </button>'
-            clearDijitWidget(idValue);
-            clearDijitWidget(idValueDialog);
+            bodyText += '<button class="btn" onclick="EmailTableHandler.writeSetting(\'' + keyName + '\',true);PWM_MAIN.clearDijitWidget(\'' + idValueDialog + '\')"> OK </button>'
+            PWM_MAIN.clearDijitWidget(idValue);
+            PWM_MAIN.clearDijitWidget(idValueDialog);
 
             var dialog = new Dialog({
                 id: idValueDialog,
@@ -2038,7 +2038,7 @@ BooleanHandler.toggle = function(keyName,widget) {
 // -------------------------- challenge handler ------------------------------------
 
 var ChallengeTableHandler = {};
-ChallengeTableHandler.defaultItem = {text:'Question',minLength:4,maxLength:255,adminDefined:true};
+ChallengeTableHandler.defaultItem = {text:'Question',minLength:4,maxLength:200,adminDefined:true};
 
 ChallengeTableHandler.init = function(parentDiv, keyName) {
     console.log('ChallengeTableHandler init for ' + keyName);
@@ -2108,7 +2108,7 @@ ChallengeTableHandler.draw = function(parentDiv, keyName) {
                             var imgElement = document.createElement("div");
                             imgElement.setAttribute("style", "width: 10px; height: 10px;");
                             imgElement.setAttribute("class", "fa fa-times icon_button");
-                            imgElement.setAttribute("onclick", "ChallengeTableHandler.writeMultiLocaleSetting('" + keyName + "','" + localeName + "','" + rowKey + "',null)");
+                            imgElement.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + localeKey + "']['" + rowKey + "'];ChallengeTableHandler.write('" + keyName + "',true)");
                             valueTd1.appendChild(imgElement);
 
                             localeTableElement.appendChild(valueTableRow);
@@ -2123,10 +2123,10 @@ ChallengeTableHandler.draw = function(parentDiv, keyName) {
                             optionRowHtml += 'ChallengeTableHandler.write(\'' + keyName + '\');';
                             optionRowHtml += 'ChallengeTableHandler.handleAdminToggled(this,\'' + inputID + '\')"></button>';
                             optionRowHtml += '</td><td style="border-width:0px">';
-                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['minLength'] + '"';
+                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['minLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
                             optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'minLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Minimum Length';
                             optionRowHtml += '</td><td style="border-width:0px">';
-                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '"';
+                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
                             optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Maximum Length';
                             optionRowHtml += '</td>';
                             optionRow.innerHTML = optionRowHtml;
@@ -2167,7 +2167,7 @@ ChallengeTableHandler.draw = function(parentDiv, keyName) {
                         tdElement.appendChild(imgElement2);
                     }
 
-                    var parentDivElement = getObject(parentDiv);
+                    var parentDivElement = PWM_MAIN.getObject(parentDiv);
                     parentDivElement.appendChild(localeTableRow);
 
                     { // add a spacer row
@@ -2225,7 +2225,7 @@ ChallengeTableHandler.write = function(settingKey,redraw) {
 // ---------------------- menu bar section ---------------------------------------------------
 
 function buildMenuBar() {
-    clearDijitWidget('topMenuBar');
+    PWM_MAIN.clearDijitWidget('topMenuBar');
     require(["dojo","dijit","dijit/Menu","dijit/Dialog","dijit/MenuBar","dijit/MenuItem","dijit/MenuBarItem","dijit/PopupMenuBarItem","dijit/CheckedMenuItem","dijit/MenuSeparator"],
         function(dojo,dijit,Menu,Dialog,MenuBar,MenuItem,MenuBarItem,PopupMenuBarItem,CheckedMenuItem,MenuSeparator){
             var topMenuBar = new MenuBar({id:"topMenuBar"});
@@ -2288,17 +2288,9 @@ function buildMenuBar() {
                                     onClick: function() {
                                         if (allowMenuSelect) {
                                             gotoSetting(menuCategory['key']);
-                                            /*
-                                             showWaitDialog(null,null,function(){
-                                             preferences['editMode'] = 'SETTINGS';
-                                             preferences['category'] = ;
-                                             setConfigEditorCookie();
-                                             loadMainPageBody();
-                                             });
-                                             */
                                         } else {
                                             var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
-                                            showDialog('Notice',message);
+                                            PWM_MAIN.showDialog('Notice',message);
                                         }
                                     }
                                 };
@@ -2333,7 +2325,7 @@ function buildMenuBar() {
                             displayMenu.addChild(new MenuItem({
                                 label: localeMenu,
                                 onClick: function() {
-                                    showWaitDialog(null,null,function(){
+                                    PWM_MAIN.showWaitDialog(null,null,function(){
                                         preferences['editMode'] = 'LOCALEBUNDLE';
                                         preferences['localeBundle'] = localeKey;
                                         setConfigEditorCookie();
@@ -2368,11 +2360,18 @@ function buildMenuBar() {
                     label: "Auto-Expand Help Text",
                     checked: preferences['showDesc'],
                     onClick: function() {
-                        showWaitDialog(null,null,function(){
+                        PWM_MAIN.showWaitDialog(null,null,function(){
                             preferences['showDesc'] = !preferences['showDesc'];
                             setConfigEditorCookie();
                             loadMainPageBody();
                         });
+                    }
+                }));
+                viewMenu.addChild(new MenuSeparator());
+                viewMenu.addChild(new MenuItem({
+                    label: "Search Settings",
+                    onClick: function() {
+                        searchDialog();
                     }
                 }));
                 viewMenu.addChild(new MenuSeparator());
@@ -2386,7 +2385,7 @@ function buildMenuBar() {
                     label: "Macro Help",
                     onClick: function() {
                         var idName = 'dialogPopup';
-                        clearDijitWidget(idName);
+                        PWM_MAIN.clearDijitWidget(idName);
                         var theDialog = new Dialog({
                             id: idName,
                             title: 'Macro Help',
@@ -2420,13 +2419,13 @@ function buildMenuBar() {
                             label: templateItem['description'],
                             checked: templateItem['key'] == PWM_GLOBAL['selectedTemplate'],
                             onClick: function() {
-                                showConfirmDialog(null,confirmText,function(){
-                                    showWaitDialog(null,null,function(){
+                                PWM_MAIN.showConfirmDialog(null,confirmText,function(){
+                                    PWM_MAIN.showWaitDialog(null,null,function(){
                                         dojo.xhrGet({
                                             url:"ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
                                             preventCache: true,
                                             error: function(errorObj) {
-                                                showError("error loading " + keyName + ", reason: " + errorObj)
+                                                PWM_MAIN.showError("error loading " + keyName + ", reason: " + errorObj)
                                             },
                                             load: function() {
                                                 loadMainPageBody();
@@ -2443,7 +2442,7 @@ function buildMenuBar() {
                     label: "About Templates",
                     onClick: function() {
                         var idName = 'dialogPopup';
-                        clearDijitWidget(idName);
+                        PWM_MAIN.clearDijitWidget(idName);
                         var theDialog = new Dialog({
                             id: idName,
                             title: 'About Templates',
@@ -2468,13 +2467,6 @@ function buildMenuBar() {
             }
             { // Actions
                 var actionsMenu = new Menu({});
-                actionsMenu.addChild(new MenuItem({
-                    label: "Search Settings",
-                    onClick: function() {
-                        searchDialog();
-                    }
-                }));
-                actionsMenu.addChild(new MenuSeparator());
                 actionsMenu.addChild(new MenuItem({
                     label: "Set Configuration Password",
                     onClick: function() {
@@ -2507,8 +2499,21 @@ function buildMenuBar() {
         });
 }
 
+function readInitialTextBasedValue(key) {
+    require(["dijit/registry"],function(registry){
+        readSetting(key, function(dataValue) {
+            PWM_MAIN.getObject('value_' + key).value = dataValue;
+            PWM_MAIN.getObject('value_' + key).disabled = false;
+            registry.byId('value_' + key).set('disabled', false);
+            registry.byId('value_' + key).startup();
+            try {registry.byId('value_' + key).validate(false);} catch (e) {}
+            try {registry.byId('value_verify_' + key).validate(false);} catch (e) {}
+        });
+    });
+}
+
 function saveConfiguration(waitForReload) {
-    showWaitDialog(null,null,function(){
+    PWM_MAIN.showWaitDialog(null,null,function(){
         require(["dojo","dojo/json"],function(dojo,json){
             dojo.xhrGet({
                 url:"ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
@@ -2519,20 +2524,20 @@ function saveConfiguration(waitForReload) {
                 dataType: "json",
                 preventCache: true,
                 load: function(data){
-                    closeWaitDialog();
+                    PWM_MAIN.closeWaitDialog();
                     if (data['error']) {
-                        showDialog("Error",data['errorMessage'])
+                        PWM_MAIN.showDialog("Error",data['errorMessage'])
                     } else {
                         var bodyText = '<div style="max-width: 590px;">';
                         bodyText += PWM_SETTINGS['display']['MenuDisplay_SaveConfig'];
                         bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
                         bodyText += data['data'];
                         bodyText +='</pre></div>';
-                        showConfirmDialog(
+                        PWM_MAIN.showConfirmDialog(
                             null,
                             bodyText,
                             function(){
-                                showWaitDialog('Saving Configuration...', null, function(){
+                                PWM_MAIN.showWaitDialog('Saving Configuration...', null, function(){
                                     require(["dojo"],function(dojo){
                                         dojo.xhrGet({
                                             url:"ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
@@ -2541,13 +2546,13 @@ function saveConfiguration(waitForReload) {
                                             handleAs: "json",
                                             load: function(data){
                                                 if (data['error'] == true) {
-                                                    closeWaitDialog();
-                                                    showError(data['errorDetail']);
+                                                    PWM_MAIN.closeWaitDialog();
+                                                    PWM_MAIN.showError(data['errorDetail']);
                                                 } else {
                                                     if (waitForReload) {
                                                         var currentTime = new Date().getTime();
-                                                        showError('Waiting for server restart');
-                                                        waitForRestart(currentTime);
+                                                        PWM_MAIN.showError('Waiting for server restart');
+                                                        PWM_CONFIG.waitForRestart(currentTime);
                                                     } else {
                                                         window.location = "ConfigManager";
                                                     }
@@ -2561,8 +2566,8 @@ function saveConfiguration(waitForReload) {
                     }
                 },
                 error: function(errorObj) {
-                    closeWaitDialog();
-                    showError("error executing function: " + errorObj);
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showError("error executing function: " + errorObj);
                 }
             });
         });
@@ -2590,8 +2595,8 @@ function setConfigEditorCookie() {
 
 function setConfigurationPassword(password) {
     if (password) {
-        clearDijitWidget('dialogPopup');
-        showWaitDialog();
+        PWM_MAIN.clearDijitWidget('dialogPopup');
+        PWM_MAIN.showWaitDialog();
         dojo.xhrPost({
             url:"ConfigEditor?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: password,
@@ -2599,23 +2604,23 @@ function setConfigurationPassword(password) {
             dataType: "text",
             handleAs: "text",
             load: function(data){
-                closeWaitDialog();
-                showInfo('Configuration password set successfully.')
+                PWM_MAIN.closeWaitDialog();
+                PWM_MAIN.showInfo('Configuration password set successfully.')
             },
             error: function(errorObj) {
-                closeWaitDialog();
-                showError("error saving notes text: " + errorObj);
+                PWM_MAIN.closeWaitDialog();
+                PWM_MAIN.showError("error saving notes text: " + errorObj);
             }
         });
         return;
     }
 
-    var writeFunction = 'setConfigurationPassword(getObject(\'password1\').value)';
+    var writeFunction = 'setConfigurationPassword(PWM_MAIN.getObject(\'password1\').value)';
     ChangePasswordHandler.init('configPw','Configuration Password',writeFunction);
 }
 
 function toggleHelpDisplay(nodeId) {
-    var node = getObject(nodeId);
+    var node = PWM_MAIN.getObject(nodeId);
     if (node) {
         if (node.style.display == 'block') {
             node.style.display = 'none';
@@ -2630,9 +2635,9 @@ function showConfigurationNotes() {
     var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
     bodyText += PWM_STRINGS['Display_PleaseWait'];
     bodyText += '</textarea>';
-    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + showString('Button_OK') + '</button>';
+    bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + PWM_MAIN.showString('Button_OK') + '</button>';
 
-    clearDijitWidget('dialogPopup');
+    PWM_MAIN.clearDijitWidget('dialogPopup');
     require(["dijit/Dialog"],function(Dialog){
         var theDialog = new Dialog({
             id: 'dialogPopup',
@@ -2641,7 +2646,7 @@ function showConfigurationNotes() {
             content: bodyText
         });
         theDialog.show();
-        getObject(idName).value = PWM_GLOBAL['configurationNotes'];
+        PWM_MAIN.getObject(idName).value = PWM_GLOBAL['configurationNotes'];
         preferences['seenNotes'] = true;
         setConfigEditorCookie();
     });
@@ -2649,9 +2654,9 @@ function showConfigurationNotes() {
 
 function writeConfigurationNotes() {
     require(["dojo","dijit/Dialog"],function(dojo){
-        var value = getObject('configNotesDialog').value;
+        var value = PWM_MAIN.getObject('configNotesDialog').value;
         PWM_GLOBAL['configurationNotes'] = value;
-        showWaitDialog();
+        PWM_MAIN.showWaitDialog();
         dojo.xhrPost({
             url:"ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
             postData: dojo.toJson(value),
@@ -2662,7 +2667,7 @@ function writeConfigurationNotes() {
                 loadMainPageBody();
             },
             error: function(errorObj) {
-                closeWaitDialog();
+                PWM_MAIN.closeWaitDialog();
                 alert("error saving notes text: " + errorObj);
                 loadMainPageBody();
             }
@@ -2685,7 +2690,7 @@ function handleResetClick(settingKey) {
 
     var title = 'Reset ' + label ? label : '';
 
-    showConfirmDialog(title,dialogText,function(){
+    PWM_MAIN.showConfirmDialog(title,dialogText,function(){
         resetSetting(settingKey);
         loadMainPageBody();
     });
@@ -2712,7 +2717,7 @@ function executeSettingFunction(setting, profile, name) {
     jsonSendData['profile'] = profile;
     jsonSendData['function'] = name;
 
-    showWaitDialog(null,null,function(){
+    PWM_MAIN.showWaitDialog(null,null,function(){
         require(["dojo","dojo/json"],function(dojo,json){
             dojo.xhrPost({
                 url:"ConfigEditor?processAction=executeSettingFunction&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
@@ -2724,18 +2729,18 @@ function executeSettingFunction(setting, profile, name) {
                 dataType: "json",
                 preventCache: true,
                 load: function(data){
-                    closeWaitDialog();
+                    PWM_MAIN.closeWaitDialog();
                     if (data['error']) {
-                        showDialog("Error",data['errorMessage'])
+                        PWM_MAIN.showDialog("Error",data['errorMessage'])
                     } else {
-                        showDialog("Success",data['successMessage'],function(){
+                        PWM_MAIN.showDialog("Success",data['successMessage'],function(){
                             loadMainPageBody();
                         });
                     }
                 },
                 error: function(errorObj) {
-                    closeWaitDialog();
-                    showError("error executing function: " + errorObj);
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showError("error executing function: " + errorObj);
                 }
             });
         });
@@ -2743,7 +2748,7 @@ function executeSettingFunction(setting, profile, name) {
 }
 
 function showChangeLog() {
-    showWaitDialog(null,null,function(){
+    PWM_MAIN.showWaitDialog(null,null,function(){
         require(["dojo","dojo/json"],function(dojo,json){
             dojo.xhrGet({
                 url:"ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
@@ -2754,19 +2759,19 @@ function showChangeLog() {
                 dataType: "json",
                 preventCache: true,
                 load: function(data){
-                    closeWaitDialog();
+                    PWM_MAIN.closeWaitDialog();
                     if (data['error']) {
-                        showDialog("Error",data['errorMessage'])
+                        PWM_MAIN.showDialog("Error",data['errorMessage'])
                     } else {
                         var bodyText = '<div style="max-width: 590px;"><pre style="white-space: pre-wrap; word-wrap: break-word">';
                         bodyText += data['data'];
                         bodyText +='</pre></div>';
-                        showDialog("Unsaved Configuration Editor Changes",bodyText);
+                        PWM_MAIN.showDialog("Unsaved Configuration Editor Changes",bodyText);
                     }
                 },
                 error: function(errorObj) {
-                    closeWaitDialog();
-                    showError("error executing function: " + errorObj);
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showError("error executing function: " + errorObj);
                 }
             });
         });
@@ -2777,18 +2782,18 @@ function searchDialog(reentrant) {
     if (reentrant) {
         var validationProps = {};
         validationProps['serviceURL'] = "ConfigEditor?processAction=search";
-        validationProps['readDataFunction'] = function(){ return {search:getObject('settingSearchInput').value}}
+        validationProps['readDataFunction'] = function(){ return {search:PWM_MAIN.getObject('settingSearchInput').value}}
         validationProps['typeWaitTimeMs'] = 50;
         validationProps['messageWorking'] = "Searching...";
         validationProps['processResultsFunction'] = function(data) {
             if (data['error']) {
-                try { getObject('message').id = "base-message"; } catch (e) {}
-                showDialog("Error",data['errorMessage'])
+                try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
+                PWM_MAIN.showDialog("Error",data['errorMessage'])
             } else {
                 var bodyText = '';
                 var resultCount = 0;
                 if (PWM_MAIN.isEmpty(data['data'])) {
-                    showSuccess(PWM_STRINGS['Display_SearchResultsNone']);
+                    PWM_MAIN.showSuccess(PWM_STRINGS['Display_SearchResultsNone']);
                 } else {
                     for (var categoryIter in data['data']) {
                         var category = data['data'][categoryIter];
@@ -2812,7 +2817,7 @@ function searchDialog(reentrant) {
                         }
                     }
                 }
-                getObject('settingSearchResults').innerHTML = bodyText;
+                PWM_MAIN.getObject('settingSearchResults').innerHTML = bodyText;
                 if (!PWM_MAIN.isEmpty(data['data'])) {
                     (function(){
                         require(["dijit/Tooltip"],function(Tooltip){
@@ -2838,11 +2843,11 @@ function searchDialog(reentrant) {
                         });
                     }());
                 }
-                showSuccess(resultCount + ' Results');
+                PWM_MAIN.showSuccess(resultCount + ' Results');
             }
         };
-        getObject('settingSearchResults').innerHTML = '<div id="WaitDialogBlank" style="vertical-align: middle"/>';
-        getObject('settingSearchResults').click();
+        PWM_MAIN.getObject('settingSearchResults').innerHTML = '<div id="WaitDialogBlank" style="vertical-align: middle"/>';
+        PWM_MAIN.getObject('settingSearchResults').click();
         PWM_MAIN.pwmFormValidator(validationProps);
     } else {
         var htmlBody = '<div>';
@@ -2850,17 +2855,17 @@ function searchDialog(reentrant) {
         htmlBody += '<input type="search" id="settingSearchInput" style="width: 400px" onkeyup="searchDialog(true)"/>';
         htmlBody += '<br/><br/>';
         htmlBody += '<div id="settingSearchResults" style="max-height: 200px; min-height: 200px;overflow-y: auto"></div>';
-        htmlBody += '<br/><br/><button class="btn" onclick="closeWaitDialog();getObject(\'base-message\').id = \'message\'">Ok</button>';
+        htmlBody += '<br/><br/><button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_MAIN.getObject(\'base-message\').id = \'message\'">Ok</button>';
         htmlBody += '</div>';
-        try { getObject('message').id = "base-message"; } catch (e) {}
+        try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Search Settings',
             style: "width: 500px",
             content: htmlBody,
             hide: function(){
-                closeWaitDialog();
-                getObject('base-message').id = "message";
+                PWM_MAIN.closeWaitDialog();
+                PWM_MAIN.getObject('base-message').id = "message";
             }
         });
         theDialog.show();
@@ -2869,7 +2874,7 @@ function searchDialog(reentrant) {
 
 function gotoSetting(category,settingKey,profile) {
     console.log('going to setting...');
-    showWaitDialog(null,null,function(){
+    PWM_MAIN.showWaitDialog(null,null,function(){
         preferences['editMode'] = 'SETTINGS';
         preferences['category'] = category;
         preferences['setting'] = settingKey ? settingKey : '';

@@ -87,14 +87,16 @@ public class ConfigEditorServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        validateCookieProfile(readConfigEditorCookie(req,resp),configManagerBean.getConfiguration(),resp);
-
-        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        ConfigManagerServlet.checkAuthentication(pwmApplication,pwmSession,configManagerBean,req,resp);
 
         if (configManagerBean.getConfiguration() == null) {
-            forwardToManager(req,resp);
-            return;
+            final StoredConfiguration loadedConfig = ConfigManagerServlet.readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
+            configManagerBean.setConfiguration(loadedConfig);
         }
+
+        validateCookieProfile(readConfigEditorCookie(req, resp), configManagerBean.getConfiguration(), resp);
+
+        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         if (processActionParam != null && processActionParam.length() > 0) {
             Validator.validatePwmFormID(req);
@@ -140,7 +142,7 @@ public class ConfigEditorServlet extends TopServlet {
             final PwmApplication pwmApplication,
             final ConfigManagerBean configManagerBean
     )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final String bodyString = ServletHelper.readRequestBody(req);
         final Map<String, String> requestMap = Helper.getGson().fromJson(bodyString,
@@ -363,9 +365,6 @@ public class ConfigEditorServlet extends TopServlet {
             restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
         } else {
             try {
-                if (!configManagerBean.getConfiguration().isModified()) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Will not save: No changes have been made to the configuration."));
-                }
                 ConfigManagerServlet.saveConfiguration(pwmSession, req.getSession().getServletContext(), configManagerBean.getConfiguration());
                 configManagerBean.setConfiguration(null);
                 restResultBean.setError(false);

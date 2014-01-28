@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +34,12 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.health.HealthTopic;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
-import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -136,12 +136,13 @@ public class EmailQueueManager extends AbstractQueueManager {
             toAddress = uiBean.getUserEmailAddress();
         }
 
+        final MacroMachine macroMachine = new MacroMachine(pwmApplication, uiBean, userDataReader);
         final EmailItemBean expandedEmailItem = new EmailItemBean(
-                MacroMachine.expandMacros(toAddress, pwmApplication, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getFrom(), pwmApplication, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getSubject(), pwmApplication, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getBodyPlain(), pwmApplication, uiBean, userDataReader),
-                MacroMachine.expandMacros(emailItem.getBodyHtml(), pwmApplication, uiBean, userDataReader)
+                macroMachine.expandMacros(toAddress),
+                macroMachine.expandMacros(emailItem.getFrom()),
+                macroMachine.expandMacros(emailItem.getSubject()),
+                macroMachine.expandMacros(emailItem.getBodyPlain()),
+                macroMachine.expandMacros(emailItem.getBodyHtml())
         );
 
         if (expandedEmailItem.getTo() == null || expandedEmailItem.getTo().length() < 1) {

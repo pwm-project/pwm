@@ -1,14 +1,12 @@
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.util.Helper" %>
-<%@ page import="password.pwm.util.ServletHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2013 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -33,13 +31,13 @@
     var advancedSettingsAreVisible = false;
     function toggleAdvancedSettingsDisplay() {
         require(['dojo/fx'], function(fx) {
-            var advSetElement = getObject('advancedSettings');
+            var advSetElement = PWM_MAIN.getObject('advancedSettings');
             if (advancedSettingsAreVisible) {
                 fx.wipeOut({node:advSetElement }).play();
-                getObject('showAdvancedSettingsButton').style.display='block';
+                PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='block';
             } else {
                 fx.wipeIn({ node:advSetElement }).play();
-                getObject('showAdvancedSettingsButton').style.display='none';
+                PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='none';
             }
             advancedSettingsAreVisible = !advancedSettingsAreVisible;
         });
@@ -62,7 +60,7 @@
         <% } %>
         <% if (jumpToSetting) { %>
         setTimeout(function(){
-            var settingElement = getObject("outline_<%=cookie.getSetting()%>");
+            var settingElement = PWM_MAIN.getObject("outline_<%=cookie.getSetting()%>");
             require(["dojo/window","dojo/_base/fx","dojo/fx"],function(win, baseFx, fx){
                 win.scrollIntoView(settingElement);
                 var animA = baseFx.fadeOut({node: "outline_<%=cookie.getSetting()%>",duration:1000});

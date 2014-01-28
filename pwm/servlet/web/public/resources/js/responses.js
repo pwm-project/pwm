@@ -27,47 +27,48 @@ var PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 PWM_GLOBAL['simpleRandomSelectElements'] = {};
 PWM_GLOBAL['simpleRandomOptions'] = [];
 
+var PWM_RESPONSES = PWM_RESPONSES || {};
+
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
-function validateResponses() {
+PWM_RESPONSES.validateResponses=function() {
     require(["dojo/dom-form"], function(domForm){
         var serviceUrl = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
         if (PWM_GLOBAL['responseMode']) {
             serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
         }
         var validationProps = {};
-        validationProps['messageWorking'] = showString('Display_CheckingResponses');
+        validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
         validationProps['serviceURL'] = serviceUrl;
         validationProps['readDataFunction'] = function(){
             return domForm.toObject('setupResponses');
         };
         validationProps['processResultsFunction'] = function(data){
-            updateDisplay(data);
+            PWM_RESPONSES.updateDisplay(data);
         };
 
         PWM_MAIN.pwmFormValidator(validationProps);
     });
-}
+};
 
-function updateDisplay(resultInfo)
-{
+PWM_RESPONSES.updateDisplay=function(resultInfo) {
     if (resultInfo == null) {
-        getObject("setresponses_button").disabled = false;
+        PWM_MAIN.getObject("setresponses_button").disabled = false;
         return;
     }
 
     var result = resultInfo["message"];
 
     if (resultInfo["success"] == true) {
-        getObject("setresponses_button").disabled = false;
-        showSuccess(result);
+        PWM_MAIN.getObject("setresponses_button").disabled = false;
+        PWM_MAIN.showSuccess(result);
     } else {
-        getObject("setresponses_button").disabled = true;
-        showError(result);
+        PWM_MAIN.getObject("setresponses_button").disabled = true;
+        PWM_MAIN.showError(result);
     }
-}
+};
 
-function makeSelectOptionsDistinct() {
+PWM_RESPONSES.makeSelectOptionsDistinct=function() {
     require(["dojo","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore","dojo/store/Memory"],
         function(dojo,registry,array,dojoOn,ObjectStore,Memory){
             var startTime = (new Date()).getTime();
@@ -87,7 +88,7 @@ function makeSelectOptionsDistinct() {
             var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
 
             // string that is used at the top of unconfigured select list
-            var initialChoiceText = showString('Display_SelectionIndicator');
+            var initialChoiceText = PWM_MAIN.showString('Display_SelectionIndicator');
 
             // the HTML select elements (populated by the jsp)
             var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
@@ -111,13 +112,13 @@ function makeSelectOptionsDistinct() {
                     var selectedValue = selectWidget.get('value');
                     var dataOptions = [];
                     if (selectedValue == 'UNSELECTED') {
-                        getObject(questionID).disabled = true;
-                        getObject(questionID).readonly = true;
+                        PWM_MAIN.getObject(questionID).disabled = true;
+                        PWM_MAIN.getObject(questionID).readonly = true;
                         dataOptions.push({id:'UNSELECTED',label:'&nbsp;&nbsp---' + initialChoiceText + '---'})
                     } else {
                         selectWidget.removeOption('UNSELECTED');
-                        getObject(questionID).disabled = false;
-                        getObject(questionID).readonly = false;
+                        PWM_MAIN.getObject(questionID).disabled = false;
+                        PWM_MAIN.getObject(questionID).readonly = false;
                     }
                     for (var i = 0; i < allPossibleTexts.length; i++) {
                         var loopText = allPossibleTexts[i];
@@ -137,27 +138,26 @@ function makeSelectOptionsDistinct() {
                     var questionID = simpleRandomSelectElements[responseID];
                     var selectWidget = registry.byId(responseID);
                     var eventHandler = dojoOn(selectWidget,"change",function(){
-                        getObject(questionID).value = '';
-                        makeSelectOptionsDistinct();
-                        validateResponses();
-                        getObject(questionID).focus();
+                        PWM_MAIN.getObject(questionID).value = '';
+                        PWM_RESPONSES.makeSelectOptionsDistinct();
+                        PWM_RESPONSES.validateResponses();
+                        PWM_MAIN.getObject(questionID).focus();
                     });
                     PWM_GLOBAL['randomSelectEventHandlers'].push(eventHandler);
                 }(responseID));
             }
             console.log('exiting makeSelectOptionsDistinct(), duration:' + (((new Date()).getTime()) - startTime) + "ms");
         });
-}
+};
 
-function startupResponsesPage()
-{
-    var initialPrompt = showString('Display_ResponsesPrompt');
+PWM_RESPONSES.startupResponsesPage=function() {
+    var initialPrompt = PWM_MAIN.showString('Display_ResponsesPrompt');
     if (initialPrompt != null && initialPrompt.length > 1) {
-        var messageElement = getObject("message");
+        var messageElement = PWM_MAIN.getObject("message");
         if (messageElement.firstChild.nodeValue.length < 2) {
-            showInfo(initialPrompt);
+            PWM_MAIN.showInfo(initialPrompt);
         }
     }
-}
+};
 
 

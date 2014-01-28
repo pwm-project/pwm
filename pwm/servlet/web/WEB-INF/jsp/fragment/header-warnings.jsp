@@ -28,18 +28,22 @@
 <% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
 <% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser; %>
 <% if (showHeader || healthCheck) { %>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
-    <% final String configManagerUrl = request.getContextPath() + "/private/config/ConfigManager"; %>
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:Display key="Header_ConfigModeTrial" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
+    <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
-    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
+    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')" value3="PWM_CONFIG.startConfigurationEditor()"/>
     <% } else if (adminUser) { %>
-    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="<%=configManagerUrl%>"/>
+    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')"/>
     <% } %>
-    &nbsp;&nbsp;<a onclick="PWM_MAIN.openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-    <div id="headerHealthData" onclick="window.location = '<%=configManagerUrl%>'" style="cursor: pointer">
+    &nbsp;&nbsp;<a onclick="PWM_CONFIG.openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
+    <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">
+    </div>
+    <div style="position: absolute; top: 3px; right: 3px;">
+        <span onclick="PWM_MAIN.getObject('header-warning').style.display = 'none';" style="cursor: pointer">
+            <span class="fa fa-caret-up"></span>&nbsp;
+        </span>
     </div>
 </div>
 <% if (healthCheck) { %>

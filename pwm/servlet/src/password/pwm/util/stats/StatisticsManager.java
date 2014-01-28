@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -275,7 +275,7 @@ public class StatisticsManager implements PwmService {
             final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
-            daemonTimer.schedule(new NightlyTask(), nextDate());
+            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
@@ -297,16 +297,6 @@ public class StatisticsManager implements PwmService {
         }
 
         status = STATUS.OPEN;
-    }
-
-    private static Date nextDate() {
-        final Calendar nextZuluMidnight = GregorianCalendar.getInstance(TimeZone.getTimeZone("Zulu"));
-        nextZuluMidnight.set(Calendar.HOUR_OF_DAY,0);
-        nextZuluMidnight.set(Calendar.MINUTE,0);
-        nextZuluMidnight.set(Calendar.SECOND,0);
-        nextZuluMidnight.add(Calendar.HOUR,24);
-        LOGGER.trace("scheduled next nightly rotate at " + StatisticsBundle.STORED_DATETIME_FORMATTER.format(nextZuluMidnight.getTime()));
-        return nextZuluMidnight.getTime();
     }
 
     private void writeDbValues() {
@@ -371,7 +361,7 @@ public class StatisticsManager implements PwmService {
         public void run() {
             writeDbValues();
             resetDailyStats();
-            daemonTimer.schedule(new NightlyTask(), nextDate());
+            daemonTimer.schedule(new NightlyTask(), Helper.nextZuluZeroTime());
         }
     }
 

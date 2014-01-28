@@ -25,6 +25,7 @@
 var PWM_GLOBAL = PWM_GLOBAL || {};
 var PWM_STRINGS = PWM_STRINGS || {};
 var PWM_MAIN = PWM_MAIN || {};
+var PWM_VAR = PWM_VAR || {};
 
 PWM_MAIN.pageLoadHandler = function() {
     require(["dojo"],function(dojo){
@@ -52,7 +53,7 @@ PWM_MAIN.pageLoadHandler = function() {
             }
         });
     });
-}
+};
 
 PWM_MAIN.initPage = function() {
     for (var j = 0; j < document.forms.length; j++) {
@@ -60,7 +61,7 @@ PWM_MAIN.initPage = function() {
         loopForm.setAttribute('autocomplete', 'off');
         require(["dojo","dojo/on"], function(dojo,on){
             on(loopForm, "reset", function(){
-                handleFormClear();
+                PWM_MAIN.handleFormClear();
                 return false;
             });
         });
@@ -72,8 +73,8 @@ PWM_MAIN.initPage = function() {
         });
     });
 
-    if (getObject('button_cancel')) {
-        getObject('button_cancel').style.visibility = 'visible';
+    if (PWM_MAIN.getObject('button_cancel')) {
+        PWM_MAIN.getObject('button_cancel').style.visibility = 'visible';
     }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
@@ -88,8 +89,8 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    if (getObject('message')) {
-        PWM_GLOBAL['message_originalStyle'] = getObject('message').style;
+    if (PWM_MAIN.getObject('message')) {
+        PWM_GLOBAL['message_originalStyle'] = PWM_MAIN.getObject('message').style;
         require(["dojo","dojo/on"], function(dojo,on){
             if(dojo.isIE <= 8){
                 return;
@@ -100,7 +101,7 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    if (getObject('header-warning')) {
+    if (PWM_MAIN.getObject('header-warning')) {
         require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
             var args = {node: "header-warning",duration:1000};
             setInterval(function(){fx.fadeOut(args).play()},15*1000);
@@ -115,23 +116,19 @@ PWM_MAIN.initPage = function() {
         PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
     });
 
-    if (getObject('logoutDiv')) {
+    if (PWM_MAIN.getObject('logoutDiv')) {
         require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
             new Tooltip({
                 connectId: ["logoutDiv"],
-                label: showString("Long_Title_Logout")
+                label: PWM_MAIN.showString("Long_Title_Logout")
             });
         });
     }
 
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        try {
-            PWM_GLOBAL['startupFunctions'][i]();
-        } catch (e) {
-            alert('error executing startupFunction ' + e);
-        }
+        PWM_GLOBAL['startupFunctions'][i]();
     }
-}
+};
 
 PWM_MAIN.preloadResources = function(finishFunction) {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
@@ -149,29 +146,52 @@ PWM_MAIN.preloadResources = function(finishFunction) {
             finishFunction();
         }
     });
-}
+};
 
-function showString(key) {
+PWM_MAIN.showString = function (key) {
     if (PWM_STRINGS[key]) {
         return PWM_STRINGS[key];
     } else {
         return "UNDEFINED STRING-" + key;
     }
-}
+};
 
-function handleFormCancel() {
-    showWaitDialog(null,null,function(){
-        var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-        window.location = continueUrl;
+PWM_MAIN.goto = function(url,options) {
+    options = options || {};
+    if (!options['noContext']) {
+        if (url.substring(0,1) == '/') {
+            url = PWM_GLOBAL['url-context'] + url;
+        }
+    }
+    if (!options['noFormID']) {
+        if (url.indexOf('pwmFormID') == -1) {
+            url += url.indexOf('?') == -1 ? '?' : '&';
+            url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        }
+    }
+    PWM_MAIN.showWaitDialog(null,null,function(){
+        window.location = url;
+        if (options['closeDelay']) {
+            setTimeout(function(){
+                PWM_MAIN.closeWaitDialog();
+            },options['closeDelay']);
+        }
     });
 }
 
-function handleFormSubmit(buttonID, form) {
+PWM_MAIN.handleFormCancel = function() {
+    PWM_MAIN.showWaitDialog(null,null,function(){
+        var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+        window.location = continueUrl;
+    });
+};
+
+PWM_MAIN.handleFormSubmit = function(buttonID, form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-    var submitButton = getObject(buttonID);
+    var submitButton = PWM_MAIN.getObject(buttonID);
     if (submitButton != null) {
-        getObject(buttonID).value = showString('Display_PleaseWait');
-        getObject(buttonID).disabled = true;
+        PWM_MAIN.getObject(buttonID).value = PWM_MAIN.showString('Display_PleaseWait');
+        PWM_MAIN.getObject(buttonID).disabled = true;
 
         var formElements = submitButton.form.elements;
         for (var i = 0; i < formElements.length; i++) {
@@ -179,11 +199,11 @@ function handleFormSubmit(buttonID, form) {
         }
     }
 
-    showWaitDialog(null,null,function(){form.submit();});
+    PWM_MAIN.showWaitDialog(null,null,function(){form.submit();});
     return false;
-}
+};
 
-function handleFormClear() {
+PWM_MAIN.handleFormClear = function() {
     var focusSet = false;
 
     for (var j = 0; j < document.forms.length; j++) {
@@ -201,11 +221,11 @@ function handleFormClear() {
         }
     }
     return false;
-}
+};
 
 PWM_MAIN.checkForCapsLock = function(e) {
     require(["dojo","dojo/_base/fx","dojo/domReady!"],function(dojo,fx){
-        var capsLockWarningElement = getObject('capslockwarning');
+        var capsLockWarningElement = PWM_MAIN.getObject('capslockwarning');
         if (capsLockWarningElement == null) {
             return;
         }
@@ -265,10 +285,9 @@ PWM_MAIN.checkForCapsLock = function(e) {
             }
         }
     });
-}
+};
 
-
-function getObject(name) {
+PWM_MAIN.getObject = function(name) {
     var ns4 = document.layers;
     var w3c = document.getElementById;
     var ie4 = document.all;
@@ -283,16 +302,16 @@ function getObject(name) {
         return eval('document.all.' + name);
     }
     return false;
-}
+};
 
 PWM_MAIN.trimString = function(sInString) {
     sInString = sInString.replace(/^\s+/g, "");
     // strip leading
     return sInString.replace(/\s+$/g, "");
     // strip trailing
-}
+};
 
-function clearDijitWidget(widgetName) {
+PWM_MAIN.clearDijitWidget = function (widgetName) {
     require(["dijit/registry"],function(registry){
         var oldDijitNode = registry.byId(widgetName);
         if (oldDijitNode != null) {
@@ -308,22 +327,27 @@ function clearDijitWidget(widgetName) {
             }
         }
     });
-}
+};
 
 PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
-    if (getObject(attachNode) == null) {
+    if (PWM_MAIN.getObject(attachNode) == null) {
         return;
     }
 
-    for (var localeKey in PWM_GLOBAL['localeFlags']) {
-        var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] +  '/public/resources/flags/png/' + PWM_GLOBAL['localeFlags'][localeKey] + '.png)';
-        var cssSelector = '.flagLang_' + localeKey;
-        PWM_MAIN.createCSSClass(cssSelector,cssBody);
-    }
+    require(["dojo","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator","dojo/domReady!"],function(dojo,dijitMenu,dijitMenuItem,dijitMenuSeparator){
+        if(dojo.isIE <= 8){ // IE8 and below cant handle the css associated with the locale select menu
+            dojo.connect(PWM_MAIN.getObject(attachNode),"click",function(){
+                PWM_MAIN.goto("/public/localeselect.jsp");
+            });
+        } else {
+
+            for (var localeKey in PWM_GLOBAL['localeFlags']) {
+                var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] +  '/public/resources/flags/png/' + PWM_GLOBAL['localeFlags'][localeKey] + '.png)';
+                var cssSelector = '.flagLang_' + localeKey;
+                PWM_MAIN.createCSSClass(cssSelector,cssBody);
+            }
 
 
-    require(["dojo/domReady!"],function(){
-        require(["dojo","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(dojo, dijitMenu, dijitMenuItem, dijitMenuSeparator){
             var localeData = PWM_GLOBAL['localeInfo'];
             var pMenu = new dijitMenu({
                 targetNodeIds: [attachNode],
@@ -336,7 +360,7 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                     label: localeDisplayName,
                     iconClass: localeIconClass,
                     onClick: function() {
-                        showWaitDialog();
+                        PWM_MAIN.showWaitDialog();
                         var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&" + PWM_GLOBAL['paramName.locale'] + "=" + localeKey;
                         dojo.xhrGet({
                             url: pingURL,
@@ -363,27 +387,27 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
 
             pMenu.addChild(new dijitMenuSeparator());
             pMenu.addChild(new dijitMenuItem({
-                label: showString('Title_LocaleSelect'),
+                label: PWM_MAIN.showString('Title_LocaleSelect'),
                 onClick: function() {
-                    showWaitDialog(null,null,function(){
+                    PWM_MAIN.showWaitDialog(null,null,function(){
                         window.location = PWM_GLOBAL['url-context'] + '/public/localeselect.jsp'
                     });
                 }
             }));
-        });
+        }
     });
-}
+};
 
-function showWaitDialog(title, body, loadFunction) {
+PWM_MAIN.showWaitDialog = function(title, body, loadFunction) {
     if (title == null) {
-        title=showString('Display_PleaseWait');
+        title=PWM_MAIN.showString('Display_PleaseWait');
     }
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         var idName = 'dialogPopup';
         if (!loadFunction) {
             loadFunction = function(){};
         }
-        clearDijitWidget(idName);
+        PWM_MAIN.clearDijitWidget(idName);
         if (body == null || body.length < 1) {
             //body = '<div id="WaitDialogBlank"/>';
             body = '<div id="progressBar" style="margin: 8px; width: 100%"/>'
@@ -404,9 +428,9 @@ function showWaitDialog(title, body, loadFunction) {
             indeterminate:true
         },"progressBar");
     });
-}
+};
 
-function showDialog(title, text, nextAction) {
+PWM_MAIN.showDialog = function (title, text, nextAction) {
     var titleText = title == null ? "" : title;
     PWM_GLOBAL['dialog_nextAction'] = nextAction ? nextAction : function(){};
     var bodyText = '';
@@ -414,11 +438,11 @@ function showDialog(title, text, nextAction) {
     bodyText += text;
     bodyText += '</p></div>';
     bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + showString('Button_OK') + '</button>  ';
-    showWaitDialog(titleText,bodyText);
-}
+    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
+    PWM_MAIN.showWaitDialog(titleText,bodyText);
+};
 
-function showEula(requireAgreement, agreeFunction) {
+PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
     if (agreeFunction && PWM_GLOBAL['eulaAgreed']) {
         agreeFunction();
         return;
@@ -429,14 +453,14 @@ function showEula(requireAgreement, agreeFunction) {
     bodyText += '</iframe>';
     bodyText += '<div style="width: 100%; text-align: center">';
     if (requireAgreement) {
-        bodyText += '<input type="button" class="btn" value="' + showString('Button_Agree') + '" onclick="PWM_GLOBAL[\'eulaAgreed\']=true;clearDijitWidget(\'dialogPopup\');PWM_GLOBAL[\'dialog_agreeAction\']()"/>';
-        bodyText += '<input type="button" class="btn" value="' + showString('Button_Cancel') + '" onclick="closeWaitDialog()"/>';
+        bodyText += '<input type="button" class="btn" value="' + PWM_MAIN.showString('Button_Agree') + '" onclick="PWM_GLOBAL[\'eulaAgreed\']=true;PWM_MAIN.clearDijitWidget(\'dialogPopup\');PWM_GLOBAL[\'dialog_agreeAction\']()"/>';
+        bodyText += '<input type="button" class="btn" value="' + PWM_MAIN.showString('Button_Cancel') + '" onclick="PWM_MAIN.closeWaitDialog()"/>';
     } else {
-        bodyText += '<input type="button" class="btn" value="' + showString('Button_OK') + '" onclick="closeWaitDialog()"/>';
+        bodyText += '<input type="button" class="btn" value="' + PWM_MAIN.showString('Button_OK') + '" onclick="PWM_MAIN.closeWaitDialog()"/>';
     }
     bodyText += '</div>'
 
-    clearDijitWidget('dialogPopup');
+    PWM_MAIN.clearDijitWidget('dialogPopup');
     require(["dijit/Dialog"], function(Dialog){
         new Dialog({
             title: "End User License Agreement",
@@ -444,10 +468,10 @@ function showEula(requireAgreement, agreeFunction) {
             content: bodyText
         }).show();
     });
-}
+};
 
-function showConfirmDialog(title, text, trueAction, falseAction) {
-    var titleText = title == null ? showString('Button_Confirm') : title;
+PWM_MAIN.showConfirmDialog = function(title, text, trueAction, falseAction) {
+    var titleText = title == null ? PWM_MAIN.showString('Button_Confirm') : title;
     PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};
     PWM_GLOBAL['confirm_false_action'] = falseAction ? falseAction : function(){};
     var bodyText = '';
@@ -455,16 +479,16 @@ function showConfirmDialog(title, text, trueAction, falseAction) {
     bodyText += text;
     bodyText += '</p></div>';
     bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + showString('Button_OK') + '</button>  ';
-    bodyText += '<button class="btn" onclick="closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + showString('Button_Cancel') + '</button>  ';
-    showWaitDialog(titleText,bodyText);
-}
+    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
+    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+    PWM_MAIN.showWaitDialog(titleText,bodyText);
+};
 
-function closeWaitDialog() {
+PWM_MAIN.closeWaitDialog = function() {
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
-        clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget('dialogPopup');
     });
-}
+};
 
 PWM_MAIN.showAppHealth = function(parentDivID, options, refreshNow) {
     var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
@@ -504,42 +528,46 @@ PWM_MAIN.showAppHealth = function(parentDivID, options, refreshNow) {
             timeout: 60 * 1000,
             preventCache: true,
             load: function(data) {
-                PWM_GLOBAL['pwm-health'] = data['data']['overall'];
-                var healthRecords = data['data']['records'];
-                var htmlBody = '<table width="100%" style="width=100%; border=0">';
-                for (var i = 0; i < healthRecords.length; i++) {
-                    var healthData = healthRecords[i];
-                    htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
-                    htmlBody += healthData['topic'];
-                    htmlBody += '</td><td class="health-' + healthData['status'] + '">';
-                    htmlBody += healthData['status'];
-                    htmlBody += "</td><td>";
-                    htmlBody += healthData['detail'];
-                    htmlBody += "</td></tr>";
-                }
-                if (showTimestamp || showRefresh) {
-                    htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-                    if (showTimestamp) {
-                        var dateString = data['data']['timestamp'];
-                        var date = new Date(dateString);
-                        htmlBody += (date ? date.toLocaleString() : "") + '&nbsp;&nbsp;&nbsp;&nbsp;';
-                    }
-                    if (showRefresh) {
-                        htmlBody += '<a href="#"; onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">refresh</a>';
-                    }
-                    htmlBody += "</td></tr>";
-                }
+                if (data['error']) {
 
-                htmlBody += '</table>';
-                parentDiv.innerHTML = htmlBody;
-                PWM_GLOBAL['healthCheckInProgress'] = false;
-                if (refreshTime > 0) {
-                    setTimeout(function() {
-                        PWM_MAIN.showAppHealth(parentDivID, options);
-                    }, refreshTime);
-                }
-                if (finishFunction) {
-                    finishFunction();
+                } else {
+                    PWM_GLOBAL['pwm-health'] = data['data']['overall'];
+                    var healthRecords = data['data']['records'];
+                    var htmlBody = '<table width="100%" style="width=100%; border=0">';
+                    for (var i = 0; i < healthRecords.length; i++) {
+                        var healthData = healthRecords[i];
+                        htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
+                        htmlBody += healthData['topic'];
+                        htmlBody += '</td><td class="health-' + healthData['status'] + '">';
+                        htmlBody += healthData['status'];
+                        htmlBody += "</td><td>";
+                        htmlBody += healthData['detail'];
+                        htmlBody += "</td></tr>";
+                    }
+                    if (showTimestamp || showRefresh) {
+                        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+                        if (showTimestamp) {
+                            htmlBody += (data['data']['timestamp'] + '&nbsp;&nbsp;&nbsp;&nbsp;');
+                        }
+                        if (showRefresh) {
+                            htmlBody += '<a title="refresh" href="#"; onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">';
+                            htmlBody += '<span class="fa fa-refresh"></span>';
+                            htmlBody += '</a>';
+                        }
+                        htmlBody += "</td></tr>";
+                    }
+
+                    htmlBody += '</table>';
+                    parentDiv.innerHTML = htmlBody;
+                    PWM_GLOBAL['healthCheckInProgress'] = false;
+                    if (refreshTime > 0) {
+                        setTimeout(function() {
+                            PWM_MAIN.showAppHealth(parentDivID, options);
+                        }, refreshTime);
+                    }
+                    if (finishFunction) {
+                        finishFunction();
+                    }
                 }
             },
             error: function(error) {
@@ -567,220 +595,30 @@ PWM_MAIN.showAppHealth = function(parentDivID, options, refreshNow) {
             }
         });
     });
-}
-
-var IdleTimeoutHandler = {};
-
-IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000;   // milliseconds
-IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;       // seconds
-IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS = 10; //
-IdleTimeoutHandler.timeoutSeconds = 0; // idle timeout time permitted
-IdleTimeoutHandler.lastActivityTime = new Date(); // time at which we are "idled out"
-IdleTimeoutHandler.lastPingTime = new Date(); // date at which the last ping occured
-IdleTimeoutHandler.realWindowTitle = "";
-IdleTimeoutHandler.warningDisplayed = false;
-
-IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
-    IdleTimeoutHandler.timeoutSeconds = secondsRemaining;
-    IdleTimeoutHandler.lastPingTime = new Date();
-    IdleTimeoutHandler.realWindowTitle = document.title;
-    IdleTimeoutHandler.resetIdleCounter();
-    setInterval(function(){IdleTimeoutHandler.pollActivity()}, IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
-    require(["dojo/on"], function(on){
-        on(document, "click", function(){IdleTimeoutHandler.resetIdleCounter()});
-        on(document, "keypress", function(){IdleTimeoutHandler.resetIdleCounter()});
-        on(document, "scroll", function(){IdleTimeoutHandler.resetIdleCounter()});
-    });
 };
 
-IdleTimeoutHandler.resetIdleCounter = function() {
-    IdleTimeoutHandler.lastActivityTime = new Date();
-    IdleTimeoutHandler.closeIdleWarning();
-    IdleTimeoutHandler.pollActivity();
-};
-
-IdleTimeoutHandler.pollActivity = function() {
-    var secondsRemaining = IdleTimeoutHandler.calcSecondsRemaining();
-    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(secondsRemaining);
-    var idleStatusFooter = getObject("idle_status");
-    if (idleStatusFooter != null) {
-        idleStatusFooter.firstChild.nodeValue = idleDisplayString;
-    }
-
-    var warningDialogText = getObject("IdleDialogWindowIdleText");
-    if (warningDialogText != null) {
-        warningDialogText.firstChild.nodeValue = idleDisplayString;
-    }
-
-    if (secondsRemaining < 0) {
-        if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-            PWM_GLOBAL['idle_suspendTimeout'] = true;
-            window.location = PWM_GLOBAL['url-logout'];
-        } else {
-            try { getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
-        }
-        return;
-    }
-
-    var pingAgoMs = (new Date()).getTime() - IdleTimeoutHandler.lastPingTime.getTime();
-    if (pingAgoMs > (IdleTimeoutHandler.timeoutSeconds - IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS) * 1000) {
-        IdleTimeoutHandler.pingServer();
-    }
-
-    if (secondsRemaining < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
-        if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            IdleTimeoutHandler.showIdleWarning();
-            if (secondsRemaining % 2 == 0) {
-                document.title = IdleTimeoutHandler.realWindowTitle;
-            } else {
-                document.title = idleDisplayString;
-            }
-        }
-    }
-};
-
-IdleTimeoutHandler.pingServer = function() {
-    IdleTimeoutHandler.lastPingTime = new Date();
-    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    require(["dojo"], function(dojo){
-        dojo.xhrPost({url:pingURL,sync:false});
-    });
-};
-
-IdleTimeoutHandler.calcSecondsRemaining = function() {
-    var timeoutTime = IdleTimeoutHandler.lastActivityTime.getTime() + (IdleTimeoutHandler.timeoutSeconds * 1000)
-    var amount = timeoutTime - (new Date()).getTime();
-    amount = Math.floor(amount / 1000);
-    return amount;
-};
-
-IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
-    if (amount < 1) {
-        return "";
-    }
-
-    var output = "";
-
-    var days = Math.floor(amount / 86400);
-
-    amount = amount % 86400;
-    var hours = Math.floor(amount / 3600);
-
-    amount = amount % 3600;
-    var mins = Math.floor(amount / 60);
-
-    amount = amount % 60;
-    var secs = Math.floor(amount);
-
-    // write number of days
-    if (days != 0) {
-        output += days + " ";
-        if (days != 1) {
-            output += showString('Display_Days');
-        } else {
-            output += showString('Display_Day');
-        }
-    }
-
-    // write number of hours
-    if (days != 0 || hours != 0) {
-        if (output.length > 0) {
-            output += ", ";
-        }
-
-        output += hours + " ";
-        if (hours != 1) {
-            output += showString('Display_Hours');
-        } else {
-            output += showString('Display_Hour');
-        }
-    }
-
-    // write number of minutes
-    if (days != 0 || hours != 0 || mins != 0) {
-        if (output.length > 0) {
-            output += ", ";
-        }
-
-        output += mins + " ";
-        if (mins != 1) {
-            output += showString('Display_Minutes');
-        } else {
-            output += showString('Display_Minute');
-        }
-    }
-
-    // write number of seconds
-    if (mins < 4) {
-        if (output.length > 0) {
-            output += ", ";
-        }
-
-        output += secs + " ";
-
-        if (secs != 1) {
-            output += showString('Display_Seconds');
-        } else {
-            output += showString('Display_Second');
-        }
-    }
-
-    output = showString('Display_IdleTimeout') + " " + output;
-    return output;
-};
-
-IdleTimeoutHandler.showIdleWarning = function() {
-    if (!IdleTimeoutHandler.warningDisplayed) {
-        IdleTimeoutHandler.warningDisplayed = true;
-
-        var dialogBody = showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
-        require(["dijit/Dialog"],function(){
-            var theDialog = new dijit.Dialog({
-                title: showString('Display_IdleWarningTitle'),
-                style: "width: 260px; border: 2px solid #D4D4D4;",
-                content: dialogBody,
-                closable: true,
-                draggable: false,
-                id: "idleDialog"
-            });
-            theDialog.show();
-        });
-    }
-};
-
-IdleTimeoutHandler.closeIdleWarning = function() {
-    clearDijitWidget('idleDialog');
-    document.title = IdleTimeoutHandler.realWindowTitle;
-    IdleTimeoutHandler.warningDisplayed = false;
-};
-
-function clearError()
-{
+PWM_MAIN.clearError=function() {
     PWM_GLOBAL['messageStatus'] = '';
-    doShow('messageStatus','\u00a0');
-}
+    PWM_MAIN.doShow('messageStatus','\u00a0');
+};
 
-function showInfo(infoMsg)
-{
+PWM_MAIN.showInfo=function(infoMsg) {
     PWM_GLOBAL['messageStatus'] = 'message-info';
-    doShow('message-info',infoMsg);
-}
+    PWM_MAIN.doShow('message-info',infoMsg);
+};
 
-function showError(errorMsg)
-{
+PWM_MAIN.showError=function(errorMsg) {
     PWM_GLOBAL['messageStatus'] = 'message-error';
-    doShow('message-error',errorMsg);
-}
+    PWM_MAIN.doShow('message-error',errorMsg);
+};
 
-function showSuccess(successMsg)
-{
+PWM_MAIN.showSuccess=function(successMsg) {
     PWM_GLOBAL['messageStatus'] = 'message-success';
-    doShow('message-success',successMsg);
-}
+    PWM_MAIN.doShow('message-success',successMsg);
+};
 
-function doShow(destClass, message, fromFloatHandler) {
-    var messageElement = getObject("message");
+PWM_MAIN.doShow = function(destClass, message, fromFloatHandler) {
+    var messageElement = PWM_MAIN.getObject("message");
     if (messageElement == null || messageElement.firstChild == null || messageElement.firstChild.nodeValue == null) {
         return;
     }
@@ -834,7 +672,7 @@ function doShow(destClass, message, fromFloatHandler) {
             }
         }
     });
-}
+};
 
 PWM_MAIN.showStatChart = function(statName,days,divName) {
     var epsTypes = PWM_GLOBAL['epsTypes'];
@@ -866,7 +704,7 @@ PWM_MAIN.showStatChart = function(statName,days,divName) {
                         for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
                             var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
                             var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                            if (getObject(loopEpsID) != null) {
+                            if (PWM_MAIN.getObject(loopEpsID) != null) {
                                 if (registry.byId(loopEpsID)) {
                                     registry.byId(loopEpsID).setAttribute('value',0);
                                 }
@@ -891,10 +729,10 @@ PWM_MAIN.showStatChart = function(statName,days,divName) {
                                 if (loopEpsDuration == "HOURLY") {
                                     activityCount += loopEpsValue;
                                 }
-                                if (getObject(loopFieldEpsID) != null) {
-                                    getObject(loopFieldEpsID).innerHTML = loopEpmValue;
+                                if (PWM_MAIN.getObject(loopFieldEpsID) != null) {
+                                    PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
                                 }
-                                if (getObject(loopEpsID) != null) {
+                                if (PWM_MAIN.getObject(loopEpsID) != null) {
                                     console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
                                     if (registry.byId(loopEpsID)) {
                                         registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
@@ -919,7 +757,7 @@ PWM_MAIN.showStatChart = function(statName,days,divName) {
                         }
                         PWM_GLOBAL['epsActivityCount'] = activityCount;
                     }
-                    if (divName != null && getObject(divName)) { // stats chart
+                    if (divName != null && PWM_MAIN.getObject(divName)) { // stats chart
                         var values = [];
                         for(var key in data['nameData']) {
                             var value = data['nameData'][key];
@@ -942,7 +780,7 @@ PWM_MAIN.showStatChart = function(statName,days,divName) {
                 }
             });
         });
-}
+};
 
 PWM_MAIN.createCSSClass = function(selector, style) {
     // using information found at: http://www.quirksmode.org/dom/w3c_css.html
@@ -1001,10 +839,14 @@ PWM_MAIN.createCSSClass = function(selector, style) {
         for(i = 0;i<styleSheet.rules.length;i++)
         {
             // if there is an existing rule set up, replace it
-            if(styleSheet.cssRules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase())
-            {
-                styleSheet.rules[i].style.cssText = style;
-                return;
+            try {
+                if(styleSheet.cssRules[i].selectorText && styleSheet.rules[i].selectorText.toLowerCase() == selector.toLowerCase())
+                {
+                    styleSheet.rules[i].style.cssText = style;
+                    return;
+                }
+            } catch (e) {
+                console.log('error while checking existing rules during cssCreate:' + e);
             }
         }
         // or add a new rule
@@ -1024,23 +866,23 @@ PWM_MAIN.createCSSClass = function(selector, style) {
         // or insert new rule
         styleSheet.insertRule(selector + "{" + style + "}", styleSheet.cssRules.length);
     }
-}
+};
 
 PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
-    if (!getObject(elementName)) {
+    if (!PWM_MAIN.getObject(elementName)) {
         return;
     }
 
     require(["dojo","dojo/window","dojo/domReady!"],function(dojo) {
         var originalBGColor = PWM_MAIN.getRenderedStyle(elementName,'background-color');
-        getObject(elementName).style.backgroundColor = flashColor;
+        PWM_MAIN.getObject(elementName).style.backgroundColor = flashColor;
         dojo.animateProperty({
             node:elementName,
             duration: durationMS,
             properties: { backgroundColor: originalBGColor}
         }).play();
     });
-}
+};
 
 PWM_MAIN.getRenderedStyle = function(el,styleProp) {
     var x = document.getElementById(el);
@@ -1053,7 +895,7 @@ PWM_MAIN.getRenderedStyle = function(el,styleProp) {
     }
 
     return null;
-}
+};
 
 PWM_MAIN.elementInViewport = function(el, includeWidth) {
     var top = el.offsetTop;
@@ -1077,11 +919,11 @@ PWM_MAIN.elementInViewport = function(el, includeWidth) {
         ) : (
         top >= pageY && (top + height) <= (pageY + window.innerHeight)
         );
-}
+};
 
 PWM_MAIN.messageDivFloatHandler = function() {
-    var messageObj = getObject('message');
-    var messageWrapperObj = getObject('message_wrapper');
+    var messageObj = PWM_MAIN.getObject('message');
+    var messageWrapperObj = PWM_MAIN.getObject('message_wrapper');
     if (!messageObj || !messageWrapperObj) {
         return;
     }
@@ -1095,7 +937,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
 
         if (PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
             messageObj.style.cssText = '';
-            doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
+            PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         } else {
             messageObj.style.position = 'fixed';
             messageObj.style.top = '-3px';
@@ -1104,21 +946,21 @@ PWM_MAIN.messageDivFloatHandler = function() {
             messageObj.style.zIndex = "100";
             messageObj.style.textAlign = "center";
             messageObj.style.backgroundColor = 'black';
-            doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
+            PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         }
     }
-}
+};
 
-PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
-{
-    var AJAX_TIMEOUT = PWM_GLOBAL['client.ajaxTypingTimeout'];
+PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     var CONSOLE_DEBUG = true;
 
     var serviceURL = validationProps['serviceURL'];
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
-    var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : showString('Display_PleaseWait');
+    var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : PWM_MAIN.showString('Display_PleaseWait');
     var typeWaitTimeMs = validationProps['typeWaitTimeMs'] ? validationProps['typeWaitTimeMs'] : PWM_GLOBAL['client.ajaxTypingWait'];
+    var ajaxTimeout = validationProps['ajaxTimeout'] ? validationProps['ajaxTimeout'] : PWM_GLOBAL['client.ajaxTypingTimeout'];
+
 
     if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
     //init vars;
@@ -1146,7 +988,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
 
     // check to see if user is still typing.  if yes, then come back later.
     if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < typeWaitTimeMs) {
-        showInfo(showString('Display_TypingWait'));
+        PWM_MAIN.showInfo(PWM_MAIN.showString('Display_TypingWait'));
         setTimeout(function(){PWM_MAIN.pwmFormValidator(validationProps, true)}, typeWaitTimeMs + 1);
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: sleeping while waiting for typing to finish, will retry...');
         return;
@@ -1161,7 +1003,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
     PWM_GLOBAL['validationInProgress'] = true;
 
     // show in-progress message if load takes too long.
-    setTimeout(function(){ if (PWM_GLOBAL['validationInProgress']==true) { showInfo(messageWorking); } },5);
+    setTimeout(function(){ if (PWM_GLOBAL['validationInProgress']==true) { PWM_MAIN.showInfo(messageWorking); } },5);
 
     serviceURL += serviceURL.indexOf('?') > 0 ? '&' : '?';
     serviceURL += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
@@ -1173,16 +1015,15 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
             url: serviceURL,
             postData: formDataString,
             headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            contentType: "a" +
-                "pplication/json;charset=utf-8",
+            contentType: "application/json;charset=utf-8",
             encoding: "utf-8",
             handleAs: "json",
             dataType: "json",
             preventCache: true,
-            timeout: AJAX_TIMEOUT,
+            timeout: ajaxTimeout,
             error: function(errorObj) {
                 PWM_GLOBAL['validationInProgress'] = false;
-                showInfo(showString('Display_CommunicationError'));
+                PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
                 if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
                 processResultsFunction(null);
             },
@@ -1195,7 +1036,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant)
             }
         });
     });
-}
+};
 
 PWM_MAIN.preloadImages = function(imgArray){
     var newimages=[]
@@ -1204,22 +1045,22 @@ PWM_MAIN.preloadImages = function(imgArray){
         newimages[i]=new Image();
         newimages[i].src=arr[i];
     }
-}
+};
 
 
 PWM_MAIN.isEmpty = function(o) {
     for (var key in o) if (o.hasOwnProperty(key)) return false;
     return true;
-}
+};
 
 PWM_MAIN.itemCount = function(o) {
     var i = 0;
     for (var key in o) if (o.hasOwnProperty(key)) i++;
     return i;
-}
+};
 
 PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
-    var obj = getObject(divName);
+    var obj = PWM_MAIN.getObject(divName);
 
     var storedStyleName = 'fullscreen-style-' + divName;
     if (PWM_GLOBAL[storedStyleName]) {
@@ -1240,13 +1081,13 @@ PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
     if (PWM_GLOBAL['displayGrid']) {
         PWM_GLOBAL['displayGrid'].resize();
     }
-}
+};
 
 PWM_MAIN.showHeaderHealth = function() {
     var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
     require(["dojo"],function(dojo){
-        var parentDiv = getObject('headerHealthData');
-        var headerDiv = getObject('header-warning');
+        var parentDiv = PWM_MAIN.getObject('headerHealthData');
+        var headerDiv = PWM_MAIN.getObject('header-warning');
         if (parentDiv && headerDiv) {
             dojo.xhrGet({
                 url: refreshUrl,
@@ -1281,11 +1122,11 @@ PWM_MAIN.showHeaderHealth = function() {
             });
         }
     });
-}
+};
 
 PWM_MAIN.updateLoginContexts = function() {
-    var ldapProfileElement = getObject('ldapProfile');
-    var contextElement = getObject('context');
+    var ldapProfileElement = PWM_MAIN.getObject('ldapProfile');
+    var contextElement = PWM_MAIN.getObject('context');
     if (contextElement && ldapProfileElement) {
         var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
         contextElement.options.length = 0;
@@ -1299,15 +1140,12 @@ PWM_MAIN.updateLoginContexts = function() {
             }(key));
         }
     }
-}
+};
 
-PWM_MAIN.openLogViewer = function(level) {
-    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog' + ((level) ? '&level=' + level : '');
-    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
-    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
-}
+//---------- show/hide password handler
 
 var ShowHidePasswordHandler = {};
+
 ShowHidePasswordHandler.idSuffix = '-eye-icon';
 ShowHidePasswordHandler.state = {};
 ShowHidePasswordHandler.toggleRevertTimeout = 15 * 1000;
@@ -1327,19 +1165,19 @@ ShowHidePasswordHandler.initAllForms = function() {
             }
         }
     });
-}
+};
 
 ShowHidePasswordHandler.init = function(nodeName) {
     if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
         return;
     }
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
-    if (getObject(eyeId)) {
+    if (PWM_MAIN.getObject(eyeId)) {
         return;
     }
 
     require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
-        var node = getObject(nodeName);
+        var node = PWM_MAIN.getObject(nodeName);
         var divElement = document.createElement('div');
         divElement.className = 'fa fa-eye';
         divElement.id = eyeId;
@@ -1357,9 +1195,9 @@ ShowHidePasswordHandler.init = function(nodeName) {
 };
 
 ShowHidePasswordHandler.renderIcon = function(nodeName) {
-    var node = getObject(nodeName);
+    var node = PWM_MAIN.getObject(nodeName);
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
-    var eyeNode = getObject(eyeId);
+    var eyeNode = PWM_MAIN.getObject(eyeId);
     if (node && node.value && node.value.length > 0) {
         eyeNode.style.visibility = 'visible';
     } else {
@@ -1377,14 +1215,14 @@ ShowHidePasswordHandler.toggle = function(nodeName) {
 
 ShowHidePasswordHandler.hide = function(nodeName) {
     ShowHidePasswordHandler.state[nodeName] = true;
-    ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'password');
+    ShowHidePasswordHandler.changeInputTypeField(PWM_MAIN.getObject(nodeName),'password');
     ShowHidePasswordHandler.setupTooltip(nodeName);
     ShowHidePasswordHandler.renderIcon(nodeName);
 };
 
 ShowHidePasswordHandler.show = function(nodeName) {
     ShowHidePasswordHandler.state[nodeName] = false;
-    ShowHidePasswordHandler.changeInputTypeField(getObject(nodeName),'text');
+    ShowHidePasswordHandler.changeInputTypeField(PWM_MAIN.getObject(nodeName),'text');
     setTimeout(function(){
         if (!ShowHidePasswordHandler.state[nodeName]) {
             ShowHidePasswordHandler.toggle(nodeName);
@@ -1401,25 +1239,221 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
         object.parentNode.replaceChild(newObject, object);
         return newObject;
     });
-}
+};
 
 ShowHidePasswordHandler.setupTooltip = function(nodeName) {
     var state = ShowHidePasswordHandler.state[nodeName];
     var eyeNodeId = nodeName + ShowHidePasswordHandler.idSuffix;
-    clearDijitWidget(eyeNodeId );
+    PWM_MAIN.clearDijitWidget(eyeNodeId );
     require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
         if (state) {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Show']
             });
-            getObject(eyeNodeId).className = 'fa fa-eye';
+            PWM_MAIN.getObject(eyeNodeId).className = 'fa fa-eye';
         } else {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Hide']
             });
-            getObject(eyeNodeId).className = 'fa fa-eye-slash';
+            PWM_MAIN.getObject(eyeNodeId).className = 'fa fa-eye-slash';
         }
     });
+};
+
+//---------- idle timeout handler
+
+var IdleTimeoutHandler = {};
+
+IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000;   // milliseconds
+IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;       // seconds
+IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS = 10; //
+IdleTimeoutHandler.timeoutSeconds = 0; // idle timeout time permitted
+IdleTimeoutHandler.lastActivityTime = new Date(); // time at which we are "idled out"
+IdleTimeoutHandler.lastPingTime = new Date(); // date at which the last ping occured
+IdleTimeoutHandler.realWindowTitle = "";
+IdleTimeoutHandler.warningDisplayed = false;
+
+IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
+    IdleTimeoutHandler.timeoutSeconds = secondsRemaining;
+    IdleTimeoutHandler.lastPingTime = new Date();
+    IdleTimeoutHandler.realWindowTitle = document.title;
+    IdleTimeoutHandler.resetIdleCounter();
+    setInterval(function(){IdleTimeoutHandler.pollActivity()}, IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
+    require(["dojo/on"], function(on){
+        on(document, "click", function(){IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "keypress", function(){IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "scroll", function(){IdleTimeoutHandler.resetIdleCounter()});
+    });
+};
+
+IdleTimeoutHandler.resetIdleCounter = function() {
+    IdleTimeoutHandler.lastActivityTime = new Date();
+    IdleTimeoutHandler.closeIdleWarning();
+    IdleTimeoutHandler.pollActivity();
+};
+
+IdleTimeoutHandler.pollActivity = function() {
+    var secondsRemaining = IdleTimeoutHandler.calcSecondsRemaining();
+    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(secondsRemaining);
+    var idleStatusFooter = PWM_MAIN.getObject("idle_status");
+    if (idleStatusFooter != null) {
+        idleStatusFooter.firstChild.nodeValue = idleDisplayString;
+    }
+
+    var warningDialogText = PWM_MAIN.getObject("IdleDialogWindowIdleText");
+    if (warningDialogText != null) {
+        warningDialogText.firstChild.nodeValue = idleDisplayString;
+    }
+
+    if (secondsRemaining < 0) {
+        if (!PWM_GLOBAL['idle_suspendTimeout']) {
+            PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+            PWM_GLOBAL['idle_suspendTimeout'] = true;
+            window.location = PWM_GLOBAL['url-logout'];
+        } else {
+            try { PWM_MAIN.getObject('idle_wrapper').style.visibility = 'none'; } catch(e) { /* noop */ }
+        }
+        return;
+    }
+
+    var pingAgoMs = (new Date()).getTime() - IdleTimeoutHandler.lastPingTime.getTime();
+    if (pingAgoMs > (IdleTimeoutHandler.timeoutSeconds - IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS) * 1000) {
+        IdleTimeoutHandler.pingServer();
+    }
+
+    if (secondsRemaining < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
+        if (!PWM_GLOBAL['idle_suspendTimeout']) {
+            IdleTimeoutHandler.showIdleWarning();
+            if (secondsRemaining % 2 == 0) {
+                document.title = IdleTimeoutHandler.realWindowTitle;
+            } else {
+                document.title = idleDisplayString;
+            }
+        }
+    }
+};
+
+IdleTimeoutHandler.pingServer = function() {
+    IdleTimeoutHandler.lastPingTime = new Date();
+    var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    require(["dojo"], function(dojo){
+        dojo.xhrPost({url:pingURL,sync:false});
+    });
+};
+
+IdleTimeoutHandler.calcSecondsRemaining = function() {
+    var timeoutTime = IdleTimeoutHandler.lastActivityTime.getTime() + (IdleTimeoutHandler.timeoutSeconds * 1000)
+    var amount = timeoutTime - (new Date()).getTime();
+    amount = Math.floor(amount / 1000);
+    return amount;
+};
+
+IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
+    if (amount < 1) {
+        return "";
+    }
+
+    var output = "";
+
+    var days = Math.floor(amount / 86400);
+
+    amount = amount % 86400;
+    var hours = Math.floor(amount / 3600);
+
+    amount = amount % 3600;
+    var mins = Math.floor(amount / 60);
+
+    amount = amount % 60;
+    var secs = Math.floor(amount);
+
+    // write number of days
+    var positions = 0;
+    if (days != 0) {
+        output += days + " ";
+        if (days != 1) {
+            output += PWM_MAIN.showString('Display_Days');
+        } else {
+            output += PWM_MAIN.showString('Display_Day');
+        }
+        positions++;
+    }
+
+    // write number of hours
+    if (days != 0 || hours != 0) {
+        if (output.length > 0) {
+            output += ", ";
+        }
+
+        output += hours + " ";
+        if (hours != 1) {
+            output += PWM_MAIN.showString('Display_Hours');
+        } else {
+            output += PWM_MAIN.showString('Display_Hour');
+        }
+        positions ++;
+    }
+
+    // write number of minutes
+    if (positions < 2) {
+        if (days != 0 || hours != 0 || mins != 0) {
+            if (output.length > 0) {
+                output += ", ";
+            }
+            output += mins + " ";
+            if (mins != 1) {
+                output += PWM_MAIN.showString('Display_Minutes');
+            } else {
+                output += PWM_MAIN.showString('Display_Minute');
+            }
+            positions++;
+        }
+    }
+
+
+    // write number of seconds
+    if (positions < 2) {
+        if (mins < 4) {
+            if (output.length > 0) {
+                output += ", ";
+            }
+
+            output += secs + " ";
+
+            if (secs != 1) {
+                output += PWM_MAIN.showString('Display_Seconds');
+            } else {
+                output += PWM_MAIN.showString('Display_Second');
+            }
+        }
+    }
+
+    output = PWM_MAIN.showString('Display_IdleTimeout') + " " + output;
+    return output;
+};
+
+IdleTimeoutHandler.showIdleWarning = function() {
+    if (!IdleTimeoutHandler.warningDisplayed) {
+        IdleTimeoutHandler.warningDisplayed = true;
+
+        var dialogBody = PWM_MAIN.showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
+        require(["dijit/Dialog"],function(){
+            var theDialog = new dijit.Dialog({
+                title: PWM_MAIN.showString('Display_IdleWarningTitle'),
+                style: "width: 260px; border: 2px solid #D4D4D4;",
+                content: dialogBody,
+                closable: true,
+                draggable: false,
+                id: "idleDialog"
+            });
+            theDialog.show();
+        });
+    }
+};
+
+IdleTimeoutHandler.closeIdleWarning = function() {
+    PWM_MAIN.clearDijitWidget('idleDialog');
+    document.title = IdleTimeoutHandler.realWindowTitle;
+    IdleTimeoutHandler.warningDisplayed = false;
 };

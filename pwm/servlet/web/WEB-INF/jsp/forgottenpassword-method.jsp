@@ -83,7 +83,7 @@
 
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('username').focus();
+        PWM_MAIN.getObject('username').focus();
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@ package password.pwm.wordlist;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;
@@ -43,25 +43,6 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
     private int initialPopulationCounter = 0;
 
     public SeedlistManager() {
-    }
-
-    public void init(
-            final WordlistConfiguration wordlistConfiguration,
-            final LocalDB pwmDB
-
-    ) {
-        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
-        this.META_DB = LocalDB.DB.SEEDLIST_META;
-        this.WORD_DB = LocalDB.DB.SEEDLIST_WORDS;
-
-        final Thread t = new Thread(new Runnable() {
-            public void run() {
-                LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
-                startup(pwmDB, wordlistConfiguration);
-            }
-        }, PwmConstants.PWM_APP_NAME + "-SeedlistManager initializer/populator");
-
-        t.start();
     }
 
     public String randomSeed() {
@@ -83,8 +64,9 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
             LOGGER.warn("error while generating random word: " + e.getMessage());
         }
 
-        final long totalTime = System.currentTimeMillis() - startTime;
-        //LOGGER.trace("getRandomSeed fetch time: " + totalTime + "ms");
+        if (debugTrace) {
+            LOGGER.trace("getRandomSeed fetch time: " + TimeDuration.fromCurrent(startTime).asCompactString());
+        }
         return returnValue;
     }
 
@@ -105,12 +87,24 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
         super.checkPopulation();
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
+        super.init(pwmApplication);
         final String setting = pwmApplication.getConfig().readSettingAsString(PwmSetting.SEEDLIST_FILENAME);
         final File seedlistFile = setting == null || setting.length() < 1 ? null : Helper.figureFilepath(setting, pwmApplication.getPwmApplicationPath());
         final int loadFactor = PwmConstants.DEFAULT_WORDLIST_LOADFACTOR;
         final WordlistConfiguration wordlistConfiguration = new WordlistConfiguration(seedlistFile, loadFactor, true, 0);
 
-        init(wordlistConfiguration, pwmApplication.getLocalDB());
+        this.DEBUG_LABEL = PwmConstants.PWM_APP_NAME + "-Seedist";
+        this.META_DB = LocalDB.DB.SEEDLIST_META;
+        this.WORD_DB = LocalDB.DB.SEEDLIST_WORDS;
+
+        final Thread t = new Thread(new Runnable() {
+            public void run() {
+                LOGGER.debug(DEBUG_LABEL + " starting up in background thread");
+                startup(pwmApplication.getLocalDB(), wordlistConfiguration);
+            }
+        }, Helper.makeThreadName(pwmApplication,SeedlistManager.class));
+
+        t.start();
     }
 }

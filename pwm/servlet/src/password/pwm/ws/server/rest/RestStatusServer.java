@@ -30,7 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.tag.PasswordRequirementsTag;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -65,6 +65,7 @@ public class RestStatusServer {
         public PasswordStatus passwordStatus;
         public Map<String,String> passwordPolicy;
         public List<String> passwordRules;
+        public Map<String,String> atributes;
 
         public static JsonStatusData fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale) {
             final JsonStatusData jsonStatusData = new JsonStatusData();
@@ -89,6 +90,10 @@ public class RestStatusServer {
                     config,
                     locale
             );
+
+            if (userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty()) {
+                jsonStatusData.atributes = Collections.unmodifiableMap(userInfoBean.getCachedAttributeValues());
+            }
 
             return jsonStatusData;
         }
@@ -123,8 +128,9 @@ public class RestStatusServer {
             final UserInfoBean userInfoBean;
             if (restRequestBean.getUserIdentity() != null) {
                 userInfoBean = new UserInfoBean();
-                UserStatusHelper.populateUserInfoBean(
-                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
+                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
+                userStatusReader.populateUserInfoBean(
+                        restRequestBean.getPwmSession(),
                         userInfoBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),

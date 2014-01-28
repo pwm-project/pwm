@@ -46,7 +46,7 @@
                 <% } %>
                 <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
                       enctype="application/x-www-form-urlencoded" name="search"
-                      onsubmit="handleFormSubmit('submitBtn', this);
+                      onsubmit="PWM_MAIN.handleFormSubmit('submitBtn', this);
                               return false">
                     <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
                     <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
@@ -67,7 +67,7 @@
         </div>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function() {
-                getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
+                PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
                 ShowHidePasswordHandler.initAllForms();
             });
         </script>

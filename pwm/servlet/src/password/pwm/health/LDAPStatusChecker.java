@@ -42,7 +42,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -225,8 +225,10 @@ public class LDAPStatusChecker implements HealthChecker {
 
             try {
                 final UserIdentity userIdentity = new UserIdentity(theUser.getEntryDN(),ldapProfile.getIdentifier());
-                UserStatusHelper.populateUserInfoBean(pwmApplication, null, new UserInfoBean(),
-                        PwmConstants.DEFAULT_LOCALE, userIdentity, userPassword, chaiProvider);
+                final UserStatusReader.Settings readerSettings = new UserStatusReader.Settings();
+                readerSettings.setSkipReportUpdate(true);
+                final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication,readerSettings);
+                userStatusReader.populateUserInfoBean(null, new UserInfoBean(),PwmConstants.DEFAULT_LOCALE, userIdentity, userPassword, chaiProvider);
             } catch (ChaiUnavailableException e) {
                 returnRecords.add(new HealthRecord(
                         HealthStatus.WARN,

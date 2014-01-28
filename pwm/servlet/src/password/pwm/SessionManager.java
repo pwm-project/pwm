@@ -273,5 +273,4 @@ public class SessionManager implements Serializable {
     public void addCloseConnectionListener(CloseConnectionListener closeConnectionListener) {
         this.closeConnectionListeners.add(closeConnectionListener);
     }
-
 }

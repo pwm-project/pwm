@@ -42,7 +42,7 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -352,7 +352,8 @@ public class UpdateProfileServlet extends TopServlet {
         Helper.writeFormValuesToLdap(pwmApplication, pwmSession, theUser, formValues, false);
 
         // re-populate the uiBean because we have changed some values.
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserIdentity(), uiBean.getUserCurrentPassword());
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity(), uiBean.getUserCurrentPassword());
 
         // clear cached read attributes.
         pwmSession.getSessionManager().clearUserDataReader();

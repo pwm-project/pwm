@@ -186,6 +186,8 @@ public enum PwmSetting {
             "ldap.selectableContexts", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_PROFILE_DISPLAY_NAME(
             "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, Category.LDAP_PROFILE),
+    LDAP_PROFILE_ENABLED(
+            "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, Category.LDAP_PROFILE),
 
 
 
@@ -504,7 +506,7 @@ public enum PwmSetting {
     AUDIT_EMAIL_USER_TO(
             "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
     AUDIT_SYSLOG_SERVERS(
-            "audit.syslog.servers", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
+            "audit.syslog.servers", PwmSettingSyntax.STRING, Category.LOGGING),
 
 
     // challenge settings
@@ -784,6 +786,22 @@ public enum PwmSetting {
     DATABASE_DEBUG_TRACE(
             "db.debugTrace.enable", PwmSettingSyntax.BOOLEAN, Category.DATABASE),
 
+    // reporting
+    REPORTING_ENABLE(
+            "reporting.enable", PwmSettingSyntax.BOOLEAN, Category.REPORTING),
+    REPORTING_SEARCH_FILTER(
+            "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, Category.REPORTING),
+    REPORTING_MAX_CACHE_AGE(
+            "reporting.maxCacheAge", PwmSettingSyntax.NUMERIC, Category.REPORTING),
+    REPORTING_MIN_CACHE_AGE(
+            "reporting.minCacheAge", PwmSettingSyntax.NUMERIC, Category.REPORTING),
+    REPORTING_REST_TIME_MS(
+            "reporting.reportRestTimeMS", PwmSettingSyntax.NUMERIC, Category.REPORTING),
+    REPORTING_MAX_QUERY_SIZE(
+            "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, Category.REPORTING),
+    REPORTONG_JOB_TIME_OFFSET(
+            "reporting.job.timeOffset", PwmSettingSyntax.NUMERIC, Category.REPORTING),
+
     // misc
     EXTERNAL_CHANGE_METHODS(
             "externalChangeMethod", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
@@ -805,10 +823,16 @@ public enum PwmSetting {
             "external.webservices.enable", PwmSettingSyntax.BOOLEAN, Category.MISC),
     ENABLE_WEBSERVICES_READANSWERS(
             "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, Category.MISC),
+    PUBLIC_HEALTH_STATS_WEBSERVICES(
+            "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, Category.MISC),
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.MISC),
     EXTERNAL_WEB_AUTH_METHODS(
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    EXTERNAL_MACROS_REST_URLS(
+            "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    CACHED_USER_ATTRIBUTES(
+            "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
 
     ;
 
@@ -994,33 +1018,35 @@ public enum PwmSetting {
     }
 
     public enum Category {
-        GENERAL(Type.SETTING),
-        LDAP_PROFILE(Type.PROFILE),
-        LDAP_GLOBAL(Type.SETTING),
-        USER_INTERFACE(Type.SETTING),
-        PASSWORD_POLICY(Type.PROFILE),
-        CHALLENGE(Type.SETTING),
-        CHALLENGE_POLICY(Type.PROFILE),
-        EMAIL(Type.SETTING),
-        SMS(Type.SETTING),
-        SECURITY(Type.SETTING),
-        TOKEN(Type.SETTING),
-        OTP(Type.SETTING),
-        LOGGING(Type.SETTING),
-        EDIRECTORY(Type.SETTING),
-        ACTIVE_DIRECTORY(Type.SETTING),
-        DATABASE(Type.SETTING),
-        MISC(Type.SETTING),
-        CHANGE_PASSWORD(Type.MODULE),
-        RECOVERY(Type.MODULE),
-        FORGOTTEN_USERNAME(Type.MODULE),
-        NEWUSER(Type.MODULE),
-        GUEST(Type.MODULE),
-        ACTIVATION(Type.MODULE),
-        UPDATE(Type.MODULE),
-        SHORTCUT(Type.MODULE),
-        PEOPLE_SEARCH(Type.MODULE),
-        HELPDESK(Type.MODULE),
+        GENERAL             (Type.SETTING),
+        LDAP_PROFILE        (Type.PROFILE),
+        LDAP_GLOBAL         (Type.SETTING),
+        USER_INTERFACE      (Type.SETTING),
+        PASSWORD_POLICY     (Type.PROFILE),
+        CHALLENGE           (Type.SETTING),
+        CHALLENGE_POLICY    (Type.PROFILE),
+        EMAIL               (Type.SETTING),
+        SMS                 (Type.SETTING),
+        SECURITY            (Type.SETTING),
+        TOKEN               (Type.SETTING),
+        OTP                 (Type.SETTING),
+        LOGGING             (Type.SETTING),
+        EDIRECTORY          (Type.SETTING),
+        ACTIVE_DIRECTORY    (Type.SETTING),
+        DATABASE            (Type.SETTING),
+        REPORTING           (Type.SETTING),
+        MISC                (Type.SETTING),
+        CHANGE_PASSWORD     (Type.MODULE),
+        RECOVERY            (Type.MODULE),
+        FORGOTTEN_USERNAME  (Type.MODULE),
+        NEWUSER             (Type.MODULE),
+        GUEST               (Type.MODULE),
+        ACTIVATION          (Type.MODULE),
+        UPDATE              (Type.MODULE),
+        SHORTCUT            (Type.MODULE),
+        PEOPLE_SEARCH       (Type.MODULE),
+        HELPDESK            (Type.MODULE),
+
         ;
 
         public enum Type {
@@ -1183,7 +1209,7 @@ public enum PwmSetting {
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(xmlInputStream));
         } catch (Exception e) {
-             throw new IllegalStateException("error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage());
+            throw new IllegalStateException("error validating PwmSetting.xml schema using PwmSetting.xsd definition: " + e.getMessage());
         }
     }
 }

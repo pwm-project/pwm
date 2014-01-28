@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,18 +54,12 @@ public class LocalDBLogger implements PwmService {
 
     private final static int MINIMUM_MAXIMUM_EVENTS = 100;
 
-    private final LocalDB localDB;
-
     private volatile long tailTimestampMs = -1L;
     private long lastQueueFlushTimestamp = System.currentTimeMillis();
 
-    private final int setting_maxEvents;
-    private final long setting_maxAgeMs;
-    private final long setting_maxDirtyQueueAgeMs = PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS;
-    private final boolean setting_devDebug;
-
+    private final LocalDB localDB;
+    private final Settings settings;
     private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
-
     private final LocalDBStoredQueue localDBListQueue;
 
     private volatile STATUS status = STATUS.NEW;
@@ -76,26 +70,24 @@ public class LocalDBLogger implements PwmService {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public LocalDBLogger(final LocalDB localDB, final int maxEvents, final long maxAgeMS, final boolean devDebug)
-            throws LocalDBException {
+    public LocalDBLogger(final PwmApplication pwmApplication, final LocalDB localDB, final Settings settings)
+            throws LocalDBException
+    {
         final long startTime = System.currentTimeMillis();
         status = STATUS.OPENING;
+        this.settings = settings.copy();
         this.localDB = localDB;
-        this.setting_devDebug = devDebug;
-        this.setting_maxAgeMs = maxAgeMS;
         this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
-        if (maxEvents == 0) {
+        if (settings.maxEvents == 0) {
             LOGGER.info("maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed");
             localDBListQueue.clear();
             throw new IllegalArgumentException("maxEvents=0, will remain closed");
         }
 
-        if (maxEvents < MINIMUM_MAXIMUM_EVENTS) {
+        if (settings.getMaxEvents() < MINIMUM_MAXIMUM_EVENTS) {
             LOGGER.warn("maxEvents less than required minimum of " + MINIMUM_MAXIMUM_EVENTS + ", resetting maxEvents=" + MINIMUM_MAXIMUM_EVENTS);
-            this.setting_maxEvents = MINIMUM_MAXIMUM_EVENTS;
-        } else {
-            this.setting_maxEvents = maxEvents;
+            settings.setMaxEvents(MINIMUM_MAXIMUM_EVENTS);
         }
 
         if (localDB == null) {
@@ -106,7 +98,8 @@ public class LocalDBLogger implements PwmService {
         status = STATUS.OPEN;
 
         { // start the writer thread
-            final Thread writerThread = new Thread(new WriterThread(), PwmConstants.PWM_APP_NAME + "-LocalDBLogger writer");
+            final Thread writerThread = new Thread(new WriterThread());
+            writerThread.setName(Helper.makeThreadName(pwmApplication,LocalDBLogger.class));
             writerThread.setDaemon(true);
             writerThread.start();
         }
@@ -133,8 +126,8 @@ public class LocalDBLogger implements PwmService {
         final StringBuilder sb = new StringBuilder();
         sb.append("events=").append(localDBListQueue.size());
         sb.append(", tailAge=").append(TimeDuration.fromCurrent(tailTimestampMs).asCompactString());
-        sb.append(", maxEvents=").append(setting_maxEvents);
-        sb.append(", maxAge=").append(setting_maxAgeMs > 1 ? new TimeDuration(setting_maxAgeMs).asCompactString() : "none");
+        sb.append(", maxEvents=").append(settings.getMaxEvents());
+        sb.append(", maxAge=").append(settings.getMaxAgeMs() > 1 ? new TimeDuration(settings.getMaxAgeMs()).asCompactString() : "none");
         sb.append(", localDBSize=").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
         return sb.toString();
     }
@@ -228,8 +221,8 @@ public class LocalDBLogger implements PwmService {
         }
 
         // purge excess events by count
-        if (currentItemCount > setting_maxEvents) {
-            return currentItemCount - setting_maxEvents;
+        if (currentItemCount > settings.getMaxEvents()) {
+            return currentItemCount - settings.getMaxEvents();
         }
 
         // purge the tail if it is missing or has invalid timestamp
@@ -238,9 +231,9 @@ public class LocalDBLogger implements PwmService {
         }
 
         // purge excess events by age;
-        if (setting_maxAgeMs > 0 && tailTimestampMs > 0) {
+        if (settings.getMaxAgeMs() > 0 && tailTimestampMs > 0) {
             final TimeDuration tailAge = TimeDuration.fromCurrent(tailTimestampMs);
-            if (tailAge.isLongerThan(setting_maxAgeMs)) {
+            if (tailAge.isLongerThan(settings.getMaxAgeMs())) {
                 final long maxRemovalPercentageOfSize = getStoredEventCount() / 500;
                 if (maxRemovalPercentageOfSize > 100) {
                     return 500;
@@ -267,7 +260,7 @@ public class LocalDBLogger implements PwmService {
             final EventType eventType
     ) {
         final long startTime = System.currentTimeMillis();
-        final int maxReturnedEvents = count > this.setting_maxEvents ? this.setting_maxEvents : count;
+        final int maxReturnedEvents = count > this.settings.getMaxEvents() ? this.settings.getMaxEvents() : count;
         final int eventsInDb = localDBListQueue.size();
 
         Pattern pattern = null;
@@ -414,7 +407,7 @@ public class LocalDBLogger implements PwmService {
 
     public void writeEvent(final PwmLogEvent event) {
         if (status == STATUS.OPEN) {
-            if (setting_maxEvents > 0) {
+            if (settings.getMaxEvents() > 0) {
                 boolean success = eventQueue.offer(event);
                 if (!success) { // if event queue isn't overflowed, simply add event to write queue
                     final long startEventTime = System.currentTimeMillis();
@@ -462,19 +455,19 @@ public class LocalDBLogger implements PwmService {
 
                 final int totalWork = writesDone + purgesDone;
                 if (totalWork == 0) {
-                    Helper.pause(setting_maxDirtyQueueAgeMs);
-                    if (setting_devDebug) {
-                        LOGGER.trace("no work on last cycle, sleeping for " + new TimeDuration(setting_maxDirtyQueueAgeMs).asCompactString() + " queue size=" + getPendingEventCount());
+                    Helper.pause(settings.getMaxDirtyQueueAgeMs());
+                    if (settings.isDevDebug()) {
+                        LOGGER.trace("no work on last cycle, sleeping for " + new TimeDuration(settings.getMaxDirtyQueueAgeMs()).asCompactString() + " queue size=" + getPendingEventCount());
                     }
                 } else if (totalWork < 5) {
-                    Helper.pause(setting_maxDirtyQueueAgeMs);
-                    if (setting_devDebug) {
-                        LOGGER.trace("minor work on last cycle, sleeping for " + new TimeDuration(setting_maxDirtyQueueAgeMs).asCompactString() + " queue size=" + getPendingEventCount());
+                    Helper.pause(settings.getMaxDirtyQueueAgeMs());
+                    if (settings.isDevDebug()) {
+                        LOGGER.trace("minor work on last cycle, sleeping for " + new TimeDuration(settings.getMaxDirtyQueueAgeMs()).asCompactString() + " queue size=" + getPendingEventCount());
                     }
                 } else {
                     final TimeDuration txnDuration = TimeDuration.fromCurrent(startLoopTime);
                     transactionCalculator.recordLastTransactionDuration(txnDuration);
-                    if (setting_devDebug) {
+                    if (settings.isDevDebug()) {
                         LOGGER.trace("tick writes=" + writesDone+ ", purges=" + purgesDone + ", queue=" + getPendingEventCount() + ", txnCalcSize=" + transactionCalculator.getTransactionSize() + ", txnDuration=" + txnDuration.getTotalMilliseconds());
                     }
                 }
@@ -520,14 +513,14 @@ public class LocalDBLogger implements PwmService {
         }
 
         final int eventCount = getStoredEventCount();
-        if (eventCount > setting_maxEvents + 5000) {
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(setting_maxEvents)));
+        if (eventCount > settings.getMaxEvents() + 5000) {
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(settings.getMaxEvents())));
         }
 
         final Date tailDate = getTailDate();
         final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
-        if (timeDuration.isLongerThan(setting_maxAgeMs)) { // older than max age
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(setting_maxAgeMs).asCompactString()));
+        if (timeDuration.isLongerThan(settings.getMaxAgeMs())) { // older than max age
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(settings.getMaxAgeMs()).asCompactString()));
         }
 
         return healthRecords;
@@ -539,7 +532,7 @@ public class LocalDBLogger implements PwmService {
 
     public String sizeToDebugString() {
         final int storedEvents = this.getStoredEventCount();
-        final int maxEvents = setting_maxEvents;
+        final int maxEvents = settings.getMaxEvents();
         final double percentFull = (double)storedEvents / (double)maxEvents * 100f;
         final NumberFormat numberFormat = NumberFormat.getNumberInstance();
         numberFormat.setMaximumFractionDigits(3);
@@ -554,6 +547,57 @@ public class LocalDBLogger implements PwmService {
     public ServiceInfo serviceInfo()
     {
         return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+    }
+
+    public static class Settings implements Serializable {
+        private int maxEvents = 100 * 1000;
+        private long maxAgeMs = (long)4 * (long)7 * (long)24 * (long)60 * (long)60 * (long)1000; // 4 weeks
+        private long maxDirtyQueueAgeMs = PwmConstants.PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS;
+        private boolean devDebug = false;
+
+        public int getMaxEvents()
+        {
+            return maxEvents;
+        }
+
+        public void setMaxEvents(int maxEvents)
+        {
+            this.maxEvents = maxEvents;
+        }
+
+        public long getMaxAgeMs()
+        {
+            return maxAgeMs;
+        }
+
+        public void setMaxAgeMs(long maxAgeMs)
+        {
+            this.maxAgeMs = maxAgeMs;
+        }
+
+        public long getMaxDirtyQueueAgeMs()
+        {
+            return maxDirtyQueueAgeMs;
+        }
+
+        public void setMaxDirtyQueueAgeMs(long maxDirtyQueueAgeMs)
+        {
+            this.maxDirtyQueueAgeMs = maxDirtyQueueAgeMs;
+        }
+
+        public boolean isDevDebug()
+        {
+            return devDebug;
+        }
+
+        public void setDevDebug(boolean devDebug)
+        {
+            this.devDebug = devDebug;
+        }
+
+        private Settings copy() {
+            return Helper.getGson().fromJson(Helper.getGson().toJson(this),this.getClass());
+        }
     }
 }
 

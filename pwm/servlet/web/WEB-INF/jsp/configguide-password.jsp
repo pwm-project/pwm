@@ -129,22 +129,22 @@
     });
 
     function checkIfNextEnabled() {
-        var password = getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>').value;
-        var password2 = getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>').value;
+        var password = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>').value;
+        var password2 = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>').value;
 
-        getObject('button_next').disabled = true;
-        getObject('confirmCheckMark').style.visibility = 'hidden';
-        getObject('confirmCrossMark').style.visibility = 'hidden';
+        PWM_MAIN.getObject('button_next').disabled = true;
+        PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'hidden';
+        PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'hidden';
         if (password2.length > 0) {
             if (password === password2) {
                 console.log('yep');
-                getObject('confirmCheckMark').style.visibility = 'visible';
-                getObject('confirmCrossMark').style.visibility = 'hidden';
-                getObject('button_next').disabled = false;
+                PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'visible';
+                PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'hidden';
+                PWM_MAIN.getObject('button_next').disabled = false;
             } else {
                 console.log('nope');
-                getObject('confirmCheckMark').style.visibility = 'hidden';
-                getObject('confirmCrossMark').style.visibility = 'visible';
+                PWM_MAIN.getObject('confirmCheckMark').style.visibility = 'hidden';
+                PWM_MAIN.getObject('confirmCrossMark').style.visibility = 'visible';
             }
         }
     }

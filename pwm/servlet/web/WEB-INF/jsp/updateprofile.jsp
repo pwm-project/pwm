@@ -36,7 +36,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false"
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
               onchange="validateForm()" onkeyup="validateForm()">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
@@ -70,11 +70,11 @@
         };
         validationProps['processResultsFunction'] = function(data){
             if (data["success"] == "true") {
-                getObject("submitBtn").disabled = false;
-                showSuccess(data["message"]);
+                PWM_MAIN.getObject("submitBtn").disabled = false;
+                PWM_MAIN.showSuccess(data["message"]);
             } else {
-                getObject("submitBtn").disabled = true;
-                showError(data['message']);
+                PWM_MAIN.getObject("submitBtn").disabled = true;
+                PWM_MAIN.showError(data['message']);
             }
         };
 

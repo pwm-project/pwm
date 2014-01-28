@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -204,7 +204,7 @@ public class ResourceFileServlet extends HttpServlet {
             if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
                 response.reset();
                 response.setStatus(304);
-                ServletHelper.addPwmResponseHeaders(pwmApplication, response, false);
+                ServletHelper.addPwmResponseHeaders(pwmApplication, null, response, false);
                 LOGGER.trace(ServletHelper.debugHttpRequest(pwmApplication,request,"returning 304 not modified"));
                 return;
             }
@@ -219,7 +219,7 @@ public class ResourceFileServlet extends HttpServlet {
         response.setContentType(contentType);
 
         // set pwm headers
-        ServletHelper.addPwmResponseHeaders(pwmApplication, response, false);
+        ServletHelper.addPwmResponseHeaders(pwmApplication, null, response, false);
 
         try {
             try {

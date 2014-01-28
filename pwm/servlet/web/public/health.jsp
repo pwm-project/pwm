@@ -87,7 +87,7 @@
     function drawNextSprite() {
         require(["dojo","dojo/window"],function(dojo){
             if (passwordValue) {
-                var floatParent = getObject("floatparent");
+                var floatParent = PWM_MAIN.getObject("floatparent");
                 var vs = dojo.window.getBox();
 
                 posV += deltaV;
@@ -103,7 +103,7 @@
                 splatCount++;
                 var divId = "randomPwDiv" + splatCount % MAX_NODES;
                 { // remove old node
-                    var existingDiv = getObject(divId);
+                    var existingDiv = PWM_MAIN.getObject(divId);
                     if (existingDiv != null) {
                         floatParent.removeChild(existingDiv);
                     }

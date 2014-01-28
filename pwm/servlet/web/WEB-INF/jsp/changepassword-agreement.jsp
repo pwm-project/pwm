@@ -38,8 +38,9 @@
         <%-- <p/>You have <pwm:LdapValue name="loginGraceRemaining"/> remaining logins. --%>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
+        <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = MacroMachine.expandMacros(agreementText, pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader()); %>
+        <% final String expandedText = macroMachine.expandMacros(agreementText); %>
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
@@ -70,8 +71,8 @@
 </div>
 <script type="text/javascript">
     function updateContinueButton() {
-        var checkBox = getObject("agreeCheckBox");
-        var continueButton = getObject("button_continue");
+        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+        var continueButton = PWM_MAIN.getObject("button_continue");
         if (checkBox != null && continueButton != null) {
             if (checkBox.checked) {
                 continueButton.removeAttribute('disabled');

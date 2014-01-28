@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,11 +74,13 @@ public class LocalDBLoggerTest extends TestCase {
                 config
         );
 
-        maxSize = (int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-        final long maxAge = reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * 1000l;
-        final boolean devMode = Boolean.parseBoolean(reader.getConfiguration().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
 
-        localDBLogger = new LocalDBLogger(localDB, maxSize, maxAge, devMode);
+        final LocalDBLogger.Settings settings = new LocalDBLogger.Settings();
+        settings.setMaxEvents((int)reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS));
+        settings.setMaxAgeMs(reader.getConfiguration().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE) * (long)1000);
+        settings.setDevDebug(Boolean.parseBoolean(reader.getConfiguration().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT)));
+
+        localDBLogger = new LocalDBLogger(null, localDB, settings);
 
         {
             final int randomLength = 4000;

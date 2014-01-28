@@ -74,7 +74,7 @@
 </div>
 <script type="text/javascript">
     function handleFormActivity() {
-        //getObject("value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>").value = getObject("prefSelect").value;
+        //PWM_MAIN.getObject("value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>").value = PWM_MAIN.getObject("prefSelect").value;
         updateForm();
     }
 

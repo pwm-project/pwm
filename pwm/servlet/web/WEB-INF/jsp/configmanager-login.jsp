@@ -41,7 +41,7 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="configLogin" enctype="application/x-www-form-urlencoded"
-              onsubmit="return handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
 
             <h1>Configuration Password</h1>
             <br class="clear"/>
@@ -51,7 +51,6 @@
                        name="button"
                        value="<pwm:Display key="Button_Login"/>"
                        id="submitBtn"/>
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                         onclick="document.location='<%=request.getContextPath()%>';return false">
                     <pwm:Display key="Button_Cancel"/>
@@ -64,7 +63,7 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('password').focus();
+        PWM_MAIN.getObject('password').focus();
     });
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>

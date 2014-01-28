@@ -41,7 +41,7 @@
         <p><pwm:Display key="Display_SetupHelpdeskResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
               enctype="application/x-www-form-urlencoded" id="setupResponses"
-              onsubmit="handleFormSubmit('setresponses_button',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit('setresponses_button',this);return false">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getHelpdeskResponseData()); %>
             <script type="text/javascript">PWM_GLOBAL['responseMode'] = "helpdesk";</script>
@@ -59,7 +59,7 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        startupResponsesPage();
+        PWM_RESPONSES.startupResponsesPage();
         document.forms[0].elements[0].focus();
         ShowHidePasswordHandler.initAllForms();
     });

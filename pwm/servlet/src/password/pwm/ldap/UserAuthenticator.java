@@ -418,9 +418,10 @@ public class UserAuthenticator {
 
         // update the actor user info bean
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
         if (!bindAsUser) {
-            UserStatusHelper.populateUserInfoBean(
-                    pwmApplication, pwmSession,
+            userStatusReader.populateUserInfoBean(
+                    pwmSession,
                     userInfoBean,
                     ssBean.getLocale(),
                     userIdentity,
@@ -428,9 +429,8 @@ public class UserAuthenticator {
                     pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
             );
         } else {
-            UserStatusHelper.populateActorUserInfoBean(
+            userStatusReader.populateActorUserInfoBean(
                     pwmSession,
-                    pwmApplication,
                     userIdentity,
                     userPassword);
         }

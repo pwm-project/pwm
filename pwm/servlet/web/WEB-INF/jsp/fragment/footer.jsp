@@ -26,7 +26,7 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.util.MacroMachine" %>
+<%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -54,7 +54,7 @@
             <%= pwmSessionFooter.getUserInfoBean().getUsername()%>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
-            <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE))) { %>
+            <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE))) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
             <span id="idle_status">&nbsp;</span>
@@ -74,7 +74,8 @@
     <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
     <script type="text/javascript">
-        <%=MacroMachine.expandMacros(customScript,pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader(pwmApplicationFooter))%>
+        <% final MacroMachine macroMachineFooter = new MacroMachine(pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader(pwmApplicationFooter)); %>
+        <%= macroMachineFooter.expandMacros(customScript) %>
     </script>
     <% } %>
     <script type="text/javascript">

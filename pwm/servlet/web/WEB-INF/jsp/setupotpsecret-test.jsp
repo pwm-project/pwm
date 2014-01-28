@@ -19,6 +19,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <!--
 
 TODO: focus on input field
@@ -45,7 +46,7 @@ TODO: support HOTP
                 <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
                 <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
                       enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                      onsubmit="handleFormSubmit('setotpsecret_button', this);
+                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this);
             return false;">
                     <%@ include file="fragment/message.jsp" %>
                     <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
@@ -60,7 +61,7 @@ TODO: support HOTP
                         <input type="submit" name="setOtpSecret" class="btn" id="setotpsecret_button"
                                value="<pwm:Display key="Button_CheckCode"/>"/>
                         <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) {%>
-                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();
+                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();
                                 return false;">
                             <pwm:Display key="Button_Cancel"/>
                         </button>

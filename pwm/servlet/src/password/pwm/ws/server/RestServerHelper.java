@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
-import password.pwm.ldap.UserSearchEngine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -93,6 +93,14 @@ public abstract class RestServerHelper {
         restRequestBean.setPwmApplication(pwmApplication);
         restRequestBean.setPwmSession(pwmSession);
 
+
+        if (servicePermissions.isPublicDuringConfig()) {
+            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW || pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
+                return restRequestBean;
+            }
+        }
+
+        // check permissions
         final boolean authenticated = pwmSession.getSessionStateBean().isAuthenticated();
         if (servicePermissions.isAuthRequired()) {
             if (!authenticated) {
@@ -121,13 +129,6 @@ public abstract class RestServerHelper {
         if (servicePermissions.isAdminOnly()) {
             if (!adminPermission) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"admin authorization is required");
-                throw new PwmUnrecoverableException(errorInfo);
-            }
-        }
-
-        if (servicePermissions.isAuthAndAdminWhenRunningRequired()) {
-            if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING && (!authenticated || !adminPermission)) {
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"admin authorization is required when in RUNNING mode");
                 throw new PwmUnrecoverableException(errorInfo);
             }
         }

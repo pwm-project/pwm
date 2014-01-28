@@ -100,7 +100,7 @@ public class ConfigManagerServlet extends TopServlet {
         forwardToJSP(req,resp);
     }
 
-    private boolean checkAuthentication(
+    static boolean checkAuthentication(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final ConfigManagerBean configManagerBean,
@@ -164,11 +164,6 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        if (configManagerBean.getConfiguration() == null) {
-            final StoredConfiguration loadedConfig = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
-            configManagerBean.setConfiguration(loadedConfig);
-        }
-
         forwardToEditor(req, resp);
     }
 
@@ -393,7 +388,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
-    private static StoredConfiguration readCurrentConfiguration(final ContextManager contextManager)
+    static StoredConfiguration readCurrentConfiguration(final ContextManager contextManager)
             throws PwmUnrecoverableException
     {
         final ConfigurationReader runningConfigReader = contextManager.getConfigReader();

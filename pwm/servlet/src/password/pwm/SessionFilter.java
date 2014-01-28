@@ -217,7 +217,7 @@ public class SessionFilter implements Filter {
 
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
-            ServletHelper.addPwmResponseHeaders(pwmApplication, resp, true);
+            ServletHelper.addPwmResponseHeaders(pwmApplication, pwmSession, resp, true);
         }
 
         try {
@@ -322,7 +322,8 @@ public class SessionFilter implements Filter {
             // session looks, good, mark it as such and return;
             LOGGER.trace(pwmSession, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
-            return false;
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
+            return true;
         }
 
         // user's session is messed up.  send to error page.

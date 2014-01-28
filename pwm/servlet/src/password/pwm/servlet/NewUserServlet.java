@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.*;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.servlet.NewUserBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
@@ -45,13 +48,16 @@ import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.UserAuthenticator;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.token.TokenPayload;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.ldap.UserAuthenticator;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
@@ -654,7 +660,7 @@ public class NewUserServlet extends TopServlet {
     private static Map<String, String> readResponsesFromJsonRequest(
             final HttpServletRequest req
     )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final Map<String, String> inputMap = new HashMap<String, String>();
 

@@ -48,7 +48,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured
@@ -90,7 +90,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        startupResponsesPage();
+        PWM_RESPONSES.startupResponsesPage();
         document.forms.responseForm.elements[0].focus();
         ShowHidePasswordHandler.initAllForms();
     });

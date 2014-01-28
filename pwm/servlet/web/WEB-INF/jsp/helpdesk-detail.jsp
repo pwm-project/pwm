@@ -29,9 +29,10 @@
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.option.HelpdeskClearResponseMode" %>
+<%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.servlet.HelpdeskServlet" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -43,15 +44,15 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(request); %>
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
-<% final HelpdeskServlet.SETTING_PW_UI_MODE SETTING_PW_UI_MODE = HelpdeskServlet.SETTING_PW_UI_MODE.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
-<% final HelpdeskServlet.SETTING_CLEAR_RESPONSES SETTING_CLEAR_RESPONSES = HelpdeskServlet.SETTING_CLEAR_RESPONSES.valueOf(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES)); %>
+<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL,
+        pwmSession.getSessionStateBean().getLocale()); %>
+<% final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(
+        pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
 <% final ResponseInfoBean responseInfoBean = helpdeskBean.getUserInfoBean().getResponseInfoBean(); %>
 <% final String obfuscatedDN = helpdeskBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmApplication.getConfig()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
@@ -71,6 +72,16 @@
                     <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUsername()) %>
                 </td>
             </tr>
+            <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
+            <tr>
+                <td class="key">
+                    <pwm:Display key="Field_LdapProfile"/>
+                </td>
+                <td>
+                    <%= StringEscapeUtils.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(searchedUserInfo.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
+                </td>
+            </tr>
+            <% } %>
             <tr>
                 <td class="key">
                     <pwm:Display key="Field_UserDN"/>
@@ -336,21 +347,30 @@
 <% } %>
 </div>
 <div id="buttonbar">
-    <% if (SETTING_PW_UI_MODE != HelpdeskServlet.SETTING_PW_UI_MODE.none) { %>
-    <button class="btn" onclick="initiateChangePasswordDialog()"><pwm:Display key="Button_ChangePassword"/></button>
+    <% if (SETTING_PW_UI_MODE != HelpdeskUIMode.none) { %>
+    <button class="btn" onclick="initiateChangePasswordDialog()">
+        <i class="fa fa-key"></i>&nbsp;
+        <pwm:Display key="Button_ChangePassword"/>
+    </button>
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
-        <button id="clearResponsesBtn" class="btn" onclick="document.clearResponsesForm.submit()"><pwm:Display key="Button_ClearResponses"/></button>
-    <% } %>    
+    <button id="clearResponsesBtn" class="btn" onclick="document.clearResponsesForm.submit()">
+        <pwm:Display key="Button_ClearResponses"/>
+    </button>
+    <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_OTP_BUTTON) &&
-           ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
-        <button id="clearOtpSecretBtn" class="btn" onclick="document.clearOtpSecretForm.submit()"><pwm:Display key="Button_ClearOtpSecret"/></button>
-    <% } %>    
+            ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
+    <button id="clearOtpSecretBtn" class="btn" onclick="document.clearOtpSecretForm.submit()"><pwm:Display key="Button_ClearOtpSecret"/></button>
+    <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
     <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
     <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
     <% } else { %>
-    <button id="unlockBtn" class="btn" disabled="disabled">Unlock</button>
+    <button id="unlockBtn" class="btn" disabled="disabled">
+        <i class="fa fa-unlock"></i>&nbsp;
+        <pwm:Display key="Button_Unlock"/>
+
+    </button>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
@@ -362,12 +382,15 @@
         });
     </script>
     <% } %>
-    <button name="button_continue" class="btn" onclick="getObject('continueForm').submit()" id="button_continue"><pwm:Display key="Button_Continue"/></button>
+    <button name="button_continue" class="btn" onclick="window.location = window.location" id="button_continue">
+        <i class="fa fa-search"></i>&nbsp;
+        <pwm:Display key="Button_Search"/>
+    </button>
     <% } %>
     <br/>
     <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
     <% for (final ActionConfiguration loopAction : actions) { %>
-    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
+    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="PWM_HELPDESK.executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
@@ -383,18 +406,19 @@
 
 
     <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
-        <input type="hidden" name="processAction" value="continue"/>
+        <input type="hidden" name="processAction" value="detail"/>
+        <input type="hidden" name="userKey" value="<%=StringEscapeUtils.escapeHtml(obfuscatedDN)%>"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('unlockBtn', this)">
+    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('unlockBtn', this)">
         <input type="hidden" name="processAction" value="doUnlock"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="clearResponsesForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('clearResponsesBtn', this)">
+    <form name="clearResponsesForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('clearResponsesBtn', this)">
         <input type="hidden" name="processAction" value="doClearResponses"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="handleFormSubmit('clearOtpSecretBtn', this)">
+    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('clearOtpSecretBtn', this)">
         <input type="hidden" name="processAction" value="doClearOtpSecret"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
@@ -403,217 +427,28 @@
 <div class="push"></div>
 </div>
 <script type="text/javascript">
-function initiateChangePasswordDialog() {
-    <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.autogen) { %>
-    generatePasswordPopup();
-    <% } else if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.random) { %>
-    setRandomPasswordPopup();
-    <% } else { %>
-    changePasswordPopup();
-    <% } %>
-}
-
-function setRandomPasswordPopup() {
-    var title = '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUsername())%>';
-    var body = PWM_STRINGS['Display_SetRandomPasswordPrompt'];
-    var yesAction = function() {
-        doPasswordChange('[' + PWM_STRINGS['Display_Random'] +  ']',true);
+    function initiateChangePasswordDialog() {
+        <% if (SETTING_PW_UI_MODE == HelpdeskUIMode.autogen) { %>
+        PWM_HELPDESK.generatePasswordPopup();
+        <% } else if (SETTING_PW_UI_MODE == HelpdeskUIMode.random) { %>
+        PWM_HELPDESK.setRandomPasswordPopup();
+        <% } else { %>
+        PWM_HELPDESK.changePasswordPopup();
+        <% } %>
     }
-    showConfirmDialog(title,body,yesAction);
-}
 
-function changePasswordPopup() {
-    require(["dijit/Dialog"],function(){
-        var bodyText = '<span id="message" class="message message-info" style="width: 400"><pwm:Display key="Field_NewPassword"/></span>'
-        <% if (SETTING_PW_UI_MODE == HelpdeskServlet.SETTING_PW_UI_MODE.both) { %>
-        bodyText += '<p>&nbsp;»&nbsp; <a href="#" onclick="clearDijitWidget(\'changepassword-popup\');generatePasswordPopup();"><pwm:Display key="Display_AutoGeneratedPassword"/></a></p>';
-        <% } %>
-        bodyText += '<table style="border: 0">';
-        bodyText += '<tr style="border: 0"><td style="border: 0"><input type="text" name="password1" id="password1" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>\');"/></td>';
-        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
-        bodyText += '<td style="border:0"><div id="strengthBox" style="visibility:hidden;">';
-        bodyText += '<div id="strengthLabel"><pwm:Display key="Display_StrengthMeter"/></div>';
-        bodyText += '<div class="progress-container" style="margin-bottom:10px">';
-        bodyText += '<div id="strengthBar" style="width:0">&nbsp;</div></div></div></td>';
-        <% } %>
-        bodyText += '</tr><tr style="border: 0">';
-        bodyText += '<td style="border: 0"><input type="text" name="password2" id="password2" class="inputfield" style="width: 260px" autocomplete="off" onkeyup="validatePasswords(\'<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>\');""/></td>';
-
-        bodyText += '<td style="border: 0"><div style="margin:0;">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">';
-        bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">';
-        bodyText += '</div></td>';
-
-        bodyText += '</tr></table>';
-        bodyText += '<button name="change" class="btn" id="password_button" onclick="var pw=getObject(\'password1\').value;clearDijitWidget(\'changepassword-popup\');doPasswordChange(pw)" disabled="true"/><pwm:Display key="Button_ChangePassword"/></button>';
-        try { getObject('message').id = "base-message"; } catch (e) {}
-
-        clearDijitWidget('changepassword-popup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUsername())%>',
-            style: "width: 450px",
-            content: bodyText,
-            hide: function(){
-                closeWaitDialog();
-                getObject('base-message').id = "message";
-            }
-        });
-        theDialog.show();
-        setTimeout(function(){ getObject('password1').focus();},500);
-    });
-}
-function generatePasswordPopup() {
-    var dataInput = {};
-    dataInput['username'] = '<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>';
-    dataInput['strength'] = 0;
-
-    var randomConfig = {};
-    randomConfig['dataInput'] = dataInput;
-    randomConfig['finishAction'] = "clearDijitWidget('randomPasswordDialog');doPasswordChange(PWM_GLOBAL['SelectedRandomPassword'])";
-    doRandomGeneration(randomConfig);
-}
-
-function doPasswordChange(password, random) {
-    require(["dojo","dijit/Dialog"],function(dojo,Dialog){
-        showWaitDialog('<pwm:Display key="Title_PleaseWait"/>','<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>');
-        var inputValues = {};
-        inputValues['username'] = '<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>';
-        if (random) {
-            inputValues['random'] = true;
-        } else {
-            inputValues['password'] = password;
-        }
-        setTimeout(function(){
-            dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/setpassword",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                content: inputValues,
-                preventCache: true,
-                timeout: 90000,
-                sync: false,
-                handleAs: "json",
-                load: function(results){
-                    var bodyText = "";
-                    if (results['error'] == true) {
-                        bodyText += results['errorMessage'];
-                        bodyText += '<br/><br/>';
-                        bodyText += results['errorDetail'];
-                    } else {
-                        bodyText += '<br/>';
-                        bodyText += results['successMessage'];
-                        bodyText += '</br></br>';
-                        bodyText += '<pwm:Display key="Field_NewPassword"/>: <b>' + password + '</b>';
-                        bodyText += '<br/>';
-                    }
-                    bodyText += '<br/><br/><button class="btn" onclick="getObject(\'continueForm\').submit();"> OK </button>';
-                    <% if (SETTING_CLEAR_RESPONSES == HelpdeskServlet.SETTING_CLEAR_RESPONSES.ask) { %>
-                    bodyText += '<span style="padding-left: 10px">&nbsp;</span>';
-                    bodyText += '<button class="btn" onclick="doResponseClear()">';
-                    bodyText += 'Clear Responses</button>';
-                    <% } %>
-                    closeWaitDialog();
-                    var theDialog = new Dialog({
-                        id: 'dialogPopup',
-                        title: '<pwm:Display key="Title_ChangePassword"/>: <%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUsername())%>',
-                        style: "width: 450px",
-                        content: bodyText,
-                        closable: false,
-                        hide: function(){
-                            closeWaitDialog();
-                        }
-                    });
-                    theDialog.show();
-                },
-                error: function(errorObj){
-                    closeWaitDialog();
-                    showError("unexpected set password error: " + errorObj);
-                }
-            });
-        },300);
-    });
-}
-function doResponseClear() {
-    var username = '<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>';
-    require(["dojo","dijit/Dialog"],function(dojo){
-        closeWaitDialog();
-        showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
-        var inputValues = { 'username':username };
-        setTimeout(function(){
-            dojo.xhrDelete({
-                url: PWM_GLOBAL['url-restservice'] + "/challenges",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                content: inputValues,
-                preventCache: true,
-                timeout: 90000,
-                sync: false,
-                handleAs: "json",
-                load: function(results){
-                    var bodyText = "";
-                    if (results['error'] != true) {
-                        bodyText += results['successMessage'];
-                    } else {
-                        bodyText += results['errorMsg'];
-                    }
-                    bodyText += '<br/><br/><button class="btn" onclick="getObject(\'continueForm\').submit();"> OK </button>';
-                    closeWaitDialog();
-                    var theDialog = new dijit.Dialog({
-                        id: 'dialogPopup',
-                        title: 'Clear Responses',
-                        style: "width: 450px",
-                        content: bodyText,
-                        closable: false,
-                        hide: function(){
-                            clearDijitWidget('result-popup');
-                        }
-                    });
-                    theDialog.show();
-                },
-                error: function(errorObj){
-                    closeWaitDialog();
-                    showError("unexpected clear responses error: " + errorObj);
-                }
-            });
-        },100);
-    });
-}
-
-function executeAction(actionName) {
-    showWaitDialog(null,null,function(){
-        require(["dojo","dijit/Dialog"],function(dojo){
-            dojo.xhrGet({
-                url: "Helpdesk?pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&processAction=executeAction&name=" + actionName,
-                preventCache: true,
-                dataType: "json",
-                handleAs: "json",
-                timeout: 90000,
-                load: function(data){
-                    closeWaitDialog();
-                    if (data['error'] == true) {
-                        showDialog(PWM_STRINGS['Title_Error'],data['errorDetail']);
-                    } else {
-                        showDialog(PWM_STRINGS['Title_Success'],data['successMessage'],function(){getObject('continueForm').submit();});
-                    }
-                },
-                error: function(errorObj){
-                    closeWaitDialog();
-                    showError('error executing action: ' + errorObj);
-                }
-            });
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
+            dojoParser.parse();
+            PWM_VAR['helpdesk_obfuscatedDN'] = '<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>';
+            PWM_VAR['helpdesk_username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUsername())%>';
+            PWM_VAR['helpdesk_setting_clearResponses'] = '<%=pwmApplication.getConfig().readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES,HelpdeskClearResponseMode.class)%>';
+            PWM_VAR['helpdesk_setting_PwUiMode'] = '<%=pwmApplication.getConfig().readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE,HelpdeskUIMode.class) %>';
         });
     });
-}
-
-function startupPage() {
-    require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
-        dojoParser.parse();
-    });
-}
-
-PWM_GLOBAL['startupFunctions'].push(function(){
-    startupPage();
-});
 </script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

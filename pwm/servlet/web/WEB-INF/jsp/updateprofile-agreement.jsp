@@ -19,6 +19,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -31,8 +32,9 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
+        <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
         <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.UPDATE_PROFILE_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = MacroMachine.expandMacros(agreementText, pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader()); %>
+        <% final String expandedText = macroMachine.expandMacros(agreementText); %>
         <div class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='UpdateProfile'/>" method="post"
@@ -61,8 +63,8 @@
 </div>
 <script type="text/javascript">
     function updateContinueButton() {
-        var checkBox = getObject("agreeCheckBox");
-        var continueButton = getObject("button_continue");
+        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+        var continueButton = PWM_MAIN.getObject("button_continue");
         if (checkBox != null && continueButton != null) {
             if (checkBox.checked) {
                 continueButton.removeAttribute('disabled');

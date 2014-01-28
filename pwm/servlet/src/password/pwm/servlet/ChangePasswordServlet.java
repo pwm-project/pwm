@@ -121,7 +121,7 @@ public class ChangePasswordServlet extends TopServlet {
                 restCheckProgress(pwmApplication, pwmSession, req, resp);
                 return;
             } else if ("complete".equalsIgnoreCase(processRequestParam)) {
-                handleComplete(pwmSession, req, resp);
+                handleComplete(pwmApplication, pwmSession, req, resp);
                 return;
             }
         }
@@ -277,6 +277,11 @@ public class ChangePasswordServlet extends TopServlet {
 
         PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
         cpb.setChangeBeginTime(new Date());
+
+        //figure maximum change time
+        final long maxWaitSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME);
+        final long futureMaxWaitTime = System.currentTimeMillis() + (maxWaitSeconds * 1000);
+        cpb.setChangeLastEndTime(new Date(futureMaxWaitTime));
 
         // send user an email confirmation
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
@@ -494,7 +499,13 @@ public class ChangePasswordServlet extends TopServlet {
             throws IOException
     {
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+        final PasswordChangeProgress passwordChangeProgress = figureProgress(pwmApplication, cpb);
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(passwordChangeProgress);
+        ServletHelper.outputJsonResult(resp,restResultBean);
+    }
 
+    private PasswordChangeProgress figureProgress(final PwmApplication pwmApplication, final ChangePasswordBean cpb) {
         final PasswordChangeProgress result;
         final TimeDuration minWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000 * 2);
         //final TimeDuration maxWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000);
@@ -518,22 +529,26 @@ public class ChangePasswordServlet extends TopServlet {
             }
             result = new PasswordChangeProgress(complete,percentage,Collections.<String,BigDecimal>emptyMap());
         }
-
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(result);
-        ServletHelper.outputJsonResult(resp,restResultBean);
+        return result;
     }
 
     private void handleComplete(
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        pwmSession.clearSessionBean(ChangePasswordBean.class);
-        ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-        ServletHelper.forwardToSuccessPage(req,resp);
+        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+        final PasswordChangeProgress passwordChangeProgress = figureProgress(pwmApplication, cpb);
+        if (passwordChangeProgress.isComplete()) {
+            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+            pwmSession.clearSessionBean(ChangePasswordBean.class);
+            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
+            ServletHelper.forwardToSuccessPage(req,resp);
+        } else {
+            forwardToWaitPage(req, resp, this.getServletContext());
+        }
     }
 }

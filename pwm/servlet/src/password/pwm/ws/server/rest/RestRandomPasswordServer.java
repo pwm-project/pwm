@@ -52,6 +52,15 @@ public class RestRandomPasswordServer {
     @Context
     HttpServletRequest request;
 
+    private static final ServicePermissions servicePermissions = new ServicePermissions();
+
+    static {
+        servicePermissions.setAdminOnly(false);
+        servicePermissions.setAuthRequired(false);
+        servicePermissions.setBlockExternal(true);
+        servicePermissions.setHelpdeskPermitted(true);
+    }
+
     public static class JsonOutput implements Serializable
     {
         public String password;
@@ -82,10 +91,6 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -97,6 +102,7 @@ public class RestRandomPasswordServer {
         jsonInput.maxLength = maxLength;
         jsonInput.minLength = minLength;
         jsonInput.chars = chars;
+        jsonInput.noUser = noUser;
 
         try {
             final JsonOutput jsonOutput = doOperation(restRequestBean, jsonInput);
@@ -127,10 +133,6 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
@@ -143,6 +145,7 @@ public class RestRandomPasswordServer {
         jsonInput.maxLength = maxLength;
         jsonInput.minLength = minLength;
         jsonInput.chars = chars;
+        jsonInput.noUser = noUser;
 
         try {
             return doOperation(restRequestBean, jsonInput).password;
@@ -164,10 +167,6 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();

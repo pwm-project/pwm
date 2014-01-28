@@ -32,8 +32,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -51,6 +51,7 @@ public class DisplayTag extends PwmAbstractTag {
     private String key;
     private String value1;
     private String value2;
+    private String value3;
     private boolean displayIfMissing;
     private String bundle;
 
@@ -78,6 +79,16 @@ public class DisplayTag extends PwmAbstractTag {
 
     public void setValue2(final String value1) {
         this.value2 = value1;
+    }
+
+    public String getValue3()
+    {
+        return value3;
+    }
+
+    public void setValue3(String value3)
+    {
+        this.value3 = value3;
     }
 
     public boolean isDisplayIfMissing() {
@@ -118,7 +129,8 @@ public class DisplayTag extends PwmAbstractTag {
 
             final Class bundle = readBundle();
             final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);
-            final String expandedMessage = MacroMachine.expandMacros(displayMessage, pwmApplication, uiBean, userDataReader);
+            final MacroMachine macroMachine = new MacroMachine(pwmApplication, uiBean, userDataReader);
+            final String expandedMessage = macroMachine.expandMacros(displayMessage);
 
             pageContext.getOut().write(expandedMessage);
         } catch (PwmUnrecoverableException e) { {
@@ -153,7 +165,7 @@ public class DisplayTag extends PwmAbstractTag {
             locale = PwmConstants.DEFAULT_LOCALE;
         }
         try {
-            return LocaleHelper.getLocalizedMessage(locale, key, config, bundleClass, new String[]{value1, value2});
+            return LocaleHelper.getLocalizedMessage(locale, key, config, bundleClass, new String[]{value1, value2, value3});
         } catch (MissingResourceException e) {
             if (!displayIfMissing) {
                 LOGGER.info("error while executing jsp display tag: " + e.getMessage());

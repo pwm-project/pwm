@@ -43,7 +43,7 @@
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn',this);return false"
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
               style="display: inline;">
                 <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
                 <input type="submit" class="btn"
@@ -71,7 +71,7 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
+        PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
     });
 </script>
 <%@ include file="fragment/footer.jsp" %>

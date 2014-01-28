@@ -45,7 +45,7 @@
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right; width:10%">
-                    <a onclick="showWaitDialog()" class="menubutton" href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
+                    <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
                         <%= item.getLabel() %>
                     </a>
                 </td>

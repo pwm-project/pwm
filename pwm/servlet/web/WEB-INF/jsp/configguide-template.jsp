@@ -73,9 +73,9 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         <% if (noTemplateYet) { %>
-        getObject('button_next').disabled = true;
+        PWM_MAIN.getObject('button_next').disabled = true;
         <% } %>
-        selectTemplate(getObject('templateSelect').value);
+        selectTemplate(PWM_MAIN.getObject('templateSelect').value);
     });
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>

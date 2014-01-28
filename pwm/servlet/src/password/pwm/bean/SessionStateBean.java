@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@
 
 package password.pwm.bean;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
 import password.pwm.i18n.Message;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.FormMap;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 
 import java.util.Date;
 import java.util.Locale;
@@ -81,16 +81,20 @@ public class SessionStateBean implements PwmSessionBean {
     private Date pageLeaveNoticeTime;
     private Date sessionCreationTime;
     private Date sessionLastAccessedTime;
+    private TimeDuration sessionMaximumTimeout;
 
     private boolean passwordModified;
     private boolean privateUrlAccessed;
 
     private int intruderAttempts;
 
+    private int sessionVerificationKeyLength;
+
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public SessionStateBean() {
+    public SessionStateBean(final int sessionVerificationKeyLength) {
+        this.sessionVerificationKeyLength = sessionVerificationKeyLength;
     }
 
     public boolean isPasswordModified() {
@@ -326,10 +330,20 @@ public class SessionStateBean implements PwmSessionBean {
         this.restClientKey = restClientKey;
     }
 
+    public TimeDuration getSessionMaximumTimeout()
+    {
+        return sessionMaximumTimeout;
+    }
+
+    public void setSessionMaximumTimeout(TimeDuration sessionMaximumTimeout)
+    {
+        this.sessionMaximumTimeout = sessionMaximumTimeout;
+    }
+
     // -------------------------- ENUMERATIONS --------------------------
 
     public void regenerateSessionVerificationKey() {
-        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(PwmConstants.HTTP_SESSION_VALIDATION_KEY_LENGTH) + Long.toHexString(System.currentTimeMillis());
+        sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
     }
 }
 

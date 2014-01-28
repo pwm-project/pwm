@@ -125,7 +125,7 @@ public class ConfigGuideServlet extends TopServlet {
             return;
         }
 
-        req.getSession().setMaxInactiveInterval(15 * 60);
+        pwmSession.setSessionTimeout(req.getSession(),PwmConstants.CONFIGGUIDE_IDLE_TIMEOUT);
 
         if (configGuideBean.getStep() == STEP.LDAPCERT) {
             final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY).toNativeObject()).get(0);
@@ -355,7 +355,7 @@ public class ConfigGuideServlet extends TopServlet {
             final HttpServletResponse resp,
             final PwmSession pwmSession
     )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final String bodyString = ServletHelper.readRequestBody(req);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);

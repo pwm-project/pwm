@@ -48,122 +48,139 @@
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <div id="healthBody" style="border:0; margin:0; padding:0">
-                <div id="WaitDialogBlank"></div>
-            </div>
-            <script type="text/javascript">
-                PWM_GLOBAL['startupFunctions'].push(function(){
-                    require(["dojo/domReady!"],function(){
-                        PWM_MAIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
-                    });
+        <div id="healthBody" style="border: #808080 1px solid; margin:0; padding:0; max-height: 300px; overflow-y: auto">
+            <div id="WaitDialogBlank"></div>
+        </div>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                require(["dojo/domReady!"],function(){
+                    PWM_MAIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
                 });
-            </script>
+            });
+        </script>
+        <style>
+            .buttoncell {
+                border: 0;
+                width:50%;
+            }
+            .buttonrow {
+                height: 45px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .menubutton {
+                cursor: pointer;
+                display: inline;
+            }
+
+        </style>
+        <br/>
         <br/>
         <table style="border:0">
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="startConfigurationEditor()">
-                        <i class="fa fa-edit"></i>&nbsp;
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_CONFIG.startConfigurationEditor()" id="MenuItem_ConfigEditor">
+                        <span class="fa fa-edit"></span>&nbsp;
                         <pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/>
                     </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_ConfigEditor',PWM_CONFIG.showString('MenuDisplay_ConfigEditor'));
+                        });
+                    </script>
                 </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_ConfigEditor" bundle="Config"/></p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" style="cursor: pointer" onclick="PWM_MAIN.openLogViewer()">
-                        <i class="fa fa-list-alt"></i>&nbsp;
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_CONFIG.openLogViewer({})" id="MenuItem_ViewLog">
+                        <span class="fa fa-list-alt"></span>&nbsp;
                         <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
-                </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_ViewLog" bundle="Config"/></p>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_ViewLog',PWM_CONFIG.showString('MenuDisplay_ViewLog'));
+                        });
+                    </script>
                 </td>
             </tr>
-            <tr style="border:0">
-                <script type="text/javascript">
-                    function makeSupportBundle() {
-                        <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
-                        showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
-                        <% } else { %>
-                        getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-                        showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
-                        <% } %>
-                    }
-                </script>
-                <iframe id="downloadFrame" style="display:none"></iframe>
-                <td class="menubutton_key">
-                    <a class="menubutton" onclick="makeSupportBundle()">
-                        <i class="fa fa-suitcase"></i>&nbsp;
-                        Download Troubleshooting Bundle
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <iframe id="downloadFrame" style="display:none"></iframe>
+                    <a class="menubutton" onclick="makeSupportBundle()" id="MenuItem_DownloadBundle">
+                        <span class="fa fa-suitcase"></span>&nbsp;
+                        <pwm:Display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_DownloadBundle',PWM_CONFIG.showString('MenuDisplay_DownloadBundle'));
+                        });
+                    </script>
                 </td>
-                <td style="border:0">
-                    <p>Generate a support ZIP file that contains information useful for troubleshooting.</p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=generateXml&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
-                        <i class="fa fa-download"></i>&nbsp;
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.goto('ConfigManager?processAction=generateXml',{closeDelay:5000})" id="MenuItem_DownloadConfig">
+                        <span class="fa fa-download"></span>&nbsp;
                         <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
-                </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_DownloadConfig" bundle="Config"/></p>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_DownloadConfig',PWM_CONFIG.showString('MenuDisplay_DownloadConfig'));
+                        });
+                    </script>
                 </td>
             </tr>
             <% if (!configManagerBean.isConfigLocked()) { %>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_UploadConfig'],function(){uploadConfigDialog()},null)">
-                        <i class="fa fa-upload"></i>&nbsp;
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_UploadConfig'],function(){PWM_CONFIG.uploadConfigDialog()},null)" id="MenuItem_UploadConfig">
+                        <span class="fa fa-upload"></span>&nbsp;
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_UploadConfig',PWM_CONFIG.showString('MenuDisplay_UploadConfig'));
+                        });
+                    </script>
                 </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="lockConfiguration()">
-                        <i class="fa fa-lock"></i>&nbsp;
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_CONFIG.lockConfiguration()" id="MenuItem_LockConfig">
+                        <span class="fa fa-lock"></span>&nbsp;
                         <pwm:Display key="MenuItem_LockConfig" bundle="Config"/>
                     </a>
-                </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_LockConfig" bundle="Config" value1="<%=configFilePath%>"/></p>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig'));
+                        });
+                    </script>
                 </td>
             </tr>
             <% } %>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="window.location='ConfigManager?processAction=exportLocalDB&pwmFormID=' + PWM_GLOBAL['pwmFormID'];">
-                        <i class="fa fa-upload"></i>&nbsp;
-                        Export LocalDB
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{closeDelay:3000})" id="MenuItem_ExportLocalDB">
+                        <span class="fa fa-download"></span>&nbsp;
+                        <pwm:Display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_ExportLocalDB','<pwm:Display key="MenuDisplay_ExportLocalDB" bundle="Config" value1="<%=configFilePath%>"/>');
+                        });
+                    </script>
                 </td>
-                <td style="border:0">
-                    <p>Export the LocalDB</p>
-                </td>
-            </tr>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a class="menubutton" href="<%=request.getContextPath()%>">
-                        <i class="fa fa-arrow-circle-left"></i>&nbsp;
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.goto('/')" id="MenuItem_MainMenu">
+                        <span class="fa fa-arrow-circle-left"></span>&nbsp;
                         <pwm:Display key="MenuItem_MainMenu" bundle="Config"/>
                     </a>
-                </td>
-                <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_MainMenu" bundle="Config"/></p>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_MainMenu',PWM_CONFIG.showString('MenuDisplay_MainMenu'));
+                        });
+                    </script>
                 </td>
             </tr>
         </table>
     </div>
-    <div class="push"></div>
+</div>
+</div>
+<div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -171,12 +188,32 @@
             dojoParser.parse();
         });
     });
+
+    function makeSupportBundle() {
+        <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
+        PWM_MAIN.showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
+        <% } else { %>
+        PWM_MAIN.getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
+        <% } %>
+    }
+
+    function makeTooltip(id,text) {
+        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+            new Tooltip({
+                connectId: [id],
+                showDelay: 800,
+                position: ['below','above'],
+                label: '<div style="max-width: 300px">'+text+'</div>'
+            });
+        });
+    }
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript">
-    initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
+    PWM_CONFIG.initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
 </script>
 </body>
 </html>

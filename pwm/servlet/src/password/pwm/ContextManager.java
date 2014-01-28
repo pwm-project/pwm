@@ -38,6 +38,7 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ContextManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -53,7 +54,7 @@ public class ContextManager implements Serializable {
 
     private volatile boolean restartRequestedFlag = false;
 
-    private final transient Map<PwmSession, Object> activeSessions = new WeakHashMap<PwmSession, Object>();
+    private final transient Set<PwmSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<PwmSession, Boolean>());
 
     public ContextManager(ServletContext servletContext) {
         this.servletContext = servletContext;
@@ -166,10 +167,11 @@ public class ContextManager implements Serializable {
             final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             taskMaster = new Timer(threadName, true);
             taskMaster.schedule(new ConfigFileWatcher(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
-            taskMaster.schedule(new SessionWatcherTask(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
+            taskMaster.schedule(new SessionWatcherTask(), 5031, 5031);
         }
 
-        LOGGER.debug("configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
+        LOGGER.debug(
+                "configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
     }
 
     private void handleStartupError(final String msgPrefix, final Throwable throwable) {
@@ -230,12 +232,12 @@ public class ContextManager implements Serializable {
     }
 
     public Set<PwmSession> getPwmSessions() {
-        return Collections.unmodifiableSet(activeSessions.keySet());
+        return Collections.unmodifiableSet(activeSessions);
     }
 
     public void addPwmSession(final PwmSession pwmSession) {
         try {
-            activeSessions.put(pwmSession, new Object());
+            activeSessions.add(pwmSession);
         } catch (Exception e) {
             LOGGER.trace("error adding new session to list of known sessions: " + e.getMessage());
         }
@@ -249,24 +251,20 @@ public class ContextManager implements Serializable {
 
     public class SessionWatcherTask extends TimerTask {
         public void run() {
-            final Map<PwmSession, Object> copiedMap = new HashMap<PwmSession, Object>();
+            final Set<PwmSession> copiedMap = new HashSet<PwmSession>();
 
             try {
-                synchronized (activeSessions) {
-                    copiedMap.putAll(activeSessions);
-                }
+                copiedMap.addAll(activeSessions);
 
                 final Set<PwmSession> deadSessions = new HashSet<PwmSession>();
 
-                for (final PwmSession pwmSession : copiedMap.keySet()) {
+                for (final PwmSession pwmSession : copiedMap) {
                     if (!pwmSession.isValid()) {
                         deadSessions.add(pwmSession);
                     }
                 }
 
-                synchronized (activeSessions) {
-                    activeSessions.keySet().removeAll(deadSessions);
-                }
+                activeSessions.removeAll(deadSessions);
             } catch (Throwable e) {
                 LOGGER.error("error clearing sessions during restart: " + e.getMessage());
             }

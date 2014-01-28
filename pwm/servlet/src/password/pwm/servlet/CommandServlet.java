@@ -39,7 +39,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.UserReport;
+import password.pwm.util.report.ReportService;
+import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -98,6 +99,8 @@ public class CommandServlet extends TopServlet {
             processPageLeaveNotice(req, resp);
         } else if (action.equalsIgnoreCase("viewLog")) {
             processViewLog(req, resp, pwmApplication, pwmSession);
+        } else if (action.equalsIgnoreCase("clearIntruderTable")) {
+            processClearIntruderTable(req,resp,pwmApplication,pwmSession);
         } else {
             LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
@@ -408,12 +411,12 @@ public class CommandServlet extends TopServlet {
             return;
         }
 
-        resp.setHeader("content-disposition", "attachment;filename=UserReport.csv");
+        resp.setHeader("content-disposition", "attachment;filename=UserReportService.csv");
         resp.setContentType("text/csv;charset=utf-8");
 
         final OutputStream outputStream = new BufferedOutputStream(resp.getOutputStream());
 
-        final UserReport userReport = new UserReport(pwmApplication);
+        final ReportService userReport = pwmApplication.getUserReportService();
 
         try {
             userReport.outputToCsv(outputStream, true, 50 * 1000);
@@ -499,5 +502,31 @@ public class CommandServlet extends TopServlet {
         outputStream.flush();
         outputStream.close();
     }
+
+    private void processClearIntruderTable(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        Validator.validatePwmFormID(req);
+        if (!preCheckUser(req, resp)) {
+            return;
+        }
+
+        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+            LOGGER.info(pwmSession, "unable to execute clear intruder records");
+            return;
+        }
+
+        pwmApplication.getIntruderManager().clear();
+
+        RestResultBean restResultBean = new RestResultBean();
+        ServletHelper.outputJsonResult(resp,restResultBean);
+        return;
+    }
+
 }
 

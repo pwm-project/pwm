@@ -41,10 +41,9 @@ import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
-import password.pwm.util.MacroMachine;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.RecordType;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -183,22 +182,24 @@ public class RestAppDataServer {
         final ArrayList<Map<String,Object>> gridData = new ArrayList<Map<String,Object>>();
         for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && gridData.size() <= maximum;) {
             final PwmSession loopSession = iterator.next();
-            try {
-                final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
-                final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-                final Map<String, Object> rowData = new HashMap<String, Object>();
-                rowData.put("label", loopSession.getSessionStateBean().getSessionID());
-                rowData.put("createTime", loopSession.getSessionStateBean().getSessionCreationTime());
-                rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
-                rowData.put("idle", TimeDuration.fromCurrent(loopSession.getLastAccessedTime()).asCompactString());
-                rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
-                rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().toDeliminatedKey() : "");
-                rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
-                rowData.put("srcAddress", loopSsBean.getSrcAddress());
-                rowData.put("srcHost", loopSsBean.getSrcHostname());
-                rowData.put("lastUrl", loopSsBean.getLastRequestURL());
-                gridData.add(rowData);
-            } catch (IllegalStateException e) { /* ignore */ }
+            if (loopSession != null && loopSession.isValid()) {
+                try {
+                    final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
+                    final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
+                    final Map<String, Object> rowData = new HashMap<String, Object>();
+                    rowData.put("label", loopSession.getSessionStateBean().getSessionID());
+                    rowData.put("createTime", loopSession.getSessionStateBean().getSessionCreationTime());
+                    rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
+                    rowData.put("idle", loopSession.getIdleTime().asCompactString());
+                    rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
+                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().toDeliminatedKey() : "");
+                    rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
+                    rowData.put("srcAddress", loopSsBean.getSrcAddress());
+                    rowData.put("srcHost", loopSsBean.getSrcHostname());
+                    rowData.put("lastUrl", loopSsBean.getLastRequestURL());
+                    gridData.add(rowData);
+                } catch (IllegalStateException e) { /* ignore */ }
+            }
         }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(gridData);
@@ -257,10 +258,10 @@ public class RestAppDataServer {
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(false);
-            servicePermissions.setAuthAndAdminWhenRunningRequired(true);
+            servicePermissions.setAdminOnly(true);
+            servicePermissions.setAuthRequired(true);
+            servicePermissions.setBlockExternal(true);
+            servicePermissions.setPublicDuringConfig(true);
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -346,14 +347,19 @@ public class RestAppDataServer {
         final Configuration config = pwmApplication.getConfig();
         final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
         final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName());
-        for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
-            String displayValue = Display.getLocalizedMessage(userLocale, key, config);
-            try {
-                displayValue = MacroMachine.expandMacros(displayValue, pwmApplication, pwmSession.getUserInfoBean(),pwmSession.getSessionManager().getUserDataReader(pwmApplication));
-            } catch (Exception e) {
-                LOGGER.error(pwmSession,"error expanding macro for display value " + displayValue);
+        try {
+            final MacroMachine macroMachine = new MacroMachine(
+                    pwmApplication,
+                    pwmSession.getUserInfoBean(),
+                    pwmSession.getSessionManager().getUserDataReader(pwmApplication)
+            );
+            for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
+                String displayValue = Display.getLocalizedMessage(userLocale, key, config);
+                displayValue = macroMachine.expandMacros(displayValue);
+                displayStrings.put(key, displayValue);
             }
-            displayStrings.put(key, displayValue);
+        } catch (Exception e) {
+            LOGGER.error(pwmSession,"error expanding macro display value: " + e.getMessage());
         }
         displayStrings.put(Message.SUCCESS_UNKNOWN.toString(), Message.getLocalizedMessage(userLocale, Message.SUCCESS_UNKNOWN, config));
         return displayStrings;
@@ -376,7 +382,12 @@ public class RestAppDataServer {
         settingMap.put("pageLeaveNotice", config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT));
         settingMap.put("setting-showHidePasswordFields",pwmApplication.getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS));
         settingMap.put("setting-displayEula",PwmConstants.ENABLE_EULA_DISPLAY);
-        settingMap.put("MaxInactiveInterval",request.getSession().getMaxInactiveInterval());
+        settingMap.put("setting-showStrengthMeter",config.readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER));
+
+        settingMap.put("MaxInactiveInterval",(pwmSession.getSessionStateBean().getSessionMaximumTimeout() == null) ?
+                request.getSession().getMaxInactiveInterval() :
+                pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalSeconds()
+        );
         settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
         settingMap.put("startupTime",pwmApplication.getStartupTime());
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());
@@ -390,7 +401,12 @@ public class RestAppDataServer {
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());
-            passwordGuideText = MacroMachine.expandMacros(passwordGuideText, pwmApplication, pwmSession.getUserInfoBean(), pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getSessionManager().getUserDataReader(pwmApplication) : null);
+            final MacroMachine macroMachine = new MacroMachine(
+                    pwmApplication,
+                    pwmSession.getUserInfoBean(),
+                    pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getSessionManager().getUserDataReader(pwmApplication) : null
+            );
+            passwordGuideText = macroMachine.expandMacros(passwordGuideText);
             settingMap.put("passwordGuideText",passwordGuideText);
         }
 
@@ -513,19 +529,19 @@ public class RestAppDataServer {
             final Configuration config = restRequestBean.getPwmApplication().getConfig();
             final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
             final ResourceBundle bundle = ResourceBundle.getBundle(Config.class.getName());
-            for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
-                String displayValue = LocaleHelper.getLocalizedMessage(locale, key, config, Config.class);
-                try {
-                    displayValue = MacroMachine.expandMacros(
-                            displayValue,
-                            restRequestBean.getPwmApplication(),
-                            restRequestBean.getPwmSession().getUserInfoBean(),
-                            restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication())
-                    );
-                } catch (Exception e) {
-                    LOGGER.error(restRequestBean.getPwmSession(),"error expanding macro for display value " + displayValue);
+            try {
+                final MacroMachine macroMachine = new MacroMachine(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getUserInfoBean(),
+                        restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication())
+                );
+                for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
+                    String displayValue = LocaleHelper.getLocalizedMessage(locale, key, config, Config.class);
+                    displayValue = macroMachine.expandMacros(displayValue);
+                    displayStrings.put(key, displayValue);
                 }
-                displayStrings.put(key, displayValue);
+            } catch (Exception e) {
+                LOGGER.error(restRequestBean.getPwmSession(),"error assembling displayValues: " + e.getMessage());
             }
             returnMap.put("display",displayStrings);
         }
@@ -543,7 +559,7 @@ public class RestAppDataServer {
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
         inputString.append(pwmApplication.getStartupTime().getTime());
-        inputString.append(request.getSession().getMaxInactiveInterval());
+        inputString.append(pwmSession.getSessionStateBean().getSessionMaximumTimeout());
 
         inputString.append(pwmSession.getSessionStateBean().getSessionID());
         if (pwmSession.getSessionStateBean().getLocale() != null) {

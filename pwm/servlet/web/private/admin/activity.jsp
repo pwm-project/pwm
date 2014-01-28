@@ -1,3 +1,6 @@
+<%@ page import="password.pwm.i18n.Config" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.intruder.RecordType" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -20,140 +23,96 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.util.Helper" %>
-<%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-<jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Activity"/>
-</jsp:include>
-    <div id="centerbody">
-    <%@ include file="admin-nav.jsp" %>
-        <table class="tablemain">
-            <tr>
-                <td class="key">
-                    <a href="<pwm:url url='activesessions.jsp'/>">
-                        Active HTTP Sessions
-                    </a>
-                </td>
-                <td>
-                    <a href="<pwm:url url='activesessions.jsp'/>">
-                        <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
-                    </a>
-                </td>
-                <td class="key">
-                    Active LDAP Connections
-                </td>
-                <td>
-                    <%= Helper.figureLdapConnectionCount(pwmApplication, ContextManager.getContextManager(session)) %>
-                </td>
-            </tr>
-        </table>
-        <table class="tablemain">
-            <tr>
-                <td>
-                </td>
-                <td style="text-align: center; font-weight: bold;">
-                    Last Minute
-                </td>
-                <td style="text-align: center; font-weight: bold;">
-                    Last Hour
-                </td>
-                <td style="text-align: center; font-weight: bold;">
-                    Last Day
-                </td>
-            </tr>
-            <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
-            <tr>
-                <td class="key">
-                    <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
-                </td>
-                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
-                    <span style="font-size: smaller; font-style: italic">Loading...</span>
-                </td>
-                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
-                    <span style="font-size: smaller; font-style: italic">Loading...</span>
-                </td>
-                <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
-                    <span style="font-size: smaller; font-style: italic">Loading...</span>
-                </td>
-            </tr>
-            <% } %>
-        </table>
-        <br/>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute">
-                <table class="tablemain">
-                    <tr>
-                        <td colspan="10" style="margin:0; padding:0">
-                            <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Authentications</div>
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Password Changes</div>
-                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Intruder Attempts</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="User Activity"/>
+    </jsp:include>
+    <div id="centerbody" style="width: 700px">
+        <%@ include file="admin-nav.jsp" %>
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+            <div data-dojo-type="dijit.layout.ContentPane" title="Logged In Users">
+                <div id="activeSessionGrid">
+                </div>
+                <div style="text-align: center">
+                    <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                    Rows
+                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
+                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                    </button>
+                </div>
+
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour">
-                <table class="tablemain">
-                    <tr>
-                        <td colspan="10" style="margin:0; padding:0">
-                            <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
-                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Intruder Attempts</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Intruders">
+                <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Intruders">
+                    <% for (RecordType recordType : RecordType.values()) { %>
+                    <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),"IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(), Config.class); %>
+                    <div data-dojo-type="dijit.layout.ContentPane" title="<%=titleName%>">
+                        <div id="<%=recordType%>_Grid">
+                        </div>
+                    </div>
+                    <% } %>
+                    <br/>
+                </div>
+                <div style="text-align: center">
+                    <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                    Rows
+                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
+                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                    </button>
+                </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Last Day">
-                <table class="tablemain">
-                    <tr>
-                        <td colspan="10" style="margin:0; padding:0">
-                            <div style="max-width: 600px; text-align: center">
-                                <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Authentications</div>
-                                <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Password Changes</div>
-                                <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Intruder Attempts</div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <div data-dojo-type="dijit.layout.ContentPane" title="Audit Log">
+                <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+                    <div data-dojo-type="dijit.layout.ContentPane" title="User">
+                        <div id="auditUserGrid">
+                        </div>
+                    </div>
+                    <div data-dojo-type="dijit.layout.ContentPane" title="System">
+                        <div id="auditSystemGrid">
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center">
+                    <input name="maxResults" id="maxAuditGridResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                    Rows
+                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData()">
+                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                    </button>
+                    <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                        <button type="submit" class="btn">
+                            <span class="fa fa-download">&nbsp;Download as CSV</span>
+                        </button>
+                        <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </div>
             </div>
-            <div style="width: 100%; font-size: smaller; font-style: italic; text-align: center">events per minute, this content is dynamically refreshed</div>
         </div>
     </div>
-    <div class="push"></div>
-</div>
-<script type="text/javascript">
-    function startupPage() {
-        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
-            dojoParser.parse();
-
-            PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
-            setInterval(function(){
-                PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
-            }, 11 * 1000);
+    <div>
+        <div class="push"></div>
+    </div>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_ADMIN.initIntrudersGrid();
+            PWM_ADMIN.initActiveSessionGrid();
+            PWM_ADMIN.initAuditGrid();
+            require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser){
+                dojoParser.parse();
+            });
         });
-    }
-
-    PWM_GLOBAL['startupFunctions'].push(function(){
-    startupPage();
-    });
-</script>
-<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+    </script>
+    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

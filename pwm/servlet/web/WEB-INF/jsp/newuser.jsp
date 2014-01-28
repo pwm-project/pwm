@@ -28,7 +28,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/newuser.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
@@ -38,8 +37,8 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
-              id="newUserForm" onkeyup="validateNewUserForm()"
-              onsubmit="handleFormSubmit('submitBtn',this);return false">
+              id="newUserForm" onkeyup="PWM_NEWUSER.validateNewUserForm()"
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
             <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
             <% request.setAttribute("form_showPasswordFields","true"); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -61,6 +60,8 @@
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/newuser.js'/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -292,8 +292,13 @@ public class ServletHelper {
         throw new Exception("unable to locate resource file path=" + relativePath + ", name=" + filename);
     }
 
-    public static String readRequestBody(final HttpServletRequest request) throws IOException {
-        return readRequestBody(request, PwmConstants.HTTP_BODY_READ_LENGTH);
+    public static String readRequestBody(final HttpServletRequest request)
+            throws IOException, PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+        final int maxChars = Integer.parseInt(
+                pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BODY_MAXREAD_LENGTH));
+        return readRequestBody(request, maxChars);
     }
 
     public static String readRequestBody(final HttpServletRequest request, final int maxChars) throws IOException {
@@ -312,12 +317,14 @@ public class ServletHelper {
 
     public static void addPwmResponseHeaders(
             final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
             final HttpServletResponse resp,
             boolean fromServlet
     ) {
         if (!resp.isCommitted()) {
             final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
             final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
+            final boolean includeXSessionID = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
             final boolean includeXVersion = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
             final boolean includeXFrameDeny = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XFRAMEDENY));
 
@@ -333,7 +340,11 @@ public class ServletHelper {
                 resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
             }
 
-            if (includeXFrameDeny && fromServlet) {
+            if (includeXSessionID && pwmSession != null) {
+                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-SessionID", pwmSession.getSessionStateBean().getSessionID());
+            }
+
+            if (includeXFrameDeny) {
                 resp.setHeader("X-Frame-Options", "DENY");
             }
         }
@@ -507,7 +518,7 @@ public class ServletHelper {
         while (oldSessionAttrNames.hasMoreElements()) {
             final String attrName = (String)oldSessionAttrNames.nextElement();
             sessionAttributes.put(attrName, oldSession.getAttribute(attrName));
-        } 
+        }
 
         for (final String attrName : sessionAttributes.keySet()) {
             oldSession.removeAttribute(attrName);
@@ -615,8 +626,8 @@ public class ServletHelper {
 
         // check idle time
         {
-            if (ssBean.getSessionLastAccessedTime() != null) {
-                final TimeDuration maxIdleCheckTime = new TimeDuration(req.getSession().getMaxInactiveInterval() * 1000);
+            if (ssBean.getSessionLastAccessedTime() != null && ssBean.getSessionMaximumTimeout() != null) {
+                final TimeDuration maxIdleCheckTime = pwmSession.getSessionStateBean().getSessionMaximumTimeout();
                 final TimeDuration idleTime = TimeDuration.fromCurrent(ssBean.getSessionLastAccessedTime());
                 if (idleTime.isLongerThan(maxIdleCheckTime)) {
                     final String errorMsg = "session idle time (" + idleTime.asCompactString() + ") is longer than maximum idle time age";

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,20 +23,20 @@
 "use strict";
 
 function selectTemplate(template) {
-    showWaitDialog('Loading...','',function(){
+    PWM_MAIN.showWaitDialog('Loading...','',function(){
         require(["dojo"],function(dojo){
             dojo.xhrGet({
                 url:"ConfigGuide?processAction=selectTemplate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + template,
                 preventCache: true,
                 error: function(errorObj) {
-                    showError("error starting configuration editor: " + errorObj);
+                    PWM_MAIN.showError("error starting configuration editor: " + errorObj);
                 },
                 load: function(result) {
                     if (!result['error']) {
-                        getObject('button_next').disabled = template == "NOTSELECTED";
-                        closeWaitDialog();
+                        PWM_MAIN.getObject('button_next').disabled = template == "NOTSELECTED";
+                        PWM_MAIN.closeWaitDialog();
                     } else {
-                        showError(result['errorDetail']);
+                        PWM_MAIN.showError(result['errorDetail']);
                     }
                 }
             });
@@ -57,7 +57,7 @@ function updateForm() {
             dataType: "json",
             preventCache: true,
             error: function(errorObj) {
-                showError("error reaching server: " + errorObj);
+                PWM_MAIN.showError("error reaching server: " + errorObj);
             },
             load: function(result) {
                 console.log("sent form params to server: " + formJson);
@@ -67,7 +67,7 @@ function updateForm() {
 }
 
 function gotoStep(step) {
-    showWaitDialog();
+    PWM_MAIN.showWaitDialog();
     require(["dojo"],function(dojo){
         dojo.xhrGet({
             url: "ConfigGuide?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
@@ -78,13 +78,13 @@ function gotoStep(step) {
             dataType: "json",
             preventCache: true,
             error: function(errorObj) {
-                closeWaitDialog();
-                showError("error while selecting step: " + errorObj);
+                PWM_MAIN.closeWaitDialog();
+                PWM_MAIN.showError("error while selecting step: " + errorObj);
             },
             load: function(result) {
                 if (result['data']) {
                     if (result['data']['serverRestart']) {
-                        waitForRestart(new Date().getTime(),"none");
+                        PWM_CONFIG.waitForRestart(new Date().getTime(),"none");
                         return;
                     }
                 }
@@ -96,19 +96,19 @@ function gotoStep(step) {
 }
 
 function setUseConfiguredCerts(value) {
-    showWaitDialog('Loading...','',function(){
+    PWM_MAIN.showWaitDialog('Loading...','',function(){
         require(["dojo"],function(dojo){
             dojo.xhrGet({
                 url:"ConfigGuide?processAction=useConfiguredCerts&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&value=" + value,
                 preventCache: true,
                 error: function(errorObj) {
-                    showError("error starting configuration editor: " + errorObj);
+                    PWM_MAIN.showError("error starting configuration editor: " + errorObj);
                 },
                 load: function(result) {
                     if (!result['error']) {
                         window.location = "ConfigGuide";
                     } else {
-                        showError(result['errorDetail']);
+                        PWM_MAIN.showError(result['errorDetail']);
                     }
                 }
             });

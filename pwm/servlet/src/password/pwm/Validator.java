@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ package password.pwm;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
@@ -33,8 +32,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
-import password.pwm.util.PwmLogger;
 import password.pwm.ldap.UserSearchEngine;
+import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -151,7 +150,8 @@ public class Validator {
             final HttpServletRequest req,
             final String value
     ) throws PwmUnrecoverableException {
-        final Set<String> results = readStringsFromRequest(req, value, PwmConstants.HTTP_PARAMETER_READ_LENGTH);
+        final int maxLength = Integer.parseInt(ContextManager.getPwmApplication(req).getConfig().readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
+        final Set<String> results = readStringsFromRequest(req, value, maxLength);
         if (results == null || results.isEmpty()) {
             return "";
         }
@@ -212,7 +212,8 @@ public class Validator {
             final String defaultValue
     ) throws PwmUnrecoverableException {
 
-        final String result = readStringFromRequest(req, value, PwmConstants.HTTP_PARAMETER_READ_LENGTH);
+        final int maxLength = Integer.parseInt(ContextManager.getPwmApplication(req).getConfig().readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
+        final String result = readStringFromRequest(req, value, maxLength);
         if (result == null || result.length() < 1) {
             return defaultValue;
         }

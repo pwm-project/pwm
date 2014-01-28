@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,8 @@ public class UserInfoBean implements PwmSessionBean {
      */
     private Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
+    private Map<String,String> cachedAttributeValues = Collections.emptyMap();
+
     private PasswordStatus passwordState = new PasswordStatus();
 
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
@@ -97,6 +99,16 @@ public class UserInfoBean implements PwmSessionBean {
 
     public void setCachedPasswordRuleAttributes(final Map<String, String> userAttributes) {
         cachedPasswordRuleAttributes = userAttributes;
+    }
+
+    public Map<String, String> getCachedAttributeValues()
+    {
+        return cachedAttributeValues;
+    }
+
+    public void setCachedAttributeValues(Map<String, String> cachedAttributeValues)
+    {
+        this.cachedAttributeValues = cachedAttributeValues;
     }
 
     public Date getLocalAuthTime() {

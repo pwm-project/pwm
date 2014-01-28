@@ -41,11 +41,10 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Event Log"/>
     </jsp:include>
-    <br/>
+    <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
     <%@ include file="admin-nav.jsp" %>
-    <div style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
         <form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
-              name="searchForm" id="searchForm" onsubmit="handleFormSubmit('submit_button',this)">
+              name="searchForm" id="searchForm" onsubmit="PWM_MAIN.handleFormSubmit('submit_button',this)">
             <table style="">
                 <tr style="width:0">
                     <td class="key" style="border:0">
@@ -225,7 +224,7 @@
                                 }, "dgrid");
                                 grid.set("sort","timestamp");
                                 grid.renderArray(data);
-                                getObject('WaitDialogBlank').style.display = 'none';
+                                PWM_MAIN.getObject('WaitDialogBlank').style.display = 'none';
                             });
                 };
             </script>

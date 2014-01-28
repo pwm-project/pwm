@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,13 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.Permission;
-import password.pwm.bean.UserStatusCacheBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.report.ReportService;
+import password.pwm.util.report.UserCacheRecord;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -41,24 +44,28 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.*;
 
 @Path("/report")
 public class RestUserReportServer {
+    @Context
+    HttpServletRequest request;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGetAppAuditData(
-            @Context HttpServletRequest request,
             @QueryParam("maximum") int maximum
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
+    {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
+            final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
             restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
@@ -69,12 +76,12 @@ public class RestUserReportServer {
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
-        final ArrayList<UserStatusCacheBean> reportData = new ArrayList<UserStatusCacheBean>();
-        final Iterator<UserStatusCacheBean> cacheBeanIterator = restRequestBean.getPwmApplication().getUserStatusCacheManager().iterator();
+        final ArrayList<UserCacheRecord> reportData = new ArrayList<UserCacheRecord>();
+        final Iterator<UserCacheRecord> cacheBeanIterator = restRequestBean.getPwmApplication().getUserReportService().iterator();
         while (cacheBeanIterator.hasNext() && reportData.size() < maximum) {
-            final UserStatusCacheBean userStatusCacheBean = cacheBeanIterator.next();
-            if (userStatusCacheBean != null) {
-                reportData.add(userStatusCacheBean);
+            final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
+            if (userCacheRecord != null) {
+                reportData.add(userCacheRecord);
             }
         }
 
@@ -87,4 +94,100 @@ public class RestUserReportServer {
     }
 
 
+    @GET
+    @Path("/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response doGetReportEngineStatusData(
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
+    {
+        final RestRequestBean restRequestBean;
+        try {
+            final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+            final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
+        }
+
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap(makeReportStatusData(
+                restRequestBean.getPwmApplication().getUserReportService()
+        ));
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(returnMap);
+        return restResultBean.asJsonResponse();
+    }
+
+    @GET
+    @Path("/summary")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response doGetReportSummaryData(
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
+    {
+        final RestRequestBean restRequestBean;
+        try {
+            final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
+            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+            final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
+            return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
+        }
+
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap();
+        returnMap.put("raw",restRequestBean.getPwmApplication().getUserReportService().getSummaryData());
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(returnMap);
+        return restResultBean.asJsonResponse();
+    }
+
+    private static Map<String,Object> makeReportStatusData(ReportService reportService)
+            throws LocalDBException
+    {
+
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<String, Object>();
+        final ReportService.ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
+        returnMap.put("raw",reportInfo);
+
+        final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<String, Object>();
+        final NumberFormat numberFormat = NumberFormat.getInstance();
+        presentableMap.put("Job Engine",reportInfo.isInprogress() ? "Running" : "Not Running");
+        presentableMap.put("Users Processed",(reportInfo.isInprogress() && reportInfo.getTotal() == 0)
+                ? "Counting..."
+                : numberFormat.format(reportInfo.getCount()) + " of " + numberFormat.format(
+                reportInfo.getTotal()));
+        if (reportInfo.getCount() > 0 && reportInfo.getUpdated() > 0) {
+            presentableMap.put("Updated Records",numberFormat.format(reportInfo.getUpdated()));
+        }
+        if (reportInfo.getStartDate() != null) {
+            presentableMap.put("Start Time",reportInfo.getFinishDate());
+        }
+        if (reportInfo.getFinishDate() != null) {
+            presentableMap.put("Finish Time",reportInfo.getFinishDate());
+        }
+        if (reportInfo.getStartDate() != null && reportInfo.getFinishDate() != null) {
+            presentableMap.put("Total Time",new TimeDuration(reportInfo.getStartDate(),reportInfo.getFinishDate()).asCompactString());
+        }
+        if (reportInfo.isInprogress() && reportInfo.getCount() > 0) {
+            final BigDecimal eventRate = reportInfo.getEventRateMeter().readEventRate().setScale(2,RoundingMode.UP);
+            presentableMap.put("Users/Second",eventRate);
+            if (!eventRate.equals(BigDecimal.ZERO)) {
+                final int usersRemaining = reportInfo.getTotal() - reportInfo.getCount();
+                final float secondsRemaining = usersRemaining / eventRate.floatValue();
+                final TimeDuration remainingDuration = new TimeDuration(((int)secondsRemaining) * 1000);
+                presentableMap.put("Estimated Time Remaining",remainingDuration.asCompactString());
+            }
+        }
+        //presentableMap.put("Cached Records", reportInfo.size());
+        returnMap.put("presentable",presentableMap);
+        return returnMap;
+    }
 }

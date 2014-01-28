@@ -22,6 +22,7 @@
 
 package password.pwm.servlet;
 
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -45,7 +46,7 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -73,20 +74,6 @@ public class HelpdeskServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(HelpdeskServlet.class);
 
-    public static enum SETTING_PW_UI_MODE {
-        none,
-        type,
-        autogen,
-        both,
-        random,
-    }
-
-    public static enum SETTING_CLEAR_RESPONSES {
-        yes,
-        ask,
-        no
-    }
-
     @Override
     protected void processRequest(
             HttpServletRequest req,
@@ -111,14 +98,17 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        if (req.getParameterMap().containsKey("username")) {
-            final String username = Validator.readStringFromRequest(req, "username");
-            helpdeskBean.setSearchString(username);
+        {
+            final List<FormConfiguration> searchForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
+            final Map<String,String> searchColumns = new LinkedHashMap<String, String>();
+            for (final FormConfiguration formConfiguration : searchForm) {
+                searchColumns.put(formConfiguration.getName(),formConfiguration.getLabel(pwmSession.getSessionStateBean().getLocale()));
+            }
+            helpdeskBean.setSearchColumnHeaders(searchColumns);
         }
 
-        if (req.getSession().getMaxInactiveInterval() < (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS)) {
-            req.getSession().setMaxInactiveInterval((int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS));
-        }
+        final int helpdeskIdleTimeout = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_IDLE_TIMEOUT_SECONDS);
+        pwmSession.setSessionTimeout(req.getSession(),helpdeskIdleTimeout);
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
@@ -134,7 +124,7 @@ public class HelpdeskServlet extends TopServlet {
                 processClearOtpSecret(req, resp, pwmApplication, pwmSession);
                 return;
             } else if (processAction.equalsIgnoreCase("search")) {
-                processSearchRequest(req, resp, pwmApplication, pwmSession);
+                restSearchRequest(req, resp, pwmApplication, pwmSession);
                 return;
             } else if (processAction.equalsIgnoreCase("detail")) {
                 processDetailRequest(req, resp, pwmApplication, pwmSession);
@@ -142,8 +132,6 @@ public class HelpdeskServlet extends TopServlet {
             } else if (processAction.equalsIgnoreCase("executeAction")) {
                 processExecuteActionRequest(req, resp, pwmApplication, pwmSession);
                 return;
-            } else if (processAction.equalsIgnoreCase("continue")) {
-                // noop
             }
         }
 
@@ -273,7 +261,7 @@ public class HelpdeskServlet extends TopServlet {
         forwardToDetailJSP(req, resp);
     }
 
-    private void processSearchRequest(
+    private void restSearchRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
@@ -281,16 +269,27 @@ public class HelpdeskServlet extends TopServlet {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
+        final String bodyString = ServletHelper.readRequestBody(req);
+        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyString,
+                new TypeToken<Map<String, String>>() {
+                }.getType());
+
+        final String username = valueMap.get("username");
+
         final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
         final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
+        helpdeskBean.setSearchString(username);
         pwmSession.getHelpdeskBean().setUserInfoBean(null);
         final List<FormConfiguration> searchForm = pwmApplication.getConfig().readSettingAsForm(PwmSetting.HELPDESK_SEARCH_FORM);
         final int maxResults = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.HELPDESK_RESULT_LIMIT);
 
         if (helpdeskBean.getSearchString() == null || helpdeskBean.getSearchString().length() < 1) {
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
-            helpdeskBean.setSearchResults(null);
-            forwardToSearchJSP(req,resp);
+            final HashMap<String,Object> emptyResults = new HashMap<String, Object>();
+            emptyResults.put("searchResults",new ArrayList<Map<String,String>>());
+            emptyResults.put("sizeExceeded",false);
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(emptyResults);
+            ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         }
 
@@ -299,7 +298,7 @@ public class HelpdeskServlet extends TopServlet {
         searchConfiguration.setContexts(
                 pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
         searchConfiguration.setEnableContextValidation(false);
-        searchConfiguration.setUsername(helpdeskBean.getSearchString());
+        searchConfiguration.setUsername(username);
         searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
         if (!useProxy) {
             searchConfiguration.setLdapProfile(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());
@@ -307,25 +306,27 @@ public class HelpdeskServlet extends TopServlet {
         }
 
         final UserSearchEngine.UserSearchResults results;
+        final boolean sizeExceeded;
         try {
             results = userSearchEngine.performMultiUserSearchFromForm(pwmSession, searchConfiguration, maxResults, searchForm);
-            helpdeskBean.setSearchResults(results);
+            sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            LOGGER.trace(pwmSession, errorInformation.toDebugStr());
-            forwardToSearchJSP(req,resp);
+            LOGGER.error(pwmSession, errorInformation.toDebugStr());
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(new ArrayList<Map<String,String>>());
+            ServletHelper.outputJsonResult(resp, restResultBean);
             return;
         }
 
-        if (results.getResults().size() == 1) {
-            final UserIdentity userIdentity = results.getResults().keySet().iterator().next();
-            processDetailRequest(req, resp, pwmApplication, pwmSession, userIdentity);
-            return;
-        }
-
-        forwardToSearchJSP(req,resp);
+        final RestResultBean restResultBean = new RestResultBean();
+        final LinkedHashMap<String,Object> outputData = new LinkedHashMap<String, Object>();
+        outputData.put("searchResults",new ArrayList<Map<String,String>>(results.resultsAsJsonOutput(pwmApplication)));
+        outputData.put("sizeExceeded", sizeExceeded);
+        restResultBean.setData(outputData);
+        ServletHelper.outputJsonResult(resp,restResultBean);
     }
+
 
 
     private static void populateHelpDeskBean(
@@ -347,7 +348,8 @@ public class HelpdeskServlet extends TopServlet {
 
         final UserInfoBean uiBean = new UserInfoBean();
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        UserStatusHelper.populateUserInfoBean(pwmApplication, pwmSession, uiBean, userLocale, userIdentity, null, theUser.getChaiProvider());
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        userStatusReader.populateUserInfoBean(pwmSession, uiBean, userLocale, userIdentity, null, theUser.getChaiProvider());
         helpdeskBean.setUserInfoBean(uiBean);
         HelpdeskBean.AdditionalUserInfo additionalUserInfo = new HelpdeskBean.AdditionalUserInfo();
         helpdeskBean.setAdditionalUserInfo(additionalUserInfo);

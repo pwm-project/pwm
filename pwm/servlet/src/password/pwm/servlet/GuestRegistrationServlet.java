@@ -44,7 +44,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
@@ -167,9 +167,9 @@ public class GuestRegistrationServlet extends TopServlet {
             }
 
             // send email.
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
             final UserInfoBean guestUserInfoBean = new UserInfoBean();
-            UserStatusHelper.populateUserInfoBean(
-                    pwmApplication,
+            userStatusReader.populateUserInfoBean(
                     pwmSession,
                     guestUserInfoBean,
                     pwmSession.getSessionStateBean().getLocale(),
@@ -358,8 +358,9 @@ public class GuestRegistrationServlet extends TopServlet {
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, passwordPolicy, pwmApplication);
             theUser.setPassword(newPassword);
             final UserInfoBean guestUserInfoBean = new UserInfoBean();
-            UserStatusHelper.populateUserInfoBean(
-                    pwmApplication, pwmSession,
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            userStatusReader.populateUserInfoBean(
+                    pwmSession,
                     guestUserInfoBean,
                     pwmSession.getSessionStateBean().getLocale(),
                     userIdentity,

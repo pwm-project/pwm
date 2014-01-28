@@ -107,7 +107,7 @@
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript">
-    initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
+    PWM_CONFIG.initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
 </script>
 </body>
 </html>

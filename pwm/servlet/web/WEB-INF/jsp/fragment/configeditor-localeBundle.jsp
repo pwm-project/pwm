@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.TreeSet" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
@@ -95,7 +95,7 @@
 <% } %>
 <script type="text/javascript">
     function doLazyLoad(key) {
-        var waitMsg = getObject('waitMsg');
+        var waitMsg = PWM_MAIN.getObject('waitMsg');
         if (waitMsg != null) {
             waitMsg.innerHTML = 'Loading display values.... ' + LOAD_TRACKER.length + " remaining.";
         }
@@ -107,13 +107,13 @@
                 doLazyLoad(LOAD_TRACKER.pop());
             },100); // time between element reads
         } else {
-            closeWaitDialog();
+            PWM_MAIN.closeWaitDialog();
         }
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
         if (LOAD_TRACKER.length > 0) {
-            showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>',function(){
+            PWM_MAIN.showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>',function(){
                 LOAD_TRACKER.reverse();
                 doLazyLoad(LOAD_TRACKER.pop());
             });

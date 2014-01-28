@@ -19,6 +19,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -38,14 +39,14 @@
                 <p><pwm:Display key="Display_WarnExistingOtpSecret"/></p>
                 <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
                       enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                      onsubmit="handleFormSubmit('setotpsecret_button', this);
+                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this);
                       return false;">
                     <%@ include file="fragment/message.jsp" %>
                     <div id="buttonbar">
                         <input type="hidden" name="processAction" value="clearOtp"/>
                         <input type="submit" name="Button_Continue" class="btn" id="continue_button"
                                value="<pwm:Display key="Button_Continue"/>"/>
-                        <button name="button" class="btn" id="button_cancel" onclick="handleFormCancel();
+                        <button name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();
                         return false;">
                             <pwm:Display key="Button_Cancel"/>
                         </button>

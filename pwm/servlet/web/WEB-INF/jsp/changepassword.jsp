@@ -28,8 +28,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" defer="defer"
-        src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ChangePassword"/>
@@ -52,9 +50,9 @@
         <br/>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="validatePasswords(null);" onchange="validatePasswords(null);"
-              onsubmit="handleChangePasswordSubmit(); handleFormSubmit('password_button',this);return false"
-              onreset="validatePasswords(null);setInputFocus();return false;" name="changePasswordForm"
+              onkeyup="PWM_CHANGEPW.validatePasswords(null);" onchange="PWM_CHANGEPW.validatePasswords(null);"
+              onsubmit="PWM_CHANGEPW.handleChangePasswordSubmit(); PWM_MAIN.handleFormSubmit('password_button',this);return false"
+              onreset="PWM_CHANGEPW.validatePasswords(null);PWM_CHANGEPW.setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">
                 <tr>
@@ -64,10 +62,10 @@
                                 <label style="" for="password1"><pwm:Display key="Field_NewPassword"/></label>
                             </h2>
                             &nbsp;&nbsp;
-                            <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="showPasswordGuide()" ></div>
+                            <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.showPasswordGuide()" ></div>
                             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_AUTOGEN)) { %>
                             &nbsp;&nbsp;
-                            <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="doRandomGeneration();" ></div>
+                            <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.doRandomGeneration();" ></div>
                             <% } %>
                         </div>
                         <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus/>
@@ -105,9 +103,9 @@
             </table>
             <div id="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
-                <input type="submit" name="change" class="btn"
-                       id="password_button"
-                       value="<pwm:Display key="Button_ChangePassword"/>"/>
+                <button type="submit" name="change" class="btn" id="password_button">
+                    <pwm:Display key="Button_ChangePassword"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
@@ -120,10 +118,11 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        startupChangePasswordPage();
+        PWM_CHANGEPW.startupChangePasswordPage();
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

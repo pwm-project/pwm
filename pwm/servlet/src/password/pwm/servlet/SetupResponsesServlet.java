@@ -43,7 +43,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -283,7 +283,8 @@ public class SetupResponsesServlet extends TopServlet {
         final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
         pwmApplication.getCrService().writeResponses(theUser, userGUID, responseInfoBean);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        UserStatusHelper.populateActorUserInfoBean(pwmSession, pwmApplication, uiBean.getUserIdentity(), uiBean.getUserCurrentPassword());
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity(), uiBean.getUserCurrentPassword());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
         pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);

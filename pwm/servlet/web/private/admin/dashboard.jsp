@@ -20,6 +20,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
@@ -27,9 +29,10 @@
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
+<%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.util.List" %>
+<%@ page import="java.util.*" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -38,16 +41,119 @@
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final NumberFormat numberFormat = NumberFormat.getInstance(locale); %>
 <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+<% final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="System"/>
+    <jsp:param name="pwm.PageName" value="Dashboard"/>
 </jsp:include>
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+<div data-dojo-type="dijit.layout.ContentPane" title="Status">
+    <table>
+        <tr>
+            <td class="key">
+                Logged In Users
+            </td>
+            <td>
+                <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
+            </td>
+            <td class="key">
+                Active LDAP Connections
+            </td>
+            <td>
+                <%= Helper.figureLdapConnectionCount(pwmApplication, ContextManager.getContextManager(session)) %>
+            </td>
+        </tr>
+    </table>
+    <table class="tablemain">
+        <tr>
+            <td>
+            </td>
+            <td style="text-align: center; font-weight: bold;">
+                Last Minute
+            </td>
+            <td style="text-align: center; font-weight: bold;">
+                Last Hour
+            </td>
+            <td style="text-align: center; font-weight: bold;">
+                Last Day
+            </td>
+        </tr>
+        <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
+        <tr>
+            <td class="key">
+                <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
+            </td>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
+            </td>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
+            </td>
+            <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
+                <span style="font-size: smaller; font-style: italic">Loading...</span>
+            </td>
+        </tr>
+        <% } %>
+    </table>
+    <br/>
+    <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-AUTHENTICATION_MINUTE" style="float: left; width: 33%">Authentications</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_MINUTE" style="float: left; width: 33%">Password Changes</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_MINUTE" style="float: left; width: 33%">Intruder Attempts</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-AUTHENTICATION_HOUR" style="float: left; width: 33%">Authentications</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_HOUR" style="float: left; width: 33%">Password Changes</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_HOUR" style="float: left; width: 33%">Intruder Attempts</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Day">
+            <table class="tablemain">
+                <tr>
+                    <td colspan="10" style="margin:0; padding:0">
+                        <div style="max-width: 600px; text-align: center">
+                            <div id="EPS-GAUGE-AUTHENTICATION_DAY" style="float: left; width: 33%">Authentications</div>
+                            <div id="EPS-GAUGE-PASSWORD_CHANGES_DAY" style="float: left; width: 33%">Password Changes</div>
+                            <div id="EPS-GAUGE-INTRUDER_ATTEMPTS_DAY" style="float: left; width: 33%">Intruder Attempts</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="noticebar">Events rates are per minute.  <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/></div>
+    </div>
+</div>
+<div data-dojo-type="dijit.layout.ContentPane" title="Health">
+    <div id="healthBody">
+        <div id="WaitDialogBlank"></div>
+    </div>
+    <br/>
+    <div class="noticebar">
+        <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/>  A public health page at
+        <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
+    </div>
+</div>
 <div data-dojo-type="dijit.layout.ContentPane" title="About">
     <div style="max-height: 400px; overflow: auto;">
         <table>
@@ -127,8 +233,24 @@
                 <td class="key">
                     Last LDAP Unavailable Time
                 </td>
+                <% final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values(); %>
                 <td>
-                    <%= pwmApplication.getLastLdapFailure() != null ? dateFormat.format(pwmApplication.getLastLdapFailure().getDate()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                    <% if (ldapProfiles.size() < 2) { %>
+                    <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
+                    <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
+                    <% } else { %>
+                    <table>
+                        <% for (LdapProfile ldapProfile : ldapProfiles) { %>
+                        <tr>
+                            <td><%=ldapProfile.getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale())%></td>
+                            <td>
+                                <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
+                                <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </table>
+                    <% } %>
                 </td>
             </tr>
             <tr>
@@ -164,6 +286,53 @@
             </tr>
         </table>
     </div>
+</div>
+<div data-dojo-type="dijit.layout.ContentPane" title="Services">
+    <table>
+        <tr>
+            <td style="font-weight:bold;">
+                Service
+            </td>
+            <td style="font-weight:bold;">
+                Status
+            </td>
+            <td style="font-weight:bold;">
+                Storage
+            </td>
+            <td style="font-weight:bold;">
+                Health
+            </td>
+        </tr>
+        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
+        <tr>
+            <td>
+                <%= loopService.getClass().getSimpleName() %>
+            </td>
+            <td>
+                <%= loopService.status() %>
+                <% List<HealthRecord> healthRecords = loopService.healthCheck(); %>
+            </td>
+            <td>
+                <% if (loopService.serviceInfo() != null && loopService.serviceInfo().getUsedStorageMethods() != null) { %>
+                <% for (DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
+                <%=loopMethod.toString()%>
+                <br/>
+                <% } %>
+                <% } %>
+            </td>
+            <td>
+                <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
+                <% for (HealthRecord loopRecord : healthRecords) { %>
+                <%= loopRecord.getTopic(locale,pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,pwmApplication.getConfig()) %>
+                <br/>
+                <% } %>
+                <% } else { %>
+                No Issues
+                <% } %>
+            </td>
+        </tr>
+        <% } %>
+    </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB">
     <div style="max-height: 400px; overflow: auto;">
@@ -210,14 +379,10 @@
             </tr>
             <tr>
                 <td class="key">
-                    <a href="<pwm:url url='auditlog.jsp'/>">
-                        Local Audit Records
-                    </a>
+                    Local Audit Records
                 </td>
                 <td>
-                    <a href="<pwm:url url='auditlog.jsp'/>">
-                        <%= numberFormat.format(pwmApplication.getAuditManager().vaultSize()) %>
-                    </a>
+                    <%= numberFormat.format(pwmApplication.getAuditManager().vaultSize()) %>
                 </td>
             </tr>
             <tr>
@@ -316,63 +481,16 @@
                 <%= loopDB %>
             </td>
             <td>
-                <%= pwmApplication.getLocalDB().size(loopDB) %>
+                <%= numberFormat.format(pwmApplication.getLocalDB().size(loopDB)) %>
             </td>
         </tr>
         <% } %>
     </table>
     <% } else { %>
     <div style="text-align:center; width:100%; border: 0">
-        <a onclick="showWaitDialog()" href="status.jsp?showLocalDBCounts=true">Show LocalDB record counts</a> (may be slow to load)
+        <a style="cursor: pointer" onclick="PWM_MAIN.goto('dashboard.jsp?showLocalDBCounts=true')">Show LocalDB record counts</a> (may be slow to load)
     </div>
     <% } %>
-</div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Services">
-    <table>
-        <tr>
-            <td style="font-weight:bold;">
-                Service
-            </td>
-            <td style="font-weight:bold;">
-                Status
-            </td>
-            <td style="font-weight:bold;">
-                Storage
-            </td>
-            <td style="font-weight:bold;">
-                Health
-            </td>
-        </tr>
-        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
-        <tr>
-            <td>
-                <%= loopService.getClass().getSimpleName() %>
-            </td>
-            <td>
-                <%= loopService.status() %>
-                <% List<HealthRecord> healthRecords = loopService.healthCheck(); %>
-            </td>
-            <td>
-                <% if (loopService.serviceInfo() != null && loopService.serviceInfo().getUsedStorageMethods() != null) { %>
-                <% for (DataStorageMethod loopMethod : loopService.serviceInfo().getUsedStorageMethods()) { %>
-                <%=loopMethod.toString()%>
-                <br/>
-                <% } %>
-                <% } %>
-            </td>
-            <td>
-                <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
-                <% for (HealthRecord loopRecord : healthRecords) { %>
-                <%= loopRecord.getTopic(locale,pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,pwmApplication.getConfig()) %>
-                <br/>
-                <% } %>
-                <% } else { %>
-                No Issues
-                <% } %>
-            </td>
-        </tr>
-        <% } %>
-    </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Java">
     <table>
@@ -470,12 +588,12 @@
                 Threads
             </td>
             <td>
-                <%= Thread.activeCount() %>
+                <%= threads.size() %>
             </td>
         </tr>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Java Threads">
+<div data-dojo-type="dijit.layout.ContentPane" title="Threads">
     <div style="max-height: 400px; overflow: auto;">
         <table class="tablemain">
             <tr>
@@ -496,12 +614,15 @@
                 </td>
             </tr>
             <%
-                final Thread[] tArray = new Thread[Thread.activeCount()];
-                Thread.enumerate(tArray);
                 try {
-                    for (final Thread t : tArray) {
+                    final TreeMap<Long,Thread> sortedThreads = new TreeMap<Long, Thread>();
+                    for (final Thread t : threads.keySet()) {
+                        sortedThreads.put(t.getId(),t);
+                    }
+
+                    for (final Thread t : sortedThreads.values()) {
             %>
-            <tr>
+            <tr id="thread_<%=t.getId()%>">
                 <td>
                     <%= t.getId() %>
                 </td>
@@ -518,28 +639,51 @@
                     <%= String.valueOf(t.isDaemon()) %>
                 </td>
             </tr>
+            <%
+                final StringBuilder threadTrace = new StringBuilder();
+                for (StackTraceElement traceElement : threads.get(t)) {
+                    threadTrace.append(traceElement.toString());
+                    threadTrace.append("\n");
+                }
+            %>
+            <script type="application/javascript">
+                PWM_GLOBAL['startupFunctions'].push(function(){
+                    showTooltip('thread_<%=t.getId()%>','<%=StringEscapeUtils.escapeJavaScript(threadTrace.toString())%>');
+                });
+            </script>
             <% } %>
             <% } catch (Exception e) { /* */ } %>
         </table>
     </div>
 </div>
 </div>
-<div id="buttonbar">
-    <button class="btn" type="button" onclick="showWaitDialog(null,null,function(){location.reload()})">Refresh</button>
-</div>
-</div>
 <div class="push"></div>
 </div>
 <script type="text/javascript">
-    function startupPage() {
-        require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog"],function(dojoParser){
-            dojoParser.parse();
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
+            ready(function(){
+                dojoParser.parse();
+
+                PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
+                setInterval(function(){
+                    PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
+                }, 11 * 1000);
+
+                PWM_MAIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+            });
+        });
+    });
+
+    function showTooltip(id, text) {
+        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+            new Tooltip({
+                connectId: [id],
+                position: ['below','above'],
+                label: '<pre>' + text + '</pre>'
+            });
         });
     }
-
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        startupPage();
-    });
 </script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

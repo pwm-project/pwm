@@ -36,7 +36,7 @@
         <br/>
         <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
-              onsubmit="handleFormSubmit('submitBtn',this);return false" id="searchForm">
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
             <jsp:include page="fragment/form.jsp"/>

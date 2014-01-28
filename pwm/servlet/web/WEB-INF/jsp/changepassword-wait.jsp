@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.util.TimeDuration" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -24,11 +25,14 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<noscript>
-    <meta http-equiv="refresh" content="0;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
-</noscript>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
+<% long maxWaitSeconds = TimeDuration.fromCurrent(PwmSession.getPwmSession(request).getChangePasswordBean().getChangeLastEndTime()).getTotalSeconds(); %>
+<% long checkIntervalSeconds = Long.parseLong(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS)); %>
+<meta http-equiv="refresh" content="<%=maxWaitSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
+<noscript>
+    <meta http-equiv="refresh" content="<%=checkIntervalSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
+</noscript>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
@@ -39,47 +43,43 @@
         <div style="width:400px; margin-left: auto; margin-right: auto; padding-bottom: 100px; padding-top: 100px">
             <div data-dojo-type="dijit/ProgressBar" style="width:400px" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
         </div>
-
     </div>
     <div class="push"></div>
 </div>
 <script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        setTimeout(function(){
-            refreshChangePasswordStatus();
-        },1000);
-    });
-
-    function refreshChangePasswordStatus() {
+    function refreshChangePasswordStatus(refreshInterval) {
         require(["dojo","dijit/registry"],function(dojo,registry){
             var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
             dojo.xhrGet({
                 url: displayStringsUrl,
                 handleAs: 'json',
-                timeout: 30 * 1000,
+                timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
                 headers: { "Accept": "application/json" },
                 load: function(data) {
-                    //getObject('completed').innerHTML = data['data']['complete'];
-                    //getObject('percentage').innerHTML = data['data']['percentComplete'] + '%';
+                    //PWM_MAIN.getObject('completed').innerHTML = data['data']['complete'];
+                    //PWM_MAIN.getObject('percentage').innerHTML = data['data']['percentComplete'] + '%';
 
                     var progressBar = registry.byId('passwordProgressBar');
                     progressBar.set("value",data['data']['percentComplete']);
 
                     if (data['data']['complete'] == true) {
-                        showWaitDialog(null,null,function(){
+                        PWM_MAIN.showWaitDialog(null,null,function(){
                             setTimeout(function(){
                                 window.location = completedUrl;
-                            },3000);
+                            },1000);
                         });
                     } else {
                         setTimeout(function(){
-                            refreshChangePasswordStatus();
-                        },3000);
+                            refreshChangePasswordStatus(refreshInterval);
+                        },refreshInterval);
                     }
                 },
                 error: function(error) {
                     console.log('unable to read password change status: ' + error);
+                    setTimeout(function(){
+                        refreshChangePasswordStatus(refreshInterval);
+                    },refreshInterval);
                 }
             });
         });
@@ -88,8 +88,9 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
-        require(["dojo/parser", "dijit/ProgressBar"], function(parser,registry){
+        require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser,registry){
             parser.parse();
+            refreshChangePasswordStatus(<%=checkIntervalSeconds * 1000%>);
         });
     });
 </script>

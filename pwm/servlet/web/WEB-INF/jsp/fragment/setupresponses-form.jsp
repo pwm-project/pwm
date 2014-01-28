@@ -8,7 +8,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -46,11 +46,11 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
-          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parse","dijit/form/Select"],function(parser){
-            parser.parse(getObject('PwmResponse_Q_<%=indexKey%>'));
+            parser.parse(PWM_MAIN.getObject('PwmResponse_Q_<%=indexKey%>'));
         });
     });
 </script>
@@ -59,7 +59,7 @@
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
            id="PwmResponse_R_<%=indexKey%>" required="required"
-           onkeyup="validateResponses();"/>
+           onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
 <% } %>
 <% } %>
@@ -96,7 +96,7 @@
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
     <input type="password" name="PwmResponse_R_Random_<%=index%>" class="inputfield" maxlength="255" type="text"
            id="PwmResponse_R_Random_<%=index%>" required="required"
-           onkeyup="validateResponses()"/>
+           onkeyup="PWM_RESPONSES.validateResponses()"/>
 </p>
 <% } %>
 <script type="text/javascript">
@@ -114,7 +114,7 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dijit/form/Select"],function(parser){
                 parser.parse();
-                makeSelectOptionsDistinct();
+                PWM_RESPONSES.makeSelectOptionsDistinct();
             });
         });
     });
@@ -134,12 +134,12 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 70%"
-          class="inputfield" onkeyup="validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <% } %>
 <p>
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
-           onkeyup="validateResponses();" required="required"/>
+           onkeyup="PWM_RESPONSES.validateResponses();" required="required"/>
 <% } %>
 <% } %>
 <% } %>

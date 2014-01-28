@@ -27,14 +27,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body class="nihilo">
-<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>"/>
+<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/private/admin/dashboard.jsp"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Administration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-           <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/activity.jsp"/>"> Loading... </a>
+           <a href="<%=request.getContextPath()%><pwm:url url="/private/admin/dashboard.jsp"/>"> Loading... </a>
         </div>
     </div>
     <div class="push"></div>

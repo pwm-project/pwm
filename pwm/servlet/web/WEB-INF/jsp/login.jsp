@@ -35,7 +35,7 @@
         <p><pwm:Display key="Display_Login"/></p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="password"
-              onsubmit="return handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
@@ -62,7 +62,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenPassword" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
+                    <a class="menubutton" id="Title_ForgottenPassword" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
@@ -72,7 +72,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenUsername" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
+                    <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
@@ -82,7 +82,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ActivateUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
+                    <a class="menubutton" id="Title_ActivateUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_ActivateUser"/></p>
@@ -92,7 +92,7 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_NewUser" onclick="showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
+                    <a class="menubutton" id="Title_NewUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_NewUser"/></p>
@@ -106,10 +106,11 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        if (getObject('username').value.length < 1) {
-            getObject('username').focus();
+        ShowHidePasswordHandler.initAllForms();
+        if (PWM_MAIN.getObject('username').value.length < 1) {
+            PWM_MAIN.getObject('username').focus();
         } else {
-            getObject('password').focus();
+            PWM_MAIN.getObject('password').focus();
         }
     });
 </script>

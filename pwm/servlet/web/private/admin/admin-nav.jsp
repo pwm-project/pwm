@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -24,9 +24,39 @@
 <div id="TopMenu" style="width: 600px">
 </div>
 <br/>
-<script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin-nav.js'/>"></script>
+<script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <script type="text/javascript" async="async">
+    var PWM_ADMIN = PWM_ADMIN || {};
+
     PWM_GLOBAL['startupFunctions'].push(function(){
-        buildMenuBar();
+        PWM_ADMIN.initAdminOtherMenu();
     });
 </script>
+<style type="text/css">
+    .menubutton {
+        cursor: pointer;
+        display: inline;
+        font-weight: normal;
+    }
+
+    .menubutton.selected {
+        box-shadow: none;
+    }
+</style>
+<div style="text-align: center">
+    <% boolean selected = request.getRequestURI().contains("dashboard.jsp"); %>
+    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/dashboard.jsp')">
+        <span class="fa fa-dashboard"></span>&nbsp;Dashboard
+    </a>
+    <% selected = request.getRequestURI().contains("activity.jsp"); %>
+    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/activity.jsp')">
+        <span class="fa fa-users"></span>&nbsp;User Activity
+    </a>
+    <% selected = request.getRequestURI().contains("analysis.jsp"); %>
+    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/analysis.jsp')">
+        <span class="fa fa-bar-chart-o"></span>&nbsp;Data Analysis
+    </a>
+    <div style="display: inline" id="dropDownButtonContainer">
+    </div>
+</div>
+<br/>

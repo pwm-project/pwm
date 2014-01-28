@@ -1,17 +1,17 @@
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
-<%@ page import="java.security.cert.X509Certificate" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
-<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="java.util.Locale" %>
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
@@ -53,7 +54,7 @@
 <div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDescription?"block":"none"%>">
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
+            PWM_MAIN.getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
         });
     </script>
 </div>
@@ -259,7 +260,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
         <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
-        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="showConfirmDialog(null,'Clear password for setting <%=loopSetting.getLabel(locale)%>?',function() {resetSetting('<%=loopSetting.getKey()%>');showInfo('<%=loopSetting.getLabel(locale)%> password cleared')})">Clear Password</button>
+        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog(null,'Clear password for setting <%=loopSetting.getLabel(locale)%>?',function() {resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')})">Clear Password</button>
     </div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){

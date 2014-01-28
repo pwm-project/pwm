@@ -32,7 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -147,8 +147,9 @@ public class RestSetPasswordServer {
                         newPassword
                 );
                 final UserInfoBean uiBean = new UserInfoBean();
-                UserStatusHelper.populateUserInfoBean(
-                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
+                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
+                userStatusReader.populateUserInfoBean(
+                        restRequestBean.getPwmSession(),
                         uiBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),

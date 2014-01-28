@@ -47,7 +47,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){gotoStep('TEMPLATE');}); } else {gotoStep('TEMPLATE');};"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){gotoStep('TEMPLATE');}); } else {gotoStep('TEMPLATE');};"><pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
@@ -55,7 +55,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){skipWizard();}); } else {skipWizard();}"><pwm:Display key="MenuItem_ManualConfig" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){skipWizard();}); } else {skipWizard();}"><pwm:Display key="MenuItem_ManualConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
@@ -63,7 +63,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {showEula(true,function(){uploadConfigDialog();}); } else {uploadConfigDialog();};"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_CONFIG.uploadConfigDialog();}); } else {PWM_CONFIG.uploadConfigDialog();};"><pwm:Display key="MenuItem_UploadConfig" bundle="Config"/></a>
                 </td>
                 <td style="border:0">
                     <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
@@ -75,7 +75,7 @@
 </div>
 <script type="text/javascript">
     function skipWizard() {
-        showConfirmDialog(null,'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',function(){
+        PWM_MAIN.showConfirmDialog(null,'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',function(){
             gotoStep('FINISH');
         });
     }

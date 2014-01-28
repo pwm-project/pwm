@@ -44,19 +44,19 @@
         </form>
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="handleFormSubmit('confirmBtn',this);return false">
+                  onsubmit="PWM_MAIN.handleFormSubmit('confirmBtn',this);return false">
                 <input id="confirmBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_Confirm"/>"/>
                 <input type="hidden" name="processAction" value="confirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
              </form>
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="handleFormSubmit('gobackBtn',this);return false">
+                  onsubmit="PWM_MAIN.handleFormSubmit('gobackBtn',this);return false">
                 <input id="gobackBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_GoBack"/>"/>
                 <input type="hidden" name="processAction" value="unConfirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="handleFormCancel();return false">
+                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
                 <% } %>

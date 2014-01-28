@@ -43,7 +43,7 @@
         <p><pwm:Display key="Display_GuestRegistration"/></p>
 
         <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <% request.setAttribute("form",PwmSetting.GUEST_FORM); %>

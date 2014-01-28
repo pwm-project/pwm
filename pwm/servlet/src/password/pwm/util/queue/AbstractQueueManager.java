@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -146,21 +146,23 @@ public abstract class AbstractQueueManager implements PwmService {
         status = PwmService.STATUS.CLOSED;
         final Date startTime = new Date();
 
-        if (!sendQueue.isEmpty()) {
-            timerThread.schedule(new QueueProcessorTask(),1);
-            LOGGER.warn("waiting up to 5 seconds for " + sendQueue.size() + " items in the queue to process");
-            while (!sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
-                Helper.pause(100);
+        if (sendQueue != null && !sendQueue.isEmpty()) {
+            if (timerThread != null) {
+                timerThread.schedule(new QueueProcessorTask(),1);
+                LOGGER.warn("waiting up to 5 seconds for " + sendQueue.size() + " items in the queue to process");
+                while (!sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
+                    Helper.pause(100);
+                }
+            }
+            if (!sendQueue.isEmpty()) {
+                LOGGER.warn("closing queue with " + sendQueue.size() + " message in queue");
             }
         }
 
-        timerThread.cancel();
-        timerThread = null;
-
-        if (!sendQueue.isEmpty()) {
-            LOGGER.warn("closing queue with " + sendQueue.size() + " message in queue");
+        if (timerThread != null) {
+            timerThread.cancel();
         }
-        LOGGER.debug("closed");
+        timerThread = null;
     }
 
     public List<HealthRecord> healthCheck() {

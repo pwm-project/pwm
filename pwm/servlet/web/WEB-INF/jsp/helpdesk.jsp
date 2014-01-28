@@ -20,9 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
-<%@ page import="password.pwm.ldap.UserSearchEngine" %>
 <%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -36,87 +34,34 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
-    <div id="centerbody">
-        <% if (helpdeskBean.getSearchString() != null) { %>
-        <p><pwm:Display key="Display_Helpdesk"/></p>
-        <% } %>
-        <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="handleFormSubmit('submitBtn',this);" id="searchForm">
-            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-
-            <input type="search" id="username" name="username" class="inputfield"
-                   value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
-            <input type="submit" class="btn"
-                   name="search"
-                   value="<pwm:Display key="Button_Search"/>"
-                   id="submitBtn"/>
-            <input type="hidden"
-                   name="processAction"
-                   value="search"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                    onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                <pwm:Display key="Button_Cancel"/>
-            </button>
-            <% } %>
-        </form>
-        <br/>
-        <% final UserSearchEngine.UserSearchResults searchResults = helpdeskBean.getSearchResults(); %>
-        <% if (searchResults != null && searchResults.getResults() != null && !searchResults.getResults().isEmpty()) { %>
-        <% final Gson gson = Helper.getGson(); %>
-        <noscript>
-            <span>Javascript is required to view this page.</span>
-        </noscript>
-        <div id="waitMessage" style="width:100%; text-align: center; display: none">
-            <pwm:Display key="Display_PleaseWait"/>
+    <div id="centerbody" class="wide">
+        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; max-width: 600px; text-align: center">
+            <br/>
+            <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
+                  id="searchForm" onkeyup="PWM_HELPDESK.processHelpdeskSearch();" onchange="PWM_HELPDESK.processHelpdeskSearch()"
+                  onsubmit="return false">
+                <div style="width: 100%">
+                    <input type="search" id="username" name="username" class="inputfield" style="width: 450px"
+                           value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
+                </div>
+            </form>
+            <noscript>
+                <span>Javascript is required to view this page.  </span>
+                <a href="<%=request.getContextPath()%>"><pwm:Display key="Title_MainPage"/></a>
+            </noscript>
+            <br/>
         </div>
+        <span style="display:none; min-width: 450px; width: 50%; margin-left: auto; margin-right: auto; text-align: center" id="message" class="message">&nbsp;</span>
+        <br/>
         <div id="grid">
         </div>
-        <script async="async">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                require(["dojo/domReady!"],function(){
-                getObject("waitMessage").style.display = 'inline';
-                require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                        function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                            var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmApplicationHeader))%>;
-                            var columnHeaders = <%=gson.toJson(searchResults.getHeaderAttributeMap())%>;
-
-                            // Create a new constructor by mixing in the components
-                            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
-
-                            // Now, create an instance of our custom grid which
-                            // have the features we added!
-                            var grid = new CustomGrid({
-                                columns: columnHeaders
-                            }, "grid");
-                            grid.renderArray(data);
-                            grid.set("sort","<%=searchResults.getHeaderAttributeMap().keySet().iterator().next()%>");
-                            grid.on(".dgrid-row .dgrid-cell:click", function(evt){
-                                var row = grid.row(evt);
-                                loadDetails(row.data['userKey']);
-                            });
-                            getObject("waitMessage").style.display = 'none';
-                        });
-                });
-            });
-        </script>
-        <style scoped="scoped">
-            .dgrid { height: auto; }
-            .dgrid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
-        </style>
-        <br/>
-        <% if (searchResults.isSizeExceeded()) { %>
-        <div style="width:100%; text-align: center; font-size: smaller">
-            <pwm:Display key="Display_SearchResultsExceeded"/>
+        <div style="text-align: center;">
+            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                    onclick="window.location=PWM_GLOBAL['url-context']">
+                <i class="fa fa-home"></i>&nbsp;
+                <pwm:Display key="Title_MainPage"/>
+            </button>
         </div>
-        <% } %>
-        <% } else if (helpdeskBean.getSearchString() != null && helpdeskBean.getSearchString().length() > 1 && searchResults != null && searchResults.getResults().isEmpty()) { %>
-        <div style="width:100%; text-align: center">
-            <pwm:Display key="Display_SearchResultsNone"/>
-        </div>
-        <% } %>
     </div>
     <div class="push"></div>
 </div>
@@ -126,20 +71,12 @@
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
 <script>
-    function loadDetails(userKey) {
-        showWaitDialog(null,null,function(){
-            setTimeout(function(){
-                getObject("userKey").value = userKey;
-                getObject("loadDetailsForm").submit();
-            },10);
-        });
-    }
-</script>
-<script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        getObject('username').focus();
+        PWM_VAR['helpdesk_search_columns'] = <%=Helper.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
+        PWM_HELPDESK.initHelpdeskSearchPage();
     });
 </script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

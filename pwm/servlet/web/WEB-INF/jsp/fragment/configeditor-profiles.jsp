@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="java.util.List" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
@@ -69,7 +69,7 @@
 </div>
 <script>
     function gotoProfile(profile) {
-        showWaitDialog(null,null,function(){
+        PWM_MAIN.showWaitDialog(null,null,function(){
             preferences['profile'] = profile;
             setConfigEditorCookie();
             loadMainPageBody();

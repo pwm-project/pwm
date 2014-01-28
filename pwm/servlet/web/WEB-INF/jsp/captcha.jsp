@@ -53,7 +53,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="verifyCaptcha" onsubmit="handleFormSubmit('verify_button',this);return false">
+              name="verifyCaptcha" onsubmit="PWM_MAIN.handleFormSubmit('verify_button',this);return false">
             <div id="recaptcha_WaitDialogBlank">
                 <div id="recaptcha_widget" style="display:none" class="recaptcha_widget">
                     <div id="recaptcha_image"></div>

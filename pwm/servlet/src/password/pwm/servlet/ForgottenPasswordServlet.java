@@ -1,24 +1,24 @@
 /*
-* Password Management Servlets (PWM)
-* http://code.google.com/p/pwm/
-*
-* Copyright (c) 2006-2009 Novell, Inc.
-* Copyright (c) 2009-2012 The PWM Project
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 2 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2014 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 package password.pwm.servlet;
 
@@ -31,7 +31,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.*;
 import password.pwm.bean.*;
-import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.servlet.ForgottenPasswordBean;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
@@ -42,11 +41,12 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.token.TokenPayload;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
-import password.pwm.util.operations.*;
+import password.pwm.util.operations.ActionExecutor;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.otp.OTPUserConfiguration;
 import password.pwm.util.stats.Statistic;
@@ -247,7 +247,8 @@ public class ForgottenPasswordServlet extends TopServlet {
                 // check if password-last-modified is same as when tried to read it before.
                 if (tokenPass) {
                     try {
-                        final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
+                        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+                        final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession, userIdentity);
                         final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                         if (userLastPasswordChange != null && dateStringInToken != null) {
                             final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
@@ -496,8 +497,6 @@ public class ForgottenPasswordServlet extends TopServlet {
                 }
 
                 if (responsesSatisfied) {
-                    // update the status bean
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
                     LOGGER.debug(pwmSession, "user '" + forgottenPasswordBean.getUserIdentity() + "' has supplied correct responses");
                 } else {
                     final String errorMsg = "incorrect response to one or more challenges";
@@ -614,10 +613,13 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // sanity check, shouldn't be possible to get here unless.....
         if (!forgottenPasswordBean.isTokenSatisfied() && !forgottenPasswordBean.isResponsesSatisfied()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "trying to advance through forgotten password, but responses and tokens are unsatisifed, perhaps both are disabled?"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "trying to advance through forgotten password, but responses and tokens are unsatisfied, perhaps both are disabled?"));
         }
 
-        forgottenPasswordBean.setAllPassed(true);
+        if (!forgottenPasswordBean.isAllPassed()) {
+            forgottenPasswordBean.setAllPassed(true);
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
+        }
         LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
 
         if (config.getRecoveryAction() == RecoveryAction.SENDNEWPW) {
@@ -628,8 +630,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
-            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity(), theUser, locale);
-            final PasswordStatus passwordStatus = UserStatusHelper.readPasswordStatus(pwmSession, null, pwmApplication, theUser, passwordPolicy, null);
+            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication,
+                    pwmSession, forgottenPasswordBean.getUserIdentity(), theUser, locale);
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            final PasswordStatus passwordStatus = userStatusReader.readPasswordStatus(pwmSession, null, theUser, passwordPolicy, null);
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {
@@ -883,7 +887,8 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Set<String> dest = new HashSet<String>();
 
         try {
-            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity());
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession, forgottenPasswordBean.getUserIdentity());
             if (userLastPasswordChange != null) {
                 final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userChangeString);

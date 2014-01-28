@@ -41,8 +41,8 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onsubmit="handleFormSubmit('change_button',this);return false"
-              onreset="setInputFocus()" name="changePasswordForm" id="changePasswordForm">
+              onsubmit="PWM_MAIN.handleFormSubmit('change_button',this);return false"
+              onreset="PWM_CHANGEPW.setInputFocus()" name="changePasswordForm" id="changePasswordForm">
             <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
             <h1>
                 <label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label>

@@ -323,6 +323,11 @@ public class UserSearchEngine {
             searchContexts = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CONTEXTLESS_ROOT);
         }
 
+        final long timeLimitMS = searchConfiguration.getSearchTimeout() != 0
+                ? searchConfiguration.getSearchTimeout()
+                : Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_SEARCH_TIMEOUT));
+
+
         final ChaiProvider chaiProvider = searchConfiguration.getChaiProvider() == null ?
                 pwmApplication.getProxyChaiProvider(ldapProfile.getIdentifier()) :
                 searchConfiguration.getChaiProvider();
@@ -339,7 +344,8 @@ public class UserSearchEngine {
                         loopContext,
                         returnAttributes,
                         maxResults - returnMap.size(),
-                        chaiProvider
+                        chaiProvider,
+                        timeLimitMS
                 );
             } catch (ChaiOperationException e) {
                 throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during search: " + e.getMessage());
@@ -361,7 +367,8 @@ public class UserSearchEngine {
             final String context,
             final Collection<String> returnAttributes,
             final int maxResults,
-            final ChaiProvider chaiProvider
+            final ChaiProvider chaiProvider,
+            final long timeoutMs
     )
             throws ChaiUnavailableException, PwmOperationalException, ChaiOperationException
     {
@@ -370,17 +377,19 @@ public class UserSearchEngine {
         searchHelper.setMaxResults(maxResults);
         searchHelper.setFilter(searchFilter);
         searchHelper.setAttributes(returnAttributes);
+        searchHelper.setTimeLimit((int)timeoutMs);
 
-        LOGGER.debug(pwmSession, "performing ldap search for user, profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString());
+        final String debugInfo = "profile=" + ldapProfile.getIdentifier() + " base=" + context + " filter=" + searchHelper.toString();
+        LOGGER.debug(pwmSession, "performing ldap search for user; " + debugInfo);
 
         final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
 
         if (results.isEmpty()) {
-            LOGGER.trace(pwmSession, "user not found in context " + context);
+            LOGGER.trace(pwmSession, "no matches from search; " + debugInfo);
             return Collections.emptyMap();
         }
 
-        LOGGER.trace(pwmSession, "found " + results.size() + " results in context: " + context + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
+        LOGGER.trace(pwmSession, "found " + results.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString() + "; " + debugInfo);
 
         final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
         for (final String userDN : results.keySet()) {
@@ -415,6 +424,7 @@ public class UserSearchEngine {
         private List<String> contexts;
         private Map<FormConfiguration, String> formValues;
         private transient ChaiProvider chaiProvider;
+        private long searchTimeout;
 
         private boolean enableValueEscaping = true;
         private boolean enableContextValidation = true;
@@ -489,6 +499,16 @@ public class UserSearchEngine {
         public void setLdapProfile(String ldapProfile)
         {
             this.ldapProfile = ldapProfile;
+        }
+
+        public long getSearchTimeout()
+        {
+            return searchTimeout;
+        }
+
+        public void setSearchTimeout(long searchTimeout)
+        {
+            this.searchTimeout = searchTimeout;
         }
     }
 

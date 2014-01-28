@@ -121,10 +121,10 @@
                                                     style: 'width:100px',
                                                     onChange: function() {
                                                         console.log('onchange trigger!');
-                                                        getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = this.checked ? '636' : '389';
+                                                        PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = this.checked ? '636' : '389';
                                                         handleFormActivity();
                                                         if (!this.checked) {
-                                                            showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', null, function(){
+                                                            PWM_MAIN.showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', null, function(){
                                                                 registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked','true');
                                                             });
                                                         }
@@ -220,18 +220,18 @@
 <script type="text/javascript">
     function handleFormActivity() {
         require(["dijit/registry"],function(registry){
-            getObject('<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').get('value');
-            getObject('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').get('value');
-            getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked;
-            getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').get('value');
-            getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').get('value');
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>').get('value');
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').get('value');
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked;
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').get('value');
+            PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').get('value');
             updateForm();
             clearHealthDiv();
         });
     }
 
     function clearHealthDiv() {
-        var healthBodyObj = getObject('healthBody');
+        var healthBodyObj = PWM_MAIN.getObject('healthBody');
         var newHtml = '<div style="text-align: center">';
         newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
         newHtml += '</div>';
@@ -247,9 +247,9 @@
 
     function checkIfNextEnabled() {
         if (PWM_GLOBAL['pwm-health'] === 'GOOD') {
-            getObject('button_next').disabled = false;
+            PWM_MAIN.getObject('button_next').disabled = false;
         } else {
-            getObject('button_next').disabled = true;
+            PWM_MAIN.getObject('button_next').disabled = true;
         }
     }
 
@@ -259,10 +259,10 @@
         options['showRefresh'] = false;
         options['refreshTime'] = -1;
         options['finishFunction'] = function(){
-            closeWaitDialog();
+            PWM_MAIN.closeWaitDialog();
             checkIfNextEnabled();
         };
-        showWaitDialog();
+        PWM_MAIN.showWaitDialog();
         PWM_MAIN.showAppHealth('healthBody', options);
     }
 </script>

@@ -51,10 +51,12 @@ import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.queue.EmailQueueManager;
 import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.wordlist.SeedlistManager;
@@ -90,6 +92,10 @@ public class PwmApplication {
         CONFIG_HASH("configurationSettingHash"),
         LAST_LDAP_ERROR("lastLdapError"),
         TOKEN_COUNTER("tokenCounter"),
+        REPORT_STATUS("reporting.status"),
+        REPORT_SUMMARY("reporting.summary"),
+        REPORT_CLEAN_FLAG("reporting.cleanFlag"),
+
         ;
 
         private String key;
@@ -136,7 +142,7 @@ public class PwmApplication {
             VersionChecker.class,
             IntruderManager.class,
             CrService.class,
-            UserCacheService.class,
+            ReportService.class,
             CrService.class,
             OtpService.class
     ));
@@ -211,6 +217,10 @@ public class PwmApplication {
         return (SeedlistManager)pwmServices.get(SeedlistManager.class);
     }
 
+    public ReportService getUserReportService() {
+        return (ReportService)pwmServices.get(ReportService.class);
+    }
+
     public EmailQueueManager getEmailQueue() {
         return (EmailQueueManager)pwmServices.get(EmailQueueManager.class);
     }
@@ -261,10 +271,6 @@ public class PwmApplication {
     public synchronized DatabaseAccessorImpl getDatabaseAccessor()
     {
         return (DatabaseAccessorImpl)pwmServices.get(DatabaseAccessorImpl.class);
-    }
-
-    public UserCacheService getUserStatusCacheManager() {
-        return (UserCacheService)pwmServices.get(UserCacheService.class);
     }
 
     private void initialize() {
@@ -472,10 +478,11 @@ public class PwmApplication {
             return;
         }
 
+        final MacroMachine macroMachine = new MacroMachine(this, uiBean, userDataReader);
         final SmsItemBean rewrittenSmsItem = new SmsItemBean(
-                MacroMachine.expandMacros(smsItem.getTo(), this, uiBean, userDataReader),
-                MacroMachine.expandMacros(smsItem.getFrom(), this, uiBean, userDataReader),
-                MacroMachine.expandMacros(smsItem.getMessage(), this, uiBean, userDataReader),
+                macroMachine.expandMacros(smsItem.getTo()),
+                macroMachine.expandMacros(smsItem.getFrom()),
+                macroMachine.expandMacros(smsItem.getMessage()),
                 smsItem.getPartlength()
         );
 

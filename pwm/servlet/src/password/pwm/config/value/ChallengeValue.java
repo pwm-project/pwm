@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,12 +82,14 @@ public class ChallengeValue implements StoredValue {
         final List<Element> returnList = new ArrayList<Element>();
         for (final String locale : values.keySet()) {
             for (final ChallengeItemBean value : values.get(locale)) {
-                final Element valueElement = new Element(valueElementName);
-                valueElement.addContent(new CDATA(Helper.getGson().toJson(value)));
-                if (locale != null && locale.length() > 0) {
-                    valueElement.setAttribute("locale", locale);
+                if (value != null) {
+                    final Element valueElement = new Element(valueElementName);
+                    valueElement.addContent(new CDATA(Helper.getGson().toJson(value)));
+                    if (locale != null && locale.length() > 0) {
+                        valueElement.setAttribute("locale", locale);
+                    }
+                    returnList.add(valueElement);
                 }
-                returnList.add(valueElement);
             }
         }
         return returnList;
@@ -111,8 +113,19 @@ public class ChallengeValue implements StoredValue {
         if (values != null) {
             for (final String localeKey : values.keySet()) {
                 for (final ChallengeItemBean itemBean : values.get(localeKey)) {
-                    if (itemBean.isAdminDefined() && (itemBean.getText() == null || itemBean.getText().length() < 1)) {
-                        return Collections.singletonList("admin-defined challenge must contain text (locale='" + localeKey + "')");
+                    if (itemBean != null) {
+                        if (itemBean.isAdminDefined() && (itemBean.getText() == null || itemBean.getText().length() < 1)) {
+                            return Collections.singletonList("admin-defined challenge must contain text (locale='" + localeKey + "')");
+                        }
+                        if (itemBean.getMinLength() < 1) {
+                            return Collections.singletonList("challenge minimum length must be greater than 0 (text=" + itemBean.getText() + ", locale='" + localeKey + "')");
+                        }
+                        if (itemBean.getMaxLength() > 255) {
+                            return Collections.singletonList("challenge maximum length must be less than 256 (text=" + itemBean.getText() + ", locale='" + localeKey + "')");
+                        }
+                        if (itemBean.getMinLength() > itemBean.getMaxLength()) {
+                            return Collections.singletonList("challenge minimum length must be less than maximum length (text=" + itemBean.getText() + ", locale='" + localeKey + "')");
+                        }
                     }
                 }
             }

@@ -31,174 +31,173 @@ var passwordsMasked = true;
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
+var PWM_CHANGEPW = PWM_CHANGEPW || {};
+
 // takes password values in the password fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
-function validatePasswords(userDN)
+PWM_CHANGEPW.validatePasswords = function(userDN)
 {
-    getObject("password_button").disabled = true;
-    if (getObject("password1").value.length <= 0 && getObject("password2").value.length <= 0) {
-        updateDisplay(null);
-        //getObject('password2').disabled = true;
+    PWM_MAIN.getObject("password_button").disabled = true;
+    if (PWM_MAIN.getObject("password1").value.length <= 0 && PWM_MAIN.getObject("password2").value.length <= 0) {
+        PWM_CHANGEPW.updateDisplay(null);
         return;
     }
 
-    if (PWM_GLOBAL['previousP1'] != getObject("password1").value) {  // if p1 is changing, then clear out p2.
-        getObject("password2").value = "";
-        PWM_GLOBAL['previousP1'] = getObject("password1").value;
+    if (PWM_GLOBAL['previousP1'] != PWM_MAIN.getObject("password1").value) {  // if p1 is changing, then clear out p2.
+        PWM_MAIN.getObject("password2").value = "";
+        PWM_GLOBAL['previousP1'] = PWM_MAIN.getObject("password1").value;
     }
 
     var validationProps = new Array();
-    validationProps['messageWorking'] = showString('Display_CheckingPassword');
+    validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingPassword');
     validationProps['serviceURL'] = PWM_GLOBAL['url-restservice'] + "/checkpassword";
     validationProps['readDataFunction'] = function(){
         var returnObj = {};
-        returnObj['password1'] = getObject("password1").value;
-        returnObj['password2'] = getObject("password2").value;
+        returnObj['password1'] = PWM_MAIN.getObject("password1").value;
+        returnObj['password2'] = PWM_MAIN.getObject("password2").value;
         if (userDN) returnObj['username'] = userDN;
         return returnObj;
     };
     validationProps['processResultsFunction'] = function(data){
         if (data) {
-            updateDisplay(data['data']);
+            PWM_CHANGEPW.updateDisplay(data['data']);
         } else {
-            updateDisplay(null);
+            PWM_CHANGEPW.updateDisplay(null);
         }
     };
 
     PWM_MAIN.pwmFormValidator(validationProps);
-}
+};
 
 
-function updateDisplay(resultInfo) {
+PWM_CHANGEPW.updateDisplay = function(resultInfo) {
     if (resultInfo == null) {
-        var passwordButton = getObject("password_button");
+        var passwordButton = PWM_MAIN.getObject("password_button");
         if (passwordButton != null) {
             passwordButton.disabled = false;
         }
-        showSuccess(showString('Display_PasswordPrompt'));
-        markStrength(0);
-        markConfirmationCheck(null);
-        //getObject('password2').disabled = false;
+        PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_PasswordPrompt'));
+        PWM_CHANGEPW.markStrength(0);
+        PWM_CHANGEPW.markConfirmationCheck(null);
         return;
     }
 
     var message = resultInfo["message"];
 
     if (resultInfo["version"] != "2") {
-        showError("[ unexpected version string from server ]");
+        PWM_MAIN.showError("[ unexpected version string from server ]");
         return;
     }
 
     if (resultInfo["passed"] == true) {
-        //getObject('password2').disabled = false;
+        //PWM_MAIN.getObject('password2').disabled = false;
         if (resultInfo["match"] == "MATCH") {
-            getObject("password_button").disabled = false;
-            showSuccess(message);
+            PWM_MAIN.getObject("password_button").disabled = false;
+            PWM_MAIN.showSuccess(message);
         } else {
-            getObject("password_button").disabled = true;
-            showInfo(message);
+            PWM_MAIN.getObject("password_button").disabled = true;
+            PWM_MAIN.showInfo(message);
         }
     } else {
-        //getObject('password2').disabled = true;
-        getObject("password_button").disabled = true;
-        showError(message);
+        //PWM_MAIN.getObject('password2').disabled = true;
+        PWM_MAIN.getObject("password_button").disabled = true;
+        PWM_MAIN.showError(message);
     }
 
     try {
-        markConfirmationCheck(resultInfo["match"]);
+        PWM_CHANGEPW.markConfirmationCheck(resultInfo["match"]);
     } catch (e) {
         console.log('error updating confirmation check icons: ' + e)
     }
 
     try {
-        markStrength(resultInfo["strength"]);
+        PWM_CHANGEPW.markStrength(resultInfo["strength"]);
     } catch (e) {
         console.log('error updating strength icon: ' + e)
     }
-}
+};
 
-function markConfirmationCheck(matchStatus) {
-    if (getObject("confirmCheckMark") && getObject("confirmCrossMark")) {
+PWM_CHANGEPW.markConfirmationCheck = function(matchStatus) {
+    if (PWM_MAIN.getObject("confirmCheckMark") && PWM_MAIN.getObject("confirmCrossMark")) {
         if (matchStatus == "MATCH") {
-            getObject("confirmCheckMark").style.visibility = 'visible';
-            getObject("confirmCrossMark").style.visibility = 'hidden';
-            getObject("confirmCheckMark").width = '15';
-            getObject("confirmCrossMark").width = '0';
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'visible';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCheckMark").width = '15';
+            PWM_MAIN.getObject("confirmCrossMark").width = '0';
         } else if (matchStatus == "NO_MATCH") {
-            getObject("confirmCheckMark").style.visibility = 'hidden';
-            getObject("confirmCrossMark").style.visibility = 'visible';
-            getObject("confirmCheckMark").width = '0';
-            getObject("confirmCrossMark").width = '15';
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'visible';
+            PWM_MAIN.getObject("confirmCheckMark").width = '0';
+            PWM_MAIN.getObject("confirmCrossMark").width = '15';
         } else {
-            getObject("confirmCheckMark").style.visibility = 'hidden';
-            getObject("confirmCrossMark").style.visibility = 'hidden';
-            getObject("confirmCheckMark").width = '0';
-            getObject("confirmCrossMark").width = '0';
+            PWM_MAIN.getObject("confirmCheckMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCrossMark").style.visibility = 'hidden';
+            PWM_MAIN.getObject("confirmCheckMark").width = '0';
+            PWM_MAIN.getObject("confirmCrossMark").width = '0';
         }
     }
-}
+};
 
-function markStrength(strength) { //strength meter
-    if (getObject("strengthBox") == null) {
+PWM_CHANGEPW.markStrength = function(strength) { //strength meter
+    if (PWM_MAIN.getObject("strengthBox") == null) {
         return;
     }
 
-    if (getObject("password1").value.length > 0) {
-        getObject("strengthBox").style.visibility = 'visible';
+    if (PWM_MAIN.getObject("password1").value.length > 0) {
+        PWM_MAIN.getObject("strengthBox").style.visibility = 'visible';
     } else {
-        getObject("strengthBox").style.visibility = 'hidden';
+        PWM_MAIN.getObject("strengthBox").style.visibility = 'hidden';
     }
 
     var strengthLabel = "";
     var barColor = "";
 
     if (strength > 70) {
-        strengthLabel = showString('Display_PasswordStrengthHigh');
+        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthHigh');
     } else if (strength > 45) {
-        strengthLabel = showString('Display_PasswordStrengthMedium');
+        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthMedium');
     } else {
-        strengthLabel = showString('Display_PasswordStrengthLow');
+        strengthLabel = PWM_MAIN.showString('Display_PasswordStrengthLow');
     }
 
     var colorFade = function(h1, h2, p) { return ((h1>>16)+((h2>>16)-(h1>>16))*p)<<16|(h1>>8&0xFF)+((h2>>8&0xFF)-(h1>>8&0xFF))*p<<8|(h1&0xFF)+((h2&0xFF)-(h1&0xFF))*p; }
     var gradColor = colorFade(COLOR_BAR_BOTTOM, COLOR_BAR_TOP, strength / 100).toString(16) + '';
 
-    var barObject = getObject("strengthBar");
+    var barObject = PWM_MAIN.getObject("strengthBar");
     if (barObject != null) {
         barObject.style.width = strength + '%';
         barObject.style.backgroundColor = '#' + gradColor;
     }
 
-    var labelObject = getObject("strengthLabel");
+    var labelObject = PWM_MAIN.getObject("strengthLabel");
     if (labelObject != null) {
         labelObject.innerHTML = strengthLabel == null ? "" : strengthLabel;
     }
-}
+};
 
 
-function copyToPasswordFields(text)  // used to copy auto-generated passwords to password field
-{
+PWM_CHANGEPW.copyToPasswordFields = function(text) { // used to copy auto-generated passwords to password field
     if (text.length > 255) {
         text = text.substring(0,255);
     }
     text = PWM_MAIN.trimString(text);
 
 
-    closeWaitDialog();
+    PWM_MAIN.closeWaitDialog();
 
-    getObject("password1").value = text;
-    validatePasswords();
-    getObject("password2").focus();
+    PWM_MAIN.getObject("password1").value = text;
+    PWM_CHANGEPW.validatePasswords();
+    PWM_MAIN.getObject("password2").focus();
 
     ShowHidePasswordHandler.show('password1');
-}
+};
 
 
-function showPasswordGuide() {
-    clearDijitWidget('dialogPopup');
+PWM_CHANGEPW.showPasswordGuide=function() {
+    PWM_MAIN.clearDijitWidget('dialogPopup');
     require(["dojo","dijit/Dialog"],function(dojo, Dialog){
         var theDialog = new Dialog({
-            title: showString('Title_PasswordGuide'),
+            title: PWM_MAIN.showString('Title_PasswordGuide'),
             style: "border: 2px solid #D4D4D4; min-width: 300px",
             content: '<div id="passwordGuideTextContent">' + PWM_GLOBAL['passwordGuideText'] + '</div>',
             closable: true,
@@ -208,18 +207,18 @@ function showPasswordGuide() {
         theDialog.show();
 
         dojo.connect(theDialog, "hide", function(){
-             dojo.destroy(getObject("passwordGuideTextContent"));
+             dojo.destroy(PWM_MAIN.getObject("passwordGuideTextContent"));
         });
     });
-}
+};
 
 
-function showRandomPasswordsDialog(randomConfig) {
+PWM_CHANGEPW.showRandomPasswordsDialog=function(randomConfig) {
 
-    var titleString = randomConfig['title'] == null ? showString('Title_RandomPasswords') : randomConfig['title'];
+    var titleString = randomConfig['title'] == null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
 
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
-        closeWaitDialog();
+        PWM_MAIN.closeWaitDialog();
         var theDialog = new dijit.Dialog({
             title: titleString,
             style: "width: 300px; border: 2px solid #D4D4D4;",
@@ -228,30 +227,29 @@ function showRandomPasswordsDialog(randomConfig) {
         });
         theDialog.setAttribute('class','nihilo');
         theDialog.show();
-        beginFetchRandoms(randomConfig);
+        PWM_CHANGEPW.beginFetchRandoms(randomConfig);
     });
-}
+};
 
-function handleChangePasswordSubmit()
-{
-    showInfo(showString('Display_PleaseWait'));
+PWM_CHANGEPW.handleChangePasswordSubmit=function() {
+    PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PleaseWait'));
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-}
+};
 
-function doRandomGeneration(randomConfig) {
+PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     if (randomConfig == null) {
         randomConfig = { };
     }
 
     if (randomConfig['finishAction'] == null || randomConfig['finishAction'].length < 1) {
-        randomConfig['finishAction'] = "copyToPasswordFields(PWM_GLOBAL['SelectedRandomPassword'])";
+        randomConfig['finishAction'] = "PWM_CHANGEPW.copyToPasswordFields(PWM_GLOBAL['SelectedRandomPassword'])";
     }
 
     var dialogBody = "";
     if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
     } else {
-        dialogBody += showString('Display_PasswordGeneration');
+        dialogBody += PWM_MAIN.showString('Display_PasswordGeneration');
     }
     dialogBody += "<br/><br/>";
     dialogBody += '<table style="border: 0">';
@@ -260,7 +258,7 @@ function doRandomGeneration(randomConfig) {
         for (var j = 0; j < 2; j++) {
             i = i + j;
             var elementID = "randomGen" + i;
-            var clickAction = "PWM_GLOBAL['SelectedRandomPassword'] = getObject('" + elementID + "').firstChild.nodeValue;";
+            var clickAction = "PWM_GLOBAL['SelectedRandomPassword'] = PWM_MAIN.getObject('" + elementID + "').firstChild.nodeValue;";
             clickAction += randomConfig['finishAction'];
             dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="' + clickAction + '" id="' + elementID + '">&nbsp;</a></td>';
         }
@@ -269,21 +267,21 @@ function doRandomGeneration(randomConfig) {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + showString('Button_More') + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="clearDijitWidget(\'dialogPopup\')">' + showString('Button_Cancel') + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="PWM_CHANGEPW.beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_MAIN.showString('Button_More') + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\')">' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
     randomConfig['dialogBody'] = dialogBody;
     PWM_GLOBAL['lastRandomConfig'] = randomConfig;
-    showRandomPasswordsDialog(randomConfig);
-}
+    PWM_CHANGEPW.showRandomPasswordsDialog(randomConfig);
+};
 
-function beginFetchRandoms(randomConfig) {
-    getObject('moreRandomsButton').disabled = true;
+PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
+    PWM_MAIN.getObject('moreRandomsButton').disabled = true;
     var fetchList = new Array();
     for (var counter = 0; counter < 20; counter++) {
         fetchList[counter] = 'randomGen' + counter;
         var name ='randomGen' + counter;
-        var element = getObject(name);
+        var element = PWM_MAIN.getObject(name);
         if (element != null) {
             element.firstChild.nodeValue = '\u00A0';
         }
@@ -291,12 +289,12 @@ function beginFetchRandoms(randomConfig) {
     fetchList.sort(function() {return 0.5 - Math.random()});
     fetchList.sort(function() {return 0.5 - Math.random()});
     randomConfig['fetchList'] = fetchList;
-    fetchRandoms(randomConfig);
-}
+    PWM_CHANGEPW.fetchRandoms(randomConfig);
+};
 
-function fetchRandoms(randomConfig) {
+PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
     if (randomConfig['fetchList'].length < 1) {
-        var moreButton = getObject('moreRandomsButton');
+        var moreButton = PWM_MAIN.getObject('moreRandomsButton');
         if (moreButton != null) {
             moreButton.disabled = false;
             moreButton.focus();
@@ -308,11 +306,11 @@ function fetchRandoms(randomConfig) {
         var successFunction = function(resultInfo) {
             var password = resultInfo['data']["password"];
             var elementID = randomConfig['fetchList'].pop();
-            var element = getObject(elementID);
+            var element = PWM_MAIN.getObject(elementID);
             if (element != null) {
                 element.firstChild.nodeValue = password;
             }
-            fetchRandoms(randomConfig);
+            PWM_CHANGEPW.fetchRandoms(randomConfig);
         };
 
         var dataInput = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
@@ -328,20 +326,19 @@ function fetchRandoms(randomConfig) {
                 handleAs: "json",
                 load: successFunction,
                 error: function(errorObj){
-                    showError("unexpected randomgen version string from server: " + errorObj);
+                    PWM_MAIN.showError("unexpected randomgen version string from server: " + errorObj);
                 }
             });
         });
     }
-}
+};
 
-function startupChangePasswordPage()
-{
-    //getObject('password2').disabled = true;
-    markStrength(0);
+PWM_CHANGEPW.startupChangePasswordPage=function() {
+    //PWM_MAIN.getObject('password2').disabled = true;
+    PWM_CHANGEPW.markStrength(0);
 
     // show the auto generate password panel
-    var autoGenPasswordElement = getObject("autogenerate-icon");
+    var autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");
     if (autoGenPasswordElement != null) {
         autoGenPasswordElement.style.visibility = 'visible';
         require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
@@ -358,18 +355,19 @@ function startupChangePasswordPage()
         connect.connect(window, "onbeforeunload", function(){
             console.log('changepassword-beforeunload handler invoked');
             if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
-                var message = showString('Display_LeaveDirtyPasswordPage');
+                var message = PWM_MAIN.showString('Display_LeaveDirtyPasswordPage');
                 return message;
             }
         });
     });
 
+
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
-    var messageElement = getObject("message");
+    var messageElement = PWM_MAIN.getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {
         setTimeout(function(){
-            showInfo(showString('Display_PasswordPrompt'));
+            PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PasswordPrompt'));
         },100);
     }
 
@@ -380,10 +378,8 @@ function startupChangePasswordPage()
         });
     });
 
-
-
     if (PWM_GLOBAL['passwordGuideText'] && PWM_GLOBAL['passwordGuideText'].length > 0) {
-        try {getObject('password-guide-icon').style.visibility = 'visible';} catch (e) { /* noop */ }
+        try {PWM_MAIN.getObject('password-guide-icon').style.visibility = 'visible';} catch (e) { /* noop */ }
         require(["dijit/Tooltip","dojo/domReady!"],function(Tooltip){
             new Tooltip({
                 connectId: ["password-guide-icon"],
@@ -393,16 +389,16 @@ function startupChangePasswordPage()
     }
 
     setTimeout(function(){
-        setInputFocus();
+        PWM_CHANGEPW.setInputFocus();
     },10);
-}
+};
 
-function setInputFocus() {
-    var currentPassword = getObject('currentPassword');
+PWM_CHANGEPW.setInputFocus=function() {
+    var currentPassword = PWM_MAIN.getObject('currentPassword');
     if (currentPassword != null) {
         setTimeout(function() { currentPassword.focus(); },10);
     } else {
-        var password1 = getObject('password1');
+        var password1 = PWM_MAIN.getObject('password1');
         setTimeout(function() { password1.focus(); },10);
     }
-}
+};

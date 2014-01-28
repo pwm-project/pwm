@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,12 +38,12 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseDataStore;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
-import password.pwm.ldap.UserStatusHelper;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -179,6 +179,10 @@ public class IntruderManager implements Serializable, PwmService {
             startupError = errorInformation;
             close();
         }
+    }
+
+    public void clear() {
+
     }
 
     @Override
@@ -473,8 +477,8 @@ public class IntruderManager implements Serializable, PwmService {
 
         final UserInfoBean userInfoBean = new UserInfoBean();
         try {
-            UserStatusHelper.populateUserInfoBean(
-                    pwmApplication,
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            userStatusReader.populateUserInfoBean(
                     null,
                     userInfoBean,
                     PwmConstants.DEFAULT_LOCALE,

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,7 @@ package password.pwm.config;
 
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.ChaiChallenge;
-import com.novell.ldapchai.cr.ChaiChallengeSet;
-import com.novell.ldapchai.cr.Challenge;
-import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.util.StringHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -111,7 +106,10 @@ public class Configuration implements Serializable {
             if ("".equals(profileID)) {
                 profileID = PwmConstants.DEFAULT_LDAP_PROFILE;
             }
-            returnList.put(profileID, LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID));
+            final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID);
+            if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_PROFILE_ENABLED)) {
+                returnList.put(profileID, ldapProfile);
+            }
         }
 
         dataCache.ldapProfiles = Collections.unmodifiableMap(returnList);
@@ -534,9 +532,14 @@ public class Configuration implements Serializable {
                     lookupDN = configuredNewUserPasswordDN;
                 }
 
-                final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE));
-                final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_LDAP_PROFILE);
-                final PwmPasswordPolicy thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
+                final PwmPasswordPolicy thePolicy;
+                if (lookupDN == null || lookupDN.isEmpty()) {
+                    thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_LDAP_PROFILE,userLocale);
+                } else {
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE));
+                    final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_LDAP_PROFILE);
+                    thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
+                }
                 dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);
                 return thePolicy;
             }

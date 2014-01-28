@@ -41,7 +41,7 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusHelper;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.token.TokenPayload;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
@@ -538,7 +538,8 @@ public class ActivateUserServlet extends TopServlet {
         final Map<String,String> tokenMapData = new HashMap<String, String>();
 
         try {
-            final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmApplication, pwmSession, activateUserBean.getUserIdentity());
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession,activateUserBean.getUserIdentity());
             if (userLastPasswordChange != null) {
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange));
             }
@@ -601,7 +602,9 @@ public class ActivateUserServlet extends TopServlet {
             // check if password-last-modified is same as when tried to read it before.
             if (tokenPass) {
                 try {
-                    final Date userLastPasswordChange = UserStatusHelper.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
+                    final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+                    final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession,
+                            userIdentity);
                     final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if (userLastPasswordChange != null && dateStringInToken != null) {
                         final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);

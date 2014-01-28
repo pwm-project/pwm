@@ -30,7 +30,7 @@ function validateResponses() {
             serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
         }
         var validationProps = {};
-        validationProps['messageWorking'] = showString('Display_CheckingResponses');
+        validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
         validationProps['serviceURL'] = serviceUrl;
         validationProps['readDataFunction'] = function(){
             return domForm.toObject('setupResponses');
@@ -47,27 +47,27 @@ function validateResponses() {
 function updateDisplay(resultInfo)
 {
     if (resultInfo == null) {
-        getObject("setotpsecret").disabled = false;
+        PWM_MAIN.getObject("setotpsecret").disabled = false;
         return;
     }
 
     var result = resultInfo["message"];
 
     if (resultInfo["success"] == true) {
-        getObject("setotpsecret_button").disabled = false;
-        showSuccess(result);
+        PWM_MAIN.getObject("setotpsecret_button").disabled = false;
+        PWM_MAIN.showSuccess(result);
     } else {
-        getObject("setotpsecret_button").disabled = true;
-        showError(result);
+        PWM_MAIN.getObject("setotpsecret_button").disabled = true;
+        PWM_MAIN.showError(result);
     }
 }
 
 function startupOtpSecretPage() {
-    var initialPrompt = showString('Display_EnterOneTimePasswordPrompt');
+    var initialPrompt = PWM_MAIN.showString('Display_EnterOneTimePasswordPrompt');
     if (initialPrompt != null && initialPrompt.length > 1) {
-        var messageElement = getObject("message");
+        var messageElement = PWM_MAIN.getObject("message");
         if (messageElement.firstChild.nodeValue.length < 2) {
-            showInfo(initialPrompt);
+            PWM_MAIN.showInfo(initialPrompt);
         }
     }
 }

@@ -22,10 +22,8 @@
 
 package password.pwm;
 
-import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -48,41 +46,12 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
 
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
-        final HttpSession httpSession = httpSessionEvent.getSession();
-
-        try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(httpSession);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(httpSession);
-
-            if (pwmApplication != null) {
-                if (pwmApplication.getStatisticsManager() != null) {
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
-                }
-                ContextManager.getContextManager(httpSessionEvent.getSession().getServletContext()).addPwmSession(pwmSession);
-
-                final int sessionIdle = (int)pwmApplication.getConfig().readSettingAsLong(PwmSetting.IDLE_TIMEOUT_SECONDS);
-                httpSession.setMaxInactiveInterval(sessionIdle);
-            }
-
-            LOGGER.trace(pwmSession, "http session created");
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to establish session: " + e.getMessage());
-        }
-
     }
 
     public void sessionDestroyed(final HttpSessionEvent httpSessionEvent)
     {
-        try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(httpSessionEvent.getSession());
-            if (pwmSession != null) {
-                final String traceMsg = "http session destroyed for " + pwmSession.toString();
-                LOGGER.trace(pwmSession, traceMsg);
-                pwmSession.getSessionManager().closeConnections();
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to destroy session: " + e.getMessage());
-        }
+        final HttpSession httpSession = httpSessionEvent.getSession();
+        httpSession.removeAttribute(PwmConstants.SESSION_ATTR_PWM_SESSION);
     }
 
 
@@ -91,7 +60,6 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
         if (null != servletContextEvent.getServletContext().getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER)) {
             LOGGER.warn("notice, previous servlet ContextManager exists");
         }
-
 
         try {
             final ContextManager newContextManager = new ContextManager(servletContextEvent.getServletContext());

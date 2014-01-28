@@ -79,12 +79,7 @@ public abstract class PwmConstants {
         DEFAULT_DATETIME_FORMAT.setTimeZone(DEFAULT_TIMEZONE);
     }
 
-
-
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
-    public static final int HTTP_PARAMETER_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpParameterMaxReadLength"));
-    public static final int HTTP_BODY_READ_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpBodyMaxReadLength"));
-    public static final int HTTP_SESSION_VALIDATION_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("httpSessionValidationKeyLength"));
     public static final int CONFIG_FILE_SCAN_FREQUENCY = Integer.parseInt(readPwmConstantsBundle("configFileScanFrequency"));
     public static final int PWMDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
     public static final int PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
@@ -97,10 +92,9 @@ public abstract class PwmConstants {
     public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
 
     public static final int USER_COOKIE_MAX_AGE_SECONDS = Integer.parseInt(readPwmConstantsBundle("userCookieMaxAgeSeconds"));
-
     public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
-
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
+    public static final int CONFIGGUIDE_IDLE_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("configGuide.idleTimeout"));
 
     public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
     public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
@@ -128,7 +122,6 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_RESOURCE_CACHE = "ResourceFileServlet-Cache";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
     public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
-
     public static final String REQUEST_ATTR_SHOW_LOCALE = "pwm.showLocale";
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
