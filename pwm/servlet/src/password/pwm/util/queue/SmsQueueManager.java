@@ -300,17 +300,10 @@ public class SmsQueueManager extends AbstractQueueManager {
     protected String formatSmsNumber(final String smsNumber) {
         final Configuration config = pwmApplication.getConfig();
 
+		long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         String countryCodeNumber = "";
-        {
-            final String configuredNumber =  config.readSettingAsString(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
-            try {
-                final int parsedValue = Integer.parseInt(configuredNumber);
-                if (parsedValue > 1) {
-                    countryCodeNumber = String.valueOf(parsedValue);
-                }
-            } catch (Exception e) {
-                LOGGER.error("unable to parse configured default SMS default country code '" + configuredNumber + "', error: " + e.getMessage());
-            }
+        if (ccLong > 0) {
+        	countryCodeNumber = String.valueOf(ccLong);
         }
 
         final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
