@@ -23,18 +23,15 @@
 package password.pwm.util.macro;
 
 import com.google.gson.reflect.TypeToken;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
 import password.pwm.ws.server.rest.RestStatusServer;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -43,6 +40,8 @@ import java.util.regex.Pattern;
  * External macro @External1:<value>@ where 1 is incremental configuration item.
  */
 class ExternalRestMacro extends AbstractMacro {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(ExternalRestMacro.class);
+
     private PwmApplication pwmApplication;
     private UserInfoBean userInfoBean;
 
@@ -82,24 +81,20 @@ class ExternalRestMacro extends AbstractMacro {
         }
         sendData.put("input",inputString);
 
-        final HttpPost httpPost = new HttpPost(url);
-        httpPost.setHeader("Accept", "application/json");
-        httpPost.setHeader("Content-Type", "application/json");
-        final HttpResponse httpResponse;
         try {
-            final StringEntity stringEntity = new StringEntity(Helper.getGson().toJson(sendData));
-            stringEntity.setContentType("application/json");
-            httpPost.setEntity(new StringEntity(Helper.getGson().toJson(sendData)));
-            httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
-            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
+            final String requestBody = Helper.getGson().toJson(sendData);
+            final String responseBody = Helper.makeOutboundRestWSCall(pwmApplication, PwmConstants.DEFAULT_LOCALE, url,
+                    requestBody);
             final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
             if (responseMap.containsKey("output")) {
                 return responseMap.get("output").toString();
             } else {
                 return "";
             }
-        } catch (IOException e) {
-            throw new IllegalStateException("http response error code: " + e.getMessage());
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "error while executing external macro '" + matchValue + "', error: " + e.getMessage();
+            LOGGER.error(errorMsg);
+            throw new IllegalStateException(errorMsg);
         }
     }
 }

@@ -83,7 +83,6 @@
     <div id="TopMenu">
     </div>
     <div id="centerbody-config">
-        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigEditor'/>" method="post" name="cancelEditing"
               enctype="application/x-www-form-urlencoded">
             <input type="hidden" name="processAction" value="cancelEditing"/>
@@ -100,6 +99,7 @@
             <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
             <% } %>
         </div>
+        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
     </div>
     <div class="push"></div>
 </div>
@@ -108,6 +108,7 @@
 <div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript">
     PWM_CONFIG.initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
+    PWM_VAR['setting_alwaysFloatMessages'] = true;
 </script>
 </body>
 </html>

@@ -140,6 +140,8 @@ public enum PwmSetting {
             "password.change.requireCurrent", PwmSettingSyntax.SELECT, Category.CHANGE_PASSWORD),
     PASSWORD_CHANGE_AGREEMENT_MESSAGE(
             "display.password.changeAgreement", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
+    PASSWORD_COMPLETE_MESSAGE(
+            "display.password.completeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
     DISPLAY_PASSWORD_GUIDE_TEXT(
             "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
     PASSWORD_SYNC_MIN_WAIT_TIME(
@@ -802,13 +804,9 @@ public enum PwmSetting {
     REPORTONG_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.NUMERIC, Category.REPORTING),
 
-    // misc
-    EXTERNAL_CHANGE_METHODS(
-            "externalChangeMethod", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    // developer
     EXTERNAL_JUDGE_METHODS(
             "externalJudgeMethod", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
-    EXTERNAL_RULE_METHODS(
-            "externalRuleMethod", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
     HTTP_PROXY_URL(
             "http.proxy.url", PwmSettingSyntax.STRING, Category.MISC),
     CAS_CLEAR_PASS_URL(
@@ -831,8 +829,25 @@ public enum PwmSetting {
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
     EXTERNAL_MACROS_REST_URLS(
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    EXTERNAL_PWRULES_REST_URLS(
+            "external.pwrules.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+
+
+    // OAuth
+    OAUTH_ID_LOGIN_URL(
+            "oauth.idserver.loginUrl", PwmSettingSyntax.STRING, Category.OAUTH),
+    OAUTH_ID_CODERESOLVE_URL(
+            "oauth.idserver.codeResolveUrl", PwmSettingSyntax.STRING, Category.OAUTH),
+    OAUTH_ID_ATTRIBUTES_URL(
+            "oauth.idserver.attributesUrl", PwmSettingSyntax.STRING, Category.OAUTH),
+    OAUTH_ID_CLIENTNAME(
+            "oauth.idserver.clientName", PwmSettingSyntax.STRING, Category.OAUTH),
+    OAUTH_ID_SECRET(
+            "oauth.idserver.secret", PwmSettingSyntax.PASSWORD, Category.OAUTH),
+    OAUTH_ID_DN_ATTRIBUTE_NAME(
+            "oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, Category.OAUTH),
 
     ;
 
@@ -984,6 +999,12 @@ public enum PwmSetting {
         return descriptionElement.getText();
     }
 
+    public String getPlaceholder(final Locale locale) {
+        Element placeHolderElement = readSettingXml(this);
+        Element placeholder = placeHolderElement.getChild("placeholder");
+        return placeholder != null ? placeholder.getText() : "";
+    }
+
     public boolean isRequired() {
         final Element settingElement = readSettingXml(this);
         final Attribute requiredAttribute = settingElement.getAttribute("required");
@@ -1036,6 +1057,7 @@ public enum PwmSetting {
         DATABASE            (Type.SETTING),
         REPORTING           (Type.SETTING),
         MISC                (Type.SETTING),
+        OAUTH               (Type.SETTING),
         CHANGE_PASSWORD     (Type.MODULE),
         RECOVERY            (Type.MODULE),
         FORGOTTEN_USERNAME  (Type.MODULE),
@@ -1186,7 +1208,7 @@ public enum PwmSetting {
     private static Document xmlDocCache = null;
     private static Document readXml() {
         if (xmlDocCache == null) {
-            validateXmlSchema();
+            //validateXmlSchema();
             InputStream inputStream = PwmSetting.class.getClassLoader().getResourceAsStream("password/pwm/config/PwmSetting.xml");
             final SAXBuilder builder = new SAXBuilder();
             try {

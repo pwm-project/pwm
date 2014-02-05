@@ -298,6 +298,13 @@
             <value />
         </default>
     </setting>
+    <setting key="display.password.completeMessage" level="0">
+        <label>Password Change Completion Message</label>
+        <description><![CDATA[<p>Message to display to user when password change is completed.  If blank, the change password completion page will not be displayed to the user. This message may include HTML tags.</p> <p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting key="display.password.guideText" level="0">
         <label>Password Guide Text</label>
         <description><![CDATA[<p>Text (with HTML tags/formatting) to show user on password guide page.  This will show up as a "password guide" link and pop-up dialog.  Leave blank to not show the password guide link.</p><p>This setting may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
@@ -1608,7 +1615,7 @@
         <label>Java StdOut Log Level</label>
         <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
         <default>
-            <value><![CDATA[Off]]></value>
+            <value><![CDATA[INFO]]></value>
         </default>
         <options>
             <option value="TRACE">Trace</option>
@@ -2881,25 +2888,11 @@
             <value>0</value>
         </default>
     </setting>
-    <setting key="externalChangeMethod" level="0">
-        <label>External Change Method</label>
-        <description><![CDATA[Java classes to call after a successful password change.  These classes may take such actions as updating passwords in other systems or updating eDirectory.  External password classes must implement the interface <i>password.pwm.ExternalChangeMethod</i>.<br/><br/>Unless your adding custom Java code to this system, you should leave this blank.]]></description>
-        <default>
-            <value />
-        </default>
-    </setting>
     <setting key="externalJudgeMethod" level="0">
         <label>External Judge Method</label>
         <description><![CDATA[Java classes to call to determine the strength of a given password.  External judge methods must implement the interface <i>password.pwm.ExternalJudgeMethod</i>. During password judge checks, all listed classes will be invoked.  If multiple results are returned, the lowest returned value will be used as the result.]]></description>
         <default>
             <value><![CDATA[password.pwm.PwmPasswordJudge]]></value>
-        </default>
-    </setting>
-    <setting key="externalRuleMethod" level="0">
-        <label>External Rule Method</label>
-        <description><![CDATA[Java classes to call to determine any rule violations of a given password.  External rule methods must implement the interface <i>password.pwm.ExternalRuleMethod</i>.<br/><br/>Unless your adding custom Java code, you should leave this blank.]]></description>
-        <default>
-            <value />
         </default>
     </setting>
     <setting key="http.proxy.url" level="0">
@@ -2975,7 +2968,12 @@
         <default />
     </setting>
     <setting key="external.macros.urls" level="1">
-        <label>External Macro URLs</label>
+        <label>External Macro REST Server URLs</label>
+        <description><![CDATA[]]></description>
+        <default />
+    </setting>
+    <setting key="external.pwrules.urls" level="1">
+        <label>External Rules REST Server URLs</label>
         <description><![CDATA[]]></description>
         <default />
     </setting>
@@ -2983,6 +2981,39 @@
         <label>Web Service User Attributes</label>
         <description><![CDATA[User attributes that are used by various web services and are presented as part of the user's data set.]]></description>
         <default />
+    </setting>
+    <setting key="oauth.idserver.loginUrl" level="0">
+        <label>OAuth Login URL</label>
+        <description><![CDATA[]]></description>
+        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</placeholder>
+        <default/>
+    </setting>
+    <setting key="oauth.idserver.codeResolveUrl" level="0">
+        <label>OAuth Code Resolve Service URL</label>
+        <description><![CDATA[]]></description>
+        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</placeholder>
+        <default/>
+    </setting>
+    <setting key="oauth.idserver.attributesUrl" level="0">
+        <label>OAuth Get Attributes Service URL</label>
+        <description><![CDATA[]]></description>
+        <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
+        <default/>
+    </setting>
+    <setting key="oauth.idserver.clientName" level="0">
+        <label>OAuth Client ID</label>
+        <description><![CDATA[]]></description>
+        <default/>
+    </setting>
+    <setting key="oauth.idserver.secret" level="0">
+        <label>OAuth Shared Secret</label>
+        <description><![CDATA[]]></description>
+        <default/>
+    </setting>
+    <setting key="oauth.idserver.dnAttributeName" level="0">
+        <label>OAuth Username/DN Login Attribute</label>
+        <description><![CDATA[]]></description>
+        <default/>
     </setting>
     <category key="LDAP_PROFILE">
         <label>LDAP Profiles</label>
@@ -3055,6 +3086,10 @@
     <category key="MISC" level="1">
         <label>Integration / Developer</label>
         <description><![CDATA[Settings that are of interest to developers or component integrators.]]></description>
+    </category>
+    <category key="OAUTH" level="1">
+        <label>OAuth SSO</label>
+        <description><![CDATA[Integration with an OAuth server for SSO to this application.]]></description>
     </category>
     <category key="CHANGE_PASSWORD">
         <label>Change Password</label>

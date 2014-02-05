@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import org.jdom2.Element;
 import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
@@ -91,7 +90,7 @@ public class PasswordValue extends StringValue {
     }
 
     public String toDebugString() {
-        return "**removed**";
+        return "**not shown**";
     }
 
     public static String encryptValue(final String key, final String value)

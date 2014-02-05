@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,7 @@ public class ApplicationModeFilter implements Filter {
         if (mode == PwmApplication.MODE.ERROR) {
             ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getStartupErrorInformation();
             if (rootError == null) {
-                rootError = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "Application startup failed.");
+                rootError = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed.");
             }
             final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,10 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.ProgressInfo;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.csv.CsvReader;
@@ -63,7 +65,7 @@ public class LocalDBUtility {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFileStream for exportLocalDB cannot be null");
         }
 
-        writeStringToOut(debugOutput,"counting lines...");
+        writeStringToOut(debugOutput,"counting records in LocalDB...");
         final int totalLines;
         if (showLineCount) {
             exportLineCounter = 0;
@@ -87,7 +89,7 @@ public class LocalDBUtility {
             public void run() {
                 final String percentStr;
                 if (showLineCount) {
-                    final String percentComplete = String.valueOf((float) exportLineCounter / (float) totalLines);
+                    final float percentComplete = (float) exportLineCounter / (float) totalLines;
                     percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
                 } else {
                     percentStr = "n/a";
@@ -126,7 +128,7 @@ public class LocalDBUtility {
             return;
         }
 
-        out.println(string);
+        out.println(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + string);
     }
 
     public void importLocalDB(final File inputFile, final PrintStream out)
@@ -140,14 +142,7 @@ public class LocalDBUtility {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB does not exist");
         }
 
-        writeStringToOut(out, "clearing LocalDB...");
-        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            writeStringToOut(out, " truncating " + loopDB.toString());
-            localDB.truncate(loopDB);
-        }
-        writeStringToOut(out, "LocalDB cleared");
-
-        writeStringToOut(out, "counting lines...");
+        writeStringToOut(out, "counting records in input file...");
         importLineCounter = 0;
         CsvReader csvReader = null;
         try {
@@ -159,20 +154,31 @@ public class LocalDBUtility {
             if (csvReader != null) {csvReader.close();}
         }
         final int totalLines = importLineCounter;
+
+        if (totalLines <= 0) {
+            throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB is empty");
+        }
+
+        writeStringToOut(out, "clearing LocalDB...");
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
+            writeStringToOut(out, " truncating " + loopDB.toString());
+            localDB.truncate(loopDB);
+        }
+        writeStringToOut(out, "LocalDB cleared");
+
         importLineCounter = 0;
         writeStringToOut(out, " total lines: " + totalLines);
 
         writeStringToOut(out, "beginning restore...");
 
-        final long startTime = System.currentTimeMillis();
+        final Date startTime = new Date();
         final Timer statTimer = new Timer(true);
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 50, 50 * 1000);
         statTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                final float percentComplete = ((float) importLineCounter / (float) totalLines);
-                final String percentStr = DecimalFormat.getPercentInstance().format(percentComplete);
-                writeStringToOut(out," restored " + importLineCounter + " records, " + percentStr + " complete, transactionSize=" + transactionCalculator.getTransactionSize());
+                final ProgressInfo progressInfo = new ProgressInfo(startTime, totalLines, importLineCounter);
+                writeStringToOut(out," restored " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
             }
         },15 * 1000, 30 * 1000);
 

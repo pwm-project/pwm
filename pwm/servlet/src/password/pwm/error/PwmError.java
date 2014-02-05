@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,6 +77,7 @@ public enum PwmError {
     PASSWORD_UNKNOWN_VALIDATION("Password_UnknownValidation", 4038, false),
     PASSWORD_NEW_PASSWORD_REQUIRED("Password_NewPasswordRequired", 4039, false, ChaiError.NEW_PASSWORD_REQUIRED),
     PASSWORD_EXPIRED("Password_Expired", 4040, false, ChaiError.PASSWORD_EXPIRED),
+    PASSWORD_CUSTOM_ERROR("Password_CustomError", 4041, false),
 
     NUMBERVALIDATION_INVALIDNUMER("NumberValidation_Invalid_Number", 4101, false),
     NUMBERVALIDATION_LOWERBOUND("NumberValidation_Lowerbound", 4102, false),
@@ -133,7 +134,7 @@ public enum PwmError {
     ERROR_ACTIVATION("Error_Activation",5050, false),
     ERROR_DB_UNAVAILABLE("Error_DB_Unavailable",5051, false),
     ERROR_LOCALDB_UNAVAILABLE("Error_LocalDB_Unavailable",5052, false),
-    ERROR_PWM_UNAVAILABLE("Error_Pwm_Unavailable",5053, false),
+    ERROR_APP_UNAVAILABLE("Error_App_Unavailable",5053, false),
     ERROR_UNREACHABLE_CLOUD_SERVICE("Error_UnreachableCloudService", 5054, false),
     ERROR_INVALID_SECURITY_KEY("Error_InvalidSecurityKey", 5055, false),
     ERROR_CLEARING_RESPONSES("Error_Clearing_Responses",5056, false),
@@ -154,6 +155,7 @@ public enum PwmError {
     ERROR_AUDIT_WRITE("Error_AuditWrite", 5068, false),
     ERROR_INTRUDER_LDAP("Error_LdapIntruder", 5069, true, ChaiError.INTRUDER_LOCKOUT),
     ERROR_NO_LDAP_CONNECTION("Error_NoLdapConnection", 5070, true),
+    ERROR_OAUTH_ERROR("Error_OAuthError",5071, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

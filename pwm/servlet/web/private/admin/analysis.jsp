@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.util.PwmLogger" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
@@ -36,9 +37,13 @@
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <%
-    if ("start".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().scheduleImmediateUpdate(); }
-    if ("stop".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().cancelUpdate();}
-    if ("clear".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().clear();}
+    try {
+        if ("start".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().scheduleImmediateUpdate(); }
+        if ("stop".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().cancelUpdate();}
+        if ("clear".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().clear();}
+    } catch (Exception e) {
+        PwmLogger.getLogger(this.getClass()).error("error executing rest command on analysis.jsp: " + e.getMessage(),e);
+    }
 %>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -50,7 +55,7 @@
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="Directory Reporting">
                 <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
-                    <div style="height: 100%">
+                    <div style="max-height: 350px">
                         <table id="summaryTable">
                             <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
                         </table>
@@ -139,7 +144,7 @@
                         <table class="tablemain" id="form">
                             <tr>
                                 <td colspan="10" style="text-align: center">
-                                    <form action="<pwm:url url='userreport.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
+                                    <form action="<pwm:url url='analysis.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
                                           name="statsUpdateForm"
                                           id="statsUpdateForm"
                                           onsubmit="PWM_MAIN.getObject('submit_button').value = ' Please Wait ';PWM_MAIN.getObject('submit_button').disabled = true">
@@ -222,7 +227,7 @@
         require(["dijit/registry"],function(registry){
             var keyName = registry.byId('statsChartSelect').get('value');
             var days = PWM_MAIN.getObject('statsChartDays').value;
-            PWM_MAIN.showStatChart(keyName,days,'statsChart');
+            PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
         });
     }
     function downloadCsv() {

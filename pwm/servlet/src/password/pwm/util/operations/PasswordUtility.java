@@ -328,9 +328,6 @@ public class PasswordUtility {
         // invoke post password change actions
         invokePostChangePasswordActions(pwmSession, newPassword);
 
-        // call out to external methods.
-        Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, uiBean.getUserIdentity().getUserDN(), oldPassword, newPassword);
-
         {  // execute configured actions
             LOGGER.debug(pwmSession, "executing configured actions to user " + proxiedUser.getEntryDN());
             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES);
@@ -403,9 +400,6 @@ public class PasswordUtility {
         // update statistics
         pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.PASSWORD_CHANGES,1);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_PASSWORD_SET);
-
-        // call out to external methods.
-        Helper.invokeExternalChangeMethods(pwmSession, pwmApplication, chaiUser.getEntryDN(), null, newPassword);
 
         // create a uib for end user
         final UserInfoBean userInfoBean = new UserInfoBean();
@@ -786,7 +780,7 @@ public class PasswordUtility {
                     }
                 }
                 if (!pass) {
-                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy());
+                    final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, userInfoBean.getPasswordPolicy(), locale);
                     final String oldPassword = userInfoBean.getUserCurrentPassword();
                     pwmPasswordRuleValidator.testPassword(password, oldPassword, userInfoBean, user);
                     pass = true;

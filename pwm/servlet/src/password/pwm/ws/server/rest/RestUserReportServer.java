@@ -115,7 +115,8 @@ public class RestUserReportServer {
         }
 
         final LinkedHashMap<String,Object> returnMap = new LinkedHashMap(makeReportStatusData(
-                restRequestBean.getPwmApplication().getUserReportService()
+                restRequestBean.getPwmApplication().getUserReportService(),
+                restRequestBean.getPwmSession().getSessionStateBean().getLocale()
         ));
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnMap);
@@ -149,7 +150,7 @@ public class RestUserReportServer {
         return restResultBean.asJsonResponse();
     }
 
-    private static Map<String,Object> makeReportStatusData(ReportService reportService)
+    private static Map<String,Object> makeReportStatusData(ReportService reportService, Locale locale)
             throws LocalDBException
     {
 
@@ -183,7 +184,7 @@ public class RestUserReportServer {
                 final int usersRemaining = reportInfo.getTotal() - reportInfo.getCount();
                 final float secondsRemaining = usersRemaining / eventRate.floatValue();
                 final TimeDuration remainingDuration = new TimeDuration(((int)secondsRemaining) * 1000);
-                presentableMap.put("Estimated Time Remaining",remainingDuration.asCompactString());
+                presentableMap.put("Estimated Time Remaining",remainingDuration.asLongString(locale));
             }
         }
         //presentableMap.put("Cached Records", reportInfo.size());

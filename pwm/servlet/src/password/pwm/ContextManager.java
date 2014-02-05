@@ -83,7 +83,7 @@ public class ContextManager implements Serializable {
         final Object theManager = theContext.getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER);
         if (theManager == null) {
             final String errorMsg = "unable to load the context manager from servlet context";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,errorMsg);
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE,errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
 
@@ -100,7 +100,7 @@ public class ContextManager implements Serializable {
             if (startupErrorInformation != null) {
                 errorInformation = startupErrorInformation;
             } else {
-                errorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE,"application is not yet available, please try again in a moment.");
+                errorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE,"application is not yet available, please try again in a moment.");
             }
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -182,7 +182,7 @@ public class ContextManager implements Serializable {
             errorMsg = throwable.getMessage();
         }
 
-        startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, msgPrefix + errorMsg);
+        startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, msgPrefix + errorMsg);
 
         try {
             LOGGER.fatal(errorMsg);
@@ -196,7 +196,7 @@ public class ContextManager implements Serializable {
     }
 
     void shutdown() {
-        startupErrorInformation = new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "shutting down");
+        startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "shutting down");
         try {
             final PwmApplication methodLocalPwmApp = this.getPwmApplication();
             methodLocalPwmApp.shutdown();
@@ -331,7 +331,7 @@ public class ContextManager implements Serializable {
                 System.out.println(errorMsg);
                 System.err.println(errorMsg);
                 LOGGER.fatal(errorMsg);
-                return new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, errorMsg);
+                return new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, errorMsg);
             }
             return null;
         }

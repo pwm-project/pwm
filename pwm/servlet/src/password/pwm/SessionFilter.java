@@ -300,7 +300,6 @@ public class SessionFilter implements Filter {
         // request doesn't have key, so make a new one, store it in the session, and redirect back here with the new key.
         if (keyFromRequest == null || keyFromRequest.length() < 1) {
 
-            ssBean.regenerateSessionVerificationKey();
             final String returnURL = figureValidationURL(req, ssBean.getSessionVerificationKey());
 
             LOGGER.trace(pwmSession, "session has not been validated, redirecting with verification key to " + returnURL);

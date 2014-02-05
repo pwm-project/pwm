@@ -719,4 +719,32 @@ public class ServletHelper {
             }
         }
     }
+
+    public static String appendAndEncodeUrlParameters(
+            final String inputUrl,
+            final Map<String, String> parameters
+    )
+            throws UnsupportedEncodingException
+    {
+        final StringBuilder output = new StringBuilder();
+        output.append(inputUrl == null ? "" : inputUrl);
+
+        if (parameters != null) {
+            for (final String key : parameters.keySet()) {
+                final String value = parameters.get(key);
+                final String encodedValue = URLEncoder.encode(value,"UTF8");
+
+                output.append(output.toString().contains("?") ? "&" : "?");
+                output.append(key);
+                output.append("=");
+                output.append(encodedValue);
+            }
+        }
+
+        if (output.charAt(0) == '?' || output.charAt(0) == '&') {
+            output.deleteCharAt(0);
+        }
+
+        return output.toString();
+    }
 }

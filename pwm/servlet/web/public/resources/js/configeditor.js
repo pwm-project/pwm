@@ -2885,3 +2885,13 @@ function gotoSetting(category,settingKey,profile) {
         loadMainPageBody();
     });
 }
+
+function initSettingTooltip(options) {
+    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+        new Tooltip({
+            connectId: [options['id']],
+            position: ['above','below'],
+            label: '<div style="max-width:620px">' + options['text'] + '</div>'
+        });
+    });
+}

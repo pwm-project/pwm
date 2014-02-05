@@ -28,7 +28,7 @@
 <% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
 <% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser; %>
 <% if (showHeader || healthCheck) { %>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')"/>

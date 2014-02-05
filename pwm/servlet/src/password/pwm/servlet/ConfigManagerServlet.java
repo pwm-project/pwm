@@ -143,6 +143,12 @@ public class ConfigManagerServlet extends TopServlet {
             if (passed) {
                 pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
                 pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
+                if (configManagerBean.getPrePasswordEntryUrl() != null) {
+                    final String originalUrl = configManagerBean.getPrePasswordEntryUrl();
+                    configManagerBean.setPrePasswordEntryUrl(null);
+                    resp.sendRedirect(SessionFilter.rewriteRedirectURL(originalUrl, req, resp));
+                    return true;
+                }
                 return false;
             } else {
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
@@ -152,6 +158,9 @@ public class ConfigManagerServlet extends TopServlet {
             }
         }
 
+        if (configManagerBean.getPrePasswordEntryUrl() == null) {
+            configManagerBean.setPrePasswordEntryUrl(req.getRequestURL().toString());
+        }
         final ServletContext servletContext = req.getSession().getServletContext();
         servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGIN).forward(req, resp);
         return true;

@@ -37,6 +37,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-company-logo"></div>
@@ -54,7 +55,7 @@
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 require(["dojo/domReady!"],function(){
-                    PWM_MAIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
+                    PWM_ADMIN.showAppHealth('healthBody', {showRefresh: true, showTimestamp: true});
                 });
             });
         </script>
@@ -175,6 +176,32 @@
                         });
                     </script>
                 </td>
+            </tr>
+            <tr class="buttonrow">
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.goto('/private/admin/dashboard.jsp')" id="MenuItem_Administration">
+                        <i class="fa fa-dashboard"></i>&nbsp;
+                        <pwm:Display key="Title_Admin"/>
+                    </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_Administration',PWM_MAIN.showString('Long_Title_Admin'));
+                        });
+                    </script>
+                </td>
+                <% if (pwmSessionHeader.getSessionStateBean().isAuthenticated()) { %>
+                <td class="buttoncell">
+                    <a class="menubutton" onclick="PWM_MAIN.goto('/public/Logout')" id="MenuItem_Logout">
+                        <span class="fa fa-sign-out"></span>&nbsp;
+                        <pwm:Display key="Title_Logout"/>
+                    </a>
+                    <script type="application/javascript">
+                        PWM_GLOBAL['startupFunctions'].push(function(){
+                            makeTooltip('MenuItem_Logout',PWM_MAIN.showString('Long_Title_Logout'));
+                        });
+                    </script>
+                </td>
+                <% } %>
             </tr>
         </table>
     </div>

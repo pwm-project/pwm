@@ -43,6 +43,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
+import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.stats.EventRateMeter;
 
@@ -81,12 +82,15 @@ public class ReportService implements PwmService {
     public void clear()
             throws LocalDBException
     {
+        final Date startTime = new Date();
         LOGGER.info("clearing cached report data");
         if (userCacheService != null) {
             userCacheService.clear();
         }
         summaryData = ReportSummaryData.newSummaryData();
         reportStatus = new ReportStatusInfo();
+        saveTempData();
+        LOGGER.info("finished clearing report " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     @Override
@@ -94,8 +98,13 @@ public class ReportService implements PwmService {
             throws PwmException
     {
         status = STATUS.OPENING;
-        timer = new Timer();
         this.pwmApplication = pwmApplication;
+
+        if (pwmApplication.getLocalDB() == null || LocalDB.Status.OPEN != pwmApplication.getLocalDB().status()) {
+            LOGGER.debug("LocalDB is not open, will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
 
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) {
             LOGGER.debug("reporting module is not enabled, will remain closed");
@@ -114,9 +123,11 @@ public class ReportService implements PwmService {
         }
 
         settings = Settings.readSettingsFromConfig(pwmApplication.getConfig());
-        readTempData();
+        initTempData();
 
         reportStatus.inprogress = false;
+
+        timer = new Timer();
         timer.schedule(new RecordPurger(),1);
 
         if (settings.jobOffsetSeconds >= 0) {
@@ -131,7 +142,7 @@ public class ReportService implements PwmService {
     @Override
     public void close()
     {
-        saveTempDate();
+        saveTempData();
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "true");
         if (userCacheService != null) {
             userCacheService.close();
@@ -139,7 +150,7 @@ public class ReportService implements PwmService {
         status = STATUS.CLOSED;
     }
 
-    private void saveTempDate() {
+    private void saveTempData() {
         try {
             final String jsonInfo = Helper.getGson().toJson(reportStatus);
             pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS,jsonInfo);
@@ -155,12 +166,12 @@ public class ReportService implements PwmService {
         }
     }
 
-    private void readTempData()
+    private void initTempData()
             throws LocalDBException
     {
         final String cleanFlag = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG);
         if (!"true".equals(cleanFlag)) {
-            LOGGER.error("did not shut down cleanly, will not restore cached report data");
+            LOGGER.error("did not shut down cleanly, will clear cached report data");
             clear();
             return;
         }
@@ -184,6 +195,8 @@ public class ReportService implements PwmService {
             LOGGER.error("error loading cached report dredge info into memory: " + e.getMessage());
         }
         summaryData = summaryData == null ? ReportSummaryData.newSummaryData() : summaryData; //safety
+
+        pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "false");
     }
 
     @Override

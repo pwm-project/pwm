@@ -327,6 +327,15 @@ public class ChangePasswordServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
     }
 
+    private void forwardToCompleteJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_COMPLETE).forward(req, resp);
+    }
+
     private void forwardToFormJSP(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -543,10 +552,16 @@ public class ChangePasswordServlet extends TopServlet {
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
         final PasswordChangeProgress passwordChangeProgress = figureProgress(pwmApplication, cpb);
         if (passwordChangeProgress.isComplete()) {
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-            pwmSession.clearSessionBean(ChangePasswordBean.class);
-            ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
-            ServletHelper.forwardToSuccessPage(req,resp);
+            final Locale locale = pwmSession.getSessionStateBean().getLocale();
+            final String completeMessage = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE,locale);
+            if (completeMessage != null && !completeMessage.isEmpty()) {
+                forwardToCompleteJSP(req,resp);
+            } else {
+                final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+                pwmSession.clearSessionBean(ChangePasswordBean.class);
+                ssBean.setSessionSuccess(Message.SUCCESS_PASSWORDCHANGE, null);
+                ServletHelper.forwardToSuccessPage(req,resp);
+            }
         } else {
             forwardToWaitPage(req, resp, this.getServletContext());
         }

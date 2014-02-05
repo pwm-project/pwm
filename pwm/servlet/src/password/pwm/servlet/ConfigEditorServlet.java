@@ -133,7 +133,9 @@ public class ConfigEditorServlet extends TopServlet {
             setOptions(req);
         }
 
-        forwardToJSP(req, resp);
+        if (!resp.isCommitted()) {
+            forwardToJSP(req, resp);
+        }
     }
 
     private void restExecuteSettingFunction(

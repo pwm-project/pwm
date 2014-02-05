@@ -87,8 +87,11 @@ public class SessionStateBean implements PwmSessionBean {
     private boolean privateUrlAccessed;
 
     private int intruderAttempts;
+    private boolean oauthInProgress;
+
 
     private int sessionVerificationKeyLength;
+
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -320,6 +323,16 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void clearIntruderAttempts() {
         intruderAttempts = 0;
+    }
+
+    public boolean isOauthInProgress()
+    {
+        return oauthInProgress;
+    }
+
+    public void setOauthInProgress(boolean oauthInProgress)
+    {
+        this.oauthInProgress = oauthInProgress;
     }
 
     public String getRestClientKey() {

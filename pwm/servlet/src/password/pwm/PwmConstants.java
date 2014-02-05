@@ -142,6 +142,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_PASSWORD_FORM = "WEB-INF/jsp/changepassword-form.jsp";
     public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";
     public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
+    public static final String URL_JSP_PASSWORD_COMPLETE = "WEB-INF/jsp/changepassword-complete.jsp";
     public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
     public static final String URL_JSP_SETUP_HELPDESK_RESPONSES = "WEB-INF/jsp/setupresponses-helpdesk.jsp";
     public static final String URL_JSP_SETUP_OTP_SECRET_EXISTING = "WEB-INF/jsp/setupotpsecret-existing.jsp";
@@ -184,6 +185,7 @@ public abstract class PwmConstants {
     public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
 
     public static final String URL_SERVLET_LOGIN = "Login";
+    public static final String URL_SERVLET_OAUTH_COSUMER = "oauth";
     public static final String URL_SERVLET_LOGOUT = "Logout";
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
     public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
@@ -210,6 +212,8 @@ public abstract class PwmConstants {
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
     public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");
+
+    public static final String MIMETYPE_FORM = "application/x-www-form-urlencoded";
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{

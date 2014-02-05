@@ -42,6 +42,7 @@
         <jsp:param name="pwm.PageName" value="Software License Reference"/>
     </jsp:include>
     <div id="centerbody">
+    <p style="font-style: italic; text-align: center; width: 100%">nanos gigantum humeris insidentes</p>
         <div class="licenseBlock">
             <h1>PWM License</h1>
             <a href="http://code.google.com/p/pwm">http://code.google.com/p/pwm</a>
@@ -147,6 +148,15 @@
         <div class="licenseBlock">
             <h2>Gson</h2>
             <a href="http://code.google.com/p/google-gson/">http://code.google.com/p/google-gson/</a>
+            <br/><br/>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/h2_license.txt"/></pre>
+            </div>
+            <br/>
+        </div>
+        <div class="licenseBlock">
+            <h2>H2</h2>
+            <a href="http://www.h2database.com">http://www.h2database.com</a>
             <br/><br/>
             <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
                 <pre><jsp:include page="license/apache20_license.txt"/></pre>

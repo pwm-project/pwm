@@ -170,7 +170,8 @@ public class UserStatusReader {
             final String userCurrentPassword
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
+        final String userLdapProfile = userIdentity.getLdapProfileID();
+        final ChaiProvider provider = pwmApplication.getProxyChaiProvider(userLdapProfile);
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         populateUserInfoBean(pwmSession, uiBean, pwmSession.getSessionStateBean().getLocale(), userIdentity, userCurrentPassword, provider);
     }

@@ -341,7 +341,7 @@ public class MainClass {
         final File databaseDirectory;
         final String pwmDBLocationSetting = config.readSettingAsString(PwmSetting.PWMDB_LOCATION);
         databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, new File("."));
-        return LocalDBFactory.getInstance(databaseDirectory, readonly, null,null);
+        return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
     static Configuration loadConfiguration() throws Exception {

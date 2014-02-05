@@ -25,10 +25,12 @@ package password.pwm;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserAuthenticator;
+import password.pwm.servlet.OAuthConsumerServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
@@ -36,7 +38,9 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Authentication servlet filter.  This filter wraps all servlet requests and requests direct to *.jsp
@@ -149,8 +153,6 @@ public class AuthenticationFilter implements Filter {
             LOGGER.error("unexpected ldap error when checking for user redirects: " + e.getMessage());
         }
 
-
-
         // user session is authed, and session and auth header match, so forward request on.
         chain.doFilter(req, resp);
     }
@@ -200,6 +202,13 @@ public class AuthenticationFilter implements Filter {
         // try to authenticate user with CAS
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             if (processCASAuthentication(pwmApplication, pwmSession, req, resp)) {
+                return;
+            }
+        }
+
+        // process OAuth
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (processOAuthAuthenticationRequest(pwmApplication, pwmSession, req, resp)) {
                 return;
             }
         }
@@ -316,7 +325,7 @@ public class AuthenticationFilter implements Filter {
         return false;
     }
 
-    final static boolean processAuthHeader(
+    static boolean processAuthHeader(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest req,
@@ -357,7 +366,7 @@ public class AuthenticationFilter implements Filter {
         }
     }
 
-    final static boolean processCASAuthentication(
+    static boolean processCASAuthentication(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final HttpServletRequest req,
@@ -386,6 +395,49 @@ public class AuthenticationFilter implements Filter {
             ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
             return true;
         }
+        return false;
+    }
+
+    static boolean processOAuthAuthenticationRequest(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+
+    )
+            throws IOException, ServletException
+
+    {
+        final OAuthConsumerServlet.Settings settings = OAuthConsumerServlet.Settings.fromConfiguration(pwmApplication.getConfig());
+        if (!settings.oAuthIsConfigured()) {
+            return false;
+        }
+
+        final Configuration config = pwmApplication.getConfig();
+        final String state = pwmSession.getSessionStateBean().getSessionVerificationKey();
+        final String redirectUri = OAuthConsumerServlet.figureOauthSelfEndPointUrl(req);
+        final String code = config.readAppProperty(AppProperty.OAUTH_ID_REQUEST_TYPE);
+
+        final Map<String,String> urlParams = new HashMap<String,String>();
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_CLIENT_ID),settings.getClientID());
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_RESPONSE_TYPE),code);
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_STATE),state);
+        urlParams.put(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_REDIRECT_URI),redirectUri);
+
+        final String redirectUrl = ServletHelper.appendAndEncodeUrlParameters(settings.getLoginURL(), urlParams);
+
+        try{
+            resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectUrl, req, resp));
+            pwmSession.getSessionStateBean().setOauthInProgress(true);
+            LOGGER.debug(pwmSession,"redirecting user to oauth id server, url: " + redirectUrl);
+            return true;
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unexpected error redirecting user to oauth page: " + e.toString();
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.error(errorInformation.toDebugStr());
+        }
+
         return false;
     }
 
@@ -469,7 +521,7 @@ public class AuthenticationFilter implements Filter {
         } else {
             return false;
         }
-        
+
         if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {

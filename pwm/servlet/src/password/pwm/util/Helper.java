@@ -28,12 +28,16 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.util.EntityUtils;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
@@ -181,43 +185,6 @@ public class
         } while ((System.currentTimeMillis() - startTime) < sleepTimeMS);
 
         return System.currentTimeMillis() - startTime;
-    }
-
-    public static void invokeExternalChangeMethods(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final String userDN,
-            final String oldPassword,
-            final String newPassword) throws PwmUnrecoverableException {
-        final List<String> externalMethods = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.EXTERNAL_CHANGE_METHODS);
-
-        // process any configured external change password methods configured.
-        for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0) {
-                try {
-                    // load up the class and get an instance.
-                    final Class<?> theClass = Class.forName(classNameString);
-                    final ExternalChangeMethod externalClass = (ExternalChangeMethod) theClass.newInstance();
-
-                    // invoke the passwordChange method;
-                    final boolean success = externalClass.passwordChange(pwmApplication, userDN, oldPassword, newPassword);
-
-                    if (success) {
-                        LOGGER.info(pwmSession, "externalPasswordMethod '" + classNameString + "' was successfull");
-                    } else {
-                        LOGGER.warn(pwmSession, "externalPasswordMethod '" + classNameString + "' was not successfull");
-                    }
-                } catch (ClassCastException e) {
-                    LOGGER.warn(pwmSession, "configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
-                } catch (ClassNotFoundException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
-                } catch (IllegalAccessException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
-                } catch (InstantiationException e) {
-                    LOGGER.warn(pwmSession, "unable to load configured external class: " + classNameString + " " + e.getMessage());
-                }
-            }
-        }
     }
 
     public static List<Integer> invokeExternalJudgeMethods(
@@ -603,7 +570,7 @@ public class
                 httpClient.getCredentialsProvider().setCredentials (new AuthScope(host, port),passwordCredentials);
             }
         }
-        final String userAgent = "PWM " + PwmConstants.SERVLET_VERSION;
+        final String userAgent = PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION;
         httpClient.getParams().setParameter(HttpProtocolParams.USER_AGENT, userAgent);
         return httpClient;
     }
@@ -1061,5 +1028,41 @@ public class
         }
 
         return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
+    }
+
+    public static String makeOutboundRestWSCall(
+            final PwmApplication pwmApplication,
+            final Locale locale,
+            final String url,
+            final String jsonRequestBody
+    )
+            throws PwmOperationalException
+    {
+        final HttpPost httpPost = new HttpPost(url);
+        httpPost.setHeader("Accept", "application/json");
+        if (locale != null) {
+            httpPost.setHeader("Accept-Locale", locale.toString());
+        }
+        httpPost.setHeader("Content-Type", "application/json");
+        final HttpResponse httpResponse;
+        try {
+            final StringEntity stringEntity = new StringEntity(jsonRequestBody);
+            stringEntity.setContentType("application/json");
+            httpPost.setEntity(stringEntity);
+            LOGGER.debug("beginning external rest call: " + httpPost.toString());
+            httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
+            final String responseBody = EntityUtils.toString(httpResponse.getEntity());
+            LOGGER.trace("external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody);
+            if (httpResponse.getStatusLine().getStatusCode() != 200) {
+                final String errorMsg = "received non-200 response code (" + httpResponse.getStatusLine().getStatusCode() + ") when executing web-service";
+                LOGGER.error(errorMsg);
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
+            }
+            return responseBody;
+        } catch (IOException e) {
+            final String errorMsg = "http response error while executing external rest call, error: " + e.getMessage();
+            LOGGER.error(errorMsg);
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg),e);
+        }
     }
 }

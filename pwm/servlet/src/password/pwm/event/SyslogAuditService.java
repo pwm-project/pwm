@@ -28,6 +28,7 @@ import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogConfigIF;
 import org.productivity.java.syslog4j.SyslogIF;
 import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
+import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -102,7 +103,7 @@ class SyslogAuditService {
                 break;
 
             case udp:
-                final TCPNetSyslogConfig udpConfig = new TCPNetSyslogConfig();
+                final UDPNetSyslogConfig udpConfig = new UDPNetSyslogConfig();
                 udpConfig.setThreaded(false);
                 udpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
                 syslogConfigIF = udpConfig;

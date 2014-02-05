@@ -218,12 +218,8 @@
 
             drawNextSprite();
 
-            PWM_MAIN.showAppHealth('healthBody', {showTimestamp:true});
-
-            PWM_MAIN.showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
-            setInterval(function(){
-                PWM_MAIN.showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart');
-            }, 31 * 1000);
+            PWM_ADMIN.showAppHealth('healthBody', {showTimestamp:true});
+            PWM_ADMIN.showStatChart('<%=Statistic.PASSWORD_CHANGES%>',1,'statsChart',{refreshTime:31*1000});
 
             verticalCenter('centerbody');
             setInterval(function(){
@@ -238,6 +234,7 @@
         PWM_GLOBAL['idle_suspendTimeout'] = true;
     });
 </script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

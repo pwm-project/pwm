@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
@@ -51,10 +50,7 @@ public class StringValue implements StoredValue {
 
     static StringValue fromXmlElement(final Element settingElement) {
         final Element valueElement = settingElement.getChild("value");
-        final String value = valueElement.getText();
-        final StringValue stringValue = new StringValue();
-        stringValue.value = value;
-        return stringValue;
+        return new StringValue(valueElement == null ? "" : valueElement.getText());
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

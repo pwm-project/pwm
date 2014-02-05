@@ -1,3 +1,4 @@
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
@@ -55,6 +56,7 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
+            initSettingTooltip({id:'title_<%=loopSetting.getKey()%>',text:PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description']});
         });
     </script>
 </div>
@@ -63,11 +65,11 @@
         require(["dijit/Tooltip"],function(Tooltip){
             new Tooltip({
                 connectId: ["resetButton-<%=loopSetting.getKey()%>"],
-                label: 'Return this setting to its default value.'
+                label: PWM_SETTINGS['display']['Tooltip_ResetButton']
             });
             new Tooltip({
                 connectId: ["helpButton-<%=loopSetting.getKey()%>"],
-                label: 'Show description for this setting.'
+                label: PWM_SETTINGS['display']['Tooltip_HelpButton']
             });
         });
     });
@@ -224,11 +226,12 @@
                 new ValidationTextBox({
                     regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                     required: <%=loopSetting.isRequired()%>,
-                    invalidMessage: "The value does not have the correct format.",
+                    invalidMessage: PWM_SETTINGS['display']['Warning_InvalidFormat'],
                     style: "width: 550px",
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
+                    placeholder: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getPlaceholder(locale))%>',
                     value: "[<pwm:Display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");

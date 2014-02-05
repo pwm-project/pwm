@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
@@ -31,12 +32,10 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmDataValidationException;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -45,12 +44,25 @@ public class PwmPasswordRuleValidator {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmPasswordRuleValidator.class);
 
-    private PwmApplication pwmApplication;
-    private PwmPasswordPolicy policy;
+    private final PwmApplication pwmApplication;
+    private final PwmPasswordPolicy policy;
+    private final Locale locale;
 
     public PwmPasswordRuleValidator(final PwmApplication pwmApplication, final PwmPasswordPolicy policy) {
         this.pwmApplication = pwmApplication;
         this.policy = policy;
+        this.locale = PwmConstants.DEFAULT_LOCALE;
+    }
+
+    public PwmPasswordRuleValidator(
+            PwmApplication pwmApplication,
+            PwmPasswordPolicy policy,
+            Locale locale
+    )
+    {
+        this.pwmApplication = pwmApplication;
+        this.policy = policy;
+        this.locale = locale;
     }
 
     public boolean testPassword(
@@ -60,7 +72,7 @@ public class PwmPasswordRuleValidator {
     )
             throws PwmUnrecoverableException, PwmDataValidationException, ChaiUnavailableException
     {
-        return testPassword(password, oldPassword, userInfoBean, null);
+        return testPassword(password, oldPassword, userInfoBean);
     }
 
     public boolean testPassword(
@@ -119,7 +131,7 @@ public class PwmPasswordRuleValidator {
     {
         final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean);
         if (pwmApplication != null) {
-            final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password);
+            final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password, uiBean);
             internalResults.addAll(externalResults);
         }
         return internalResults;
@@ -527,54 +539,60 @@ public class PwmPasswordRuleValidator {
         return false;
     }
 
-    public static List<ErrorInformation> invokeExternalRuleMethods(
+    final static private String REST_RESPONSE_KEY_ERROR = "error";
+    final static private String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
+
+    public List<ErrorInformation> invokeExternalRuleMethods(
             final Configuration config,
             final PwmPasswordPolicy pwmPasswordPolicy,
-            final String password) {
-        final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_RULE_METHODS);
-        final List<ErrorInformation> returnList = new ArrayList<ErrorInformation>();
+            final String password,
+            final UserInfoBean uiBean
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<ErrorInformation> returnedErrors = new ArrayList<ErrorInformation>();
+        final List<String> externalRuleUrls = config.readSettingAsStringArray(PwmSetting.EXTERNAL_PWRULES_REST_URLS);
+        final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
+        for (final String restURL : externalRuleUrls ) {
+            final HashMap<String,Object> sendData = new HashMap<String, Object>();
+            if (pwmPasswordPolicy != null) {
+                sendData.put("policy",pwmPasswordPolicy);
+            }
+            if (uiBean != null) {
+                final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
+                sendData.put("userInfo", jsonStatusData);
+            }
+            sendData.put("password",password);
 
-        // process any configured external change password methods configured.
-        for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0) {
-                try {
-                    // load up the class and get an instance.
-                    final Class<?> theClass = Class.forName(classNameString);
-                    final ExternalRuleMethod externalClass = (ExternalRuleMethod) theClass.newInstance();
-                    final List<ErrorInformation> loopReturnList = new ArrayList<ErrorInformation>();
-
-                    // invoke the passwordChange method;
-                    final ExternalRuleMethod.RuleValidatorResult result = externalClass.validatePasswordRules(pwmPasswordPolicy, password);
-                    if (result != null && result.getPwmErrors() != null) {
-                        for (final ErrorInformation errorInformation : result.getPwmErrors()) {
-                            loopReturnList.add(errorInformation);
-                            LOGGER.debug("externalRuleMethod '" + classNameString + "' returned a value of " + errorInformation.toDebugStr());
-                        }
+            final String jsonRequestBody = Helper.getGson().toJson(sendData);
+            try {
+                final String responseBody = Helper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
+                        jsonRequestBody);
+                final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
+                if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
+                        REST_RESPONSE_KEY_ERROR).toString())) {
+                    if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {
+                        final String errorMessage = responseMap.get(REST_RESPONSE_KEY_ERROR_MSG).toString();
+                        LOGGER.trace("external web service reported error: " + errorMessage);
+                        returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR,errorMessage,errorMessage,null));
+                    } else {
+                        LOGGER.trace("external web service reported error without specifying an errorMessage");
+                        returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR));
                     }
-                    if (result != null && result.getStringErrors() != null) {
-                        for (final String errorString : result.getStringErrors()) {
-                            final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION, errorString);
-                            loopReturnList.add(errorInformation);
-                            LOGGER.debug("externalRuleMethod '" + classNameString + "' returned a value of " + errorInformation.toDebugStr());
-                        }
-                    }
-                    if (loopReturnList.isEmpty()) {
-                        LOGGER.debug("externalRuleMethod '" + classNameString + "' returned no values");
-                    }
-                    returnList.addAll(loopReturnList);
-                } catch (ClassCastException e) {
-                    LOGGER.warn("configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
-                } catch (ClassNotFoundException e) {
-                    LOGGER.warn("unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
-                } catch (IllegalAccessException e) {
-                    LOGGER.warn("unable to load configured external class: " + classNameString + " " + e.getMessage());
-                } catch (InstantiationException e) {
-                    LOGGER.warn("unable to load configured external class: " + classNameString + " " + e.getMessage());
+                } else {
+                    LOGGER.trace("external web service did not report an error");
                 }
+
+            } catch (PwmOperationalException e) {
+                final String errorMsg = "error executing external rule REST call: " + e.getMessage();
+                LOGGER.error(errorMsg);
+                if (haltOnError) {
+                    throw new PwmUnrecoverableException(e.getErrorInformation(),e);
+                }
+                throw new IllegalStateException("http response error code: " + e.getMessage());
             }
         }
-
-        return returnList;
+        return returnedErrors;
     }
 
 }

@@ -28,6 +28,8 @@ import java.io.Serializable;
 import java.util.*;
 
 public class ReportSummaryData {
+    private static long MS_DAY = 24 * 60 * 60 * 1000;
+
     private String epoch;
     private int totalUsers;
     private int hasResponses;
@@ -38,6 +40,24 @@ public class ReportSummaryData {
     private int pwExpired;
     private int pwPreExpired;
     private int pwWarnPeriod;
+    private int expireNext_3;
+    private int expireNext_7;
+    private int expireNext_14;
+    private int expireNext_30;
+    private int expireNext_60;
+    private int expireNext_90;
+    private int expirePrevious_3;
+    private int expirePrevious_7;
+    private int expirePrevious_14;
+    private int expirePrevious_30;
+    private int expirePrevious_60;
+    private int expirePrevious_90;
+    private int changePrevious_3;
+    private int changePrevious_7;
+    private int changePrevious_14;
+    private int changePrevious_30;
+    private int changePrevious_60;
+    private int changePrevious_90;
     private Map<String,Integer> last30PwExpires = new TreeMap<String, Integer>();
     private Map<String,Integer> next30PwExpires = new TreeMap<String, Integer>();
 
@@ -109,6 +129,19 @@ public class ReportSummaryData {
                 hasExpirationTime--;
             }
 
+            expirePrevious_3 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*3,false,adding);
+            expirePrevious_7 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*7,false,adding);
+            expirePrevious_14 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*14,false,adding);
+            expirePrevious_30 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*30,false,adding);
+            expirePrevious_60 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*60,false,adding);
+            expirePrevious_90 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*90,false,adding);
+            expireNext_3 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*3,true,adding);
+            expireNext_7 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*7,true,adding);
+            expireNext_14 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*14,true,adding);
+            expireNext_30 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*30,true,adding);
+            expireNext_60 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*60,true,adding);
+            expireNext_90 += calcTimeWindow(userCacheRecord.passwordExpirationTime,MS_DAY*90,true,adding);
+
             final Day maxDaysBefore = Day.daysBefore(30);
             final Day maxDaysAfter = Day.daysAfter(30);
             final Day changeDay = Day.fromDate(
@@ -152,6 +185,13 @@ public class ReportSummaryData {
             } else {
                 hasChangePwTime--;
             }
+
+            changePrevious_3 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*3,false,adding);
+            changePrevious_7 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*7,false,adding);
+            changePrevious_14 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*14,false,adding);
+            changePrevious_30 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*30,false,adding);
+            changePrevious_60 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*60,false,adding);
+            changePrevious_90 += calcTimeWindow(userCacheRecord.passwordChangeTime,MS_DAY*90,false,adding);
         }
 
         if (userCacheRecord.passwordStatus != null) {
@@ -270,5 +310,22 @@ public class ReportSummaryData {
         {
             return year + "-" + day;
         }
+    }
+
+    private int calcTimeWindow(Date eventDate, final long timeWindow, boolean future, boolean adding) {
+        if (eventDate == null) {
+            return 0;
+        }
+
+        if (future) {
+            if (eventDate.after(new Date()) && eventDate.before(new Date(System.currentTimeMillis() + timeWindow))) {
+                return adding ? 1 : -1;
+            }
+        } else {
+            if (eventDate.before(new Date()) && eventDate.after(new Date(System.currentTimeMillis() - timeWindow))) {
+                return adding ? 1 : -1;
+            }
+        }
+        return 0;
     }
 }

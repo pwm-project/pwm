@@ -211,7 +211,9 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
         ? function(){setTimeout(function(){PWM_ADMIN.refreshReportDataSummary(refreshTime);},refreshTime);}
         : function(){};
 
-    require(["dojo"],function(dojo){
+
+    require(["dojo","dojo/number"],function(dojo,number){
+
         var url = PWM_GLOBAL['url-restservice'] + "/report/summary";
         dojo.xhrGet({
             url: url,
@@ -219,26 +221,47 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
             headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
             handleAs: 'json',
             load: function(data) {
+                var pctTotal = function(value) {
+                    return fields['totalUsers'] == 0 ? 0 : ((value / fields['totalUsers']) * 100).toFixed(2);
+                }
+                var makeRow = function(key,value,pct) {
+                    return '<tr><td>' + key + '</td><td>' + number.format(value) + '</td><td>' + (pct ? pctTotal(pct) + '%': '') + '</td></tr>';
+                };
                 if (data['data'] && data['data']['raw']) {
                     var fields = data['data']['raw'];
                     var htmlTable = '';
-                    var makeRow = function(key,value) {
-                        return '<tr><td>' + key + '</td><td>' + value + '</tr>';
-                    };
-                    var pctTotal = function(value) {
-                        return fields['totalUsers'] == 0 ? 0 : ((value / fields['totalUsers']) * 100).toFixed(2);
-                    }
                     htmlTable += makeRow("Total Users",fields['totalUsers']);
-                    htmlTable += makeRow("Users that have stored responses",fields['hasResponses'] + '  (' + pctTotal(fields['hasResponses']) + '%)');
+                    htmlTable += makeRow("Users that have stored responses",fields['hasResponses'],fields['hasResponses']);
                     for (var type in fields['responseStorage']) {
-                        htmlTable += makeRow("Responses stored in " + type,fields['responseStorage'][type] + '  (' + pctTotal(fields['responseStorage'][type]) + '%)');
+                        htmlTable += makeRow("Responses stored in " + type,fields['responseStorage'][type],fields['responseStorage'][type]);
                     }
-                    htmlTable += makeRow("Users that have an expiration time",fields['hasExpirationTime'] + '  (' + pctTotal(fields['hasResponses']) + '%)');
-                    htmlTable += makeRow("Users that have changed password",fields['hasChangePwTime'] + '  (' + pctTotal(fields['hasChangePwTime']) + '%)');
-                    htmlTable += makeRow("Users that have logged in",fields['hasLoginTime'] + '  (' + pctTotal(fields['hasLoginTime']) + '%)');
-                    htmlTable += makeRow("Users with expired password",fields['pwExpired'] + '  (' + pctTotal(fields['pwExpired']) + '%)');
-                    htmlTable += makeRow("Users with pre-expired password",fields['pwPreExpired'] + '  (' + pctTotal(fields['pwPreExpired']) + '%)');
-                    htmlTable += makeRow("Users with expired password within warn period",fields['pwWarnPeriod'] + '  (' + pctTotal(fields['pwWarnPeriod']) + '%)');
+                    htmlTable += makeRow("Users that have an expiration time set",fields['hasExpirationTime'],fields['hasExpirationTime']);
+
+                    htmlTable += makeRow("Users that have an expiration time in previous 3 days",fields['expirePrevious_3'],fields['expirePrevious_3']);
+                    htmlTable += makeRow("Users that have an expiration time in previous 7 days",fields['expirePrevious_7'],fields['expirePrevious_7']);
+                    htmlTable += makeRow("Users that have an expiration time in previous 14 days",fields['expirePrevious_14'],fields['expirePrevious_14']);
+                    htmlTable += makeRow("Users that have an expiration time in previous 30 days",fields['expirePrevious_30'],fields['expirePrevious_30']);
+                    htmlTable += makeRow("Users that have an expiration time in previous 60 days",fields['expirePrevious_60'],fields['expirePrevious_60']);
+                    htmlTable += makeRow("Users that have an expiration time in previous 90 days",fields['expirePrevious_90'],fields['expirePrevious_90']);
+                    htmlTable += makeRow("Users that have an expiration time in next 3 days",fields['expireNext_3'],fields['expireNext_3']);
+                    htmlTable += makeRow("Users that have an expiration time in next 7 days",fields['expireNext_7'],fields['expireNext_7']);
+                    htmlTable += makeRow("Users that have an expiration time in next 14 days",fields['expireNext_14'],fields['expireNext_14']);
+                    htmlTable += makeRow("Users that have an expiration time in next 30 days",fields['expireNext_30'],fields['expireNext_30']);
+                    htmlTable += makeRow("Users that have an expiration time in next 60 days",fields['expireNext_60'],fields['expireNext_60']);
+                    htmlTable += makeRow("Users that have an expiration time in next 90 days",fields['expireNext_90'],fields['expireNext_90']);
+
+                    htmlTable += makeRow("Users that have changed password",fields['hasChangePwTime'],fields['hasChangePwTime']);
+                    htmlTable += makeRow("Users that have changed password in previous 3 days", fields['changePrevious_3'],fields['changePrevious_3']);
+                    htmlTable += makeRow("Users that have changed password in previous 7 days", fields['changePrevious_7'],fields['changePrevious_7']);
+                    htmlTable += makeRow("Users that have changed password in previous 14 days",fields['changePrevious_14'],fields['changePrevious_14']);
+                    htmlTable += makeRow("Users that have changed password in previous 30 days",fields['changePrevious_30'],fields['changePrevious_30']);
+                    htmlTable += makeRow("Users that have changed password in previous 60 days",fields['changePrevious_60'],fields['changePrevious_60']);
+                    htmlTable += makeRow("Users that have changed password in previous 90 days",fields['changePrevious_90'],fields['changePrevious_90']);
+
+                    htmlTable += makeRow("Users that have logged in",fields['hasLoginTime'],fields['hasLoginTime']);
+                    htmlTable += makeRow("Users with expired password",fields['pwExpired'],fields['pwExpired']);
+                    htmlTable += makeRow("Users with pre-expired password",fields['pwPreExpired'],fields['pwPreExpired']);
+                    htmlTable += makeRow("Users with expired password within warn period",fields['pwWarnPeriod'],fields['pwWarnPeriod']);
                     /*
                      for (var field in fields) {
                      htmlTable += '<tr><td>' + field + '</td><td>' + fields[field] + '</tr>';
@@ -465,3 +488,223 @@ PWM_ADMIN.refreshAuditGridData=function() {
     });
 }
 
+PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
+    var options = options || {};
+    var doRefresh = options['refreshTime']
+        ? function(){setTimeout(function(){PWM_ADMIN.showStatChart(statName,days,divName,options);},options['refreshTime']);}
+        : function(){};
+    var epsTypes = PWM_GLOBAL['epsTypes'];
+    var epsDurations = PWM_GLOBAL['epsDurations'];
+    require(["dojo",
+        "dijit",
+        "dijit/registry",
+        "dojox/charting/Chart2D",
+        "dojox/charting/axis2d/Default",
+        "dojox/charting/plot2d/Default",
+        "dojox/charting/themes/Wetland",
+        "dijit/form/Button",
+        "dojox/gauges/GlossyCircularGauge",
+        "dojo/domReady!"],
+        function(dojo,dijit,registry){
+            var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
+            statsGetUrl += "?statName=" + statName;
+            statsGetUrl += "&days=" + days;
+
+            dojo.xhrGet({
+                url: statsGetUrl,
+                handleAs: "json",
+                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+                timeout: 15 * 1000,
+                preventCache: true,
+                error: function(data) {
+                    for (var loopEpsTypeIndex = 0; loopEpsTypeIndex < epsTypes.length; loopEpsTypeIndex++) { // clear all the gauges
+                        var loopEpsName = epsTypes[loopEpsTypeIndex] + '';
+                        for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
+                            var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
+                            var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                            if (PWM_MAIN.getObject(loopEpsID) != null) {
+                                if (registry.byId(loopEpsID)) {
+                                    registry.byId(loopEpsID).setAttribute('value',0);
+                                }
+                            }
+                        }
+                    }
+                    doRefresh();
+                },
+                load: function(data) {
+                    {// gauges
+                        console.log('Beginning stats update process...');
+                        data = data['data'];
+                        var activityCount = 0;
+                        for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
+                            var loopEpsName = epsTypes[loopEpsIndex] + '';
+                            for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
+                                var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
+                                var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
+                                var loopFieldEpsID = "FIELD_" + loopEpsName + "_" + loopEpsDuration;
+                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
+                                var loopEpmValue = (loopEpsValue * 60).toFixed(3);
+                                var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
+                                if (loopEpsDuration == "HOURLY") {
+                                    activityCount += loopEpsValue;
+                                }
+                                if (PWM_MAIN.getObject(loopFieldEpsID) != null) {
+                                    PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
+                                }
+                                if (PWM_MAIN.getObject(loopEpsID) != null) {
+                                    console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
+                                    if (registry.byId(loopEpsID)) {
+                                        registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
+                                        registry.byId(loopEpsID).setAttribute('max',loopTop);
+                                    } else {
+                                        var glossyCircular = new dojox.gauges.GlossyCircularGauge({
+                                            background: [255, 255, 255, 0],
+                                            noChange: true,
+                                            value: loopEpmValue,
+                                            max: loopTop,
+                                            needleColor: '#FFDC8B',
+                                            majorTicksInterval: Math.abs(loopTop / 10),
+                                            minorTicksInterval: Math.abs(loopTop / 10),
+                                            id: loopEpsID,
+                                            width: 200,
+                                            height: 150
+                                        }, dojo.byId(loopEpsID));
+                                        glossyCircular.startup();
+                                    }
+                                }
+                            }
+                        }
+                        PWM_GLOBAL['epsActivityCount'] = activityCount;
+                    }
+                    if (divName != null && PWM_MAIN.getObject(divName)) { // stats chart
+                        var values = [];
+                        for(var key in data['nameData']) {
+                            var value = data['nameData'][key];
+                            values.push(parseInt(value));
+                        }
+
+                        if (PWM_GLOBAL[divName + '-stored-reference']) {
+                            var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
+                            existingChart.destroy();
+                        }
+                        var c = new dojox.charting.Chart2D(divName);
+                        PWM_GLOBAL[divName + '-stored-reference'] = c;
+                        c.addPlot("default", {type: "Columns", gap:'2'});
+                        c.addAxis("x", {});
+                        c.addAxis("y", {vertical: true});
+                        c.setTheme(dojox.charting.themes.Wetland);
+                        c.addSeries("Series 1", values);
+                        c.render();
+                    }
+                    doRefresh();
+                }
+            });
+        });
+};
+
+PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
+    var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
+    PWM_GLOBAL['showPwmHealthOptions'] = options;
+    var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
+    var showRefresh = inputOpts['showRefresh'];
+    var showTimestamp = inputOpts['showTimestamp'];
+    var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
+    var finishFunction = inputOpts['finishFunction'];
+
+    {
+        refreshUrl += refreshUrl.indexOf('?') == -1 ? '?' : '&';
+        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    }
+
+    console.log('starting showPwmHealth: refreshTime=' + refreshTime);
+    require(["dojo","dojo/date/stamp"],function(dojo,stamp){
+        var parentDiv = dojo.byId(parentDivID);
+
+        if (PWM_GLOBAL['healthCheckInProgress']) {
+            return;
+        }
+
+
+        PWM_GLOBAL['healthCheckInProgress'] = "true";
+
+        if (refreshNow) {
+            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
+            refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
+            refreshUrl += "&refreshImmediate=true";
+        }
+
+        dojo.xhrGet({
+            url: refreshUrl,
+            handleAs: "json",
+            headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
+            timeout: 60 * 1000,
+            preventCache: true,
+            load: function(data) {
+                if (data['error']) {
+
+                } else {
+                    PWM_GLOBAL['pwm-health'] = data['data']['overall'];
+                    var healthRecords = data['data']['records'];
+                    var htmlBody = '<table width="100%" style="width=100%; border=0">';
+                    for (var i = 0; i < healthRecords.length; i++) {
+                        var healthData = healthRecords[i];
+                        htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
+                        htmlBody += healthData['topic'];
+                        htmlBody += '</td><td class="health-' + healthData['status'] + '">';
+                        htmlBody += healthData['status'];
+                        htmlBody += "</td><td>";
+                        htmlBody += healthData['detail'];
+                        htmlBody += "</td></tr>";
+                    }
+                    if (showTimestamp || showRefresh) {
+                        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+                        if (showTimestamp) {
+                            htmlBody += (data['data']['timestamp'] + '&nbsp;&nbsp;&nbsp;&nbsp;');
+                        }
+                        if (showRefresh) {
+                            htmlBody += '<a title="refresh" href="#"; onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">';
+                            htmlBody += '<span class="fa fa-refresh"></span>';
+                            htmlBody += '</a>';
+                        }
+                        htmlBody += "</td></tr>";
+                    }
+
+                    htmlBody += '</table>';
+                    parentDiv.innerHTML = htmlBody;
+                    PWM_GLOBAL['healthCheckInProgress'] = false;
+                    if (refreshTime > 0) {
+                        setTimeout(function() {
+                            PWM_ADMIN.showAppHealth(parentDivID, options);
+                        }, refreshTime);
+                    }
+                    if (finishFunction) {
+                        finishFunction();
+                    }
+                }
+            },
+            error: function(error) {
+                if (error != null) {
+                    console.log('error reaching server: ' + error);
+                }
+                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
+                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
+                htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
+                if (showRefresh) {
+                    htmlBody += '<a href="#" onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
+                }
+                htmlBody += '</div>';
+                parentDiv.innerHTML = htmlBody;
+                PWM_GLOBAL['healthCheckInProgress'] = false;
+                PWM_GLOBAL['pwm-health'] = 'WARN';
+                if (refreshTime > 0) {
+                    setTimeout(function() {
+                        PWM_ADMIN.showAppHealth(parentDivID, options);
+                    }, refreshTime);
+                }
+                if (finishFunction) {
+                    finishFunction();
+                }
+            }
+        });
+    });
+};

@@ -163,7 +163,7 @@ PWM_MAIN.goto = function(url,options) {
             url = PWM_GLOBAL['url-context'] + url;
         }
     }
-    if (!options['noFormID']) {
+    if (options['addFormID']) {
         if (url.indexOf('pwmFormID') == -1) {
             url += url.indexOf('?') == -1 ? '?' : '&';
             url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
@@ -490,113 +490,6 @@ PWM_MAIN.closeWaitDialog = function() {
     });
 };
 
-PWM_MAIN.showAppHealth = function(parentDivID, options, refreshNow) {
-    var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
-    PWM_GLOBAL['showPwmHealthOptions'] = options;
-    var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
-    var showRefresh = inputOpts['showRefresh'];
-    var showTimestamp = inputOpts['showTimestamp'];
-    var refreshTime = inputOpts['refreshTime'] || 10 * 1000;
-    var finishFunction = inputOpts['finishFunction'];
-
-    {
-        refreshUrl += refreshUrl.indexOf('?') == -1 ? '?' : '&';
-        refreshUrl += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-    }
-
-    console.log('starting showPwmHealth: refreshTime=' + refreshTime);
-    require(["dojo","dojo/date/stamp"],function(dojo,stamp){
-        var parentDiv = dojo.byId(parentDivID);
-
-        if (PWM_GLOBAL['healthCheckInProgress']) {
-            return;
-        }
-
-
-        PWM_GLOBAL['healthCheckInProgress'] = "true";
-
-        if (refreshNow) {
-            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
-            refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
-            refreshUrl += "&refreshImmediate=true";
-        }
-
-        dojo.xhrGet({
-            url: refreshUrl,
-            handleAs: "json",
-            headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-            timeout: 60 * 1000,
-            preventCache: true,
-            load: function(data) {
-                if (data['error']) {
-
-                } else {
-                    PWM_GLOBAL['pwm-health'] = data['data']['overall'];
-                    var healthRecords = data['data']['records'];
-                    var htmlBody = '<table width="100%" style="width=100%; border=0">';
-                    for (var i = 0; i < healthRecords.length; i++) {
-                        var healthData = healthRecords[i];
-                        htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
-                        htmlBody += healthData['topic'];
-                        htmlBody += '</td><td class="health-' + healthData['status'] + '">';
-                        htmlBody += healthData['status'];
-                        htmlBody += "</td><td>";
-                        htmlBody += healthData['detail'];
-                        htmlBody += "</td></tr>";
-                    }
-                    if (showTimestamp || showRefresh) {
-                        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-                        if (showTimestamp) {
-                            htmlBody += (data['data']['timestamp'] + '&nbsp;&nbsp;&nbsp;&nbsp;');
-                        }
-                        if (showRefresh) {
-                            htmlBody += '<a title="refresh" href="#"; onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">';
-                            htmlBody += '<span class="fa fa-refresh"></span>';
-                            htmlBody += '</a>';
-                        }
-                        htmlBody += "</td></tr>";
-                    }
-
-                    htmlBody += '</table>';
-                    parentDiv.innerHTML = htmlBody;
-                    PWM_GLOBAL['healthCheckInProgress'] = false;
-                    if (refreshTime > 0) {
-                        setTimeout(function() {
-                            PWM_MAIN.showAppHealth(parentDivID, options);
-                        }, refreshTime);
-                    }
-                    if (finishFunction) {
-                        finishFunction();
-                    }
-                }
-            },
-            error: function(error) {
-                if (error != null) {
-                    console.log('error reaching server: ' + error);
-                }
-                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
-                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
-                htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
-                if (showRefresh) {
-                    htmlBody += '<a href="#" onclick="PWM_MAIN.showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
-                }
-                htmlBody += '</div>';
-                parentDiv.innerHTML = htmlBody;
-                PWM_GLOBAL['healthCheckInProgress'] = false;
-                PWM_GLOBAL['pwm-health'] = 'WARN';
-                if (refreshTime > 0) {
-                    setTimeout(function() {
-                        PWM_MAIN.showAppHealth(parentDivID, options);
-                    }, refreshTime);
-                }
-                if (finishFunction) {
-                    finishFunction();
-                }
-            }
-        });
-    });
-};
-
 PWM_MAIN.clearError=function() {
     PWM_GLOBAL['messageStatus'] = '';
     PWM_MAIN.doShow('messageStatus','\u00a0');
@@ -672,114 +565,6 @@ PWM_MAIN.doShow = function(destClass, message, fromFloatHandler) {
             }
         }
     });
-};
-
-PWM_MAIN.showStatChart = function(statName,days,divName) {
-    var epsTypes = PWM_GLOBAL['epsTypes'];
-    var epsDurations = PWM_GLOBAL['epsDurations'];
-    require(["dojo",
-        "dijit",
-        "dijit/registry",
-        "dojox/charting/Chart2D",
-        "dojox/charting/axis2d/Default",
-        "dojox/charting/plot2d/Default",
-        "dojox/charting/themes/Wetland",
-        "dijit/form/Button",
-        "dojox/gauges/GlossyCircularGauge",
-        "dojo/domReady!"],
-        function(dojo,dijit,registry){
-            var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
-            statsGetUrl += "?statName=" + statName;
-            statsGetUrl += "&days=" + days;
-
-            dojo.xhrGet({
-                url: statsGetUrl,
-                handleAs: "json",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                timeout: 15 * 1000,
-                preventCache: true,
-                error: function(data) {
-                    for (var loopEpsTypeIndex = 0; loopEpsTypeIndex < epsTypes.length; loopEpsTypeIndex++) { // clear all the gauges
-                        var loopEpsName = epsTypes[loopEpsTypeIndex] + '';
-                        for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
-                            var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
-                            var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                            if (PWM_MAIN.getObject(loopEpsID) != null) {
-                                if (registry.byId(loopEpsID)) {
-                                    registry.byId(loopEpsID).setAttribute('value',0);
-                                }
-                            }
-                        }
-                    }
-                },
-                load: function(data) {
-                    {// gauges
-                        console.log('Beginning stats update process...');
-                        data = data['data'];
-                        var activityCount = 0;
-                        for (var loopEpsIndex = 0; loopEpsIndex < epsTypes.length; loopEpsIndex++) {
-                            var loopEpsName = epsTypes[loopEpsIndex] + '';
-                            for (var loopEpsDurationsIndex = 0; loopEpsDurationsIndex < epsDurations.length; loopEpsDurationsIndex++) { // clear all the gauges
-                                var loopEpsDuration = epsDurations[loopEpsDurationsIndex] + '';
-                                var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
-                                var loopFieldEpsID = "FIELD_" + loopEpsName + "_" + loopEpsDuration;
-                                var loopEpsValue = data['EPS'][loopEpsName + "_" + loopEpsDuration];
-                                var loopEpmValue = (loopEpsValue * 60).toFixed(3);
-                                var loopTop = PWM_GLOBAL['client.activityMaxEpsRate'];
-                                if (loopEpsDuration == "HOURLY") {
-                                    activityCount += loopEpsValue;
-                                }
-                                if (PWM_MAIN.getObject(loopFieldEpsID) != null) {
-                                    PWM_MAIN.getObject(loopFieldEpsID).innerHTML = loopEpmValue;
-                                }
-                                if (PWM_MAIN.getObject(loopEpsID) != null) {
-                                    console.log('EpsID=' + loopEpsID + ', ' + 'Eps=' + loopEpsValue + ', ' + 'Epm=' + loopEpmValue);
-                                    if (registry.byId(loopEpsID)) {
-                                        registry.byId(loopEpsID).setAttribute('value',loopEpmValue);
-                                        registry.byId(loopEpsID).setAttribute('max',loopTop);
-                                    } else {
-                                        var glossyCircular = new dojox.gauges.GlossyCircularGauge({
-                                            background: [255, 255, 255, 0],
-                                            noChange: true,
-                                            value: loopEpmValue,
-                                            max: loopTop,
-                                            needleColor: '#FFDC8B',
-                                            majorTicksInterval: Math.abs(loopTop / 10),
-                                            minorTicksInterval: Math.abs(loopTop / 10),
-                                            id: loopEpsID,
-                                            width: 200,
-                                            height: 150
-                                        }, dojo.byId(loopEpsID));
-                                        glossyCircular.startup();
-                                    }
-                                }
-                            }
-                        }
-                        PWM_GLOBAL['epsActivityCount'] = activityCount;
-                    }
-                    if (divName != null && PWM_MAIN.getObject(divName)) { // stats chart
-                        var values = [];
-                        for(var key in data['nameData']) {
-                            var value = data['nameData'][key];
-                            values.push(parseInt(value));
-                        }
-
-                        if (PWM_GLOBAL[divName + '-stored-reference']) {
-                            var existingChart = PWM_GLOBAL[divName + '-stored-reference'];
-                            existingChart.destroy();
-                        }
-                        var c = new dojox.charting.Chart2D(divName);
-                        PWM_GLOBAL[divName + '-stored-reference'] = c;
-                        c.addPlot("default", {type: "Columns", gap:'2'});
-                        c.addAxis("x", {});
-                        c.addAxis("y", {vertical: true});
-                        c.setTheme(dojox.charting.themes.Wetland);
-                        c.addSeries("Series 1", values);
-                        c.render();
-                    }
-                }
-            });
-        });
 };
 
 PWM_MAIN.createCSSClass = function(selector, style) {
@@ -932,13 +717,15 @@ PWM_MAIN.messageDivFloatHandler = function() {
         return;
     }
 
-    if (PWM_GLOBAL['message_scrollToggle'] != PWM_MAIN.elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus']) {
-        PWM_GLOBAL['message_scrollToggle'] = PWM_MAIN.elementInViewport(messageWrapperObj) + PWM_GLOBAL['messageStatus'];
+    var doFloatDisplay = !(PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '');
+    if (PWM_VAR['setting_alwaysFloatMessages']) {
+        doFloatDisplay = PWM_GLOBAL['messageStatus'] != '';
+    }
 
-        if (PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '') {
-            messageObj.style.cssText = '';
-            PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
-        } else {
+    if (PWM_GLOBAL['message_scrollToggle'] != doFloatDisplay) {
+        PWM_GLOBAL['message_scrollToggle'] = doFloatDisplay;
+
+        if (doFloatDisplay) {
             messageObj.style.position = 'fixed';
             messageObj.style.top = '-3px';
             messageObj.style.left = '0';
@@ -946,6 +733,9 @@ PWM_MAIN.messageDivFloatHandler = function() {
             messageObj.style.zIndex = "100";
             messageObj.style.textAlign = "center";
             messageObj.style.backgroundColor = 'black';
+            PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
+        } else {
+            messageObj.style.cssText = '';
             PWM_MAIN.doShow(PWM_GLOBAL['messageStatus'],messageObj.innerHTML,true);
         }
     }

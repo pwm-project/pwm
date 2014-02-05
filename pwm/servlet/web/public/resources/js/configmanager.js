@@ -116,7 +116,7 @@ PWM_CONFIG.startConfigurationEditor=function() {
             alert('Internet Explorer 8 and below is not able to edit the configuration.  Please use a newer version of Internet Explorer or a different browser.');
             document.forms['cancelEditing'].submit();
         } else {
-            PWM_MAIN.goto('/private/config/ConfigManager?processAction=startEditing');
+            PWM_MAIN.goto('/private/config/ConfigEditor');
         }
     });
 };

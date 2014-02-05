@@ -55,11 +55,11 @@ public class PwmSession implements Serializable {
 
     private final SessionStateBean sessionStateBean;
     private final Map<Class,PwmSessionBean> sessionBeans = new HashMap<Class, PwmSessionBean>();
+
     private boolean valid = true;
+    private Settings settings = new Settings();
 
     private transient SessionManager sessionManager;
-
-
 
     public static PwmSession getPwmSession(final PwmApplication pwmApplication, final HttpSession httpSession)
             throws PwmUnrecoverableException
@@ -104,6 +104,7 @@ public class PwmSession implements Serializable {
 
         final int sessionValidationKeyLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_SESSION_VALIDATION_KEY_LENGTH));
         sessionStateBean = new SessionStateBean(sessionValidationKeyLength);
+        sessionStateBean.regenerateSessionVerificationKey();
         this.sessionStateBean.setSessionID("");
 
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
@@ -124,6 +125,8 @@ public class PwmSession implements Serializable {
         if (pwmApplication.getStatisticsManager() != null) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.HTTP_SESSIONS);
         }
+
+        settings.restKeyLength = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.SECURITY_WS_REST_CLIENT_KEY_LENGTH));
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -342,7 +345,7 @@ public class PwmSession implements Serializable {
             throws PwmUnrecoverableException
     {
         if (pwmApplication == null) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_PWM_UNAVAILABLE, "unable to read context manager"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "unable to read context manager"));
         }
 
         final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
@@ -376,7 +379,7 @@ public class PwmSession implements Serializable {
             return restClientKey;
         }
 
-        final String newKey = Long.toString(System.currentTimeMillis(),36) + PwmRandom.getInstance().alphaNumericString(500);
+        final String newKey = Long.toString(System.currentTimeMillis(),36) + PwmRandom.getInstance().alphaNumericString(settings.restKeyLength);
         this.getSessionStateBean().setRestClientKey(newKey);
         return newKey;
     }
@@ -401,4 +404,7 @@ public class PwmSession implements Serializable {
         }
     }
 
+    private static class Settings implements Serializable {
+        private int restKeyLength = 36; // default
+    }
 }

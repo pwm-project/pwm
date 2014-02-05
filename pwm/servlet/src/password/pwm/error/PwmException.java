@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,11 @@ public abstract class PwmException extends Exception {
 
     public PwmException(final ErrorInformation error) {
         this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;
+    }
+
+    public PwmException(final ErrorInformation error, final Throwable initialCause) {
+        this.errorInformation = error == null ? new ErrorInformation(PwmError.ERROR_UNKNOWN) : error;
+        this.initCause(initialCause);
     }
 
     public PwmException(final PwmError error) {

@@ -657,6 +657,7 @@
     </div>
 </div>
 </div>
+</div>
 <div class="push"></div>
 </div>
 <script type="text/javascript">
@@ -665,12 +666,8 @@
             ready(function(){
                 dojoParser.parse();
 
-                PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
-                setInterval(function(){
-                    PWM_MAIN.showStatChart('PASSWORD_CHANGES',14,'statsChart');
-                }, 11 * 1000);
-
-                PWM_MAIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+                PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
+                PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
             });
         });
     });
@@ -685,6 +682,7 @@
         });
     }
 </script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

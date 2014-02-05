@@ -24,7 +24,7 @@
 <div id="TopMenu" style="width: 600px">
 </div>
 <br/>
-<script defer type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <script type="text/javascript" async="async">
     var PWM_ADMIN = PWM_ADMIN || {};
 
