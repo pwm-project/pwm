@@ -130,7 +130,7 @@ table td {
 
 .menubutton {
     padding: 2px;
-    white-space: nowrap;
+    white-space: normal;
     border-radius: 1px;
     padding-right: 5px;
     padding-left: 5px;

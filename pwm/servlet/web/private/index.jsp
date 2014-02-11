@@ -69,6 +69,7 @@
                     <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtpSecret'/>"><pwm:Display key="Title_SetupOtpSecret"/></a>
                 </td>
                 <td style="border: 0">
+                        <i class="fa fa-qrcode"></i>&nbsp;
                     <p><pwm:Display key="Long_Title_SetupOtpSecret"/></p>
                 </td>
             </tr>
