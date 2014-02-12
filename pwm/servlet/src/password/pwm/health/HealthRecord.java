@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,11 +62,11 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         this.fields = null;
     }
 
-    public HealthRecord(
+    private HealthRecord(
             final HealthStatus status,
             final HealthTopic topicEnum,
             final HealthMessage message,
-            final String... fields
+            final String[] fields
     ) {
 
         if (status == null) {
@@ -81,6 +81,15 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         this.old_topic = null;
         this.old_detail = null;
     }
+
+    public static HealthRecord forMessage(HealthMessage message) {
+        return new HealthRecord(message.getStatus(), message.getTopic(), message, null);
+    }
+
+    public static HealthRecord forMessage(HealthMessage message, String... fields) {
+        return new HealthRecord(message.getStatus(), message.getTopic(), message, fields);
+    }
+
 
     public HealthStatus getStatus() {
         return status;

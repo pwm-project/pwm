@@ -170,11 +170,13 @@ PWM_MAIN.goto = function(url,options) {
         }
     }
     PWM_MAIN.showWaitDialog(null,null,function(){
-        window.location = url;
-        if (options['closeDelay']) {
+
+        if (options['delay']) {
             setTimeout(function(){
-                PWM_MAIN.closeWaitDialog();
-            },options['closeDelay']);
+                window.location = url;
+            },options['delay']);
+        } else {
+            window.location = url;
         }
     });
 }

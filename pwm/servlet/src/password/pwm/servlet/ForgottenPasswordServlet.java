@@ -50,6 +50,7 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
 import password.pwm.util.otp.OTPUserConfiguration;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -247,8 +248,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 // check if password-last-modified is same as when tried to read it before.
                 if (tokenPass) {
                     try {
-                        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-                        final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession, userIdentity);
+                        final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
                         final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                         if (userLastPasswordChange != null && dateStringInToken != null) {
                             final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
@@ -884,11 +884,9 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
 
         final Map<String,String> tokenMapData = new HashMap<String, String>();
-        final Set<String> dest = new HashSet<String>();
 
         try {
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-            final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession, forgottenPasswordBean.getUserIdentity());
+            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
             if (userLastPasswordChange != null) {
                 final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userChangeString);
@@ -897,60 +895,72 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
         }
 
-        final StringBuilder tokenSendDisplay = new StringBuilder();
-        String toEmailAddr = null;
-        try {
-            LOGGER.trace("Reading setting " + PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-            final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
-            toEmailAddr = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-            if (toEmailAddr != null && toEmailAddr.length() > 0) {
-                LOGGER.trace("Email address: "+toEmailAddr);
-                tokenSendDisplay.append(toEmailAddr);
-                dest.add(toEmailAddr);
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
-        }
+        final RestTokenDataClient.TokenDestinationData inputDestinationData;
+        {
+            String toEmailAddr = null;
 
-        String toSmsNumber = null;
-        try {
-            LOGGER.trace("reading setting " + PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-            final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
-            toSmsNumber = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-            if (toSmsNumber !=null && toSmsNumber.length() > 0) {
-                LOGGER.trace("SMS number: " + toSmsNumber);
-                if (tokenSendDisplay.length() > 0) {
-                    tokenSendDisplay.append(" / ");
+            try {
+                LOGGER.trace("Reading setting " + PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+                final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+                toEmailAddr = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+                if (toEmailAddr != null && toEmailAddr.length() > 0) {
+                    LOGGER.trace("Email address: " + toEmailAddr);
                 }
-                tokenSendDisplay.append(toSmsNumber);
-                dest.add(toSmsNumber);
+            } catch (ChaiOperationException e) {
+                LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
+            } catch (ChaiUnavailableException e) {
+                LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
             }
-        } catch (ChaiOperationException e) {
-            LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
-        }
-        forgottenPasswordBean.setTokenSendAddress(tokenSendDisplay.toString());
 
-        final String token;
+            String toSmsNumber = null;
+            try {
+                LOGGER.trace("reading setting " + PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
+                final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+                toSmsNumber = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+                if (toSmsNumber !=null && toSmsNumber.length() > 0) {
+                    LOGGER.trace("SMS number: " + toSmsNumber);
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
+            } catch (ChaiUnavailableException e) {
+                LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
+            }
+
+            inputDestinationData = new RestTokenDataClient.TokenDestinationData(toEmailAddr,toSmsNumber,null);
+        }
+
+        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
+        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
+                pwmSession,
+                inputDestinationData,
+                forgottenPasswordBean.getUserIdentity(),
+                pwmSession.getSessionStateBean().getLocale());
+
+        forgottenPasswordBean.setTokenSendAddress(outputDestrestTokenDataClient.getDisplayValue());
+        final Set<String> destinationValues = new HashSet<String>();
+        if (outputDestrestTokenDataClient.getEmail() != null) {
+            destinationValues.add(outputDestrestTokenDataClient.getEmail());
+        }
+        if (outputDestrestTokenDataClient.getSms() != null) {
+            destinationValues.add(outputDestrestTokenDataClient.getSms());
+        }
+
+        final String tokenKey;
         TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
-            token = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
+            tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
         LOGGER.debug(pwmSession, "generated token code for session");
 
-
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        sendToken(pwmApplication, userIdentity, locale, toEmailAddr, toSmsNumber, token);
+        sendToken(pwmApplication, userIdentity, locale, outputDestrestTokenDataClient.getEmail(), outputDestrestTokenDataClient.getSms(), tokenKey);
     }
 
     private static void sendToken(

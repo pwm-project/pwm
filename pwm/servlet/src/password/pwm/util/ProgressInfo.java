@@ -23,6 +23,8 @@
 package password.pwm.util;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.text.DecimalFormat;
 import java.util.Date;
 
@@ -61,10 +63,17 @@ public class ProgressInfo implements Serializable {
     }
 
     public TimeDuration remainingDuration() {
-        final long lps = elapsed().getTotalSeconds() <= 0 ? 0 : totalItems / elapsed().getTotalSeconds();
-        final long linesRemaining = totalItems - nowItems;
-        final long msRemaining = lps <= 0 ? 0 : (linesRemaining / lps) * 1000;
-        return new TimeDuration(msRemaining);
+        final long elapsedMs = elapsed().getTotalMilliseconds();
+        final BigDecimal itemsPerMs = elapsedMs <= 0 ? BigDecimal.ZERO : new BigDecimal(totalItems).divide(new BigDecimal(elapsedMs),MathContext.DECIMAL32);
+        final BigDecimal remainingMs = itemsPerMs.compareTo(BigDecimal.ZERO) <= 0
+                ? BigDecimal.ZERO
+                : new BigDecimal(itemsRemaining()).divide(itemsPerMs,MathContext.DECIMAL32);
+        return new TimeDuration(remainingMs.longValue());
+    }
+
+    public Date estimatedCompletion() {
+        final TimeDuration remainingDuration = remainingDuration();
+        return new Date(System.currentTimeMillis() + remainingDuration.getTotalMilliseconds());
     }
 
     public String debugOutput() {

@@ -309,7 +309,7 @@ public class UserStatusReader {
         uiBean.setRequiresUpdateProfile(CommandServlet.checkProfile(pwmSession, pwmApplication, uiBean));
 
         // fetch last password modification time;
-        final Date pwdLastModifedDate = determinePwdLastModified(pwmSession, userIdentity);
+        final Date pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         // read user last login time:
@@ -374,38 +374,6 @@ public class UserStatusReader {
             interestingUserAttributes.add("cn");
         }
         return interestingUserAttributes;
-    }
-
-    public Date determinePwdLastModified(
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        // fetch last password modification time from pwm last update attribute operation
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        try {
-            final Date chaiReadDate = theUser.readPasswordModificationDate();
-            if (chaiReadDate != null) {
-                LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
-                return chaiReadDate;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
-        }
-
-        final String pwmLastSetAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
-        if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
-            try {
-                final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
-                LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPwdLastModified);
-                return pwmPwdLastModified;
-            } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
-            }
-        }
-
-        LOGGER.debug(pwmSession, "unable to determine time of user's last password modification");
-        return null;
     }
 
     /**

@@ -135,8 +135,6 @@ public class GuestRegistrationServlet extends TopServlet {
         final List<FormConfiguration> formItems = pwmApplication.getConfig().readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
         final String expirationAttribute = config.readSettingAsString(PwmSetting.GUEST_EXPIRATION_ATTRIBUTE);
 
-        Validator.validatePwmFormID(req);
-
         try {
             //read the values from the request
             final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, formItems, ssBean.getLocale());

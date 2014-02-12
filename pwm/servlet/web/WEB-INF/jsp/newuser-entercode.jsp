@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.bean.servlet.NewUserBean" %>
+
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -21,6 +22,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%
+    final NewUserBean newUserBean = PwmSession.getPwmSession(session).getNewUserBean();
+    String destination = newUserBean.getTokenDisplayText();
+%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -32,10 +37,10 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <% if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
-        <p><pwm:Display key="Display_RecoverEnterCode"/></p>
-        <% } else if (PwmSession.getPwmSession(session).getNewUserBean().getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
-        <p><pwm:Display key="Display_RecoverEnterCodeSMS"/></p>
+        <% if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
+        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <% } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
+        <p><pwm:Display key="Display_RecoverEnterCodeSMS" value1="<%=destination%>"/></p>
         <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"

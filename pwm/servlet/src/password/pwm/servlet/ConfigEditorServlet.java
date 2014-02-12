@@ -115,7 +115,7 @@ public class ConfigEditorServlet extends TopServlet {
             restFinishEditing(req, resp);
             return;
         } else if ("executeSettingFunction".equalsIgnoreCase(processActionParam)) {
-            restExecuteSettingFunction(req, resp, pwmApplication, configManagerBean);
+            restExecuteSettingFunction(req, resp, pwmApplication, pwmSession, configManagerBean);
             return;
         } else if ("setConfigurationPassword".equalsIgnoreCase(processActionParam)) {
             doSetConfigurationPassword(req);
@@ -142,6 +142,7 @@ public class ConfigEditorServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
@@ -157,7 +158,7 @@ public class ConfigEditorServlet extends TopServlet {
         try {
             Class implementingClass = Class.forName(functionName);
             SettingUIFunction function = (SettingUIFunction)implementingClass.newInstance();
-            final String result = function.provideFunction(pwmApplication, configManagerBean.getConfiguration(), pwmSetting, profileID);
+            final String result = function.provideFunction(pwmApplication, pwmSession, configManagerBean.getConfiguration(), pwmSetting, profileID);
             RestResultBean restResultBean = new RestResultBean();
             restResultBean.setSuccessMessage(result);
             ServletHelper.outputJsonResult(resp, restResultBean);
@@ -247,7 +248,6 @@ public class ConfigEditorServlet extends TopServlet {
             final HttpServletResponse resp
     )
             throws IOException, PwmUnrecoverableException {
-        Validator.validatePwmFormID(req);
         final ConfigEditorCookie cookie = readConfigEditorCookie(req, resp);
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
         final String key = Validator.readStringFromRequest(req, "key");
@@ -302,7 +302,6 @@ public class ConfigEditorServlet extends TopServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        Validator.validatePwmFormID(req);
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
         final String bodyString = ServletHelper.readRequestBody(req);
@@ -397,7 +396,6 @@ public class ConfigEditorServlet extends TopServlet {
     private void setOptions(
             final HttpServletRequest req
     ) throws IOException, PwmUnrecoverableException {
-        Validator.validatePwmFormID(req);
         final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
         {
             final String updateDescriptionTextCmd = Validator.readStringFromRequest(req, "updateNotesText");

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,10 +37,8 @@ import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -187,6 +185,12 @@ public class ConfigurationChecker implements HealthChecker {
             if (healthRecords != null && !healthRecords.isEmpty()) {
                 records.addAll(healthRecords);
             }
+        }
+
+        if (config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
+            final String value1 = PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
+                    + " -> " + PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getLabel(PwmConstants.DEFAULT_LOCALE);
+            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, new String[]{value1}));
         }
 
         return records;

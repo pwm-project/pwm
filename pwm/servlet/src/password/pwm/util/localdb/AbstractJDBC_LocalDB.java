@@ -50,7 +50,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             new ConcurrentHashMap<LocalDB.LocalDBIterator<String>, Boolean>());
 
     // sql db connection
-    private Connection dbConnection;
+    protected Connection dbConnection;
 
     // operation lock
     private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
@@ -126,7 +126,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
         }
     }
 
-    private static void close(final Statement statement) {
+    protected static void close(final Statement statement) {
         if (statement != null) {
             try {
                 statement.close();
@@ -230,7 +230,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
             throws LocalDBException {
         this.dbDirectory = dbDirectory;
 
-        this.dbConnection = openConnection(dbDirectory, getDriverClasspath());
+        this.dbConnection = openConnection(dbDirectory, getDriverClasspath(), initParams);
 
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             initTable(dbConnection, db);
@@ -448,7 +448,8 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
     abstract Connection openConnection(
             final File databaseDirectory,
-            final String driverClasspath
+            final String driverClasspath,
+            final Map<String,String> initParams
     ) throws LocalDBException;
 
 

@@ -38,22 +38,18 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmPasswordRuleValidator;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * User interaction servlet for changing (self) passwords.
@@ -118,10 +114,10 @@ public class ChangePasswordServlet extends TopServlet {
                 LOGGER.debug(pwmSession, "user accepted password change agreement");
                 cpb.setAgreementPassed(true);
             } else if ("checkProgress".equalsIgnoreCase(processRequestParam)) {
-                restCheckProgress(pwmApplication, pwmSession, req, resp);
+                restCheckProgress(pwmApplication, pwmSession, cpb, resp);
                 return;
             } else if ("complete".equalsIgnoreCase(processRequestParam)) {
-                handleComplete(pwmApplication, pwmSession, req, resp);
+                handleComplete(pwmApplication, pwmSession, cpb, req, resp);
                 return;
             }
         }
@@ -130,7 +126,6 @@ public class ChangePasswordServlet extends TopServlet {
             advancedToNextStage(req,resp);
         }
     }
-
 
     private void handleChangeRequest(
             final PwmApplication pwmApplication,
@@ -174,13 +169,41 @@ public class ChangePasswordServlet extends TopServlet {
 
         try {
             executeChangePassword(pwmApplication, pwmSession, password1);
-            forwardToWaitPage(req, resp, this.getServletContext());
+            forwardToWaitPage(req, resp);
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
         }
     }
+
+    private void forwardToAgreementJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
+    }
+
+    private void forwardToCompleteJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_COMPLETE).forward(req, resp);
+    }
+
+    private void forwardToFormJSP(
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_FORM).forward(req, resp);
+    }
+
 
     private void forwardToChangeJSP(
             final HttpServletRequest req,
@@ -191,15 +214,14 @@ public class ChangePasswordServlet extends TopServlet {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
     }
 
-    public static void forwardToWaitPage(
+    public void forwardToWaitPage(
             final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
+            final HttpServletResponse resp
     )
             throws IOException, ServletException, PwmUnrecoverableException {
         try {
             final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE_WAIT, req, resp);
-            theContext.getRequestDispatcher(url).forward(req, resp);
+            this.getServletContext().getRequestDispatcher(url).forward(req, resp);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to wait page: " + e.toString());
         }
@@ -262,7 +284,7 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        advancedToNextStage(req,resp);
+        advancedToNextStage(req, resp);
     }
 
     private void executeChangePassword(
@@ -275,17 +297,21 @@ public class ChangePasswordServlet extends TopServlet {
         // password accepted, setup change password
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
+        // change password
         PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
-        cpb.setChangeBeginTime(new Date());
 
-        //figure maximum change time
-        final long maxWaitSeconds = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME);
-        final long futureMaxWaitTime = System.currentTimeMillis() + (maxWaitSeconds * 1000);
-        cpb.setChangeLastEndTime(new Date(futureMaxWaitTime));
+        //init values for progress screen
+        {
+            final PasswordChangeProgressChecker.ProgressTracker tracker = new PasswordChangeProgressChecker.ProgressTracker();
+            final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(pwmApplication,pwmSession,null);
+            cpb.setChangeProgressTracker(tracker);
+            cpb.setChangePasswordMaxCompletion(checker.maxCompletionTime(tracker));
+        }
 
         // send user an email confirmation
         sendChangePasswordEmailNotice(pwmSession, pwmApplication);
 
+        // send audit event
         pwmApplication.getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
     }
 
@@ -296,6 +322,11 @@ public class ChangePasswordServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
+
+        if (cpb.getChangeProgressTracker() != null) {
+            forwardToWaitPage(req,resp);
+            return;
+        }
 
         final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
         if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
@@ -315,34 +346,7 @@ public class ChangePasswordServlet extends TopServlet {
 
         cpb.setAllChecksPassed(true);
 
-        forwardToChangeJSP(req,resp);
-    }
-
-    private void forwardToAgreementJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
-    }
-
-    private void forwardToCompleteJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_COMPLETE).forward(req, resp);
-    }
-
-    private void forwardToFormJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_FORM).forward(req, resp);
+        forwardToChangeJSP(req, resp);
     }
 
     private static boolean determineIfCurrentPasswordRequired(
@@ -467,91 +471,58 @@ public class ChangePasswordServlet extends TopServlet {
         throw new PwmOperationalException(errorInformation);
     }
 
-    public class PasswordChangeProgress implements Serializable {
-        private boolean complete;
-        private BigDecimal percentComplete;
-        private Map<String,BigDecimal> itemCompletion;
-
-        public PasswordChangeProgress(
-                boolean complete,
-                BigDecimal percentComplete,
-                Map<String, BigDecimal> itemCompletion
-        )
-        {
-            this.complete = complete;
-            this.percentComplete = percentComplete;
-            this.itemCompletion = itemCompletion;
-        }
-
-        public boolean isComplete()
-        {
-            return complete;
-        }
-
-        public BigDecimal getPercentComplete()
-        {
-            return percentComplete;
-        }
-
-        public Map<String, BigDecimal> getItemCompletion()
-        {
-            return itemCompletion;
-        }
-    }
-
     private void restCheckProgress(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final HttpServletRequest req,
+            final ChangePasswordBean cpb,
             final HttpServletResponse resp
     )
             throws IOException
     {
-        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
-        final PasswordChangeProgress passwordChangeProgress = figureProgress(pwmApplication, cpb);
+
+        final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
+        final PasswordChangeProgressChecker.PasswordChangeProgress passwordChangeProgress;
+        if (progressTracker == null) {
+            passwordChangeProgress = PasswordChangeProgressChecker.PasswordChangeProgress.COMPLETE;
+        } else {
+            final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
+                    pwmApplication,
+                    pwmSession,
+                    pwmSession.getSessionStateBean().getLocale()
+            );
+            passwordChangeProgress = checker.figureProgress(progressTracker);
+        }
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(passwordChangeProgress);
+
+        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + Helper.getGson().toJson(restResultBean));
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 
-    private PasswordChangeProgress figureProgress(final PwmApplication pwmApplication, final ChangePasswordBean cpb) {
-        final PasswordChangeProgress result;
-        final TimeDuration minWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000 * 2);
-        //final TimeDuration maxWait = new TimeDuration(pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000);
-
-        if (cpb.getChangeBeginTime() == null) {
-            result = new PasswordChangeProgress(true,new BigDecimal("100"), Collections.<String,BigDecimal>emptyMap());
-        } else {
-            final Date changeTime = cpb.getChangeBeginTime();
-            BigDecimal percentage;
-            final boolean complete;
-            final TimeDuration elapsedTime = TimeDuration.fromCurrent(cpb.getChangeBeginTime());
-            if (TimeDuration.fromCurrent(changeTime).isLongerThan(minWait)) {
-                percentage = new BigDecimal(100);
-                complete = true;
-            } else {
-                final BigDecimal totalMs = new BigDecimal(minWait.getTotalMilliseconds());
-                final BigDecimal elapsedMs = new BigDecimal(elapsedTime.getTotalMilliseconds());
-                percentage = elapsedMs.divide(totalMs,MathContext.DECIMAL32).multiply(new BigDecimal("100"));
-                percentage = percentage.round(MathContext.DECIMAL32);
-                complete = false;
-            }
-            result = new PasswordChangeProgress(complete,percentage,Collections.<String,BigDecimal>emptyMap());
-        }
-        return result;
-    }
 
     private void handleComplete(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
+            final ChangePasswordBean cpb,
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
-        final PasswordChangeProgress passwordChangeProgress = figureProgress(pwmApplication, cpb);
-        if (passwordChangeProgress.isComplete()) {
+        final PasswordChangeProgressChecker.ProgressTracker progressTracker = cpb.getChangeProgressTracker();
+        boolean isComplete = true;
+        if (progressTracker != null) {
+            final PasswordChangeProgressChecker checker = new PasswordChangeProgressChecker(
+                    pwmApplication,
+                    pwmSession,
+                    pwmSession.getSessionStateBean().getLocale()
+            );
+            final PasswordChangeProgressChecker.PasswordChangeProgress passwordChangeProgress = checker.figureProgress(progressTracker);
+            isComplete = passwordChangeProgress.isComplete();
+        }
+
+        if (isComplete) {
+            cpb.setChangeProgressTracker(null);
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
             final String completeMessage = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE,locale);
             if (completeMessage != null && !completeMessage.isEmpty()) {
@@ -563,7 +534,7 @@ public class ChangePasswordServlet extends TopServlet {
                 ServletHelper.forwardToSuccessPage(req,resp);
             }
         } else {
-            forwardToWaitPage(req, resp, this.getServletContext());
+            forwardToWaitPage(req, resp);
         }
     }
 }

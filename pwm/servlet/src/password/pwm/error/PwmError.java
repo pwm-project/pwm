@@ -79,10 +79,6 @@ public enum PwmError {
     PASSWORD_EXPIRED("Password_Expired", 4040, false, ChaiError.PASSWORD_EXPIRED),
     PASSWORD_CUSTOM_ERROR("Password_CustomError", 4041, false),
 
-    NUMBERVALIDATION_INVALIDNUMER("NumberValidation_Invalid_Number", 4101, false),
-    NUMBERVALIDATION_LOWERBOUND("NumberValidation_Lowerbound", 4102, false),
-    NUMBERVALIDATION_UPPERBOUND("NumberValidation_Upperbound", 4103, false),
-
     ERROR_WRONGPASSWORD("Error_WrongPassword", 5001, false, ChaiError.FAILED_AUTHENTICATION),
     ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002, false),
     ERROR_USERAUTHENTICATED("Error_UserAuthenticated", 5003, false),
@@ -95,7 +91,6 @@ public enum PwmError {
     ERROR_CHALLENGE_DUPLICATE("Error_Challenge_Duplicate", 5011, false),
     ERROR_MISSING_CHALLENGE_TEXT("Error_Missing_Challenge_Text", 5012, false),
     ERROR_MISSING_PARAMETER("Error_MissingParameter", 5013, false),
-    ERROR_FIELDS_DONT_MATCH("Error_FieldsDontMatch", 5014, false),
     ERROR_UNKNOWN("Error_Unknown", 5015, false),
     ERROR_CANT_MATCH_USER("Error_CantMatchUser", 5016, false),
     ERROR_DIRECTORY_UNAVAILABLE("Error_DirectoryUnavailable", 5017, false),

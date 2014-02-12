@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class ActivateUserBean implements PwmSessionBean {
     private boolean tokenPassed;
     private boolean agreementPassed;
     private boolean formValidated;
-    private String tokenSendAddress;
+    private String tokenDisplayText;
 
     private UserIdentity userIdentity;
 
@@ -74,11 +74,11 @@ public class ActivateUserBean implements PwmSessionBean {
         this.userIdentity = userIdentity;
     }
 
-    public String getTokenSendAddress() {
-        return tokenSendAddress;
+    public String getTokenDisplayText() {
+        return tokenDisplayText;
     }
 
-    public void setTokenSendAddress(final String tokenSendAddress) {
-        this.tokenSendAddress = tokenSendAddress;
+    public void setTokenDisplayText(final String tokenSendAddress) {
+        this.tokenDisplayText = tokenSendAddress;
     }
 }

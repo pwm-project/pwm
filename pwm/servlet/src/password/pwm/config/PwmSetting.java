@@ -144,6 +144,8 @@ public enum PwmSetting {
             "display.password.completeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
     DISPLAY_PASSWORD_GUIDE_TEXT(
             "display.password.guideText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.CHANGE_PASSWORD),
+    PASSWORD_SYNC_ENABLE_REPLICA_CHECK(
+            "passwordSync.enableReplicaCheck", PwmSettingSyntax.SELECT, Category.CHANGE_PASSWORD),
     PASSWORD_SYNC_MIN_WAIT_TIME(
             "passwordSyncMinWaitTime", PwmSettingSyntax.NUMERIC, Category.CHANGE_PASSWORD),
     PASSWORD_SYNC_MAX_WAIT_TIME(
@@ -386,24 +388,6 @@ public enum PwmSetting {
     // security settings
     PWM_SECURITY_KEY(
             "pwm.securityKey", PwmSettingSyntax.PASSWORD, Category.SECURITY),
-    INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_USER_CHECK_TIME(
-            "intruder.user.checkTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_ADDRESS_CHECK_TIME(
-            "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    INTRUDER_STORAGE_METHOD(
-            "intruder.storageMethod", PwmSettingSyntax.SELECT, Category.SECURITY),
-    INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, Category.SECURITY),
-    SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
-            "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     RECAPTCHA_KEY_PUBLIC(
             "captcha.recaptcha.publicKey", PwmSettingSyntax.STRING, Category.SECURITY),
     RECAPTCHA_KEY_PRIVATE(
@@ -445,6 +429,25 @@ public enum PwmSetting {
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.NUMERIC, Category.SECURITY),
 
+    // intruder detection
+    INTRUDER_USER_RESET_TIME(
+            "intruder.user.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_USER_MAX_ATTEMPTS(
+            "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_USER_CHECK_TIME(
+            "intruder.user.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ADDRESS_RESET_TIME(
+            "intruder.address.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ADDRESS_MAX_ATTEMPTS(
+            "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ADDRESS_CHECK_TIME(
+            "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_STORAGE_METHOD(
+            "intruder.storageMethod", PwmSettingSyntax.SELECT, Category.INTRUDER),
+    INTRUDER_SESSION_MAX_ATTEMPTS(
+            "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
+            "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, Category.INTRUDER),
 
     // token settings
     TOKEN_STORAGEMETHOD(
@@ -492,7 +495,7 @@ public enum PwmSetting {
     EVENTS_FILE_LEVEL(
             "events.fileAppender.level", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_USER_STORAGE_METHOD(
-            "events.user.storageMethod", PwmSettingSyntax.SELECT, Category.SECURITY),
+            "events.user.storageMethod", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_LDAP_ATTRIBUTE(
             "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
     EVENTS_LDAP_MAX_EVENTS(
@@ -827,6 +830,8 @@ public enum PwmSetting {
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.MISC),
     EXTERNAL_WEB_AUTH_METHODS(
             "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    EXTERNAL_MACROS_DEST_TOKEN_URLS(
+            "external.destToken.urls", PwmSettingSyntax.STRING, Category.MISC),
     EXTERNAL_MACROS_REST_URLS(
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
     EXTERNAL_PWRULES_REST_URLS(
@@ -1049,6 +1054,7 @@ public enum PwmSetting {
         EMAIL               (Type.SETTING),
         SMS                 (Type.SETTING),
         SECURITY            (Type.SETTING),
+        INTRUDER            (Type.SETTING),
         TOKEN               (Type.SETTING),
         OTP                 (Type.SETTING),
         LOGGING             (Type.SETTING),

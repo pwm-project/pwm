@@ -62,7 +62,7 @@
             </tr>
             <% } %>
             <% } %>
-            <!-- % if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { % -->
+            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
             <% if (Permission.checkPermission(Permission.SETUP_OTP_SECRET, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
                 <td class="menubutton_key">
@@ -76,7 +76,7 @@
                 </td>
             </tr>
             <% } %>
-            <!--% } %-->
+            <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
             <% if (Permission.checkPermission(Permission.PROFILE_UPDATE, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">

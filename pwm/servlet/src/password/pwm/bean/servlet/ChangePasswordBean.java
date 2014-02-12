@@ -22,6 +22,7 @@
 
 package password.pwm.bean.servlet;
 
+import password.pwm.PasswordChangeProgressChecker;
 import password.pwm.bean.PwmSessionBean;
 
 import java.util.Date;
@@ -39,8 +40,9 @@ public class ChangePasswordBean implements PwmSessionBean {
     private boolean formPassed;
     private boolean allChecksPassed;
 
-    private Date changeBeginTime;
-    private Date changeLastEndTime;
+    private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
+    private Date changePasswordMaxCompletion;
+
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -84,23 +86,24 @@ public class ChangePasswordBean implements PwmSessionBean {
         this.allChecksPassed = allChecksPassed;
     }
 
-    public Date getChangeBeginTime()
+    public PasswordChangeProgressChecker.ProgressTracker getChangeProgressTracker()
     {
-        return changeBeginTime;
+        return changeProgressTracker;
     }
 
-    public void setChangeBeginTime(Date changeBeginTime)
+    public void setChangeProgressTracker(PasswordChangeProgressChecker.ProgressTracker changeProgressTracker)
     {
-        this.changeBeginTime = changeBeginTime;
+        this.changeProgressTracker = changeProgressTracker;
     }
 
-    public Date getChangeLastEndTime() {
-        return changeLastEndTime;
+    public Date getChangePasswordMaxCompletion()
+    {
+        return changePasswordMaxCompletion;
     }
 
-    public void setChangeLastEndTime(Date changeLastEndTime)
+    public void setChangePasswordMaxCompletion(Date changePasswordMaxCompletion)
     {
-        this.changeLastEndTime = changeLastEndTime;
+        this.changePasswordMaxCompletion = changePasswordMaxCompletion;
     }
 }
 

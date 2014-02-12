@@ -36,7 +36,11 @@
     // read parameters from calling jsp;
     final boolean showTheme = !"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME));
     final boolean includeXVersion = Boolean.parseBoolean(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+    final boolean incrementRequestCounter = !"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER));
 
+    if (incrementRequestCounter && pwmSessionHeader != null) {
+        pwmSessionHeader.getSessionStateBean().incrementRequestCounter();
+    }
 %>
 <head>
     <title><pwm:Display key="Title_TitleBar"/></title>

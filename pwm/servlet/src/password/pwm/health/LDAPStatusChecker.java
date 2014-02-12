@@ -334,11 +334,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorString.toString()));
                 return returnRecords;
             } catch (Exception e) {
-                HealthRecord record = new HealthRecord(
-                        HealthStatus.WARN,
-                        HealthTopic.LDAP,
-                        HealthMessage.LDAP_No_Connection,
-                        new String[]{e.getMessage()});
+                HealthRecord record = HealthRecord.forMessage(HealthMessage.LDAP_No_Connection, e.getMessage());
                 returnRecords.add(record);
                 pwmApplication.getLdapConnectionService().setLastLdapFailure(ldapProfile,
                         new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())));

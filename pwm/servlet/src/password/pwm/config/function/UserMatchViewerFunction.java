@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,12 @@
 package password.pwm.config.function;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
@@ -39,24 +42,35 @@ import java.util.*;
 
 public class UserMatchViewerFunction implements SettingUIFunction {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UserMatchViewerFunction.class);
-    private static final int MAX_RESULT_SIZE = 5 * 1000;
 
     @Override
     public String provideFunction(
             PwmApplication pwmApplication,
+            PwmSession pwmSession,
             StoredConfiguration storedConfiguration,
             PwmSetting setting,
             String profile
     )
             throws PwmOperationalException
     {
+        final Locale userLocale = pwmSession == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale();
+        final Configuration config = pwmApplication.getConfig();
+        final int maxResultSize = Integer.parseInt(
+                config.readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
+
         final String queryMatchString = (String)storedConfiguration.readSetting(setting,profile).toNativeObject();
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+
         searchConfiguration.setFilter(queryMatchString);
         final StringBuilder output = new StringBuilder();
         try {
-            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration,MAX_RESULT_SIZE, Collections.<String>emptyList());
+            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
+                    null,
+                    searchConfiguration,
+                   maxResultSize,
+                    Collections.<String>emptyList()
+            );
             if (results.isEmpty()) {
                 output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsNone",pwmApplication.getConfig()));
             } else {
@@ -79,14 +93,14 @@ public class UserMatchViewerFunction implements SettingUIFunction {
                 for (final String loopProfile : sortedMap.keySet()) {
                     for (final String loopDN : sortedMap.get(loopProfile)) {
                         output.append("<tr><td>");
-                        output.append(loopProfile == null || "".equals(loopProfile) ? "Default" : loopProfile);
+                        output.append(config.getLdapProfiles().get(loopDN).getDisplayName(userLocale));
                         output.append("</td><td>");
                         output.append(loopDN);
                         output.append("</td></tr>");
                     }
                 }
                 output.append("</table>");
-                if (results.size() == MAX_RESULT_SIZE) {
+                if (results.size() >= maxResultSize) {
                     output.append("<br/>");
                     output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsExceeded",pwmApplication.getConfig()));
                 }

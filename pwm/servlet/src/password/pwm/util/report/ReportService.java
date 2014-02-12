@@ -100,6 +100,12 @@ public class ReportService implements PwmService {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
 
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+            LOGGER.debug("application mode is read-only, will remain closed");
+            status = STATUS.CLOSED;
+            return;
+        }
+
         if (pwmApplication.getLocalDB() == null || LocalDB.Status.OPEN != pwmApplication.getLocalDB().status()) {
             LOGGER.debug("LocalDB is not open, will remain closed");
             status = STATUS.CLOSED;

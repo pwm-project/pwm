@@ -41,7 +41,6 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.event.AuditManager;
-import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.token.TokenPayload;
@@ -52,14 +51,17 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
 import java.io.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Scanner;
 
 public class MainClass {
 
     public static void main(final String[] args)
             throws Exception {
         initLog4j();
-        out(PwmConstants.SERVLET_VERSION);
+        out(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " Command Line Utility");
         if (args == null || args.length < 1) {
             out("");
             out(" [command] option option");
@@ -526,10 +528,6 @@ public class MainClass {
     }
 
     static void handleIntegrityReport(final String[] args) throws Exception {
-        final Configuration config = loadConfiguration();
-        final File workingFolder = new File(".").getCanonicalFile();
-        final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
-
         if (args.length < 2) {
             out("must specify file to write audit data to");
             return;
@@ -543,18 +541,11 @@ public class MainClass {
 
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
+        final CodeIntegrityChecker codeIntegrityChecker = new CodeIntegrityChecker();
         final FileWriter writer = new FileWriter(outputFile,true);
-        writer.write("# " + PwmConstants.PWM_APP_NAME + "  " + PwmConstants.SERVLET_VERSION + " IntegrityCheck " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-        writer.write("\n");
-        writer.write("# " + Helper.getGson().toJson(new CodeIntegrityChecker(pwmApplication).getStats()));
-        writer.write("\n");
-        final Set<HealthRecord> records = new CodeIntegrityChecker(pwmApplication).checkResources();
-        for (final HealthRecord record : records) {
-            writer.write(record.getDetail(PwmConstants.DEFAULT_LOCALE, config));
-            writer.write("\n");
-        }
+        writer.write(codeIntegrityChecker.asPrettyJsonOutput());
         writer.close();
-        out("completed writing " + records.size() + " rows in " + TimeDuration.fromCurrent(startTime).asLongString());
+        out("completed operation in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
     static void handleEncryptConfigPassword(final String[] args) throws Exception {

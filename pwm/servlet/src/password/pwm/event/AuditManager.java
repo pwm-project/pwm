@@ -154,6 +154,12 @@ public class AuditManager implements PwmService {
         settings.userEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_USER_TO);
         settings.alertFromAddress  = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
 
+        if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+            this.status = STATUS.CLOSED;
+            LOGGER.warn("unable to start - Application is in read-only mode");
+            return;
+        }
+
         if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
             this.status = STATUS.CLOSED;
             LOGGER.warn("unable to start - LocalDB is not available");
@@ -440,7 +446,6 @@ public class AuditManager implements PwmService {
             }
             csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
         }
-
         writer.flush();
 
         return counter;
@@ -456,5 +461,9 @@ public class AuditManager implements PwmService {
     public ServiceInfo serviceInfo()
     {
         return serviceInfo;
+    }
+
+    public int syslogQueueSize() {
+        return syslogManager != null ? syslogManager.queueSize() : 0;
     }
 }

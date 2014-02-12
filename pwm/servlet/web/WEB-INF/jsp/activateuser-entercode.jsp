@@ -35,7 +35,7 @@
     <div id="centerbody">
         <%
             final ActivateUserBean aub = PwmSession.getPwmSession(session).getActivateUserBean();
-            String destination = aub.getTokenSendAddress();
+            String destination = aub.getTokenDisplayText();
         %>
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>

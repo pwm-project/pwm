@@ -98,20 +98,24 @@ function resetSetting(keyName) {
 
 function updateSettingDisplay(keyName, isDefault) {
     var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
+    var addModifiedClass = function(key) {
+        try { PWM_MAIN.getObject(key).classList.add("modified"); } catch (e) {
+            console.log('error adding "modified" css class to "' + key + '" elementID, error=' + e);
+        }
+    };
+    var removeModifiedClass=function(key) {
+        try { PWM_MAIN.getObject(key).classList.remove("modified"); } catch (e) {
+            console.log('error removing "modified" css class to  "' + key + '" elementID, error=' + e);
+        }
+    };
     if (!isDefault) {
         resetImageButton.style.visibility = 'visible';
-        try {
-            PWM_MAIN.getObject('title_' + keyName).classList.add("modified");
-        } catch (e) {
-            console.log('error adding "modified" css class to "title_' + keyName + '" elementID, error=' + e);
-        }
+        addModifiedClass('title_' + keyName);
+        addModifiedClass('titlePane_' + keyName);
     } else {
         resetImageButton.style.visibility = 'hidden';
-        try {
-            PWM_MAIN.getObject('title_' + keyName).classList.remove("modified");
-        } catch (e) {
-            console.log('error removing "modified" css class to "title_' + keyName + '" elementID, error=' + e);
-        }
+        removeModifiedClass('title_' + keyName);
+        removeModifiedClass('titlePane_' + keyName);
     }
 }
 

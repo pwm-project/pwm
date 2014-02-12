@@ -35,6 +35,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.client.rest.RestClientHelper;
 import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.util.*;
@@ -566,7 +567,7 @@ public class PwmPasswordRuleValidator {
 
             final String jsonRequestBody = Helper.getGson().toJson(sendData);
             try {
-                final String responseBody = Helper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
+                final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
                         jsonRequestBody);
                 final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
                 if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(

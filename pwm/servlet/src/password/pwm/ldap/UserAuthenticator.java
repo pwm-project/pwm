@@ -40,7 +40,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -248,7 +247,6 @@ public class UserAuthenticator {
                     LOGGER.info(pwmSession, "user " + userIdentity + " password has been set to random value for pwm to use for user authentication");
                     // force a user password change.
                     pwmSession.getUserInfoBean().setRequiresNewPassword(true);
-                    Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY_MS);
                 } catch (ChaiPasswordPolicyException e) {
                     final String errorStr = "error setting random password for user " + userIdentity + " " + e.getMessage();
                     LOGGER.warn(pwmSession, errorStr);

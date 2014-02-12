@@ -20,19 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.ws.client.rest;
 
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.error.PwmOperationalException;
+public interface RestClient {
+    public static final String DATA_KEY_USERINFO = "userInfo";
+    public static final String DATA_KEY_TOKENDATA = "tokenDestination";
 
-public interface SettingUIFunction {
-    String provideFunction(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final StoredConfiguration storedConfiguration,
-            final PwmSetting setting,
-            final String profile
-    )
-            throws PwmOperationalException;
+    public static final String DATA_KEY_RETURNVALUE = "value";
 }

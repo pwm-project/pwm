@@ -28,14 +28,20 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiSetting;
 import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
@@ -44,7 +50,6 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.servlet.ChangePasswordServlet;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
 
@@ -462,65 +467,42 @@ public class PasswordUtility {
         }
     }
 
-    public static ChangePasswordServlet.PasswordChangeProgress performReplicaSyncCheck(
-            final PwmSession pwmSession,
+    public static Map<String,Date> readIndividualReplicaLastPasswordTimes(
             final PwmApplication pwmApplication,
-            final UserIdentity userIdentity,
-            final long passwordSetTimestamp
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
+            throws PwmUnrecoverableException
     {
-        //update the current last password update field in ldap
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-        final boolean successfullyWrotePwdUpdateAttr = userStatusReader.updateLastUpdateAttribute(pwmSession, theUser);
-        boolean doReplicaCheck = true;
-
-        if (!successfullyWrotePwdUpdateAttr) {
-            LOGGER.trace(pwmSession, "unable to perform password replication checking, unable to write last update attribute");
-            doReplicaCheck = false;
-        }
-
-
-        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
-        if (ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS).size() <= 1) {
-            LOGGER.trace(pwmSession, "skipping replication checking, only one ldap server url is configured");
-            doReplicaCheck = false;
-        }
-
-        final long maxWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MAX_WAIT_TIME) * 1000;
-
-        if (doReplicaCheck) {
-            LOGGER.trace(pwmSession, "beginning password replication checking");
-            // if the last password update worked, test that it is replicated across all ldap servers.
-            boolean isReplicated = false;
-            Helper.pause(PwmConstants.PASSWORD_UPDATE_INITIAL_DELAY_MS);
+        final Map<String,Date> returnValue = new LinkedHashMap<String, Date>();
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
+        final Collection<ChaiConfiguration> perReplicaConfigs = ChaiUtility.splitConfigurationPerReplica(
+                chaiProvider.getChaiConfiguration(),
+                Collections.singletonMap(ChaiSetting.FAILOVER_CONNECT_RETRIES,"1")
+        );
+        for (final ChaiConfiguration loopConfiguration : perReplicaConfigs) {
+            final String loopReplicaUrl = loopConfiguration.getSetting(ChaiSetting.BIND_DN);
+            ChaiProvider loopProvider = null;
             try {
-                long timeSpentTrying = 0;
-                while (!isReplicated && timeSpentTrying < (maxWaitTime)) {
-                    timeSpentTrying = System.currentTimeMillis() - passwordSetTimestamp;
-                    isReplicated = ChaiUtility.testAttributeReplication(theUser, pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE), null);
-                    Helper.pause(PwmConstants.PASSWORD_UPDATE_CYCLE_DELAY_MS);
+                loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
+                final ChaiUser loopUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), loopProvider);
+                final Date lastModifiedDate = determinePwdLastModified(pwmApplication, pwmSession, loopUser);
+                returnValue.put(loopReplicaUrl, lastModifiedDate);
+            } catch (ChaiUnavailableException e) {
+                LOGGER.error("unreachable server during replica password sync check");
+                e.printStackTrace();
+            } finally {
+                if (loopProvider != null) {
+                    try {
+                        loopProvider.close();
+                    } catch (Exception e) {
+                        final String errorMsg = "error closing loopProvider to " + loopReplicaUrl + " while checking individual password sync status";
+                        LOGGER.error(pwmSession,errorMsg);
+                    }
                 }
-            } catch (ChaiOperationException e) {
-                //oh well, give up.
-                LOGGER.trace(pwmSession, "error during password sync check: " + e.getMessage());
             }
         }
-
-        final long totalTime = System.currentTimeMillis() - passwordSetTimestamp;
-        pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME, totalTime);
-
-        // be sure minimum wait time has passed
-        final long minWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.PASSWORD_SYNC_MIN_WAIT_TIME) * 1000L;
-        if ((System.currentTimeMillis() - passwordSetTimestamp) < minWaitTime) {
-            LOGGER.trace(pwmSession, "waiting for minimum replication time of " + minWaitTime + "ms....");
-            while ((System.currentTimeMillis() - passwordSetTimestamp) < minWaitTime) {
-                Helper.pause(500);
-            }
-        }
-
-        return null;
+        return returnValue;
     }
 
 
@@ -898,4 +880,50 @@ public class PasswordUtility {
 
         pwmApplication.getEmailQueue().submit(configuredEmailSetting, userInfoBean, null);
     }
+
+    public static Date determinePwdLastModified(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        return determinePwdLastModified(pwmApplication, pwmSession, theUser);
+    }
+
+    private static Date determinePwdLastModified(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiUser theUser
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        // fetch last password modification time from pwm last update attribute operation
+        try {
+            final Date chaiReadDate = theUser.readPasswordModificationDate();
+            if (chaiReadDate != null) {
+                LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
+                return chaiReadDate;
+            }
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmSession, "unexpected error reading password last modified timestamp: " + e.getMessage());
+        }
+
+        final String pwmLastSetAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
+            try {
+                final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
+                LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPwdLastModified);
+                return pwmPwdLastModified;
+            } catch (ChaiOperationException e) {
+                LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
+            }
+        }
+
+        LOGGER.debug(pwmSession, "unable to determine time of user's last password modification");
+        return null;
+    }
+
+
 }

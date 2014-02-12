@@ -31,6 +31,7 @@
     } catch (PwmUnrecoverableException e) {
         errorInfo = e.getErrorInformation();
     } %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER,"true"); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -56,7 +57,7 @@
                        value="continue"/>
                 <input type="submit" name="button" class="btn"
                        value="    <pwm:Display key="Button_Continue"/>    "
-                       id="button_continue"/>
+                       id="button_continue" autofocus="autofocus"/>
             </form>
         </div>
         <% } %>

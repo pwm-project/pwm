@@ -159,12 +159,13 @@ public class Validator {
         return results.iterator().next();
     }
 
-    public static void validatePwmFormID(final HttpServletRequest req) throws PwmUnrecoverableException {
+    public static void validatePwmFormID(final HttpServletRequest req)
+            throws PwmUnrecoverableException
+    {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String pwmFormID = ssBean.getSessionVerificationKey();
-        final long requestSequenceCounter = ssBean.getRequestCounter();
 
         final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
 
@@ -177,16 +178,31 @@ public class Validator {
                 throw new PwmUnrecoverableException(PwmError.ERROR_INVALID_FORMID);
             }
         }
+    }
+
+    public static void validatePwmRequestCounter(final HttpServletRequest req)
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
+        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final String pwmFormID = ssBean.getSessionVerificationKey();
+        final long requestSequenceCounter = ssBean.getRequestCounter();
+
+        final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
+        if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {
+            return;
+        }
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
             try {
                 final String submittedSequenceCounterStr = submittedPwmFormID.substring(pwmFormID.length(),submittedPwmFormID.length());
                 final long submittedSequenceCounter = Long.parseLong(submittedSequenceCounterStr,36);
                 if (submittedSequenceCounter != requestSequenceCounter) {
-                    throw new PwmUnrecoverableException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
+                    throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
                 }
             } catch (NumberFormatException e) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
+                throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
             }
         }
     }

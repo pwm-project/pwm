@@ -402,3 +402,60 @@ PWM_CHANGEPW.setInputFocus=function() {
         setTimeout(function() { password1.focus(); },10);
     }
 };
+
+PWM_CHANGEPW.refreshChangePasswordStatus=function(refreshInterval) {
+    require(["dojo","dijit/registry"],function(dojo,registry){
+        var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        dojo.xhrGet({
+            url: displayStringsUrl,
+            handleAs: 'json',
+            timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
+            headers: { "Accept": "application/json" },
+            load: function(data) {
+                var progressBar = registry.byId('passwordProgressBar');
+                progressBar.set("value",data['data']['percentComplete']);
+
+                try {
+                    var tableBody = '';
+                    if (data['data']['messages']) {
+                        for (var msgItem in data['data']['messages']) {
+                            (function(message){
+                                if (message['show']) {
+                                    tableBody += '<tr><td>' + message['label'] + '</td><td>'
+                                    tableBody += message['complete'] ? "Completed" : "In Progress"
+                                    tableBody += '</td></tr>'
+                                }
+                            }(data['data']['messages'][msgItem]));
+                        }
+                    }
+                    if (PWM_MAIN.getObject('progressMessageTable')) {
+                        PWM_MAIN.getObject('progressMessageTable').innerHTML = tableBody;
+                    }
+                    if (PWM_MAIN.getObject('estimatedRemainingSeconds')) {
+                        PWM_MAIN.getObject('estimatedRemainingSeconds').innerHTML = data['data']['estimatedRemainingSeconds'];
+                    }
+                    if (PWM_MAIN.getObject('elapsedSeconds')) {
+                        PWM_MAIN.getObject('elapsedSeconds').innerHTML = data['data']['elapsedSeconds'];
+                    }
+                } catch (e) {
+                    console.log('unable to update progressMessageTable, error: ' + e);
+                }
+
+                if (data['data']['complete'] == true) {
+                    PWM_MAIN.goto(completedUrl,{delay:1000})
+                } else {
+                    setTimeout(function(){
+                        PWM_CHANGEPW.refreshChangePasswordStatus(refreshInterval);
+                    },refreshInterval);
+                }
+            },
+            error: function(error) {
+                console.log('unable to read password change status: ' + error);
+                setTimeout(function(){
+                    PWM_CHANGEPW.refreshChangePasswordStatus(refreshInterval);
+                },refreshInterval);
+            }
+        });
+    });
+}

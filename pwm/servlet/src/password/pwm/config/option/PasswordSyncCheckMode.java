@@ -20,19 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.option;
 
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.error.PwmOperationalException;
-
-public interface SettingUIFunction {
-    String provideFunction(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final StoredConfiguration storedConfiguration,
-            final PwmSetting setting,
-            final String profile
-    )
-            throws PwmOperationalException;
+public enum PasswordSyncCheckMode implements ConfigurationOption {
+    DISABLED,
+    ENABLED,
+    ENABLED_SHOW
 }

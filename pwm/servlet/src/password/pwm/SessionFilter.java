@@ -123,9 +123,6 @@ public class SessionFilter implements Filter {
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
 
-        // increment the page counter
-        ssBean.incrementRequestCounter();
-
         // output request information to debug log
         LOGGER.trace(pwmSession, ServletHelper.debugHttpRequest(pwmApplication,req));
 

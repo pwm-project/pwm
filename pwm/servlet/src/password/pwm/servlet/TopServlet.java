@@ -25,10 +25,7 @@ package password.pwm.servlet;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -89,6 +86,20 @@ public abstract class TopServlet extends HttpServlet {
 
 
         try {
+            // check for duplicate form submit.
+            try {
+                Validator.validatePwmRequestCounter(req);
+            } catch (PwmOperationalException e) {
+                if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
+                    final PwmSession pwmSession = PwmSession.getPwmSession(req);
+                    pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+                    LOGGER.error(pwmSession,e.getErrorInformation().toDebugStr());
+                    ServletHelper.forwardToErrorPage(req,resp,false);
+                    return;
+                }
+                throw e;
+            }
+
             this.processRequest(req, resp);
         } catch (Exception e) {
             final PwmApplication pwmApplication;
@@ -286,6 +297,10 @@ public abstract class TopServlet extends HttpServlet {
         LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
         resp.sendRedirect(redirectURL.toString());
         return true;
+    }
+
+    protected void handleJspForward(final HttpServletRequest req, final HttpServletResponse resp, final String url) {
+
     }
 }
 

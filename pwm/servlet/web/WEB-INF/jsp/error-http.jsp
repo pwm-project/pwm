@@ -27,6 +27,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER,"true"); %>
 <%@ include file="fragment/header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body class="nihilo">

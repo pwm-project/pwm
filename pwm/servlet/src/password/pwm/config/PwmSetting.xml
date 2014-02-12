@@ -312,6 +312,18 @@
             <value />
         </default>
     </setting>
+    <setting key="passwordSync.enableReplicaCheck" level="1">
+        <label>Password Sync Enable Replication Checking</label>
+        <description><![CDATA[Check for the password to be updated on all configured replicas (for a user's LDAP Profile).  When enabled, replica sync checking will poll all of the configured replicas on the user's LDAP Profile to determine if the password change time has been updated.  The particular method to determine the last password change time varies per LDAP vendor type.]]></description>
+        <default>
+            <value>ENABLED</value>
+        </default>
+        <options>
+            <option value="DISABLED">DISABLED - Do not perform replica sync checking</option>
+            <option value="ENABLED">ENABLED - Enabled, but do not display individual progress to user</option>
+            <option value="ENABLED_SHOW">ENABLED and Display - Enable replica sync checking and display progress to user</option>
+        </options>
+    </setting>
     <setting key="passwordSyncMinWaitTime" level="1" required="true">
         <label>Password Change Minimum Wait Time</label>
         <description><![CDATA[During a password change, a delay of this amount will be waited for before forwarding the user.  This gives any background synchronization processes time to execute before the user executes the next operation.<br/><br/>Value is specified in seconds.]]></description>
@@ -1334,8 +1346,8 @@
         </default>
     </setting>
     <setting key="security.page.enableRequestSequence" level="1" required="true">
-        <label>Enable Back Button / Multiple Browser-Tab Detection</label>
-        <description><![CDATA[Enable detection of the use of back button or multiple browser windows/tabs.]]></description>
+        <label>Enable Back Button Detection</label>
+        <description><![CDATA[Enable detection of the use of back button or other browser navigation iregularities.  Enabling this option prevents duplicate HTTP form submissions but can sometimes have side effects.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -1347,7 +1359,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="allowUrlSessions" level="1" required="true">
+    <setting key="allowUrlSessions" level="2" required="true">
         <label>Allow URL Sessions</label>
         <description><![CDATA[If true, allow sessions to be managed via parameter on URL when cookies are not enabled.  This allows browsers (such as some mobile devices) that do not support cookies.]]></description>
         <default>
@@ -1427,7 +1439,7 @@
             <value/>
         </default>
     </setting>
-    <setting key="security.page.leaveNoticeTimeout" level="1" required="true">
+    <setting key="security.page.leaveNoticeTimeout" level="2" required="true">
         <label>Page Leave Notice Timeout</label>
         <description><![CDATA[When a user navigates away from any page, a notice is sent to the server.   The next time a page is requested, the timeout is checked to determine if the last page leave time was greater then the timeout, and if so, the user's session will be invalidated.  This has the effect of logging out users that navigate away from the application without explicitly logging out.If set to zero, this feature is disabled.]]></description>
         <default>
@@ -1573,7 +1585,8 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="otp.secret.storageFormat" level="0" required="true">
+    <setting key="otp.secret.storageFormat" level="0" required="true" hidden="true">
+        <!--unhide when more options-->
         <label>Token Storage Method</label>
         <description><![CDATA[Storage format used to save one time password secrets.<table style="width: 400px"><tr><td>Format</td><td>Description</td></tr><tr><td>PWM</td><td>Store the secret in PWM native format.</td></tr></table>]]></description>
         <default>
@@ -1618,13 +1631,13 @@
             <value><![CDATA[INFO]]></value>
         </default>
         <options>
-            <option value="TRACE">Trace</option>
-            <option value="DEBUG">Debug</option>
-            <option value="INFO">Info</option>
-            <option value="WARN">Warn</option>
-            <option value="ERROR">Error</option>
-            <option value="FATAL">Fatal</option>
-            <option value="Off">Off - no logging to stdout</option>
+            <option value="TRACE">6 - Trace</option>
+            <option value="DEBUG">5 - Debug</option>
+            <option value="INFO">4 - Info</option>
+            <option value="WARN">3 - Warn</option>
+            <option value="ERROR">2 - Error</option>
+            <option value="FATAL">1 - Fatal</option>
+            <option value="Off">0 - Off</option>
         </options>
     </setting>
     <setting key="events.java.log4jconfigFile" level="1">
@@ -1655,29 +1668,29 @@
             <value><![CDATA[INFO]]></value>
         </default>
         <options>
-            <option value="TRACE">Trace</option>
-            <option value="DEBUG">Debug</option>
-            <option value="INFO">Info</option>
-            <option value="WARN">Warn</option>
-            <option value="ERROR">Error</option>
-            <option value="FATAL">Fatal</option>
-            <option value="Off">Off - no logging to LocalDB</option>
+            <option value="TRACE">6 - Trace</option>
+            <option value="DEBUG">5 - Debug</option>
+            <option value="INFO">4 - Info</option>
+            <option value="WARN">3 - Warn</option>
+            <option value="ERROR">2 - Error</option>
+            <option value="FATAL">1 - Fatal</option>
+            <option value="Off">0 - Off</option>
         </options>
     </setting>
     <setting key="events.fileAppender.level" level="0" required="true">
         <label>File Log Level</label>
-        <description><![CDATA[Level at which to log events to the local File Log.]]></description>
+        <description><![CDATA[Level at which to log events to the local File Log.  Log files are written to the servlet's WEB-INF/logs directory.]]></description>
         <default>
             <value><![CDATA[INFO]]></value>
         </default>
         <options>
-            <option value="TRACE">Trace</option>
-            <option value="DEBUG">Debug</option>
-            <option value="INFO">Info</option>
-            <option value="WARN">Warn</option>
-            <option value="ERROR">Error</option>
-            <option value="FATAL">Fatal</option>
-            <option value="Off">Off - no logging to file</option>
+            <option value="TRACE">6 - Trace</option>
+            <option value="DEBUG">5 - Debug</option>
+            <option value="INFO">4 - Info</option>
+            <option value="WARN">3 - Warn</option>
+            <option value="ERROR">2 - Error</option>
+            <option value="FATAL">1 - Fatal</option>
+            <option value="Off">0 - Off</option>
         </options>
     </setting>
     <setting key="events.user.storageMethod" level="1" required="true">
@@ -1960,7 +1973,7 @@
     </setting>
     <setting key="recovery.response.writePreference" level="0" required="true">
         <label>Response Write Location</label>
-        <description><![CDATA[Location to write the responses to.  All storage methods will be written to when the user configures their response answers.]]></description>
+        <description><![CDATA[<p>Location to write the responses to.  All storage methods will be written to when the user configures their response answers.</p><p><b>WARNING: </b>The LocalDB should never be used to store responses in a production system as there are no methods to make the LocalDB storage redundant, nor are optimal backup methods available for the LocalDB.</p]]></description>
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -2772,7 +2785,7 @@
             <option value="no">False</option>
         </options>
     </setting>
-    <setting key="helpdesk.clearOtp.button" level="0">
+    <setting key="helpdesk.clearOtp.button" level="1" hidden="false">
         <label>Enable Clear One Time Password Settings Button</label>
         <description><![CDATA[Allow the helpdesk operator to clear out a user's stored one time password settings by clicking a button.]]></description>
         <default>
@@ -2972,6 +2985,11 @@
         <description><![CDATA[]]></description>
         <default />
     </setting>
+    <setting key="external.destToken.urls" level="1">
+        <label>External Token Destination Server URLs</label>
+        <description><![CDATA[]]></description>
+        <default />
+    </setting>
     <setting key="external.pwrules.urls" level="1">
         <label>External Rules REST Server URLs</label>
         <description><![CDATA[]]></description>
@@ -3053,7 +3071,11 @@
     </category>
     <category key="SECURITY">
         <label>Security</label>
-        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.<br/><br/>Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
+        <description><![CDATA[Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
+    </category>
+    <category key="INTRUDER">
+        <label>Intruder Detection</label>
+        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.]]></description>
     </category>
     <category key="TOKEN">
         <label>Tokens</label>
@@ -3064,7 +3086,7 @@
         <description><![CDATA[Options for time based one time passwords.]]></description>
     </category>
     <category key="LOGGING">
-        <label>Logging &amp; Alerts</label>
+        <label>Logging &amp; Auditing</label>
         <description><![CDATA[Alert and Logging settings.]]></description>
     </category>
     <category key="EDIRECTORY">
@@ -3076,7 +3098,7 @@
         <description><![CDATA[Active Directory settings]]></description>
     </category>
     <category key="DATABASE">
-        <label>Database</label>
+        <label>Database (Remote)</label>
         <description><![CDATA[Optional database configuration settings.  Two types of databases are used.<h2>LocalDB</h2>The LocalDB is a local, embedded database that is used for storage of local data.  In most cases, the LocalDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured,  a traditional RDBMS database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple server instances can be configured for the same database instance.]]></description>
     </category>
     <category key="REPORTING">

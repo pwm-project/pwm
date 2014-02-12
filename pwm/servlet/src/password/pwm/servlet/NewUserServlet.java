@@ -59,6 +59,7 @@ import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.RestCheckPasswordServer;
 
@@ -699,15 +700,20 @@ public class NewUserServlet extends TopServlet {
         switch (phase) {
             case SMS: {
                 final String toNum = formData.get(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-                newUserBean.setSmsTokenIssued(true);
-                newUserBean.setTokenSmsNumber(toNum);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.SMS);
+
+                final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(null,toNum,null);
+                final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
+                final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
+                        pwmSession,
+                        inputTokenDestData,
+                        null,
+                        pwmSession.getSessionStateBean().getLocale());
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toNum));
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(outputDestTokenData.getSms()));
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,pwmSession);
-                    LOGGER.trace(pwmSession, "generated new user token key code");
+                    LOGGER.trace(pwmSession, "generated new user sms token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
                 }
@@ -715,37 +721,53 @@ public class NewUserServlet extends TopServlet {
                 final String message = config.readSettingAsLocalizedString(PwmSetting.SMS_NEWUSER_TOKEN_TEXT, pwmSession.getSessionStateBean().getLocale());
 
                 try {
-                    Helper.TokenSender.sendSmsToken(pwmApplication, null, null, toNum, message, tokenKey);
+                    Helper.TokenSender.sendSmsToken(pwmApplication, null, null, outputDestTokenData.getSms(), message, tokenKey);
                 } catch (Exception e) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }
+
+                newUserBean.setSmsTokenIssued(true);
+                newUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
+                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.SMS);
             }
             break;
 
             case EMAIL: {
                 final String toAddress = formData.get(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-                newUserBean.setEmailTokenIssued(true);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.EMAIL);
+
+                final RestTokenDataClient.TokenDestinationData inputTokenDestData = new RestTokenDataClient.TokenDestinationData(toAddress,null,null);
+                final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
+                final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
+                        pwmSession,
+                        inputTokenDestData,
+                        null,
+                        pwmSession.getSessionStateBean().getLocale());
+
+
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(toAddress));
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(outputDestTokenData.getEmail()));
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
-                    LOGGER.trace(pwmSession, "generated new user token key code");
+                    LOGGER.trace(pwmSession, "generated new user email token key code");
                 } catch (PwmOperationalException e) {
                     throw new PwmUnrecoverableException(e.getErrorInformation());
                 }
 
+                newUserBean.setEmailTokenIssued(true);
+                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.EMAIL);
+                newUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
+
                 final EmailItemBean configuredEmailSetting = config.readSettingAsEmail(PwmSetting.EMAIL_NEWUSER_VERIFICATION, pwmSession.getSessionStateBean().getLocale());
                 final EmailItemBean emailItemBean = new EmailItemBean(
-                        toAddress,
+                        outputDestTokenData.getEmail(),
                         configuredEmailSetting.getFrom(),
                         configuredEmailSetting.getSubject(),
                         configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
                         configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey));
 
                 try {
-                    Helper.TokenSender.sendEmailToken(pwmApplication, null, null, emailItemBean, toAddress, tokenKey);
+                    Helper.TokenSender.sendEmailToken(pwmApplication, null, null, emailItemBean, outputDestTokenData.getEmail(), tokenKey);
                 } catch (Exception e) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN));
                 }

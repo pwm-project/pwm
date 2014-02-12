@@ -567,7 +567,7 @@ public class Configuration implements Serializable {
         final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
 
         // Sort the map by display name
-        Map<String,String> sortedMap = new TreeMap<String,String>();
+        final Map<String,String> sortedMap = new TreeMap<String,String>();
         for (final String localeString : inputMap.keySet()) {
             final Locale theLocale = Helper.parseLocaleString(localeString);
             if (theLocale != null) {

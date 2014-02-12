@@ -41,7 +41,6 @@ import password.pwm.i18n.Message;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
 import password.pwm.token.TokenPayload;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
@@ -49,7 +48,9 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
+import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -501,45 +502,54 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
         final Configuration config = pwmApplication.getConfig();
 
-        final Set<String> dest = new HashSet<String>();
-        final StringBuilder tokenSendDisplay = new StringBuilder();
-        final UserDataReader dataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final String toAddress;
-        try {
-            toAddress = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-            if (toAddress != null && toAddress.length() > 0) {
-                tokenSendDisplay.append(toAddress);
+        final RestTokenDataClient.TokenDestinationData inputTokenDestData;
+        {
+            final UserDataReader dataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+            final String toAddress;
+            try {
+                toAddress = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+                LOGGER.error(pwmSession, errorInformation);
+                throw new PwmOperationalException(errorInformation);
             }
-            dest.add(toAddress);
-        } catch (ChaiOperationException e) {
-            final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-            LOGGER.error(pwmSession, errorInformation);
-            throw new PwmOperationalException(errorInformation);
+
+            final String toSmsNumber;
+            try {
+                toSmsNumber = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
+            } catch (Exception e) {
+                final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
+                LOGGER.error(pwmSession, errorInformation);
+                throw new PwmOperationalException(errorInformation);
+            }
+            inputTokenDestData = new RestTokenDataClient.TokenDestinationData(toAddress,toSmsNumber,null);
         }
 
-        final String toSmsNumber;
-        try {
-            toSmsNumber = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-            if (toSmsNumber !=null && toSmsNumber.length() > 0) {
-                if (tokenSendDisplay.length() > 0) {
-                    tokenSendDisplay.append(" / ");
-                }
-                tokenSendDisplay.append(toSmsNumber);
-                dest.add(toSmsNumber);
-            }
-        } catch (Exception e) {
-            final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-            LOGGER.error(pwmSession, errorInformation);
-            throw new PwmOperationalException(errorInformation);
+        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
+        final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
+                pwmSession,
+                inputTokenDestData,
+                activateUserBean.getUserIdentity(),
+                pwmSession.getSessionStateBean().getLocale());
+
+        final Set<String> destinationValues = new HashSet<String>();
+        if (outputDestTokenData.getEmail() != null) {
+            destinationValues.add(outputDestTokenData.getEmail());
         }
+        if (outputDestTokenData.getSms() != null) {
+            destinationValues.add(outputDestTokenData.getSms());
+        }
+
 
         final Map<String,String> tokenMapData = new HashMap<String, String>();
 
         try {
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-            final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession,activateUserBean.getUserIdentity());
+            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                    pwmApplication,
+                    pwmSession,
+                    activateUserBean.getUserIdentity());
             if (userLastPasswordChange != null) {
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange));
             }
@@ -550,15 +560,15 @@ public class ActivateUserServlet extends TopServlet {
         final String tokenKey;
         TokenPayload tokenPayload = null;
         try {
-            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, dest);
+            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
             LOGGER.debug(pwmSession, "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-        sendToken(pwmApplication, userIdentity, locale, toAddress, toSmsNumber, tokenKey);
-        activateUserBean.setTokenSendAddress(tokenSendDisplay.toString());
+        sendToken(pwmApplication, userIdentity, locale, outputDestTokenData.getEmail(), outputDestTokenData.getSms(), tokenKey);
+        activateUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
         activateUserBean.setTokenIssued(true);
     }
 
@@ -602,9 +612,10 @@ public class ActivateUserServlet extends TopServlet {
             // check if password-last-modified is same as when tried to read it before.
             if (tokenPass) {
                 try {
-                    final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-                    final Date userLastPasswordChange = userStatusReader.determinePwdLastModified(pwmSession,
-                            userIdentity);
+                    final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                            pwmApplication,
+                            pwmSession,
+                            activateUserBean.getUserIdentity());
                     final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                     if (userLastPasswordChange != null && dateStringInToken != null) {
                         final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);

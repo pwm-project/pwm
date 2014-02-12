@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 
 public class H2_LocalDB extends AbstractJDBC_LocalDB {
 
@@ -62,7 +63,8 @@ public class H2_LocalDB extends AbstractJDBC_LocalDB {
     @Override
     Connection openConnection(
             final File databaseDirectory,
-            final String driverClasspath
+            final String driverClasspath,
+            final Map<String,String> initParams
     ) throws LocalDBException {
         final String filePath = databaseDirectory.getAbsolutePath() + File.separator + "h2-db";
         final String baseConnectionURL = "jdbc:h2:" + filePath;

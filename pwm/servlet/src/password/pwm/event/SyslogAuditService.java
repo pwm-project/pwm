@@ -98,14 +98,15 @@ class SyslogAuditService {
             case tcp:
                 final TCPNetSyslogConfig tcpConfig = new TCPNetSyslogConfig();
                 tcpConfig.setThreaded(false);
-                tcpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
+                tcpConfig.setMaxQueueSize(0);
+                tcpConfig.setThrowExceptionOnWrite(true);
                 syslogConfigIF = tcpConfig;
                 break;
 
             case udp:
                 final UDPNetSyslogConfig udpConfig = new UDPNetSyslogConfig();
                 udpConfig.setThreaded(false);
-                udpConfig.setMaxQueueSize(MAX_QUEUE_SIZE);
+                udpConfig.setMaxQueueSize(0);
                 syslogConfigIF = udpConfig;
                 break;
 
@@ -155,7 +156,7 @@ class SyslogAuditService {
             while (!syslogQueue.isEmpty() && lastSendError == null) {
                 AuditRecord record = null;
                 try {
-                    final String storedString = syslogQueue.peek();
+                    final String storedString = syslogQueue.peekFirst();
                     final String[] splitString = storedString.split(QUEUE_STORAGE_DELIMINATOR,2);
                     final String className = splitString[0];
                     final String jsonString = splitString[1];
@@ -272,5 +273,9 @@ class SyslogAuditService {
         public String toString() {
             return Helper.getGson().toJson(this);
         }
+    }
+
+    public int queueSize() {
+        return syslogQueue != null ? syslogQueue.size() : 0;
     }
 }

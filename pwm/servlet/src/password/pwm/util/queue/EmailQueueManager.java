@@ -32,8 +32,6 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.HealthTopic;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -202,7 +200,7 @@ public class EmailQueueManager extends AbstractQueueManager {
                 statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
             }
 
-            lastSendFailure = new HealthRecord(HealthStatus.WARN, HealthTopic.Email, HealthMessage.Email_SendFailure, e.getMessage());
+            lastSendFailure = HealthRecord.forMessage(HealthMessage.Email_SendFailure, e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {

@@ -30,6 +30,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.ws.client.rest.RestClientHelper;
 import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.util.HashMap;
@@ -83,7 +84,8 @@ class ExternalRestMacro extends AbstractMacro {
 
         try {
             final String requestBody = Helper.getGson().toJson(sendData);
-            final String responseBody = Helper.makeOutboundRestWSCall(pwmApplication, PwmConstants.DEFAULT_LOCALE, url,
+            final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication,
+                    PwmConstants.DEFAULT_LOCALE, url,
                     requestBody);
             final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
             if (responseMap.containsKey("output")) {

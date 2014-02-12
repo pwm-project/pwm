@@ -71,6 +71,7 @@ public class SessionStateBean implements PwmSessionBean {
     private BasicAuthInfo originalBasicAuthInfo;
 
     private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
+    private int formCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
     private String sessionVerificationKey = "key";
     private String restClientKey;
 
@@ -89,7 +90,7 @@ public class SessionStateBean implements PwmSessionBean {
     private int intruderAttempts;
     private boolean oauthInProgress;
 
-
+    // settings
     private int sessionVerificationKeyLength;
 
 
@@ -353,7 +354,17 @@ public class SessionStateBean implements PwmSessionBean {
         this.sessionMaximumTimeout = sessionMaximumTimeout;
     }
 
-    // -------------------------- ENUMERATIONS --------------------------
+    public int getFormCounter()
+    {
+        return formCounter;
+    }
+
+    public void setFormCounter(int formCounter)
+    {
+        this.formCounter = formCounter;
+    }
+
+// -------------------------- ENUMERATIONS --------------------------
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());

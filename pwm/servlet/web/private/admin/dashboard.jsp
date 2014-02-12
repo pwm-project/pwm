@@ -379,6 +379,14 @@
             </tr>
             <tr>
                 <td class="key">
+                    Syslog Queue Size
+                </td>
+                <td>
+                    <%= pwmApplication.getAuditManager().syslogQueueSize() %>
+                </td>
+            </tr>
+            <tr>
+                <td class="key">
                     Local Audit Records
                 </td>
                 <td>

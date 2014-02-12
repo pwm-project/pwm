@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.util.TimeDuration" %>
+<%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,8 +28,11 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<% long maxWaitSeconds = TimeDuration.fromCurrent(PwmSession.getPwmSession(request).getChangePasswordBean().getChangeLastEndTime()).getTotalSeconds(); %>
-<% long checkIntervalSeconds = Long.parseLong(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS)); %>
+<%
+    Date maxCompleteTime = PwmSession.getPwmSession(request).getChangePasswordBean().getChangePasswordMaxCompletion();
+    long maxWaitSeconds = maxCompleteTime == null ? 1 : TimeDuration.fromCurrent(maxCompleteTime).getTotalSeconds();
+    long checkIntervalSeconds = Long.parseLong(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
+%>
 <meta http-equiv="refresh" content="<%=maxWaitSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
 <noscript>
     <meta http-equiv="refresh" content="<%=checkIntervalSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
@@ -37,63 +41,35 @@
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
-    <div id="centerbody">
+    <div id="centerbody" >
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p><pwm:Display key="Display_PleaseWaitPassword"/></p>
-        <div style="width:400px; margin-left: auto; margin-right: auto; padding-bottom: 100px; padding-top: 100px">
+        <div style="width:400px; margin-left: auto; margin-right: auto; padding-top: 70px">
             <div data-dojo-type="dijit/ProgressBar" style="width:400px" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
         </div>
+        <div style="text-align: center; width: 100%; padding-top: 50px">
+            <%--
+            <div>Elapsed Time: <span id="elapsedSeconds"></span></div>
+            <div>Estimated Time Remaining: <span id="estimatedRemainingSeconds"></span></div>
+            --%>
+        </div>
+        <br/>
+        <table id="progressMessageTable">
+
+        </table>
     </div>
     <div class="push"></div>
 </div>
-<script type="text/javascript">
-    function refreshChangePasswordStatus(refreshInterval) {
-        require(["dojo","dijit/registry"],function(dojo,registry){
-            var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-            var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-            dojo.xhrGet({
-                url: displayStringsUrl,
-                handleAs: 'json',
-                timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
-                headers: { "Accept": "application/json" },
-                load: function(data) {
-                    //PWM_MAIN.getObject('completed').innerHTML = data['data']['complete'];
-                    //PWM_MAIN.getObject('percentage').innerHTML = data['data']['percentComplete'] + '%';
-
-                    var progressBar = registry.byId('passwordProgressBar');
-                    progressBar.set("value",data['data']['percentComplete']);
-
-                    if (data['data']['complete'] == true) {
-                        PWM_MAIN.showWaitDialog(null,null,function(){
-                            setTimeout(function(){
-                                window.location = completedUrl;
-                            },1000);
-                        });
-                    } else {
-                        setTimeout(function(){
-                            refreshChangePasswordStatus(refreshInterval);
-                        },refreshInterval);
-                    }
-                },
-                error: function(error) {
-                    console.log('unable to read password change status: ' + error);
-                    setTimeout(function(){
-                        refreshChangePasswordStatus(refreshInterval);
-                    },refreshInterval);
-                }
-            });
-        });
-    }
-</script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
         require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser,registry){
             parser.parse();
-            refreshChangePasswordStatus(<%=checkIntervalSeconds * 1000%>);
+            PWM_CHANGEPW.refreshChangePasswordStatus(<%=checkIntervalSeconds * 1000%>);
         });
     });
 </script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

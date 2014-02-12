@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.config.function;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
@@ -46,6 +47,7 @@ public class LdapCertImportFunction implements SettingUIFunction {
     @Override
     public String provideFunction(
             PwmApplication pwmApplication,
+            PwmSession pwmSession,
             StoredConfiguration storedConfiguration,
             PwmSetting setting,
             String profile

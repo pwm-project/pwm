@@ -50,11 +50,19 @@ public abstract class PwmConstants {
     public static final String BUILD_JAVA_VERSION   = readBuildInfoBundle("build.java.version");
     public static final String BUILD_VERSION        = readBuildInfoBundle("build.version","");
 
-    public static final String SERVLET_VERSION =
-                    (BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "") +
-                    (BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "") +
-                    (BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "") +
-                    (BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "").trim();
+    private static final String MISSING_VERSION_STRING = readPwmConstantsBundle("missingVersionString");
+    public static final String SERVLET_VERSION;
+    static {
+        final String servletVersion =
+                (BUILD_VERSION.length() > 0 ? "v" + BUILD_VERSION : "") +
+                        (BUILD_NUMBER.length() > 0 ? " b" + BUILD_NUMBER : "") +
+                        (BUILD_REVISION.length() > 0 ? " r" + BUILD_REVISION : "") +
+                        (BUILD_TYPE.length() > 0 ? " (" + BUILD_TYPE + ")" : "").trim();
+
+        SERVLET_VERSION = servletVersion.isEmpty()
+                ? MISSING_VERSION_STRING
+                : servletVersion;
+    }
 
     public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
     public static final String CONFIG_FILE_FILENAME = readPwmConstantsBundle("configFilename");
@@ -100,9 +108,6 @@ public abstract class PwmConstants {
     public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     public static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
 
-    public static final int PASSWORD_UPDATE_CYCLE_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateCycleDelayMS"));
-    public static final int PASSWORD_UPDATE_INITIAL_DELAY_MS = Integer.parseInt(readPwmConstantsBundle("passwordUpdateInitialDelayMS"));
-
     public static final String DEFAULT_LDAP_PROFILE = "_default";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String DEFAULT_CHALLENGE_PROFILE = "";
@@ -127,6 +132,7 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
     public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
     public static final String REQUEST_ATTR_NO_PWM_MAIN_INIT = "pwm.noPwmMainInit";
+    public static final String REQUEST_ATTR_NO_REQ_COUNTER = "pwm.noReqCounterIncrement";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 

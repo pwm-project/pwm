@@ -36,7 +36,6 @@ import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -168,15 +167,12 @@ public class LocalDBLoggerTest extends TestCase {
             final StringBuilder sb = new StringBuilder();
             final long maxEvents = config.readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
             final long eventCount = localDBLogger.getStoredEventCount();
-            final double percentComplete = (double)eventCount / (double)maxEvents * 100f;
-            final NumberFormat numberFormat = NumberFormat.getNumberInstance();
-            numberFormat.setMaximumFractionDigits(3);
-            numberFormat.setMinimumFractionDigits(3);
+            final Percent percent = new Percent(eventCount,maxEvents);
             sb.append(new SimpleDateFormat("HH:mm:ss").format(new Date()));
             sb.append(", added ").append(eventsAdded);
             sb.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
             sb.append(", events: ").append(localDBLogger.getStoredEventCount()).append("/").append(maxEvents);
-            sb.append(" (").append(numberFormat.format(percentComplete)).append("%)");
+            sb.append(" (").append(percent.pretty(3)).append(")");
             sb.append(", free space: ").append(Helper.formatDiskSize(
                     Helper.diskSpaceRemaining(localDB.getFileLocation())));
             sb.append(", pending: ").append(localDBLogger.getPendingEventCount());
