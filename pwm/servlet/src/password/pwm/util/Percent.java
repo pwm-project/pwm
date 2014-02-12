@@ -33,7 +33,7 @@ public class Percent {
     private final BigDecimal percentage;
 
     public static final Percent ZERO = new Percent(0,1);
-    public static final Percent ONE_HUNDREAD = new Percent(1,1);
+    public static final Percent ONE_HUNDRED = new Percent(1,1);
 
     public Percent(final BigDecimal numerator,final BigDecimal denominator) {
         if (numerator == null) {

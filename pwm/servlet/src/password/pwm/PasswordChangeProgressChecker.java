@@ -64,7 +64,7 @@ public class PasswordChangeProgressChecker {
         }
         passwordSyncCheckMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.PASSWORD_SYNC_ENABLE_REPLICA_CHECK,PasswordSyncCheckMode.class);
 
-        completedReplicatinRecord = makeReplicaProgressRecord(Percent.ONE_HUNDREAD);
+        completedReplicatinRecord = makeReplicaProgressRecord(Percent.ONE_HUNDRED);
     }
 
     public static class PasswordChangeProgress implements Serializable {
@@ -76,7 +76,7 @@ public class PasswordChangeProgressChecker {
 
         public static final PasswordChangeProgress COMPLETE = new PasswordChangeProgress(
                 true,
-                Percent.ONE_HUNDREAD.asBigDecimal(2),
+                Percent.ONE_HUNDRED.asBigDecimal(2),
                 Collections.<ProgressRecord>emptyList(),
                 "",
                 ""
@@ -148,7 +148,7 @@ public class PasswordChangeProgressChecker {
 
         final Percent percentage;
         if (new Date().after(estimatedCompletion)) {
-            percentage = Percent.ONE_HUNDREAD;
+            percentage = Percent.ONE_HUNDRED;
         } else {
             final long totalMs = new TimeDuration(tracker.beginTime,estimatedCompletion).getTotalMilliseconds();
             percentage = new Percent(elapsedMs,totalMs + 1);
@@ -249,7 +249,7 @@ public class PasswordChangeProgressChecker {
             return sum.divide(new BigDecimal(items), MathContext.DECIMAL32).setScale(2,RoundingMode.UP);
         }
 
-        return Percent.ONE_HUNDREAD.asBigDecimal(2);
+        return Percent.ONE_HUNDRED.asBigDecimal(2);
     }
 
 
