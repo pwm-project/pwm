@@ -10,7 +10,7 @@ http://code.google.com/p/pwm
 [----------------------------]
 
 
-v1.7.1
+v1.8.0
 ---
 + Functionality/option to store intruder table in Database
 + Functionality/option to store user event history in Database
