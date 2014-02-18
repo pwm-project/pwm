@@ -42,7 +42,7 @@ v1.8.0
 
 ! fixed issue where SHA1 responses where hashed only once regardless of iteration count setting
 
-v1.7.1 (February 16, 2014) build 1230
+v1.7.1 (February 18, 2014) build 1231
 ---
 * Updated Hungarian language (issue #469) thanks to torlasz
 + Added Greek language (issue #527) thanks to smaistros
