@@ -157,7 +157,27 @@ public class IntruderManager implements Serializable, PwmService {
                 } else {
                     recordManagers.put(RecordType.USERNAME, new RecordManagerImpl(RecordType.USERNAME, recordStore, settings));
                     recordManagers.put(RecordType.USER_ID, new RecordManagerImpl(RecordType.USER_ID, recordStore, settings));
+                }
+            }
+            {
+                final IntruderSettings settings = new IntruderSettings();
+                settings.setCheckCount((int)config.readSettingAsLong(PwmSetting.INTRUDER_ATTRIBUTE_MAX_ATTEMPTS));
+                settings.setResetDuration(new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_ATTRIBUTE_RESET_TIME)));
+                settings.setCheckDuration(new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_ATTRIBUTE_CHECK_TIME)));
+                if (settings.getCheckCount() == 0 || settings.getCheckDuration().getTotalMilliseconds() == 0 || settings.getResetDuration().getTotalMilliseconds() == 0) {
+                    LOGGER.info("intruder user checking will remain disabled due to configuration settings");
+                } else {
                     recordManagers.put(RecordType.ATTRIBUTE, new RecordManagerImpl(RecordType.ATTRIBUTE, recordStore, settings));
+                }
+            }
+            {
+                final IntruderSettings settings = new IntruderSettings();
+                settings.setCheckCount((int)config.readSettingAsLong(PwmSetting.INTRUDER_TOKEN_DEST_MAX_ATTEMPTS));
+                settings.setResetDuration(new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_TOKEN_DEST_RESET_TIME)));
+                settings.setCheckDuration(new TimeDuration(1000 * config.readSettingAsLong(PwmSetting.INTRUDER_TOKEN_DEST_CHECK_TIME)));
+                if (settings.getCheckCount() == 0 || settings.getCheckDuration().getTotalMilliseconds() == 0 || settings.getResetDuration().getTotalMilliseconds() == 0) {
+                    LOGGER.info("intruder user checking will remain disabled due to configuration settings");
+                } else {
                     recordManagers.put(RecordType.TOKEN_DEST, new RecordManagerImpl(RecordType.TOKEN_DEST, recordStore, settings));
                 }
             }

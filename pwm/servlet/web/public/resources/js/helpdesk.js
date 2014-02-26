@@ -56,9 +56,8 @@ PWM_HELPDESK.doResponseClear = function() {
     var username = PWM_VAR['helpdesk_obfuscatedDN'];
     require(["dojo","dijit/Dialog"],function(dojo){
         PWM_MAIN.closeWaitDialog();
-        PWM_MAIN.showWaitDialog(PWM_STRINGS['Display_PleaseWait']);
-        var inputValues = { 'username':username };
-        setTimeout(function(){
+        PWM_MAIN.showWaitDialog(null,null,function(){
+            var inputValues = { 'username':username };
             dojo.xhrDelete({
                 url: PWM_GLOBAL['url-restservice'] + "/challenges",
                 headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
@@ -72,7 +71,7 @@ PWM_HELPDESK.doResponseClear = function() {
                     if (results['error'] != true) {
                         bodyText += results['successMessage'];
                     } else {
-                        bodyText += results['errorMsg'];
+                        bodyText += results['errorMessage'];
                     }
                     bodyText += '<br/><br/><button class="btn" onclick="PWM_MAIN.getObject(\'continueForm\').submit();"> OK </button>';
                     PWM_MAIN.closeWaitDialog();
@@ -93,7 +92,7 @@ PWM_HELPDESK.doResponseClear = function() {
                     PWM_MAIN.showError("unexpected clear responses error: " + errorObj);
                 }
             });
-        },100);
+        });
     });
 };
 

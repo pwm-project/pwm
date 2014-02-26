@@ -75,20 +75,6 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, Category.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, Category.GENERAL),
-    WORDLIST_FILENAME(
-            "pwm.wordlist.location", PwmSettingSyntax.STRING, Category.GENERAL),
-    PASSWORD_SHAREDHISTORY_ENABLE(
-            "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, Category.GENERAL),
-    PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", PwmSettingSyntax.NUMERIC, Category.GENERAL),
-    WORDLIST_CASE_SENSITIVE(
-            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.GENERAL),
-    PASSWORD_WORDLIST_WORDSIZE(
-            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.GENERAL),
-    PASSWORD_POLICY_SOURCE(
-            "password.policy.source", PwmSettingSyntax.SELECT, Category.GENERAL),
-    PASSWORD_POLICY_CASE_SENSITIVITY(
-            "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.GENERAL),
 
 
     // user interface
@@ -253,6 +239,8 @@ public enum PwmSetting {
             "email.updateguest", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_SENDPASSWORD(
             "email.sendpassword", PwmSettingSyntax.EMAIL, Category.EMAIL),
+    EMAIL_SEND_USERNAME(
+            "email.sendUsername", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_INTRUDERNOTICE(
             "email.intruderNotice", PwmSettingSyntax.EMAIL, Category.EMAIL),
     EMAIL_ADVANCED_SETTINGS(
@@ -305,12 +293,31 @@ public enum PwmSetting {
             "sms.activation.token.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
     SMS_ACTIVATION_TEXT(
             "sms.activation.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
+    SMS_FORGOTTEN_USERNAME_TEXT(
+            "sms.forgottenUsername.message", PwmSettingSyntax.LOCALIZED_STRING, Category.SMS),
     SMS_USE_URL_SHORTENER(
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, Category.SMS),
 
     //global password policy settings
     PASSWORD_PROFILE_LIST(
-            "password.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
+            "password.profile.list", PwmSettingSyntax.PROFILE, Category.PASSWORD_GLOBAL),
+    WORDLIST_FILENAME(
+            "pwm.wordlist.location", PwmSettingSyntax.STRING, Category.PASSWORD_GLOBAL),
+    PASSWORD_SHAREDHISTORY_ENABLE(
+            "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_GLOBAL),
+    PASSWORD_SHAREDHISTORY_MAX_AGE(
+            "password.sharedHistory.age", PwmSettingSyntax.NUMERIC, Category.PASSWORD_GLOBAL),
+    WORDLIST_CASE_SENSITIVE(
+            "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_GLOBAL),
+    PASSWORD_WORDLIST_WORDSIZE(
+            "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.PASSWORD_GLOBAL),
+    PASSWORD_POLICY_SOURCE(
+            "password.policy.source", PwmSettingSyntax.SELECT, Category.PASSWORD_GLOBAL),
+    PASSWORD_POLICY_CASE_SENSITIVITY(
+            "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.PASSWORD_GLOBAL),
+
+
+    // password policy profile settings
     PASSWORD_POLICY_QUERY_MATCH(
             "password.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_LENGTH(
@@ -430,20 +437,32 @@ public enum PwmSetting {
             "session.maxSeconds", PwmSettingSyntax.NUMERIC, Category.SECURITY),
 
     // intruder detection
+    INTRUDER_STORAGE_METHOD(
+            "intruder.storageMethod", PwmSettingSyntax.SELECT, Category.INTRUDER),
     INTRUDER_USER_RESET_TIME(
             "intruder.user.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     INTRUDER_USER_MAX_ATTEMPTS(
             "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     INTRUDER_USER_CHECK_TIME(
             "intruder.user.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ATTRIBUTE_RESET_TIME(
+            "intruder.attribute.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ATTRIBUTE_MAX_ATTEMPTS(
+            "intruder.attribute.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_ATTRIBUTE_CHECK_TIME(
+            "intruder.attribute.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_TOKEN_DEST_RESET_TIME(
+            "intruder.tokenDest.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_TOKEN_DEST_MAX_ATTEMPTS(
+            "intruder.tokenDest.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
+    INTRUDER_TOKEN_DEST_CHECK_TIME(
+            "intruder.tokenDest.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     INTRUDER_ADDRESS_RESET_TIME(
             "intruder.address.resetTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
             "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     INTRUDER_ADDRESS_CHECK_TIME(
             "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
-    INTRUDER_STORAGE_METHOD(
-            "intruder.storageMethod", PwmSettingSyntax.SELECT, Category.INTRUDER),
     INTRUDER_SESSION_MAX_ATTEMPTS(
             "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, Category.INTRUDER),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
@@ -599,6 +618,9 @@ public enum PwmSetting {
             "forgottenUsername.searchFilter", PwmSettingSyntax.STRING, Category.FORGOTTEN_USERNAME),
     FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE(
             "forgottenUsername.usernameAttribute", PwmSettingSyntax.STRING, Category.FORGOTTEN_USERNAME),
+    FORGOTTEN_USERNAME_SEND_USERNAME_METHOD(
+            "forgottenUsername.sendUsername.sendMethod", PwmSettingSyntax.SELECT, Category.FORGOTTEN_USERNAME),
+
 
     // new user settings
     NEWUSER_ENABLE(
@@ -834,8 +856,8 @@ public enum PwmSetting {
             "external.destToken.urls", PwmSettingSyntax.STRING, Category.MISC),
     EXTERNAL_MACROS_REST_URLS(
             "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
-    EXTERNAL_PWRULES_REST_URLS(
-            "external.pwrules.urls", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
+    EXTERNAL_PWCHECK_REST_URLS(
+            "external.pwcheck.urls", PwmSettingSyntax.STRING, Category.MISC),
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, Category.MISC),
 
@@ -1048,6 +1070,7 @@ public enum PwmSetting {
         LDAP_PROFILE        (Type.PROFILE),
         LDAP_GLOBAL         (Type.SETTING),
         USER_INTERFACE      (Type.SETTING),
+        PASSWORD_GLOBAL     (Type.SETTING),
         PASSWORD_POLICY     (Type.PROFILE),
         CHALLENGE           (Type.SETTING),
         CHALLENGE_POLICY    (Type.PROFILE),

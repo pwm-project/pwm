@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,11 @@
  */
 package password.pwm.util.operations;
 
-import com.novell.ldapchai.exception.*;
-import password.pwm.*;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ChaiValidationException;
+import password.pwm.PwmApplication;
+import password.pwm.PwmService;
+import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -32,12 +35,9 @@ import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.operations.otp.AbstractOtpOperator;
-import password.pwm.util.operations.otp.DbOtpOperator;
-import password.pwm.util.operations.otp.LdapOtpOperator;
-import password.pwm.util.operations.otp.LocalDbOtpOperator;
-import password.pwm.util.operations.otp.OtpOperator;
+import password.pwm.util.operations.otp.*;
 import password.pwm.util.otp.OTPUserConfiguration;
+
 import java.util.*;
 
 /**
@@ -90,7 +90,7 @@ public class OtpService implements PwmService {
             final String userGUID;
             if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
                     DataStorageMethod.LOCALDB)) {
-                userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication,theUser);
+                userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication,theUser, false);
             } else {
                 userGUID = null;
             }

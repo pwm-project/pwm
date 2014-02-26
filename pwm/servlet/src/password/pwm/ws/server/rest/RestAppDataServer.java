@@ -324,6 +324,42 @@ public class RestAppDataServer {
         return restResultBean.asJsonResponse();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/strings/{bundle}")
+    public Response doGetStringData(
+            @PathParam(value = "bundle") final String bundleName,
+            @Context HttpServletRequest request,
+            @Context HttpServletResponse response
+    )
+            throws PwmUnrecoverableException, IOException, ChaiUnavailableException
+    {
+        final int maxCacheAgeSeconds = 60 * 5;
+        final RestRequestBean restRequestBean;
+        try {
+            restRequestBean = RestServerHelper.initializeRestRequest(request, ServicePermissions.PUBLIC, null);
+        } catch (PwmUnrecoverableException e) {
+            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
+        }
+
+        final String eTagValue = makeClientEtag(request, restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        response.setHeader("ETag",eTagValue);
+        response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
+        response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
+
+        try {
+            final LinkedHashMap<String,String> displayData = new LinkedHashMap<String,String>(makeDisplayData(restRequestBean.getPwmApplication(),
+                    restRequestBean.getPwmSession(), bundleName));
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(displayData);
+            return restResultBean.asJsonResponse();
+        } catch (Exception e) {
+            final String errorMSg = "error during rest /strings call for bundle " + bundleName + ", error: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMSg);
+            return RestResultBean.fromError(errorInformation).asJsonResponse();
+        }
+    }
+
     private AppData makeAppData(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
@@ -333,20 +369,24 @@ public class RestAppDataServer {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final AppData appData = new AppData();
-        appData.PWM_STRINGS = makeDisplayData(pwmApplication, pwmSession);
+        appData.PWM_STRINGS = makeDisplayData(pwmApplication, pwmSession, "Display");
         appData.PWM_GLOBAL = makeClientData(pwmApplication, pwmSession, request, response);
         return appData;
     }
 
     private Map<String,String> makeDisplayData(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession
+            final PwmSession pwmSession,
+            final String bundleName
     )
     {
+        Class displayClass = LocaleHelper.classForShortName(bundleName);
+        displayClass = displayClass == null ? Display.class : displayClass;
+
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
         final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
-        final ResourceBundle bundle = ResourceBundle.getBundle(Display.class.getName());
+        final ResourceBundle bundle = ResourceBundle.getBundle(displayClass.getName());
         try {
             final MacroMachine macroMachine = new MacroMachine(
                     pwmApplication,
@@ -354,7 +394,7 @@ public class RestAppDataServer {
                     pwmSession.getSessionManager().getUserDataReader(pwmApplication)
             );
             for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
-                String displayValue = Display.getLocalizedMessage(userLocale, key, config);
+                String displayValue = LocaleHelper.getLocalizedMessage(userLocale, key, config, displayClass);
                 displayValue = macroMachine.expandMacros(displayValue);
                 displayStrings.put(key, displayValue);
             }

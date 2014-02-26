@@ -26,7 +26,11 @@ import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.provider.ChaiConfiguration;
 import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiSetting;
+import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -43,11 +47,13 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -108,6 +114,8 @@ public class LDAPStatusChecker implements HealthChecker {
                 }
             }
         }
+
+        returnRecords.addAll(checkVendorSameness(pwmApplication));
 
         return returnRecords;
     }
@@ -392,6 +400,9 @@ public class LDAPStatusChecker implements HealthChecker {
                 returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " is not a valid host"));
             }
         }
+
+        returnList.addAll(checkAdPasswordPolicyApi(pwmApplication));
+
         return returnList;
     }
 
@@ -424,5 +435,105 @@ public class LDAPStatusChecker implements HealthChecker {
             return TOPIC;
         }
         return TOPIC + "-" + (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profileID) ? "Default" : profileID);
+    }
+
+    private List<HealthRecord> checkVendorSameness(final PwmApplication pwmApplication) {
+        final Map<HealthMonitor.HealthProperty,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
+        if (healthProperties.containsKey(HealthMonitor.HealthProperty.LdapVendorSameCheck)) {
+            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthProperty.LdapVendorSameCheck);
+        }
+
+        LOGGER.trace("beginning check for replica vendor sameness");
+        boolean errorReachingServer = false;
+        final Map<String,ChaiProvider.DIRECTORY_VENDOR> replicaVendorMap = new HashMap<String,ChaiProvider.DIRECTORY_VENDOR>();
+
+        for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
+            final ChaiConfiguration profileChaiConfiguration = LdapOperationsHelper.createChaiConfiguration(
+                    pwmApplication.getConfig(),
+                    ldapProfile
+            );
+            final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica(profileChaiConfiguration, Collections.<ChaiSetting,String>emptyMap());
+            for (final ChaiConfiguration chaiConfiguration : replicaConfigs) {
+                try {
+                    final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+                    replicaVendorMap.put(chaiConfiguration.getSetting(ChaiSetting.BIND_URLS),loopProvider.getDirectoryVendor());
+                } catch (ChaiException e) {
+                    errorReachingServer = true;
+                    LOGGER.error("error contacting server during replica vendor sameness check: " + e.getMessage());
+                }
+            }
+        }
+
+        final ArrayList<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<ChaiProvider.DIRECTORY_VENDOR>(replicaVendorMap.values());
+
+        if (discoveredVendors.size() >= 2) {
+            final String mapAsJson = Helper.getGson().toJson(replicaVendorMap);
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_VendorsNotSame, mapAsJson));
+            // cache the error
+            healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);
+
+            LOGGER.warn("multiple ldap vendors found: " + mapAsJson);
+        } else if (discoveredVendors.size() == 1) {
+            if (!errorReachingServer) {
+                // cache the no errors
+                healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);
+            }
+        }
+
+        return healthRecords;
+    }
+
+    private static List<HealthRecord> checkAdPasswordPolicyApi(final PwmApplication pwmApplication) {
+
+
+        final boolean passwordPolicyApiEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET);
+        if (!passwordPolicyApiEnabled) {
+            return Collections.emptyList();
+        }
+
+        final Map<HealthMonitor.HealthProperty,Serializable> healthProperties = pwmApplication.getHealthMonitor().getHealthProperties();
+        if (healthProperties.containsKey(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck)) {
+            return (List<HealthRecord>)healthProperties.get(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck);
+        }
+
+        LOGGER.trace("beginning check for ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support");
+        boolean errorReachingServer = false;
+        final ArrayList<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+
+        for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
+            final ChaiConfiguration profileChaiConfiguration = LdapOperationsHelper.createChaiConfiguration(
+                    pwmApplication.getConfig(),
+                    ldapProfile
+            );
+            final Collection<ChaiConfiguration> replicaConfigs = ChaiUtility.splitConfigurationPerReplica(profileChaiConfiguration, Collections.<ChaiSetting,String>emptyMap());
+            for (final ChaiConfiguration chaiConfiguration : replicaConfigs) {
+                try {
+                    final ChaiProvider loopProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+                    final ChaiEntry rootDSE = ChaiUtility.getRootDSE(loopProvider);
+                    final Set<String> controls = rootDSE.readMultiStringAttribute("supportedControl");
+                    final boolean asnSupported = controls.contains(PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN);
+                    if (!asnSupported) {
+                        final String url = chaiConfiguration.getSetting(ChaiSetting.BIND_URLS);
+                        final HealthRecord record = HealthRecord.forMessage(
+                                HealthMessage.LDAP_Ad_History_Asn_Missing,
+                                ConfigurationChecker.settingToHealthLabel(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET,null),
+                                url
+                        );
+                        healthRecords.add(record);
+                        LOGGER.warn(record.toDebugString(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig()));
+                    }
+                } catch (ChaiException e) {
+                    errorReachingServer = true;
+                    LOGGER.error("error contacting server during ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") check: " + e.getMessage());
+                }
+            }
+        }
+
+        if (!errorReachingServer) {
+            healthProperties.put(HealthMonitor.HealthProperty.AdPasswordPolicyApiCheck, healthRecords);
+        }
+
+        return healthRecords;
     }
 }

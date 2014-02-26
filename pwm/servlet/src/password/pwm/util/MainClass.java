@@ -138,7 +138,7 @@ public class MainClass {
         final PwmApplication pwmApplication = loadPwmApplication(config, workingFolder, true);
 
         final ReportService userReport = pwmApplication.getUserReportService();
-        userReport.outputToCsv(outputFileStream,true,50*1000);
+        userReport.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }
         out("report complete.");
@@ -289,7 +289,7 @@ public class MainClass {
                     final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
                             userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
                     final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
                     pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
                 } catch (Exception e) {

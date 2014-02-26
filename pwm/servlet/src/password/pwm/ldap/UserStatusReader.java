@@ -216,7 +216,7 @@ public class UserStatusReader {
         try {
             uiBean.setUserIdentity(new UserIdentity(theUser.readCanonicalDN(),userIdentity.getLdapProfileID()));
         } catch (ChaiOperationException e) {
-            LOGGER.warn("error reading canonical DN" + e);
+            LOGGER.warn("error reading canonical DN: " + e.getMessage());
             uiBean.setUserIdentity(userIdentity);
         }
 
@@ -262,7 +262,7 @@ public class UserStatusReader {
         }
 
         { // set guid
-            final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+            final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
             uiBean.setUserGuid(userGuid);
         }
 

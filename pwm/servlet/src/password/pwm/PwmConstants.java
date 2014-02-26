@@ -108,6 +108,7 @@ public abstract class PwmConstants {
     public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
     public static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
 
+    public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
     public static final String DEFAULT_LDAP_PROFILE = "_default";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String DEFAULT_CHALLENGE_PROFILE = "";

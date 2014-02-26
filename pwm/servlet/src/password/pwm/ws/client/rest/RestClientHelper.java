@@ -58,7 +58,7 @@ public class RestClientHelper {
             final StringEntity stringEntity = new StringEntity(jsonRequestBody);
             stringEntity.setContentType("application/json");
             httpPost.setEntity(stringEntity);
-            LOGGER.debug("beginning external rest call: " + httpPost.toString());
+            LOGGER.debug("beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody);
             httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
             final String responseBody = EntityUtils.toString(httpResponse.getEntity());
             LOGGER.trace("external rest call returned: " + httpResponse.getStatusLine().toString() + ", body: " + responseBody);

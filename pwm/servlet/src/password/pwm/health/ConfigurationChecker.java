@@ -25,10 +25,7 @@ package password.pwm.health;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.i18n.Admin;
@@ -62,7 +59,7 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_ConfigMode")));
+            records.add(HealthRecord.forMessage(HealthMessage.Health_Config_ConfigMode));
         }
 
         if (PwmConstants.UNCONFIGURED_URL_VALUE.equals(pwmApplication.getSiteURL())) {
@@ -151,7 +148,7 @@ public class ConfigurationChecker implements HealthChecker {
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
                 if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == MessageSendMethod.NONE) {
-                    final Collection<String> formSettings = config.readSettingAsStringArray(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
+                    final Collection<FormConfiguration> formSettings = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
                     if (formSettings == null || formSettings.isEmpty()) {
                         records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoRecoveryEnabled")));
                     }
@@ -200,7 +197,7 @@ public class ConfigurationChecker implements HealthChecker {
         return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
     }
 
-    private String settingToHealthLabel(final PwmSetting setting, final String profileID) {
+    public static String settingToHealthLabel(final PwmSetting setting, final String profileID) {
         return setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
                 + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE);
 

@@ -228,7 +228,7 @@ public abstract class RestServerHelper {
 
     public static void handleNonJsonErrorResult(final ErrorInformation errorInformation) {
         Response.ResponseBuilder responseBuilder = Response.serverError();
-        responseBuilder.entity(errorInformation.toDebugStr());
+        responseBuilder.entity(errorInformation.toDebugStr() + "\n");
         throw new WebApplicationException(responseBuilder.build());
     }
 }

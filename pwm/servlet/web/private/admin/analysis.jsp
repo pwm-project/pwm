@@ -52,7 +52,7 @@
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false">
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="Directory Reporting">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Directory Reporting">
                 <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
                     <div style="max-height: 350px">
@@ -87,9 +87,19 @@
                     </div>
                     <div style="text-align: center">
                         <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
-                            <button type="submit" class="btn">
-                                <span class="fa fa-download">&nbsp;Download as CSV</span>
+                            <button type="submit" class="btn" id="Button_DownloadReportRecords">
+                                <span class="fa fa-download">&nbsp;<pwm:Display key="Button_DownloadReportRecords" bundle="Admin"/></span>
                             </button>
+                            <script type="application/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+                                        new Tooltip({
+                                            connectId: ['Button_DownloadReportRecords'],
+                                            label: '<div style="max-width:350px"><pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/></div>'
+                                        });
+                                    });
+                                });
+                            </script>
                             <input type="hidden" name="processAction" value="outputUserReportCsv"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
@@ -131,7 +141,7 @@
                 </div>
                 <% } %>
             </div>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="Event Statistics">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Event Statistics">
                 <div data-dojo-type="dijit.layout.ContentPane" title="Raw Statistics">
                     <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
                     <% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
@@ -141,7 +151,7 @@
                     <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
                     <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); dateFormat.setTimeZone(TimeZone.getTimeZone("Zulu")); %>
                     <div style="max-height: 350px; overflow-y: auto">
-                        <table class="tablemain" id="form">
+                        <table>
                             <tr>
                                 <td colspan="10" style="text-align: center">
                                     <form action="<pwm:url url='analysis.jsp'/>" method="GET" enctype="application/x-www-form-urlencoded"
@@ -235,6 +245,11 @@
     }
 
 </script>
-<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
+<div><%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %></div>
+<script type="text/javascript">
+    PWM_ADMIN.initAdminPage(function(){PWM_MAIN.pageLoadHandler()});
+</script>
 </body>
 </html>

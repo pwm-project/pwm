@@ -29,11 +29,13 @@ import java.util.Locale;
 
 public enum HealthMessage {
     LDAP_No_Connection                      (HealthStatus.WARN,     HealthTopic.LDAP),
+    LDAP_Ad_History_Asn_Missing             (HealthStatus.WARN,     HealthTopic.LDAP),
     Email_SendFailure                       (HealthStatus.WARN,     HealthTopic.Email),
     MissingResource                         (HealthStatus.DEBUG,    HealthTopic.Integrity),
     BrokenMethod                            (HealthStatus.DEBUG,    HealthTopic.Integrity),
     Config_UsingLocalDBResponseStorage      (HealthStatus.CAUTION,  HealthTopic.Configuration),
-
+    LDAP_VendorsNotSame                     (HealthStatus.CONFIG,   HealthTopic.LDAP),
+    Health_Config_ConfigMode                (HealthStatus.CAUTION,  HealthTopic.Configuration),
     ;
 
     private final HealthStatus status;

@@ -165,12 +165,14 @@ public class ConfigEditorServlet extends TopServlet {
         } catch (Exception e) {
             final RestResultBean restResultBean;
             if (e instanceof PwmException) {
-                restResultBean = RestResultBean.fromError(((PwmException) e).getErrorInformation());
+                final String errorMsg = "error while searching for users: " + ((PwmException) e).getErrorInformation().toDebugStr();
+                final ErrorInformation errorInformation = new ErrorInformation(((PwmException) e).getError(),errorMsg);
+                restResultBean = RestResultBean.fromError(errorInformation);
             } else {
                 restResultBean = new RestResultBean();
                 restResultBean.setError(true);
                 restResultBean.setErrorDetail(e.getMessage());
-                restResultBean.setErrorMessage(e.getMessage());
+                restResultBean.setErrorMessage("error performing user search: " + e.getMessage());
             }
             ServletHelper.outputJsonResult(resp, restResultBean);
         }

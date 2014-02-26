@@ -25,6 +25,8 @@ package password.pwm.health;
 import password.pwm.config.Configuration;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 public class HealthRecord implements Serializable,Comparable<HealthRecord> {
@@ -141,5 +143,9 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         }
 
         return 0;
+    }
+
+    public List<HealthRecord> singletonList() {
+        return Collections.singletonList(this);
     }
 }

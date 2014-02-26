@@ -93,7 +93,6 @@ public class RestHealthServer {
             }
             return beanList;
         }
-
     }
 
     @Context
@@ -117,12 +116,8 @@ public class RestHealthServer {
         }
 
         try {
-            if (restRequestBean.isExternal() && !Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-            }
-
-            processRefreshImmediate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),requestImmediateParam);
-            final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString();
+            processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
+            final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             if (restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
             }
@@ -149,7 +144,7 @@ public class RestHealthServer {
         }
 
         try {
-            processRefreshImmediate(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),requestImmediateParam);
+            processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
             final JsonOutput jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             if (restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
@@ -182,11 +177,13 @@ public class RestHealthServer {
         return returnMap;
     }
 
-    private static void processRefreshImmediate(
+    private static void processCheckImeddiateFlag(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final boolean refreshImmediate
-    ) {
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         boolean doRefresh = false;
         if (refreshImmediate) {
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {

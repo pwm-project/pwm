@@ -111,6 +111,9 @@ public class UserAuthenticator {
             } else if (PwmError.PASSWORD_EXPIRED == e.getError() // handle ad case where password is expired
                     && ldapVendorIsAD
                     && configAlwaysUseProxy) {
+                if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
+                    throw e;
+                }
                 LOGGER.info("auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
                 allowBindAsUser = false;
             } else {

@@ -35,7 +35,7 @@
 <% final boolean showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0; %>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
 <h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:Display key="Field_LdapProfile"/></label></h2>
-<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="inputfield" onclick="PWM_MAIN.updateLoginContexts()">
+<select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield" onclick="PWM_MAIN.updateLoginContexts()">
     <% for (final String profileID : ldapProfiles.keySet()) { %>
     <% final String displayName = ldapProfiles.get(profileID).getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale()); %>
     <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringEscapeUtils.escapeHtml(displayName)%></option>
@@ -44,7 +44,7 @@
 <% } %>
 <% if (showContextSelector) { %>
 <h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:Display key="Field_Location"/></label></h2>
-<select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="inputfield">
+<select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
     <% for (final String key : selectedProfile.getLoginContexts().keySet()) { %>
     <option value="<%=StringEscapeUtils.escapeHtml(key)%>"><%=StringEscapeUtils.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
     <% } %>

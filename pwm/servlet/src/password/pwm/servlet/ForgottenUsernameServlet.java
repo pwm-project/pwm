@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,30 +24,28 @@ package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserIdentity;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.stats.Statistic;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ForgottenUsernameServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenUsernameServlet.class);
@@ -124,6 +122,9 @@ public class ForgottenUsernameServlet extends TopServlet {
             // make sure the user isn't locked.
             pwmApplication.getIntruderManager().convenience().checkUserIdentity(userIdentity);
 
+            // send username
+            sendUsername(pwmApplication, pwmSession, userIdentity);
+
             // redirect user to success page.
             LOGGER.info(pwmSession, "found user " + userIdentity.getUserDN());
             try {
@@ -161,4 +162,160 @@ public class ForgottenUsernameServlet extends TopServlet {
             throws IOException, ServletException {
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_FORGOTTEN_USERNAME).forward(req, resp);
     }
+
+
+
+    private void sendUsername(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity
+    )
+            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Configuration configuration = pwmApplication.getConfig();
+        final MessageSendMethod messageSendMethod = configuration.readSettingAsEnum(PwmSetting.FORGOTTEN_USERNAME_SEND_USERNAME_METHOD, MessageSendMethod.class);
+        final EmailItemBean emailItemBean = configuration.readSettingAsEmail(PwmSetting.EMAIL_SEND_USERNAME, userLocale);
+        final String smsMessage = configuration.readSettingAsLocalizedString(PwmSetting.SMS_FORGOTTEN_USERNAME_TEXT, userLocale);
+
+        if (messageSendMethod == null || messageSendMethod == MessageSendMethod.NONE) {
+            return;
+        }
+
+        final UserInfoBean forgottenUserInfo = new UserInfoBean();
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        userStatusReader.populateUserInfoBean(pwmSession, forgottenUserInfo, userLocale, userIdentity, null);
+
+        sendMessageViaMethod(
+                pwmApplication,
+                forgottenUserInfo,
+                messageSendMethod,
+                emailItemBean,
+                smsMessage
+        );
+    }
+
+
+    private static void sendMessageViaMethod(
+            final PwmApplication pwmApplication,
+            final UserInfoBean userInfoBean,
+            final MessageSendMethod messageSendMethod,
+            final EmailItemBean emailItemBean,
+            final String smsMessage
+    )
+            throws PwmOperationalException
+    {
+        if (pwmApplication == null) {
+            throw new IllegalArgumentException("pwmApplication can not be null");
+        }
+
+        if (userInfoBean == null) {
+            throw new IllegalArgumentException("userInfoBean can not be null");
+        }
+
+        ErrorInformation error = null;
+        switch (messageSendMethod) {
+            case NONE:
+                break;
+
+            case BOTH:
+                // Send both email and SMS, success if one of both succeeds
+                final ErrorInformation err1 = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                final ErrorInformation err2 = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                if (err1 != null) {
+                    error = err1;
+                } else if (err2 != null) {
+                    error = err2;
+                }
+                break;
+            case EMAILFIRST:
+                // Send email first, try SMS if email is not available
+                error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                if (error != null) {
+                    error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                }
+                break;
+            case SMSFIRST:
+                // Send SMS first, try email if SMS is not available
+                error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                if (error != null) {
+                    error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                }
+                break;
+            case SMSONLY:
+                // Only try SMS
+                error = sendSmsViaMethod(pwmApplication, userInfoBean, smsMessage);
+                break;
+            case EMAILONLY:
+            default:
+                // Only try email
+                error = sendEmailViaMethod(pwmApplication, userInfoBean, emailItemBean);
+                break;
+        }
+        if (error != null) {
+            throw new PwmOperationalException(error);
+        }
+    }
+
+    private static ErrorInformation sendSmsViaMethod(
+            final PwmApplication pwmApplication,
+            final UserInfoBean userInfoBean,
+            final String smsMessage
+    )
+            throws PwmOperationalException
+    {
+        final Configuration config = pwmApplication.getConfig();
+        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
+        if (senderId == null) { senderId = ""; }
+
+        final String toNumber = userInfoBean.getUserSmsNumber();
+        if (toNumber == null || toNumber.length() < 1) {
+            final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserIdentity());
+            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+        }
+
+        final UserDataReader userDataReader;
+        try {
+            userDataReader = UserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
+        } catch (ChaiUnavailableException e) {
+            return new ErrorInformation(PwmError.forChaiError(e.getErrorCode()));
+        } catch (PwmUnrecoverableException e) {
+            return e.getErrorInformation();
+        }
+
+
+
+        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, senderId, smsMessage, maxlen), userInfoBean, userDataReader);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+
+        return null;
+    }
+
+    private static ErrorInformation sendEmailViaMethod(
+            final PwmApplication pwmApplication,
+            final UserInfoBean userInfoBean,
+            final EmailItemBean emailItemBean
+    )
+    {
+        if (emailItemBean == null) {
+            final String errorMsg = "emailItemBean is null";
+            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
+        }
+
+        final UserDataReader userDataReader;
+        try {
+            userDataReader = UserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
+        } catch (ChaiUnavailableException e) {
+            return new ErrorInformation(PwmError.forChaiError(e.getErrorCode()));
+        } catch (PwmUnrecoverableException e) {
+            return e.getErrorInformation();
+        }
+
+        pwmApplication.getEmailQueue().submit(emailItemBean, userInfoBean, userDataReader);
+        pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
+
+        return null;
+    }
+
 }

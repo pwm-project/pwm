@@ -69,7 +69,7 @@ public class RestStatusServer {
 
         public static JsonStatusData fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale) {
             final JsonStatusData jsonStatusData = new JsonStatusData();
-            jsonStatusData.userDN = userInfoBean.getUserIdentity().toDeliminatedKey();
+            jsonStatusData.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().toDeliminatedKey();
             jsonStatusData.userID = userInfoBean.getUsername();
             jsonStatusData.userEmailAddress = userInfoBean.getUserEmailAddress();
             jsonStatusData.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();

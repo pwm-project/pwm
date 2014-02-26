@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,11 +130,12 @@ public class LdapOperationsHelper {
 
     public static String readLdapGuidValue(
             final PwmApplication pwmApplication,
-            final UserIdentity userIdentity
+            final UserIdentity userIdentity,
+            final boolean throwExceptionOnError
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
-        final String existingValue = GUIDHelper.readExistingGuidValue(pwmApplication, userIdentity);
+        final String existingValue = GUIDHelper.readExistingGuidValue(pwmApplication, userIdentity, throwExceptionOnError);
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(
                 userIdentity.getLdapProfileID());
         final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
@@ -145,8 +146,8 @@ public class LdapOperationsHelper {
                     return GUIDHelper.assignGuidToUser(pwmApplication, userIdentity, guidAttributeName);
                 }
             }
-            LOGGER.warn("user " + userIdentity + " does not have a valid GUID");
-            return null;
+            final String errorMsg = "unable to resolve GUID value for user " + userIdentity.toString();
+            GUIDHelper.processError(errorMsg,throwExceptionOnError);
         }
         return existingValue;
     }
@@ -154,7 +155,8 @@ public class LdapOperationsHelper {
     private static class GUIDHelper {
         private static String readExistingGuidValue(
                 final PwmApplication pwmApplication,
-                final UserIdentity userIdentity
+                final UserIdentity userIdentity,
+                final boolean throwExceptionOnError
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
@@ -176,17 +178,28 @@ public class LdapOperationsHelper {
                     }
                     return guidValue;
                 } catch (Exception e) {
-                    LOGGER.warn("unexpected error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage());
-                    return null;
+                    final String errorMsg = "error while reading vendor GUID value for user " + theUser.getEntryDN() + ", error: " + e.getMessage();
+                    return processError(errorMsg, throwExceptionOnError);
                 }
             }
 
             try {
                 return theUser.readStringAttribute(guidAttributeName);
             } catch (ChaiOperationException e) {
-                LOGGER.warn("unexpected error while reading attribute GUID value for user " + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage());
-                return null;
+                final String errorMsg = "unexpected error while reading attribute GUID value for user " + userIdentity + " from '" + guidAttributeName + "', error: " + e.getMessage();
+                return processError(errorMsg, throwExceptionOnError);
             }
+        }
+
+        private static String processError(final String errorMsg, final boolean throwExceptionOnError)
+                throws PwmUnrecoverableException
+        {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID,errorMsg);
+            if (throwExceptionOnError) {
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+            LOGGER.warn(errorMsg);
+            return null;
         }
 
         private static boolean searchForExistingGuidValue(
@@ -291,6 +304,17 @@ public class LdapOperationsHelper {
         final ChaiConfiguration chaiConfig = createChaiConfiguration( config, ldapProfile, ldapURLs, userDN, userPassword);
         LOGGER.trace("creating new chai provider using config of " + chaiConfig.toString());
         return ChaiProviderFactory.createProvider(chaiConfig);
+    }
+
+    public static ChaiConfiguration createChaiConfiguration(
+            final Configuration config,
+            final LdapProfile ldapProfile
+    )
+    {
+        final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
+        final String userDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
+        final String userPassword = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+        return createChaiConfiguration(config,ldapProfile,ldapURLs,userDN,userPassword);
     }
 
     public static ChaiConfiguration createChaiConfiguration(

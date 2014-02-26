@@ -55,7 +55,7 @@
                         onclick="document.location='<%=request.getContextPath()%>';return false">
                     <pwm:Display key="Button_Cancel"/>
                 </button>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
             </div>
         </form>
     </div>
@@ -64,6 +64,7 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('password').focus();
+        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>

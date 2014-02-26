@@ -738,4 +738,16 @@ public class Configuration implements Serializable {
         private final Map<PwmSetting, StoredValue> settings = new EnumMap<PwmSetting, StoredValue>(PwmSetting.class);
         private final Map<String,Map<Locale,String>> customText = new HashMap<String, Map<Locale, String>>();
     }
+
+    public Map<AppProperty,String> readAllNonDefaultAppProperties() {
+        final LinkedHashMap<AppProperty,String> nonDefaultProperties = new LinkedHashMap<AppProperty, String>();
+        for (final AppProperty loopProperty : AppProperty.values()) {
+            final String configuredValue = readAppProperty(loopProperty);
+            final String defaultValue = loopProperty.getDefaultValue();
+            if (configuredValue != null && !configuredValue.equals(defaultValue)) {
+                nonDefaultProperties.put(loopProperty,configuredValue);
+            }
+        }
+        return nonDefaultProperties;
+    }
 }

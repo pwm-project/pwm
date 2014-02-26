@@ -594,7 +594,6 @@ public class NewUserServlet extends TopServlet {
         returnURL.append(req.getContextPath());
         returnURL.append(req.getServletPath());
         returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doCreate");
-        returnURL.append("&" + PwmConstants.PARAM_FORM_ID + "=").append(Helper.buildPwmFormID(PwmSession.getPwmSession(req).getSessionStateBean()));
         final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
         req.setAttribute("nextURL",rewrittenURL );
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_WAIT).forward(req, resp);

@@ -435,7 +435,7 @@ public class PasswordUtility {
         final HelpdeskClearResponseMode settingClearResponses = HelpdeskClearResponseMode.valueOf(
                 pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskClearResponseMode.yes) {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log

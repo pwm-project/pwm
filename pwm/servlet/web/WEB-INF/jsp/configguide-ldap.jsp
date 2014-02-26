@@ -48,7 +48,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="widgetForm" name="widgetForm">
+        <form id="widgetForm" name="widgetForm" onkeyup="handleFormActivity()">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <div id="outline_ldap-server" class="setting_outline">
                 <div id="titlePaneHeader-ldap-server" class="setting_title">LDAP Server</div>
@@ -65,12 +65,6 @@
                                         required: true,
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_HOST)%>',
-                                        onChange: function() {
-                                            handleFormActivity();
-                                        },
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>'
                                     }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>");
                                 });
@@ -98,12 +92,6 @@
                                                     style: "width: 70px",
                                                     placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_PORT)%>',
                                                     constraints:{min:1,max:65535,places:0,pattern:'#'},
-                                                    onKeyUp: function() {
-                                                        handleFormActivity();
-                                                    },
-                                                    onChange: function() {
-                                                        handleFormActivity();
-                                                    },
                                                     value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>'
                                                 }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>");
                                             });
@@ -123,12 +111,13 @@
                                                     onChange: function() {
                                                         console.log('onchange trigger!');
                                                         PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = this.checked ? '636' : '389';
-                                                        handleFormActivity();
                                                         if (!this.checked) {
                                                             PWM_MAIN.showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', null, function(){
                                                                 registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked','true');
+                                                                handleFormActivity();
                                                             });
                                                         }
+                                                        handleFormActivity();
                                                     },
                                                     checked: <%="true".equalsIgnoreCase(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))%>
                                                 },'widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>');
@@ -161,9 +150,6 @@
                                         required: true,
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN)%>'
                                     }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>");
                                 });
@@ -182,12 +168,6 @@
                                         type: "password",
                                         style: "width: 200px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        onChange: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_PW)%>'
                                     }, "widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>");
                                 });

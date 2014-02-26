@@ -151,6 +151,7 @@ public enum PwmError {
     ERROR_INTRUDER_LDAP("Error_LdapIntruder", 5069, true, ChaiError.INTRUDER_LOCKOUT),
     ERROR_NO_LDAP_CONNECTION("Error_NoLdapConnection", 5070, true),
     ERROR_OAUTH_ERROR("Error_OAuthError",5071, true),
+    ERROR_REPORTING_ERROR("Error_ReportingError", 5072, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

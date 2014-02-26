@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -131,7 +132,11 @@ public class RestSetPasswordServer {
 
             /* helpdesk set password */
             if (restRequestBean.getUserIdentity() != null) {
-                final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
+
+                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+                final ChaiUser chaiUser = useProxy
+                        ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
+                        : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 final String newPassword;
                 if (random) {
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser, restRequestBean.getPwmSession().getSessionStateBean().getLocale());

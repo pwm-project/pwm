@@ -33,10 +33,9 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
@@ -243,8 +242,18 @@ public class ReportService implements PwmService {
             while (status == STATUS.OPEN && !allUsers.isEmpty() && !cancelFlag) {
                 final long startUpdateTime = System.currentTimeMillis();
                 final UserIdentity userIdentity = allUsers.poll();
-                if (updateCache(userIdentity)) {
-                    reportStatus.updated++;
+                try {
+                    if (updateCache(userIdentity)) {
+                        reportStatus.updated++;
+                    }
+                } catch (Exception e) {
+                    String errorMsg = "error while updating report cache for " + userIdentity.toString() + ", cause: ";
+                    errorMsg += e instanceof PwmException ? ((PwmException) e).getErrorInformation().toDebugStr() : e.getMessage();
+                    final ErrorInformation errorInformation;
+                    errorInformation = new ErrorInformation(PwmError.ERROR_REPORTING_ERROR,errorMsg);
+                    LOGGER.error(errorInformation.toDebugStr());
+                    reportStatus.lastError = errorInformation;
+                    reportStatus.errors++;
                 }
                 reportStatus.count++;
                 reportStatus.getEventRateMeter().markEvents(1);
@@ -255,6 +264,9 @@ public class ReportService implements PwmService {
                 } else {
                     Helper.pause(settings.restTime.getTotalMilliseconds());
                 }
+            }
+            if (cancelFlag) {
+                reportStatus.lastError = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"report operation canceled");
             }
         } finally {
             reportStatus.finishDate = new Date();
@@ -371,7 +383,7 @@ public class ReportService implements PwmService {
 
         final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, settings.maxSearchSize, Collections.<String>emptyList());
         LOGGER.debug("UserReportService user search found " + searchResults.size() + " users for reporting");
-        final List<UserIdentity> returnList = new ArrayList(searchResults.keySet());
+        final List<UserIdentity> returnList = new ArrayList<UserIdentity>(searchResults.keySet());
         Collections.shuffle(returnList);
         return returnList;
     }
@@ -424,55 +436,70 @@ public class ReportService implements PwmService {
         }
     }
 
-    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final int maxResults)
+    public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale)
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException {
         final CsvWriter csvWriter = new CsvWriter(outputStream, ',', Charset.forName("UTF8"));
-
+        final Configuration config = pwmApplication.getConfig();
+        final Class localeClass = password.pwm.i18n.Admin.class;
         if (includeHeader) {
             final List<String> headerRow = new ArrayList<String>();
-            headerRow.add("UserDN");
-            headerRow.add("LDAP Profile");
-            headerRow.add("Username");
-            headerRow.add("Email");
-            headerRow.add("UserGuid");
-            headerRow.add("Password Expiration Time");
-            headerRow.add("Password Change Time");
-            headerRow.add("Response Save Time");
-            headerRow.add("Has Valid Responses");
-            headerRow.add("Response Storage Method");
-            headerRow.add("Password Expired");
-            headerRow.add("Password Pre-Expired");
-            headerRow.add("Password Violates Policy");
-            headerRow.add("Password In Warn Period");
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserDN", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LDAP_Profile", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Username", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Email", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserGuid", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LastLogin", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpireTime", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdChangeTime", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseSaveTime", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdViolatesPolicy", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdWarnPeriod", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresPasswordUpdate", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresResponseUpdate", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresProfileUpdate", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RecordCacheTime", config, localeClass));
             csvWriter.writeRecord(headerRow.toArray(new String[headerRow.size()]));
         }
 
+        final String trueField = LocaleHelper.getLocalizedMessage(locale, "Value_True", config, password.pwm.i18n.Display.class);
+        final String falseField = LocaleHelper.getLocalizedMessage(locale, "Value_False", config, password.pwm.i18n.Display.class);
+        final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
+
         final Iterator<UserCacheRecord> cacheBeanIterator = this.iterator();
-        int records = 0;
-        while (cacheBeanIterator.hasNext() && records < maxResults) {
+        while (cacheBeanIterator.hasNext()) {
             final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
             final List<String> csvRow = new ArrayList<String>();
 
             csvRow.add(userCacheRecord.getUserDN());
-            csvRow.add(userCacheRecord.getLdapProfile());
+            csvRow.add(PwmConstants.DEFAULT_LDAP_PROFILE.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
             csvRow.add(userCacheRecord.getUsername());
             csvRow.add(userCacheRecord.getEmail());
             csvRow.add(userCacheRecord.getUserGUID());
-            csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+            csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                    userCacheRecord.getLastLoginTime()));
+            csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                     userCacheRecord.getPasswordExpirationTime()));
-            csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+            csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                     userCacheRecord.getPasswordChangeTime()));
-            csvRow.add(userCacheRecord.getResponseSetTime() == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+            csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                     userCacheRecord.getResponseSetTime()));
-            csvRow.add(Boolean.toString(userCacheRecord.isHasResponses()));
-            csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? "n/a" : userCacheRecord.getResponseStorageMethod().toString());
-            csvRow.add(Boolean.toString(userCacheRecord.getPasswordStatus().isExpired()));
-            csvRow.add(Boolean.toString(userCacheRecord.getPasswordStatus().isPreExpired()));
-            csvRow.add(Boolean.toString(userCacheRecord.getPasswordStatus().isViolatesPolicy()));
-            csvRow.add(Boolean.toString(userCacheRecord.getPasswordStatus().isWarnPeriod()));
+            csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
+            csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
+            csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
+            csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
+            csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
+            csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
+            csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
+            csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
+            csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
+            csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                    userCacheRecord.getCacheTimestamp()));
 
             csvWriter.writeRecord(csvRow.toArray(new String[csvRow.size()]));
-            records++;
         }
 
         csvWriter.flush();
@@ -502,6 +529,8 @@ public class ReportService implements PwmService {
         private int updated;
         private int total;
         private EventRateMeter eventRateMeter = new EventRateMeter(TimeDuration.MINUTE);
+        private int errors;
+        private ErrorInformation lastError;
 
         public Date getStartDate()
         {
@@ -536,6 +565,16 @@ public class ReportService implements PwmService {
         public EventRateMeter getEventRateMeter()
         {
             return eventRateMeter;
+        }
+
+        public int getErrors()
+        {
+            return errors;
+        }
+
+        public ErrorInformation getLastError()
+        {
+            return lastError;
         }
     }
 

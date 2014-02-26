@@ -74,6 +74,7 @@
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_VAR['helpdesk_search_columns'] = <%=Helper.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
         PWM_HELPDESK.initHelpdeskSearchPage();
+        PWM_MAIN.getObject('username').focus()
     });
 </script>
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>

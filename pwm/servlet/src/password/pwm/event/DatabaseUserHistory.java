@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ class DatabaseUserHistory implements UserHistoryStore {
         final UserIdentity targetUserDN = UserIdentity.fromDelimitedKey(auditRecord.getTargetDN());
         final String guid;
         try {
-            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, targetUserDN);
+            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, targetUserDN, false);
         } catch (ChaiUnavailableException e) {
             LOGGER.error("unable to read guid for user '" + targetUserDN + "', cannot update user history, error: " + e.getMessage());
             return;

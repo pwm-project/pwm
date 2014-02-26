@@ -168,6 +168,12 @@ public class RestUserReportServer {
         if (reportInfo.getCount() > 0 && reportInfo.getUpdated() > 0) {
             presentableMap.put("Updated Records",numberFormat.format(reportInfo.getUpdated()));
         }
+        if (reportInfo.getCount() > reportInfo.getUpdated()) {
+            presentableMap.put("Skipped Records",numberFormat.format(reportInfo.getCount() - reportInfo.getUpdated()));
+        }
+        if (reportInfo.getErrors() > 0) {
+            presentableMap.put("Error Count", numberFormat.format(reportInfo.getErrors()));
+        }
         if (reportInfo.getStartDate() != null) {
             presentableMap.put("Start Time",reportInfo.getFinishDate());
         }
@@ -186,6 +192,9 @@ public class RestUserReportServer {
                 final TimeDuration remainingDuration = new TimeDuration(((int)secondsRemaining) * 1000);
                 presentableMap.put("Estimated Time Remaining",remainingDuration.asLongString(locale));
             }
+        }
+        if (reportInfo.getLastError() != null) {
+            presentableMap.put("Last Error", reportInfo.getLastError().toDebugStr());
         }
         //presentableMap.put("Cached Records", reportInfo.size());
         returnMap.put("presentable",presentableMap);

@@ -40,6 +40,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
 import password.pwm.util.*;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -522,6 +523,15 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         if (isComplete) {
+            if (progressTracker != null) {
+                final TimeDuration totalTime = TimeDuration.fromCurrent(progressTracker.getBeginTime());
+                try {
+                    pwmApplication.getStatisticsManager().updateAverageValue(Statistic.AVG_PASSWORD_SYNC_TIME,totalTime.getTotalMilliseconds());
+                    LOGGER.trace(pwmSession,"password sync process marked completed (" + totalTime.asCompactString() + ")");
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession,"unable to update average password sync time statistic: " + e.getMessage());
+                }
+            }
             cpb.setChangeProgressTracker(null);
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
             final String completeMessage = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE,locale);

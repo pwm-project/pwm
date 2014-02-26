@@ -21,6 +21,7 @@
  */
 
 var PWM_ADMIN = PWM_ADMIN || {};
+var PWM_STRINGS = PWM_STRINGS || {};
 
 PWM_ADMIN.initAdminOtherMenu=function() {
     require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
@@ -102,20 +103,20 @@ PWM_ADMIN.initAdminOtherMenu=function() {
 
 PWM_ADMIN.initReportDataGrid=function() {
     var headers = {
-        "username":"Username",
-        "userDN":"User DN",
-        "ldapProfile":"Ldap Profile",
-        "userGUID":"GUID",
-        "passwordExpirationTime":"Password Expiration Time",
-        "passwordChangeTime":"Password Change Time",
-        "responseSetTime":"Response Set Time",
-        "lastLoginTime":"Last LDAP Login Time",
-        "hasResponses":"Has Responses",
-        "responseStorageMethod":"Response Storage Method",
-        "requiresPasswordUpdate":"Requires Password Update",
-        "requiresResponseUpdate":"Requires Response Update",
-        "requiresProfileUpdate":"Requires Profile Update",
-        "cacheTimestamp":"Record Cache Time"
+        "username":PWM_ADMIN.showString("Field_Report_Username"),
+        "userDN":PWM_ADMIN.showString("Field_Report_UserDN"),
+        "ldapProfile":PWM_ADMIN.showString("Field_Report_LDAP_Profile"),
+        "userGUID":PWM_ADMIN.showString("Field_Report_UserGuid"),
+        "passwordExpirationTime":PWM_ADMIN.showString("Field_Report_PwdExpireTime"),
+        "passwordChangeTime":PWM_ADMIN.showString("Field_Report_PwdChangeTime"),
+        "responseSetTime":PWM_ADMIN.showString("Field_Report_ResponseSaveTime"),
+        "lastLoginTime":PWM_ADMIN.showString("Field_Report_LastLogin"),
+        "hasResponses":PWM_ADMIN.showString("Field_Report_HasResponses"),
+        "responseStorageMethod":PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),
+        "requiresPasswordUpdate":PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate"),
+        "requiresResponseUpdate":PWM_ADMIN.showString("Field_Report_RequiresResponseUpdate"),
+        "requiresProfileUpdate":PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate"),
+        "cacheTimestamp":PWM_ADMIN.showString("Field_Report_RecordCacheTime")
     };
 
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
@@ -235,8 +236,16 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
                     for (var type in fields['responseStorage']) {
                         htmlTable += makeRow("Responses stored in " + type,fields['responseStorage'][type],fields['responseStorage'][type]);
                     }
-                    htmlTable += makeRow("Users that have an expiration time set",fields['hasExpirationTime'],fields['hasExpirationTime']);
 
+                    htmlTable += makeRow("Users that have a response set time",fields['hasResponseSetTime'],fields['hasResponseSetTime']);
+                    htmlTable += makeRow("Users that have a response set time in previous 3 days", fields['responseSetPrevious_3'], fields['responseSetPrevious_3']);
+                    htmlTable += makeRow("Users that have a response set time in previous 7 days", fields['responseSetPrevious_7'], fields['responseSetPrevious_7']);
+                    htmlTable += makeRow("Users that have a response set time in previous 14 days",fields['responseSetPrevious_14'],fields['responseSetPrevious_14']);
+                    htmlTable += makeRow("Users that have a response set time in previous 30 days",fields['responseSetPrevious_30'],fields['responseSetPrevious_30']);
+                    htmlTable += makeRow("Users that have a response set time in previous 60 days",fields['responseSetPrevious_60'],fields['responseSetPrevious_60']);
+                    htmlTable += makeRow("Users that have a response set time in previous 90 days",fields['responseSetPrevious_90'],fields['responseSetPrevious_90']);
+
+                    htmlTable += makeRow("Users that have an expiration time set",fields['hasExpirationTime'],fields['hasExpirationTime']);
                     htmlTable += makeRow("Users that have an expiration time in previous 3 days",fields['expirePrevious_3'],fields['expirePrevious_3']);
                     htmlTable += makeRow("Users that have an expiration time in previous 7 days",fields['expirePrevious_7'],fields['expirePrevious_7']);
                     htmlTable += makeRow("Users that have an expiration time in previous 14 days",fields['expirePrevious_14'],fields['expirePrevious_14']);
@@ -707,4 +716,41 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
             }
         });
     });
+};
+
+PWM_ADMIN.initAdminPage=function(nextFunction) {
+    require(["dojo"],function(dojo){
+        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/Admin";
+        dojo.xhrGet({
+            url: clientConfigUrl,
+            handleAs: 'json',
+            timeout: 30 * 1000,
+            headers: { "Accept": "application/json" },
+            load: function(data) {
+                if (data['error'] == true) {
+                    alert('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                } else {
+                    PWM_STRINGS['bundle-admin'] = {};
+                    for (var settingKey in data['data']) {
+                        PWM_STRINGS['bundle-admin'][settingKey] = data['data'][settingKey];
+                    }
+                }
+                if (nextFunction) {
+                    nextFunction();
+                }
+            },
+            error: function(error) {
+                PWM_MAIN.showError('Unable to read display data from server, please reload page (' + error + ')');
+                console.log('unable to read settings app-data: ' + error);
+            }
+        });
+    });
+};
+
+PWM_ADMIN.showString=function (key) {
+    if (PWM_STRINGS['bundle-admin'][key]) {
+        return PWM_STRINGS['bundle-admin'][key];
+    } else {
+        return "UNDEFINED STRING-" + key;
+    }
 };

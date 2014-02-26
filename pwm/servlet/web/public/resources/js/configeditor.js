@@ -2735,10 +2735,14 @@ function executeSettingFunction(setting, profile, name) {
                 load: function(data){
                     PWM_MAIN.closeWaitDialog();
                     if (data['error']) {
-                        PWM_MAIN.showDialog("Error",data['errorMessage'])
-                    } else {
-                        PWM_MAIN.showDialog("Success",data['successMessage'],function(){
+                        var errorBody = '<div style="max-width: 400px">' + data['errorMessage'] + '<br/><br/>' + data['errorDetail'] + '</div>';
+                        PWM_MAIN.showDialog("Error",errorBody,function(){
                             loadMainPageBody();
+                        });
+                    } else {
+                        var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
+                        PWM_MAIN.showDialog("Success",msgBody,function(){
+                            //loadMainPageBody();
                         });
                     }
                 },

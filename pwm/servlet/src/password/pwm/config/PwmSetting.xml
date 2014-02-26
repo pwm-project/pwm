@@ -520,19 +520,19 @@
     </setting>
     <setting key="ldap.selectableContextMode" level="1">
         <label>User Selectable LDAP Context/Profile</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Control if the ldap context or profile is shown to the user as an option during user identification (login, forgotten password, etc).]]></description>
         <default>
             <value>NONE</value>
         </default>
         <options>
-            <option value="SHOW_PROFILE">Show the ldap profile</option>
+            <option value="SHOW_PROFILE">Show the ldap profile and contexts</option>
             <option value="SHOW_CONTEXTS">Show the available ldap contexts</option>
             <option value="NONE">Do not show </option>
         </options>
     </setting>
     <setting key="ldap.ignoreUnreachableProfiles" level="1">
         <label>Ignore Unreachable LDAP Profiles</label>
-        <description><![CDATA[When multiple LDAP profiles exist, ignore unreachable profiles.  A Directory Unavailble error will only be thrown during a user search when there is anly a single LDAP Profile configured or all LDAP Profiles are unrechable.]]></description>
+        <description><![CDATA[When multiple LDAP profiles exist, ignore unreachable profiles.  A Directory Unavailable error will only be shown during a user search when there is only a single LDAP Profile configured or all LDAP Profiles are unreachable.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -690,7 +690,7 @@
     </setting>
     <setting key="email.updateguest" level="1">
         <label>Guest Registration Update Email</label>
-        <description><![CDATA[Email sent to newly created guest users.]]></description>
+        <description><![CDATA[Email sent to updated guest users.]]></description>
         <default>
             <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
@@ -700,6 +700,13 @@
         <description><![CDATA[Email sent during forgotten password reset process if send password functionality is enabled.]]></description>
         <default>
             <value>{"to":"@User:Email@","from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
+        </default>
+    </setting>
+    <setting key="email.sendUsername" level="1">
+        <label>Send Username Email</label>
+        <description><![CDATA[Email sent (if configured) for forgotten username process.]]></description>
+        <default>
+            <value>{"to":"@User:Email@","from":"Username Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Username Information","bodyPlain":"Your username is:\n\n@User:ID@\n\n","bodyHtml":"Your username is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:ID@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.intruderNotice" level="0">
@@ -888,6 +895,13 @@
         <description><![CDATA[Text of SMS sent during new user verification process.]]></description>
         <default>
             <value><![CDATA[Your account verification token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.forgottenUsername.message" level="0" required="true">
+        <label>Forgotten Username SMS Text</label>
+        <description><![CDATA[Text of SMS sent upon successful forgotten username sequence, if so configured.]]></description>
+        <default>
+            <value><![CDATA[Your username is @User:ID@]]></value>
         </default>
     </setting>
     <setting key="sms.activation.token.message" level="0" required="true">
@@ -1266,6 +1280,48 @@
             <value>300</value>
         </default>
     </setting>
+    <setting key="intruder.attribute.resetTime" level="0" required="true">
+        <label>Intruder Attribute Reset Time</label>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The attribute lockout table is marked for a user anytime a non-authenticated user has enter a form field.  <br/><br/>Value is in number of seconds.  A value of zero disables the attribute lockout functionality.]]></description>
+        <default>
+            <value>1800</value>
+        </default>
+    </setting>
+    <setting key="intruder.attribute.maxAttempts" level="0" required="true">
+        <label>Intruder Attribute Maximum Attempts</label>
+        <description><![CDATA[The maximum number of attempts a user may make before a lockout occurs.  Once this value is exceeded, the user will not be able to perform any activities until the reset time interval has passed.   A value of zero disables the user lockout functionality.]]></description>
+        <default>
+            <value>10</value>
+        </default>
+    </setting>
+    <setting key="intruder.attribute.checkTime" level="0" required="true">
+        <label>Intruder Attribute Check Time</label>
+        <description><![CDATA[The maximum time period between each intruder attempt.  When this time period is exceeded, the intruder attempt count will be reset to zero.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
+    <setting key="intruder.tokenDest.resetTime" level="0" required="true">
+        <label>Intruder Token Destination Reset Time</label>
+        <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The attribute lockout table is marked for a user anytime a token is sent, and it is cleared when a token is consumed.  <br/><br/>Value is in number of seconds.  A value of zero disables the attribute lockout functionality.]]></description>
+        <default>
+            <value>1800</value>
+        </default>
+    </setting>
+    <setting key="intruder.tokenDest.maxAttempts" level="0" required="true">
+        <label>Intruder Token Destination Attempts</label>
+        <description><![CDATA[The maximum number of attempts a user may make before a lockout occurs.  Once this value is exceeded, the user will not be able to perform any activities until the reset time interval has passed.   A value of zero disables the user lockout functionality.]]></description>
+        <default>
+            <value>10</value>
+        </default>
+    </setting>
+    <setting key="intruder.tokenDest.checkTime" level="0" required="true">
+        <label>Intruder Token Destination Check Time</label>
+        <description><![CDATA[The maximum time period between each intruder attempt.  When this time period is exceeded, the intruder attempt count will be reset to zero.]]></description>
+        <default>
+            <value>300</value>
+        </default>
+    </setting>
     <setting key="intruder.address.resetTime" level="0" required="true">
         <label>Intruder Address Reset Time</label>
         <description><![CDATA[This setting defines the time period after which a bad attempt will be cleared from the lockout table.  The address lockout table is marked for any source ip address anytime any user has a failed attempt to authenticate, recover a password, or activate a user account from that address.<br/><br/>Depending on how the application is deployed it may not be able to correctly identify the IP address of the user.<br/><br/>Value is in number of seconds.  A value of zero disables the address lockout functionality.]]></description>
@@ -1294,9 +1350,9 @@
             <value>300</value>
         </default>
     </setting>
-    <setting key="intruder.storageMethod" level="1" required="true">
+    <setting key="intruder.storageMethod" level="0" required="true">
         <label>Intruder Record Storage Location</label>
-        <description><![CDATA[Data store used for Intruder Records.  If <i>Database</i> is used, all application instances will share a common view of intruder status.]]></description>
+        <description><![CDATA[Data store used for Intruder Records.  If <i>Database</i> is used, all application instances will share a common view of intruder status.  If <i>LocalDB</i> is used, each instance has it's own intruder state.  LocalDB is likely to have less performance overhead and having a consistent intruder state across all application instances may not be important.  Auto Configure will use a database if configured, if not the LocalDB will be used.]]></description>
         <default>
             <value><![CDATA[AUTO]]></value>
         </default>
@@ -1306,7 +1362,7 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="intruder.session.maxAttempts" level="1" required="true">
+    <setting key="intruder.session.maxAttempts" level="0" required="true">
         <label>Maximum intruder attempts per session</label>
         <description><![CDATA[The maximum amount of intruder attempts per session.  When this limit is exceeded, the session will be "locked", and no other requests using that session will succeed.  A value of zero disables the session lockout functionality.]]></description>
         <default>
@@ -1347,9 +1403,9 @@
     </setting>
     <setting key="security.page.enableRequestSequence" level="1" required="true">
         <label>Enable Back Button Detection</label>
-        <description><![CDATA[Enable detection of the use of back button or other browser navigation iregularities.  Enabling this option prevents duplicate HTTP form submissions but can sometimes have side effects.]]></description>
+        <description><![CDATA[Enable detection of the use of back button or other browser navigation irregularities.  Enabling this option prevents duplicate HTTP form submissions but can sometimes have side effects.]]></description>
         <default>
-            <value>false</value>
+            <value>true</value>
         </default>
     </setting>
     <setting key="security.formNonce.enable" level="1" required="true">
@@ -1846,7 +1902,7 @@
     </setting>
     <setting key="challenge.maxChallengeLengthInResponse" level="1" required="true">
         <label>Maximum Characters of Challenge Allowed In Response</label>
-        <description><![CDATA[If greater then zero, then no more of this amount of charachters (of a whitespace seperated word) will be permitted to appear in the corresponding response.  This prevents a user's response to be the same as the challenge.]]></description>
+        <description><![CDATA[If greater than zero, then no more of this amount of characters (of a whitespace separated word) will be permitted to appear in the corresponding response.  This prevents a user's response to be the same as the challenge.]]></description>
         <default>
             <value>3</value>
         </default>
@@ -1860,7 +1916,7 @@
     </setting>
     <setting key="challenge.applyWorldlist" level="0" required="true">
         <label>Apply Wordlist</label>
-        <description><![CDATA[Prevent commonly used words from being used as responses.  If true, and a wordlist is configured, then users will not be able to use response values that are in the wordlist.  Administrators are strongly encouragedto leave this setting to true to make passwords a meaningful security method.]]></description>
+        <description><![CDATA[Prevent commonly used words from being used as responses.  If true, and a wordlist is configured, then users will not be able to use response values that are in the wordlist.  Administrators are strongly encouraged to leave this setting to true to make passwords a meaningful security method.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2054,7 +2110,7 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
         </options>
     </setting>
-    <setting key="recovery.require.otp" level="0" required="true">
+    <setting key="recovery.require.otp" level="0" required="true" hidden="false">
         <label>Require One Time Password</label>
         <description><![CDATA[If enabled, a one time password will be required during the forgotten password process.  The user will be required to type the generated token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
         <default>
@@ -2125,6 +2181,21 @@
         <default template="AD">
             <value>sAMAccountName</value>
         </default>
+    </setting>
+    <setting key="forgottenUsername.sendUsername.sendMethod" level="0">
+        <label>Username Send Method</label>
+        <description><![CDATA[Method to send new password to user when the <i>Forgotten Password Success Action</i> is set to <i>Send new password</i>]]></description>
+        <default>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None - Do not send email</option>
+            <option value="EMAILONLY">Email Only - Send to email address</option>
+            <option value="SMSONLY">SMS Only - Send via SMS</option>
+            <option value="BOTH">Both - Send token to both email and SMS</option>
+            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
+            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+        </options>
     </setting>
     <setting key="newUser.enable" level="0" required="true">
         <label>Enable New User Registration</label>
@@ -2466,7 +2537,7 @@
     </setting>
     <setting key="shortcut.httpHeaders" level="0">
         <label>Shortcut Headers</label>
-        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, these values will be used to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, the system will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the labbel is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
+        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, these values will be used to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, the system will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the label is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
         <default>
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
@@ -2487,7 +2558,7 @@
     </setting>
     <setting key="peopleSearch.searchFilter" level="0" required="true">
         <label>Search Filter</label>
-        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME</i> for user supplied username]]></description>
+        <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username]]></description>
         <default>
             <value><![CDATA[(&(objectClass=Person)(|((givenName=*%USERNAME%*)(sn=*%USERNAME%*)(mail=*%USERNAME%*)(telephoneNumber=*%USERNAME%*))))]]></value>
         </default>
@@ -2545,7 +2616,7 @@
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="0" required="true">
         <label>Enable NMAS Extensions</label>
-        <description><![CDATA[When connecting to a Novell eDirectory ldap directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using universal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
+        <description><![CDATA[When connecting to a NetIQ eDirectory LDAP directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using universal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2595,14 +2666,14 @@
     </setting>
     <setting key="ldap.edirectory.ws.pwdMgtURL" level="0" hidden="false">
         <label>UserApp Password SOAP Service URL</label>
-        <description><![CDATA[If supplied, this setting will change the behavior of the forgotten password function. Instead of using the normal mechanism to read the responses stored in ldap, the Novell UserApp forgotten password web service will be used to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, then the user will be forwared to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used and instead the user's new password will be set via ldap.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in Novell UserApp v3.7 or greater.]]></description>
+        <description><![CDATA[If supplied, this setting will change the behavior of the forgotten password function. Instead of using the normal mechanism to read the responses stored in ldap, the NetIQ UserApp forgotten password web service will be used to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, then the user will be forwared to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used and instead the user's new password will be set via ldap.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in NetIQ UserApp v3.7 or greater.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="ldap.ad.proxyForgotten" level="0" required="true">
         <label>Use Proxy When Password Forgotten</label>
-        <description><![CDATA[If true, when the user's password is forgotten, the system will use the ldap proxy account for ldap work.  This is because an ldap conection is not possible to AD without the user's password.  When authenticated in this condition, the user will be forced to change password immediately.]]></description>
+        <description><![CDATA[If true, when the user's password is forgotten, the system will use the ldap proxy account for ldap work.  This is because an ldap connection is not possible to AD without the user's password.  When authenticated in this condition, the user will be forced to change password immediately.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2808,28 +2879,28 @@
     </setting>
     <setting key="db.classname" level="0">
         <label>Database Class</label>
-        <description><![CDATA[Database class name.  The Java JDBC full driver class name.  The corresponding JDBC driver JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.]]></description>
+        <description><![CDATA[Database JDBC driver class name.  Consult the database vendor to determine the correct class name for your database.<p>The corresponding JDBC driver JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.</p><table><tr><td class="key">Database Type</td><td class="key">Example Class Name</td></tr><tr><td>MS-SQL</td><td>com.microsoft.sqlserver.jdbc.SQLServerDriver</td></tr><tr><td>MS-SQL using jTDS</td><td>net.sourceforge.jtds.jdbc.Driver</td></tr><tr><td>MySQL</td><td>com.mysql.jdbc.Driver</td></tr></table>]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="db.url" level="0">
         <label>Database Connection String</label>
-        <description><![CDATA[Database connection string in standard JDBC format.<table><tr><td class="key">Database Type</td><td class="key">Example Connection String</td></tr><tr><td>MS-SQL </td><td>jdbc:sqlserver://host.example.net:port;databaseName=SELFSERVICEDB</td></tr><tr><td>MS-SQL using jTDS</td><td>jdbc:jtds:sqlserver://host.example.net:port/SELFSERVICEDB</td></tr><tr><td>MySQL</td><td>jdbc:mysql://host.example.net:port/SELFSERVICEDB</td></tr></table>]]></description>
+        <description><![CDATA[Database connection string in standard JDBC format.  Your database administrator should be able to help you with this setting.  This setting configures the Java JDBC database driver with the information required to reach your database server such as IP address, port number, and DB name.<table><tr><td class="key">Database Type</td><td class="key">Example Connection String</td></tr><tr><td>MS-SQL </td><td>jdbc:sqlserver://host.example.net:port;databaseName=SELFSERVICEDB</td></tr><tr><td>MS-SQL using jTDS</td><td>jdbc:jtds:sqlserver://host.example.net:port/SELFSERVICEDB</td></tr><tr><td>MySQL</td><td>jdbc:mysql://host.example.net:port/SELFSERVICEDB</td></tr></table>]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="db.username" level="0">
         <label>Database Username</label>
-        <description><![CDATA[Database username]]></description>
+        <description><![CDATA[Database connection username]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="db.password" level="0">
         <label>Database Password</label>
-        <description><![CDATA[Database password]]></description>
+        <description><![CDATA[Database connection password]]></description>
     </setting>
     <setting key="db.columnType.key" level="1" required="true">
         <label>Database Key Column Type</label>
@@ -2854,7 +2925,7 @@
     </setting>
     <setting key="reporting.enable" level="0">
         <label>Enable Directory Reporting</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Enable directory reporting.  When enabled, a local cache of user data will be maintained and will be made available to the administrator.  Enabling this option will require additional disk space and possibly Java heap memory, so it should be tested on a test server before enabling in a production environment.]]></description>
         <default>
             <value/>
         </default>
@@ -2868,16 +2939,16 @@
     </setting>
     <setting key="reporting.maxCacheAge" level="0">
         <label>Maximum Cache Age</label>
-        <description><![CDATA[Seconds]]></description>
+        <description><![CDATA[Maximum age of a cached report record before it is discarded.  Records older than this age will be periodically purged from the local report data cache.  This is done so that records that are deleted from the LDAP directory will eventually be removed from the report cache.  The default value of 2592000 seconds is equal to 30 days.<br/><br/>Value is specified in seconds.]]></description>
         <default>
-            <value>7776000</value>
+            <value>2592000</value>
         </default>
     </setting>
     <setting key="reporting.minCacheAge" level="0">
         <label>Minimum Cache Age</label>
-        <description><![CDATA[Seconds]]></description>
+        <description><![CDATA[Minimum cache age of a cached report record before it will be re-read by the application.  For example, setting this value to one day (86400) would mean that a given cached report record would only be read once every day, regardless of how often the report is run.  This also means that the average record in the report would be approximately one day out of date.<br/><br/>Value is specified in seconds.]]></description>
         <default>
-            <value>86400</value>
+            <value>0</value>
         </default>
     </setting>
     <setting key="reporting.reportRestTimeMS" level="0">
@@ -2982,17 +3053,229 @@
     </setting>
     <setting key="external.macros.urls" level="1">
         <label>External Macro REST Server URLs</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[<p>This RESTful client API is provided to allow additional macro functions.</p><p>Each URL listed will be used by the macro engine with a format such that @External1:value@ corresponds to the first URL, and @External2:value@ corresponds to the second URL and so on.</p>  The value is passed as part of the JSON data sent to the web service.  User information will be passed only if the user is authenticated at the time of the invocation.  The input value is sent from the macro declartion.  The following is an example of the body of the HTTP POST request made by this application.</p>
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+   "input":"macroInput",
+   "userInfo":{
+      "userDN":"_default|cn\u003dablake,ou\u003dusers,o\example",
+      "userID":"ablake",
+      "userEmailAddress":"ablake@example.com",
+      "passwordExpirationTime":"2014-03-04T00:06:03Z",
+      "passwordLastModifiedTime":"2014-02-02T00:06:03Z",
+      "requiresNewPassword":false,
+      "requiresResponseConfig":false,
+      "requiresUpdateProfile":false,
+      "passwordStatus":{
+         "expired":false,
+         "preExpired":false,
+         "violatesPolicy":false,
+         "warnPeriod":false
+      },
+      "passwordPolicy":{
+         "MaximumNumeric":"0",
+         "MinimumSpecial":"0",
+         "AllowLastCharSpecial":"true",
+         "ADComplexity":"false",
+         "RegExNoMatch":"",
+         "AllowSpecial":"true",
+         "MaximumSpecial":"0",
+         "MinimumLowerCase":"0",
+         "MinimumUnique":"0",
+         "MinimumNumeric":"1",
+         "MinimumLength":"8",
+         "DisallowedValues":"test\npassword",
+         "CaseSensitive":"true",
+         "RegExMatch":"",
+         "DisallowCurrent":"false",
+         "AllowFirstCharSpecial":"true",
+         "MinimumLifetime":"0",
+         "ExpirationInterval":"2592000",
+         "UniqueRequired":"false",
+         "MaximumSequentialRepeat":"0",
+         "AllowNumeric":"true",
+         "AllowFirstCharNumeric":"true",
+         "EnableWordlist":"true",
+         "MaximumLength":"12",
+         "DisallowedAttributes":"sn\ncn\ngivenName",
+         "AllowLastCharNumeric":"true",
+         "PolicyEnabled":"true",
+         "MaximumUpperCase":"0",
+         "MinimumUpperCase":"0",
+         "ChangeMessage":"Please change your password to meet the corporate policy",
+         "MaximumLowerCase":"0"
+      },
+      "passwordRules":[
+         "Password is case sensitive.",
+         "Must be at least 8 characters long.",
+         "Must be no more than 12 characters long.",
+         "Must include at least 1 number.",
+         "Must not include any of the following values:  test password",
+         "Must not include part of your name or username.",
+         "Must not include a common word or commonly used sequence of characters."
+      ]
+   }
+}
+</pre>The web service must then respond with a body that includes a value for the tokenDestination values provided in the request, as well as a display value, for example:
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+   "output":"macro api output"
+}
+</pre>The output value will then be used as the macro substituion value.]]></description>
         <default />
     </setting>
     <setting key="external.destToken.urls" level="1">
         <label>External Token Destination Server URLs</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[This RESTful client API is provided to allow flexibility in reading of destination token addresses and how they are displayed to the user.<br/><br/>When this setting is populated with a valid URL, just before a token is sent to a user, an HTTP POST request will be made.  The body of the post will include the user's originally generated destination token address(s) as well as additional user information.  An example of the request data is provided here (it may vary depending on what data is available, and at what point the token is being issued):
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+   "tokenDestination":{
+      "email":"ablake@example.com",
+      "sms":"555-555-5555"
+   },
+   "userInfo":{
+      "userDN":"_default|CN\u003dAllison Blake,OU\u003dNYC,OU\u003dPeople,DC\u003dad,DC\u003dism,DC\u003dexample,DC\u003dcom"
+      "userID":"ablake",
+      "userEmailAddress":"ablake@example.com",
+      "passwordExpirationTime":"2383-02-20T09:10:33Z",
+      "passwordLastModifiedTime":"2014-01-21T09:10:33Z",
+      "requiresNewPassword":false,
+      "requiresResponseConfig":true,
+      "requiresUpdateProfile":true,
+      "passwordStatus":{
+         "expired":false,
+         "preExpired":false,
+         "violatesPolicy":false,
+         "warnPeriod":false
+      },
+      "passwordPolicy":{
+         "MaximumNumeric":"0",
+         "MinimumSpecial":"0",
+         "AllowLastCharSpecial":"true",
+         "ADComplexity":"false",
+         "RegExNoMatch":"",
+         "AllowSpecial":"true",
+         "MaximumSpecial":"0",
+         "MinimumLowerCase":"0",
+         "MaximumRepeat":"0",
+         "MinimumUnique":"0",
+         "MinimumNumeric":"0",
+         "MinimumLength":"2",
+         "DisallowedValues":"test\npassword",
+         "CaseSensitive":"true",
+         "RegExMatch":"",
+         "DisallowCurrent":"false",
+         "MaximumUnique":"0",
+         "AllowFirstCharSpecial":"true",
+         "MinimumLifetime":"0",
+         "ExpirationInterval":"0",
+         "UniqueRequired":"false",
+         "MaximumSequentialRepeat":"0",
+         "ChallengeResponseEnabled":"false",
+         "AllowNumeric":"true",
+         "EnforceAtLogin":"false",
+         "AllowFirstCharNumeric":"true",
+         "EnableWordlist":"true",
+         "MaximumLength":"64",
+         "DisallowedAttributes":"sn\ncn\ngivenName",
+         "AllowLastCharNumeric":"true",
+         "PolicyEnabled":"true",
+         "MaximumUpperCase":"0",
+         "MinimumUpperCase":"0",
+         "ChangeMessage":"",
+         "MaximumLowerCase":"0"
+      },
+      "passwordRules":[
+         "Password is case sensitive.",
+         "Must be at least 2 characters long.",
+         "Must not include any of the following values:  test password",
+         "Must not include part of your name or username.",
+         "Must not include a common word or commonly used sequence of characters."
+      ]
+   }
+}
+</pre>The web service must then respond with a body that includes a value for the tokenDestination values provided in the request, as well as a display value, for example:
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+    "email":"ablake@example.org",
+    "sms":"555-555-5555",
+    "displayValue":"e****@example.org or 555-555-****"
+}
+</pre>The returned values for email and sms will then be substituted for the original values, and if the destination is then displayed to the user, the displayValue is used of the actual destination email or sms value.  If an error occurs during the web service call, the user will be shown an error.]]></description>
         <default />
     </setting>
-    <setting key="external.pwrules.urls" level="1">
-        <label>External Rules REST Server URLs</label>
-        <description><![CDATA[]]></description>
+    <setting key="external.pwcheck.urls" level="1">
+        <label>External Password Check REST Server URLs</label>
+        <description><![CDATA[This RESTful client API is provided to allow additional password rule checking to the application.<br/><br/>When this setting is populated with a valid URL, an HTTP POST request will be made during the password validation operation.  The body of the post will include the user's desired password as well as additional user information.  An example of the request data is provided here (it may vary depending on what data is available, and at what point the API is being invoked):
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+   "password":"password1234",
+   "userInfo":{
+      "userDN":"_default|cn\u003dablake,ou\u003dusers,o\u003dexample",
+      "userID":"ablake",
+      "userEmailAddress":"ablake@example.com",
+      "passwordExpirationTime":"2014-03-04T00:06:03Z",
+      "passwordLastModifiedTime":"2014-02-02T00:06:03Z",
+      "requiresNewPassword":false,
+      "requiresResponseConfig":false,
+      "requiresUpdateProfile":false,
+      "passwordStatus":{
+         "expired":false,
+         "preExpired":false,
+         "violatesPolicy":false,
+         "warnPeriod":false
+      },
+      "passwordPolicy":{
+         "MaximumNumeric":"0",
+         "MinimumSpecial":"0",
+         "AllowLastCharSpecial":"true",
+         "ADComplexity":"false",
+         "RegExNoMatch":"",
+         "AllowSpecial":"true",
+         "MaximumSpecial":"0",
+         "MinimumLowerCase":"0",
+         "MinimumUnique":"0",
+         "MinimumNumeric":"1",
+         "MinimumLength":"8",
+         "DisallowedValues":"test\npassword",
+         "CaseSensitive":"true",
+         "RegExMatch":"",
+         "DisallowCurrent":"false",
+         "AllowFirstCharSpecial":"true",
+         "MinimumLifetime":"0",
+         "ExpirationInterval":"2592000",
+         "UniqueRequired":"false",
+         "MaximumSequentialRepeat":"0",
+         "AllowNumeric":"true",
+         "AllowFirstCharNumeric":"true",
+         "EnableWordlist":"true",
+         "MaximumLength":"12",
+         "DisallowedAttributes":"sn\ncn\ngivenName",
+         "AllowLastCharNumeric":"true",
+         "PolicyEnabled":"true",
+         "MaximumUpperCase":"0",
+         "MinimumUpperCase":"0",
+         "ChangeMessage":"Please change your password to meet the corporate policy",
+         "MaximumLowerCase":"0"
+      },
+      "passwordRules":[
+         "Password is case sensitive.",
+         "Must be at least 8 characters long.",
+         "Must be no more than 12 characters long.",
+         "Must include at least 1 number.",
+         "Must not include any of the following values:  test password",
+         "Must not include part of your name or username.",
+         "Must not include a common word or commonly used sequence of characters."
+      ]
+   }
+}
+</pre>The web service must then respond with a body that includes a true/false status for an error state, as well as an errorMessage value to display to the user.
+<pre style="overflow: auto; max-height:200px; border: 1px black">
+{
+    "error": true,
+    "errorMessage":"password check output - from rest api"
+}
+</pre>]]></description>
         <default />
     </setting>
     <setting key="webservice.userAttributes" level="1">
@@ -3002,35 +3285,35 @@
     </setting>
     <setting key="oauth.idserver.loginUrl" level="0">
         <label>OAuth Login URL</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[OAuth server login URL.  This is the URL to redirect the user to for authentication.]]></description>
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/grant</placeholder>
         <default/>
     </setting>
     <setting key="oauth.idserver.codeResolveUrl" level="0">
         <label>OAuth Code Resolve Service URL</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[OAuth Code Resolve Service URL.  This web service URL will be used to resolve the artifact returned by the OAuth identity server.]]></description>
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/authcoderesolve</placeholder>
         <default/>
     </setting>
     <setting key="oauth.idserver.attributesUrl" level="0">
         <label>OAuth Get Attributes Service URL</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Web service provided by the identity server to return attribute data about the user.]]></description>
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
         <default/>
     </setting>
     <setting key="oauth.idserver.clientName" level="0">
         <label>OAuth Client ID</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[OAuth client ID.  This value will be provided by the OAuth identity service provider.]]></description>
         <default/>
     </setting>
     <setting key="oauth.idserver.secret" level="0">
         <label>OAuth Shared Secret</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[OAuth shared secret.  This value will be provided by the OAuth identity service provider.]]></description>
         <default/>
     </setting>
     <setting key="oauth.idserver.dnAttributeName" level="0">
         <label>OAuth Username/DN Login Attribute</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Attribute to request from the OAuth server to be used as the username for local authentication.  This value will then be resolved the same as if the user had typed the password at the local authentication page.]]></description>
         <default/>
     </setting>
     <category key="LDAP_PROFILE">
@@ -3051,7 +3334,11 @@
     </category>
     <category key="PASSWORD_POLICY">
         <label>Password Policy Profiles</label>
-        <description><![CDATA[This password policy is applied to all users, regardless of any other password policy that may be configured in the directory.  If so configured, The password policy configured for the user in the directory is read and is <b>merges</b> the policy with the global policy configured here.  When policies are merged, the <b>most restrictive</b> setting is used.]]></description>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="PASSWORD_GLOBAL">
+        <label>Password Settings</label>
+        <description><![CDATA[Settings that apply regardless of the user's password policy.]]></description>
     </category>
     <category key="CHALLENGE">
         <label>Challenge Settings</label>
@@ -3090,8 +3377,8 @@
         <description><![CDATA[Alert and Logging settings.]]></description>
     </category>
     <category key="EDIRECTORY">
-        <label>Novell eDirectory</label>
-        <description><![CDATA[These settings are only used when Novell eDirectory is the ldap directory service being used.]]></description>
+        <label>NetIQ eDirectory</label>
+        <description><![CDATA[These settings are only used when NetIQ eDirectory is the ldap directory service being used.]]></description>
     </category>
     <category key="ACTIVE_DIRECTORY">
         <label>Active Directory</label>
@@ -3111,7 +3398,7 @@
     </category>
     <category key="OAUTH" level="1">
         <label>OAuth SSO</label>
-        <description><![CDATA[Integration with an OAuth server for SSO to this application.]]></description>
+        <description><![CDATA[Integration with an OAuth identity server for SSO to this application.]]></description>
     </category>
     <category key="CHANGE_PASSWORD">
         <label>Change Password</label>

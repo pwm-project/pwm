@@ -178,7 +178,7 @@ public class UserCacheService implements PwmService {
         public static StorageKey fromUserIdentity(final PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, true);
             return fromUserGUID(userGUID);
         }
 

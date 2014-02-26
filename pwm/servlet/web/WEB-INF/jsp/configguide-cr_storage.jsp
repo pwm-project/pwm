@@ -59,12 +59,26 @@
                     Remote Database
                 </option>
                 <option value="LOCALDB"<% if ("LOCALDB".equals(current)) { %> selected="selected"<% } %>>
-                    Local Embedded Database
+                    Local Embedded Database (Testing only)
                 </option>
             </select>
             <br/>
             <br/>
         </form>
+        <p>
+            <b>LDAP</b>: Storing the challenge/response data in LDAP is ideal if your LDAP directory is extensible and can accommodate the storage.  You will need to extend
+            the LDAP server's schema or adjust the configure to use pre-existing defined attributes.  You will also need to adjust the ACLs or rights
+            in the directory to accommodate the challenge/response storage and other data.  See the documentation for more information.
+        </p>
+        <p>
+            <b>Database</b>: If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store the user's challenge/response data.
+            After the configuration guide process is complete, you will need to edit the Database settings and place your database vendor's JDBC driver on this server.  See
+            the documentation for more information.
+        </p>
+        <p>
+            <b>LocalDB</b>: This server has it's own embedded LocalDB that is capable of storing user challenge/responses.  This option should never be used in a production
+            environment and is provided only for testing purposes.  User challenge/response's stored in the LocalDB are server specific..
+        </p>
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
             <button class="btn" id="button_next" onclick="gotoStep('PASSWORD');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>

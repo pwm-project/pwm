@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,7 +85,8 @@ public class LdapProfile {
 
     public String getDisplayName(final Locale locale) {
         final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
-        return displayName == null || displayName.length() < 1 ? identifier : displayName;
+        final String returnDisplayName = displayName == null || displayName.length() < 1 ? identifier : displayName;
+        return PwmConstants.DEFAULT_LDAP_PROFILE.equals(returnDisplayName) ? "Default" : returnDisplayName;
     }
 
 }

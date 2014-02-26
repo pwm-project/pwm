@@ -48,7 +48,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm" data-dojo-type="dijit/form/Form" onkeyup="handleFormActivity()">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div id="outline_ldap" class="setting_outline">
@@ -56,11 +56,11 @@
                     LDAP Test User (Optional)
                 </div>
                 <div class="setting_body">
-                Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privledges and policies
+                Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privileges and policies
                 as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
                 validate the configuration and health of both the LDAP server and this server.
                 <br/><br/>
-                This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank.
+                This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
                 <div class="setting_item">
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
                         <b>LDAP Test User DN</b>
@@ -74,12 +74,6 @@
                                         required: false,
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        onChange: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
                                     }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
                                 });
@@ -143,7 +137,7 @@
             checkIfNextEnabled();
         };
         PWM_MAIN.showWaitDialog();
-        PWM_MAIN.showAppHealth('healthBody', options);
+        PWM_ADMIN.showAppHealth('healthBody', options);
     }
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>

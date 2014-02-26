@@ -409,6 +409,7 @@ PWM_CHANGEPW.refreshChangePasswordStatus=function(refreshInterval) {
         var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         dojo.xhrGet({
             url: displayStringsUrl,
+            preventCache: true,
             handleAs: 'json',
             timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
             headers: { "Accept": "application/json" },

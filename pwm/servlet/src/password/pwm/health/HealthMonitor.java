@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.util.PwmLogger;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class HealthMonitor implements PwmService {
@@ -43,7 +44,15 @@ public class HealthMonitor implements PwmService {
     private Date lastHealthCheckDate = null;
     private int intervalSeconds = 0;
 
+    private Map<HealthProperty, Serializable> healthProperties = new HashMap<HealthProperty, Serializable>();
+
     private STATUS status = STATUS.NEW;
+
+    public enum HealthProperty {
+        LdapVendorSameCheck,
+        AdPasswordPolicyApiCheck,
+    }
+
 
     public HealthMonitor() {
     }
@@ -161,5 +170,10 @@ public class HealthMonitor implements PwmService {
     public ServiceInfo serviceInfo()
     {
         return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+    }
+
+    public Map<HealthProperty, Serializable> getHealthProperties()
+    {
+        return healthProperties;
     }
 }

@@ -389,7 +389,9 @@ public class HelpdeskServlet extends TopServlet {
 
         {
             final Configuration config = pwmApplication.getConfig();
-            final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
+            final UserDataReader userDataReader = useProxy
+                    ? UserDataReader.appProxiedReader(pwmApplication, userIdentity)
+                    : UserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
             final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
             final Map<FormConfiguration,String> formData = new LinkedHashMap<FormConfiguration,String>();
             for (final FormConfiguration formConfiguration : detailFormConfig) {
@@ -605,7 +607,7 @@ public class HelpdeskServlet extends TopServlet {
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
         this.forwardToDetailJSP(req, resp);
     }
-    
+
     private void forwardToSearchJSP(final HttpServletRequest req, final HttpServletResponse resp)
             throws IOException, ServletException
     {

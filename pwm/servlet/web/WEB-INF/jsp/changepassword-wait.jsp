@@ -54,8 +54,7 @@
             --%>
         </div>
         <br/>
-        <table id="progressMessageTable">
-
+        <table id="progressMessageTable" style="padding-bottom: 20px">
         </table>
     </div>
     <div class="push"></div>

@@ -79,12 +79,12 @@
                     </div>
                     <br/>
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" style="padding-left: 5px; padding-top: 5px">
-                        Certificate(s) are trusted by default keystore
+                        Certificate(s) are trusted by default Java keystore
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
-                        Use application configuration to manage certificate(s) and import certificates into configuration
+                        Use application configuration to manage certificate(s) and import certificates into configuration file
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <button id="button_useConfig">Enabled</button>
                     </div>

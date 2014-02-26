@@ -36,6 +36,7 @@ public class ReportSummaryData {
     private int hasExpirationTime;
     private int hasLoginTime;
     private int hasChangePwTime;
+    private int hasResponseSetTime;
     private Map<DataStorageMethod,Integer> responseStorage = new HashMap<DataStorageMethod, Integer>();
     private int pwExpired;
     private int pwPreExpired;
@@ -58,6 +59,12 @@ public class ReportSummaryData {
     private int changePrevious_30;
     private int changePrevious_60;
     private int changePrevious_90;
+    private int responseSetPrevious_3;
+    private int responseSetPrevious_7;
+    private int responseSetPrevious_14;
+    private int responseSetPrevious_30;
+    private int responseSetPrevious_60;
+    private int responseSetPrevious_90;
     private Map<String,Integer> last30PwExpires = new TreeMap<String, Integer>();
     private Map<String,Integer> next30PwExpires = new TreeMap<String, Integer>();
 
@@ -120,6 +127,21 @@ public class ReportSummaryData {
             } else {
                 hasResponses--;
             }
+        }
+
+        if (userCacheRecord.responseSetTime != null) {
+            if (adding) {
+                hasResponseSetTime++;
+            } else {
+                hasResponseSetTime--;
+            }
+
+            responseSetPrevious_3 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*3,false,adding);
+            responseSetPrevious_7 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*7,false,adding);
+            responseSetPrevious_14 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*14,false,adding);
+            responseSetPrevious_30 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*30,false,adding);
+            responseSetPrevious_60 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*60,false,adding);
+            responseSetPrevious_90 += calcTimeWindow(userCacheRecord.responseSetTime,MS_DAY*90,false,adding);
         }
 
         if (userCacheRecord.passwordExpirationTime != null) {

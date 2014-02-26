@@ -104,8 +104,7 @@
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <iframe id="downloadFrame" style="display:none"></iframe>
-                    <a class="menubutton" onclick="makeSupportBundle()" id="MenuItem_DownloadBundle">
+                    <a class="menubutton" onclick="downloadSupportBundle()" id="MenuItem_DownloadBundle">
                         <span class="fa fa-suitcase"></span>&nbsp;
                         <pwm:Display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
@@ -116,7 +115,7 @@
                     </script>
                 </td>
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_MAIN.goto('ConfigManager?processAction=generateXml',{closeDelay:5000})" id="MenuItem_DownloadConfig">
+                    <a class="menubutton" onclick="downloadConfig()" id="MenuItem_DownloadConfig">
                         <span class="fa fa-download"></span>&nbsp;
                         <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
@@ -155,7 +154,7 @@
             <% } %>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{closeDelay:3000})" id="MenuItem_ExportLocalDB">
+                    <a class="menubutton" onclick="downloadLocalDB()" id="MenuItem_ExportLocalDB">
                         <span class="fa fa-download"></span>&nbsp;
                         <pwm:Display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
@@ -216,12 +215,22 @@
         });
     });
 
-    function makeSupportBundle() {
+    function downloadConfig() {
+        PWM_MAIN.goto('ConfigManager?processAction=generateXml',{addFormID:true})
+        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadConfigurationInProgress" bundle="Config"/>");
+    }
+
+    function downloadLocalDB() {
+        PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true})
+        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadLocalDBInProgress" bundle="Config"/>");
+    }
+
+    function downloadSupportBundle() {
         <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
         PWM_MAIN.showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
         <% } else { %>
-        PWM_MAIN.getObject('downloadFrame').src = 'ConfigManager?processAction=generateSupportZip&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_SupportZipInProgress" bundle="Config"/>");
+        PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip',{addFormID:true});
+        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadSupportZipInProgress" bundle="Config"/>");
         <% } %>
     }
 

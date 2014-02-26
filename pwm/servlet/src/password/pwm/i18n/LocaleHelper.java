@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 
 package password.pwm.i18n;
 
-import password.pwm.util.*;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +34,18 @@ import java.util.ResourceBundle;
 public class LocaleHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LocaleHelper.class);
+
+    public static Class classForShortName(final String shortName) {
+        if (shortName == null || shortName.isEmpty()) {
+            return null;
+        }
+        final String className = LocaleHelper.class.getPackage().getName() + "." + shortName;
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
 
     public static String getLocalizedMessage(final String key, final Configuration config, final Class bundleClass) {
         return getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,key,config,bundleClass);
@@ -71,6 +83,11 @@ public class LocaleHelper {
     }
 
     private static ResourceBundle getMessageBundle(final Locale locale, final Class bundleClass) {
+        if (!DisplayBundleMarker.class.isAssignableFrom(bundleClass)) {
+            LOGGER.warn("attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass.toString());
+            return null;
+        }
+
         final ResourceBundle messagesBundle;
         if (locale == null) {
             messagesBundle = ResourceBundle.getBundle(bundleClass.getName());

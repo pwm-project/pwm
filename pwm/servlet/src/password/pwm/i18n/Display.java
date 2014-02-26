@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import java.util.Locale;
 /**
  * Empty class to facilitate easy resource bundle loading of "Display" resource bundle.
  */
-public abstract class Display {
+public abstract class Display implements DisplayBundleMarker {
 
     public static String getLocalizedMessage(final Locale locale, final String key, final Configuration config) {
         return LocaleHelper.getLocalizedMessage(locale, key, config, Display.class);

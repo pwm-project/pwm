@@ -379,6 +379,19 @@ public class PwmApplication {
             LOGGER.debug("unable to detect if configuration has been modified since previous startup: " + e.getMessage());
         }
 
+        if (this.getConfig() != null) {
+            final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
+            if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
+                final LinkedHashMap<String,String> tempMap = new LinkedHashMap<String, String>();
+                for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
+                    tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
+                }
+                LOGGER.trace("non-default app properties read from configuration: " + Helper.getGson().toJson(tempMap));
+            } else {
+                LOGGER.trace("no non-default app properties in configuration");
+            }
+        }
+
         // send system audit event
         final SystemAuditRecord auditRecord = new SystemAuditRecord(
                 AuditEvent.STARTUP,

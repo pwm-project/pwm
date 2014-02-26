@@ -267,11 +267,19 @@ public class ServletHelper {
      *                       on the file system
      * @param servletContext The HttpServletContext to be used to retrieve a path.
      * @return a File referencing the desired suggestedPath and filename.
-     * @throws Exception if unabble to discover a path.
+     * @throws Exception if unable to discover a path.
      */
     public static File figureFilepath(final String filename, final String relativePath, final ServletContext servletContext)
             throws Exception {
-        final File servletPath = new File(servletContext.getRealPath(relativePath));
+
+        final String realPath = servletContext.getRealPath(relativePath);
+
+        if (realPath == null) {
+            LOGGER.warn("servlet container unable to return real file system path");
+            return null;
+        }
+
+        final File servletPath = new File(realPath);
 
         if (!servletPath.isAbsolute()) {
             // for containers which do not retrieve the real path, try to use the classloader to find the path.
@@ -344,7 +352,7 @@ public class ServletHelper {
                 resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-SessionID", pwmSession.getSessionStateBean().getSessionID());
             }
 
-            if (includeXFrameDeny) {
+            if (includeXFrameDeny && fromServlet) {
                 resp.setHeader("X-Frame-Options", "DENY");
             }
         }

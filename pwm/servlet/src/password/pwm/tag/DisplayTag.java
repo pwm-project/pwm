@@ -120,12 +120,14 @@ public class DisplayTag extends PwmAbstractTag {
             final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
             final PwmSession pwmSession = PwmSession.getPwmSession(req);
             final UserDataReader userDataReader;
+            final UserInfoBean uiBean;
             if (pwmSession.getSessionStateBean().isAuthenticated()) {
                 userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
+                uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
             } else {
                 userDataReader = null;
+                uiBean = null;
             }
-            final UserInfoBean uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
 
             final Class bundle = readBundle();
             final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);

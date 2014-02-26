@@ -552,46 +552,53 @@ public class PwmPasswordRuleValidator {
             throws PwmUnrecoverableException
     {
         final List<ErrorInformation> returnedErrors = new ArrayList<ErrorInformation>();
-        final List<String> externalRuleUrls = config.readSettingAsStringArray(PwmSetting.EXTERNAL_PWRULES_REST_URLS);
+        final String restURL = config.readSettingAsString(PwmSetting.EXTERNAL_PWCHECK_REST_URLS);
         final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
-        for (final String restURL : externalRuleUrls ) {
-            final HashMap<String,Object> sendData = new HashMap<String, Object>();
-            if (pwmPasswordPolicy != null) {
-                sendData.put("policy",pwmPasswordPolicy);
-            }
-            if (uiBean != null) {
-                final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
-                sendData.put("userInfo", jsonStatusData);
-            }
-            sendData.put("password",password);
+        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<String, Object>();
 
-            final String jsonRequestBody = Helper.getGson().toJson(sendData);
-            try {
-                final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
-                        jsonRequestBody);
-                final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
-                if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
-                        REST_RESPONSE_KEY_ERROR).toString())) {
-                    if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {
-                        final String errorMessage = responseMap.get(REST_RESPONSE_KEY_ERROR_MSG).toString();
-                        LOGGER.trace("external web service reported error: " + errorMessage);
-                        returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR,errorMessage,errorMessage,null));
-                    } else {
-                        LOGGER.trace("external web service reported error without specifying an errorMessage");
-                        returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR));
-                    }
+        if (restURL == null || restURL.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        sendData.put("passwordPolicy",password);
+        if (pwmPasswordPolicy != null) {
+            final LinkedHashMap<String,Object> policyData = new LinkedHashMap<String, Object>();
+            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+                policyData.put(rule.name(),pwmPasswordPolicy.getValue(rule));
+            }
+            sendData.put("policy",policyData);
+        }
+        if (uiBean != null) {
+            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
+            sendData.put("userInfo", jsonStatusData);
+        }
+
+        final String jsonRequestBody = Helper.getGson().toJson(sendData);
+        try {
+            final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
+                    jsonRequestBody);
+            final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
+            if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
+                    REST_RESPONSE_KEY_ERROR).toString())) {
+                if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {
+                    final String errorMessage = responseMap.get(REST_RESPONSE_KEY_ERROR_MSG).toString();
+                    LOGGER.trace("external web service reported error: " + errorMessage);
+                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR,errorMessage,errorMessage,null));
                 } else {
-                    LOGGER.trace("external web service did not report an error");
+                    LOGGER.trace("external web service reported error without specifying an errorMessage");
+                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR));
                 }
-
-            } catch (PwmOperationalException e) {
-                final String errorMsg = "error executing external rule REST call: " + e.getMessage();
-                LOGGER.error(errorMsg);
-                if (haltOnError) {
-                    throw new PwmUnrecoverableException(e.getErrorInformation(),e);
-                }
-                throw new IllegalStateException("http response error code: " + e.getMessage());
+            } else {
+                LOGGER.trace("external web service did not report an error");
             }
+
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "error executing external rule REST call: " + e.getMessage();
+            LOGGER.error(errorMsg);
+            if (haltOnError) {
+                throw new PwmUnrecoverableException(e.getErrorInformation(),e);
+            }
+            throw new IllegalStateException("http response error code: " + e.getMessage());
         }
         return returnedErrors;
     }

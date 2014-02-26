@@ -32,6 +32,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
@@ -63,53 +64,78 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
 
         searchConfiguration.setFilter(queryMatchString);
-        final StringBuilder output = new StringBuilder();
+        final String output;
         try {
             final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
                     null,
                     searchConfiguration,
-                   maxResultSize,
+                    maxResultSize,
                     Collections.<String>emptyList()
             );
-            if (results.isEmpty()) {
-                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsNone",pwmApplication.getConfig()));
-            } else {
-                final Map<String,List<String>> sortedMap = new TreeMap<String,List<String>>();
-
-                for (final UserIdentity userIdentity : results.keySet()) {
-                    if (!sortedMap.containsKey(userIdentity.getLdapProfileID())) {
-                        sortedMap.put(userIdentity.getLdapProfileID(), new ArrayList<String>());
-                    }
-                    sortedMap.get(userIdentity.getLdapProfileID()).add(userIdentity.getUserDN());
-                }
-                output.append("<table>");
-
-                output.append("<tr><td class=\"title\">");
-                output.append("Profile");
-                output.append("</td><td class=\"title\">");
-                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Field_UserDN",pwmApplication.getConfig()));
-                output.append("</td></tr>");
-
-                for (final String loopProfile : sortedMap.keySet()) {
-                    for (final String loopDN : sortedMap.get(loopProfile)) {
-                        output.append("<tr><td>");
-                        output.append(config.getLdapProfiles().get(loopDN).getDisplayName(userLocale));
-                        output.append("</td><td>");
-                        output.append(loopDN);
-                        output.append("</td></tr>");
-                    }
-                }
-                output.append("</table>");
-                if (results.size() >= maxResultSize) {
-                    output.append("<br/>");
-                    output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsExceeded",pwmApplication.getConfig()));
-                }
-            }
+            final Map<String,List<String>> sortedMap = sortResults(results);
+            output = convertResultsToHtmlTable(
+                    pwmApplication, userLocale, sortedMap, maxResultSize
+            );
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error reading matching users: " + e.getMessage());
+            throw new PwmOperationalException(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {
             LOGGER.error("error reading matching users: " + e.getMessage());
+            throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()));
         }
+        return output;
+    }
+
+    private String convertResultsToHtmlTable(
+            final PwmApplication pwmApplication,
+            final Locale userLocale,
+            final Map<String,List<String>> sortedMap,
+            final int maxResultSize
+    )
+    {
+        final StringBuilder output = new StringBuilder();
+        final Configuration config = pwmApplication.getConfig();
+
+        if (sortedMap.isEmpty()) {
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsNone",pwmApplication.getConfig()));
+        } else {
+            output.append("<table>");
+            output.append("<tr><td class=\"title\">");
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Field_LdapProfile",pwmApplication.getConfig()));
+            output.append("</td><td class=\"title\">");
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Field_UserDN",pwmApplication.getConfig()));
+            output.append("</td></tr>");
+
+            for (final String loopProfile : sortedMap.keySet()) {
+                final String profileName = config.getLdapProfiles().get(loopProfile).getDisplayName(userLocale);
+                for (final String loopDN : sortedMap.get(loopProfile)) {
+                    output.append("<tr><td>");
+                    output.append(profileName);
+                    output.append("</td><td>");
+                    output.append(loopDN);
+                    output.append("</td></tr>");
+                }
+            }
+            output.append("</table>");
+            if (sortedMap.size() >= maxResultSize) {
+                output.append("<br/>");
+                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsExceeded",pwmApplication.getConfig()));
+            }
+        }
+
         return output.toString();
+    }
+
+    private Map<String,List<String>> sortResults(final Map<UserIdentity, Map<String, String>> results) {
+        final Map<String,List<String>> sortedMap = new TreeMap<String,List<String>>();
+
+        for (final UserIdentity userIdentity : results.keySet()) {
+            if (!sortedMap.containsKey(userIdentity.getLdapProfileID())) {
+                sortedMap.put(userIdentity.getLdapProfileID(), new ArrayList<String>());
+            }
+            sortedMap.get(userIdentity.getLdapProfileID()).add(userIdentity.getUserDN());
+        }
+
+        return sortedMap;
     }
 }

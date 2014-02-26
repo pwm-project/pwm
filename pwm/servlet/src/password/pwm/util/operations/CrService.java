@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,14 @@
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
-import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.cr.Challenge;
+import com.novell.ldapchai.cr.ChallengeSet;
+import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.exception.ChaiException;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
-import com.novell.ldapchai.provider.*;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
@@ -299,7 +303,7 @@ public class CrService implements PwmService {
 
         final String userGUID;
         if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
         } else {
             userGUID = null;
         }
@@ -341,7 +345,7 @@ public class CrService implements PwmService {
 
         final String userGUID;
         if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
         } else {
             userGUID = null;
         }

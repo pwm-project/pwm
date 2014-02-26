@@ -29,6 +29,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -218,7 +219,12 @@ public class RestCheckPasswordServer {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
-        final ChaiUser user = pwmSession.getSessionManager().getActor(pwmApplication, checkRequest.getUserIdentity());
+        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+        final boolean thirdParty = !checkRequest.getUserIdentity().equals(pwmSession.getUserInfoBean().getUserIdentity());
+
+        final ChaiUser user = useProxy && thirdParty
+                ? pwmApplication.getProxiedChaiUser(checkRequest.getUserIdentity())
+                : pwmSession.getSessionManager().getActor(pwmApplication, checkRequest.getUserIdentity());
         final PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
                 pwmApplication,
                 pwmSession.getSessionStateBean().getLocale(),

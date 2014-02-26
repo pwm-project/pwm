@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -213,7 +214,12 @@ public class RestRandomPasswordServer {
         if (!jsonInput.noUser && restRequestBean.getPwmSession().getSessionStateBean().isAuthenticated()) {
             final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username,restRequestBean.getPwmApplication().getConfig());
             if (userIdentity != null) {
-                final ChaiUser theUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
+                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+
+                final ChaiUser theUser = useProxy
+                        ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
+                        : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
+
                 randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession(),

@@ -940,7 +940,8 @@ var ShowHidePasswordHandler = {};
 
 ShowHidePasswordHandler.idSuffix = '-eye-icon';
 ShowHidePasswordHandler.state = {};
-ShowHidePasswordHandler.toggleRevertTimeout = 15 * 1000;
+ShowHidePasswordHandler.toggleRevertTimeout = 30 * 1000;
+ShowHidePasswordHandler.debugOutput = false;
 
 ShowHidePasswordHandler.initAllForms = function() {
     if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
@@ -952,7 +953,7 @@ ShowHidePasswordHandler.initAllForms = function() {
         for (var i = 0; i < inputFields.length; i++) {
             var field = inputFields[i];
             if (field.id) {
-                console.log('adding show/hide option on fieldID=' + field.id);
+                if (ShowHidePasswordHandler.debugOutput) console.log('adding show/hide option on fieldID=' + field.id);
                 ShowHidePasswordHandler.init(field.id);
             }
         }
@@ -971,7 +972,6 @@ ShowHidePasswordHandler.init = function(nodeName) {
     require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
         var node = PWM_MAIN.getObject(nodeName);
         var divElement = document.createElement('div');
-        divElement.className = 'fa fa-eye';
         divElement.id = eyeId;
         divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
         divElement.style.cursor = 'pointer';
@@ -980,13 +980,18 @@ ShowHidePasswordHandler.init = function(nodeName) {
 
         ShowHidePasswordHandler.state[nodeName] = true;
         ShowHidePasswordHandler.setupTooltip(nodeName, false);
-        ShowHidePasswordHandler.renderIcon(nodeName);
 
-        connect.connect(node, "onkeyup", function(){ShowHidePasswordHandler.renderIcon(nodeName)});
+        connect.connect(node, "onkeyup", function(){
+            if (ShowHidePasswordHandler.debugOutput) console.log("keypress event on node " + nodeName)
+            ShowHidePasswordHandler.renderIcon(nodeName);
+            ShowHidePasswordHandler.setupTooltip(nodeName);
+        });
+
     });
 };
 
 ShowHidePasswordHandler.renderIcon = function(nodeName) {
+    if (ShowHidePasswordHandler.debugOutput) console.log("calling renderIcon on node " + nodeName);
     var node = PWM_MAIN.getObject(nodeName);
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
     var eyeNode = PWM_MAIN.getObject(eyeId);
@@ -995,6 +1000,7 @@ ShowHidePasswordHandler.renderIcon = function(nodeName) {
     } else {
         eyeNode.style.visibility = 'hidden';
     }
+    eyeNode.className = eyeNode.className; //ie8 force-rendering hack
 }
 
 ShowHidePasswordHandler.toggle = function(nodeName) {
@@ -1025,31 +1031,55 @@ ShowHidePasswordHandler.show = function(nodeName) {
 };
 
 ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
-    require(["dojo/_base/lang", "dojo/dom", "dojo/dom-attr"], function(lang, dom, attr){
-        var newObject = lang.clone(object);
-        attr.set(newObject, "type", type);
+    require(["dojo","dojo/_base/lang", "dojo/dom", "dojo/dom-attr"], function(dojo, lang, dom, attr){
+        var newObject = null;
+        if(dojo.isIE <= 8){ // IE doesn't support simply changing the type of object
+            newObject = document.createElement(object.nodeName);
+            newObject.type = type;
+            if (object.size) newObject.size = object.size;
+            if (object.value) newObject.value = object.value;
+            if (object.name) newObject.name = object.name;
+            if (object.id) newObject.id = object.id;
+            if (object.className) newObject.className = object.className;
+            if (object.onclick) newObject.onclick = object.onclick;
+            if (object.onkeyup) newObject.onkeyup = object.onkeyup;
+            if (object.onkeydown) newObject.onkeydown = object.onkeydown;
+            if (object.onkeypress) newObject.onkeypress = object.onkeypress;
+            if (object.onchange) newObject.onchange = object.onchange;
+            if (object.disabled) newObject.disabled = object.disabled;
+            if (object.readonly) newObject.readonly = object.readonly;
+        } else {
+            newObject = lang.clone(object);
+            attr.set(newObject, "type", type);
+        }
+
         object.parentNode.replaceChild(newObject, object);
         return newObject;
     });
 };
 
 ShowHidePasswordHandler.setupTooltip = function(nodeName) {
+    if (ShowHidePasswordHandler.debugOutput) console.log('begin setupTooltip');
     var state = ShowHidePasswordHandler.state[nodeName];
     var eyeNodeId = nodeName + ShowHidePasswordHandler.idSuffix;
     PWM_MAIN.clearDijitWidget(eyeNodeId );
-    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+    require(["dojo","dijit","dijit/Tooltip"],function(dojo,dijit,Tooltip){
         if (state) {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Show']
             });
-            PWM_MAIN.getObject(eyeNodeId).className = 'fa fa-eye';
+            dojo.removeClass(eyeNodeId);
+            dojo.addClass(eyeNodeId,["fa","fa-eye"]);
+            if (ShowHidePasswordHandler.debugOutput) console.log('set class to fa-eye');
         } else {
             new Tooltip({
                 connectId: [eyeNodeId],
                 label: PWM_STRINGS['Button_Hide']
             });
-            PWM_MAIN.getObject(eyeNodeId).className = 'fa fa-eye-slash';
+            dojo.removeClass(eyeNodeId);
+            dojo.addClass(eyeNodeId,["fa","fa-eye-slash"]);
+            if (ShowHidePasswordHandler.debugOutput) console.log('set class to fa-slash');
         }
     });
 };

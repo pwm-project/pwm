@@ -343,7 +343,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords(true);
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
             final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();

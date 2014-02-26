@@ -125,6 +125,21 @@ public class PasswordChangeProgressChecker {
         private Date beginTime = new Date();
         private Date lastReplicaCheckTime;
         private final Map<String,ProgressRecord> itemCompletions = new HashMap<String, ProgressRecord>();
+
+        public Date getBeginTime()
+        {
+            return beginTime;
+        }
+
+        public Date getLastReplicaCheckTime()
+        {
+            return lastReplicaCheckTime;
+        }
+
+        public Map<String, ProgressRecord> getItemCompletions()
+        {
+            return itemCompletions;
+        }
     }
 
     public PasswordChangeProgress figureProgress(

@@ -354,7 +354,8 @@
     </button>
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
-    <button id="clearResponsesBtn" class="btn" onclick="document.clearResponsesForm.submit()">
+    <button id="clearResponsesBtn" class="btn" onclick="PWM_HELPDESK.doResponseClear()">
+        <i class="fa fa-eraser"></i>&nbsp;
         <pwm:Display key="Button_ClearResponses"/>
     </button>
     <% } %>
@@ -412,10 +413,6 @@
     </form>
     <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('unlockBtn', this)">
         <input type="hidden" name="processAction" value="doUnlock"/>
-        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    </form>
-    <form name="clearResponsesForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('clearResponsesBtn', this)">
-        <input type="hidden" name="processAction" value="doClearResponses"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
     <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('clearOtpSecretBtn', this)">

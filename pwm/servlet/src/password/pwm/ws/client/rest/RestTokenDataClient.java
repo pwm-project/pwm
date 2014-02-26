@@ -30,6 +30,8 @@ import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserStatusReader;
@@ -99,18 +101,21 @@ public class RestTokenDataClient implements RestClient {
 
         final LinkedHashMap<String,Object> sendData = new LinkedHashMap<String, Object>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
-        final UserInfoBean userInfoBean = new UserInfoBean();
-        UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-        userStatusReader.populateUserInfoBean(
-                pwmSession,
-                userInfoBean,
-                locale,
-                userIdentity,
-                null
-        );
+        if (userIdentity != null) {
+            final UserInfoBean userInfoBean = new UserInfoBean();
+            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            userStatusReader.populateUserInfoBean(
+                    pwmSession,
+                    userInfoBean,
+                    locale,
+                    userIdentity,
+                    null
+            );
 
-        final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
-        sendData.put(RestClient.DATA_KEY_USERINFO, jsonStatusData);
+            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
+            sendData.put(RestClient.DATA_KEY_USERINFO, jsonStatusData);
+        }
+
 
         final String jsonRequestData = Helper.getGson().toJson(sendData);
         final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, url, jsonRequestData);
@@ -122,14 +127,18 @@ public class RestTokenDataClient implements RestClient {
             final TokenDestinationData tokenDestinationData,
             final UserIdentity userIdentity,
             final Locale locale
-    ) {
+    )
+            throws PwmUnrecoverableException
+    {
         final String configuredUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS);
         if (configuredUrl != null && !configuredUrl.isEmpty()) {
             try {
                 LOGGER.trace(pwmSession, "beginning token destination rest client call to " + configuredUrl);
                 return invoke(pwmSession, tokenDestinationData, userIdentity, configuredUrl, locale);
             } catch (Exception e) {
-                LOGGER.error(pwmSession, "error making token destination rest client call, error: " + e.getMessage());
+                final String errorMsg = "error making token destination rest client call; error: " + e.getMessage();
+                LOGGER.error(pwmSession, errorMsg);
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
             }
         }
         return builtInService(tokenDestinationData);
@@ -137,11 +146,18 @@ public class RestTokenDataClient implements RestClient {
 
     private TokenDestinationData builtInService(final TokenDestinationData tokenDestinationData) {
         final StringBuilder tokenSendDisplay = new StringBuilder();
-        tokenSendDisplay.append(tokenDestinationData.getEmail());
-        if (tokenSendDisplay.length() > 0) {
-            tokenSendDisplay.append(" / ");
+
+        if (tokenDestinationData.getEmail() != null) {
+            tokenSendDisplay.append(tokenDestinationData.getEmail());
         }
-        tokenSendDisplay.append(tokenDestinationData.getSms());
+
+        if (tokenDestinationData.getSms() != null) {
+            if (tokenSendDisplay.length() > 0) {
+                tokenSendDisplay.append(" / ");
+            }
+
+            tokenSendDisplay.append(tokenDestinationData.getSms());
+        }
 
         return new TokenDestinationData(
                 tokenDestinationData.getEmail(),

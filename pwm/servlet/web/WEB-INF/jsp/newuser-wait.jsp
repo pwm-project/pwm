@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.util.Helper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -21,13 +22,13 @@
   --%>
 
 <!DOCTYPE html>
-
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<meta http-equiv="refresh" content="0;url='<%=request.getAttribute("nextURL").toString()%>'">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
+<% final String nextURL = request.getAttribute("nextURL") + "&" + PwmConstants.PARAM_FORM_ID + "=" + Helper.buildPwmFormID(PwmSession.getPwmSession(request).getSessionStateBean()); %>
+<meta http-equiv="refresh" content="0;url='<%=nextURL%>'">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>

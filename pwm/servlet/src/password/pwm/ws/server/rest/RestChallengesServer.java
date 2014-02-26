@@ -168,7 +168,7 @@ public class RestChallengesServer {
                 outputUsername = restRequestBean.getUserIdentity().toDeliminatedKey();
             }
 
-           // build output
+            // build output
             final JsonChallengesData jsonData = new JsonChallengesData();
             {
                 jsonData.username = outputUsername;
@@ -243,7 +243,8 @@ public class RestChallengesServer {
             } else {
                 final UserIdentity userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
-                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(),userIdentity);
+                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(),userIdentity,
+                        false);
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                         userIdentity,
                         chaiUser,
@@ -295,11 +296,17 @@ public class RestChallengesServer {
             final ChaiUser chaiUser;
             final String userGUID;
             if (restRequestBean.getUserIdentity() == null) {
+                /* clear self */
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
             } else {
-                chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
-                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(), restRequestBean.getUserIdentity());
+                /* clear 3rd party (helpdesk) */
+                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+                chaiUser = useProxy
+                        ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
+                        : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
+                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(), restRequestBean.getUserIdentity(),
+                        false);
             }
 
             final CrService crService = restRequestBean.getPwmApplication().getCrService();

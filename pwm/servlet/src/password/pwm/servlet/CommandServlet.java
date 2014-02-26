@@ -415,11 +415,10 @@ public class CommandServlet extends TopServlet {
         resp.setContentType("text/csv;charset=utf-8");
 
         final OutputStream outputStream = new BufferedOutputStream(resp.getOutputStream());
-
         final ReportService userReport = pwmApplication.getUserReportService();
 
         try {
-            userReport.outputToCsv(outputStream, true, 50 * 1000);
+            userReport.outputToCsv(outputStream, true, pwmSession.getSessionStateBean().getLocale());
         } catch (Exception e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
             final SessionStateBean ssBean = PwmSession.getPwmSession(req).getSessionStateBean();

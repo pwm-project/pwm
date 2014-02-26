@@ -211,7 +211,7 @@ public class UserCacheRecord implements Serializable {
 
         this.setPasswordStatus(userInfoBean.getPasswordState());
 
-        this.setPasswordChangeTime(userInfoBean.getPasswordExpirationTime());
+        this.setPasswordChangeTime(userInfoBean.getPasswordLastModifiedTime());
         this.setPasswordExpirationTime(userInfoBean.getPasswordExpirationTime());
         this.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
 

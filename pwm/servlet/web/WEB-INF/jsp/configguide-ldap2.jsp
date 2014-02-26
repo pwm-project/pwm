@@ -48,13 +48,17 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm" data-dojo-type="dijit/form/Form" onkeyup="handleFormActivity()">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div class="setting_outline">
                 <div class="setting_title">LDAP Contextless Login Root</div>
                 <div class="setting_body">
-                    Enter the top level LDAP context of your LDAP directory. This sets the top level LDAP container where an LDAP sub-tree search is performed to find your user entries. If you need to enter multiple containers, you can use the configuration editor to add them after this guide completes.
+                    Enter the top level LDAP context of your LDAP directory. This sets the top level LDAP container
+                    where an LDAP sub-tree search is performed to find your user entries. If you need to enter multiple
+                    containers, you can use the configuration editor to add them after this guide completes.
+                    <br/><br/>
+                    A default value has been generated but you may need to change it to be appropriate to your directory.
                     <div class="setting_item">
                         <b>LDAP Contextless Login Root</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
@@ -68,12 +72,6 @@
                                         required: true,
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        onChange: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>'
                                     }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>");
                                 });
@@ -104,12 +102,6 @@
                                         required: true,
                                         style: "width: 550px",
                                         placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>',
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        onChange: function() {
-                                            handleFormActivity();
-                                        },
                                         value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>'
                                     }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>");
                                 });
@@ -120,7 +112,7 @@
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:0; margin:0; padding:0" onclick="loadHealth();">
+        <div id="healthBody" style="border:1px; margin:0; padding:0; max-height: 150px; overflow-y: auto" onclick="loadHealth();">
             <div style="text-align: center">
                 <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
             </div>
@@ -172,7 +164,7 @@
             checkIfNextEnabled();
         };
         PWM_MAIN.showWaitDialog();
-        PWM_MAIN.showAppHealth('healthBody', options);
+        PWM_ADMIN.showAppHealth('healthBody', options);
     }
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
