@@ -36,6 +36,7 @@ public enum HealthMessage {
     Config_UsingLocalDBResponseStorage      (HealthStatus.CAUTION,  HealthTopic.Configuration),
     LDAP_VendorsNotSame                     (HealthStatus.CONFIG,   HealthTopic.LDAP),
     Health_Config_ConfigMode                (HealthStatus.CAUTION,  HealthTopic.Configuration),
+    LDAP_OK                                 (HealthStatus.GOOD,     HealthTopic.LDAP),
     ;
 
     private final HealthStatus status;

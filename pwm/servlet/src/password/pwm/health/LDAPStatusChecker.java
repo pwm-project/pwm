@@ -83,12 +83,7 @@ public class LDAPStatusChecker implements HealthChecker {
             }
 
             if (profileRecords.isEmpty()) {
-                profileRecords.add(new HealthRecord(
-                        HealthStatus.GOOD,
-                        makeLdapTopic(profileID, config),
-                        LocaleHelper.getLocalizedMessage("Health_LDAP_OK",config,Admin.class)
-                ));
-
+                profileRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_OK));
                 profileRecords.addAll(doLdapTestUserCheck(config, ldapProfiles.get(profileID), pwmApplication));
 
             }
