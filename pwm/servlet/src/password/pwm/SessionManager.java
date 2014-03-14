@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -36,6 +37,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
@@ -272,5 +274,15 @@ public class SessionManager implements Serializable {
 
     public void addCloseConnectionListener(CloseConnectionListener closeConnectionListener) {
         this.closeConnectionListeners.add(closeConnectionListener);
+    }
+
+    public void incrementRequestCounter() {
+        if (this.pwmSession != null) {
+            final SessionStateBean ssBean = this.pwmSession.getSessionStateBean();
+            final int currentValue = ssBean.getRequestCounter();
+            ssBean.setRequestCounter(currentValue+1);
+            final String pwmFormID = Helper.buildPwmFormID(ssBean);
+            LOGGER.trace(pwmSession, "incremented request counter, current pwmFormID=" + pwmFormID);
+        }
     }
 }

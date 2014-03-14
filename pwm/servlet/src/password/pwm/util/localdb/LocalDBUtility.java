@@ -174,17 +174,17 @@ public class LocalDBUtility {
         final Date startTime = new Date();
         final Timer statTimer = new Timer(true);
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 50, 50 * 1000);
-        statTimer.schedule(new TimerTask() {
+        statTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 final ProgressInfo progressInfo = new ProgressInfo(startTime, totalLines, importLineCounter);
-                writeStringToOut(out," restored " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
+                writeStringToOut(out, " " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
             }
-        },15 * 1000, 30 * 1000);
+        },0, 30 * 1000);
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<LocalDB.DB, Map<String, String>>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            transactionMap.put(loopDB,new HashMap<String, String>());
+            transactionMap.put(loopDB,new TreeMap<String, String>());
         }
 
         try {
@@ -193,22 +193,20 @@ public class LocalDBUtility {
                 final LocalDB.DB db = LocalDB.DB.valueOf(csvReader.get(0));
                 final String key = csvReader.get(1);
                 final String value = csvReader.get(2);
-                localDB.put(db, key, value);
                 transactionMap.get(db).put(key,value);
                 int cachedTransactions = 0;
+                importLineCounter++;
                 for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-                    cachedTransactions += transactionMap.get(loopDB).keySet().size();
+                    cachedTransactions += transactionMap.get(loopDB).size();
                 }
                 if (cachedTransactions >= transactionCalculator.getTransactionSize()) {
                     final long startTxnTime = System.currentTimeMillis();
                     for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
                         localDB.putAll(loopDB, transactionMap.get(loopDB));
-                        importLineCounter += transactionMap.get(loopDB).size();
                         transactionMap.get(loopDB).clear();
                     }
                     transactionCalculator.recordLastTransactionDuration(TimeDuration.fromCurrent(startTxnTime));
                 }
-
             }
         } finally {
             if (csvReader != null) {csvReader.close();}

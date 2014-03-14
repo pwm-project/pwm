@@ -95,7 +95,6 @@ public class UserAuthenticator {
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
 
         intruderManager.convenience().checkUserIdentity(userIdentity);
-        intruderManager.convenience().checkAddressAndSession(pwmSession);
 
         boolean allowBindAsUser = true;
         try {
@@ -120,7 +119,7 @@ public class UserAuthenticator {
                 // auth failed, presumably due to wrong password.
                 LOGGER.info(pwmSession, "login attempt for " + userIdentity + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-                intruderManager.mark(RecordType.USER_ID, userIdentity.getUserDN(), pwmSession);
+                intruderManager.convenience().markUserIdentity(userIdentity, pwmSession);
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 throw e;
             }

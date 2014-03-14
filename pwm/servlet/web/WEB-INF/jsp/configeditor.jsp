@@ -42,29 +42,13 @@
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = cookie.getCategory(); %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
     PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
     PWM_GLOBAL['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
 </script>
-<style type="text/css">
-    #centerbody-config {
-        width: 600px;
-        min-width: 600px;
-        padding: 10px;
-        position: relative;
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 0;
-        clear: both;
-        border-radius: 0 0 5px 5px;
-        box-shadow: 0;
-        background-color: white;
-    }
-</style>
 <div id="wrapper" style="border:1px; background-color: black">
-    <div id="header" style="height: 25px; text-align: center">
+    <div id="header" style="height: 25px; text-align: center; position: fixed">
         <div id="header-title">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
             <% if (category.getType() == PwmSetting.Category.Type.SETTING) { %>
@@ -80,14 +64,15 @@
             <% } %>
         </div>
     </div>
-    <div id="TopMenu">
+    <div id="TopMenu_Wrapper" class="menu-wrapper">
+        <div id="TopMenu" class="menu-bar">
+        </div>
+        <div id="TopMenu_Underflow" class="menu-underflow"><%-- gradient for page to fade under menu --%>
+        </div>
     </div>
-    <div id="centerbody-config">
-        <form action="<pwm:url url='ConfigEditor'/>" method="post" name="cancelEditing"
-              enctype="application/x-www-form-urlencoded">
-            <input type="hidden" name="processAction" value="cancelEditing"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-        </form>
+    <div id="centerbody-config" class="centerbody-config">
+        <div style="height: 45px">
+        </div>
         <div id="mainContentPane" style="width: 600px">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS || cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.getType() == PwmSetting.Category.Type.PROFILE) { %>
@@ -99,13 +84,15 @@
             <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
             <% } %>
         </div>
-        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+        <span style="display:none; visibility: hidden" id="message" class="message"></span>
     </div>
     <div class="push"></div>
 </div>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript">
     PWM_CONFIG.initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
     PWM_VAR['setting_alwaysFloatMessages'] = true;

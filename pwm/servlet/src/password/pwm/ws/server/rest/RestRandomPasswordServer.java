@@ -60,6 +60,7 @@ public class RestRandomPasswordServer {
         servicePermissions.setAuthRequired(false);
         servicePermissions.setBlockExternal(true);
         servicePermissions.setHelpdeskPermitted(true);
+        servicePermissions.setPublicDuringConfig(true);
     }
 
     public static class JsonOutput implements Serializable

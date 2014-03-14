@@ -169,6 +169,8 @@ table td.key {
 input[type=password]::-ms-reveal{display: none;}
 
 .selectfield {
+    width: 60%;
+    margin: 5px;
 }
 
 .tokenInput {
@@ -214,8 +216,7 @@ input[type=password]::-ms-reveal{display: none;}
 /* main content section, all content should be inside a centerbody div */
 #centerbody {
     width: 600px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 5px;
     margin-top: 20px;
     position: relative;
     margin-left: auto;

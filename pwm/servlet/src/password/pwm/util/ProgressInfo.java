@@ -25,7 +25,7 @@ package password.pwm.util;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 
 public class ProgressInfo implements Serializable {
@@ -46,12 +46,8 @@ public class ProgressInfo implements Serializable {
         this.nowItems = nowItems;
     }
 
-    public float percentComplete() {
-        return nowItems / totalItems;
-    }
-
-    public String formattedPercentComplete() {
-        return DecimalFormat.getPercentInstance().format(percentComplete());
+    public Percent percentComplete() {
+        return new Percent(nowItems,totalItems);
     }
 
     public TimeDuration elapsed() {
@@ -62,12 +58,21 @@ public class ProgressInfo implements Serializable {
         return totalItems - nowItems;
     }
 
-    public TimeDuration remainingDuration() {
+    public float itemsPerMs() {
         final long elapsedMs = elapsed().getTotalMilliseconds();
-        final BigDecimal itemsPerMs = elapsedMs <= 0 ? BigDecimal.ZERO : new BigDecimal(totalItems).divide(new BigDecimal(elapsedMs),MathContext.DECIMAL32);
-        final BigDecimal remainingMs = itemsPerMs.compareTo(BigDecimal.ZERO) <= 0
-                ? BigDecimal.ZERO
-                : new BigDecimal(itemsRemaining()).divide(itemsPerMs,MathContext.DECIMAL32);
+        if (elapsedMs <= 0) {
+            return 0;
+        }
+        final BigDecimal itemsPerMs = new BigDecimal(nowItems).divide(new BigDecimal(elapsedMs),MathContext.DECIMAL32);
+        return itemsPerMs.floatValue();
+    }
+
+    public TimeDuration remainingDuration() {
+        final float itemsPerMs = itemsPerMs();
+        if (itemsPerMs <= 0) {
+            return TimeDuration.ZERO;
+        }
+        final BigDecimal remainingMs = new BigDecimal(itemsRemaining()).divide(new BigDecimal(itemsPerMs),MathContext.DECIMAL32);
         return new TimeDuration(remainingMs.longValue());
     }
 
@@ -77,7 +82,10 @@ public class ProgressInfo implements Serializable {
     }
 
     public String debugOutput() {
-        return "processed " + nowItems + "/" + totalItems + ", "
-                + formattedPercentComplete() + " remaining (" + itemsRemaining() + "/" + remainingDuration().asCompactString() + ")";
+        final TimeDuration remainingTime = remainingDuration();
+        final NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        return "processed " + numberFormat.format(nowItems) + " of " + numberFormat.format(totalItems)
+                + " (" + percentComplete().pretty(2) + ")"
+                + ", remaining " + numberFormat.format(itemsRemaining()) + " in " + remainingTime.asCompactString();
     }
 }

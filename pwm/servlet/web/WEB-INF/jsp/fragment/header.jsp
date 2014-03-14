@@ -39,7 +39,7 @@
     final boolean incrementRequestCounter = !"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER));
 
     if (incrementRequestCounter && pwmSessionHeader != null) {
-        pwmSessionHeader.getSessionStateBean().incrementRequestCounter();
+        pwmSessionHeader.getSessionManager().incrementRequestCounter();
     }
 %>
 <head>

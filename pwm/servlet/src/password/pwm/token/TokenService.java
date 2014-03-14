@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.token;
 
 import com.google.gson.Gson;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -35,13 +36,17 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
+import password.pwm.ldap.UserAuthenticator;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.operations.PasswordUtility;
+import password.pwm.util.stats.Statistic;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -245,7 +250,7 @@ public class TokenService implements PwmService {
                 return storedToken;
             }
         } catch (PwmException e) {
-            if (e.getError() == PwmError.ERROR_TOKEN_EXPIRED) {
+            if (e.getError() == PwmError.ERROR_TOKEN_EXPIRED || e.getError() == PwmError.ERROR_TOKEN_INCORRECT || e.getError() == PwmError.ERROR_TOKEN_MISSING_CONTACT) {
                 throw new PwmOperationalException(e.getErrorInformation());
             }
             final String errorMsg = "error trying to retrieve token from datastore: " + e.getMessage();
@@ -271,14 +276,14 @@ public class TokenService implements PwmService {
 
         if (tokensAreUsedInConfig(configuration)) {
             if (errorInformation != null) {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN,"TokenManager",errorInformation.toDebugStr()));
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.CryptoTokenWithNewUserVerification,errorInformation.toDebugStr()));
             }
         }
 
         if (storageMethod == TokenStorageMethod.STORE_LDAP) {
             if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) {
                 if (configuration.readSettingAsBoolean(PwmSetting.NEWUSER_EMAIL_VERIFICATION)) {
-                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"TokenManager","New User Email Verification is enabled and the token storage method is set to STORE_LDAP, this configuration is not supported."));
+                    returnRecords.add(HealthRecord.forMessage(HealthMessage.CryptoTokenWithNewUserVerification));
                 }
             }
         }
@@ -463,9 +468,14 @@ public class TokenService implements PwmService {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
-        final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken, secretKey, true);
-        final Gson gson = Helper.getGson();
-        return gson.fromJson(decryptedString,TokenPayload.class);
+        try {
+            final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken, secretKey, true);
+            return Helper.getGson().fromJson(decryptedString,TokenPayload.class);
+        } catch (PwmUnrecoverableException e) {
+            final String errorMsg = "unable to decrypt user supplied token value: " + e.getErrorInformation().toDebugStr();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+            throw new PwmOperationalException(errorInformation);
+        }
     }
 
     public ServiceInfo serviceInfo()
@@ -473,4 +483,120 @@ public class TokenService implements PwmService {
         return serviceInfo;
     }
 
+    public TokenPayload processUserEnteredCode(
+            final PwmSession pwmSession,
+            final UserIdentity sessionUserIdentity,
+            final String tokenName,
+            final String userEnteredCode
+    )
+            throws PwmOperationalException, PwmUnrecoverableException
+    {
+        try {
+            final TokenPayload tokenPayload = processUserEnteredCodeImpl(
+                    pwmApplication,
+                    pwmSession,
+                    sessionUserIdentity,
+                    tokenName,
+                    userEnteredCode
+            );
+            if (tokenPayload.getDest() != null) {
+                for (final String dest : tokenPayload.getDest()) {
+                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
+                }
+            }
+            pwmApplication.getTokenService().markTokenAsClaimed(userEnteredCode, pwmSession);
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
+            return tokenPayload;
+        } catch (Exception e) {
+            final ErrorInformation errorInformation;
+            if (e instanceof PwmException) {
+                errorInformation = ((PwmException) e).getErrorInformation();
+            } else {
+                errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, e.getMessage());
+            }
+
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            if (pwmSession != null) {
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
+            }
+
+            if (sessionUserIdentity != null) {
+                UserAuthenticator.simulateBadPassword(sessionUserIdentity, pwmApplication, pwmSession);
+                pwmApplication.getIntruderManager().convenience().markUserIdentity(sessionUserIdentity, pwmSession);
+            }
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
+            throw new PwmOperationalException(errorInformation);
+        }
+    }
+
+    private static TokenPayload processUserEnteredCodeImpl(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity sessionUserIdentity,
+            final String tokenName,
+            final String userEnteredCode
+    )
+            throws PwmOperationalException
+    {
+        TokenPayload tokenPayload;
+        try {
+            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userEnteredCode);
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "unexpected error attempting to read token from storage: " + e.getErrorInformation().toDebugStr();
+            throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+        }
+
+        if (tokenPayload == null) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"token not found");
+            throw new PwmOperationalException(errorInformation);
+        }
+
+        LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
+
+        if (tokenName != null && pwmApplication.getTokenService().supportsName()) {
+            if (!tokenName.equals(tokenPayload.getName()) ) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format");
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        // check current session identity
+        if (tokenPayload.getUserIdentity() != null) {
+            if (!tokenPayload.getUserIdentity().equals(sessionUserIdentity)) {
+                final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.getUserIdentity()+ "', counting as invalid attempt";
+                throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
+            }
+        }
+
+        // check if password-last-modified is same as when tried to read it before.
+        if (sessionUserIdentity != null && tokenPayload.getUserIdentity() != null && tokenPayload.getData().containsKey(PwmConstants.TOKEN_KEY_PWD_CHG_DATE)) {
+            try {
+                final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                        pwmApplication,
+                        pwmSession,
+                        sessionUserIdentity);
+                final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
+                if (userLastPasswordChange != null && dateStringInToken != null) {
+                    final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
+                    if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
+                        final String errorString = "user password has changed since token issued, token rejected";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
+                        throw new PwmOperationalException(errorInformation);
+                    }
+                }
+            } catch (ChaiUnavailableException e) {
+                final String errorMsg = "unexpected error reading user's last password change time while validating token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            } catch (PwmUnrecoverableException e) {
+                final String errorMsg = "unexpected error reading user's last password change time while validating token: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
+                throw new PwmOperationalException(errorInformation);
+            }
+        }
+
+        LOGGER.debug(pwmSession, "token validation has been passed");
+        return tokenPayload;
+    }
 }

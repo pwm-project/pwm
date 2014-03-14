@@ -52,7 +52,6 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
-import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
@@ -116,9 +115,6 @@ public class HelpdeskServlet extends TopServlet {
             Validator.validatePwmFormID(req);
             if (processAction.equalsIgnoreCase("doUnlock")) {
                 processUnlockPassword(req, resp, pwmApplication, pwmSession);
-                return;
-            } else if (processAction.equalsIgnoreCase("doClearResponses")) {
-                processClearResponses(req, resp, pwmApplication, pwmSession);
                 return;
             } else if (processAction.equalsIgnoreCase("doClearOtpSecret")) {
                 processClearOtpSecret(req, resp, pwmApplication, pwmSession);
@@ -227,7 +223,7 @@ public class HelpdeskServlet extends TopServlet {
         final String userKey = Validator.readStringFromRequest(req, "userKey");
         if (userKey.length() < 1) {
             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing"));
-            forwardToSearchJSP(req,resp);
+            ServletHelper.forwardToErrorPage(req,resp,false);
             return;
         }
 
@@ -252,7 +248,7 @@ public class HelpdeskServlet extends TopServlet {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,errorMsg);
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
             LOGGER.trace(pwmSession, errorInformation.toDebugStr());
-            forwardToSearchJSP(req, resp);
+            ServletHelper.forwardToErrorPage(req,resp,false);
             return;
         }
 
@@ -469,76 +465,6 @@ public class HelpdeskServlet extends TopServlet {
             final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
             ssBean.setSessionError(error);
             LOGGER.warn(pwmSession, "error resetting password for user '" + helpdeskBean.getUserInfoBean().getUserIdentity() + "'' " + error.toDebugStr() + ", " + e.getMessage());
-        }
-
-        Helper.pause(1000); // delay before re-reading data
-        populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
-        this.forwardToDetailJSP(req, resp);
-    }
-
-    private void processClearResponses(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
-            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
-    {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
-
-        if (helpdeskBean.getUserInfoBean() == null) {
-            final String errorMsg = "password unlock request, but no user result in search";
-            LOGGER.error(pwmSession, errorMsg);
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
-            this.forwardToDetailJSP(req, resp);
-            return;
-        }
-
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) {
-            final String errorMsg = "clear responses request, but helpdesk clear responses button is not enabled";
-            LOGGER.error(pwmSession, errorMsg);
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
-            this.forwardToDetailJSP(req, resp);
-            return;
-        }
-
-        //clear pwm intruder setting.
-        pwmApplication.getIntruderManager().clear(RecordType.USERNAME, helpdeskBean.getUserInfoBean().getUsername());
-        pwmApplication.getIntruderManager().convenience().clearUserIdentity(
-                helpdeskBean.getUserInfoBean().getUserIdentity());
-
-        final boolean useProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
-        try {
-            final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
-            final ChaiUser chaiUser = useProxy ?
-                    pwmApplication.getProxiedChaiUser(userIdentity) :
-                    pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
-
-            CrService service = pwmApplication.getCrService();
-            service.clearResponses(pwmSession, chaiUser, helpdeskBean.getUserInfoBean().getUserGuid());
-            {
-                // mark the event log
-                final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
-                        AuditEvent.HELPDESK_CLEAR_RESPONSES,
-                        pwmSession.getUserInfoBean().getUserIdentity(),
-                        new Date(),
-                        null,
-                        userIdentity,
-                        pwmSession.getSessionStateBean().getSrcAddress(),
-                        pwmSession.getSessionStateBean().getSrcHostname()
-                );
-                pwmApplication.getAuditManager().submit(auditRecord);
-            }
-        } catch (PwmOperationalException e) {
-            final PwmError returnMsg = e.getError();
-            final ErrorInformation error = new ErrorInformation(returnMsg, e.getMessage());
-            ssBean.setSessionError(error);
-            LOGGER.warn(pwmSession, "error clearing responses for user '" + helpdeskBean.getUserInfoBean().getUserIdentity() + "'' " + error.toDebugStr() + ", " + e.getMessage());
-        } catch (ChaiUnavailableException e) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.LDAP_UNAVAILABLE_COUNT);
-            LOGGER.warn(pwmSession, "ChaiUnavailableException was thrown while clearing responses: " + e.toString());
-            throw e;
         }
 
         Helper.pause(1000); // delay before re-reading data

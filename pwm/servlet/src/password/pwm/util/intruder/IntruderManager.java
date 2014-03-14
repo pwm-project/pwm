@@ -237,11 +237,17 @@ public class IntruderManager implements Serializable, PwmService {
         final boolean locked = manager.checkSubject(subject);
 
         if (locked) {
-            if (recordType == RecordType.ADDRESS) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_ADDRESS);
-            } else {
-                throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
+            switch (recordType) {
+                case ADDRESS:
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_ADDRESS);
+
+                case ATTRIBUTE:
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_ATTR_SEARCH);
+
+                case TOKEN_DEST:
+                    throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_TOKEN_DEST);
             }
+            throw new PwmUnrecoverableException(PwmError.ERROR_INTRUDER_USER);
         }
     }
 

@@ -520,12 +520,11 @@ public class CommandServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getIntruderManager().clear();
+        //pwmApplication.getIntruderManager().clear();
 
         RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp,restResultBean);
         return;
     }
-
 }
 

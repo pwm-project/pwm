@@ -207,21 +207,24 @@ PWM_MAIN.handleFormSubmit = function(buttonID, form) {
 
 PWM_MAIN.handleFormClear = function() {
     var focusSet = false;
+    var clearableFields = ['text','email','number','password','random','tel','hidden','date','datetime','time','week','month','url','select'];
 
-    for (var j = 0; j < document.forms.length; j++) {
-        for (var i = 0; i < document.forms[j].length; i++) {
-            var current = document.forms[j].elements[i];
-            if ((current.type == 'text') || (current.type == 'password')) {
-                current.value = '';
-                if (!focusSet) {
-                    current.focus();
-                    focusSet = true;
+    require(["dojo/_base/array"],function(array){
+        for (var j = 0; j < document.forms.length; j++) {
+            for (var i = 0; i < document.forms[j].length; i++) {
+                var current = document.forms[j].elements[i];
+                if (current.type && array.indexOf(clearableFields,current.type.toLowerCase()) >= 0) {
+                    current.value = '';
+                    if (!focusSet) {
+                        current.focus();
+                        focusSet = true;
+                    }
+                } else if (current.type == 'select') {
+                    current.selectedIndex = -1;
                 }
-            } else if (current.type == 'select') {
-                current.selectedIndex = -1;
             }
         }
-    }
+    });
     return false;
 };
 
@@ -432,7 +435,7 @@ PWM_MAIN.showWaitDialog = function(title, body, loadFunction) {
     });
 };
 
-PWM_MAIN.showDialog = function (title, text, nextAction) {
+PWM_MAIN.showDialog = function(title, text, nextAction) {
     var titleText = title == null ? "" : title;
     PWM_GLOBAL['dialog_nextAction'] = nextAction ? nextAction : function(){};
     var bodyText = '';
@@ -969,7 +972,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
         return;
     }
 
-    require(["dojo/dom-construct", "dojo/_base/connect"], function(domConstruct, connect){
+    require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
         var node = PWM_MAIN.getObject(nodeName);
         var divElement = document.createElement('div');
         divElement.id = eyeId;
@@ -981,7 +984,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
         ShowHidePasswordHandler.state[nodeName] = true;
         ShowHidePasswordHandler.setupTooltip(nodeName, false);
 
-        connect.connect(node, "onkeyup", function(){
+        on(node, "keyup, input", function(){
             if (ShowHidePasswordHandler.debugOutput) console.log("keypress event on node " + nodeName)
             ShowHidePasswordHandler.renderIcon(nodeName);
             ShowHidePasswordHandler.setupTooltip(nodeName);

@@ -199,7 +199,11 @@ public class Validator {
                 final String submittedSequenceCounterStr = submittedPwmFormID.substring(pwmFormID.length(),submittedPwmFormID.length());
                 final long submittedSequenceCounter = Long.parseLong(submittedSequenceCounterStr,36);
                 if (submittedSequenceCounter != requestSequenceCounter) {
-                    throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);
+                    final String debugMsg = "expectedPageID=" + Long.toString(requestSequenceCounter,36)
+                            + ", submittedPageID=" + submittedSequenceCounterStr
+                            +  ", url=" + req.getRequestURI();
+
+                    throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE, debugMsg);
                 }
             } catch (NumberFormatException e) {
                 throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE);

@@ -1,12 +1,10 @@
 <%@ page import="password.pwm.error.PwmError" %>
-<%@ page import="password.pwm.util.PwmLogger" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="java.util.TimeZone" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -36,45 +34,26 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
-<%
-    try {
-        if ("start".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().scheduleImmediateUpdate(); }
-        if ("stop".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().cancelUpdate();}
-        if ("clear".equalsIgnoreCase(request.getParameter("reportAction"))) {pwmApplicationHeader.getUserReportService().clear();}
-    } catch (Exception e) {
-        PwmLogger.getLogger(this.getClass()).error("error executing rest command on analysis.jsp: " + e.getMessage(),e);
-    }
-%>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Data Analysis"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false">
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Directory Reporting">
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:Display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
-                    <div style="max-height: 350px">
+                    <div style="max-height: 400px" id="summaryTableWarpper">
                         <table id="summaryTable">
                             <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
                         </table>
                         <div class="noticebar">
                             <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/>
-                            <%--
-                            <button class="btn" type="button" onclick="PWM_ADMIN.refreshReportDataSummary()">
-                                <span class="fa fa-refresh">&nbsp;Refresh</span>
-                            </button>
-                            --%>
                         </div>
-                        <script type="application/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_ADMIN.refreshReportDataSummary(5 * 1000);
-                            });
-                        </script>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Data Viewer">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_DataViewer" bundle="Admin"/>">
                     <div id="grid">
                     </div>
                     <div style="text-align: center">
@@ -82,7 +61,7 @@
                                data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
                         Rows
                         <button class="btn" type="button" onclick="PWM_ADMIN.refreshReportDataGrid()">
-                            <span class="fa fa-refresh">&nbsp;Refresh</span>
+                            <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
                         </button>
                     </div>
                     <div style="text-align: center">
@@ -110,30 +89,25 @@
                         });
                     </script>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Report Engine Status">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_ReportEngineStatus" bundle="Admin"/>">
                     <table style="width:400px" id="statusTable">
                         <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
                     </table>
                     <table style="width:400px;">
                         <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
                             <button id="reportStartButton" class="btn" onclick="PWM_ADMIN.reportAction('start')">
-                                <i class="fa fa-play">&nbsp;Start</i>
+                                <i class="fa fa-play">&nbsp;<pwm:Display key="Button_Report_Start" bundle="Admin"/></i>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportStopButton" class="btn" onclick="PWM_ADMIN.reportAction('stop')">
-                                <i class="fa fa-stop">&nbsp;Stop</i>
+                                <i class="fa fa-stop">&nbsp;<pwm:Display key="Button_Report_Stop" bundle="Admin"/></i>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportClearButton" class="btn" onclick="PWM_ADMIN.reportAction('clear')">
-                                <span class="fa fa-trash-o">&nbsp;Clear</span>
+                                <span class="fa fa-trash-o">&nbsp;<pwm:Display key="Button_Report_Clear" bundle="Admin"/></span>
                             </button>
                         </td></tr>
                     </table>
-                    <script type="application/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            PWM_ADMIN.refreshReportDataStatus(5 * 1000);
-                        });
-                    </script>
                 </div>
                 <% } else { %>
                 <div class="message message-error">
@@ -141,15 +115,15 @@
                 </div>
                 <% } %>
             </div>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Event Statistics">
-                <div data-dojo-type="dijit.layout.ContentPane" title="Raw Statistics">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:Display key="Title_EventStatistics" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_RawStatistics" bundle="Admin"/>">
                     <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
                     <% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
                     <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect"); %>
                     <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect").length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect") : Statistic.PASSWORD_CHANGES.toString(); %>
                     <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
                     <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-                    <% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale); dateFormat.setTimeZone(TimeZone.getTimeZone("Zulu")); %>
+                    <% final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
                     <div style="max-height: 350px; overflow-y: auto">
                         <table>
                             <tr>
@@ -168,8 +142,8 @@
                                             </option>
                                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
-                                            <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>><%= availableKeys.get(key) %>
-                                                GMT
+                                            <option value="<%=key%>" <%= key.toString().equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
+                                                <%= availableKeys.get(key) %>
                                             </option>
                                             <% } %>
                                         </select>
@@ -196,7 +170,7 @@
                         </button>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Event Charts">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_StatisticsCharts" bundle="Admin"/>">
                     <div style="height:100%; width: 100%">
                         <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
                             <label for="statsChartSelect">Statistic</label>
@@ -220,8 +194,26 @@
         </div>
     </div>
 </div>
-<script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
+<div><%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %></div>
+<script type="text/javascript">
+    function refreshChart() {
+        require(["dijit/registry"],function(registry){
+            var keyName = registry.byId('statsChartSelect').get('value');
+            var days = PWM_MAIN.getObject('statsChartDays').value;
+            PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
+        });
+    }
+
+    function downloadCsv() {
+        window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>?pwmFormID=<pwm:FormID/>';
+    }
+
     PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_ADMIN.refreshReportDataSummary(5 * 1000);
+        PWM_ADMIN.refreshReportDataStatus(5 * 1000);
+
         require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
             ready(function(){
                 dojoParser.parse();
@@ -233,22 +225,6 @@
         });
     });
 
-    function refreshChart() {
-        require(["dijit/registry"],function(registry){
-            var keyName = registry.byId('statsChartSelect').get('value');
-            var days = PWM_MAIN.getObject('statsChartDays').value;
-            PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
-        });
-    }
-    function downloadCsv() {
-        window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>?pwmFormID=<pwm:FormID/>';
-    }
-
-</script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
-<div><%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %></div>
-<script type="text/javascript">
     PWM_ADMIN.initAdminPage(function(){PWM_MAIN.pageLoadHandler()});
 </script>
 </body>

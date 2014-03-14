@@ -299,8 +299,8 @@ public enum PwmSetting {
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, Category.SMS),
 
     //global password policy settings
-    PASSWORD_PROFILE_LIST(
-            "password.profile.list", PwmSettingSyntax.PROFILE, Category.PASSWORD_GLOBAL),
+    PASSWORD_POLICY_SOURCE(
+            "password.policy.source", PwmSettingSyntax.SELECT, Category.PASSWORD_GLOBAL),
     WORDLIST_FILENAME(
             "pwm.wordlist.location", PwmSettingSyntax.STRING, Category.PASSWORD_GLOBAL),
     PASSWORD_SHAREDHISTORY_ENABLE(
@@ -311,10 +311,10 @@ public enum PwmSetting {
             "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_GLOBAL),
     PASSWORD_WORDLIST_WORDSIZE(
             "password.wordlist.wordSize", PwmSettingSyntax.NUMERIC, Category.PASSWORD_GLOBAL),
-    PASSWORD_POLICY_SOURCE(
-            "password.policy.source", PwmSettingSyntax.SELECT, Category.PASSWORD_GLOBAL),
     PASSWORD_POLICY_CASE_SENSITIVITY(
             "password.policy.caseSensitivity", PwmSettingSyntax.SELECT, Category.PASSWORD_GLOBAL),
+    PASSWORD_PROFILE_LIST(
+            "password.profile.list", PwmSettingSyntax.PROFILE, Category.PASSWORD_GLOBAL),
 
 
     // password policy profile settings
@@ -395,14 +395,6 @@ public enum PwmSetting {
     // security settings
     PWM_SECURITY_KEY(
             "pwm.securityKey", PwmSettingSyntax.PASSWORD, Category.SECURITY),
-    RECAPTCHA_KEY_PUBLIC(
-            "captcha.recaptcha.publicKey", PwmSettingSyntax.STRING, Category.SECURITY),
-    RECAPTCHA_KEY_PRIVATE(
-            "captcha.recaptcha.privateKey", PwmSettingSyntax.PASSWORD, Category.SECURITY),
-    CAPTCHA_SKIP_PARAM(
-            "captcha.skip.param", PwmSettingSyntax.STRING, Category.SECURITY),
-    CAPTCHA_SKIP_COOKIE(
-            "captcha.skip.cookie", PwmSettingSyntax.STRING, Category.SECURITY),
     SECURITY_ENABLE_REQUEST_SEQUENCE(
             "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
@@ -435,6 +427,16 @@ public enum PwmSetting {
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, Category.SECURITY),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.NUMERIC, Category.SECURITY),
+
+    // catpcha
+    RECAPTCHA_KEY_PUBLIC(
+            "captcha.recaptcha.publicKey", PwmSettingSyntax.STRING, Category.CAPTCHA),
+    RECAPTCHA_KEY_PRIVATE(
+            "captcha.recaptcha.privateKey", PwmSettingSyntax.PASSWORD, Category.CAPTCHA),
+    CAPTCHA_SKIP_PARAM(
+            "captcha.skip.param", PwmSettingSyntax.STRING, Category.CAPTCHA),
+    CAPTCHA_SKIP_COOKIE(
+            "captcha.skip.cookie", PwmSettingSyntax.STRING, Category.CAPTCHA),
 
     // intruder detection
     INTRUDER_STORAGE_METHOD(
@@ -1077,6 +1079,7 @@ public enum PwmSetting {
         EMAIL               (Type.SETTING),
         SMS                 (Type.SETTING),
         SECURITY            (Type.SETTING),
+        CAPTCHA             (Type.SETTING),
         INTRUDER            (Type.SETTING),
         TOKEN               (Type.SETTING),
         OTP                 (Type.SETTING),

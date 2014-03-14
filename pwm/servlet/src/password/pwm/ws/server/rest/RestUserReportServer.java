@@ -145,6 +145,11 @@ public class RestUserReportServer {
 
         final LinkedHashMap<String,Object> returnMap = new LinkedHashMap();
         returnMap.put("raw",restRequestBean.getPwmApplication().getUserReportService().getSummaryData());
+        returnMap.put("presentable",restRequestBean.getPwmApplication().getUserReportService().getSummaryData().asPresentableCollection(
+                restRequestBean.getPwmApplication().getConfig(),
+                restRequestBean.getPwmSession().getSessionStateBean().getLocale()
+        ));
+
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(returnMap);
         return restResultBean.asJsonResponse();
@@ -175,7 +180,7 @@ public class RestUserReportServer {
             presentableMap.put("Error Count", numberFormat.format(reportInfo.getErrors()));
         }
         if (reportInfo.getStartDate() != null) {
-            presentableMap.put("Start Time",reportInfo.getFinishDate());
+            presentableMap.put("Start Time",reportInfo.getStartDate());
         }
         if (reportInfo.getFinishDate() != null) {
             presentableMap.put("Finish Time",reportInfo.getFinishDate());

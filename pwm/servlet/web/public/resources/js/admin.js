@@ -21,6 +21,7 @@
  */
 
 var PWM_ADMIN = PWM_ADMIN || {};
+var PWM_MAIN = PWM_MAIN || {};
 var PWM_STRINGS = PWM_STRINGS || {};
 
 PWM_ADMIN.initAdminOtherMenu=function() {
@@ -222,60 +223,12 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
             headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
             handleAs: 'json',
             load: function(data) {
-                var pctTotal = function(value) {
-                    return fields['totalUsers'] == 0 ? 0 : ((value / fields['totalUsers']) * 100).toFixed(2);
-                }
-                var makeRow = function(key,value,pct) {
-                    return '<tr><td>' + key + '</td><td>' + number.format(value) + '</td><td>' + (pct ? pctTotal(pct) + '%': '') + '</td></tr>';
-                };
-                if (data['data'] && data['data']['raw']) {
-                    var fields = data['data']['raw'];
+                if (data['data'] && data['data']['presentable']) {
                     var htmlTable = '';
-                    htmlTable += makeRow("Total Users",fields['totalUsers']);
-                    htmlTable += makeRow("Users that have stored responses",fields['hasResponses'],fields['hasResponses']);
-                    for (var type in fields['responseStorage']) {
-                        htmlTable += makeRow("Responses stored in " + type,fields['responseStorage'][type],fields['responseStorage'][type]);
+                    for (var item in data['data']['presentable']) {
+                        var rowData = data['data']['presentable'][item];
+                        htmlTable += '<tr><td>' + rowData['label'] + '</td><td>' + rowData['count'] + '</td><td>' + (rowData['pct'] ? rowData['pct'] : '') + '</td></tr>';
                     }
-
-                    htmlTable += makeRow("Users that have a response set time",fields['hasResponseSetTime'],fields['hasResponseSetTime']);
-                    htmlTable += makeRow("Users that have a response set time in previous 3 days", fields['responseSetPrevious_3'], fields['responseSetPrevious_3']);
-                    htmlTable += makeRow("Users that have a response set time in previous 7 days", fields['responseSetPrevious_7'], fields['responseSetPrevious_7']);
-                    htmlTable += makeRow("Users that have a response set time in previous 14 days",fields['responseSetPrevious_14'],fields['responseSetPrevious_14']);
-                    htmlTable += makeRow("Users that have a response set time in previous 30 days",fields['responseSetPrevious_30'],fields['responseSetPrevious_30']);
-                    htmlTable += makeRow("Users that have a response set time in previous 60 days",fields['responseSetPrevious_60'],fields['responseSetPrevious_60']);
-                    htmlTable += makeRow("Users that have a response set time in previous 90 days",fields['responseSetPrevious_90'],fields['responseSetPrevious_90']);
-
-                    htmlTable += makeRow("Users that have an expiration time set",fields['hasExpirationTime'],fields['hasExpirationTime']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 3 days",fields['expirePrevious_3'],fields['expirePrevious_3']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 7 days",fields['expirePrevious_7'],fields['expirePrevious_7']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 14 days",fields['expirePrevious_14'],fields['expirePrevious_14']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 30 days",fields['expirePrevious_30'],fields['expirePrevious_30']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 60 days",fields['expirePrevious_60'],fields['expirePrevious_60']);
-                    htmlTable += makeRow("Users that have an expiration time in previous 90 days",fields['expirePrevious_90'],fields['expirePrevious_90']);
-                    htmlTable += makeRow("Users that have an expiration time in next 3 days",fields['expireNext_3'],fields['expireNext_3']);
-                    htmlTable += makeRow("Users that have an expiration time in next 7 days",fields['expireNext_7'],fields['expireNext_7']);
-                    htmlTable += makeRow("Users that have an expiration time in next 14 days",fields['expireNext_14'],fields['expireNext_14']);
-                    htmlTable += makeRow("Users that have an expiration time in next 30 days",fields['expireNext_30'],fields['expireNext_30']);
-                    htmlTable += makeRow("Users that have an expiration time in next 60 days",fields['expireNext_60'],fields['expireNext_60']);
-                    htmlTable += makeRow("Users that have an expiration time in next 90 days",fields['expireNext_90'],fields['expireNext_90']);
-
-                    htmlTable += makeRow("Users that have changed password",fields['hasChangePwTime'],fields['hasChangePwTime']);
-                    htmlTable += makeRow("Users that have changed password in previous 3 days", fields['changePrevious_3'],fields['changePrevious_3']);
-                    htmlTable += makeRow("Users that have changed password in previous 7 days", fields['changePrevious_7'],fields['changePrevious_7']);
-                    htmlTable += makeRow("Users that have changed password in previous 14 days",fields['changePrevious_14'],fields['changePrevious_14']);
-                    htmlTable += makeRow("Users that have changed password in previous 30 days",fields['changePrevious_30'],fields['changePrevious_30']);
-                    htmlTable += makeRow("Users that have changed password in previous 60 days",fields['changePrevious_60'],fields['changePrevious_60']);
-                    htmlTable += makeRow("Users that have changed password in previous 90 days",fields['changePrevious_90'],fields['changePrevious_90']);
-
-                    htmlTable += makeRow("Users that have logged in",fields['hasLoginTime'],fields['hasLoginTime']);
-                    htmlTable += makeRow("Users with expired password",fields['pwExpired'],fields['pwExpired']);
-                    htmlTable += makeRow("Users with pre-expired password",fields['pwPreExpired'],fields['pwPreExpired']);
-                    htmlTable += makeRow("Users with expired password within warn period",fields['pwWarnPeriod'],fields['pwWarnPeriod']);
-                    /*
-                     for (var field in fields) {
-                     htmlTable += '<tr><td>' + field + '</td><td>' + fields[field] + '</tr>';
-                     }
-                     */
                     PWM_MAIN.getObject('summaryTable').innerHTML = htmlTable;
                 }
                 doRefresh();
@@ -295,23 +248,26 @@ PWM_ADMIN.reportAction=function(action) {
         return;
     }
     if (action=='start') {
-        confirmText = 'Start the report engine?  This may take a long while to run.';
-        successText = 'Report engine has been started.';
+        confirmText = PWM_ADMIN.showString('Confirm_Report_Start');
+        successText = PWM_ADMIN.showString('Display_Start_Report_Success');
     } else if (action=='stop') {
-        confirmText = 'Stop the report engine?  You can restart the report engine at any time.';
-        successText= 'Report engine has been stopped.';
+        confirmText = PWM_ADMIN.showString('Confirm_Report_Stop');
+        successText= PWM_ADMIN.showString('Display_Stop_Report_Success');
     } else if (action=='clear') {
-        confirmText = 'Clear the cached report data?  This will clear all cached report records and summary.';
-        successText = 'Cached report data cleared';
+        confirmText = PWM_ADMIN.showString('Confirm_Report_Clear');
+        successText = PWM_ADMIN.showString('Display_Clear_Report_Success');
     }
+    var confirmText = '<div style="max-width: 350px">' + confirmText + '</div>';
     PWM_MAIN.showConfirmDialog(null,confirmText,function(){
         PWM_MAIN.showWaitDialog(null,null,function(){
             setTimeout(function(){
                 require(["dojo"],function(dojo){
-                    var url = 'analysis.jsp?reportAction=' + action;
+                    var url = PWM_GLOBAL['url-restservice'] + "/command/report/" + action;
                     dojo.xhrGet({
                         url: url,
                         preventCache: true,
+                        headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+                        handleAs: 'json',
                         load: function() {
                             PWM_MAIN.closeWaitDialog();
                             PWM_MAIN.showDialog("Success",successText,function(){
@@ -332,16 +288,17 @@ PWM_ADMIN.reportAction=function(action) {
 
 PWM_ADMIN.initActiveSessionGrid=function() {
     var headers = {
-        "userID":"User ID",
-        "userDN":"User DN",
-        "createTime":"Create Time",
-        "lastTime":"Last Time",
-        "label":"Label",
-        "idle":"Idle",
-        "srcAddress":"Address",
-        "locale":"Locale",
-        "srcHost":"Host",
-        "lastUrl":"Last URL"
+        "userID":PWM_ADMIN.showString('Field_Session_UserID'),
+        "userDN":PWM_ADMIN.showString('Field_Session_UserDN'),
+        "createTime":PWM_ADMIN.showString('Field_Session_CreateTime'),
+        "lastTime":PWM_ADMIN.showString('Field_Session_LastTime'),
+        "label":PWM_ADMIN.showString('Field_Session_Label'),
+        "idle":PWM_ADMIN.showString('Field_Session_Idle'),
+        "locale":PWM_ADMIN.showString('Field_Session_Locale'),
+        "srcAddress":PWM_ADMIN.showString('Field_Session_SrcAddress'),
+        "srcHost":PWM_ADMIN.showString('Field_Session_SrcHost'),
+        "lastUrl":PWM_ADMIN.showString('Field_Session_LastURL'),
+        "intruderAttempts":PWM_ADMIN.showString('Field_Session_IntruderAttempts')
     };
 
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
@@ -362,6 +319,7 @@ PWM_ADMIN.initActiveSessionGrid=function() {
             PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-srcHost').click();
             PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-locale').click();
             PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-lastUrl').click();
+            PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-intruderAttempts').click();
 
             PWM_ADMIN.refreshActiveSessionGrid();
         });
@@ -392,7 +350,13 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
 
 PWM_ADMIN.initIntrudersGrid=function() {
     PWM_VAR['intruderRecordTypes'] = ["ADDRESS","USERNAME","USER_ID","ATTRIBUTE","TOKEN_DEST"];
-    var intruderGridHeaders = {"subject":"Subject","timestamp":"Timestamp","count":"Count","status":"Status"};
+    var intruderGridHeaders = {
+        "subject":PWM_ADMIN.showString('Field_Intruder_Subject'),
+        "timestamp":PWM_ADMIN.showString('Field_Intruder_Timestamp'),
+        "count":PWM_ADMIN.showString('Field_Intruder_Count'),
+        "status":PWM_ADMIN.showString('Field_Intruder_Status')
+    };
+
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
         function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
             // Create a new constructor by mixing in the components
@@ -438,21 +402,21 @@ PWM_ADMIN.refreshIntruderGrid=function() {
 
 PWM_ADMIN.initAuditGrid=function() {
     var userHeaders = {
-        "timestamp":"Time",
-        "perpetratorID":"Perpetrator ID",
-        "perpetratorDN":"Perpetrator DN",
-        "eventCode":"Event",
-        "message":"Message",
-        "targetID":"Target ID",
-        "targetDN":"Target DN",
-        "sourceAddress":"Source Address",
-        "sourceHost":"Source Host"
+        "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
+        "perpetratorID":PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
+        "perpetratorDN":PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
+        "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
+        "message":PWM_ADMIN.showString('Field_Audit_Message'),
+        "targetID":PWM_ADMIN.showString('Field_Audit_TargetID'),
+        "targetDN":PWM_ADMIN.showString('Field_Audit_TargetDN'),
+        "sourceAddress":PWM_ADMIN.showString('Field_Audit_SourceAddress'),
+        "sourceHost":PWM_ADMIN.showString('Field_Audit_SourceHost')
     };
     var systemHeaders = {
-        "timestamp":"Time",
-        "eventCode":"Event",
-        "message":"Message",
-        "instance":"Instance"
+        "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
+        "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
+        "message":PWM_ADMIN.showString('Field_Audit_Message'),
+        "instance":PWM_ADMIN.showString('Field_Audit_Instance')
     };
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
         function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -747,9 +711,19 @@ PWM_ADMIN.initAdminPage=function(nextFunction) {
     });
 };
 
-PWM_ADMIN.showString=function (key) {
+PWM_ADMIN.showString=function (key, value1, value2, value3) {
     if (PWM_STRINGS['bundle-admin'][key]) {
-        return PWM_STRINGS['bundle-admin'][key];
+        var rawString = PWM_STRINGS['bundle-admin'][key];
+        if (value1) {
+            rawString = rawString.replace('%1%',value1);
+        }
+        if (value2) {
+            rawString = rawString.replace('%2%',value2);
+        }
+        if (value3) {
+            rawString = rawString.replace('%3%',value3);
+        }
+        return rawString;
     } else {
         return "UNDEFINED STRING-" + key;
     }

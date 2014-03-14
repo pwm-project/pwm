@@ -270,8 +270,9 @@ public class SessionStateBean implements PwmSessionBean {
         return requestCounter;
     }
 
-    public void incrementRequestCounter() {
-        requestCounter++;
+    public void setRequestCounter(int requestCounter)
+    {
+        this.requestCounter = requestCounter;
     }
 
     public String getTheme() {

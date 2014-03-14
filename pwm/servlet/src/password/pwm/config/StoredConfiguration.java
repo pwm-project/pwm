@@ -817,7 +817,8 @@ public class StoredConfiguration implements Serializable {
         commentText.append("\t\t").append("").append("\n");
         commentText.append("\t\t").append("WARNING: This configuration file contains sensitive security information, please handle with care!").append("\n");
         commentText.append("\t\t").append("").append("\n");
-        commentText.append("\t\t").append("WARNING: If a server is currently running using this configuration file, it will be restarted and the configuration re-read when it is modified.").append("\n");
+        commentText.append("\t\t").append("WARNING: If a server is currently running using this configuration file, it will be restarted").append("\n");
+        commentText.append("\t\t").append("         and the configuration updated immediately when it is modified.").append("\n");
         commentText.append("\t\t").append("").append("\n");
         commentText.append("\t\t").append("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not").append("\n");
         commentText.append("\t\t").append("        support UTF-8 encoding.").append("\n");

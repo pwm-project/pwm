@@ -64,7 +64,7 @@ public class ReportService implements PwmService {
     private STATUS status = STATUS.NEW;
     private boolean cancelFlag = false;
     private ReportStatusInfo reportStatus = new ReportStatusInfo();
-    private ReportSummaryData summaryData = ReportSummaryData.newSummaryData();
+    private ReportSummaryData summaryData = ReportSummaryData.newSummaryData(null);
     private Timer timer;
 
     private UserCacheService userCacheService;
@@ -86,7 +86,7 @@ public class ReportService implements PwmService {
         if (userCacheService != null) {
             userCacheService.clear();
         }
-        summaryData = ReportSummaryData.newSummaryData();
+        summaryData = ReportSummaryData.newSummaryData(pwmApplication.getConfig());
         reportStatus = new ReportStatusInfo();
         saveTempData();
         LOGGER.info("finished clearing report " + TimeDuration.fromCurrent(startTime).asCompactString());
@@ -199,7 +199,13 @@ public class ReportService implements PwmService {
         } catch (Exception e) {
             LOGGER.error("error loading cached report dredge info into memory: " + e.getMessage());
         }
-        summaryData = summaryData == null ? ReportSummaryData.newSummaryData() : summaryData; //safety
+
+        if (summaryData != null && !summaryData.isCurrentVersion()) {
+            LOGGER.error("stored summary report is using outdated version, discarding");
+            summaryData = null;
+        }
+
+        summaryData = summaryData == null ? ReportSummaryData.newSummaryData(pwmApplication.getConfig()) : summaryData; //safety
 
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "false");
     }

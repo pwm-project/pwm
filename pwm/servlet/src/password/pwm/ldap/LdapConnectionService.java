@@ -58,7 +58,7 @@ public class LdapConnectionService implements PwmService {
         this.pwmApplication = pwmApplication;
 
         // read the lastLoginTime
-        this.lastLdapErrors.putAll(readLastLdapFailure());
+        this.lastLdapErrors.putAll(readLastLdapFailure(pwmApplication));
 
         status = STATUS.OPEN;
     }
@@ -123,7 +123,11 @@ public class LdapConnectionService implements PwmService {
     public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
         lastLdapErrors.put(ldapProfile, errorInformation);
         final Gson gson = Helper.getGson();
-        final String jsonString = gson.toJson(lastLdapErrors);
+        final HashMap<String,ErrorInformation> jsonMap = new HashMap<String, ErrorInformation>();
+        for (final LdapProfile loopProfile : lastLdapErrors.keySet()) {
+            jsonMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
+        }
+        final String jsonString = gson.toJson(jsonMap);
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString);
     }
 
@@ -139,15 +143,24 @@ public class LdapConnectionService implements PwmService {
         return null;
     }
 
-    private Map<LdapProfile,ErrorInformation> readLastLdapFailure() {
+    private static Map<LdapProfile,ErrorInformation> readLastLdapFailure(final PwmApplication pwmApplication) {
+        String lastLdapFailureStr = null;
         try {
-            final String lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
+            lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
 
-                return Helper.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<LdapProfile, ErrorInformation>>() {}.getType());
+                final Map<String, ErrorInformation> fromJson = Helper.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {}.getType());
+                final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<LdapProfile, ErrorInformation>();
+                for (final String id : fromJson.keySet()) {
+                    final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(id);
+                    if (ldapProfile != null) {
+                        returnMap.put(ldapProfile, fromJson.get(id));
+                    }
+                }
+                return returnMap;
             }
         } catch (Exception e) {
-            LOGGER.error("unexpected error loading cached lastLdapFailure statuses: " + e.getMessage());
+            LOGGER.error("unexpected error loading cached lastLdapFailure statuses: " + e.getMessage() + ", input=" + lastLdapFailureStr);
         }
         return Collections.emptyMap();
     }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,24 +26,46 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.report.ReportSummaryData;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public abstract class AlertHandler {
-    public static void alertDailyStats(final PwmApplication pwmApplication, final Map<String, String> valueMap) {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(AlertHandler.class);
+
+
+    public static void alertDailyStats(
+            final PwmApplication pwmApplication,
+            final Map<String, String> dailyStatistics
+    ) {
         if (!checkIfEnabled(pwmApplication, PwmSetting.EVENTS_ALERT_DAILY_SUMMARY)) {
             return;
         }
 
+        final Locale locale = PwmConstants.DEFAULT_LOCALE;
+
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO)) {
             final String fromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
-            final String subject = Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Title_Application",pwmApplication.getConfig()) + " - Daily Summary";
+            final String subject = Display.getLocalizedMessage(locale,"Title_Application",pwmApplication.getConfig()) + " - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
             final StringBuilder htmlBody = new StringBuilder();
+            makeEmailBody(pwmApplication, dailyStatistics, locale, textBody, htmlBody);
+            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
+            LOGGER.debug("sending daily summary email to " + toAddress);
+            pwmApplication.getEmailQueue().submit(emailItem, null, null);
+        }
+    }
 
+    private static void makeEmailBody(
+            final PwmApplication pwmApplication,
+            final Map<String, String> dailyStatistics,
+            final Locale locale,
+            final StringBuilder textBody,
+            final StringBuilder htmlBody)
+    {
+        { // email html header
             htmlBody.append("<html><head>");
             htmlBody.append("<style type='text/css'");
             htmlBody.append(
@@ -100,75 +122,116 @@ public abstract class AlertHandler {
                             "#capslockwarning { font-family: Trebuchet MS, sans-serif; color: #ffffff; font-weight:bold; font-variant:small-caps; margin-bottom: 5px; background-color:#d20734; border-radius:3px}\n" +
                             "");
             htmlBody.append("</style></head><body>");
-
-            htmlBody.append("<h2>Daily Statistics</h2>");
-            htmlBody.append("<p>InstanceID: ").append(pwmApplication.getInstanceID()).append("</p>");
-            htmlBody.append("<br/>");
-
-            textBody.append("--Daily Statistics--\n");
-            textBody.append("instanceID: ").append(pwmApplication.getInstanceID()).append("\n");
-            textBody.append("\n");
-
-            {
-                final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords();
-                final java.util.Date lastHeathCheckDate = pwmApplication.getHealthMonitor().getLastHealthCheckDate();
-
-                textBody.append("-- Health Check Results --\n");
-                htmlBody.append("<h2>Health Check Results</h2>");
-                textBody.append("healthCheckTimestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("\n");
-                htmlBody.append("HealthCheck Timestamp: ").append(lastHeathCheckDate != null ? lastHeathCheckDate.toString() : "never").append("<br/>");
-
-                htmlBody.append("<table border='1'>");
-                for (final HealthRecord record : healthRecords) {
-                    textBody.append("topic='").append(record.getTopic(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("'");
-                    htmlBody.append("<tr><td class='key'>").append(record.getTopic(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td>");
-
-                    textBody.append(", status=").append(record.getStatus());
-                    {
-                        final String color;
-                        switch (record.getStatus()) {
-                            case GOOD:
-                                color = "#8ced3f";
-                                break;
-                            case CAUTION:
-                                color = "#FFCD59";
-                                break;
-                            case WARN:
-                                color = "#d20734";
-                                break;
-                            default:
-                                color = "white";
-                        }
-                        htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getStatus()).append("</td>");
-                    }
-
-                    textBody.append(", detail='").append(record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("'").append("\n");
-                    htmlBody.append("<td>").append(record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td></tr>");
-                }
-                htmlBody.append("</table>");
-            }
-
-            textBody.append("\n\n\n");
-            htmlBody.append("<br/><br/>");
-
-            { // statistics
-                final Map<String, String> sortedStats = new TreeMap<String, String>();
-                sortedStats.putAll(valueMap);
-
-                htmlBody.append("<table border='1'>");
-                for (final String key : sortedStats.keySet()) {
-                    final String value = valueMap.get(key);
-                    textBody.append(key).append(": ").append(value).append("\n");
-                    htmlBody.append("<tr><td class='key'>").append(key).append("</td><td>").append(value).append("</td></tr>");
-                }
-                htmlBody.append("</table>");
-            }
-
-            htmlBody.append("</body></html>");
-
-            final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
-            pwmApplication.getEmailQueue().submit(emailItem, null, null);
         }
+
+        { // server info
+            final Map<String,String> metadata = new LinkedHashMap<String, String>();
+            metadata.put("Instance ID", pwmApplication.getInstanceID());
+            metadata.put("Site URL", pwmApplication.getSiteURL());
+            metadata.put("Timestamp",PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+            metadata.put("Up Time", TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString());
+
+            for (final String key : metadata.keySet()) {
+                final String value = metadata.get(key);
+                htmlBody.append(key).append(": ").append(value).append("<br/>");
+                textBody.append(key).append(": ").append(value).append("\n");
+            }
+        }
+
+        textBody.append("\n");
+        htmlBody.append("<br/>");
+
+        { // health check data
+            final Collection<HealthRecord> healthRecords = pwmApplication.getHealthMonitor().getHealthRecords();
+            textBody.append("-- Health Check Results --\n");
+            htmlBody.append("<h2>Health Check Results</h2>");
+
+            htmlBody.append("<table border='1'>");
+            for (final HealthRecord record : healthRecords) {
+                htmlBody.append("<tr><td class='key'>").append(record.getTopic(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td>");
+
+                {
+                    final String color;
+                    switch (record.getStatus()) {
+                        case GOOD:
+                            color = "#8ced3f";
+                            break;
+                        case CAUTION:
+                            color = "#FFCD59";
+                            break;
+                        case WARN:
+                            color = "#d20734";
+                            break;
+                        default:
+                            color = "white";
+                    }
+                    htmlBody.append("<td bgcolor='").append(color).append("'>").append(record.getStatus()).append("</td>");
+                }
+
+                htmlBody.append("<td>").append(record.getDetail(PwmConstants.DEFAULT_LOCALE,pwmApplication.getConfig())).append("</td></tr>");
+            }
+            htmlBody.append("</table>");
+
+
+            final int wrapLineLength = 120;
+            for (final HealthRecord record : healthRecords) {                    {
+                final String wrappedLine = wrapText(record.getStatus().getDescription(locale,
+                        pwmApplication.getConfig()) + ": " + record.getTopic(PwmConstants.DEFAULT_LOCALE,
+                        pwmApplication.getConfig()) + " - " + stripHtmlTags(
+                        record.getDetail(PwmConstants.DEFAULT_LOCALE, pwmApplication.getConfig())),wrapLineLength);
+                textBody.append(wrappedLine).append("\n");
+            }
+            }
+        }
+
+        textBody.append("\n");
+        htmlBody.append("<br/>");
+
+        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) {
+            final List<ReportSummaryData.PresentationRow> summaryData = pwmApplication.getUserReportService()
+                    .getSummaryData().asPresentableCollection(pwmApplication.getConfig(),locale);
+
+            textBody.append("-- Directory Report Summary --\n");
+            for (final ReportSummaryData.PresentationRow record : summaryData) {
+                textBody.append(record.getLabel()).append(": ").append(record.getCount());
+                if (record.getPct() != null && !record.getPct().isEmpty()) {
+                    textBody.append(" (").append(record.getPct()).append(")");
+                }
+                textBody.append("\n");
+            }
+
+            htmlBody.append("<h2>Directory Report Summary</h2>");
+            htmlBody.append("<table border='1'>");
+            for (final ReportSummaryData.PresentationRow record : summaryData) {
+                htmlBody.append("<tr>");
+                htmlBody.append("<td class='key'>").append(record.getLabel()).append("</td>");
+                htmlBody.append("<td>").append(record.getCount()).append("</td>");
+                htmlBody.append("<td>").append(record.getPct() == null ? "" : record.getPct()).append("</td>");
+                htmlBody.append("</tr>");
+            }
+            htmlBody.append("</table>");
+        }
+
+        textBody.append("\n");
+        htmlBody.append("<br/>");
+
+        if (dailyStatistics != null && !dailyStatistics.isEmpty()) { // statistics
+            htmlBody.append("<h2>Daily Statistics</h2>");
+            textBody.append("--Daily Statistics--\n");
+            final Map<String, String> sortedStats = new TreeMap<String, String>();
+            sortedStats.putAll(dailyStatistics);
+
+            htmlBody.append("<table border='1'>");
+            for (final String key : sortedStats.keySet()) {
+                final String value = dailyStatistics.get(key);
+                textBody.append(key).append(": ").append(value).append("\n");
+                htmlBody.append("<tr><td class='key'>").append(key).append("</td><td>").append(value).append("</td></tr>");
+            }
+            htmlBody.append("</table>");
+        }
+
+        htmlBody.append("</body></html>");
+
     }
 
     private static boolean checkIfEnabled(final PwmApplication pwmApplication, final PwmSetting pwmSetting) {
@@ -196,5 +259,15 @@ public abstract class AlertHandler {
         }
 
         return true;
+    }
+
+    private static String stripHtmlTags(final String input) {
+        return input == null ? "" : input.replaceAll("\\<.*?>","");
+    }
+
+    private static String wrapText(final String input, final int length) {
+        String output = org.apache.commons.lang.WordUtils.wrap(input,length);
+        output = output.replace("\n","\n   ");
+        return output;
     }
 }

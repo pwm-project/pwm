@@ -35,11 +35,7 @@ import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.X509CertificateValue;
 import password.pwm.error.*;
-import password.pwm.health.HealthMonitor;
-import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
-import password.pwm.health.LDAPStatusChecker;
-import password.pwm.i18n.Admin;
+import password.pwm.health.*;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
@@ -287,22 +283,14 @@ public class ConfigGuideServlet extends TopServlet {
             case LDAP:
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,ldapProfile,false));
                 if (records.isEmpty()) {
-                    records.add(new HealthRecord(
-                            HealthStatus.GOOD,
-                            "LDAP",
-                            LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
-                    ));
+                    records.add(HealthRecord.forMessage(HealthMessage.LDAP_OK));
                 }
                 break;
 
             case LDAP2:
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, true));
                 if (records.isEmpty()) {
-                    records.add(new HealthRecord(
-                            HealthStatus.GOOD,
-                            "LDAP",
-                            LocaleHelper.getLocalizedMessage("Health_LDAP_OK",tempConfiguration,Admin.class)
-                    ));
+                    records.add(HealthRecord.forMessage(HealthMessage.LDAP_OK));
                 }
                 if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
                     final int maxSearchSize = 500;

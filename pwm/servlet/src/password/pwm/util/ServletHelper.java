@@ -726,6 +726,9 @@ public class ServletHelper {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"maximum usage for this server has been exceeded"));
             }
         }
+
+        // check intruder
+        pwmApplication.getIntruderManager().convenience().checkAddressAndSession(pwmSession);
     }
 
     public static String appendAndEncodeUrlParameters(

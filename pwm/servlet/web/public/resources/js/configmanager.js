@@ -42,7 +42,7 @@ PWM_CONFIG.lockConfiguration=function() {
                         } else {
                             PWM_MAIN.showWaitDialog();
                             PWM_MAIN.showError('Waiting for server restart');
-                            waitForRestart(new Date().getTime());
+                            PWM_CONFIG.waitForRestart(new Date().getTime());
                         }
                     }
                 });
@@ -94,7 +94,7 @@ PWM_CONFIG.waitForRestart=function(startTime) {
     });
 };
 
-function startNewConfigurationEditor(template) {
+PWM_CONFIG.startNewConfigurationEditor=function(template) {
     PWM_MAIN.showWaitDialog('Loading...','');
     require(["dojo"],function(dojo){
         dojo.xhrGet({
@@ -130,12 +130,21 @@ PWM_CONFIG.uploadConfigDialog=function() {
     body += '</form></div>';
 
     var uploadUrl = window.location.pathname + '?processAction=uploadConfig&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
-    console.log('uploading config file to url ' + uploadUrl);
 
-    PWM_MAIN.showWaitDialog(null,null,function(){
-        PWM_MAIN.closeWaitDialog();
-        require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
-            dojo,Dialog,Uploader,FileList,Button){
+
+    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
+        dojo,Dialog,Uploader,FileList,Button){
+
+        if(dojo.isIE <= 9){ // IE9 and below no workie
+            var dialogText = PWM_CONFIG.showString("Warning_UploadIE9");
+            var headerText = PWM_MAIN.showString("Title_Error");
+            PWM_MAIN.showDialog(headerText,dialogText);
+            return;
+        }
+
+        PWM_MAIN.showWaitDialog(null,null,function(){
+            console.log('uploading config file to url ' + uploadUrl);
+            PWM_MAIN.closeWaitDialog();
             var idName = 'dialogPopup';
             PWM_MAIN.clearDijitWidget(idName);
             var theDialog = new Dialog({
@@ -190,7 +199,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
             url: clientConfigUrl,
             handleAs: 'json',
             timeout: 30 * 1000,
-            headers: { "Accept": "application/json" },
+            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
             load: function(data) {
                 if (data['error'] == true) {
                     alert('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
@@ -212,7 +221,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
 };
 
 PWM_CONFIG.showString=function (key) {
-    if (PWM_SETTINGS['display'][key]) {
+    if (PWM_SETTINGS['display'] && PWM_SETTINGS['display'][key]) {
         return PWM_SETTINGS['display'][key];
     } else {
         return "UNDEFINED STRING-" + key;

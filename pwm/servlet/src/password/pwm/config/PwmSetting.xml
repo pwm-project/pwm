@@ -943,7 +943,7 @@
             <option value="HideForDefaultProfile">true</option>
         </options>
     </setting>
-    <setting key="password.policy.source" level="1" required="true">
+    <setting key="password.policy.source" level="0" required="true">
         <label>Password Policy Source</label>
         <description><![CDATA[This setting determines where password policy settings should be read from.  If <b>LDAP</b> is selected, an attempt to read the policy out of the ldap directory will be made, and many of the following settings could be ignored.  If <b>Local Config</b> is selected, the policy settings on this page are used, and any policy settings in the LDAP directory are ignored.  If <b>Merge</b> is selected, both policies are read, and where there is any conflict, The application will chose the <i>most restrictive</i> value of the policy.<br/><br/>The capability to read policy from LDAP is only available with some LDAP implementations.  <p>Additionally, the password policy used is only the "local" policy used by this application.  Upon a password set operation, the ldap directory will typically enforce whatever policies are configured in the directory itself.]]></description>
         <default>
@@ -1363,7 +1363,7 @@
         </options>
     </setting>
     <setting key="intruder.session.maxAttempts" level="0" required="true">
-        <label>Maximum intruder attempts per session</label>
+        <label>Maximum Intruder Attempts Per Session</label>
         <description><![CDATA[The maximum amount of intruder attempts per session.  When this limit is exceeded, the session will be "locked", and no other requests using that session will succeed.  A value of zero disables the session lockout functionality.]]></description>
         <default>
             <value>8</value>
@@ -1813,7 +1813,7 @@
     </setting>
     <setting key="challenge.randomChallenges" level="0">
         <label>Random Questions</label>
-        <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses, this is controlled by the "Minimum Random Challenges Required During Setup" setting.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <description><![CDATA[Random Questions for Challenge/Response.   Some of these questions will be presented to the user during forgotten password - the number set in the "Minimum Password Required" setting.  The user may be required to supply answers to all or some of these questions when setting up their responses, this is controlled by the "Minimum Random Challenges Required During Setup" setting.]]></description>
         <default>
             <value><![CDATA[{"text":"What is the name of the main character in your favorite book?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
             <value><![CDATA[{"text":"What is the name of your favorite teacher?","minLength":4,"maxLength":200,"adminDefined":true}]]></value>
@@ -3317,56 +3317,60 @@
         <default/>
     </setting>
     <category key="LDAP_PROFILE">
-        <label>LDAP Profiles</label>
+        <label>LDAP Directory Profiles</label>
         <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
     </category>
     <category key="LDAP_GLOBAL">
         <label>LDAP Settings</label>
-        <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
+        <description><![CDATA[Global settings that control the interaction with an LDAP directory.  These settings are applied regardless of the user's LDAP profile.  For profile-specific settings, see Profiles -> LDAP Directory Profiles.]]></description>
     </category>
     <category key="GENERAL">
         <label>Application</label>
-        <description><![CDATA[General settings for the application.  Settings here control the functionality and behavior of the system.]]></description>
+        <description><![CDATA[General settings for the application.  Settings here control the functionality and behavior of the system overall.]]></description>
     </category>
     <category key="USER_INTERFACE">
         <label>User Interface</label>
-        <description><![CDATA[These settings control overall features and displays that are visible to the end user.]]></description>
+        <description><![CDATA[These settings control application wide features and display format that is visible to the end user.]]></description>
     </category>
     <category key="PASSWORD_POLICY">
         <label>Password Policy Profiles</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Settings that define the LDAP directories that are used by the application.  If the user identities are in multiple LDAP directories, configure each directory as an LDAP Directory Profile.  Within each LDAP directory profile definition you can control the individual servers and other settings for each LDAP directory.]]></description>
     </category>
     <category key="PASSWORD_GLOBAL">
         <label>Password Settings</label>
-        <description><![CDATA[Settings that apply regardless of the user's password policy.]]></description>
+        <description><![CDATA[Password related settings that apply to all users regardless of the password policy or profile appear here.  For profile-specific password settings, see Profiles -> Password Policy Profiles.]]></description>
     </category>
     <category key="CHALLENGE">
         <label>Challenge Settings</label>
-        <description><![CDATA[Challenge Policy.  If a challenge policy is read from the directory, that policy will override the settings listed here.]]></description>
+        <description><![CDATA[Settings that control challenge/response features.  These global settings apply regardless of the challenge policy.  For profile-specific challenge settings, see Profiles --> Challenge Profiles.]]></description>
     </category>
     <category key="CHALLENGE_POLICY">
         <label>Challenge Profiles</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Define the challenge policy users will use for populating response answers.]]></description>
     </category>
     <category key="EMAIL">
         <label>Email</label>
-        <description><![CDATA[<p>Configuration settings for all sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and (if desired) HTML email bodies are configured.  Email will be delivered in both formats and the email client can choose which to display.</p> <p>The body (plaintext or HTML), subject and from values of emails may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
+        <description><![CDATA[<p>Configuration settings for all sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and HTML email bodies are configured.  Email will be delivered in both formats and the email client can choose which to display.</p> <p>Email definitions may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
     </category>
     <category key="SMS">
         <label>SMS</label>
-        <description><![CDATA[Configuration settings for all sent SMS messages. For SMS message text configuration settings are provided.  It is encouraged that for each configured setting and locale, SMS texts are configured.  Messages will be delivered using the configured short message service gateway.]]></description>
+        <description><![CDATA[Configuration settings for interfacing with SMS service gateways.  The SMS gateway should support REST web service to use with this application.  The service provider will provide you with information that will allow you to complete the settings here..]]></description>
     </category>
     <category key="SECURITY">
         <label>Security</label>
-        <description><![CDATA[Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="CAPTCHA">
+        <label>Captcha</label>
+        <description><![CDATA[Captcha functionality uses an implementation of reCAPTCHA to prevent non-human attacks.  If this server will be facing the public internet, it is strongly recommended to enable captcha functionality.  reCAPTCHA info can be found at <a href="http://www.google.com/recaptcha" target="_blank">http://www.google.com/recaptcha/</a><br/><br/>Registration at the reCAPTCHA site will provide a public and private key which must be configured here for reCAPTCHA support.]]></description>
     </category>
     <category key="INTRUDER">
         <label>Intruder Detection</label>
-        <description><![CDATA[This application has built in intruder detection independent of what a directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The ldap directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.]]></description>
+        <description><![CDATA[This application has built in intruder detection independent of what your LDAP directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The LDAP directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.  It is recommended that the triggers be sufficiently high so that normal user usage will not cause an application-level intruder detection.]]></description>
     </category>
     <category key="TOKEN">
         <label>Tokens</label>
-        <description><![CDATA[Options for email and sms tokens sent to users.]]></description>
+        <description><![CDATA[Options for email and sms tokens sent to users.  Chose a token method appropriate to your environment.]]></description>
     </category>
     <category key="OTP">
         <label>One Time Password</label>
@@ -3374,23 +3378,23 @@
     </category>
     <category key="LOGGING">
         <label>Logging &amp; Auditing</label>
-        <description><![CDATA[Alert and Logging settings.]]></description>
+        <description><![CDATA[Alert and Logging settings.  Setting high debug levels can cause undesired overhead and the application may suffer as a result.  Conversely, retaining high-level logs can help aid troubleshooting as well as security forensics.]]></description>
     </category>
     <category key="EDIRECTORY">
         <label>NetIQ eDirectory</label>
-        <description><![CDATA[These settings are only used when NetIQ eDirectory is the ldap directory service being used.]]></description>
+        <description><![CDATA[NetIQ eDirectory specifc settings.]]></description>
     </category>
     <category key="ACTIVE_DIRECTORY">
         <label>Active Directory</label>
-        <description><![CDATA[Active Directory settings]]></description>
+        <description><![CDATA[Active Directory specific settings]]></description>
     </category>
     <category key="DATABASE">
         <label>Database (Remote)</label>
-        <description><![CDATA[Optional database configuration settings.  Two types of databases are used.<h2>LocalDB</h2>The LocalDB is a local, embedded database that is used for storage of local data.  In most cases, the LocalDB requires no administration or maintenance, and the defaults are sufficient. <h2>RDBMS Database</h2> If configured,  a traditional RDBMS database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple server instances can be configured for the same database instance.]]></description>
+        <description><![CDATA[Optional database configuration settings.  If configured, a remote RDBMS SQL-complaint database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple application instances can be configured for the same database instance.]]></description>
     </category>
     <category key="REPORTING">
         <label>Reporting</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Options to enable and configure reporting.]]></description>
     </category>
     <category key="MISC" level="1">
         <label>Integration / Developer</label>
@@ -3406,7 +3410,7 @@
     </category>
     <category key="RECOVERY">
         <label>Forgotten Password</label>
-        <description><![CDATA[Policies for user's forgotten password configuration.]]></description>
+        <description><![CDATA[Policies for forgotten password configuration.]]></description>
     </category>
     <category key="FORGOTTEN_USERNAME">
         <label>Forgotten Username</label>
@@ -3414,7 +3418,7 @@
     </category>
     <category key="NEWUSER">
         <label>New User Registration</label>
-        <description><![CDATA[Note: The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.]]></description>
+        <description><![CDATA[New user self registration settings.  The new user registration module requires that the proxy user has sufficient permissions to create users and, if so configured, to check for duplicate values.  New users are created in the default LDAP directory profile.]]></description>
     </category>
     <category key="GUEST" hidden="false">
         <label>Guest Registration</label>
@@ -3422,7 +3426,7 @@
     </category>
     <category key="ACTIVATION">
         <label>User Activation</label>
-        <description><![CDATA[The user activation module allows users to activate an account they have not previously authenticated to.  The user does not need to know the password to activate the account.]]></description>
+        <description><![CDATA[The user activation module allows users to activate an account they have not previously authenticated to.  The user does not need to know the password to activate the account.  The settings should be configured such that a user may only execute this function once, and existing users should not be able to use this function.]]></description>
     </category>
     <category key="UPDATE">
         <label>Update Profile</label>

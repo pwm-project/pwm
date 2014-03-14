@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,10 +44,7 @@ import password.pwm.util.localdb.LocalDBException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class VersionChecker implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(VersionChecker.class);
@@ -101,6 +98,21 @@ public class VersionChecker implements PwmService {
             LOGGER.error("unable to retrieve current version data from cloud: " + e.toString());
         }
         return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, "Value_NotApplicable", pwmApplication.getConfig());
+    }
+
+    public Date lastReadTimestamp() {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
+            return null;
+        }
+        try {
+            final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
+            if (versionCheckInfo != null && versionCheckInfo.getLastCheckTimestamp() > 0) {
+                return new Date(versionCheckInfo.getLastCheckTimestamp());
+            }
+        } catch (Exception e) {
+            LOGGER.error("unable to determine last read timestamp: " + e.toString());
+        }
+        return null;
     }
 
     public boolean isVersionCurrent() {

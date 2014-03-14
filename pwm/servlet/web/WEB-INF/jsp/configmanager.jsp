@@ -49,7 +49,7 @@
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <div id="healthBody" style="border: #808080 1px solid; margin:0; padding:0; max-height: 300px; overflow-y: auto">
+        <div id="healthBody" style="border: #808080 1px solid; margin-top:5px; padding:0; max-height: 300px; overflow-y: auto">
             <div id="WaitDialogBlank"></div>
         </div>
         <script type="text/javascript">
@@ -71,7 +71,10 @@
             }
             .menubutton {
                 cursor: pointer;
-                display: inline;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+
             }
 
         </style>

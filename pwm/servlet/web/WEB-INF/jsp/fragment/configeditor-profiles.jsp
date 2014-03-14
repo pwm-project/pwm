@@ -35,9 +35,8 @@
     final boolean showDesc = cookie.isShowDesc();
     final password.pwm.config.PwmSetting.Category category = cookie.getCategory();
 %>
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<% if (showDesc && category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
-<div id="categoryDescription" style="background-color: #F5F5F5; border-radius: 5px; padding: 10px 15px 10px 15px">
+<% if (category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
+<div id="categoryDescription" class="categoryDescription">
     <%= category.getDescription(locale)%>
 </div>
 <% } %>
@@ -52,20 +51,18 @@
 </div>
 <% } else { %>
 <% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
-<div style="width: 100%; padding-bottom: 10px">
-    <div style="display:inline-block; width:300px">
-        <label for="profileSelect">Selected Profile:</label>
-        <select id="profileSelect" data-dojo-type="dijit/form/Select" onchange="selectProfile()">
-            <option value="">Default</option>
-            <% for (final String profile : profiles) { if (profile.length() > 0) { %>
-            <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> value="<%=profile%>"><%=profile%></option>
-            <% } } %>
-            <option value="_!_editProfile">
-                -- Edit Profile List
-            </option>
-        </select>
-        <button class="btn" onclick="selectProfile()">Go</button>
-    </div>
+<div class="profileSelectPanel">
+    <label for="profileSelect">Selected Profile:</label>
+    <select id="profileSelect" data-dojo-type="dijit/form/Select" onchange="selectProfile()">
+        <option value="">Default</option>
+        <% for (final String profile : profiles) { if (profile.length() > 0) { %>
+        <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> value="<%=profile%>"><%=profile%></option>
+        <% } } %>
+        <option value="_!_editProfile">
+            -- Edit Profile List
+        </option>
+    </select>
+    <button  onclick="selectProfile()">Go</button>
 </div>
 <script>
     function selectProfile() {
@@ -93,18 +90,24 @@
 <% final List<PwmSetting> advancedSettings = PwmSetting.getSettings(category,1);%>
 <% boolean showAdvanced = cookie.getLevel() > 1; %>
 <% if (!advancedSettings.isEmpty()) { %>
-<a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="toggleAdvancedSettingsDisplay()">Show <%=advancedSettings.size()%> Advanced Settings</a>
+<a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay()">
+    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-down"></span>
+    <pwm:Display key="Button_ShowAdvanced" bundle="Config" value1="<%=String.valueOf(advancedSettings.size())%>"/>
+</a>
+<% if (!showAdvanced) { %>
+<a onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay({})" style="cursor:pointer; display: none" id="hideAdvancedSettingsButton">
+    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-up"></span>
+    <pwm:Display key="Button_HideAdvanced" bundle="Config"/>
+</a>
+<% } %>
+<br/>
 <div id="advancedSettings" style="display: none">
-    <hr/>
     <% for (final PwmSetting loopSetting : advancedSettings) { %>
     <% if (!"true".equalsIgnoreCase(loopSetting.getOptions().get("HideForDefaultProfile")) || !"".equals(cookie.getProfile())) { %>
     <% request.setAttribute("setting",loopSetting); %>
     <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
     <jsp:include page="configeditor-setting.jsp"/>
     <% } %>
-    <% } %>
-    <% if (!showAdvanced) { %>
-    <a onclick="toggleAdvancedSettingsDisplay()" style="cursor:pointer">Hide Advanced Settings</a>
     <% } %>
 </div>
 <jsp:include page="settings-scripts.jsp"/>

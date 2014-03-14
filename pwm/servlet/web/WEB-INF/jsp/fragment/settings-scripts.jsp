@@ -25,24 +25,7 @@
 
 <%
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
-%>
-<% boolean showAdvanced = cookie.getLevel() > 1; %>
-<script type="text/javascript">
-    var advancedSettingsAreVisible = false;
-    function toggleAdvancedSettingsDisplay() {
-        require(['dojo/fx'], function(fx) {
-            var advSetElement = PWM_MAIN.getObject('advancedSettings');
-            if (advancedSettingsAreVisible) {
-                fx.wipeOut({node:advSetElement }).play();
-                PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='block';
-            } else {
-                fx.wipeIn({ node:advSetElement }).play();
-                PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='none';
-            }
-            advancedSettingsAreVisible = !advancedSettingsAreVisible;
-        });
-    }
-    <%
+    boolean showAdvanced = cookie.getLevel() > 1;
     boolean jumpToSetting = false;
     if (cookie.getSetting() != null & !cookie.getSetting().isEmpty()) {
         PwmSetting setting = PwmSetting.forKey(cookie.getSetting());
@@ -53,10 +36,11 @@
             jumpToSetting = true;
         }
     }
-    %>
+%>
+<script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         <% if (showAdvanced) { %>
-        toggleAdvancedSettingsDisplay();
+        PWM_CFGEDIT.toggleAdvancedSettingsDisplay({autoScroll:false});
         <% } %>
         <% if (jumpToSetting) { %>
         setTimeout(function(){
@@ -69,7 +53,7 @@
             });
             delete preferences['setting'];
             setConfigEditorCookie();
-    },1500);
+        },1500);
         <% } %>
     });
 </script>

@@ -113,6 +113,7 @@ public enum AppProperty {
     QUEUE_SYSLOG_MAX_AGE_MS                         ("queue.syslog.maxAgeMs"),
     QUEUE_SYSLOG_MAX_COUNT                          ("queue.syslog.maxCount"),
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
+    REPORTING_SUMMARY_DAY_INTERVALS                 ("reporting.summary.dayIntervals"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
     SECURITY_WS_REST_CLIENT_KEY_LENGTH              ("security.ws.rest.clientKeyLength"),
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),

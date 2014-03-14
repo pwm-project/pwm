@@ -65,14 +65,6 @@ public class CaptchaServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
 
-        //check intruder detection, if it is tripped, send user to error page
-        try {
-            pwmApplication.getIntruderManager().convenience().checkAddressAndSession(pwmSession);
-        } catch (PwmUnrecoverableException e) {
-            ServletHelper.forwardToErrorPage(req, resp, false);
-            return;
-        }
-
         if (checkRequestForCaptchaSkipCookie(pwmApplication, req)) {
             pwmSession.getSessionStateBean().setPassedCaptcha(true);
             LOGGER.debug(pwmSession, "browser has a valid " + SKIP_COOKIE_NAME + " cookie value of " + figureSkipCookieValue(pwmApplication) + ", skipping captcha check");

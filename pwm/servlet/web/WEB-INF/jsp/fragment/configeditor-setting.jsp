@@ -46,17 +46,21 @@
     }
 %>
 <div class="setting_title" id="title_<%=loopSetting.getKey()%>">
-    <span class="text" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"><%=title%></span>
-    <% if (!showDescription) { %>
-    <div class="fa fa-question icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="toggleHelpDisplay('helpDiv_<%=loopSetting.getKey()%>')"></div>
+    <% if (showDescription) { %>
+    <span class="text"><%=title%></span>
+    <% } else { %>
+    <span class="text" onclick="PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{})"><%=title%></span>
     <% } %>
-    <div class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
+    <% if (!showDescription) { %>
+    <div class="fa fa-question icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{})"></div>
+    <% } %>
+    <div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
-<div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: <%=showDescription?"block":"none"%>">
+<div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: none">
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
-            initSettingTooltip({id:'title_<%=loopSetting.getKey()%>',text:PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description']});
+            PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{force:'<%=showDescription ? "show":"hide"%>'});
         });
     </script>
 </div>
@@ -67,10 +71,12 @@
                 connectId: ["resetButton-<%=loopSetting.getKey()%>"],
                 label: PWM_SETTINGS['display']['Tooltip_ResetButton']
             });
+            <% if (!showDescription) { %>
             new Tooltip({
                 connectId: ["helpButton-<%=loopSetting.getKey()%>"],
                 label: PWM_SETTINGS['display']['Tooltip_HelpButton']
             });
+            <% } %>
         });
     });
 </script>

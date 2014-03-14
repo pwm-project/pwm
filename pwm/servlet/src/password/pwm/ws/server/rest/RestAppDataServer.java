@@ -197,6 +197,7 @@ public class RestAppDataServer {
                     rowData.put("srcAddress", loopSsBean.getSrcAddress());
                     rowData.put("srcHost", loopSsBean.getSrcHostname());
                     rowData.put("lastUrl", loopSsBean.getLastRequestURL());
+                    rowData.put("intruderAttempts", loopSsBean.getIntruderAttempts());
                     gridData.add(rowData);
                 } catch (IllegalStateException e) { /* ignore */ }
             }

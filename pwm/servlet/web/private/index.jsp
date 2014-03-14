@@ -66,10 +66,7 @@
             <% if (Permission.checkPermission(Permission.SETUP_OTP_SECRET, PwmSession.getPwmSession(request), ContextManager.getPwmApplication(session))) { %>
             <tr style="border:0">
                 <td class="menubutton_key">
-                    <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtpSecret'/>">
-                        <i class="fa fa-qrcode"></i>&nbsp;
-                        <pwm:Display key="Title_SetupOtpSecret"/>
-                    </a>
+                    <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtpSecret'/>"><pwm:Display key="Title_SetupOtpSecret"/></a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_SetupOtpSecret"/></p>

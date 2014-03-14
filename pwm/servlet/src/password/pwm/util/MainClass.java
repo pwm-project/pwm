@@ -73,7 +73,7 @@ public class MainClass {
             out("  | UserReportService      [outputFile]  Dump a user report to the output file (csv format)");
             out("  | ExportLocalDB   [outputFile]  Export the entire LocalDB contents to a backup file");
             out("  | ImportLocalDB   [inputFile]   Import the entire LocalDB contents from a backup file");
-            out("  | TokenInfo       [tokenKey]    Get information about a PWM issued token");
+            out("  | TokenInfo       [tokenKey]    Get information about an issued token");
             out("  | ExportStats     [outputFile]  Dump all statistics in the LocalDB to a csv file");
             out("  | ExportAudit     [outputFile]  Dump all audit records in the LocalDB to a csv file");
             out("  | IntegrityReport [outputFile]  Dump code integrity report (useful only for developers)");

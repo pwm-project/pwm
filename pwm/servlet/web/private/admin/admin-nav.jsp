@@ -25,7 +25,7 @@
 </div>
 <br/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
-<script type="text/javascript" async="async">
+<script type="text/javascript">
     var PWM_ADMIN = PWM_ADMIN || {};
 
     PWM_GLOBAL['startupFunctions'].push(function(){

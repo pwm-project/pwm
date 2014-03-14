@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ public enum AuditEvent {
     INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT, Type.USER, true),
     TOKEN_ISSUED(Message.EVENT_LOG_TOKEN_ISSUED, Type.USER, false),
     TOKEN_CLAIMED(Message.EVENT_LOG_TOKEN_CLAIMED, Type.USER, false),
+    CLEAR_RESPONSES(Message.EVENT_LOG_TOKEN_CLAIMED, Type.USER, false),
     HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD, Type.USER, true),
     HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD, Type.USER, true),
     HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES, Type.USER, true),

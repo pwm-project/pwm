@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,15 +73,14 @@ class RecordManagerImpl implements RecordManager {
         if (record == null) {
             record = new IntruderRecord(recordType, subject);
         }
-        if (record.isAlerted()) {
-            return;
+
+        final TimeDuration age = TimeDuration.fromCurrent(record.getTimeStamp());
+        if (age.isLongerThan(settings.getCheckDuration())) {
+            LOGGER.debug("re-setting existing outdated record=" + Helper.getGson().toJson(record) + " (" + age.asCompactString() + ")");
+            record = new IntruderRecord(recordType, subject);
         }
-        if (TimeDuration.fromCurrent(record.getTimeStamp()).isShorterThan(settings.getCheckDuration())) {
-            record.incrementAttemptCount();
-        } else {
-            record.clearAttemptCount();
-            record.incrementAttemptCount();
-        }
+
+        record.incrementAttemptCount();
 
         writeIntruderRecord(record);
     }
@@ -146,11 +145,11 @@ class RecordManagerImpl implements RecordManager {
 
 
     @Override
-    public java.util.Iterator iterator() throws PwmOperationalException {
-        return new RecordIterator(recordStore.iterator());
+    public Iterator<IntruderRecord> iterator() throws PwmOperationalException {
+        return new RecordIterator<IntruderRecord>(recordStore.iterator());
     }
 
-    public static class RecordIterator<K> implements Iterator<IntruderRecord> {
+    public static class RecordIterator<IntruderRecord> implements Iterator<IntruderRecord> {
         private Iterator<IntruderRecord> innerIter;
 
         public RecordIterator(final Iterator<IntruderRecord> recordIterator) throws PwmOperationalException {

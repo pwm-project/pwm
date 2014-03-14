@@ -194,6 +194,7 @@ public class EmailQueueManager extends AbstractQueueManager {
                 statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
             }
 
+            lastSendFailure = null;
             return true;
         } catch (MessagingException e) {
             if (statsMgr != null) {

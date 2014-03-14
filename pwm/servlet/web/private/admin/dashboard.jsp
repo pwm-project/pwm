@@ -40,7 +40,7 @@
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final NumberFormat numberFormat = NumberFormat.getInstance(locale); %>
-<% final DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+<% final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
 <% final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -173,11 +173,17 @@
                 <td>
                     <%
                         String publishedVersion = Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig());
+                        Date readDate = null;
                         if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
                             publishedVersion = pwmApplication.getVersionChecker().currentVersion();
+                            readDate = pwmApplication.getVersionChecker().lastReadTimestamp();
+
                         }
                     %>
                     <%= publishedVersion %>
+                    <% if (readDate != null) { %>
+                    ( <%=dateFormat.format(readDate)%> )
+                    <% } %>
                 </td>
             </tr>
             <% } %>
@@ -215,10 +221,10 @@
             </tr>
             <tr>
                 <td class="key">
-                    Server Timezone
+                    Site URL
                 </td>
                 <td>
-                    <%= dateFormat.getTimeZone().getDisplayName() %>
+                    <%= pwmApplication.getSiteURL() %>
                 </td>
             </tr>
             <tr>

@@ -22,5 +22,5 @@
 
 <%@ page language="java" contentType="application/json; charset=UTF-8" pageEncoding="UTF-8"%>
 {   "error": true,
-    "errorMessage":"macro api output"
+    "errorMessage":"password check output - from rest api"
 }

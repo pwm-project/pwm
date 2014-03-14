@@ -55,7 +55,6 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -268,51 +267,36 @@ public class NewUserServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final String userSuppliedTokenKey = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
+        final NewUserBean newUserBean = pwmSession.getNewUserBean();
+        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
-        final TokenPayload tokenPayload;
+
         try {
-            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userSuppliedTokenKey);
-            if (tokenPayload != null && !TOKEN_NAME.equals(tokenPayload.getName())) {
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token name/type"));
+            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
+                    pwmSession,
+                    null,
+                    TOKEN_NAME,
+                    userEnteredCode
+            );
+            if (tokenPayload != null) {
+                if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
+                    LOGGER.debug("Email token passed");
+                    newUserBean.setEmailTokenPassed(true);
+                    newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
+                    LOGGER.debug("SMS token passed");
+                    newUserBean.setSmsTokenPassed(true);
+                    newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                }
+                final Map<String,String> formData = tokenPayload.getData();
+                newUserBean.setFormData(formData);
             }
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             this.forwardToEnterCodeJSP(req, resp);
             return;
         }
-
-        if (tokenPayload != null) {  // success
-            final Map<String,String> formData = tokenPayload.getData();
-            final NewUserBean newUserBean = pwmSession.getNewUserBean();
-            newUserBean.setFormData(formData);
-
-            if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) {
-                LOGGER.debug("Email token passed");
-                newUserBean.setEmailTokenPassed(true);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
-            } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
-                LOGGER.debug("SMS token passed");
-                newUserBean.setSmsTokenPassed(true);
-                newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
-            }
-
-            if (tokenPayload.getDest() != null) {
-                for (final String dest : tokenPayload.getDest()) {
-                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
-                }
-            }
-
-            pwmApplication.getTokenService().markTokenAsClaimed(userSuppliedTokenKey, pwmSession);
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
-            this.advancedToNextStage(req,resp);
-            return;
-        }
-
-        LOGGER.debug(pwmSession, "token validation has failed");
-        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-        this.forwardToEnterCodeJSP(req, resp);
+        this.advancedToNextStage(req,resp);
     }
 
 

@@ -71,7 +71,7 @@
             in the directory to accommodate the challenge/response storage and other data.  See the documentation for more information.
         </p>
         <p>
-            <b>Database</b>: If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store the user's challenge/response data.
+            <b>Remote Database</b>: If modifying the LDAP's server schema and rights is not desired or possible, you can use a database to store the user's challenge/response data.
             After the configuration guide process is complete, you will need to edit the Database settings and place your database vendor's JDBC driver on this server.  See
             the documentation for more information.
         </p>

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,14 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.config.StoredConfiguration" %>
-<%@ page import="password.pwm.util.ServletHelper" %>
-<%@ page import="java.util.Locale" %>
-<%@ page import="java.util.List" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
@@ -37,9 +35,8 @@
     final boolean showDesc = cookie.isShowDesc();
     final password.pwm.config.PwmSetting.Category category = cookie.getCategory();
 %>
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<% if (showDesc && category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
-<div id="categoryDescription" style="background-color: #F5F5F5; border-radius: 5px; padding: 10px 15px 10px 15px">
+<% if (category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
+<div id="categoryDescription" class="categoryDescription">
     <%= category.getDescription(locale)%>
 </div>
 <% } %>
@@ -52,16 +49,22 @@
 <% final List<PwmSetting> advancedSettings = PwmSetting.getSettings(category,1);%>
 <% boolean showAdvanced = cookie.getLevel() > 1; %>
 <% if (!advancedSettings.isEmpty()) { %>
-<a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="toggleAdvancedSettingsDisplay()">Show <%=advancedSettings.size()%> Advanced Settings</a>
+<a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay()">
+    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-down"></span>
+    <pwm:Display key="Button_ShowAdvanced" bundle="Config" value1="<%=String.valueOf(advancedSettings.size())%>"/>
+</a>
+<% if (!showAdvanced) { %>
+<a onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay({})" style="cursor:pointer; display: none" id="hideAdvancedSettingsButton">
+    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-up"></span>
+    <pwm:Display key="Button_HideAdvanced" bundle="Config"/>
+</a>
+<% } %>
+<br/>
 <div id="advancedSettings" style="display: none">
-    <hr/>
     <% for (final PwmSetting loopSetting : advancedSettings) { %>
     <% request.setAttribute("setting",loopSetting); %>
     <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
     <jsp:include page="configeditor-setting.jsp"/>
-    <% } %>
-    <% if (!showAdvanced) { %>
-    <a onclick="toggleAdvancedSettingsDisplay()" style="cursor:pointer">Hide Advanced Settings</a>
     <% } %>
 </div>
 <jsp:include page="settings-scripts.jsp"/>

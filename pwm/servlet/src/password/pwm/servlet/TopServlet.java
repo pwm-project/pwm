@@ -91,8 +91,7 @@ public abstract class TopServlet extends HttpServlet {
                 Validator.validatePwmRequestCounter(req);
             } catch (PwmOperationalException e) {
                 if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
-                    final String debugMsg = "url=" + req.getRequestURI();
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE,debugMsg);
+                    final ErrorInformation errorInformation = e.getErrorInformation();
                     final PwmSession pwmSession = PwmSession.getPwmSession(req);
                     pwmSession.getSessionStateBean().setSessionError(errorInformation);
                     LOGGER.error(pwmSession,errorInformation.toDebugStr());

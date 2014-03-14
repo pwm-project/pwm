@@ -35,6 +35,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.event.AuditEvent;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.operations.CrService;
@@ -299,6 +301,14 @@ public class RestChallengesServer {
                 /* clear self */
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 userGUID = restRequestBean.getPwmSession().getUserInfoBean().getUserGuid();
+
+                // mark the event log
+                final UserAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createUserAuditRecord(
+                        AuditEvent.CLEAR_RESPONSES,
+                        restRequestBean.getPwmSession().getUserInfoBean(),
+                        restRequestBean.getPwmSession()
+                );
+                restRequestBean.getPwmApplication().getAuditManager().submit(auditRecord);
             } else {
                 /* clear 3rd party (helpdesk) */
                 final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
@@ -307,6 +317,18 @@ public class RestChallengesServer {
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(), restRequestBean.getUserIdentity(),
                         false);
+
+                // mark the event log
+                final UserAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createUserAuditRecord(
+                        AuditEvent.HELPDESK_CLEAR_RESPONSES,
+                        restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
+                        new Date(),
+                        null,
+                        restRequestBean.getUserIdentity(),
+                        restRequestBean.getPwmSession().getSessionStateBean().getSrcAddress(),
+                        restRequestBean.getPwmSession().getSessionStateBean().getSrcHostname()
+                );
+                restRequestBean.getPwmApplication().getAuditManager().submit(auditRecord);
             }
 
             final CrService crService = restRequestBean.getPwmApplication().getCrService();

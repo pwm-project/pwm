@@ -89,6 +89,15 @@
             <br/>
         </div>
         <div class="licenseBlock">
+            <h2>ASM</h2>
+            <a href="http://asm.ow2.org/">http://asm.ow2.org/</a>
+            <br/><br/>
+            <div style="width:580px" data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'License',open: false">
+                <pre><jsp:include page="license/asm_license.txt"/></pre>
+            </div>
+            <br/>
+        </div>
+        <div class="licenseBlock">
             <h2>CAS</h2>
             <a href="http://www.jasig.org/cas">http://www.jasig.org/cas</a>
             <br/><br/>

@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.i18n.Config" %>
+<%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.intruder.RecordType" %>
 <%--
@@ -36,8 +36,8 @@
     </jsp:include>
     <div id="centerbody" style="width: 700px">
         <%@ include file="admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-            <div data-dojo-type="dijit.layout.ContentPane" title="Logged In Users">
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_Sessions" bundle="Admin"/>">
                 <div id="activeSessionGrid">
                 </div>
                 <div style="text-align: center">
@@ -45,15 +45,15 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
-                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
                     </button>
                 </div>
 
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="Intruders">
-                <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="Intruders">
+                <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:Display key="Title_Intruders" bundle="Admin"/>">
                     <% for (RecordType recordType : RecordType.values()) { %>
-                    <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),"IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(), Config.class); %>
+                    <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),"IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(), Admin.class); %>
                     <div data-dojo-type="dijit.layout.ContentPane" title="<%=titleName%>">
                         <div id="<%=recordType%>_Grid">
                         </div>
@@ -66,17 +66,17 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
-                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
                     </button>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Audit Log">
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_Audit" bundle="Admin"/>">
                 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-                    <div data-dojo-type="dijit.layout.ContentPane" title="User">
+                    <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_AuditUsers" bundle="Admin"/>">
                         <div id="auditUserGrid">
                         </div>
                     </div>
-                    <div data-dojo-type="dijit.layout.ContentPane" title="System">
+                    <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_AuditSystem" bundle="Admin"/>">
                         <div id="auditSystemGrid">
                         </div>
                     </div>
@@ -86,7 +86,7 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData()">
-                        <span class="fa fa-refresh">&nbsp;Refresh</span>
+                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
                     </button>
                     <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">
@@ -102,6 +102,8 @@
     <div>
         <div class="push"></div>
     </div>
+    <% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
+    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_ADMIN.initIntrudersGrid();
@@ -111,8 +113,9 @@
                 dojoParser.parse();
             });
         });
+
+        PWM_ADMIN.initAdminPage(function(){PWM_MAIN.pageLoadHandler()});
     </script>
-    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

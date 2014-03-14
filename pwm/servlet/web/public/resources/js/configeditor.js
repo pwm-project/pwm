@@ -22,6 +22,8 @@
 
 var clientSettingCache = { };
 var preferences = { };
+var PWM_CFGEDIT = PWM_CFGEDIT || {};
+var PWM_MAIN = PWM_MAIN || {};
 
 function readSetting(keyName, valueWriter) {
     require(["dojo"],function(dojo){
@@ -97,26 +99,27 @@ function resetSetting(keyName) {
 }
 
 function updateSettingDisplay(keyName, isDefault) {
-    var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
-    var addModifiedClass = function(key) {
-        try { PWM_MAIN.getObject(key).classList.add("modified"); } catch (e) {
-            console.log('error adding "modified" css class to "' + key + '" elementID, error=' + e);
+    require(["dojo"],function(dojo){
+        var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
+        var settingSyntax = '';
+        try {
+            settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
+        } catch (e) { /* noop */ }  //setting keys may not be loaded
+
+        if (!isDefault && (settingSyntax != 'X509CERT' && settingSyntax != 'PASSWORD')) {
+            resetImageButton.style.visibility = 'visible';
+            try {
+                dojo.addClass('title_' + keyName,"modified");
+                dojo.addClass('titlePane_' + keyName,"modified");
+            } catch (e) { /* noop */ }
+        } else {
+            resetImageButton.style.visibility = 'hidden';
+            try {
+                dojo.removeClass('title_' + keyName,"modified");
+                dojo.removeClass('titlePane_' + keyName,"modified");
+            } catch (e) { /* noop */ }
         }
-    };
-    var removeModifiedClass=function(key) {
-        try { PWM_MAIN.getObject(key).classList.remove("modified"); } catch (e) {
-            console.log('error removing "modified" css class to  "' + key + '" elementID, error=' + e);
-        }
-    };
-    if (!isDefault) {
-        resetImageButton.style.visibility = 'visible';
-        addModifiedClass('title_' + keyName);
-        addModifiedClass('titlePane_' + keyName);
-    } else {
-        resetImageButton.style.visibility = 'hidden';
-        removeModifiedClass('title_' + keyName);
-        removeModifiedClass('titlePane_' + keyName);
-    }
+    });
 }
 
 function clearDivElements(parentDiv, showLoading) {
@@ -2375,7 +2378,7 @@ function buildMenuBar() {
                 viewMenu.addChild(new MenuItem({
                     label: "Search Settings",
                     onClick: function() {
-                        searchDialog();
+                        PWM_CFGEDIT.searchDialog();
                     }
                 }));
                 viewMenu.addChild(new MenuSeparator());
@@ -2403,7 +2406,7 @@ function buildMenuBar() {
                 viewMenu.addChild(new MenuItem({
                     label: "Changes",
                     onClick: function() {
-                        showChangeLog();
+                        PWM_CFGEDIT.showChangeLog();
                     }
                 }));
 
@@ -2489,7 +2492,7 @@ function buildMenuBar() {
                     label: "Cancel",
                     iconClass: "dijitEditorIcon dijitEditorIconCancel",
                     onClick: function() {
-                        document.forms['cancelEditing'].submit();
+                        PWM_CFGEDIT.cancelEditing();
                     }
                 }));
 
@@ -2623,16 +2626,46 @@ function setConfigurationPassword(password) {
     ChangePasswordHandler.init('configPw','Configuration Password',writeFunction);
 }
 
-function toggleHelpDisplay(nodeId) {
-    var node = PWM_MAIN.getObject(nodeId);
-    if (node) {
-        if (node.style.display == 'block') {
-            node.style.display = 'none';
+PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
+    PWM_VAR['toggleHelpDisplay'] = PWM_VAR['toggleHelpDisplay'] || {};
+    console.log('hi!');
+    var helpDiv = PWM_MAIN.getObject('helpDiv_' + key);
+    var titleId = 'title_' + key;
+    var show;
+    if (options && options['force']) {
+        if (options['force'] == 'show') {
+            show = true;
+        } else if (options['force'] == 'hide') {
+            show = false;
+        }
+    } else {
+        show = PWM_VAR['toggleHelpDisplay'][key] == 'hidden';
+    }
+    if (helpDiv) {
+        if (show) {
+            PWM_VAR['toggleHelpDisplay'][key] = 'visible';
+            require(["dijit/registry","dojo/fx"],function(registry,fx){
+                var node = registry.byId('title_' + key);
+                if (node) {
+                    node.destroy();
+                }
+                fx.wipeIn({node:helpDiv}).play();
+            });
         } else {
-            node.style.display = 'block';
+            PWM_VAR['toggleHelpDisplay'][key] = 'hidden';
+            var helpText = PWM_SETTINGS['settings'][key]['description'];
+            require(["dijit","dojo/fx","dijit/Tooltip"],function(dijit,fx,Tooltip){
+                new Tooltip({
+                    connectId: [titleId],
+                    id: titleId,
+                    position: ['above','below'],
+                    label: '<div style="max-width:520px">' + helpText + '</div>'
+                });
+                fx.wipeOut({node:helpDiv}).play();
+            });
         }
     }
-}
+};
 
 function showConfigurationNotes() {
     var idName = 'configNotesDialog';
@@ -2755,7 +2788,7 @@ function executeSettingFunction(setting, profile, name) {
     });
 }
 
-function showChangeLog() {
+PWM_CFGEDIT.showChangeLog=function() {
     PWM_MAIN.showWaitDialog(null,null,function(){
         require(["dojo","dojo/json"],function(dojo,json){
             dojo.xhrGet({
@@ -2784,9 +2817,9 @@ function showChangeLog() {
             });
         });
     });
-}
+};
 
-function searchDialog(reentrant) {
+PWM_CFGEDIT.searchDialog = function(reentrant) {
     if (reentrant) {
         var validationProps = {};
         validationProps['serviceURL'] = "ConfigEditor?processAction=search";
@@ -2860,12 +2893,13 @@ function searchDialog(reentrant) {
     } else {
         var htmlBody = '<div>';
         htmlBody += '<span id="message" class="message message-info" style="width: 400">Search setting names, descriptions and values.</span><br/>';
-        htmlBody += '<input type="search" id="settingSearchInput" style="width: 400px" onkeyup="searchDialog(true)"/>';
+        htmlBody += '<input type="search" id="settingSearchInput" style="width: 400px" onkeyup="PWM_CFGEDIT.searchDialog(true)"/>';
         htmlBody += '<br/><br/>';
         htmlBody += '<div id="settingSearchResults" style="max-height: 200px; min-height: 200px;overflow-y: auto"></div>';
         htmlBody += '<br/><br/><button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_MAIN.getObject(\'base-message\').id = \'message\'">Ok</button>';
         htmlBody += '</div>';
         try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
+        PWM_MAIN.clearDijitWidget('dialogPopup');
         var theDialog = new dijit.Dialog({
             id: 'dialogPopup',
             title: 'Search Settings',
@@ -2894,12 +2928,78 @@ function gotoSetting(category,settingKey,profile) {
     });
 }
 
-function initSettingTooltip(options) {
-    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-        new Tooltip({
-            connectId: [options['id']],
-            position: ['above','below'],
-            label: '<div style="max-width:620px">' + options['text'] + '</div>'
+PWM_CFGEDIT.toggleAdvancedSettingsDisplay = function(options) {
+    options = options || {};
+    require(["dojo","dojo/fx","dojo/on"], function(dojo,fx,on) {
+        var advSetElement = PWM_MAIN.getObject('advancedSettings');
+        if (PWM_VAR['advancedSettingsAreVisible']) {
+            console.log("hiding advanced settings");
+            try { PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='block'; } catch(e) {
+                console.log("can't show 'showAdvancedSettingsButton', error: " + e);
+            }
+            try { PWM_MAIN.getObject('hideAdvancedSettingsButton').style.display='none'; } catch(e) {
+                console.log("can't hide 'hideAdvancedSettingsButton', error: " + e);
+            }
+            fx.wipeOut({node:advSetElement }).play();
+        } else {
+            console.log("showing advanced settings");
+            try { PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='none';  } catch(e) {
+                console.log("can't hide 'showAdvancedSettingsButton', error: " + e);
+            }
+            try { PWM_MAIN.getObject('hideAdvancedSettingsButton').style.display='block';  } catch(e) {
+                console.log("can't show 'hideAdvancedSettingsButton', error: " + e);
+            }
+            var animChain = fx.wipeIn({node:advSetElement });
+            if (options['autoScroll']) {
+                on(animChain, "End", function(){
+                    console.log('scrolling to object id="advancedSettings"');
+                    PWM_MAIN.getObject('hideAdvancedSettingsButton').scrollIntoView(true);
+                });
+            }
+            animChain.play();
+        }
+        PWM_VAR['advancedSettingsAreVisible'] = !PWM_VAR['advancedSettingsAreVisible'];
+    });
+}
+
+PWM_CFGEDIT.cancelEditing = function() {
+    PWM_MAIN.showWaitDialog(null,null,function(){
+        require(["dojo","dojo/json"],function(dojo,json){
+            dojo.xhrGet({
+                url:"ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept":"application/json"},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
+                handleAs: "json",
+                dataType: "json",
+                preventCache: true,
+                load: function(data){
+                    PWM_MAIN.closeWaitDialog();
+                    if (data['error']) {
+                        PWM_MAIN.showDialog("Error",data['errorMessage']);
+                    } else {
+                        var bodyText = '<div style="max-width: 590px;">';
+                        bodyText += PWM_SETTINGS['display']['MenuDisplay_CancelConfig'];
+                        bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+                        bodyText += data['data'];
+                        bodyText +='</pre></div>';
+                        PWM_MAIN.showConfirmDialog(
+                            null,
+                            bodyText,
+                            function(){
+                                PWM_MAIN.showWaitDialog(null, null, function(){
+                                    PWM_MAIN.goto('ConfigEditor?processAction=cancelEditing',{addFormID:true});
+                                });
+                            }
+                        );
+                    }
+                },
+                error: function(errorObj) {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showError("error executing function: " + errorObj);
+                }
+            });
         });
     });
+
 }

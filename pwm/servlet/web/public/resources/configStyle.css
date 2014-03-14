@@ -78,9 +78,9 @@
 .setting_body {
     padding: 5px;
 }
+
 .setting_body.modified {
-    padding: 5px;
-    background-color: rgba(170, 30, 8, 0.42)
+    background-color: rgba(170, 30, 8, 0.11)
 }
 
 
@@ -110,4 +110,64 @@
     border-bottom-right-radius: 5px;
     margin-bottom: 10px;
     box-shadow: inset 0 0 2px #000000
+}
+
+.centerbody-config {
+    width: 600px;
+    min-width: 600px;
+    padding: 10px;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    clear: both;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0;
+    background-color: white;
+}
+
+.menu-wrapper {
+    position: fixed;
+    height: 24px;
+    left: 50%;
+    z-index: 10;
+    top:25px;
+    width: 620px;
+}
+
+.menu-bar {
+    position: relative;
+    height: 24px;
+    width: 620px;
+    left: -50%;
+    background-color: white;
+}
+
+.menu-underflow {
+    position: relative;
+    height:15px;
+    left: -50%;
+    background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+    background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+    background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+    background: linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+}
+
+.categoryDescription {
+    background-color: #F5F5F5;
+    border-radius: 5px;
+    padding: 10px 15px 10px 15px;
+    margin: 10px;
+}
+
+.profileSelectPanel {
+    width: 600px;
+    margin-bottom: 10px;
+    background-color: #ffcd59;
+    border-radius: 4px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-weight: bold;
+    text-align: center;
 }

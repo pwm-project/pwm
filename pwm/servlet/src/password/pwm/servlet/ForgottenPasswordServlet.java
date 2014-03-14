@@ -216,86 +216,28 @@ public class ForgottenPasswordServlet extends TopServlet {
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
-        boolean tokenPass = false;
-        UserIdentity userIdentity = null;
-        final TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenService().retrieveTokenData(userEnteredCode);
+            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
+                    pwmSession,
+                    forgottenPasswordBean.getUserIdentity(),
+                    TOKEN_NAME,
+                    userEnteredCode
+            );
             if (tokenPayload != null) {
-                LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
-                if (!TOKEN_NAME.equals(tokenPayload.getName()) && pwmApplication.getTokenService().supportsName()) {
-                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,"incorrect token/name format"));
-                }
-
-                // check current session identity
-                if (tokenPayload.getUserIdentity() != null) {
-                    if (tokenPayload.getUserIdentity().equals(forgottenPasswordBean.getUserIdentity())) {
-                        tokenPass = true;
-                        userIdentity = forgottenPasswordBean.getUserIdentity();
-                    } else {
-                        LOGGER.warn(pwmSession, "user in session '" + forgottenPasswordBean.getUserIdentity() + "' entered code for user '" + tokenPayload.getUserIdentity()+ "', counting as invalid attempt");
-                    }
-                } else {
-                    tokenPass = true;
-                    userIdentity = tokenPayload.getUserIdentity();
-                }
-
-                // check if password-last-modified is same as when tried to read it before.
-                if (tokenPass) {
-                    try {
-                        final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
-                        final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
-                        if (userLastPasswordChange != null && dateStringInToken != null) {
-                            final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
-                            if (!dateStringInToken.equalsIgnoreCase(userChangeString)) {
-                                final String errorString = "user password has changed since token issued, token rejected";
-                                final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TOKEN_EXPIRED, errorString);
-                                LOGGER.error(pwmSession, errorInfo.toDebugStr());
-                                pwmSession.getSessionStateBean().setSessionError(errorInfo);
-                                this.forwardToEnterCodeJSP(req, resp);
-                                return;
-                            }
-                        }
-                    } catch (ChaiUnavailableException e) {
-                        LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
-                    }
-                }
+                forgottenPasswordBean.setUserIdentity(tokenPayload.getUserIdentity());
+                forgottenPasswordBean.setTokenSatisfied(true);
             }
         } catch (PwmOperationalException e) {
-            final String errorMsg = "unexpected error attempting to read token from storage: " + e.getMessage();
-            LOGGER.error(pwmSession, errorMsg);
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(e.getError(),e.getMessage()));
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             this.forwardToEnterCodeJSP(req, resp);
             return;
         }
-
-        if (tokenPass) {
-            forgottenPasswordBean.setUserIdentity(userIdentity);
-            forgottenPasswordBean.setTokenSatisfied(true);
-            if (tokenPayload != null && tokenPayload.getDest() != null) {
-                for (final String dest : tokenPayload.getDest()) {
-                    pwmApplication.getIntruderManager().clear(RecordType.TOKEN_DEST, dest);
-                }
-            }
-
-            pwmApplication.getTokenService().markTokenAsClaimed(userEnteredCode, pwmSession);
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
-            LOGGER.debug(pwmSession, "token validation has been passed");
-            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
-            return;
-        }
-
-        LOGGER.debug(pwmSession, "token validation has failed");
-        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT));
-        UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
-        pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);
-        pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-        this.forwardToEnterCodeJSP(req, resp);
+        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
     private void processEnterForgottenOtpToken(

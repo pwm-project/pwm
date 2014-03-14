@@ -37,6 +37,8 @@ public enum HealthMessage {
     LDAP_VendorsNotSame                     (HealthStatus.CONFIG,   HealthTopic.LDAP),
     Health_Config_ConfigMode                (HealthStatus.CAUTION,  HealthTopic.Configuration),
     LDAP_OK                                 (HealthStatus.GOOD,     HealthTopic.LDAP),
+    CryptoTokenWithNewUserVerification      (HealthStatus.CAUTION,  HealthTopic.Configuration),
+    TokenServiceError                       (HealthStatus.WARN,     HealthTopic.TokenService),
     ;
 
     private final HealthStatus status;

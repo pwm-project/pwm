@@ -105,7 +105,9 @@ public class SessionFilter implements Filter {
             LOGGER.error(e.getErrorInformation().toDebugStr());
             ssBean.setSessionError(e.getErrorInformation());
             ServletHelper.forwardToErrorPage(req,resp,true);
-            pwmSession.invalidate();
+            if (PwmError.ERROR_INTRUDER_SESSION != e.getError()) {
+                pwmSession.invalidate();
+            }
             return;
         }
 
@@ -171,17 +173,6 @@ public class SessionFilter implements Filter {
                 if (verifySession(req, resp, servletContext, mode)) {
                     return;
                 }
-            }
-        }
-
-        //check intruder detection, if it is tripped, send user to error page
-        if (pwmApplication.getIntruderManager() != null && pwmApplication.getConfig() != null) {
-            try {
-                pwmApplication.getIntruderManager().convenience().checkAddressAndSession(pwmSession);
-            } catch (PwmUnrecoverableException e) {
-                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                ServletHelper.forwardToErrorPage(req, resp, false);
-                return;
             }
         }
 
