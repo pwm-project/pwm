@@ -78,7 +78,7 @@ public class SetupOtpSecretServlet extends TopServlet {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
 
-        if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
+        if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
             LOGGER.error("Setup OTP Secret not enabled");
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
