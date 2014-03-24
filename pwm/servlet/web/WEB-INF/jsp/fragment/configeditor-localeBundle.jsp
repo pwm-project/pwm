@@ -113,7 +113,7 @@
 
     PWM_GLOBAL['startupFunctions'].push(function(){
         if (LOAD_TRACKER.length > 0) {
-            PWM_MAIN.showWaitDialog(PWM_STRINGS['Display_PleaseWait'],'<div id="waitMsg">Loading custom display values.......</div>',function(){
+            PWM_MAIN.showWaitDialog(PWM_MAIN.showString('Display_PleaseWait'),'<div id="waitMsg">Loading custom display values.......</div>',function(){
                 LOAD_TRACKER.reverse();
                 doLazyLoad(LOAD_TRACKER.pop());
             });

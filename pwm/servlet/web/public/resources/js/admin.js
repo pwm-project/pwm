@@ -22,7 +22,8 @@
 
 var PWM_ADMIN = PWM_ADMIN || {};
 var PWM_MAIN = PWM_MAIN || {};
-var PWM_STRINGS = PWM_STRINGS || {};
+var PWM_GLOBAL = PWM_GLOBAL || {};
+PWM_GLOBAL['localeBundle'].push('Admin');
 
 PWM_ADMIN.initAdminOtherMenu=function() {
     require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
@@ -497,7 +498,7 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
                             var loopEpsID = "EPS-GAUGE-" + loopEpsName + "_" + loopEpsDuration;
                             if (PWM_MAIN.getObject(loopEpsID) != null) {
                                 if (registry.byId(loopEpsID)) {
-                                    registry.byId(loopEpsID).setAttribute('value',0);
+                                    registry.byId(loopEpsID).setAttribute('value','0');
                                 }
                             }
                         }
@@ -632,7 +633,9 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
                     if (showTimestamp || showRefresh) {
                         htmlBody += '<tr><td colspan="3" style="text-align:center;">';
                         if (showTimestamp) {
-                            htmlBody += (data['data']['timestamp'] + '&nbsp;&nbsp;&nbsp;&nbsp;');
+                            htmlBody += '<span id="healthCheckTimestamp" class="timestamp">';
+                            htmlBody += (data['data']['timestamp']);
+                            htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
                         }
                         if (showRefresh) {
                             htmlBody += '<a title="refresh" href="#"; onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">';
@@ -649,6 +652,9 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
                         setTimeout(function() {
                             PWM_ADMIN.showAppHealth(parentDivID, options);
                         }, refreshTime);
+                    }
+                    if (showTimestamp) {
+                        PWM_MAIN.handleTimestamp(PWM_MAIN.getObject('healthCheckTimestamp'));
                     }
                     if (finishFunction) {
                         finishFunction();
@@ -682,49 +688,8 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     });
 };
 
-PWM_ADMIN.initAdminPage=function(nextFunction) {
-    require(["dojo"],function(dojo){
-        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/Admin";
-        dojo.xhrGet({
-            url: clientConfigUrl,
-            handleAs: 'json',
-            timeout: 30 * 1000,
-            headers: { "Accept": "application/json" },
-            load: function(data) {
-                if (data['error'] == true) {
-                    alert('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
-                } else {
-                    PWM_STRINGS['bundle-admin'] = {};
-                    for (var settingKey in data['data']) {
-                        PWM_STRINGS['bundle-admin'][settingKey] = data['data'][settingKey];
-                    }
-                }
-                if (nextFunction) {
-                    nextFunction();
-                }
-            },
-            error: function(error) {
-                PWM_MAIN.showError('Unable to read display data from server, please reload page (' + error + ')');
-                console.log('unable to read settings app-data: ' + error);
-            }
-        });
-    });
-};
-
-PWM_ADMIN.showString=function (key, value1, value2, value3) {
-    if (PWM_STRINGS['bundle-admin'][key]) {
-        var rawString = PWM_STRINGS['bundle-admin'][key];
-        if (value1) {
-            rawString = rawString.replace('%1%',value1);
-        }
-        if (value2) {
-            rawString = rawString.replace('%2%',value2);
-        }
-        if (value3) {
-            rawString = rawString.replace('%3%',value3);
-        }
-        return rawString;
-    } else {
-        return "UNDEFINED STRING-" + key;
-    }
+PWM_ADMIN.showString=function (key, options) {
+    options = options || {};
+    options['bundle'] = 'Admin';
+    return PWM_MAIN.showString(key,options);
 };

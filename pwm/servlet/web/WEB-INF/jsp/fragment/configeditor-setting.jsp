@@ -69,12 +69,12 @@
         require(["dijit/Tooltip"],function(Tooltip){
             new Tooltip({
                 connectId: ["resetButton-<%=loopSetting.getKey()%>"],
-                label: PWM_SETTINGS['display']['Tooltip_ResetButton']
+                label: PWM_CONFIG.showString('Tooltip_ResetButton')
             });
             <% if (!showDescription) { %>
             new Tooltip({
                 connectId: ["helpButton-<%=loopSetting.getKey()%>"],
-                label: PWM_SETTINGS['display']['Tooltip_HelpButton']
+                label: PWM_CONFIG.showString('Tooltip_HelpButton')
             });
             <% } %>
         });
@@ -232,7 +232,7 @@
                 new ValidationTextBox({
                     regExp: "<%=loopSetting.getRegExPattern().pattern()%>",
                     required: <%=loopSetting.isRequired()%>,
-                    invalidMessage: PWM_SETTINGS['display']['Warning_InvalidFormat'],
+                    invalidMessage: PWM_CONFIG.showString('Warning_InvalidFormat'),
                     style: "width: 550px",
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);

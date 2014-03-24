@@ -86,7 +86,5 @@
     </script>
     <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
-    <% if (!"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT))) { %>
     <script type="text/javascript">PWM_MAIN.pageLoadHandler()</script>
-    <% } %>
 </div>

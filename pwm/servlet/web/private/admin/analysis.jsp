@@ -194,9 +194,6 @@
         </div>
     </div>
 </div>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
-<div><%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %></div>
 <script type="text/javascript">
     function refreshChart() {
         require(["dijit/registry"],function(registry){
@@ -224,8 +221,8 @@
             });
         });
     });
-
-    PWM_ADMIN.initAdminPage(function(){PWM_MAIN.pageLoadHandler()});
 </script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

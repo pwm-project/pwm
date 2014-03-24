@@ -102,8 +102,6 @@
     <div>
         <div class="push"></div>
     </div>
-    <% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
-    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_ADMIN.initIntrudersGrid();
@@ -113,9 +111,8 @@
                 dojoParser.parse();
             });
         });
-
-        PWM_ADMIN.initAdminPage(function(){PWM_MAIN.pageLoadHandler()});
     </script>
+    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

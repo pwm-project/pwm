@@ -30,7 +30,6 @@
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
@@ -40,7 +39,7 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final UserInfoBean uiBean = pwmSession.getUserInfoBean(); %>
 <% final SessionStateBean ssBean = pwmSession.getSessionStateBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL, pwmSession.getSessionStateBean().getLocale()); %>
+<% final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -109,7 +108,7 @@
                         <td class="key">
                             <pwm:Display key="Field_PasswordSetTime"/>
                         </td>
-                        <td>
+                        <td class="timestamp">
                             <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
                         </td>
                     </tr>
@@ -145,7 +144,7 @@
                         <td class="key">
                             <pwm:Display key="Field_ResponsesTimestamp"/>
                         </td>
-                        <td>
+                        <td class="timestamp">
                             <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
                         </td>
                     </tr>
@@ -154,7 +153,7 @@
                 <table>
                     <tr>
                         <td class="key">
-                            Network Address
+                            <pwm:Display key="Field_NetworkAddress"/>
                         </td>
                         <td>
                             <%= ssBean.getSrcAddress() %>
@@ -162,7 +161,7 @@
                     </tr>
                     <tr>
                         <td class="key">
-                            Network Host
+                            <pwm:Display key="Field_NetworkHost"/>
                         </td>
                         <td>
                             <%= ssBean.getSrcHostname() %>
@@ -170,7 +169,7 @@
                     </tr>
                     <tr>
                         <td class="key">
-                            Logout URL
+                            <pwm:Display key="Field_LogoutURL"/>
                         </td>
                         <td>
                             <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
@@ -178,7 +177,7 @@
                     </tr>
                     <tr>
                         <td class="key">
-                            Forward URL
+                            <pwm:Display key="Field_ForwardURL"/>
                         </td>
                         <td>
                             <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
@@ -214,7 +213,7 @@
                     <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
                         <% for (final UserAuditRecord record : auditRecords) { %>
                         <tr>
-                            <td class="key" style="width:50%">
+                            <td class="key timestamp" style="width:50%">
                                 <%= dateFormatter.format(record.getTimestamp()) %>
                             </td>
                             <td>

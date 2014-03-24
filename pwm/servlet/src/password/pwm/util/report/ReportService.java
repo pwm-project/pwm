@@ -668,4 +668,13 @@ public class ReportService implements PwmService {
         }
     }
 
+    public int recordsInCache() {
+        try {
+            return userCacheService.size();
+        } catch (LocalDBException e) {
+            LOGGER.debug("error reading user cache service size: " + e.getMessage());
+        }
+        return 0;
+    }
+
 }

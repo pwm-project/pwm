@@ -85,7 +85,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_CONFIG.startConfigurationEditor()" id="MenuItem_ConfigEditor">
                         <span class="fa fa-edit"></span>&nbsp;
-                        <pwm:Display key="MenuItem_ConfigEditor" bundle="Config"/>
+                        <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
                     </a>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -94,7 +94,7 @@
                     </script>
                 </td>
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_CONFIG.openLogViewer({})" id="MenuItem_ViewLog">
+                    <a class="menubutton" onclick="PWM_CONFIG.openLogViewer(null)" id="MenuItem_ViewLog">
                         <span class="fa fa-list-alt"></span>&nbsp;
                         <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
@@ -132,7 +132,7 @@
             <% if (!configManagerBean.isConfigLocked()) { %>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog(null,PWM_SETTINGS['display']['MenuDisplay_UploadConfig'],function(){PWM_CONFIG.uploadConfigDialog()},null)" id="MenuItem_UploadConfig">
+                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog(null,PWM_CONFIG.showString('MenuDisplay_UploadConfig'),function(){PWM_CONFIG.uploadConfigDialog()},null)" id="MenuItem_UploadConfig">
                         <span class="fa fa-upload"></span>&nbsp;
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
@@ -149,7 +149,7 @@
                     </a>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
-                            makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig'));
+                            makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig',{value1:'<%=configFilePath%>'}));
                         });
                     </script>
                 </td>
@@ -163,7 +163,7 @@
                     </a>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
-                            makeTooltip('MenuItem_ExportLocalDB','<pwm:Display key="MenuDisplay_ExportLocalDB" bundle="Config" value1="<%=configFilePath%>"/>');
+                            makeTooltip('MenuItem_ExportLocalDB',PWM_CONFIG.showString('MenuDisplay_ExportLocalDB'));
                         });
                     </script>
                 </td>
@@ -247,12 +247,13 @@
             });
         });
     }
+
+    PWM_GLOBAL['localeBundle'].push('Config');
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript">
-    PWM_CONFIG.initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
+    //PWM_CONFIG.initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
 </script>
 </body>
 </html>

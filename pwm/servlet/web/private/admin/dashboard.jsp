@@ -56,13 +56,14 @@
     <table>
         <tr>
             <td class="key">
-                Logged In Users
+                <pwm:Display key="Title_Sessions" bundle="Admin"/>
             </td>
             <td>
                 <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
             </td>
             <td class="key">
-                Active LDAP Connections
+                <pwm:Display key="Title_LDAPConnections" bundle="Admin"/>
+
             </td>
             <td>
                 <%= Helper.figureLdapConnectionCount(pwmApplication, ContextManager.getContextManager(session)) %>
@@ -74,13 +75,13 @@
             <td>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last Minute
+                <pwm:Display key="Title_LastMinute" bundle="Admin"/>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last Hour
+                <pwm:Display key="Title_LastHour" bundle="Admin"/>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                Last Day
+                <pwm:Display key="Title_LastDay" bundle="Admin"/>
             </td>
         </tr>
         <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
@@ -89,13 +90,13 @@
                 <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
+                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
+                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
-                <span style="font-size: smaller; font-style: italic">Loading...</span>
+                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
             </td>
         </tr>
         <% } %>
@@ -154,7 +155,7 @@
         <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="About">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_About" bundle="Admin"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table>
             <tr>
@@ -182,24 +183,24 @@
                     %>
                     <%= publishedVersion %>
                     <% if (readDate != null) { %>
-                    ( <%=dateFormat.format(readDate)%> )
+                    as of <span class="timestamp"><%=dateFormat.format(readDate)%></span>
                     <% } %>
                 </td>
             </tr>
             <% } %>
             <tr>
                 <td class="key">
-                    Current Time
+                    <pwm:Display key="Field_CurrentTime" bundle="Admin"/>
                 </td>
-                <td>
+                <td class="timestamp">
                     <%= dateFormat.format(new java.util.Date()) %>
                 </td>
             </tr>
             <tr>
                 <td class="key">
-                    Start Time
+                    <pwm:Display key="Field_StartTime" bundle="Admin"/>
                 </td>
-                <td>
+                <td class="timestamp">
                     <%= dateFormat.format(pwmApplication.getStartupTime()) %>
                 </td>
             </tr>
@@ -213,9 +214,9 @@
             </tr>
             <tr>
                 <td class="key">
-                    Install Time
+                    <pwm:Display key="Field_InstallTime" bundle="Admin"/>
                 </td>
-                <td>
+                <td class="timestamp">
                     <%= dateFormat.format(pwmApplication.getInstallTime()) %>
                 </td>
             </tr>
@@ -243,13 +244,15 @@
                 <td>
                     <% if (ldapProfiles.size() < 2) { %>
                     <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
+                    <span class="timestamp">
                     <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
+                        </span>
                     <% } else { %>
                     <table>
                         <% for (LdapProfile ldapProfile : ldapProfiles) { %>
                         <tr>
                             <td><%=ldapProfile.getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale())%></td>
-                            <td>
+                            <td class="timestamp">
                                 <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
                                 <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
                             </td>

@@ -159,7 +159,7 @@
                     require(["dijit/Tooltip"],function(Tooltip){
                         new Tooltip({
                             connectId: ["strengthBox"],
-                            label: '<div style="width: 350px">' + PWM_STRINGS['Tooltip_PasswordStrength'] + '</div>'
+                            label: '<div style="width: 350px">' + PWM_MAIN.showString('Tooltip_PasswordStrength') + '</div>'
                         });
                     });
                 });

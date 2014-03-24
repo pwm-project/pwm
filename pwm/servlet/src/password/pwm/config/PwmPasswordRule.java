@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,11 @@
 package password.pwm.config;
 
 import com.novell.ldapchai.ChaiPasswordRule;
+import password.pwm.i18n.LocaleHelper;
+import password.pwm.i18n.Message;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -132,5 +135,10 @@ public enum PwmPasswordRule {
         }
 
         return null;
+    }
+
+    public String getLabel(final Locale locale, final Configuration config) {
+        final String key = "Rule_" + this.toString();
+        return LocaleHelper.getLocalizedMessage(locale,key,config,Message.class);
     }
 }

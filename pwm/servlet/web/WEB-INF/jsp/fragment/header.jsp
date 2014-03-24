@@ -57,7 +57,7 @@
     <% } %>
     <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css'/>" rel="stylesheet" type="text/css"/>
     <script type="text/javascript">
-        var PWM_GLOBAL = PWM_GLOBAL || {}, PWM_STRINGS = PWM_STRINGS || {}; PWM_GLOBAL['startupFunctions'] = new Array();
+        var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = []; PWM_GLOBAL['localeBundle'] = [];
     </script>
     <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%><pwm:url url='/public/resources/font/font-awesome.css'/>"/>
 </head>

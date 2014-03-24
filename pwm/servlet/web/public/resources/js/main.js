@@ -28,6 +28,39 @@ var PWM_MAIN = PWM_MAIN || {};
 var PWM_VAR = PWM_VAR || {};
 
 PWM_MAIN.pageLoadHandler = function() {
+    PWM_GLOBAL['localeBundle'] = PWM_GLOBAL['localeBundle'] || [];
+    require(["dojo/_base/array","dojo/_base/Deferred","dojo/promise/all"], function(array,Deferred,all){
+        var promises = [];
+        {
+            var clientLoadDeferred = new Deferred();
+            PWM_MAIN.loadClientData(function(){clientLoadDeferred.resolve()});
+            promises.push(clientLoadDeferred.promise);
+        }
+        if (typeof PWM_CONFIG !== 'undefined') {
+            var clientConfigLoadDeferred = new Deferred();
+            PWM_CONFIG.initConfigPage(function(){clientConfigLoadDeferred.resolve()});
+            promises.push(clientConfigLoadDeferred.promise);
+        }
+        {
+            var seenBundles = [];
+            PWM_GLOBAL['localeBundle'].push('Display');
+            array.forEach(PWM_GLOBAL['localeBundle'], function(bundleName){
+                if (array.indexOf(seenBundles, bundleName)  == -1) {
+                    var displayLoadDeferred = new Deferred();
+                    PWM_MAIN.loadLocaleBundle(bundleName,function(){displayLoadDeferred.resolve()});
+                    promises.push(displayLoadDeferred.promise);
+                    seenBundles.push(bundleName);
+                }
+            });
+        }
+        all(promises).then(function () {
+            PWM_MAIN.initPage();
+        });
+    });
+
+};
+
+PWM_MAIN.loadClientData=function(completeFunction) {
     require(["dojo"],function(dojo){
         PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
         var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client/" + PWM_GLOBAL['clientEtag'];
@@ -37,23 +70,58 @@ PWM_MAIN.pageLoadHandler = function() {
             timeout: 30 * 1000,
             headers: { "Accept": "application/json" },
             load: function(data) {
-                for (var stringProp in data['data']['PWM_STRINGS']) {
-                    PWM_STRINGS[stringProp] = data['data']['PWM_STRINGS'][stringProp];
-                }
                 for (var globalProp in data['data']['PWM_GLOBAL']) {
                     PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
                 }
-                PWM_MAIN.initPage();
+                console.log('loaded client data');
+                if (completeFunction) completeFunction();
             },
             error: function(error) {
                 console.log('unable to read app-data: ' + error + ', will retry.');
                 if (PWM_GLOBAL['app-data-client-retry-count'] < 50) {
-                    PWM_MAIN.pageLoadHandler();
+                    PWM_MAIN.loadClientData(completeFunction);
+                }
+                if (completeFunction) completeFunction();
+            }
+        });
+    });
+}
+
+PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
+    require(["dojo"],function(dojo){
+        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/" + bundleName;
+        dojo.xhrGet({
+            url: clientConfigUrl,
+            handleAs: 'json',
+            timeout: 30 * 1000,
+            headers: { "Accept": "application/json" },
+
+            load: function(data) {
+                if (data['error'] == true) {
+                    alert('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                } else {
+                    PWM_STRINGS[bundleName] = {};
+                    for (var settingKey in data['data']) {
+                        PWM_STRINGS[bundleName][settingKey] = data['data'][settingKey];
+                    }
+                }
+                console.log('loaded locale bundle data for ' + bundleName);
+                if (completeFunction) {
+                    completeFunction();
+                }
+            },
+            error: function(error) {
+                var errorMsg = 'unable to load locale bundle from , please reload page (' + error + ')';
+                PWM_MAIN.showError(errorMsg);
+                console.log(errorMsg);
+                if (completeFunction) {
+                    completeFunction();
                 }
             }
         });
     });
-};
+
+}
 
 PWM_MAIN.initPage = function() {
     for (var j = 0; j < document.forms.length; j++) {
@@ -126,11 +194,21 @@ PWM_MAIN.initPage = function() {
     }
 
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
-        PWM_GLOBAL['startupFunctions'][i]();
+        try {
+            PWM_GLOBAL['startupFunctions'][i]();
+        } catch(e) {
+            console.error('error executing startup function: ' + e);
+        }
     }
+
+    PWM_MAIN.initAllTimestamps();
+
+    PWM_MAIN.preloadResources();
+
+    console.log('initPage completed');
 };
 
-PWM_MAIN.preloadResources = function(finishFunction) {
+PWM_MAIN.preloadResources = function() {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
     var images = [
         prefix + 'a11y/indeterminate_progress.gif',
@@ -140,17 +218,22 @@ PWM_MAIN.preloadResources = function(finishFunction) {
         prefix + 'nihilo/images/titleBar.png'
     ];
     PWM_MAIN.preloadImages(images);
-    require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
-        "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
-        if (finishFunction) {
-            finishFunction();
-        }
-    });
 };
 
-PWM_MAIN.showString = function (key) {
-    if (PWM_STRINGS[key]) {
-        return PWM_STRINGS[key];
+PWM_MAIN.showString = function (key, options) {
+    options = options || {};
+    var bundle = (options['bundle']) ? options['bundle'] : 'Display';
+    if (!PWM_STRINGS[bundle]) {
+        return "UNDEFINED BUNDLE: " + bundle;
+    }
+    if (PWM_STRINGS[bundle][key]) {
+        var returnStr = PWM_STRINGS[bundle][key];
+        for (var i = 0; i < 10; i++) {
+            if (options['value' + i]) {
+                returnStr = returnStr.replace('%' + i + '%',options['value' + i]);
+            }
+        }
+        return returnStr;
     } else {
         return "UNDEFINED STRING-" + key;
     }
@@ -723,7 +806,7 @@ PWM_MAIN.messageDivFloatHandler = function() {
     }
 
     var doFloatDisplay = !(PWM_MAIN.elementInViewport(messageWrapperObj,false) || PWM_GLOBAL['messageStatus'] == '');
-    if (PWM_VAR['setting_alwaysFloatMessages']) {
+    if (PWM_GLOBAL['setting_alwaysFloatMessages']) {
         doFloatDisplay = PWM_GLOBAL['messageStatus'] != '';
     }
 
@@ -878,47 +961,6 @@ PWM_MAIN.toggleFullscreen = function(iconObj,divName) {
     }
 };
 
-PWM_MAIN.showHeaderHealth = function() {
-    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
-    require(["dojo"],function(dojo){
-        var parentDiv = PWM_MAIN.getObject('headerHealthData');
-        var headerDiv = PWM_MAIN.getObject('header-warning');
-        if (parentDiv && headerDiv) {
-            dojo.xhrGet({
-                url: refreshUrl,
-                handleAs: "json",
-                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-                timeout: 60 * 1000,
-                preventCache: true,
-                load: function(data) {
-                    var healthRecords = data['data']['records'];
-                    var htmlBody = '';
-                    for (var i = 0; i < healthRecords.length; i++) {
-                        var healthData = healthRecords[i];
-                        if (healthData['status'] == 'WARN') {
-                            headerDiv.style.display = 'block';
-                            htmlBody += '<div class="header-error">';
-                            htmlBody += healthData['status'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['topic'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['detail'];
-                            htmlBody += '</div>';
-                        }
-                    }
-                    parentDiv.innerHTML = htmlBody;
-                    setTimeout(function(){
-                        PWM_MAIN.showHeaderHealth()
-                    },60 * 1000);
-                },
-                error: function(error) {
-                    console.log('unable to read header health status: ' + error);
-                }
-            });
-        }
-    });
-};
-
 PWM_MAIN.updateLoginContexts = function() {
     var ldapProfileElement = PWM_MAIN.getObject('ldapProfile');
     var contextElement = PWM_MAIN.getObject('context');
@@ -1070,7 +1112,7 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
         if (state) {
             new Tooltip({
                 connectId: [eyeNodeId],
-                label: PWM_STRINGS['Button_Show']
+                label: PWM_MAIN.showString('Button_Show')
             });
             dojo.removeClass(eyeNodeId);
             dojo.addClass(eyeNodeId,["fa","fa-eye"]);
@@ -1078,7 +1120,7 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
         } else {
             new Tooltip({
                 connectId: [eyeNodeId],
-                label: PWM_STRINGS['Button_Hide']
+                label: PWM_MAIN.showString('Button_Hide')
             });
             dojo.removeClass(eyeNodeId);
             dojo.addClass(eyeNodeId,["fa","fa-eye-slash"]);
@@ -1278,7 +1320,59 @@ IdleTimeoutHandler.showIdleWarning = function() {
 };
 
 IdleTimeoutHandler.closeIdleWarning = function() {
-    PWM_MAIN.clearDijitWidget('idleDialog');
+    PWM_MAIN.clearDijitWidget('idleDia  log');
     document.title = IdleTimeoutHandler.realWindowTitle;
     IdleTimeoutHandler.warningDisplayed = false;
+};
+
+PWM_MAIN.initAllTimestamps = function() {
+    require(["dojo/query", "dojo/NodeList-dom"], function(query){
+        query(".timestamp").forEach(function(node){
+            PWM_MAIN.handleTimestamp(node);
+        });
+    });
+};
+
+
+PWM_MAIN.handleTimestamp = function(element) {
+    if (!element) {
+        return
+    }
+
+    require(["dojo","dojo/date/stamp","dojo/date/locale"], function(dojo,IsoDate,LocaleDate){
+        if (element.getAttribute('data-timestamp-init') !== 'true') {
+            var innerText = dojo.attr(element, 'innerHTML');
+            innerText = dojo.trim(innerText);
+            var dateObj = IsoDate.fromISOString(innerText);
+            if (!dateObj) {
+                console.log('skipping element text ' + innerText + ', not a valid date stamp');
+                return;
+            }
+
+            element.setAttribute('data-timestamp-original', innerText);
+            require(["dojo","dojo/on"], function(dojo,on){
+                on(element, "click", function(event){
+                    for (var el in PWM_VAR['seen_timestampElements']) {
+                        PWM_MAIN.handleTimestamp(PWM_MAIN.handleTimestamp(PWM_VAR['seen_timestampElements'][el]));
+                    }
+                });
+            });
+            element.setAttribute('data-timestamp-init','true');
+            PWM_VAR['seen_timestampElements'] = PWM_VAR['seen_timestampElements'] || new Array();
+            PWM_VAR['seen_timestampElements'].push(element);
+        }
+
+        var localized = element.getAttribute('data-timestamp-state') === 'localized';
+        if (localized) {
+            dojo.attr(element,'innerHTML',element.getAttribute('data-timestamp-original'));
+            element.setAttribute('data-timestamp-state','iso');
+        } else {
+            var isoDateStr = element.getAttribute('data-timestamp-original');
+            var date = IsoDate.fromISOString(isoDateStr);
+            //var localizedStr = LocaleDate.format(date,{selector:"date", datePattern:'EEEE, MMMM d yyyy, h:m:s.SSS a z'});
+            var localizedStr = LocaleDate.format(date,{formatLength:'long'});
+            dojo.attr(element,'innerHTML',localizedStr);
+            element.setAttribute('data-timestamp-state','localized');
+        }
+    });
 };

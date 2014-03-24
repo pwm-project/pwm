@@ -168,8 +168,8 @@
         </default>
     </setting>
     <setting key="display.showResetButton" level="0" required="true">
-        <label>Show Reset Button</label>
-        <description><![CDATA[Where appropriate, show a "Reset" button to user.  Pressing the reset button will clear the form field values to their original values.]]></description>
+        <label>Show Clear Button</label>
+        <description><![CDATA[Where appropriate, show a "Clear" button to user.  Pressing the clear button will clear the form field values to their original values.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -183,7 +183,7 @@
     </setting>
     <setting key="display.passwordHistory" level="0" required="true">
         <label>Show Password Event History</label>
-        <description><![CDATA[Show Password History menu on main menu.]]></description>
+        <description><![CDATA[Show logged in users their password event history.  The password event history will appear as a tab on the account information page.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -225,28 +225,28 @@
     </setting>
     <setting key="display.css.customStyleLocation" level="1">
         <label>Custom CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customMobileStyleLocation" level="1">
         <label>Custom Mobile CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customStyle" level="1">
         <label>Embedded CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/style.css</b>.]]></description>
+        <description><![CDATA[Contents of the custom CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the "virtual" url of <b>/public/resources/themes/embed/style.css</b>.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="display.css.customMobileStyle" level="1">
         <label>Embedded Mobile CSS Stylesheet</label>
-        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the url of <b>/public/resources/themes/embed/mobileStyle.css</b>.]]></description>
+        <description><![CDATA[Contents of the custom mobile CSS Stylesheet.  The setting <i>User Interface -> Theme</i> must be set to Embed for this setting to be useful.  The contents of this setting will be served from the "virtual" url of <b>/public/resources/themes/embed/mobileStyle.css</b>.]]></description>
         <default>
             <value />
         </default>
@@ -525,16 +525,16 @@
             <value>NONE</value>
         </default>
         <options>
-            <option value="SHOW_PROFILE">Show the ldap profile and contexts</option>
-            <option value="SHOW_CONTEXTS">Show the available ldap contexts</option>
-            <option value="NONE">Do not show </option>
+            <option value="SHOW_PROFILE">Show the ldap profile</option>
+            <option value="SHOW_CONTEXTS">Show the ldap profile and ldap contexts</option>
+            <option value="NONE">Do not show</option>
         </options>
     </setting>
     <setting key="ldap.ignoreUnreachableProfiles" level="1">
         <label>Ignore Unreachable LDAP Profiles</label>
         <description><![CDATA[When multiple LDAP profiles exist, ignore unreachable profiles.  A Directory Unavailable error will only be shown during a user search when there is only a single LDAP Profile configured or all LDAP Profiles are unreachable.]]></description>
         <default>
-            <value>true</value>
+            <value >true</value>
         </default>
     </setting>
     <setting key="ldap.profile.displayName" level="1">
@@ -1256,7 +1256,7 @@
     </setting>
     <setting key="pwm.securityKey" level="0">
         <label>Security Key</label>
-        <description><![CDATA[<p>A Security Key used for tokens and other crypto functions. A value is required if tokens are enabled for any of modules and a token storage method has been configured. This value is used similar to how a cryptographic security certificate is used.</p> <p>If configured, this value must be at least 32 characters in length.  The longer and more random this value, the more secure its use will be.  If multiple instances are in use, each instance should be configured with the same value.</p><p>Upon initial setup, a random security key is assigned to this value, it can be changed at any time, however any outstanding tokens or other material generated by an old security key will become invalid.</p>]]></description>
+        <description><![CDATA[<p>A Security Key used for cryptographic functions such as the token verification. A value is required if tokens are enabled for any of modules and a token storage method has been configured. This value is used similar to how the private key in a cryptographic security certificate is used.</p> <p>If configured, this value must be at least 32 characters in length.  The longer and more random this value, the more secure its use will be.  If multiple instances are in use, each instance should be configured with the same value.</p><p>Upon initial setup, a random security key is assigned to this value, it can be changed at any time, however any outstanding tokens or other material generated by an old security key will become invalid.</p>]]></description>
         <regex>.{32}.*</regex>
     </setting>
     <setting key="intruder.user.resetTime" level="0" required="true">
@@ -2184,7 +2184,7 @@
     </setting>
     <setting key="forgottenUsername.sendUsername.sendMethod" level="0">
         <label>Username Send Method</label>
-        <description><![CDATA[Method to send new password to user when the <i>Forgotten Password Success Action</i> is set to <i>Send new password</i>]]></description>
+        <description><![CDATA[Method to send username to user.  In the contents of the message you can use the a macro as appropriate.</i>]]></description>
         <default>
             <value><![CDATA[NONE]]></value>
         </default>
@@ -2542,6 +2542,20 @@
             <value><![CDATA[X-Shortcuts]]></value>
         </default>
     </setting>
+    <setting key="shortcut.httpHeaders" level="0">
+        <label>Shortcut Headers</label>
+        <description><![CDATA[HTTP Headers to use to control the visible list of shortcuts.  If this header is present, these values will be used to determine which of the configured shortcuts are available to a user.  Values must correspond to the label values specified as part of the shortcut items.  When this header is present, the system will not use the ldapQuery portion of the shortcut items and will instead display shortcuts only if the label is present in the header.<br/><br/>Values can be set in multiple headers, or by comma separating the values.<br/><br/>A blank value will disable this feature.]]></description>
+        <default>
+            <value><![CDATA[X-Shortcuts]]></value>
+        </default>
+    </setting>
+    <setting key="shortcut.newWindow" level="0">
+        <label>Launch Shortcuts in New Window</label>
+        <description><![CDATA[Launch shortcuts in a new window (or tab).]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="peopleSearch.enable" level="0">
         <label>Enable PeopleSearch</label>
         <description><![CDATA[Enable the PeopleSearch module.]]></description>
@@ -2602,7 +2616,7 @@
     </setting>
     <setting key="peopleSearch.result.limit" level="0" required="true">
         <label>PeopleSearch result limit</label>
-        <description><![CDATA[result limit]]></description>
+        <description><![CDATA[Maximum number of records to return while searching.]]></description>
         <default>
             <value>100</value>
         </default>
@@ -3318,7 +3332,7 @@
     </setting>
     <category key="LDAP_PROFILE">
         <label>LDAP Directory Profiles</label>
-        <description><![CDATA[Settings that control the interaction with an LDAP directory]]></description>
+        <description><![CDATA[Settings that control interaction with the LDAP directory.  Multiple directory profiles can be created to support multiple LDAP user stores.]]></description>
     </category>
     <category key="LDAP_GLOBAL">
         <label>LDAP Settings</label>
@@ -3358,7 +3372,7 @@
     </category>
     <category key="SECURITY">
         <label>Security</label>
-        <description><![CDATA[]]></description>
+        <description><![CDATA[Settings that control security aspects of the system.  In some cases, the security features of this application may interfere with integration of other systems.  Use caution when changing these settings as the overall security of the application could be impacted.]]></description>
     </category>
     <category key="CAPTCHA">
         <label>Captcha</label>
@@ -3406,7 +3420,7 @@
     </category>
     <category key="CHANGE_PASSWORD">
         <label>Change Password</label>
-        <description />
+        <description>The change password module is the core functionality of the application.  Use these settings to control the behavior and functionality of the change password functionality seen by all users.</description>
     </category>
     <category key="RECOVERY">
         <label>Forgotten Password</label>
@@ -3438,7 +3452,7 @@
     </category>
     <category key="PEOPLE_SEARCH">
         <label>People Search</label>
-        <description />
+        <description>The people search module provides basic white pages or directory lookup functionality to your users.  Customizations alow easy searching and display quick detailed information about your user's colleagues.</description>
     </category>
     <category key="HELPDESK">
         <label>Helpdesk</label>

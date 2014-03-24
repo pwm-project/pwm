@@ -23,6 +23,7 @@
 package password.pwm;
 
 import password.pwm.i18n.Display;
+import password.pwm.i18n.Health;
 import password.pwm.i18n.Message;
 
 import java.text.DateFormat;
@@ -132,7 +133,6 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
     public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
-    public static final String REQUEST_ATTR_NO_PWM_MAIN_INIT = "pwm.noPwmMainInit";
     public static final String REQUEST_ATTR_NO_REQ_COUNTER = "pwm.noReqCounterIncrement";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
@@ -292,19 +292,29 @@ public abstract class PwmConstants {
 
 
     public static enum EDITABLE_LOCALE_BUNDLES {
-        DISPLAY(Display.class),
-        ERRORS(password.pwm.i18n.Error.class),
-        MESSAGE(Message.class),
+        DISPLAY(Display.class, false),
+        ERRORS(password.pwm.i18n.Error.class, false),
+        MESSAGE(Message.class, false),
+
+        CONFIG(password.pwm.i18n.Config.class, true),
+        ADMIN(password.pwm.i18n.Admin.class, true),
+        HEALTH(Health.class, true),
         ;
 
         private final Class theClass;
+        private final boolean adminOnly;
 
-        EDITABLE_LOCALE_BUNDLES(final Class theClass) {
+        EDITABLE_LOCALE_BUNDLES(final Class theClass, final boolean adminOnly) {
             this.theClass = theClass;
+            this.adminOnly = adminOnly;
         }
 
         public Class getTheClass() {
             return theClass;
+        }
+
+        public boolean isAdminOnly() {
+            return adminOnly;
         }
     }
 }

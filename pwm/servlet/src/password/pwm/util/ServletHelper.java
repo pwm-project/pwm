@@ -270,9 +270,17 @@ public class ServletHelper {
      * @throws Exception if unable to discover a path.
      */
     public static File figureFilepath(final String filename, final String relativePath, final ServletContext servletContext)
-            throws Exception {
+            throws Exception
+    {
+        //tomcat8+ requires path string starts with '/' character
+        final String prefixedRealPath = relativePath == null
+                ? "/" :
+                relativePath.startsWith("/")
+                        ? relativePath
+                        : "/" + relativePath;
 
-        final String realPath = servletContext.getRealPath(relativePath);
+
+        final String realPath = servletContext.getRealPath(prefixedRealPath);
 
         if (realPath == null) {
             LOGGER.warn("servlet container unable to return real file system path");
@@ -542,9 +550,6 @@ public class ServletHelper {
         for (final String attrName : sessionAttributes.keySet()) {
             newSession.setAttribute(attrName, sessionAttributes.get(attrName));
         }
-
-        //require session validation again
-        pwmSession.getSessionStateBean().setSessionVerified(false);
     }
 
     public static void handleRequestInitialization(

@@ -31,13 +31,40 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')"/>
+    <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
-    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')" value3="PWM_CONFIG.startConfigurationEditor()"/>
+    <span id="header-warning-message">
+    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    </span>
+    <script type="application/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+                new Tooltip({
+                    connectId: ['header-warning-message'],
+                    position: ['below','above'],
+                    label: '<div style="max-width:500px"><pwm:Display key="HealthMessage_Health_Config_ConfigMode" bundle="Health"/></div>'
+                });
+            });
+        });
+    </script>
     <% } else if (adminUser) { %>
-    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>" value2="PWM_MAIN.goto('/private/config/ConfigManager')"/>
+    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
-    &nbsp;&nbsp;<a onclick="PWM_CONFIG.openLogViewer()" style="font-size: smaller; float:right; cursor: pointer; padding-right: 5px; position: absolute;">View Log</a>
+    &nbsp;&nbsp;
+    <span class="fa fa-gears"></span>&nbsp;
+    <a onclick="PWM_MAIN.goto('/private/config/ConfigManager')">
+        <pwm:Display key="MenuItem_ConfigManager" bundle="Admin"/>
+    </a>
+    &nbsp;&nbsp;
+    <span class="fa fa-edit"></span>&nbsp;
+    <a onclick="PWM_CONFIG.startConfigurationEditor()">
+        <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
+    </a>
+    &nbsp;&nbsp;
+    <span class="fa fa-list-alt"></span>&nbsp;
+    <a onclick="PWM_CONFIG.openLogViewer(null)">
+        <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
+    </a>
     <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">
     </div>
     <div style="position: absolute; top: 3px; right: 3px;">
@@ -49,7 +76,7 @@
 <% if (healthCheck) { %>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.showHeaderHealth();
+        PWM_CONFIG.showHeaderHealth();
     });
 </script>
 <% } %>

@@ -56,8 +56,9 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.preloadResources(function(){
-            window.location.replace('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
+        require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
+            "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
+            PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
         });
     });
 </script>

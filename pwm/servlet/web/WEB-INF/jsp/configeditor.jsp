@@ -88,14 +88,15 @@
     </div>
     <div class="push"></div>
 </div>
+<script type="text/javascript">
+    PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_CFGEDIT.initConfigEditor();
+    });
+</script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_PWM_MAIN_INIT,"true"); %>
-<div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
-<script type="text/javascript">
-    PWM_CONFIG.initConfigPage(function(){initConfigEditor(function(){PWM_MAIN.pageLoadHandler()})});
-    PWM_VAR['setting_alwaysFloatMessages'] = true;
-</script>
+<div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

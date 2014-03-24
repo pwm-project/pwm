@@ -35,10 +35,8 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditRecord;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
-import password.pwm.i18n.Config;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.i18n.Message;
 import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -67,7 +65,6 @@ public class RestAppDataServer {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RestAppDataServer.class);
 
     public static class AppData implements Serializable {
-        public Map<String,String> PWM_STRINGS;
         public Map<String,Object> PWM_GLOBAL;
     }
 
@@ -94,6 +91,7 @@ public class RestAppDataServer {
     public static class LocaleInfo implements Serializable {
         public String description;
         public String key;
+        public boolean adminOnly;
     }
 
     public static class TemplateInfo implements Serializable {
@@ -370,7 +368,6 @@ public class RestAppDataServer {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final AppData appData = new AppData();
-        appData.PWM_STRINGS = makeDisplayData(pwmApplication, pwmSession, "Display");
         appData.PWM_GLOBAL = makeClientData(pwmApplication, pwmSession, request, response);
         return appData;
     }
@@ -402,7 +399,6 @@ public class RestAppDataServer {
         } catch (Exception e) {
             LOGGER.error(pwmSession,"error expanding macro display value: " + e.getMessage());
         }
-        displayStrings.put(Message.SUCCESS_UNKNOWN.toString(), Message.getLocalizedMessage(userLocale, Message.SUCCESS_UNKNOWN, config));
         return displayStrings;
     }
 
@@ -552,6 +548,7 @@ public class RestAppDataServer {
                 final LocaleInfo localeInfo = new LocaleInfo();
                 localeInfo.description = localeBundle.getTheClass().getSimpleName();
                 localeInfo.key = localeBundle.toString();
+                localeInfo.adminOnly = localeBundle.isAdminOnly();
                 labelMap.put(localeBundle.getTheClass().getSimpleName(),localeInfo);
             }
             returnMap.put("locales",labelMap);
@@ -565,26 +562,6 @@ public class RestAppDataServer {
                 templateMap.put(template.toString(),templateInfo);
             }
             returnMap.put("templates",templateMap);
-        }
-        {
-            final Configuration config = restRequestBean.getPwmApplication().getConfig();
-            final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
-            final ResourceBundle bundle = ResourceBundle.getBundle(Config.class.getName());
-            try {
-                final MacroMachine macroMachine = new MacroMachine(
-                        restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getUserInfoBean(),
-                        restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication())
-                );
-                for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
-                    String displayValue = LocaleHelper.getLocalizedMessage(locale, key, config, Config.class);
-                    displayValue = macroMachine.expandMacros(displayValue);
-                    displayStrings.put(key, displayValue);
-                }
-            } catch (Exception e) {
-                LOGGER.error(restRequestBean.getPwmSession(),"error assembling displayValues: " + e.getMessage());
-            }
-            returnMap.put("display",displayStrings);
         }
 
         return returnMap;

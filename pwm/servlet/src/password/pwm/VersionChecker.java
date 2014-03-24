@@ -215,7 +215,7 @@ public class VersionChecker implements PwmService {
                     returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"Version",healthMsg.toString()));
                 }
             } else {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN,"Version","Unable to check PWM current version: " + versionCheckInfoCache.getLastError().toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN,"Version","Unable to check current version: " + versionCheckInfoCache.getLastError().toDebugStr()));
             }
         }
 

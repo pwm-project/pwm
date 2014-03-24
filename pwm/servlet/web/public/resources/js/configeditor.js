@@ -139,7 +139,7 @@ function clearDivElements(parentDiv, showLoading) {
 
             var newTableData = document.createElement("td");
             newTableData.setAttribute("style", "border-width: 0");
-            newTableData.innerHTML = PWM_STRINGS['Display_PleaseWait'];
+            newTableData.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
             newTableRow.appendChild(newTableData);
         }
     }
@@ -255,7 +255,7 @@ LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeStr
         if (syntax == 'LOCALIZED_TEXT_AREA') {
             var textAreaElement = document.createElement("textarea");
             textAreaElement.setAttribute("id", inputID);
-            textAreaElement.setAttribute("value", PWM_STRINGS['Display_PleaseWait']);
+            textAreaElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
             textAreaElement.setAttribute("onchange", "LocaleTableHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
             textAreaElement.setAttribute("style", "width: 520px;");
             textAreaElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
@@ -264,7 +264,7 @@ LocaleTableHandler.addLocaleTableRow = function(parentDiv, settingKey, localeStr
         } else {
             var inputElement = document.createElement("input");
             inputElement.setAttribute("id", inputID);
-            inputElement.setAttribute("value", PWM_STRINGS['Display_PleaseWait']);
+            inputElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
             inputElement.setAttribute("onchange", "LocaleTableHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
             inputElement.setAttribute("style", "width: 520px");
             inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
@@ -1304,7 +1304,7 @@ ChangePasswordHandler.generateRandom = function(settingKey) {
         postData.chars = charMap;
         postData.noUser = true;
         PWM_MAIN.getObject('generateButton').disabled = true;
-        PWM_MAIN.getObject('generateButton').innerHTML = PWM_STRINGS['Display_PleaseWait'];
+        PWM_MAIN.getObject('generateButton').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
 
         dojo.xhrPost({
             url:PWM_GLOBAL['url-restservice'] + "/randompassword",
@@ -2020,7 +2020,7 @@ BooleanHandler.init = function(keyName) {
             id: parentDiv,
             iconClass:'dijitCheckBoxIcon',
             disabled: true,
-            showLabel: PWM_STRINGS['Display_PleaseWait']
+            showLabel: PWM_MAIN.showString('Display_PleaseWait')
         },parentDiv);
         readSetting(keyName, function(resultValue) {
             require(["dijit/registry","dojo/on"],function(registry,on){
@@ -2276,7 +2276,6 @@ function buildMenuBar() {
                         if (PWM_GLOBAL['applicationMode'] == 'CONFIGURATION') {
                             if (menuCategory['key'] != 'LDAP') {
                                 allowMenuSelect = true;
-
                             }
                         }
 
@@ -2296,7 +2295,7 @@ function buildMenuBar() {
                                         if (allowMenuSelect) {
                                             gotoSetting(menuCategory['key']);
                                         } else {
-                                            var message = (PWM_SETTINGS['display']['Warning_ConfigMustBeClosed']).replace("%1%",PWM_GLOBAL['url-context'] + "/private/config/ConfigManager")
+                                            var message = PWM_CONFIG.showString('Warning_ConfigMustBeClosed',{value1:PWM_GLOBAL['url-context'] + "/private/config/ConfigManager"});
                                             PWM_MAIN.showDialog('Notice',message);
                                         }
                                     }
@@ -2323,23 +2322,27 @@ function buildMenuBar() {
                 for (var localeMenu in PWM_SETTINGS['locales']) {
                     (function(localeMenu) {
                         var localeKey = PWM_SETTINGS['locales'][localeMenu]['key'];
-                        if (preferences['editMode'] == 'LOCALEBUNDLE' && preferences['localeBundle'] == localeKey) {
+                        var adminOnly = PWM_SETTINGS['locales'][localeMenu]['adminOnly'];
+                        var onCurrentPage = preferences['editMode'] == 'LOCALEBUNDLE' && preferences['localeBundle'] == localeKey;
+                        if (onCurrentPage) {
                             displayMenu.addChild(new MenuItem({
                                 label: localeMenu,
                                 disabled: true
                             }));
                         } else {
-                            displayMenu.addChild(new MenuItem({
-                                label: localeMenu,
-                                onClick: function() {
-                                    PWM_MAIN.showWaitDialog(null,null,function(){
-                                        preferences['editMode'] = 'LOCALEBUNDLE';
-                                        preferences['localeBundle'] = localeKey;
-                                        setConfigEditorCookie();
-                                        loadMainPageBody();
-                                    });
-                                }
-                            }));
+                            if (!adminOnly || preferences['developerMode'] == true) {
+                                displayMenu.addChild(new MenuItem({
+                                    label: localeMenu,
+                                    onClick: function() {
+                                        PWM_MAIN.showWaitDialog(null,null,function(){
+                                            preferences['editMode'] = 'LOCALEBUNDLE';
+                                            preferences['localeBundle'] = localeKey;
+                                            setConfigEditorCookie();
+                                            loadMainPageBody();
+                                        });
+                                    }
+                                }));
+                            }
                         }
                     })(localeMenu);
                 }
@@ -2536,7 +2539,7 @@ function saveConfiguration(waitForReload) {
                         PWM_MAIN.showDialog("Error",data['errorMessage'])
                     } else {
                         var bodyText = '<div style="max-width: 590px;">';
-                        bodyText += PWM_SETTINGS['display']['MenuDisplay_SaveConfig'];
+                        bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
                         bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
                         bodyText += data['data'];
                         bodyText +='</pre></div>';
@@ -2628,7 +2631,6 @@ function setConfigurationPassword(password) {
 
 PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
     PWM_VAR['toggleHelpDisplay'] = PWM_VAR['toggleHelpDisplay'] || {};
-    console.log('hi!');
     var helpDiv = PWM_MAIN.getObject('helpDiv_' + key);
     var titleId = 'title_' + key;
     var show;
@@ -2670,7 +2672,7 @@ PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
 function showConfigurationNotes() {
     var idName = 'configNotesDialog';
     var bodyText = '<textarea cols="40" rows="10" style="width: 575px; height: 300px; resize:none" onchange="writeConfigurationNotes()" id="' + idName + '">';
-    bodyText += PWM_STRINGS['Display_PleaseWait'];
+    bodyText += PWM_MAIN.showString('Display_PleaseWait');
     bodyText += '</textarea>';
     bodyText += '<button onclick="writeConfigurationNotes()" class="btn">' + PWM_MAIN.showString('Button_OK') + '</button>';
 
@@ -2733,16 +2735,17 @@ function handleResetClick(settingKey) {
     });
 }
 
-function initConfigEditor(nextFunction) {
+PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     readConfigEditorCookie();
     buildMenuBar();
 
     var hasNotes = PWM_GLOBAL['configurationNotes'] && PWM_GLOBAL['configurationNotes'].length > 0;
 
     if (hasNotes && preferences['notesSeen']) {
-        showPwmAlert(null,PWM_SETTINGS['display']['Warning_ShowNotes']);
+        showPwmAlert(null,PWM_CONFIG.showString('Warning_ShowNotes'));
     }
 
+    console.log('completed initConfigEditor');
     if (nextFunction) {
         nextFunction();
     }
@@ -2834,7 +2837,7 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
                 var bodyText = '';
                 var resultCount = 0;
                 if (PWM_MAIN.isEmpty(data['data'])) {
-                    PWM_MAIN.showSuccess(PWM_STRINGS['Display_SearchResultsNone']);
+                    PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_SearchResultsNone'));
                 } else {
                     for (var categoryIter in data['data']) {
                         var category = data['data'][categoryIter];
@@ -2979,7 +2982,7 @@ PWM_CFGEDIT.cancelEditing = function() {
                         PWM_MAIN.showDialog("Error",data['errorMessage']);
                     } else {
                         var bodyText = '<div style="max-width: 590px;">';
-                        bodyText += PWM_SETTINGS['display']['MenuDisplay_CancelConfig'];
+                        bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
                         bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
                         bodyText += data['data'];
                         bodyText +='</pre></div>';

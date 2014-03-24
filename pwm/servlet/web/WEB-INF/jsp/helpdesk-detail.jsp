@@ -20,6 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="com.novell.ldapchai.ChaiPasswordRule" %>
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
@@ -36,7 +37,6 @@
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
-<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -44,8 +44,7 @@
 <% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
 <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(request); %>
 <% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
-<% final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance(SimpleDateFormat.FULL, SimpleDateFormat.FULL,
-        pwmSession.getSessionStateBean().getLocale()); %>
+<% final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
 <% final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(
         pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
 <% final ResponseInfoBean responseInfoBean = helpdeskBean.getUserInfoBean().getResponseInfoBean(); %>
@@ -116,7 +115,7 @@
         </table>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Status">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_Status"/>">
     <table>
         <tr>
             <td class="key">
@@ -138,7 +137,7 @@
             <td class="key">
                 <pwm:Display key="Field_LastLoginTime"/>
             </td>
-            <td>
+            <td class="timestamp">
                 <%= helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()) : ""%>
             </td>
         </tr>
@@ -188,7 +187,7 @@
             <td class="key">
                 <pwm:Display key="Field_PasswordSetTime"/>
             </td>
-            <td>
+            <td class="timestamp">
                 <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
             </td>
         </tr>
@@ -204,7 +203,7 @@
             <td class="key">
                 <pwm:Display key="Field_PasswordExpirationTime"/>
             </td>
-            <td>
+            <td class="timestamp">
                 <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
             </td>
         </tr>
@@ -250,7 +249,7 @@
             <td class="key">
                 <pwm:Display key="Field_ResponsesTimestamp"/>
             </td>
-            <td>
+            <td class="timestamp">
                 <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
             </td>
         </tr>
@@ -262,7 +261,7 @@
         <table>
             <% for (final UserAuditRecord record : helpdeskBean.getAdditionalUserInfo().getUserHistory()) { %>
             <tr>
-                <td class="key" style="width:50%">
+                <td class="key timestamp" style="width:50%">
                     <%= dateFormatter.format(record.getTimestamp()) %>
                 </td>
                 <td>
@@ -284,26 +283,35 @@
         <table>
             <tr>
                 <td class="key">
-                    Policy DN
+                    <pwm:Display key="Field_Policy"/>
                 </td>
                 <td>
-                    <% if ((searchedUserInfo.getPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null) && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
-                    <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %><% } else { %>
+                    <% if ((searchedUserInfo.getPasswordPolicy() != null)
+                            && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy() != null)
+                            && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry() != null)
+                            && (searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() != null)) { %>
+                    <%= searchedUserInfo.getPasswordPolicy().getChaiPasswordPolicy().getPolicyEntry().getEntryDN() %>
+                    <% } else { %>
                     <pwm:Display key="Value_NotApplicable"/>
                     <% } %>
                 </td>
             </tr>
             <tr>
                 <td class="key">
-                    Profile
+                    <pwm:Display key="Field_Profile"/>
                 </td>
                 <td>
-                    <%= searchedUserInfo.getPasswordPolicy().getProfile() == null ? "" : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getProfile()) ? "Default" : searchedUserInfo.getPasswordPolicy().getProfile()%>
+                    <%= searchedUserInfo.getPasswordPolicy().getProfile() == null
+                            ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplication.getConfig())
+                            : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getProfile())
+                            ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_Default",pwmApplication.getConfig())
+                            : searchedUserInfo.getPasswordPolicy().getProfile()
+                    %>
                 </td>
             </tr>
             <tr>
                 <td class="key">
-                    Display
+                    <pwm:Display key="Field_Display"/>
                 </td>
                 <td>
                     <ul>
@@ -316,13 +324,25 @@
                     </ul>
                 </td>
             </tr>
+        </table>
+        <table>
             <% for (final PwmPasswordRule rule : PwmPasswordRule.values()) { %>
             <tr>
                 <td class="key">
-                    <%= rule.name() %>
+                    <%= rule.getLabel(pwmSession.getSessionStateBean().getLocale(),pwmApplication.getConfig()) %>
                 </td>
                 <td>
-                    <%= searchedUserInfo.getPasswordPolicy().getValue(rule) != null ? StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) : "" %>
+                    <% if (searchedUserInfo.getPasswordPolicy().getValue(rule) != null) { %>
+                        <% if (ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType()) { %>
+                            <% if (Boolean.parseBoolean(searchedUserInfo.getPasswordPolicy().getValue(rule))) { %>
+                            <pwm:Display key="Value_True"/>
+                            <% } else { %>
+                            <pwm:Display key="Value_False"/>
+                            <% } %>
+                        <% } else { %>
+                            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
+                        <% } %>
+                    <% } %>
                 </td>
             </tr>
             <% } %>

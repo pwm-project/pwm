@@ -202,6 +202,7 @@ public class ConfigEditorServlet extends TopServlet {
                 for (final Locale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
                     final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
                     final String localeStr = locale.toString().equalsIgnoreCase("en") ? "" : locale.toString();
+
                     defaultValueMap.put(localeStr,localeBundle.getString(keyName));
                 }
                 returnValue = defaultValueMap;

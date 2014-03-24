@@ -201,6 +201,13 @@ public class RestUserReportServer {
         if (reportInfo.getLastError() != null) {
             presentableMap.put("Last Error", reportInfo.getLastError().toDebugStr());
         }
+
+        int cachedRecords = reportService.recordsInCache();
+        presentableMap.put("Records in Cache",cachedRecords);
+        if (cachedRecords > 0) {
+            presentableMap.put("Mean Record Cache Time",reportService.getSummaryData().getMeanCacheTime());
+        }
+
         //presentableMap.put("Cached Records", reportInfo.size());
         returnMap.put("presentable",presentableMap);
         return returnMap;

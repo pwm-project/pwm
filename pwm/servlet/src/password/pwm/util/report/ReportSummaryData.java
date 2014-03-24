@@ -110,6 +110,11 @@ public class ReportSummaryData {
         return Collections.unmodifiableMap(responseStorage);
     }
 
+    public Date getMeanCacheTime()
+    {
+        return meanCacheTime;
+    }
+
     void update(UserCacheRecord userCacheRecord) {
         update(userCacheRecord, true);
     }

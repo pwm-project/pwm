@@ -24,9 +24,11 @@
 
 var PWM_SETTINGS = PWM_SETTINGS || {};
 var PWM_CONFIG = PWM_CONFIG || {};
+var PWM_GLOBAL = PWM_GLOBAL || {};
+PWM_GLOBAL['localeBundle'].push('Config');
 
 PWM_CONFIG.lockConfiguration=function() {
-    PWM_MAIN.showConfirmDialog(null,PWM_SETTINGS['display']['Confirm_LockConfig'],function(){
+    PWM_MAIN.showConfirmDialog(null,PWM_CONFIG.showString('Confirm_LockConfig'),function(){
         PWM_MAIN.showWaitDialog(null,null,function(){
             require(["dojo"],function(dojo){
                 dojo.xhrGet({
@@ -208,6 +210,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
                         PWM_SETTINGS[settingKey] = data['data'][settingKey];
                     }
                 }
+                console.log('loaded client-config data');
                 if (nextFunction) {
                     nextFunction();
                 }
@@ -220,12 +223,10 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
     });
 };
 
-PWM_CONFIG.showString=function (key) {
-    if (PWM_SETTINGS['display'] && PWM_SETTINGS['display'][key]) {
-        return PWM_SETTINGS['display'][key];
-    } else {
-        return "UNDEFINED STRING-" + key;
-    }
+PWM_CONFIG.showString=function (key, options) {
+    options = options || {};
+    options['bundle'] = 'Config';
+    return PWM_MAIN.showString(key,options);
 };
 
 PWM_CONFIG.openLogViewer=function(level) {
@@ -234,3 +235,43 @@ PWM_CONFIG.openLogViewer=function(level) {
     var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
 };
 
+PWM_CONFIG.showHeaderHealth = function() {
+    var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
+    require(["dojo"],function(dojo){
+        var parentDiv = PWM_MAIN.getObject('headerHealthData');
+        var headerDiv = PWM_MAIN.getObject('header-warning');
+        if (parentDiv && headerDiv) {
+            dojo.xhrGet({
+                url: refreshUrl,
+                handleAs: "json",
+                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
+                timeout: 60 * 1000,
+                preventCache: true,
+                load: function(data) {
+                    var healthRecords = data['data']['records'];
+                    var htmlBody = '';
+                    for (var i = 0; i < healthRecords.length; i++) {
+                        var healthData = healthRecords[i];
+                        if (healthData['status'] == 'WARN') {
+                            headerDiv.style.display = 'block';
+                            htmlBody += '<div class="header-error">';
+                            htmlBody += healthData['status'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['topic'];
+                            htmlBody += " - ";
+                            htmlBody += healthData['detail'];
+                            htmlBody += '</div>';
+                        }
+                    }
+                    parentDiv.innerHTML = htmlBody;
+                    setTimeout(function(){
+                        PWM_CONFIG.showHeaderHealth()
+                    },60 * 1000);
+                },
+                error: function(error) {
+                    console.log('unable to read header health status: ' + error);
+                }
+            });
+        }
+    });
+};

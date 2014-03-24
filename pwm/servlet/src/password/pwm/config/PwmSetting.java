@@ -718,6 +718,8 @@ public enum PwmSetting {
             "shortcut.items", PwmSettingSyntax.LOCALIZED_STRING_ARRAY, Category.SHORTCUT),
     SHORTCUT_HEADER_NAMES(
             "shortcut.httpHeaders", PwmSettingSyntax.STRING_ARRAY, Category.SHORTCUT),
+    SHORTCUT_NEW_WINDOW(
+            "shortcut.newWindow", PwmSettingSyntax.BOOLEAN, Category.SHORTCUT),
 
     // peoplesearch settings
     PEOPLE_SEARCH_ENABLE(
