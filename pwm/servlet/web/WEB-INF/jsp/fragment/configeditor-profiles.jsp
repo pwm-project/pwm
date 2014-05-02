@@ -53,31 +53,34 @@
 <% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
 <div class="profileSelectPanel">
     <label for="profileSelect">Selected Profile:</label>
-    <select id="profileSelect" data-dojo-type="dijit/form/Select" onchange="selectProfile()">
+    <select class="btn" id="profileSelect" data-dojo-type="dijit/form/Select" onchange="selectProfile()">
         <option value="">Default</option>
         <% for (final String profile : profiles) { if (profile.length() > 0) { %>
         <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> value="<%=profile%>"><%=profile%></option>
         <% } } %>
-        <option value="_!_editProfile">
-            -- Edit Profile List
-        </option>
     </select>
-    <button  onclick="selectProfile()">Go</button>
+    <button class="btn" onclick="selectProfile()">Go</button>
+    &nbsp;&nbsp;&nbsp;
+    <button class="btn" onclick="editProfiles()">Define Profiles</button>
 </div>
 <script>
     function selectProfile() {
         var element = PWM_MAIN.getObject("profileSelect");
         var profile = element.options[element.selectedIndex].value;
+        preferences['profile'] = profile;
 
-        PWM_MAIN.showWaitDialog(null,null,function(){
-            if (profile === '_!_editProfile') {
-                preferences['editMode'] = 'PROFILE';
-            } else {
-                preferences['profile'] = profile;
-            }
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
             setConfigEditorCookie();
             loadMainPageBody();
-        });
+        }});
+    }
+
+    function editProfiles() {
+        preferences['editMode'] = 'PROFILE';
+        PWM_MAIN.showWaitDialog({loadFuntion:function() {
+            setConfigEditorCookie();
+            loadMainPageBody();
+        }});
     }
 </script>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>

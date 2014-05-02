@@ -100,12 +100,13 @@ public class LDAPStatusChecker implements HealthChecker {
                     final String ageString = errorAge.asLongString();
                     final String errorDate = PwmConstants.DEFAULT_DATETIME_FORMAT.format(errorInfo.getDate());
                     final String errorMsg = errorInfo.toDebugStr();
-                    returnRecords.add(
-                            new HealthRecord(
-                                    HealthStatus.CAUTION,
-                                    makeLdapTopic(ldapProfile,pwmApplication.getConfig()),
-                                    LocaleHelper.getLocalizedMessage(null,"Health_LDAP_RecentlyUnreachable",config,Admin.class,new String[]{ageString,errorDate,errorMsg})
-                            ));
+                    returnRecords.add(HealthRecord.forMessage(
+                            HealthMessage.LDAP_RecentlyUnreachable,
+                            ldapProfile.getDisplayName(PwmConstants.DEFAULT_LOCALE),
+                            ageString,
+                            errorDate,
+                            errorMsg
+                    ));
                 }
             }
         }
@@ -128,16 +129,10 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         if (proxyUserDN.equalsIgnoreCase(testUserDN)) {
-            final String setting1 = PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> "
-                    + PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
-            final String setting2 = PwmSetting.LDAP_PROXY_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
-
-            returnRecords.add(new HealthRecord(
-                    HealthStatus.WARN,
-                    makeLdapTopic(ldapProfile, config),
-                    LocaleHelper.getLocalizedMessage(null,"Health_LDAP_ProxyTestSameUser",config,Admin.class,new String[]{setting1,setting2})
-            ));
+            returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_ProxyTestSameUser,
+                    ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                    ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_PROXY_USER_DN,ldapProfile)
+                    ));
             return returnRecords;
         }
 
@@ -157,26 +152,26 @@ public class LDAPStatusChecker implements HealthChecker {
                 theUser = ChaiFactory.createChaiUser(testUserDN, chaiProvider);
 
             } catch (ChaiUnavailableException e) {
-                returnRecords.add(new HealthRecord(
-                        HealthStatus.WARN,
-                        makeLdapTopic(ldapProfile, config),
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnavailable",config,Admin.class,new String[]{e.getMessage()})));
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnavailable,
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        e.getMessage()
+                        ));
                 return returnRecords;
             } catch (Throwable e) {
-                returnRecords.add(new HealthRecord(
-                        HealthStatus.WARN,
-                        makeLdapTopic(ldapProfile, config),
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        e.getMessage()
+                ));
                 return returnRecords;
             }
 
             try {
                 theUser.readObjectClass();
             } catch (ChaiException e) {
-                returnRecords.add(new HealthRecord(
-                        HealthStatus.WARN,
-                        makeLdapTopic(ldapProfile, config),
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserError",config,Admin.class,new String[]{e.getMessage()})));
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserError,
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                        e.getMessage()
+                ));
                 return returnRecords;
             }
 
@@ -203,26 +198,25 @@ public class LDAPStatusChecker implements HealthChecker {
                         theUser.setPassword(newPassword);
                         userPassword = newPassword;
                     } catch (ChaiPasswordPolicyException e) {
-                        returnRecords.add(new HealthRecord(
-                                HealthStatus.WARN,
-                                makeLdapTopic(ldapProfile, config),
-                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserPolicyError",config,Admin.class,new String[]{e.getMessage()})));
+                        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserPolicyError,
+                                ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                                e.getMessage()
+                        ));
                         return returnRecords;
                     } catch (Exception e) {
-                        returnRecords.add(new HealthRecord(
-                                HealthStatus.WARN,
-                                makeLdapTopic(ldapProfile, config),
-                                LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserUnexpected",config,Admin.class,new String[]{e.getMessage()})));
+                        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserUnexpected,
+                                ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile),
+                                e.getMessage()
+                        ));
                         return returnRecords;
                     }
                 }
             }
 
             if (userPassword == null) {
-                returnRecords.add(new HealthRecord(
-                        HealthStatus.WARN,
-                        makeLdapTopic(ldapProfile, config),
-                        LocaleHelper.getLocalizedMessage(null,"Health_LDAP_TestUserNoTempPass",config,Admin.class)));
+                returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserNoTempPass,
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile)
+                ));
                 return returnRecords;
             }
 
@@ -254,7 +248,7 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        returnRecords.add(new HealthRecord(HealthStatus.GOOD, makeLdapTopic(ldapProfile, config), LocaleHelper.getLocalizedMessage("Health_LDAP_TestUserOK",config,Admin.class)));
+        returnRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_TestUserOK, ldapProfile.getDisplayName(PwmConstants.DEFAULT_LOCALE)));
         return returnRecords;
     }
 
@@ -379,20 +373,34 @@ public class LDAPStatusChecker implements HealthChecker {
         for (final String loopURL : serverURLs) {
             try {
                 if (!urlUsingHostname(loopURL)) {
-                    final String msg = localizedString(pwmApplication,"Health_LDAP_AD_StaticIP",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " should be configured using a dns hostname instead of an IP address.  Active Directory can sometimes have errors when using an IP address for configuration."));
+                    returnList.add(HealthRecord.forMessage(
+                            HealthMessage.LDAP_AD_StaticIP,
+                            loopURL
+                    ));
                 }
 
                 final URI uri= URI.create(loopURL);
                 final String scheme = uri.getScheme();
                 if ("ldap".equalsIgnoreCase(scheme)) {
-                    final String msg = localizedString(pwmApplication,"Health_LDAP_AD_Unsecure",loopURL);
-                    returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), msg));
+                    returnList.add(HealthRecord.forMessage(
+                            HealthMessage.LDAP_AD_Unsecure,
+                            loopURL
+                    ));
                 }
             } catch (MalformedURLException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " is not a valid url"));
+                returnList.add(HealthRecord.forMessage(
+                        HealthMessage.Config_ParseError,
+                        e.getMessage(),
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_SERVER_URLS,ldapProfile),
+                        loopURL
+                ));
             } catch (UnknownHostException e) {
-                returnList.add(new HealthRecord(HealthStatus.WARN, makeLdapTopic(ldapProfile, config), loopURL + " is not a valid host"));
+                returnList.add(HealthRecord.forMessage(
+                        HealthMessage.Config_ParseError,
+                        e.getMessage(),
+                        ConfigurationChecker.settingToOutputText(PwmSetting.LDAP_SERVER_URLS,ldapProfile),
+                        loopURL
+                ));
             }
         }
 
@@ -512,7 +520,7 @@ public class LDAPStatusChecker implements HealthChecker {
                         final String url = chaiConfiguration.getSetting(ChaiSetting.BIND_URLS);
                         final HealthRecord record = HealthRecord.forMessage(
                                 HealthMessage.LDAP_Ad_History_Asn_Missing,
-                                ConfigurationChecker.settingToHealthLabel(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET,null),
+                                ConfigurationChecker.settingToOutputText(PwmSetting.AD_ENFORCE_PW_HISTORY_ON_SET, null),
                                 url
                         );
                         healthRecords.add(record);

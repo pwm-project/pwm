@@ -27,7 +27,6 @@
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.Helper" %>
-<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.text.DateFormat" %>
@@ -85,6 +84,7 @@
             </td>
         </tr>
         <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
+        <% if ((loopEpsType != Statistic.EpsType.DB_READS && loopEpsType != Statistic.EpsType.DB_WRITES) || pwmApplication.getConfig().hasDbConfigured()) { %>
         <tr>
             <td class="key">
                 <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
@@ -99,6 +99,7 @@
                 <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
             </td>
         </tr>
+        <% } %>
         <% } %>
     </table>
     <br/>
@@ -590,6 +591,23 @@
             <td>
                 <%= numberFormat.format(ResourceFileServlet.itemsInCache(session.getServletContext())) %>
                 (<%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>)
+            </td>
+        </tr>
+        <% Map<ContextManager.DebugKey,String> debugInfoMap = ContextManager.getContextManager(session).getDebugData(); %>
+        <tr>
+            <td class="key">
+                Session Total Size
+            </td>
+            <td>
+                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionTotalSize))) %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Session Average Size
+            </td>
+            <td>
+                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionAvgSize))) %>
             </td>
         </tr>
         <tr>

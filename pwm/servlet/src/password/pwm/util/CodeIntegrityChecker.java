@@ -32,6 +32,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.ws.server.rest.RestHealthServer;
 
@@ -177,7 +178,7 @@ public class CodeIntegrityChecker {
             final List<String> rawValues = stringArrayValue.toNativeObject();
             final Map<String,String> localeFlagMap = Configuration.convertStringListToNameValuePair(rawValues, "::");
             for (final String rawValue : localeFlagMap.keySet()) {
-                knownLocales.add(Helper.parseLocaleString(rawValue));
+                knownLocales.add(LocaleHelper.parseLocaleString(rawValue));
             }
         } catch (PwmOperationalException e) {
             throw new IllegalStateException("error reading default locale list",e);

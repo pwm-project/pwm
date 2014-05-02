@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,13 +30,14 @@ import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.ChallengeItemBean;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
 
-public class ChallengeProfile implements Serializable {
+public class ChallengeProfile implements Profile, Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChallengeProfile.class);
 
     private final String profileID;
@@ -100,9 +101,13 @@ public class ChallengeProfile implements Serializable {
         );
     }
 
-    public String getProfileID()
+    public String getIdentifier()
     {
         return profileID;
+    }
+
+    public String getDisplayName(final Locale locale) {
+        return getIdentifier();
     }
 
     public String getQueryString()
@@ -191,7 +196,7 @@ public class ChallengeProfile implements Serializable {
         final Map<String, List<ChallengeItemBean>> storedValues = (Map<String, List<ChallengeItemBean>>)value.toNativeObject();
         final Map<Locale, List<ChallengeItemBean>> availableLocaleMap = new LinkedHashMap<Locale, List<ChallengeItemBean>>();
         for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
         final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 

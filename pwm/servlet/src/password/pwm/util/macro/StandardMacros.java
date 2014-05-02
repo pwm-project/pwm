@@ -28,6 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 
 import java.net.MalformedURLException;
@@ -58,6 +59,7 @@ public abstract class StandardMacros {
         defaultMacros.add(CurrentTimeDefaultMacro.class);
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
+        defaultMacros.add(RandomCharMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -405,6 +407,49 @@ public abstract class StandardMacros {
                 LOGGER.error("unable to parse configured/detected site URL: " + e.getMessage());
             }
             return "";
+        }
+    }
+
+    public static class RandomCharMacro extends AbstractMacro {
+
+        public Pattern getRegExPattern()
+        {
+            return Pattern.compile("@RandomChar:[0-9]+(:.+)?@");
+        }
+
+        public String replaceValue(String matchValue)
+        {
+            if (matchValue == null || matchValue.length() < 1) {
+                return "";
+            }
+
+            matchValue = matchValue.replaceAll("^@|@$",""); // strip leading / trailing @
+
+            final String[] splitString = matchValue.split(":");
+            int length = 1;
+            if (splitString.length > 1) {
+                try {
+                    length = Integer.parseInt(splitString[1]);
+                } catch (NumberFormatException e) {
+                    return "[macro error: unable to parse character quantity from value '" +splitString[1]+ "', error=" + e.getMessage() + "]";
+                }
+            }
+
+            if (splitString.length > 2) {
+                String chars = splitString[2];
+                return PwmRandom.getInstance().alphaNumericString(chars,length);
+            } else {
+                return PwmRandom.getInstance().alphaNumericString(length);
+            }
+        }
+
+        public void init(
+                PwmApplication pwmApplication,
+                UserInfoBean userInfoBean,
+                UserDataReader userDataReader
+        )
+        {
+
         }
     }
 

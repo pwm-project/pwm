@@ -22,127 +22,34 @@
 
 package password.pwm.ldap;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.bean.UserIdentity;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
 
-public class UserDataReader implements Serializable {
+public interface UserDataReader {
+    String getUserDN();
 
-    private static final Boolean NULL_CACHE_VALUE = Boolean.FALSE;
+    String readStringAttribute(String attribute)
+            throws ChaiUnavailableException, ChaiOperationException;
 
-    private final Map<String,Object> cacheMap = new ConcurrentLinkedHashMap.Builder<String, Object>()
-            .maximumWeightedCapacity(100)  // safety limit
-            .build();
-    private final ChaiUser user;
-    private final UserIdentity userIdentity;
-
-    UserDataReader(UserIdentity userIdentity, ChaiUser user) {
-        this.userIdentity = userIdentity;
-        this.user = user;
-    }
-
-    public static UserDataReader appProxiedReader(
-            final PwmApplication pwmApplication,
-            final UserIdentity userIdentity
+    String readStringAttribute(
+            String attribute,
+            boolean ignoreCache
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
-        return new UserDataReader(userIdentity, user);
-    }
+                    throws ChaiUnavailableException, ChaiOperationException;
 
-    public static UserDataReader selfProxiedReader(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity
+    Date readDateAttribute(String attribute)
+                            throws ChaiUnavailableException, ChaiOperationException;
+
+    Map<String,String> readStringAttributes(Collection<String> attributes)
+                                    throws ChaiUnavailableException, ChaiOperationException;
+
+    Map<String,String> readStringAttributes(
+            Collection<String> attributes,
+            boolean ignoreCache
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        if (!userIdentity.getLdapProfileID().equals(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID())) {
-            throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
-        }
-        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
-        final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(),chaiProvider);
-        return new UserDataReader(userIdentity,chaiUser);
-
-    }
-
-    public String getUserDN() {
-        return this.user.getEntryDN();
-    }
-
-    public String readStringAttribute(final String attribute)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttribute(attribute, false);
-    }
-
-    public String readStringAttribute(final String attribute, boolean ignoreCache)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        Map<String,String> results = readStringAttributes(Collections.singletonList(attribute),ignoreCache);
-        if (results == null || results.isEmpty()) {
-            return null;
-        }
-
-        return results.values().iterator().next();
-    }
-
-    public Date readDateAttribute(final String attribute)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return user.readDateAttribute(attribute);
-    }
-
-
-    public Map<String,String> readStringAttributes(final Collection<String> attributes)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        return readStringAttributes(attributes, false);
-    }
-
-    public Map<String,String> readStringAttributes(final Collection<String> attributes, boolean ignoreCache)
-            throws ChaiUnavailableException, ChaiOperationException
-    {
-        if (user == null || attributes == null || attributes.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        if (ignoreCache) {
-            cacheMap.keySet().removeAll(attributes);
-        }
-
-        // figure out uncached attributes.
-        final List<String> uncachedAttributes = new ArrayList<String>(attributes);
-        uncachedAttributes.removeAll(cacheMap.keySet());
-
-        // read uncached attributes into cache
-        if (!uncachedAttributes.isEmpty()) {
-            final Map<String,String> readData = user.readStringAttributes(new HashSet<String>(uncachedAttributes));
-            for (final String attribute : attributes) {
-                cacheMap.put(attribute,readData.containsKey(attribute) ? readData.get(attribute) : NULL_CACHE_VALUE);
-            }
-        }
-
-        // build result data from cache
-        final Map<String,String> returnMap = new HashMap<String,String>();
-        for (final String attribute : attributes) {
-            final Object cachedValue = cacheMap.get(attribute);
-            if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {
-                returnMap.put(attribute,(String)cachedValue);
-            }
-        }
-        return returnMap;
-    }
+                                            throws ChaiUnavailableException, ChaiOperationException;
 }

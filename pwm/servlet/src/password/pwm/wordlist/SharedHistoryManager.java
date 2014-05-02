@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,23 @@
 
 package password.pwm.wordlist;
 
-import org.apache.commons.lang.CharSet;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmService;
+import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.Sleeper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringBufferInputStream;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;

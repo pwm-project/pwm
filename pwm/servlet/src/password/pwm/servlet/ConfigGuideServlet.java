@@ -165,8 +165,6 @@ public class ConfigGuideServlet extends TopServlet {
         forwardToJSP(req,resp);
     }
 
-
-
     public static void restUploadConfig(
             final HttpServletRequest req,
             final HttpServletResponse resp,
@@ -180,6 +178,10 @@ public class ConfigGuideServlet extends TopServlet {
             if (uploadedFile != null && uploadedFile.length() > 0) {
                 try {
                     final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
+                    final List<String> configErrors = storedConfig.validateValues();
+                    if (configErrors != null && !configErrors.isEmpty()) {
+                        throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,configErrors.get(0)));
+                    }
                     writeConfig(ContextManager.getContextManager(req.getSession()),storedConfig);
                     LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
                     final RestResultBean restResultBean = new RestResultBean();

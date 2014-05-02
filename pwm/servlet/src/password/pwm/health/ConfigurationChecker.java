@@ -28,10 +28,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.i18n.Admin;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.servlet.NewUserServlet;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.net.URI;
@@ -42,13 +39,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class ConfigurationChecker implements HealthChecker {
-    private static final String TOPIC = "Configuration";
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthChecker.class);
-
-    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
+    public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
+    {
         if (pwmApplication.getConfig() == null) {
-            final HealthRecord hr = new HealthRecord(HealthStatus.WARN, TOPIC, "Unable to read configuration");
-            return Collections.singletonList(hr);
+            return Collections.emptyList();
         }
 
         final Configuration config = pwmApplication.getConfig();
@@ -59,38 +53,31 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
-            records.add(HealthRecord.forMessage(HealthMessage.Health_Config_ConfigMode));
+            records.add(HealthRecord.forMessage(HealthMessage.Config_ConfigMode));
         }
 
         if (PwmConstants.UNCONFIGURED_URL_VALUE.equals(pwmApplication.getSiteURL())) {
-            final String value = PwmSetting.PWM_URL.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> " + PwmSetting.PWM_URL.getLabel(PwmConstants.DEFAULT_LOCALE);
-
-            records.add(new HealthRecord(HealthStatus.WARN, TOPIC, localizedString(pwmApplication,"Health_Config_NoSiteURL",value)));
+            records.add(
+                    HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, settingToOutputText(PwmSetting.PWM_URL)));
         }
 
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
-            final String value = PwmSetting.REQUIRE_HTTPS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> " + PwmSetting.REQUIRE_HTTPS.getLabel(PwmConstants.DEFAULT_LOCALE);
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_RequireHttps",value)));
+            records.add(HealthRecord.forMessage(HealthMessage.Config_RequireHttps,settingToOutputText(PwmSetting.REQUIRE_HTTPS)));
         }
 
         if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_PromiscuousLDAP","AppProperty -> " + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey())));
+            final String appPropertyKey = "AppProperty -> " + AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey();
+            records.add(HealthRecord.forMessage(HealthMessage.Config_PromiscuousLDAP, appPropertyKey));
         }
 
         if (config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
-            final String value = PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> " + PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS.getLabel(PwmConstants.DEFAULT_LOCALE);
-            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication, "Health_Config_ShowDetailedErrors", value)));
+            records.add(HealthRecord.forMessage(HealthMessage.Config_ShowDetailedErrors,settingToOutputText(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)));
         }
 
         for (final LdapProfile ldapProfile : config.getLdapProfiles().values()) {
             final String testUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_TEST_USER_DN);
-            if (testUserDN == null || testUserDN.length() < 1 ) {
-                final String value = PwmSetting.LDAP_TEST_USER_DN.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                        + " -> " + PwmSetting.LDAP_TEST_USER_DN.getLabel(PwmConstants.DEFAULT_LOCALE);
-                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication, "Health_Config_AddTestUser", value)));
+            if (testUserDN == null || testUserDN.length() < 1) {
+                records.add(HealthRecord.forMessage(HealthMessage.Config_AddTestUser,settingToOutputText(PwmSetting.LDAP_TEST_USER_DN,ldapProfile)));
             }
         }
 
@@ -103,31 +90,46 @@ public class ConfigurationChecker implements HealthChecker {
                             final URI url = new URI(urlStringValue);
                             final boolean secure = "ldaps".equalsIgnoreCase(url.getScheme());
                             if (!secure) {
-                                final String value = PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                                        + " -> " + PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE);
-                                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication, "Health_Config_LDAPUnsecure", value, urlStringValue)));
+                                records.add(HealthRecord.forMessage(
+                                        HealthMessage.Config_LDAPUnsecure,
+                                        settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile)
+                                ));
                             }
                         } catch (URISyntaxException e) {
-                            final String value = PwmSetting.LDAP_SERVER_URLS.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                                    + " -> " + PwmSetting.LDAP_SERVER_URLS.getLabel(PwmConstants.DEFAULT_LOCALE);
-                            records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication, "Health_Config_LDAPParseError", value, urlStringValue)));
+                            records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
+                                    e.getMessage(),
+                                    settingToOutputText(PwmSetting.LDAP_SERVER_URLS, ldapProfile),
+                                    urlStringValue
+                            ));
                         }
                     }
                 }
             }
         }
 
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (PwmSettingSyntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(setting)) {
-                final String passwordValue = config.readSettingAsString(setting);
+        {
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (PwmSettingSyntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(
+                        setting) && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                    final String passwordValue = config.readSettingAsString(setting);
+                    final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
+                    if (strength < 50) {
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
+                                settingToOutputText(setting, null), String.valueOf(strength)));
+                    }
+                }
+            }
+            for (final LdapProfile profile : config.getLdapProfiles().values()) {
+                final String passwordValue = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
                 final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
                 if (strength < 50) {
-                    final String value = setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                            + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE);
-                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication, "Health_Config_WeakPassword", value, String.valueOf(strength))));
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
+                            settingToOutputText(PwmSetting.LDAP_PROXY_USER_PASSWORD, profile),
+                            String.valueOf(strength)));
                 }
             }
         }
+
 
         {
             final String novellUserAppURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
@@ -136,11 +138,14 @@ public class ConfigurationChecker implements HealthChecker {
                     final URI url = new URI(novellUserAppURL);
                     final boolean secure = "https".equalsIgnoreCase(url.getScheme());
                     if (!secure) {
-                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "UserApp Password SOAP Service URL is not secure (https)"));
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_URLNotSecure,settingToOutputText(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL)));
                     }
                 } catch (URISyntaxException e) {
-                    LOGGER.debug("error parsing Novell PwdMgt Web Service URL: " + e.getMessage());
-                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, "error parsing Novell PwdMgt Web Service URL: " + e.getMessage()));
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_ParseError,
+                            e.getMessage(),
+                            settingToOutputText(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL, null),
+                            novellUserAppURL
+                    ));
                 }
             }
         }
@@ -150,7 +155,7 @@ public class ConfigurationChecker implements HealthChecker {
                 if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == MessageSendMethod.NONE) {
                     final Collection<FormConfiguration> formSettings = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
                     if (formSettings == null || formSettings.isEmpty()) {
-                        records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_NoRecoveryEnabled")));
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_NoRecoveryEnabled));
                     }
                 }
             }
@@ -159,7 +164,7 @@ public class ConfigurationChecker implements HealthChecker {
 
         if (!config.hasDbConfigured()) {
             if (config.helper().shouldHaveDbConfigured()) {
-                records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_MissingDB")));
+                records.add(HealthRecord.forMessage(HealthMessage.Config_MissingDB));
             }
         }
 
@@ -167,11 +172,10 @@ public class ConfigurationChecker implements HealthChecker {
         if (!hasResponseAttribute) {
             for (final PwmSetting loopSetting : new PwmSetting[] {PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE}) {
                 if (config.getResponseStorageLocations(loopSetting).contains(DataStorageMethod.LDAP)) {
-                    final String value1 = loopSetting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                            + " -> " + loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE);
-                    final String value2 = PwmSetting.CHALLENGE_USER_ATTRIBUTE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                            + " -> " + PwmSetting.CHALLENGE_USER_ATTRIBUTE.getLabel(PwmConstants.DEFAULT_LOCALE);
-                    records.add(new HealthRecord(HealthStatus.CONFIG, TOPIC, localizedString(pwmApplication,"Health_Config_MissingLDAP",value1,value2)));
+                    records.add(HealthRecord.forMessage(HealthMessage.Config_MissingLDAPResponseAttr,
+                            settingToOutputText(loopSetting),
+                            settingToOutputText(PwmSetting.CHALLENGE_USER_ATTRIBUTE)
+                            ));
                 }
             }
         }
@@ -185,21 +189,24 @@ public class ConfigurationChecker implements HealthChecker {
         }
 
         if (config.getResponseStorageLocations(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE).contains(DataStorageMethod.LOCALDB)) {
-            final String value1 = PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                    + " -> " + PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getLabel(PwmConstants.DEFAULT_LOCALE);
-            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, new String[]{value1}));
+            records.add(HealthRecord.forMessage(HealthMessage.Config_UsingLocalDBResponseStorage, settingToOutputText(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE)));
         }
 
         return records;
     }
 
-    private String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
-        return LocaleHelper.getLocalizedMessage(null,key,pwmApplication.getConfig(),Admin.class,values);
+    public static String settingToOutputText(
+            final PwmSetting setting
+    ) {
+        return settingToOutputText(setting,null);
     }
 
-    public static String settingToHealthLabel(final PwmSetting setting, final String profileID) {
+    public static String settingToOutputText(
+            final PwmSetting setting,
+            final Profile profile
+    ) {
         return setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE);
-
+                + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE) +
+                (profile != null ? " (" + profile.getDisplayName(PwmConstants.DEFAULT_LOCALE) + ")" : "");
     }
 }

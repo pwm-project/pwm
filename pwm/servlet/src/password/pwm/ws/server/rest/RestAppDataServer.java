@@ -282,6 +282,7 @@ public class RestAppDataServer {
         return restResultBean.asJsonResponse();
     }
 
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/client/{eTagUri}")
@@ -295,11 +296,7 @@ public class RestAppDataServer {
         final int maxCacheAgeSeconds = 60 * 5;
         final RestRequestBean restRequestBean;
         try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(false);
-            servicePermissions.setAuthRequired(false);
-            servicePermissions.setBlockExternal(false);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, ServicePermissions.PUBLIC, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -415,6 +412,7 @@ public class RestAppDataServer {
         settingMap.put("client.ajaxTypingTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_TIMEOUT)));
         settingMap.put("client.ajaxTypingWait", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
         settingMap.put("client.activityMaxEpsRate", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
+        settingMap.put("client.pwShowRevertTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_PW_SHOW_REVERT_TIMEOUT)));
         settingMap.put("enableIdleTimeout", config.readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT));
         settingMap.put("pageLeaveNotice", config.readSettingAsLong(PwmSetting.SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT));
         settingMap.put("setting-showHidePasswordFields",pwmApplication.getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_SHOW_HIDE_PASSWORD_FIELDS));
@@ -488,7 +486,7 @@ public class RestAppDataServer {
             for (final Locale locale : pwmApplication.getConfig().getKnownLocales()) {
                 final String flagCode = pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale);
                 localeFlags.put(locale.toString(),flagCode);
-                localeInfo.put(locale.toString(),locale.getDisplayLanguage() + " - " + locale.getDisplayLanguage(locale));
+                localeInfo.put(locale.toString(),locale.getDisplayName() + " - " + locale.getDisplayLanguage(locale));
                 localeDisplayNames.put(locale.toString(),locale.getDisplayLanguage());
             }
 

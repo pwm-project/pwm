@@ -41,11 +41,13 @@
     if (incrementRequestCounter && pwmSessionHeader != null) {
         pwmSessionHeader.getSessionManager().incrementRequestCounter();
     }
+
+    final String jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
 %>
 <head>
     <title><pwm:Display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>"/>
+    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>" data-jsp-name="<%=jspFileName%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%><pwm:url url='/public/resources/favicon.ico'/>"/>

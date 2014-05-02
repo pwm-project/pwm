@@ -49,7 +49,7 @@
     </setting>
     <setting key="pwm.publishStats.siteDescription" level="0">
         <label>Site Description</label>
-        <description><![CDATA[If Anonymous statistics publishing is enabled, this optional site description is published along with the otherwise anonymous statisics.  This can be an organization name, or other similar value.]]></description>
+        <description><![CDATA[If Anonymous statistics publishing is enabled, this optional site description is published along with the otherwise anonymous statistics.  This can be an organization name, or other similar value.]]></description>
         <regex>^.{0,100}$</regex>
         <default>
             <value />
@@ -111,11 +111,13 @@
             <value><![CDATA[no::no]]></value>
             <value><![CDATA[nn::no]]></value>
             <value><![CDATA[pl::pl]]></value>
+            <value><![CDATA[pt_BR::br]]></value>
             <value><![CDATA[pt::pt]]></value>
             <value><![CDATA[sk::sk]]></value>
             <value><![CDATA[th::th]]></value>
             <value><![CDATA[tr::tr]]></value>
             <value><![CDATA[zh::cn]]></value>
+            <value><![CDATA[zh_TW::tw]]></value>
         </default>
     </setting>
     <setting key="interface.theme" level="0" required="true">
@@ -154,8 +156,8 @@
         </default>
     </setting>
     <setting key="display.showHidePasswordFields" level="0" required="true">
-        <label>Show Show/Hide Password Button</label>
-        <description><![CDATA[Where available, allow the user to toggle the show/hide password field option.]]></description>
+        <label>Show Show/Hide Password Field Button</label>
+        <description><![CDATA[Where available, allow the user to toggle the show/hide password field option.  This setting applies to all HTML masked password fields, regardless of the actual data type.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -451,6 +453,9 @@
         <default template="AD">
             <value><![CDATA[(&(objectClass=person)(|(sAMAccountName=%USERNAME%)(cn=%USERNAME%)(mail=%USERNAME%)))]]></value>
         </default>
+        <default template="ORACLE_DS">
+            <value><![CDATA[(&(objectClass=person)(uid=%USERNAME%))]]></value>
+        </default>
     </setting>
     <setting key="ldap.addObjectClasses" level="1">
         <label>Auto Add Object Classes</label>
@@ -467,6 +472,9 @@
         <default>
             <value><![CDATA[pwmLastPwdUpdate]]></value>
         </default>
+        <default template="ORACLE_DS">
+            <value></value>
+        </default>
     </setting>
     <setting key="ldap.guidAttribute" level="0" required="true">
         <label>LDAP GUID Attribute</label>
@@ -475,6 +483,9 @@
         <default>
             <value><![CDATA[VENDORGUID]]></value>
         </default>
+        <default template="ORACLE_DS">
+            <value><![CDATA[pwmGUID]]></value>
+        </default>
     </setting>
     <setting key="ldap.namingAttribute" level="0" required="true">
         <label>LDAP Naming Attribute</label>
@@ -482,6 +493,9 @@
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[cn]]></value>
+        </default>
+        <default template="ORACLE_DS">
+            <value><![CDATA[uid]]></value>
         </default>
     </setting>
     <setting key="ldap.idleTimeout" level="0" required="true">
@@ -496,6 +510,9 @@
         <description><![CDATA[If true, A unique GUID value will be created and assigned for any user attempting to authenticate that does not have a value.  The value will be written to the attribute named in the LDAP GUID Attribute setting.]]></description>
         <default>
             <value>false</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>true</value>
         </default>
     </setting>
     <setting key="ldapChaiSettings" level="1">
@@ -1233,9 +1250,26 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="password.policy.charGroup.minimumMatch" level="1" required="false">
+        <label>Minimum Character Groups Required</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.charGroup.regExValues" level="1" required="false">
+        <label>Character Group Definitions</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value><![CDATA[.*[0-9]]]></value>
+            <value><![CDATA[.*[a-z]]]></value>
+            <value><![CDATA[.*[A-Z]]]></value>
+            <value><![CDATA[.*[^A-Za-z0-9]]]></value>
+        </default>
+    </setting>
     <setting key="pwm.wordlist.location" level="0">
         <label>Wordlist File</label>
-        <description><![CDATA[Specify a worldlist for dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included contains commonly used English passwords.  More comprehensive wordlists are available.  <br/><br/>The first time a startup occurs with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information.  The wordlist file format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.  If a full path is not specified, the applications <i>WEB-INF</i> directory is assumed.]]></description>
+        <description><![CDATA[Specify a word list for dictionary checking to prevent users from using commonly used words as passwords.   Using wordists is an important part of password security.  Wordlists are used by intruders to guess common passwords.   The default wordlist included contains commonly used English passwords.  More comprehensive wordlists are available.  <br/><br/>The first time a startup occurs with a new wordlist setting, it will take some time to compile the wordlist into a database.  See the status screen/logs for progress information.  The wordlist file format is one or more text files containing a single word per line, enclosed in a ZIP file.  The String <i>!#comment:</i> at the beginning of a line indicates a comment.  If a full path is not specified, the applications <i>WEB-INF</i> directory is assumed.]]></description>
         <default>
             <value><![CDATA[wordlist.zip]]></value>
         </default>
@@ -1543,7 +1577,7 @@
         <default>
             <value/>
         </default>
-        <regex>^(udp|tcp)\,.+\,[0-9]*$</regex>
+        <regex>^(udp|tcp|sslTcp)\,.+\,[0-9]*$</regex>
     </setting>
     <setting key="token.storageMethod" level="0" required="true">
         <label>Token Storage Method</label>
@@ -2206,7 +2240,7 @@
     </setting>
     <setting key="newUser.createContext" level="0" required="true">
         <label>Creation Context</label>
-        <description><![CDATA[LDAP context for new users to be created in.]]></description>
+        <description><![CDATA[LDAP context for new users to be created in.  Macros are permitted in this setting.  The Default LDAP profile will always be used for new user creation.]]></description>
         <default>
             <value><![CDATA[ou=users,o=example]]></value>
         </default>
@@ -2242,18 +2276,11 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="newUser.username.characters" level="1">
-        <label>Random Username Characters</label>
-        <description><![CDATA[Available characters for the new username.  If blank, a random LDAP entry name will not be generated and the <i>LDAP Naming Attribute</i> must be included in the form.]]></description>
+    <setting key="newUser.username.definition" level="0">
+        <label>Username definition</label>
+        <description><![CDATA[]]></description>
         <default>
-            <value><![CDATA[ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789]]></value>
-        </default>
-    </setting>
-    <setting key="newUser.username.length" level="1">
-        <label>Random Username Length</label>
-        <description><![CDATA[Length of the new username.  If set to 0, a random LDAP entry name will not be generated and the <i>LDAP Naming Attribute</i> must be included in the form.]]></description>
-        <default>
-            <value>16</value>
+            <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
         </default>
     </setting>
     <setting key="newUser.email.verification" level="0">
@@ -2277,7 +2304,7 @@
             <value><![CDATA[TESTUSER]]></value>
         </default>
     </setting>
-    <setting key="newUser.minimumWaitTime" level="0">
+    <setting key="newUser.minimumWaitTime" level="1">
         <label>New User Minimum Wait Time</label>
         <description><![CDATA[During a new user creation, the user will be delayed for at least this amount of time before forwarding the user to the next activity.  <br/><br/>Value is specified in seconds.]]></description>
         <default>
@@ -2489,7 +2516,7 @@
     </setting>
     <setting key="updateAttributes.writeAttributes" level="0">
         <label>Update Write Actions</label>
-        <description><![CDATA[Actions to execute after a user's attributes are populated.  Typically this is used to put some searchable indicator on the user object.<br/><br/>.  Macros may be used.]]></description>
+        <description><![CDATA[Actions to execute after a user's attributes are populated.]]></description>
         <default />
     </setting>
     <setting key="updateAttributes.form" level="0" required="true">
@@ -2716,6 +2743,20 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="ldap.oracleDS.enable.manipAllowChangeTime" level="0" required="true">
+        <label>Allow Manipulation of PasswordAllowChangeTime</label>
+        <description><![CDATA[If enabled, during the forgotten password recovery sequence, allow manipulation of the allowPasswordChangeTime attribute.  This allows forgotten password functionality with expected behavior when a policy of minimum time between password changes is enforced.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="ldap.oracleDS.allowAuth.requireNewPassword" level="0" required="true">
+        <label>Allow Authentication When "Require Password Change at First Login and After Reset" Is Set</label>
+        <description><![CDATA[Oracle Directory Server will normally fail an ldap login attempt when the user's <i>pwdReset</i> attribute is set due to an administrator password set.  If this option is enabled, the system will allow login even though the ldap bind has failed.  The user will only be able to set a new password when this condition occurs.  No other functions will be available until the password has been set (and this flag is cleared).]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="helpdesk.enable" level="0">
         <label>Enable Helpdesk Module</label>
         <description><![CDATA[Enable Helpdesk Module]]></description>
@@ -2759,6 +2800,13 @@
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="">
+            <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="helpdesk.detail.form" level="0" required="true">
@@ -3402,6 +3450,10 @@
         <label>Active Directory</label>
         <description><![CDATA[Active Directory specific settings]]></description>
     </category>
+    <category key="ORACLE_DS">
+        <label>Oracle DS</label>
+        <description><![CDATA[Oracle Directory Server specific settings]]></description>
+    </category>
     <category key="DATABASE">
         <label>Database (Remote)</label>
         <description><![CDATA[Optional database configuration settings.  If configured, a remote RDBMS SQL-complaint database can be used to store data for certain functions.  Any standard RDBMS that supports a standard Java JDBC driver can work.  Upon startup, a database connection will be made and any necessary tables and schema will be created.  Multiple application instances can be configured for the same database instance.]]></description>
@@ -3463,6 +3515,9 @@
     </template>
     <template key="AD">
         <label>Active Directory</label>
+    </template>
+    <template key="ORACLE_DS">
+        <label>Oracle Directory Server</label>
     </template>
     <template key="DEFAULT">
         <label>OpenLDAP, DirectoryServer389, Others</label>

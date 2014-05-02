@@ -69,9 +69,9 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
             LOGGER.fatal("JAVA OUT OF MEMORY ERROR!, please allocate more memory for java: " + e.getMessage(),e);
             throw e;
         } catch (Exception e) {
-            LOGGER.fatal("error initializing pwm context: " + e, e);
-            System.err.println("error initializing pwm context: " + e);
-            System.out.println("error initializing pwm context: " + e);
+            LOGGER.fatal("error initializing context: " + e, e);
+            System.err.println("error initializing context: " + e);
+            System.out.println("error initializing context: " + e);
             e.printStackTrace();
         }
     }
@@ -82,7 +82,7 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
             final ContextManager contextManager = ContextManager.getContextManager(servletContextEvent.getServletContext());
             contextManager.shutdown();
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to destroy pwm context: " + e.getMessage());
+            LOGGER.error("unable to destroy context: " + e.getMessage());
         }
     }
 
@@ -94,7 +94,7 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
             LOGGER.trace(pwmSession,"passivating session");
             pwmSession.getSessionManager().closeConnections();
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to passivate pwm context: " + e.getMessage());
+            LOGGER.error("unable to passivate session: " + e.getMessage());
         }
     }
 
@@ -103,9 +103,12 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
             LOGGER.trace(pwmSession,"activating (de-passivating) session");
+            ContextManager.getContextManager(event.getSession()).addPwmSession(pwmSession);
         } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unable to activate  pwm context: " + e.getMessage());
+            LOGGER.error("unable to activate (de-passivate) session: " + e.getMessage());
         }
     }
+
+
 }
 

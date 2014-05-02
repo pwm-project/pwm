@@ -39,6 +39,7 @@ public class ChangePasswordBean implements PwmSessionBean {
     private boolean currentPasswordPassed;
     private boolean formPassed;
     private boolean allChecksPassed;
+    private boolean nextAllowedTimePassed;
 
     private PasswordChangeProgressChecker.ProgressTracker changeProgressTracker;
     private Date changePasswordMaxCompletion;
@@ -104,6 +105,16 @@ public class ChangePasswordBean implements PwmSessionBean {
     public void setChangePasswordMaxCompletion(Date changePasswordMaxCompletion)
     {
         this.changePasswordMaxCompletion = changePasswordMaxCompletion;
+    }
+
+    public boolean isNextAllowedTimePassed()
+    {
+        return nextAllowedTimePassed;
+    }
+
+    public void setNextAllowedTimePassed(boolean nextAllowedTimePassed)
+    {
+        this.nextAllowedTimePassed = nextAllowedTimePassed;
     }
 }
 

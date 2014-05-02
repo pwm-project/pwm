@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class LdapProfile {
+public class LdapProfile implements Profile {
     final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP_PROFILE));
 
     final protected String identifier;
@@ -38,6 +38,7 @@ public class LdapProfile {
         this.storedValueMap = storedValueMap;
     }
 
+    @Override
     public String getIdentifier() {
         return identifier;
     }
@@ -83,6 +84,7 @@ public class LdapProfile {
         return Configuration.JavaTypeConverter.valueToLocalizedString(storedValueMap.get(setting), locale);
     }
 
+    @Override
     public String getDisplayName(final Locale locale) {
         final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
         final String returnDisplayName = displayName == null || displayName.length() < 1 ? identifier : displayName;

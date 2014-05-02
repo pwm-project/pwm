@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import password.pwm.util.Helper;
 
 import java.util.*;
 
-public class ActionValue implements StoredValue {
+public class ActionValue extends AbstractValue implements StoredValue {
     final List<ActionConfiguration> values;
 
     public ActionValue(final List<ActionConfiguration> values) {
@@ -91,10 +91,6 @@ public class ActionValue implements StoredValue {
         return Collections.unmodifiableList(values);
     }
 
-    public String toString() {
-        return Helper.getGson().toJson(values);
-    }
-
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.get(0) == null) {
@@ -120,9 +116,5 @@ public class ActionValue implements StoredValue {
         }
 
         return Collections.emptyList();
-    }
-
-    public String toDebugString() {
-        return toString();
     }
 }

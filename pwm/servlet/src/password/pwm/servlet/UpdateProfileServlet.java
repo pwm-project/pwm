@@ -41,6 +41,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
@@ -374,7 +375,7 @@ public class UpdateProfileServlet extends TopServlet {
         }
 
         // send email
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, new UserIdentity(
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, new UserIdentity(
                 pwmSession.getUserInfoBean().getUserIdentity().getUserDN(),
                 pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID()
         ));

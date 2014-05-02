@@ -403,6 +403,23 @@ public class PwmPasswordRuleValidator {
             }
         }
 
+        // check char group matches
+        if (ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch) > 0) {
+            final List<Pattern> ruleGroups = ruleHelper.getCharGroupValues();
+            if (ruleGroups != null && !ruleGroups.isEmpty()) {
+                final int requiredMatches = ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch);
+                int matches = 0;
+                for (final Pattern pattern : ruleGroups) {
+                    if (pattern.matcher(password).find()) {
+                        matches++;
+                    }
+                }
+                if (matches < requiredMatches) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_GROUPS));
+                }
+            }
+        }
+
         // check if the password is in the dictionary.
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
             if (pwmApplication != null) {
@@ -560,7 +577,7 @@ public class PwmPasswordRuleValidator {
             return Collections.emptyList();
         }
 
-        sendData.put("passwordPolicy",password);
+        sendData.put("password",password);
         if (pwmPasswordPolicy != null) {
             final LinkedHashMap<String,Object> policyData = new LinkedHashMap<String, Object>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {

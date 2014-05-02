@@ -41,6 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -125,7 +126,8 @@ public class ActionExecutor {
         String url = actionConfiguration.getUrl();
         String body = actionConfiguration.getBody();
         final UserInfoBean userInfoBean = settings.getUserInfoBean();
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,settings.getUserInfoBean().getUserIdentity());
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication,
+                settings.getUserInfoBean().getUserIdentity());
         final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, userDataReader);
 
         try {

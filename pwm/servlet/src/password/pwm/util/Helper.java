@@ -47,6 +47,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.macro.MacroMachine;
@@ -586,7 +587,7 @@ public class
 
         final Map<Locale,String> localeMap = new LinkedHashMap<Locale, String>();
         for (final String localeStringKey : inputMap.keySet()) {
-            localeMap.put(parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
+            localeMap.put(LocaleHelper.parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
         }
 
         final Locale selectedLocale = localeResolver(desiredLocale, localeMap.keySet());
@@ -631,31 +632,6 @@ public class
         }
 
         return null;
-    }
-
-    public static Locale parseLocaleString(final String localeString) {
-        if (localeString == null) {
-            return PwmConstants.DEFAULT_LOCALE;
-        }
-
-        final StringTokenizer st = new StringTokenizer(localeString, "_");
-
-        if (!st.hasMoreTokens()) {
-            return PwmConstants.DEFAULT_LOCALE;
-        }
-
-        final String language = st.nextToken();
-        if (!st.hasMoreTokens()) {
-            return new Locale(language);
-        }
-
-        final String country = st.nextToken();
-        if (!st.hasMoreTokens()) {
-            return new Locale(language, country);
-        }
-
-        final String variant = st.nextToken("");
-        return new Locale(language, country, variant);
     }
 
     public static void rotateBackups(final File inputFile, final int maxRotate) {

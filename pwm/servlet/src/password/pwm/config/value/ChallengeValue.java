@@ -34,7 +34,7 @@ import password.pwm.util.PwmLogger;
 
 import java.util.*;
 
-public class ChallengeValue implements StoredValue {
+public class ChallengeValue extends AbstractValue implements StoredValue {
     final static private PwmLogger LOGGER = PwmLogger.getLogger(ChallengeValue.class);
     final Map<String, List<ChallengeItemBean>> values;
 
@@ -99,10 +99,6 @@ public class ChallengeValue implements StoredValue {
         return Collections.unmodifiableMap(values);
     }
 
-    public String toString() {
-        return Helper.getGson().toJson(values);
-    }
-
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
             if (values == null || values.size() < 1 || values.keySet().iterator().next().length() < 1) {
@@ -133,11 +129,6 @@ public class ChallengeValue implements StoredValue {
 
         return Collections.emptyList();
     }
-
-    public String toDebugString() {
-        return toString();
-    }
-
 
     private static ChallengeItemBean parseOldVersionString(
             final String inputString

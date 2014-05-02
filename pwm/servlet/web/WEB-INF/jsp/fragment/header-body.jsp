@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -50,24 +50,37 @@
     <div style="position: absolute; text-align:left; border-width:0; top: 19px; left:18px;">
         <br/><%-- balance div for ie 6 --%>
     </div>
-    <%-- this section handles the logout link (if user is logged in) --%>
-    <div style="position: absolute; text-align:right; border-width:0; top: 19px; right:50px;">
-        <div style="visibility: <%=showHome ? "inline" : "hidden"%>" id="homebuttonDiv">
-            <a id="HomeButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/'/>"
-               title="<pwm:Display key="Button_Home"/>">
-            </a>
-        </div>
-    </div>
-    <div style="position: absolute; text-align:right; border-width:0; top: 19px; right:18px;">
-        <div style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="logoutDiv">
-            <a id="LogoutButton" style="margin-left: auto" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>"
-               title="<pwm:Display key="Button_Logout"/>">
-            </a>
-        </div>
-    </div>
     <div id="header-right-logo" style="position: absolute">
     </div>
-    <div id="header-page"><pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
-    <div id="header-title"><pwm:Display key="Title_Application"/></div>
+    <div id="header-center">
+        <div id="header-center-left">
+            <div id="header-page"><pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
+            <div id="header-title"><pwm:Display key="Title_Application"/></div>
+        </div>
+        <div id="header-center-right">
+            <%-- this section handles the home button link (if user is logged in) --%>
+            <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/'/>" style="visibility: <%=showHome ? "inline" : "hidden"%>" id="HomeButton">
+                <span class="fa fa-home"></span>&nbsp;
+                <pwm:Display key="Button_Home"/>
+            </a>
+                <%-- this section handles the logout link (if user is logged in) --%>
+            <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
+                <span class="fa fa-sign-out"></span>&nbsp;
+                <pwm:Display key="Button_Logout"/>
+            </a>
+        </div>
+    </div>
 </div>
-
+<% if (showLogout) { %>
+<script type="application/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dijit/Tooltip"],function(Tooltip){
+            new Tooltip({
+                connectId: ['LogoutButton'],
+                position: ['below','above'],
+                label: '<div style="max-width:500px"><pwm:Display key="Long_Title_Logout"/></div>'
+            });
+        });
+    });
+</script>
+<% } %>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
@@ -56,7 +57,7 @@ public class LocalDbCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
-            final String errorMsg = "user " + theUser.getEntryDN() + " does not have a pwmGUID, unable to search for responses in PwmDB";
+            final String errorMsg = "unable to read guid for user " + userIdentity.toString() + ", unable to search for responses in LocalDB";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_GUID, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }

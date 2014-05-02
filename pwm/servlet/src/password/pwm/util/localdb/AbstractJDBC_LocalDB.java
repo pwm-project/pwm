@@ -249,6 +249,7 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
             final LocalDB.LocalDBIterator iterator = new DbIterator(db);
             dbIterators.add(iterator);
+            LOGGER.trace(this.getClass().getSimpleName() + " issued iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size());
             return iterator;
         } catch (Exception e) {
             throw new LocalDBException(new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,e.getMessage()));

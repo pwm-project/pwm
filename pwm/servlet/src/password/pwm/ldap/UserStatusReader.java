@@ -211,7 +211,7 @@ public class UserStatusReader {
         uiBean.setUserCurrentPassword(userCurrentPassword);
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), provider);
-        final UserDataReader userDataReader = new UserDataReader(userIdentity, theUser);
+        final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, theUser);
 
         try {
             uiBean.setUserIdentity(new UserIdentity(theUser.readCanonicalDN(),userIdentity.getLdapProfileID()));

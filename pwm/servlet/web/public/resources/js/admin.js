@@ -115,6 +115,7 @@ PWM_ADMIN.initReportDataGrid=function() {
         "lastLoginTime":PWM_ADMIN.showString("Field_Report_LastLogin"),
         "hasResponses":PWM_ADMIN.showString("Field_Report_HasResponses"),
         "responseStorageMethod":PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),
+        "responseFormatType":PWM_ADMIN.showString("Field_Report_ResponseFormatType"),
         "requiresPasswordUpdate":PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate"),
         "requiresResponseUpdate":PWM_ADMIN.showString("Field_Report_RequiresResponseUpdate"),
         "requiresProfileUpdate":PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate"),
@@ -138,6 +139,7 @@ PWM_ADMIN.initReportDataGrid=function() {
             PWM_MAIN.getObject('grid-hider-menu-check-ldapProfile').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userGUID').click();
             PWM_MAIN.getObject('grid-hider-menu-check-responseStorageMethod').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-responseFormatType').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
             PWM_ADMIN.refreshReportDataGrid();
         });
@@ -258,9 +260,8 @@ PWM_ADMIN.reportAction=function(action) {
         confirmText = PWM_ADMIN.showString('Confirm_Report_Clear');
         successText = PWM_ADMIN.showString('Display_Clear_Report_Success');
     }
-    var confirmText = '<div style="max-width: 350px">' + confirmText + '</div>';
     PWM_MAIN.showConfirmDialog(null,confirmText,function(){
-        PWM_MAIN.showWaitDialog(null,null,function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
             setTimeout(function(){
                 require(["dojo"],function(dojo){
                     var url = PWM_GLOBAL['url-restservice'] + "/command/report/" + action;
@@ -271,10 +272,10 @@ PWM_ADMIN.reportAction=function(action) {
                         handleAs: 'json',
                         load: function() {
                             PWM_MAIN.closeWaitDialog();
-                            PWM_MAIN.showDialog("Success",successText,function(){
+                            PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:successText,nextAction:function(){
                                 PWM_ADMIN.refreshReportDataStatus();
                                 PWM_ADMIN.refreshReportDataSummary();
-                            });
+                            }});
                         },
                         error: function(error) {
                             PWM_MAIN.closeWaitDialog();
@@ -283,9 +284,9 @@ PWM_ADMIN.reportAction=function(action) {
                     });
                 });
             },3000);
-        });
+        }});
     },function(){});
-}
+};
 
 PWM_ADMIN.initActiveSessionGrid=function() {
     var headers = {

@@ -38,6 +38,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -394,15 +395,15 @@ public class ReportService implements PwmService {
         return returnList;
     }
 
-    public Iterator<UserCacheRecord> iterator() {
+    public ClosableIterator<UserCacheRecord> iterator() {
         return new RecordIterator(userCacheService.iterator());
     }
 
-    public class RecordIterator implements Iterator<UserCacheRecord> {
+    public class RecordIterator implements ClosableIterator<UserCacheRecord> {
 
-        private Iterator<UserCacheService.StorageKey> storageKeyIterator;
+        private ClosableIterator<UserCacheService.StorageKey> storageKeyIterator;
 
-        public RecordIterator(Iterator<UserCacheService.StorageKey> storageKeyIterator) {
+        public RecordIterator(ClosableIterator<UserCacheService.StorageKey> storageKeyIterator) {
             this.storageKeyIterator = storageKeyIterator;
         }
 
@@ -440,6 +441,10 @@ public class ReportService implements PwmService {
         {
 
         }
+
+        public void close() {
+            storageKeyIterator.close();
+        }
     }
 
     public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale)
@@ -471,44 +476,60 @@ public class ReportService implements PwmService {
             csvWriter.writeRecord(headerRow.toArray(new String[headerRow.size()]));
         }
 
-        final String trueField = LocaleHelper.getLocalizedMessage(locale, "Value_True", config, password.pwm.i18n.Display.class);
-        final String falseField = LocaleHelper.getLocalizedMessage(locale, "Value_False", config, password.pwm.i18n.Display.class);
-        final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
-
-        final Iterator<UserCacheRecord> cacheBeanIterator = this.iterator();
-        while (cacheBeanIterator.hasNext()) {
-            final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-            final List<String> csvRow = new ArrayList<String>();
-
-            csvRow.add(userCacheRecord.getUserDN());
-            csvRow.add(PwmConstants.DEFAULT_LDAP_PROFILE.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
-            csvRow.add(userCacheRecord.getUsername());
-            csvRow.add(userCacheRecord.getEmail());
-            csvRow.add(userCacheRecord.getUserGUID());
-            csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                    userCacheRecord.getLastLoginTime()));
-            csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                    userCacheRecord.getPasswordExpirationTime()));
-            csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                    userCacheRecord.getPasswordChangeTime()));
-            csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                    userCacheRecord.getResponseSetTime()));
-            csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
-            csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
-            csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
-            csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
-            csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
-            csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
-            csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
-            csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
-            csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
-            csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
-                    userCacheRecord.getCacheTimestamp()));
-
-            csvWriter.writeRecord(csvRow.toArray(new String[csvRow.size()]));
+        ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
+        try {
+            cacheBeanIterator = this.iterator();
+            while (cacheBeanIterator.hasNext()) {
+                final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
+                outputRecordRow(config, locale, userCacheRecord, csvWriter);
+            }
+        } finally {
+            if (cacheBeanIterator != null) {
+                cacheBeanIterator.close();
+            }
         }
 
         csvWriter.flush();
+    }
+
+    private void outputRecordRow(
+            final Configuration config,
+            final Locale locale,
+            final UserCacheRecord userCacheRecord,
+            final CsvWriter csvWriter
+    )
+            throws IOException
+    {
+        final String trueField = LocaleHelper.getLocalizedMessage(locale, "Value_True", config, password.pwm.i18n.Display.class);
+        final String falseField = LocaleHelper.getLocalizedMessage(locale, "Value_False", config, password.pwm.i18n.Display.class);
+        final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
+        final List<String> csvRow = new ArrayList<String>();
+        csvRow.add(userCacheRecord.getUserDN());
+        csvRow.add(PwmConstants.DEFAULT_LDAP_PROFILE.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
+        csvRow.add(userCacheRecord.getUsername());
+        csvRow.add(userCacheRecord.getEmail());
+        csvRow.add(userCacheRecord.getUserGUID());
+        csvRow.add(userCacheRecord.getLastLoginTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                userCacheRecord.getLastLoginTime()));
+        csvRow.add(userCacheRecord.getPasswordExpirationTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                userCacheRecord.getPasswordExpirationTime()));
+        csvRow.add(userCacheRecord.getPasswordChangeTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                userCacheRecord.getPasswordChangeTime()));
+        csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                userCacheRecord.getResponseSetTime()));
+        csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
+        csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
+        csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
+        csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
+        csvRow.add(userCacheRecord.getPasswordStatus().isViolatesPolicy() ? trueField : falseField);
+        csvRow.add(userCacheRecord.getPasswordStatus().isWarnPeriod() ? trueField : falseField);
+        csvRow.add(userCacheRecord.isRequiresPasswordUpdate() ? trueField : falseField);
+        csvRow.add(userCacheRecord.isRequiresResponseUpdate() ? trueField : falseField);
+        csvRow.add(userCacheRecord.isRequiresProfileUpdate() ? trueField : falseField);
+        csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                userCacheRecord.getCacheTimestamp()));
+
+        csvWriter.writeRecord(csvRow.toArray(new String[csvRow.size()]));
     }
 
     public ReportSummaryData getSummaryData() {
@@ -623,10 +644,11 @@ public class ReportService implements PwmService {
         {
             final long startTime = System.currentTimeMillis();
             LOGGER.debug("beginning check for outdated cached report records");
-            final Iterator<UserCacheRecord> iterator = iterator();
+            final ClosableIterator<UserCacheRecord> iterator = iterator();
             while (iterator.hasNext() && status == STATUS.OPEN) {
                 iterator.next(); // (purge routine is embedded in next();
             }
+            iterator.close();
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
             LOGGER.debug("completed check for outdated cached report records in " + totalTime.asCompactString());
             timer.schedule(new RecordPurger(),Helper.nextZuluZeroTime());

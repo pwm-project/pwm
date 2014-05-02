@@ -41,6 +41,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
@@ -124,7 +125,7 @@ public class Configuration implements Serializable {
         final Map<String, EmailItemBean> storedValues = (Map<String, EmailItemBean>)readStoredValue(setting).toNativeObject();
         final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<Locale, EmailItemBean>();
         for (final String localeStr : storedValues.keySet()) {
-            availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+            availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
         final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -227,7 +228,7 @@ public class Configuration implements Serializable {
             final Map<String, String> availableValues = (Map<String, String>)value.toNativeObject();
             final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
             for (final String localeStr : availableValues.keySet()) {
-                availableLocaleMap.put(Helper.parseLocaleString(localeStr), availableValues.get(localeStr));
+                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), availableValues.get(localeStr));
             }
             final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -241,7 +242,7 @@ public class Configuration implements Serializable {
             final Map<String, List<String>> storedValues = (Map<String, List<String>>)value.toNativeObject();
             final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
             for (final String localeStr : storedValues.keySet()) {
-                availableLocaleMap.put(Helper.parseLocaleString(localeStr), storedValues.get(localeStr));
+                availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
             }
             final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
@@ -341,6 +342,7 @@ public class Configuration implements Serializable {
                 switch (rule) {
                     case DisallowedAttributes:
                     case DisallowedValues:
+                    case CharGroupsValues:
                         value = StringHelper.stringCollectionToString(
                                 JavaTypeConverter.valueToStringArray(storedConfiguration.readSetting(pwmSetting,profile)), "\n");
                         break;
@@ -418,13 +420,13 @@ public class Configuration implements Serializable {
             case LOCALIZED_TEXT_AREA:
             case LOCALIZED_STRING:
                 for (final String localeStr : ((Map<String, String>)readStoredValue(setting).toNativeObject()).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                    returnCollection.add(LocaleHelper.parseLocaleString(localeStr));
                 }
                 break;
 
             case LOCALIZED_STRING_ARRAY:
                 for (final String localeStr : ((Map<String, List<String>>)readStoredValue(setting).toNativeObject()).keySet()) {
-                    returnCollection.add(Helper.parseLocaleString(localeStr));
+                    returnCollection.add(LocaleHelper.parseLocaleString(localeStr));
                 }
                 break;
         }
@@ -569,7 +571,7 @@ public class Configuration implements Serializable {
         // Sort the map by display name
         final Map<String,String> sortedMap = new TreeMap<String,String>();
         for (final String localeString : inputMap.keySet()) {
-            final Locale theLocale = Helper.parseLocaleString(localeString);
+            final Locale theLocale = LocaleHelper.parseLocaleString(localeString);
             if (theLocale != null) {
                 sortedMap.put(theLocale.getDisplayName(), localeString);
             }
@@ -588,7 +590,7 @@ public class Configuration implements Serializable {
 
         final Map<Locale,String> localeFlagMap = new LinkedHashMap<Locale, String>();
         for (final String localeString : returnList) {
-            final Locale loopLocale = Helper.parseLocaleString(localeString);
+            final Locale loopLocale = LocaleHelper.parseLocaleString(localeString);
             if (loopLocale != null) {
                 final String flagCode = inputMap.containsKey(localeString) ? inputMap.get(localeString) : loopLocale.getCountry();
                 localeFlagMap.put(loopLocale, flagCode);

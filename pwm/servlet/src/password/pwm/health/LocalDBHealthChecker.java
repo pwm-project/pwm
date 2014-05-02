@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,12 @@
 package password.pwm.health;
 
 import password.pwm.PwmApplication;
-import password.pwm.i18n.Admin;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.localdb.LocalDB;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PwmDBHealthChecker implements HealthChecker {
+public class LocalDBHealthChecker implements HealthChecker {
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
         if (pwmApplication == null) {
             return null;
@@ -42,38 +40,22 @@ public class PwmDBHealthChecker implements HealthChecker {
 
         if (localDB == null) {
             final String detailedError = pwmApplication.getLastLocalDBFailure() == null ? "unknown, check logs" : pwmApplication.getLastLocalDBFailure().toDebugStr();
-            healthRecords.add(new HealthRecord(
-                    HealthStatus.WARN,
-                    "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_BAD",pwmApplication.getConfig(),Admin.class,new String[]{detailedError})
-            ));
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_BAD,detailedError));
             return healthRecords;
         }
 
         if (LocalDB.Status.NEW == localDB.status()) {
-            healthRecords.add(new HealthRecord(
-                    HealthStatus.WARN,
-                    "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_NEW",pwmApplication.getConfig(),Admin.class)
-            ));
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_NEW));
             return healthRecords;
         }
 
         if (LocalDB.Status.CLOSED == localDB.status()) {
-            healthRecords.add(new HealthRecord(
-                    HealthStatus.WARN,
-                    "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_CLOSED",pwmApplication.getConfig(),Admin.class)
-            ));
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_CLOSED));
             return healthRecords;
         }
 
         if (healthRecords.isEmpty()) {
-            healthRecords.add(new HealthRecord(
-                    HealthStatus.GOOD,
-                    "LocalDB",
-                    LocaleHelper.getLocalizedMessage(null,"Health_PwmDB_OK",pwmApplication.getConfig(),Admin.class)
-            ));
+            healthRecords.add(HealthRecord.forMessage(HealthMessage.LocalDB_OK));
         }
 
         return healthRecords;

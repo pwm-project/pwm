@@ -38,10 +38,7 @@ import password.pwm.config.option.RecoveryAction;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserAuthenticator;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.*;
 import password.pwm.token.TokenPayload;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
@@ -723,7 +720,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
 
             // send email or SMS
-            final String toAddress = PasswordUtility.sendNewPassword(pwmSession.getUserInfoBean(), pwmApplication, UserDataReader.appProxiedReader(
+            final String toAddress = PasswordUtility.sendNewPassword(pwmSession.getUserInfoBean(), pwmApplication, LdapUserDataReader.appProxiedReader(
                     pwmApplication, userIdentity), newPassword, pwmSession.getSessionStateBean().getLocale());
 
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toAddress);
@@ -843,7 +840,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
             try {
                 LOGGER.trace("Reading setting " + PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-                final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+                final UserDataReader dataStoreReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
                 toEmailAddr = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
                 if (toEmailAddr != null && toEmailAddr.length() > 0) {
                     LOGGER.trace("Email address: " + toEmailAddr);
@@ -859,7 +856,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             String toSmsNumber = null;
             try {
                 LOGGER.trace("reading setting " + PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-                final UserDataReader dataStoreReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+                final UserDataReader dataStoreReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
                 toSmsNumber = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
                 if (toSmsNumber !=null && toSmsNumber.length() > 0) {
                     LOGGER.trace("SMS number: " + toSmsNumber);
@@ -919,7 +916,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
 
         Helper.TokenSender.sendToken(
                 pwmApplication,
@@ -946,7 +943,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             return requiredAttributesForm;
         }
 
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
         final List<FormConfiguration> returnList = new ArrayList<FormConfiguration>();
         for (final FormConfiguration formItem : requiredAttributesForm) {
             if (formItem.isRequired()) {

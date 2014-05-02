@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,7 +87,8 @@ public class NMASUAWSOperator implements CrOperator {
                     PwmConstants.DEFAULT_LOCALE,
                     responseSet.getChallengeSet().getMinRandomRequired(),
                     responseSet.getChallengeSet().getIdentifier(),
-                    DataStorageMethod.NMASUAWS
+                    DataStorageMethod.NMASUAWS,
+                    null
             );
         } catch (ChaiValidationException e) {
             LOGGER.error("unexpected error converting NMASUserAppWebService ResponseSet to ResponseInfoBean: " + e.getMessage());

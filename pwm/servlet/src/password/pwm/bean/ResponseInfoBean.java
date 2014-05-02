@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.cr.Challenge;
 import password.pwm.config.option.DataStorageMethod;
 
@@ -37,15 +38,26 @@ public class ResponseInfoBean implements Serializable {
     final private int minRandoms;
     final private String csIdentifier;
     final private DataStorageMethod dataStorageMethod;
+    final private Answer.FormatType formatType;
+
     private Date timestamp;
 
-    public ResponseInfoBean(Map<Challenge, String> crMap, Map<Challenge,String> helpdeskCrMap, Locale locale, int minRandoms, String csIdentifier, DataStorageMethod dataSource) {
+    public ResponseInfoBean(
+            final Map<Challenge,String> crMap,
+            final Map<Challenge,String> helpdeskCrMap,
+            final Locale locale,
+            final int minRandoms,
+            final String csIdentifier,
+            final DataStorageMethod dataSource,
+            final Answer.FormatType formatType
+    ) {
         this.crMap = crMap;
         this.helpdeskCrMap = helpdeskCrMap;
         this.locale = locale;
         this.minRandoms = minRandoms;
         this.csIdentifier = csIdentifier;
         this.dataStorageMethod = dataSource;
+        this.formatType = formatType;
     }
 
     public Map<Challenge, String> getCrMap() {
@@ -79,5 +91,10 @@ public class ResponseInfoBean implements Serializable {
     public DataStorageMethod getDataStorageMethod()
     {
         return dataStorageMethod;
+    }
+
+    public Answer.FormatType getFormatType()
+    {
+        return formatType;
     }
 }

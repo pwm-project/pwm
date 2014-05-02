@@ -193,7 +193,7 @@ public class ConfigurationReader {
         }
 
         if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
-            final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE);
+            final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
             pwmApplication.getAuditManager().submit(new SystemAuditRecord(
                     AuditEvent.MODIFY_CONFIGURATION,
                     new Date(),

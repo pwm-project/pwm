@@ -35,26 +35,33 @@
         <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; max-width: 600px; text-align: center">
+        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
             <br/>
-            <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-                  id="searchForm" onkeyup="PWM_HELPDESK.processHelpdeskSearch();" onchange="PWM_HELPDESK.processHelpdeskSearch()"
-                  onsubmit="return false">
-                <div style="width: 100%">
-                    <input type="search" id="username" name="username" class="inputfield" style="width: 450px"
-                           value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
-                </div>
-            </form>
+            <table style="border: 0; max-width: 700; margin-left: auto; margin-right: auto">
+                <tr style="border: 0">
+                    <td style="border:0">
+                        <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
+                              id="searchForm" onkeyup="PWM_HELPDESK.processHelpdeskSearch();" onchange="PWM_HELPDESK.processHelpdeskSearch()"
+                              onsubmit="return false">
+                            <input type="search" id="username" name="username" class="inputfield" style="width: 400px"
+                                   value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
+
+                        </form>
+                    </td>
+                    <td style="border:0">
+                        <span style="display:none; width: 300px; text-align: center; margin: 5px" id="message" class="message">&nbsp;</span>
+                    </td>
+                </tr>
+            </table>
             <noscript>
                 <span>Javascript is required to view this page.  </span>
                 <a href="<%=request.getContextPath()%>"><pwm:Display key="Title_MainPage"/></a>
             </noscript>
             <br/>
         </div>
-        <span style="display:none; min-width: 450px; width: 50%; margin-left: auto; margin-right: auto; text-align: center" id="message" class="message">&nbsp;</span>
-        <br/>
         <div id="grid">
         </div>
+        <br/>
         <div style="text-align: center;">
             <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                     onclick="window.location=PWM_GLOBAL['url-context']">

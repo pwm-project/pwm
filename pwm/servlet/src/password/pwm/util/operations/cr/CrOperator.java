@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.cr.Answer;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ResponseSet;
+import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
@@ -33,6 +36,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public interface CrOperator {
@@ -66,6 +70,13 @@ public interface CrOperator {
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
         {
             final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
+            Answer.FormatType formatType = null;
+            {
+                final List<ChallengeBean> challengeBeans = responseSet.asChallengeBeans(true);
+                if (challengeBeans != null && !challengeBeans.isEmpty()) {
+                    formatType = challengeBeans.get(0).answer.getType();
+                }
+            }
             for (final Challenge challenge : responseSet.getChallengeSet().getChallenges()) {
                 crMap.put(challenge,"");
             }
@@ -76,7 +87,8 @@ public interface CrOperator {
                     responseSet.getLocale(),
                     responseSet.getChallengeSet().getMinRandomRequired(),
                     responseSet.getChallengeSet().getIdentifier(),
-                    dataSource
+                    dataSource,
+                    formatType
             );
             responseInfoBean.setTimestamp(responseSet.getTimestamp());
             return responseInfoBean;

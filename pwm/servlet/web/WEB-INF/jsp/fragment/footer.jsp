@@ -26,6 +26,7 @@
 <%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
+<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
@@ -57,7 +58,9 @@
             <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE))) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
-            <span id="idle_status">&nbsp;</span>
+            <span id="idle_status">
+                <pwm:Display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval()).asCompactString()%>
+            </span>
             </span>
             <% segmentDisplayed = true; } %>
             <% } %>
@@ -65,7 +68,7 @@
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
                 <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
-                &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayLanguage(userLocaleFooter)%>
+                &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayName(userLocaleFooter)%>
             </span>
             <% segmentDisplayed = true; } %>
         </div>

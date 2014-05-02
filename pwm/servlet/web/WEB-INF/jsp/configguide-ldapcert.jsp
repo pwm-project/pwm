@@ -27,7 +27,7 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
-<% boolean enableNext = configGuideBean.isCertsTrustedbyKeystore() || configGuideBean.isUseConfiguredCerts(); %>
+<% boolean enableNext = configGuideBean.isCertsTrustedbyKeystore() || configGuideBean.isUseConfiguredCerts() || configGuideBean.getLdapCertificates() == null; %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>

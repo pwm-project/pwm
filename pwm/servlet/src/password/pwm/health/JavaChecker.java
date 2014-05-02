@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,36 +22,30 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.i18n.Admin;
-import password.pwm.i18n.LocaleHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class JavaChecker implements HealthChecker {
-    private static final String TOPIC = "Java Platform";
-
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
 
-        if (Thread.activeCount() > 1000) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, localizedString(pwmApplication,"Health_Java_HighThreads",String.valueOf(Thread.activeCount()))));
+        final int maxActiveThreads = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_JAVA_MAX_THREADS));
+        if (Thread.activeCount() > maxActiveThreads) {
+            records.add(HealthRecord.forMessage(HealthMessage.Java_HighThreads));
         }
 
-        if (Runtime.getRuntime().maxMemory() <= 64 * 1024 * 1024) {
-            records.add(new HealthRecord(HealthStatus.CAUTION, TOPIC, localizedString(pwmApplication,"Health_Java_SmallHeap")));
+        final long minMemory = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_JAVA_MIN_HEAP_BYTES));
+        if (Runtime.getRuntime().maxMemory() <= minMemory) {
+            records.add(HealthRecord.forMessage(HealthMessage.Java_SmallHeap));
         }
 
         if (records.isEmpty()) {
-            records.add(new HealthRecord(HealthStatus.GOOD, TOPIC, localizedString(pwmApplication,"Health_Java_OK")));
+            records.add(HealthRecord.forMessage(HealthMessage.Java_OK));
         }
 
         return records;
     }
-
-    private String localizedString(final PwmApplication pwmApplication, final String key, final String... values) {
-        return LocaleHelper.getLocalizedMessage(null, key, pwmApplication.getConfig(), Admin.class, values);
-    }
-
 }

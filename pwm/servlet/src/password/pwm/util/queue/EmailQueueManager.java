@@ -44,10 +44,8 @@ import password.pwm.util.stats.StatisticsManager;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.*;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
@@ -224,8 +222,9 @@ public class EmailQueueManager extends AbstractQueueManager {
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
         final Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(emailItemBean.getFrom()));
-        message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{new InternetAddress(emailItemBean.getTo())});
+        message.setFrom();
+        message.setFrom(makeInternetAddress(emailItemBean.getFrom()));
+        message.setRecipients(Message.RecipientType.TO, new InternetAddress[]{makeInternetAddress(emailItemBean.getTo())});
         message.setSubject(emailItemBean.getSubject());
         message.setSentDate(new Date());
 
@@ -264,6 +263,31 @@ public class EmailQueueManager extends AbstractQueueManager {
         }
 
         return props;
+    }
+
+    protected static InternetAddress makeInternetAddress(final String input)
+            throws AddressException
+    {
+        if (input == null) {
+            return null;
+        }
+
+        if (input.matches("^.*<.*>$")) { // check for format like: John Doe <jdoe@example.com>
+            final String[] splitString = input.split("<|>");
+            if (splitString.length < 2) {
+                return new InternetAddress(input);
+            }
+
+            final InternetAddress address = new InternetAddress();
+            address.setAddress(splitString[1].trim());
+            try {
+                address.setPersonal(splitString[0].trim(), "UTF8");
+            } catch (UnsupportedEncodingException e) {
+                LOGGER.error("unsupported encoding (UTF8) error while parsing internet address '" + input + "', error: " + e.getMessage());
+            }
+            return address;
+        }
+        return new InternetAddress(input);
     }
 }
 

@@ -23,7 +23,6 @@
 "use strict";
 
 var PWM_GLOBAL = PWM_GLOBAL || {};
-var PWM_STRINGS = PWM_STRINGS || {};
 var PWM_MAIN = PWM_MAIN || {};
 var PWM_VAR = PWM_VAR || {};
 
@@ -77,15 +76,14 @@ PWM_MAIN.loadClientData=function(completeFunction) {
                 if (completeFunction) completeFunction();
             },
             error: function(error) {
-                console.log('unable to read app-data: ' + error + ', will retry.');
-                if (PWM_GLOBAL['app-data-client-retry-count'] < 50) {
-                    PWM_MAIN.loadClientData(completeFunction);
-                }
+                var errorMsg = 'unable to read app-data: ' + error;;
+                console.log(errorMsg);
+                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
                 if (completeFunction) completeFunction();
             }
         });
     });
-}
+};
 
 PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
     require(["dojo"],function(dojo){
@@ -100,28 +98,24 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
                 if (data['error'] == true) {
                     alert('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
                 } else {
-                    PWM_STRINGS[bundleName] = {};
+                    PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
+                    PWM_GLOBAL['localeStrings'][bundleName] = {};
                     for (var settingKey in data['data']) {
-                        PWM_STRINGS[bundleName][settingKey] = data['data'][settingKey];
+                        PWM_GLOBAL['localeStrings'][bundleName][settingKey] = data['data'][settingKey];
                     }
                 }
                 console.log('loaded locale bundle data for ' + bundleName);
-                if (completeFunction) {
-                    completeFunction();
-                }
+                if (completeFunction) completeFunction();
             },
             error: function(error) {
                 var errorMsg = 'unable to load locale bundle from , please reload page (' + error + ')';
-                PWM_MAIN.showError(errorMsg);
                 console.log(errorMsg);
-                if (completeFunction) {
-                    completeFunction();
-                }
+                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
+                if (completeFunction) completeFunction();
             }
         });
     });
-
-}
+};
 
 PWM_MAIN.initPage = function() {
     for (var j = 0; j < document.forms.length; j++) {
@@ -211,11 +205,11 @@ PWM_MAIN.initPage = function() {
 PWM_MAIN.preloadResources = function() {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
     var images = [
-        prefix + 'a11y/indeterminate_progress.gif',
-        prefix + 'nihilo/images/progressBarAnim.gif',
-        prefix + 'nihilo/images/progressBarEmpty.png',
-        prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
-        prefix + 'nihilo/images/titleBar.png'
+            prefix + 'a11y/indeterminate_progress.gif',
+            prefix + 'nihilo/images/progressBarAnim.gif',
+            prefix + 'nihilo/images/progressBarEmpty.png',
+            prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
+            prefix + 'nihilo/images/titleBar.png'
     ];
     PWM_MAIN.preloadImages(images);
 };
@@ -223,11 +217,12 @@ PWM_MAIN.preloadResources = function() {
 PWM_MAIN.showString = function (key, options) {
     options = options || {};
     var bundle = (options['bundle']) ? options['bundle'] : 'Display';
-    if (!PWM_STRINGS[bundle]) {
+    PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
+    if (!PWM_GLOBAL['localeStrings'][bundle]) {
         return "UNDEFINED BUNDLE: " + bundle;
     }
-    if (PWM_STRINGS[bundle][key]) {
-        var returnStr = PWM_STRINGS[bundle][key];
+    if (PWM_GLOBAL['localeStrings'][bundle][key]) {
+        var returnStr = PWM_GLOBAL['localeStrings'][bundle][key];
         for (var i = 0; i < 10; i++) {
             if (options['value' + i]) {
                 returnStr = returnStr.replace('%' + i + '%',options['value' + i]);
@@ -252,30 +247,40 @@ PWM_MAIN.goto = function(url,options) {
             url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         }
     }
-    PWM_MAIN.showWaitDialog(null,null,function(){
 
+    var executeGoto = function() {
         if (options['delay']) {
-            setTimeout(function(){
+            setTimeout(function () {
+                console.log('redirecting to new url: ' + url);
                 window.location = url;
-            },options['delay']);
+            }, options['delay']);
         } else {
+            console.log('redirecting to new url: ' + url);
             window.location = url;
         }
-    });
-}
+    };
+
+    var hideDialog = options['hideDialog'] = true;
+    if (hideDialog) {
+        executeGoto();
+    } else {
+        PWM_MAIN.showWaitDialog({loadFunction:function () {
+            executeGoto();
+        }});
+    }
+};
 
 PWM_MAIN.handleFormCancel = function() {
-    PWM_MAIN.showWaitDialog(null,null,function(){
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
         var continueUrl = PWM_GLOBAL['url-command'] + '?processAction=continue&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
         window.location = continueUrl;
-    });
+    }});
 };
 
 PWM_MAIN.handleFormSubmit = function(buttonID, form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
     var submitButton = PWM_MAIN.getObject(buttonID);
     if (submitButton != null) {
-        PWM_MAIN.getObject(buttonID).value = PWM_MAIN.showString('Display_PleaseWait');
         PWM_MAIN.getObject(buttonID).disabled = true;
 
         var formElements = submitButton.form.elements;
@@ -284,7 +289,9 @@ PWM_MAIN.handleFormSubmit = function(buttonID, form) {
         }
     }
 
-    PWM_MAIN.showWaitDialog(null,null,function(){form.submit();});
+    PWM_MAIN.showWaitDialog({loadFunction:function(){
+        form.submit();
+    }});
     return false;
 };
 
@@ -448,20 +455,21 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                     label: localeDisplayName,
                     iconClass: localeIconClass,
                     onClick: function() {
-                        PWM_MAIN.showWaitDialog();
-                        var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&" + PWM_GLOBAL['paramName.locale'] + "=" + localeKey;
-                        dojo.xhrGet({
-                            url: pingURL,
-                            sync: false,
-                            preventCache: true,
-                            load: function() {
-                                PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                                setTimeout(function(){window.location.reload();},1000);
-                            },
-                            error: function(error) {
-                                alert('unable to set locale: ' + error);
-                            }
-                        });
+                        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                            var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&" + PWM_GLOBAL['paramName.locale'] + "=" + localeKey;
+                            dojo.xhrGet({
+                                url: pingURL,
+                                sync: false,
+                                preventCache: true,
+                                load: function() {
+                                    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+                                    setTimeout(function(){window.location.reload();},1000);
+                                },
+                                error: function(error) {
+                                    alert('unable to set locale: ' + error);
+                                }
+                            });
+                        }});
                     }
                 }));
             };
@@ -477,57 +485,73 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
             pMenu.addChild(new dijitMenuItem({
                 label: PWM_MAIN.showString('Title_LocaleSelect'),
                 onClick: function() {
-                    PWM_MAIN.showWaitDialog(null,null,function(){
+                    PWM_MAIN.showWaitDialog({loadFunction:function() {
                         window.location = PWM_GLOBAL['url-context'] + '/public/localeselect.jsp'
-                    });
+                    }});
                 }
             }));
         }
     });
 };
 
-PWM_MAIN.showWaitDialog = function(title, body, loadFunction) {
-    if (title == null) {
-        title=PWM_MAIN.showString('Display_PleaseWait');
-    }
+PWM_MAIN.showWaitDialog = function(options) {
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
-        var idName = 'dialogPopup';
-        if (!loadFunction) {
-            loadFunction = function(){};
-        }
-        PWM_MAIN.clearDijitWidget(idName);
-        if (body == null || body.length < 1) {
-            //body = '<div id="WaitDialogBlank"/>';
-            body = '<div id="progressBar" style="margin: 8px; width: 100%"/>'
-        }
-        var theDialog = new Dialog({
-            id: idName,
-            closable: false,
-            draggable: false,
-            title: title,
-            style: "min-width: 350px",
-            content: body
-        });
-        dojo.style(theDialog.closeButtonNode,"display","none");
-        dojo.connect(theDialog,"onShow",null,loadFunction);
-        theDialog.show();
-        var progressBar = new ProgressBar({
-            style: '',
-            indeterminate:true
-        },"progressBar");
+        options = options || {};
+        var requestedLoadFunction = options['loadFunction'];
+        options['loadFunction'] = function() {
+            var progressBar = new ProgressBar({
+                style: '',
+                indeterminate:true
+            },"progressBar");
+            if (requestedLoadFunction) {
+                requestedLoadFunction();
+            }
+        };
+        options['title'] = options['title'] || PWM_MAIN.showString('Display_PleaseWait');
+        options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>'
+        options['width'] = 350;
+        options['showOk'] = false;
+        PWM_MAIN.showDialog(options);
     });
 };
 
-PWM_MAIN.showDialog = function(title, text, nextAction) {
-    var titleText = title == null ? "" : title;
-    PWM_GLOBAL['dialog_nextAction'] = nextAction ? nextAction : function(){};
+PWM_MAIN.showDialog = function(options) {
+    options = options || {};
+    var title = options['title'] || 'DialogTitle';
+    var text = options['text'] || 'DialogBody';
+    var nextAction = options['nextAction'] || function(){};
+    var width = options['width'] || 300;
+    var showOk = 'showOk' in options ? options['showOk'] : true;
+    var showCancel = options['showCancel'] || false;
+    var loadFunction = options['loadFunction'] || function(){};
+    var showClose = options['showClose'] || false;
+
+    PWM_VAR['dialog_nextAction'] = nextAction;
     var bodyText = '';
-    bodyText += '<div><p>';
-    bodyText += text;
-    bodyText += '</p></div>';
-    bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'dialog_nextAction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
-    PWM_MAIN.showWaitDialog(titleText,bodyText);
+    bodyText += '<p>' + text + '</p>';
+    if (showOk) {
+        bodyText += '<br/>';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_nextAction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
+    }
+    if (width > 0) {
+        bodyText = '<div style="max-width: ' + width + 'px; width: ' + width + 'px">' + bodyText + '</div>';
+    }
+    require(["dojo","dijit/Dialog"],function(dojo,Dialog){
+        var idName = 'dialogPopup';
+        PWM_MAIN.clearDijitWidget(idName);
+        var theDialog = new Dialog({
+            id: idName,
+            closable: showClose,
+            draggable: false,
+            title: title,
+            content: bodyText
+        });
+        if (!showClose) {
+            dojo.style(theDialog.closeButtonNode, "display", "none");
+        }
+        dojo.connect(theDialog,"onShow",null,loadFunction);
+        theDialog.show();
+    });
 };
 
 PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
@@ -559,7 +583,6 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
 };
 
 PWM_MAIN.showConfirmDialog = function(title, text, trueAction, falseAction) {
-    var titleText = title == null ? PWM_MAIN.showString('Button_Confirm') : title;
     PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};
     PWM_GLOBAL['confirm_false_action'] = falseAction ? falseAction : function(){};
     var bodyText = '';
@@ -569,7 +592,12 @@ PWM_MAIN.showConfirmDialog = function(title, text, trueAction, falseAction) {
     bodyText += '<br/>';
     bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
     bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
-    PWM_MAIN.showWaitDialog(titleText,bodyText);
+
+    var dialogOptions = {};
+    dialogOptions['showOk'] = false;
+    dialogOptions['text'] = bodyText;
+    dialogOptions['title'] = title == null ? PWM_MAIN.showString('Button_Confirm') : title;
+    PWM_MAIN.showDialog(dialogOptions);
 };
 
 PWM_MAIN.closeWaitDialog = function() {
@@ -679,10 +707,12 @@ PWM_MAIN.createCSSClass = function(selector, style) {
             }
             else if(mediaType == "object")
             {
-                if(media.mediaText == "" || media.mediaText.indexOf("screen") != -1)
-                {
-                    styleSheet = document.styleSheets[i];
-                }
+                try {
+                    if(media.mediaText == "" || media.mediaText.indexOf("screen") != -1)
+                    {
+                        styleSheet = document.styleSheets[i];
+                    }
+                } catch (e) { /* noop */ }
             }
             // stylesheet found, so break out of loop
             if(typeof styleSheet != "undefined") break;
@@ -787,8 +817,8 @@ PWM_MAIN.elementInViewport = function(el, includeWidth) {
 
     return includeWidth ? (
         top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
-            left >= pageX &&
-            (left + width) <= (pageX + window.innerWidth)
+        left >= pageX &&
+        (left + width) <= (pageX + window.innerWidth)
         ) : (
         top >= pageY && (top + height) <= (pageY + window.innerHeight)
         );
@@ -1009,6 +1039,8 @@ ShowHidePasswordHandler.init = function(nodeName) {
     if (!PWM_GLOBAL['setting-showHidePasswordFields']) {
         return;
     }
+
+    ShowHidePasswordHandler.toggleRevertTimeout = PWM_GLOBAL['client.pwShowRevertTimeout'] || ShowHidePasswordHandler.toggleRevertTimeout;
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
     if (PWM_MAIN.getObject(eyeId)) {
         return;

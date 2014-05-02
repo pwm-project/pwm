@@ -74,13 +74,13 @@ public class ConfigManagerServlet extends TopServlet {
             restLockConfiguration(req, resp);
             return;
         } else if ("startEditing".equalsIgnoreCase(processActionParam)) {
-            doStartEditing(configManagerBean, req, resp);
+            doStartEditing(req, resp);
             return;
         } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
-            doGenerateXml(req, resp);
+            doGenerateXml(req, resp, pwmSession);
             return;
         } else if ("exportLocalDB".equalsIgnoreCase(processActionParam)) {
-            doExportLocalDB(req, resp, pwmApplication);
+            doExportLocalDB(resp, pwmApplication);
             return;
         } else if ("generateSupportZip".equalsIgnoreCase(processActionParam)) {
             doGenerateSupportZip(req, resp, pwmApplication, pwmSession);
@@ -167,7 +167,6 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void doStartEditing(
-            final ConfigManagerBean configManagerBean,
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -291,15 +290,21 @@ public class ConfigManagerServlet extends TopServlet {
 
     private void doGenerateXml(
             final HttpServletRequest req,
-            final HttpServletResponse resp
+            final HttpServletResponse resp,
+            final PwmSession pwmSession
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final StoredConfiguration storedConfiguration = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
-        final String output = storedConfiguration.toXml();
-        resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.CONFIG_FILE_FILENAME);
-        resp.setContentType("text/xml;charset=utf-8");
-        resp.getWriter().print(output);
+        try {
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(
+                    ContextManager.getContextManager(req.getSession()));
+            final String output = storedConfiguration.toXml();
+            resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.CONFIG_FILE_FILENAME);
+            resp.setContentType("text/xml;charset=utf-8");
+            resp.getWriter().print(output);
+        } catch (Exception e) {
+            LOGGER.error(pwmSession, "unable to download configuration: " + e.getMessage());
+        }
     }
 
     private void doGenerateSupportZip(
@@ -315,14 +320,19 @@ public class ConfigManagerServlet extends TopServlet {
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
-        final ZipOutputStream zipOutput = new ZipOutputStream(resp.getOutputStream());
+        ZipOutputStream zipOutput = null;
         try {
+            zipOutput = new ZipOutputStream(resp.getOutputStream());
             final ContextManager contextManager = ContextManager.getContextManager(req.getSession());
             outputZipDebugFile(pwmApplication,pwmSession,contextManager,zipOutput,pathPrefix);
         } catch (Exception e) {
             LOGGER.error(pwmSession, "error during zip debug building: " + e.getMessage());
+        } finally {
+            if (zipOutput != null) {
+                zipOutput.close();
+            }
         }
-        zipOutput.close();
+
     }
 
     private void outputZipDebugFile(
@@ -407,7 +417,6 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void doExportLocalDB(
-            final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication
     )

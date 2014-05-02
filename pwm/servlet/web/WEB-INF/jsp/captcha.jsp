@@ -31,7 +31,7 @@
 <% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
 <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<script defer type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+<script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         Recaptcha.create("<%=reCaptchaPublicKey%>",

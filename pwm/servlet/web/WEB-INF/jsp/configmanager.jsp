@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -31,6 +32,7 @@
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
     final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
     String configFilePath = PwmConstants.CONFIG_FILE_FILENAME;
+    String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager",pwmApplication.getConfig(),password.pwm.i18n.Config.class);
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -39,17 +41,12 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
-        </div>
-        <div id="header-title">
-        </div>
-    </div>
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
+    </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <div id="healthBody" style="border: #808080 1px solid; margin-top:5px; padding:0; max-height: 300px; overflow-y: auto">
+        <div id="healthBody" style="border: #808080 1px solid; margin-top:5px; padding:0; height: 300px; max-height: 300px; overflow-y: auto">
             <div id="WaitDialogBlank"></div>
         </div>
         <script type="text/javascript">
@@ -219,21 +216,30 @@
     });
 
     function downloadConfig() {
-        PWM_MAIN.goto('ConfigManager?processAction=generateXml',{addFormID:true})
-        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadConfigurationInProgress" bundle="Config"/>");
+        PWM_MAIN.showDialog({title:PWM_MAIN.showString("Display_PleaseWait"),text:PWM_CONFIG.showString("Warning_DownloadConfigurationInProgress"),
+            loadFunction:function(){
+                PWM_MAIN.goto('ConfigManager?processAction=generateXml',{addFormID:true,hideDialog:true})
+            }
+        });
     }
 
     function downloadLocalDB() {
-        PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true})
-        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadLocalDBInProgress" bundle="Config"/>");
+        PWM_MAIN.showDialog({title:PWM_MAIN.showString("Display_PleaseWait"),text:PWM_CONFIG.showString("Warning_DownloadLocalDBInProgress"),
+            loadFunction:function(){
+                PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+            }
+        });
     }
 
     function downloadSupportBundle() {
         <% if (pwmApplication.getConfig().getEventLogLocalDBLevel() != PwmLogLevel.TRACE) { %>
-        PWM_MAIN.showDialog(null,"<pwm:Display key="Warning_MakeSupportZipNoTrace" bundle="Config"/>");
+        PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Error'),text:PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace")});
         <% } else { %>
-        PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip',{addFormID:true});
-        PWM_MAIN.showDialog("<pwm:Display key="Display_PleaseWait"/>","<pwm:Display key="Warning_DownloadSupportZipInProgress" bundle="Config"/>");
+        PWM_MAIN.showDialog({title:PWM_MAIN.showString("Display_PleaseWait"),text:PWM_CONFIG.showString("Warning_DownloadSupportZipInProgress"),
+            loadFunction:function(){
+                PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip',{addFormID:true,hideDialog:true});
+            }
+        });
         <% } %>
     }
 
@@ -252,8 +258,5 @@
 </script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
-<script type="text/javascript">
-    //PWM_CONFIG.initConfigPage(function(){PWM_MAIN.pageLoadHandler()});
-</script>
 </body>
 </html>

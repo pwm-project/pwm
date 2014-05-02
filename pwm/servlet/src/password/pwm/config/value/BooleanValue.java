@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import org.jdom2.Element;
+import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.i18n.Display;
 import password.pwm.util.Helper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class BooleanValue implements StoredValue {
     boolean value;
@@ -64,11 +66,14 @@ public class BooleanValue implements StoredValue {
         return value;
     }
 
-    public String toString() {
-        return Helper.getGson().toJson(value);
-    }
-
-    public String toDebugString() {
-        return toString();
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
+        if (prettyFormat) {
+            return value
+                    ? Display.getLocalizedMessage(locale,"Value_True",null)
+                    : Display.getLocalizedMessage(locale,"Value_False",null);
+        } else {
+            return Boolean.toString(value);
+        }
     }
 }

@@ -30,6 +30,7 @@ import password.pwm.util.PwmLogger;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.StringTokenizer;
 
 public class LocaleHelper {
 
@@ -96,5 +97,30 @@ public class LocaleHelper {
         }
 
         return messagesBundle;
+    }
+
+    public static Locale parseLocaleString(final String localeString) {
+        if (localeString == null) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        final StringTokenizer st = new StringTokenizer(localeString, "_");
+
+        if (!st.hasMoreTokens()) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        final String language = st.nextToken();
+        if (!st.hasMoreTokens()) {
+            return new Locale(language);
+        }
+
+        final String country = st.nextToken();
+        if (!st.hasMoreTokens()) {
+            return new Locale(language, country);
+        }
+
+        final String variant = st.nextToken("");
+        return new Locale(language, country, variant);
     }
 }

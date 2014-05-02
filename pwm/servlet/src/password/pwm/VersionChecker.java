@@ -23,6 +23,7 @@
 package password.pwm;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -65,11 +66,13 @@ public class VersionChecker implements PwmService {
         this.pwmApplication = pwmApplication;
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
-                final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
+                final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,
+                        PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
-                    final Gson gson = Helper.getGson();
-                    versionCheckInfoCache = gson.fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
+                    versionCheckInfoCache = Helper.getGson().fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
+            } catch (JsonParseException e) {
+                LOGGER.error("unable to parse stored version check info in LocalDB: " + e.getMessage());
             } catch (LocalDBException e) {
                 LOGGER.error("error reading version check info out of LocalDB: " + e.getMessage());
             }
@@ -106,8 +109,8 @@ public class VersionChecker implements PwmService {
         }
         try {
             final VersionCheckInfoCache versionCheckInfo = getVersionCheckInfo();
-            if (versionCheckInfo != null && versionCheckInfo.getLastCheckTimestamp() > 0) {
-                return new Date(versionCheckInfo.getLastCheckTimestamp());
+            if (versionCheckInfo != null) {
+                return versionCheckInfo.getLastCheckTimestamp();
             }
         } catch (Exception e) {
             LOGGER.error("unable to determine last read timestamp: " + e.toString());
@@ -207,12 +210,10 @@ public class VersionChecker implements PwmService {
             VersionCheckInfoCache checkInfoCache = getVersionCheckInfo();
             if (checkInfoCache.getLastError() == null) {
                 if (!isVersionCurrent()) {
-                    final StringBuilder healthMsg = new StringBuilder();
-                    healthMsg.append("This version of " + PwmConstants.PWM_APP_NAME + " is out of date.");
-                    healthMsg.append("  The current version is ").append(versionCheckInfoCache.getCurrentVersion());
-                    healthMsg.append(" (b").append(versionCheckInfoCache.getCurrentBuild()).append(").");
-                    healthMsg.append("  Check the project page for more information.");
-                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"Version",healthMsg.toString()));
+                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"Version",
+                            "This version of " + PwmConstants.PWM_APP_NAME + " is out of date." + "  The current version is "
+                                    + versionCheckInfoCache.getCurrentVersion() + " (b" + versionCheckInfoCache.getCurrentBuild() + ")."
+                                    + "  Check the project page for more information."));
                 }
             } else {
                 returnRecords.add(new HealthRecord(HealthStatus.WARN,"Version","Unable to check current version: " + versionCheckInfoCache.getLastError().toDebugStr()));
@@ -223,19 +224,19 @@ public class VersionChecker implements PwmService {
     }
 
     private static class VersionCheckInfoCache {
-        private long lastCheckTimestamp;
+        private Date lastCheckTimestamp;
         private ErrorInformation lastError;
         private String currentVersion;
         private String currentBuild;
 
         private VersionCheckInfoCache(ErrorInformation lastError, String currentVersion, String currentBuild) {
-            this.lastCheckTimestamp = System.currentTimeMillis();
+            this.lastCheckTimestamp = new Date();
             this.lastError = lastError;
             this.currentVersion = currentVersion;
             this.currentBuild = currentBuild;
         }
 
-        public long getLastCheckTimestamp() {
+        public Date getLastCheckTimestamp() {
             return lastCheckTimestamp;
         }
 

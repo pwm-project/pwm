@@ -390,6 +390,10 @@ public enum PwmSetting {
             "password.policy.ruleText", PwmSettingSyntax.LOCALIZED_TEXT_AREA, Category.PASSWORD_POLICY),
     PASSWORD_POLICY_DISALLOW_CURRENT(
             "password.policy.disallowCurrent", PwmSettingSyntax.BOOLEAN, Category.PASSWORD_POLICY),
+    PASSWORD_POLICY_CHAR_GROUPS_MIN_MATCH(
+            "password.policy.charGroup.minimumMatch", PwmSettingSyntax.NUMERIC, Category.PASSWORD_POLICY),
+    PASSWORD_POLICY_CHAR_GROUPS(
+            "password.policy.charGroup.regExValues", PwmSettingSyntax.STRING_ARRAY, Category.PASSWORD_POLICY),
 
 
     // security settings
@@ -637,10 +641,8 @@ public enum PwmSetting {
             "newUser.writeAttributes", PwmSettingSyntax.ACTION, Category.NEWUSER),
     NEWUSER_DELETE_ON_FAIL(
             "newUser.deleteOnFail", PwmSettingSyntax.BOOLEAN, Category.NEWUSER),
-    NEWUSER_USERNAME_CHARS(
-            "newUser.username.characters", PwmSettingSyntax.STRING, Category.NEWUSER),
-    NEWUSER_USERNAME_LENGTH(
-            "newUser.username.length", PwmSettingSyntax.NUMERIC, Category.NEWUSER),
+    NEWUSER_USERNAME_DEFINITION(
+            "newUser.username.definition", PwmSettingSyntax.STRING_ARRAY, Category.NEWUSER),
     NEWUSER_EMAIL_VERIFICATION(
             "newUser.email.verification", PwmSettingSyntax.BOOLEAN, Category.NEWUSER),
     NEWUSER_SMS_VERIFICATION(
@@ -762,6 +764,12 @@ public enum PwmSetting {
             "ldap.ad.allowAuth.expired", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
     AD_ENFORCE_PW_HISTORY_ON_SET(
             "ldap.ad.enforcePwHistoryOnSet", PwmSettingSyntax.BOOLEAN, Category.ACTIVE_DIRECTORY, Template.AD),
+
+    // active directory
+    ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME(
+            "ldap.oracleDS.enable.manipAllowChangeTime", PwmSettingSyntax.BOOLEAN, Category.ORACLE_DS, Template.ORACLE_DS),
+    ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD(
+            "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, Category.ORACLE_DS, Template.ORACLE_DS),
 
     // helpdesk
     HELPDESK_ENABLE(
@@ -1088,6 +1096,7 @@ public enum PwmSetting {
         LOGGING             (Type.SETTING),
         EDIRECTORY          (Type.SETTING),
         ACTIVE_DIRECTORY    (Type.SETTING),
+        ORACLE_DS           (Type.SETTING),
         DATABASE            (Type.SETTING),
         REPORTING           (Type.SETTING),
         MISC                (Type.SETTING),
@@ -1170,6 +1179,7 @@ public enum PwmSetting {
     public enum Template {
         NOVL,
         AD,
+        ORACLE_DS,
         DEFAULT,
         ;
 

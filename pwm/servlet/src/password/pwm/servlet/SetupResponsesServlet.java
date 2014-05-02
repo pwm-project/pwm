@@ -407,6 +407,7 @@ public class SetupResponsesServlet extends TopServlet {
                     challengeSet.getLocale(),
                     challengeSet.getMinRandomRequired(),
                     challengeSet.getIdentifier(),
+                    null,
                     null
             );
 

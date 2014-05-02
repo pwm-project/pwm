@@ -47,199 +47,205 @@
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_UserInformation"/>
 </jsp:include>
-    <div id="centerbody">
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
-                <table>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_Username"/>
-                        </td>
-                        <td>
-                            <%= StringEscapeUtils.escapeHtml(uiBean.getUsername()) %>
-                        </td>
-                    </tr>
-                    <%--
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_UserDN"/>
-                        </td>
-                        <td>
-                            <%= StringEscapeUtils.escapeHtml(uiBean.getUserDN()) %>
-                        </td>
-                    </tr>
-                    --%>
-                </table>
-                <br class="clear"/>
-                <table>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordExpired"/>
-                        </td>
-                        <td>
-                            <%if (uiBean.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordPreExpired"/>
-                        </td>
-                        <td>
-                            <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
-                        </td>
-                        <td>
-                            <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordViolatesPolicy"/>
-                        </td>
-                        <td>
-                            <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordSetTime"/>
-                        </td>
-                        <td class="timestamp">
+<div id="centerbody">
+    <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
+        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
+            <table>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_Username"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(uiBean.getUsername()) %>
+                    </td>
+                </tr>
+                <%--
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_UserDN"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(uiBean.getUserDN()) %>
+                    </td>
+                </tr>
+                --%>
+            </table>
+            <br class="clear"/>
+            <table>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordExpired"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordPreExpired"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
+                    </td>
+                    <td>
+                        <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordViolatesPolicy"/>
+                    </td>
+                    <td>
+                        <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordSetTime"/>
+                    </td>
+                    <td>
+                            <span class="timestamp">
                             <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordSetTimeDelta"/>
-                        </td>
-                        <td>
-                            <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_PasswordExpirationTime"/>
-                        </td>
-                        <td>
-                            <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
-                        </td>
-                    </tr>
-                </table>
-                <br/>
-                <table>
-                    <% ResponseInfoBean responseInfoBean = pwmSession.getUserInfoBean().getResponseInfoBean(); %>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_ResponsesStored"/>
-                        </td>
-                        <td>
-                            <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_ResponsesTimestamp"/>
-                        </td>
-                        <td class="timestamp">
-                            <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
-                        </td>
-                    </tr>
-                </table>
-                <br/>
-                <table>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_NetworkAddress"/>
-                        </td>
-                        <td>
-                            <%= ssBean.getSrcAddress() %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_NetworkHost"/>
-                        </td>
-                        <td>
-                            <%= ssBean.getSrcHostname() %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_LogoutURL"/>
-                        </td>
-                        <td>
-                            <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="key">
-                            <pwm:Display key="Field_ForwardURL"/>
-                        </td>
-                        <td>
-                            <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
-                <div style="max-height: 400px; overflow: auto;">
-                    <table>
-                        <tr>
-                            <td class="key">
-                                <pwm:Display key="Title_PasswordPolicy"/>
-                            </td>
-                            <td>
-                                <ul>
-                                    <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
-                                </ul>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
-            <%
-                List<UserAuditRecord> auditRecords = Collections.emptyList();
-                try { auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);} catch (Exception e) {/*noop*/}
-                final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
-            %>
-            <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
-                <div style="max-height: 400px; overflow: auto;">
-                    <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
-                        <% for (final UserAuditRecord record : auditRecords) { %>
-                        <tr>
-                            <td class="key timestamp" style="width:50%">
-                                <%= dateFormatter.format(record.getTimestamp()) %>
-                            </td>
-                            <td>
-                                <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(),userLocale) %>
-                            </td>
-                        </tr>
-                        <% } %>
-                    </table>
-                </div>
-            </div>
-            <% } %>
-            <% } %>
+                            </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordSetTimeDelta"/>
+                    </td>
+                    <td>
+                        <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_PasswordExpirationTime"/>
+                    </td>
+                    <td>
+                        <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <table>
+                <% ResponseInfoBean responseInfoBean = pwmSession.getUserInfoBean().getResponseInfoBean(); %>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ResponsesStored"/>
+                    </td>
+                    <td>
+                        <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ResponsesTimestamp"/>
+                    </td>
+                    <td>
+                        <span class="timestamp">
+                        <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <table>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_NetworkAddress"/>
+                    </td>
+                    <td>
+                        <%= ssBean.getSrcAddress() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_NetworkHost"/>
+                    </td>
+                    <td>
+                        <%= ssBean.getSrcHostname() %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_LogoutURL"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">
+                        <pwm:Display key="Field_ForwardURL"/>
+                    </td>
+                    <td>
+                        <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div id="buttonbar">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="hidden"
-                       name="processAction"
-                       value="continue"/>
-                <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "
-                       id="button_continue"/>
-            </form>
+        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
+            <div style="max-height: 400px; overflow: auto;">
+                <table>
+                    <tr>
+                        <td class="key">
+                            <pwm:Display key="Title_PasswordPolicy"/>
+                        </td>
+                        <td>
+                            <ul>
+                                <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
+        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_PASSWORD_HISTORY)) { %>
+        <%
+            List<UserAuditRecord> auditRecords = Collections.emptyList();
+            try { auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);} catch (Exception e) {/*noop*/}
+            final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+        %>
+        <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
+        <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
+            <div style="max-height: 400px; overflow: auto;">
+                <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
+                    <% for (final UserAuditRecord record : auditRecords) { %>
+                    <tr>
+                        <td class="key" style="width:50%">
+                            <span class="timestamp">
+                            <%= dateFormatter.format(record.getTimestamp()) %>
+                            </span>
+                        </td>
+                        <td>
+                            <%= record.getEventCode().getLocalizedString(ContextManager.getPwmApplication(session).getConfig(),userLocale) %>
+                        </td>
+                    </tr>
+                    <% } %>
+                </table>
+            </div>
+        </div>
+        <% } %>
+        <% } %>
     </div>
-    <div class="push"></div>
+    <div id="buttonbar">
+        <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+              enctype="application/x-www-form-urlencoded">
+            <input type="hidden"
+                   name="processAction"
+                   value="continue"/>
+            <input type="submit" name="button" class="btn"
+                   value="    <pwm:Display key="Button_Continue"/>    "
+                   id="button_continue"/>
+        </form>
+    </div>
+</div>
+<div class="push"></div>
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

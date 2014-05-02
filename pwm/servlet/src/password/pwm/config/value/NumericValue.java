@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -31,7 +30,7 @@ import password.pwm.util.Helper;
 import java.util.Collections;
 import java.util.List;
 
-public class NumericValue implements StoredValue {
+public class NumericValue extends AbstractValue implements StoredValue {
     long value;
 
     public NumericValue(long value) {
@@ -63,13 +62,5 @@ public class NumericValue implements StoredValue {
     @Override
     public List<String> validateValue(PwmSetting pwmSetting) {
         return Collections.emptyList();
-    }
-
-    public String toString() {
-        return Helper.getGson().toJson(value);
-    }
-
-    public String toDebugString() {
-        return toString();
     }
 }

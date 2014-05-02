@@ -22,6 +22,7 @@
 
 package password.pwm.util.report;
 
+import com.novell.ldapchai.cr.Answer;
 import password.pwm.AppProperty;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.DataStorageMethod;
@@ -48,7 +49,8 @@ public class ReportSummaryData {
     private int hasLoginTime;
     private int hasChangePwTime;
     private int hasResponseSetTime;
-    private Map<DataStorageMethod,Integer> responseStorage = new HashMap<DataStorageMethod, Integer>();
+    private Map<DataStorageMethod, Integer> responseStorage = new HashMap<DataStorageMethod, Integer>();
+    private Map<Answer.FormatType, Integer> responseFormatType = new HashMap<Answer.FormatType, Integer>();
     private int pwExpired;
     private int pwPreExpired;
     private int pwWarnPeriod;
@@ -108,6 +110,11 @@ public class ReportSummaryData {
     public Map<DataStorageMethod, Integer> getResponseStorage()
     {
         return Collections.unmodifiableMap(responseStorage);
+    }
+
+    public Map<Answer.FormatType, Integer> getResponseFormatType()
+    {
+        return responseFormatType;
     }
 
     public Date getMeanCacheTime()
@@ -242,6 +249,18 @@ public class ReportSummaryData {
                 responseStorage.put(method, responseStorage.get(method) - 1);
             }
         }
+
+        if (userCacheRecord.responseFormatType != null) {
+            final Answer.FormatType type = userCacheRecord.responseFormatType;
+            if (!responseFormatType.containsKey(type)) {
+                responseFormatType.put(type,0);
+            }
+            if (adding) {
+                responseFormatType.put(type, responseFormatType.get(type) + 1);
+            } else {
+                responseFormatType.put(type, responseFormatType.get(type) + 1);
+            }
+        }
     }
 
     private void updateMeanTime(final Date newTime, final boolean adding) {
@@ -311,6 +330,10 @@ public class ReportSummaryData {
         for (final DataStorageMethod storageMethod : this.getResponseStorage().keySet()) {
             final int count = this.getResponseStorage().get(storageMethod);
             returnCollection.add(builder.makeRow("Field_Report_Sum_StorageMethod", count, storageMethod.toString()));
+        }
+        for (final Answer.FormatType formatType : this.getResponseFormatType().keySet()) {
+            final int count = this.getResponseFormatType().get(formatType);
+            returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseFormatType", count, formatType.toString()));
         }
 
         returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponseTime", this.hasResponseSetTime));

@@ -20,28 +20,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*
- * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
- *
- * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 .setting_outline {
     background-color: #eaeaea;
     border-radius: 5px;
@@ -170,4 +148,32 @@
     padding-bottom: 5px;
     font-weight: bold;
     text-align: center;
+}
+
+.headerIcon {
+    margin-top: 2px;
+    margin-left: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.changeLogViewBox {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 450px;
+    overflow-y: scroll;
+    background-color: #e9e9e9;
+    border: 1px solid black;
+    border-radius: 4px;
+}
+
+.changeLogKey {
+    background-color: #aa1e08;
+    color: white;
+    font-weight: bold;
+}
+
+.changeLogValue {
+    font-family: "Courier New", Courier, monospace;
+    padding-bottom: 10px;
 }

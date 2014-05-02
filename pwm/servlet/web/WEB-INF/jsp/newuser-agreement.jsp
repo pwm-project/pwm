@@ -67,7 +67,6 @@
         <div style="text-align: center">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='NewUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
-                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="submit" name="button" class="btn"
                        value="<pwm:Display key="Button_Cancel"/>"
                        id="button_reset"/>

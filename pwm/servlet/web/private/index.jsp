@@ -38,7 +38,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='ChangePassword'/>">
-                        <i class="fa fa-key"></i>&nbsp;
+                        <span class="fa fa-key"></span>&nbsp;
                         <pwm:Display key="Title_ChangePassword"/>
                     </a>
                 </td>
@@ -52,7 +52,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='SetupResponses'/>">
-                        <i class="fa fa-list-ol"></i>&nbsp;
+                        <span class="fa fa-list-ol"></span>&nbsp;
                         <pwm:Display key="Title_SetupResponses"/>
                     </a>
                 </td>
@@ -79,7 +79,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='UpdateProfile'/>">
-                        <i class="fa fa-edit"></i>&nbsp;
+                        <span class="fa fa-edit"></span>&nbsp;
                         <pwm:Display key="Title_UpdateProfile"/>
                     </a>
                 </td>
@@ -93,7 +93,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Shortcuts'/>">
-                        <i class="fa fa-external-link"></i>&nbsp;
+                        <span class="fa fa-external-link"></span>&nbsp;
                         <pwm:Display key="Title_Shortcuts"/>
                     </a>
                 </td>
@@ -107,7 +107,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='PeopleSearch'/>">
-                        <i class="fa fa-search"></i>&nbsp;
+                        <span class="fa fa-search"></span>&nbsp;
                         <pwm:Display key="Title_PeopleSearch"/>
                     </a>
                 </td>
@@ -121,7 +121,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
-                        <i class="fa fa-file-o"></i>&nbsp;
+                        <span class="fa fa-file-o"></span>&nbsp;
                         <pwm:Display key="Title_UserInformation"/>
                     </a>
                 </td>
@@ -135,7 +135,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Helpdesk'/>">
-                        <i class="fa fa-user"></i>&nbsp;
+                        <span class="fa fa-user"></span>&nbsp;
                         <pwm:Display key="Title_Helpdesk"/>
                     </a>
                 </td>
@@ -161,7 +161,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='admin/dashboard.jsp'/>">
-                        <i class="fa fa-dashboard"></i>&nbsp;
+                        <span class="fa fa-dashboard"></span>&nbsp;
                         <pwm:Display key="Title_Admin"/>
                     </a>
                 </td>
@@ -174,7 +174,7 @@
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='../public/Logout'/>">
-                        <i class="fa fa-sign-out"></i>&nbsp;
+                        <span class="fa fa-sign-out"></span>&nbsp;
                         <pwm:Display key="Title_Logout"/>
                     </a>
                 </td>

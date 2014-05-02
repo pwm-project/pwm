@@ -408,7 +408,7 @@ public class LdapOperationsHelper {
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
         final String uIDattr = pwmApplication.getConfig().getUsernameAttribute(userIdentity.getLdapProfileID());
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,userIdentity);
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
         return userDataReader.readStringAttribute(uIDattr);
     }
 }

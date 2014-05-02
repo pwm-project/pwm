@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringValue implements StoredValue {
+public class StringValue extends AbstractValue implements StoredValue {
     protected String value;
 
     StringValue() {
@@ -61,14 +61,6 @@ public class StringValue implements StoredValue {
 
     public String toNativeObject() {
         return value;
-    }
-
-    public String toDebugString() {
-        return value;
-    }
-
-    public String toString() {
-        return Helper.getGson().toJson(value);
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {

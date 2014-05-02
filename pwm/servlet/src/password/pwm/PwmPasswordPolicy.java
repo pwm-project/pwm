@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.config.Profile;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.util.PwmLogger;
 
@@ -39,7 +40,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Jason D. Rivard
  */
-public class PwmPasswordPolicy implements Serializable {
+public class PwmPasswordPolicy implements Profile,Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmPasswordPolicy.class);
@@ -53,6 +54,15 @@ public class PwmPasswordPolicy implements Serializable {
     private String profile;
     private String queryMatch;
     private String ruleText;
+
+    public String getIdentifier()
+    {
+        return profile;
+    }
+
+    public String getDisplayName(final Locale locale) {
+        return getIdentifier();
+    }
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -170,6 +180,7 @@ public class PwmPasswordPolicy implements Serializable {
                     case DisallowedAttributes:
                     case RegExMatch:
                     case RegExNoMatch:
+                    case CharGroupsValues:
                         final String seperator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
                         final Set<String> combinedSet = new HashSet<String>();
                         combinedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()), seperator));
@@ -275,12 +286,17 @@ public class PwmPasswordPolicy implements Serializable {
         }
 
         public List<Pattern> getRegExMatch() {
-            return readRegExSetting(passwordPolicy.policyMap.get(PwmPasswordRule.RegExMatch.getKey()));
+            return readRegExSetting(PwmPasswordRule.RegExMatch);
         }
 
         public List<Pattern> getRegExNoMatch() {
-            return readRegExSetting(passwordPolicy.policyMap.get(PwmPasswordRule.RegExNoMatch.getKey()));
+            return readRegExSetting(PwmPasswordRule.RegExNoMatch);
         }
+
+        public List<Pattern> getCharGroupValues() {
+            return readRegExSetting(PwmPasswordRule.CharGroupsValues);
+        }
+
 
         public int readIntValue(final PwmPasswordRule rule) {
             if (
@@ -305,12 +321,13 @@ public class PwmPasswordPolicy implements Serializable {
             return StringHelper.convertStrToBoolean(value);
         }
 
-        private static List<Pattern> readRegExSetting(final String input) {
+        private List<Pattern> readRegExSetting(final PwmPasswordRule rule) {
+            final String input = passwordPolicy.policyMap.get(rule.getKey());
             if (input == null) {
                 return Collections.emptyList();
             }
-
-            final List<String> values = new ArrayList<String>(StringHelper.tokenizeString(input, ";;;"));
+            final String separator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
+            final List<String> values = new ArrayList<String>(StringHelper.tokenizeString(input, separator));
             final List<Pattern> patterns = new ArrayList<Pattern>();
 
             for (final String value : values) {
@@ -319,7 +336,7 @@ public class PwmPasswordPolicy implements Serializable {
                         final Pattern loopPattern = Pattern.compile(value);
                         patterns.add(loopPattern);
                     } catch (PatternSyntaxException e) {
-                        LOGGER.warn("Messages reading config value '" + input + "' is not a valid regular expression " + e.getMessage());
+                        LOGGER.warn("reading password rule value '" + value + "' for rule " + rule.getKey() + " is not a valid regular expression " + e.getMessage());
                     }
                 }
             }

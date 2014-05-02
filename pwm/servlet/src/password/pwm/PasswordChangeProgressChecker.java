@@ -42,14 +42,14 @@ public class PasswordChangeProgressChecker {
 
     public static final String PROGRESS_KEY_REPLICATION = "replication";
 
-    private final ProgressRecord completedReplicatinRecord;
+    private final ProgressRecord completedReplicationRecord;
     private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
     private final Locale locale;
 
     private final PasswordSyncCheckMode passwordSyncCheckMode;
 
-        public PasswordChangeProgressChecker(
+    public PasswordChangeProgressChecker(
             PwmApplication pwmApplication,
             PwmSession pwmSession,
             Locale locale
@@ -64,7 +64,7 @@ public class PasswordChangeProgressChecker {
         }
         passwordSyncCheckMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.PASSWORD_SYNC_ENABLE_REPLICA_CHECK,PasswordSyncCheckMode.class);
 
-        completedReplicatinRecord = makeReplicaProgressRecord(Percent.ONE_HUNDRED);
+        completedReplicationRecord = makeReplicaProgressRecord(Percent.ONE_HUNDRED);
     }
 
     public static class PasswordChangeProgress implements Serializable {
@@ -278,8 +278,8 @@ public class PasswordChangeProgressChecker {
         final TimeDuration cycleReplicaDelay = new TimeDuration(cycleDelayMs);
 
         if (passwordSyncCheckMode == PasswordSyncCheckMode.DISABLED) {
-                LOGGER.trace(pwmSession, "skipping replica sync check, disabled");
-                return tracker.itemCompletions.get(PROGRESS_KEY_REPLICATION);
+            LOGGER.trace(pwmSession, "skipping replica sync check, disabled");
+            return tracker.itemCompletions.get(PROGRESS_KEY_REPLICATION);
         }
 
         if (tracker.itemCompletions.containsKey(PROGRESS_KEY_REPLICATION)) {
@@ -308,7 +308,7 @@ public class PasswordChangeProgressChecker {
                     pwmSession, userIdentity);
             if (checkResults.size() <= 1) {
                 LOGGER.trace("only one replica returned data, marking as complete");
-                return completedReplicatinRecord;
+                return completedReplicationRecord;
             } else {
                 final HashSet<Date> tempHashSet = new HashSet<Date>();
                 int duplicateValues = 0;

@@ -264,7 +264,9 @@ public class ContextManager implements Serializable {
                     }
                 }
 
-                activeSessions.removeAll(deadSessions);
+                if (!deadSessions.isEmpty()) {
+                    activeSessions.removeAll(deadSessions);
+                }
             } catch (Throwable e) {
                 LOGGER.error("error clearing sessions during restart: " + e.getMessage());
             }
@@ -335,5 +337,36 @@ public class ContextManager implements Serializable {
             }
             return null;
         }
+    }
+
+    public enum DebugKey {
+        HttpSessionCount,
+        HttpSessionTotalSize,
+        HttpSessionAvgSize,
+    }
+
+    public Map<DebugKey, String> getDebugData() {
+        try {
+            final Set<PwmSession> sessionCopy = new HashSet<PwmSession>(this.getPwmSessions());
+            int sessionCounter = 0;
+            long sizeTotal = 0;
+            for (final PwmSession loopSession : sessionCopy) {
+                try {
+                    sizeTotal += loopSession.size();
+                    sessionCounter++;
+                } catch (Exception e) {
+                    LOGGER.error("error during session size calculation: " + e.getMessage());
+                }
+            }
+            Map<DebugKey, String> returnMap = new HashMap<DebugKey, String>();
+            returnMap.put(DebugKey.HttpSessionCount, String.valueOf(sessionCounter));
+            returnMap.put(DebugKey.HttpSessionTotalSize, String.valueOf(sizeTotal));
+            returnMap.put(DebugKey.HttpSessionAvgSize,
+                    sessionCounter < 1 ? "0" : String.valueOf((int) (sizeTotal / sessionCounter)));
+            return returnMap;
+        } catch (Exception e) {
+            LOGGER.error("error during session debug generation: " + e.getMessage());
+        }
+        return Collections.emptyMap();
     }
 }

@@ -54,6 +54,7 @@ public class RestStatusServer {
 
     public static class JsonStatusData implements Serializable {
         public String userDN;
+        public String ldapProfile;
         public String userID;
         public String userEmailAddress;
         public Date passwordExpirationTime;
@@ -61,15 +62,17 @@ public class RestStatusServer {
         public boolean requiresNewPassword;
         public boolean requiresResponseConfig;
         public boolean requiresUpdateProfile;
+        public boolean requiresInteraction;
 
         public PasswordStatus passwordStatus;
         public Map<String,String> passwordPolicy;
         public List<String> passwordRules;
-        public Map<String,String> atributes;
+        public Map<String,String> attributes;
 
         public static JsonStatusData fromUserInfoBean(final UserInfoBean userInfoBean, final Configuration config, final Locale locale) {
             final JsonStatusData jsonStatusData = new JsonStatusData();
-            jsonStatusData.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().toDeliminatedKey();
+            jsonStatusData.userDN = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getUserDN();
+            jsonStatusData.ldapProfile = (userInfoBean.getUserIdentity() == null) ? "" : userInfoBean.getUserIdentity().getLdapProfileID();
             jsonStatusData.userID = userInfoBean.getUsername();
             jsonStatusData.userEmailAddress = userInfoBean.getUserEmailAddress();
             jsonStatusData.passwordExpirationTime = userInfoBean.getPasswordExpirationTime();
@@ -79,6 +82,10 @@ public class RestStatusServer {
             jsonStatusData.requiresNewPassword = userInfoBean.isRequiresNewPassword();
             jsonStatusData.requiresResponseConfig = userInfoBean.isRequiresResponseConfig();
             jsonStatusData.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
+            jsonStatusData.requiresInteraction = userInfoBean.isRequiresNewPassword()
+                    || userInfoBean.isRequiresResponseConfig()
+                    || userInfoBean.isRequiresUpdateProfile();
+
 
             jsonStatusData.passwordPolicy = new HashMap<String,String>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
@@ -92,7 +99,7 @@ public class RestStatusServer {
             );
 
             if (userInfoBean.getCachedAttributeValues() != null && !userInfoBean.getCachedAttributeValues().isEmpty()) {
-                jsonStatusData.atributes = Collections.unmodifiableMap(userInfoBean.getCachedAttributeValues());
+                jsonStatusData.attributes = Collections.unmodifiableMap(userInfoBean.getCachedAttributeValues());
             }
 
             return jsonStatusData;

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,9 +72,9 @@ public class ValueFactory {
             return (StoredValue)storedValueInstance;
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("error parsing stored configuration value: " + e.getMessage());
+            errorMsg.append("error parsing stored configuration value: ").append(e.getMessage());
             if (e.getCause() != null) {
-                errorMsg.append(", cause: " + e.getCause().getMessage());
+                errorMsg.append(", cause: ").append(e.getCause().getMessage());
             }
             LOGGER.error(errorMsg,e);
             throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg.toString()));

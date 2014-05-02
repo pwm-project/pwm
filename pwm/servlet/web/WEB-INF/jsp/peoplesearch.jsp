@@ -151,12 +151,12 @@
 </form>
 <script type="text/javascript">
     function loadDetails(userKey) {
-        PWM_MAIN.showWaitDialog(null,null,function(){
-            setTimeout(function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function(){
+            setTimeout(function () {
                 PWM_MAIN.getObject("userKey").value = userKey;
                 PWM_MAIN.getObject("loadDetailsForm").submit();
-            },10);
-        });
+            }, 10);
+        }});
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){

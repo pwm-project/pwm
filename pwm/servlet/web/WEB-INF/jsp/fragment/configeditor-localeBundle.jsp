@@ -49,37 +49,51 @@
     });
 </script>
 <% } %>
-<div id="titlePane_<%=key%>" style="margin-top:0; padding-top:0; border-top:0">
-    <div class="message message-info" style="width: 580px; font-weight: bolder; font-family: Trebuchet MS,sans-serif">
-        <% if (isDefault) { %>
-        <button id="loadButton-localeBundle-<%=bundleName%>-<%=key%>">Edit Text</button>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                require(["dijit/form/Button"],function(){
-                    new dijit.form.Button({
-                        onClick: function(){doLazyLoad('<%=key%>');this.destroy()}
-                    },'loadButton-localeBundle-<%=bundleName%>-<%=key%>');
-                });
-            });
-        </script>
-        <% } %>
+<div id="titlePane_<%=key%>" class="setting_outline" <%if(isDefault){%> onclick="startEditor(this,'<%=key%>')" style="cursor:pointer;" <%}%>>
+    <div class="setting_title" id="title_localeBundle-<%=bundleName%>-<%=key%>">
         <label id="label_<%=key%>" for="value_<%=key%>"><%=key%></label>
+        <% if (isDefault) { %>
+        <span id="editIcon_<%=key%>">
+        <span class="fa fa-edit"></span>&nbsp;
+        </span>
+        <% } %>
         <div class="icon_button fa fa-undo" title="Reset" id="resetButton-localeBundle-<%=bundleName%>-<%=key%>" onclick="handleResetClick('localeBundle-<%=bundleName%>-<%=key%>')"
              style="visibility:hidden; vertical-align:bottom; float: right; cursor: pointer"></div>
-
     </div>
-    <div class="message message-info" style="width: 580px; background: white;">
+    <div class="setting_body" id="titlePane_localeBundle-<%=bundleName%>-<%=key%>">
         <table id="table_<%=key%>" style="border-width:0" width="500">
-            <% if (isDefault) { %>
-            <% for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) { %>
+            <%
+                if (isDefault) {
+                    final String defaultValue = ResourceBundle.getBundle(bundleName.getTheClass().getName(),PwmConstants.DEFAULT_LOCALE).getString(key);
+            %>
             <tr style="border-width:0">
                 <td style="border-width:0">
-                    <%= "".equals(loopLocale.toString()) ? "Default" : loopLocale.getDisplayName(loopLocale) %>
                 </td>
                 <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
-                    <%= StringEscapeUtils.escapeHtml(ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key)) %>
+                    <%= StringEscapeUtils.escapeHtml(defaultValue) %>
                 </td>
             </tr>
+            <%
+                for(final Locale loopLocale : ContextManager.getPwmApplication(session).getConfig().getKnownLocales()) {
+                    final String localizedValue = ResourceBundle.getBundle(bundleName.getTheClass().getName(),loopLocale).getString(key);
+                    if (!defaultValue.equals(localizedValue)) {
+            %>
+            <tr style="border-width:0">
+                <td style="border-width:0" id="localeKey_<%=key%>_<%=loopLocale.toString()%>">
+                    <%= loopLocale.toString() %>
+                </td>
+                <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
+                    <%= StringEscapeUtils.escapeHtml(localizedValue) %>
+                </td>
+            </tr>
+            <script>
+                PWM_GLOBAL['startupFunctions'].push(function() {
+                    PWM_VAR['localeKey_tooltips'] = PWM_VAR['localeKey_tooltips'] || {};
+                    PWM_VAR['localeKey_tooltips']['<%=loopLocale.toString()%>'] = PWM_VAR['localeKey_tooltips']['<%=loopLocale.toString()%>'] || new Array();
+                    PWM_VAR['localeKey_tooltips']['<%=loopLocale.toString()%>'].push('localeKey_<%=key%>_<%=loopLocale.toString()%>');
+                });
+            </script>
+            <% } %>
             <% } %>
             <% } else { %>
             <tr style="border-width:0">
@@ -111,13 +125,38 @@
         }
     }
 
+    function initTooltips() {
+        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
+            for (var localeKey in PWM_VAR['localeKey_tooltips']) {
+                var connectIDs = PWM_VAR['localeKey_tooltips'][localeKey];
+                var labelText = localeKey + ' - ' + PWM_GLOBAL['localeInfo'][localeKey];
+                new Tooltip({
+                    connectId: connectIDs,
+                    position: ['below','above'],
+                    label: labelText
+                });
+            }
+        });
+    }
+
+    function startEditor(element,key) {
+        doLazyLoad(key);
+        element.onclick=null
+        element.style.cursor = 'auto';
+        var editIconDiv = PWM_MAIN.getObject('editIcon_' + key);
+        if (editIconDiv) {
+            editIconDiv.parentElement.removeChild(editIconDiv);
+        }
+    }
+
     PWM_GLOBAL['startupFunctions'].push(function(){
         if (LOAD_TRACKER.length > 0) {
-            PWM_MAIN.showWaitDialog(PWM_MAIN.showString('Display_PleaseWait'),'<div id="waitMsg">Loading custom display values.......</div>',function(){
+            PWM_MAIN.showWaitDialog({text:'<div id="waitMsg">Loading custom display values.......</div>',loadFunction:function() {
                 LOAD_TRACKER.reverse();
                 doLazyLoad(LOAD_TRACKER.pop());
-            });
+            }});
         }
+        initTooltips();
     });
 </script>
 

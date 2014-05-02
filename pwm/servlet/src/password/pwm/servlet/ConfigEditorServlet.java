@@ -199,11 +199,18 @@ public class ConfigEditorServlet extends TopServlet {
             final Map<String,String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(),keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
                 final Map<String,String> defaultValueMap = new LinkedHashMap<String, String>();
+                final String defaultLocaleValue = ResourceBundle.getBundle(bundleName.getTheClass().getName(),PwmConstants.DEFAULT_LOCALE).getString(keyName);
                 for (final Locale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
                     final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
-                    final String localeStr = locale.toString().equalsIgnoreCase("en") ? "" : locale.toString();
-
-                    defaultValueMap.put(localeStr,localeBundle.getString(keyName));
+                    if (locale.toString().equalsIgnoreCase(PwmConstants.DEFAULT_LOCALE.toString())) {
+                        defaultValueMap.put("", defaultLocaleValue);
+                    } else {
+                        final String valueStr = localeBundle.getString(keyName);
+                        if (!defaultLocaleValue.equals(valueStr)) {
+                            final String localeStr = locale.toString();
+                            defaultValueMap.put(localeStr, localeBundle.getString(keyName));
+                        }
+                    }
                 }
                 returnValue = defaultValueMap;
                 returnMap.put("isDefault", true);
@@ -494,7 +501,7 @@ public class ConfigEditorServlet extends TopServlet {
     {
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
         final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale));
+        restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale,true));
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 
@@ -523,7 +530,7 @@ public class ConfigEditorServlet extends TopServlet {
                     final LinkedHashMap<String,String> settingData = new LinkedHashMap<String,String>();
                     settingData.put("category", setting.getCategory().toString());
                     settingData.put("description", setting.getDescription(locale));
-                    settingData.put("value", configManagerBean.getConfiguration().readSetting(setting,recordID.getProfileID()).toDebugString());
+                    settingData.put("value", configManagerBean.getConfiguration().readSetting(setting,recordID.getProfileID()).toDebugString(false,null));
                     settingData.put("label", setting.getLabel(locale));
 
                     String returnCategory = setting.getCategory().getLabel(locale);

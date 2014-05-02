@@ -28,6 +28,7 @@ import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogConfigIF;
 import org.productivity.java.syslog4j.SyslogIF;
 import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
+import org.productivity.java.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslogConfig;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -95,6 +96,14 @@ class SyslogAuditService {
     {
         final SyslogConfigIF syslogConfigIF;
         switch (syslogConfig.getProtocol()) {
+            case sslTcp:
+                final SSLTCPNetSyslogConfig sslTcpConfig = new SSLTCPNetSyslogConfig();
+                sslTcpConfig.setThreaded(false);
+                sslTcpConfig.setMaxQueueSize(0);
+                sslTcpConfig.setThrowExceptionOnWrite(true);
+                syslogConfigIF = sslTcpConfig;
+                break;
+
             case tcp:
                 final TCPNetSyslogConfig tcpConfig = new TCPNetSyslogConfig();
                 tcpConfig.setThreaded(false);
@@ -219,7 +228,7 @@ class SyslogAuditService {
     }
 
     public static class SyslogConfig implements Serializable {
-        public enum Protocol { tcp, udp }
+        public enum Protocol {sslTcp, tcp, udp }
 
         private Protocol protocol;
         private String host;

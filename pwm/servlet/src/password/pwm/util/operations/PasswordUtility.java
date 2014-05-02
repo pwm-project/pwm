@@ -48,6 +48,7 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
@@ -142,8 +143,7 @@ public class PasswordUtility {
 
         if (toNumber == null || toNumber.length() < 1) {
             final String errorMsg = String.format("unable to send new password email for '%s'; no SMS number available in ldap", userInfoBean.getUserIdentity());
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return errorInformation;
+            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
         }
 
         message = message.replace("%TOKEN%", newPassword);
@@ -170,8 +170,7 @@ public class PasswordUtility {
 
         if (configuredEmailSetting == null) {
             final String errorMsg = "send password email contents are not configured";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-            return errorInformation;
+            return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
         }
 
         pwmApplication.getEmailQueue().submit(new EmailItemBean(
@@ -271,10 +270,11 @@ public class PasswordUtility {
             }
         }
 
-        final long passwordSetTimestamp = System.currentTimeMillis();
         try {
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
             final ChaiUser theUser = ChaiFactory.createChaiUser(pwmSession.getUserInfoBean().getUserIdentity().getUserDN(), provider);
+            final boolean boundAsSelf = theUser.getEntryDN().equals(provider.getChaiConfiguration().getSetting(ChaiSetting.BIND_DN));
+            LOGGER.trace(pwmSession, "preparing to setUserPassword for '" + theUser.getEntryDN() + "', bindAsSelf=" + boundAsSelf + ", authType=" + pwmSession.getUserInfoBean().getAuthenticationType());
             if (setPasswordWithoutOld) {
                 theUser.setPassword(newPassword, true);
             } else {
@@ -460,7 +460,7 @@ public class PasswordUtility {
             PasswordUtility.sendNewPassword(
                     userInfoBean,
                     pwmApplication,
-                    UserDataReader.appProxiedReader(pwmApplication, userIdentity),
+                    LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity),
                     newPassword,
                     pwmSession.getSessionStateBean().getLocale()
             );
@@ -781,7 +781,7 @@ public class PasswordUtility {
         }
 
         final PasswordCheckInfo.MATCH_STATUS matchStatus = figureMatchStatus(passwordIsCaseSensitive ,password, confirmPassword);
-        if (pass == true) {
+        if (pass) {
             switch (matchStatus) {
                 case EMPTY:
                     userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING_CONFIRM).toUserStr(locale, pwmApplication.getConfig());
@@ -903,7 +903,7 @@ public class PasswordUtility {
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
-                LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + chaiReadDate.toString());
+                LOGGER.trace(pwmSession, "read last user password change timestamp (via chai) as: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(chaiReadDate));
                 return chaiReadDate;
             }
         } catch (ChaiOperationException e) {
@@ -914,7 +914,7 @@ public class PasswordUtility {
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
                 final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
-                LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + pwmPwdLastModified);
+                LOGGER.trace(pwmSession, "read pwmPassswordChangeTime as: " + (pwmPwdLastModified == null ? "" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
                 return pwmPwdLastModified;
             } catch (ChaiOperationException e) {
                 LOGGER.error(pwmSession, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());

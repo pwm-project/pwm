@@ -104,6 +104,7 @@ public class RestChallengesServer {
                     locale,
                     minimumRandoms,
                     csIdentifier,
+                    null,
                     null
             );
             responseInfoBean.setTimestamp(new Date());

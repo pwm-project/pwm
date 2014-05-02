@@ -41,24 +41,28 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
-<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(request); %>
-<% final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean(); %>
-<% final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
-<% final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(
-        pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE)); %>
-<% final ResponseInfoBean responseInfoBean = helpdeskBean.getUserInfoBean().getResponseInfoBean(); %>
-<% final String obfuscatedDN = helpdeskBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(pwmApplication.getConfig()); %>
+<%
+    final PwmSession pwmSession = PwmSession.getPwmSession(request);
+    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+    final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
+    final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
+    final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(
+            pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SET_PASSWORD_MODE));
+    final ResponseInfoBean responseInfoBean = helpdeskBean.getUserInfoBean().getResponseInfoBean();
+    final String obfuscatedDN = helpdeskBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(
+            pwmApplication.getConfig());
+    final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean();
+    final String pageTitle = Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Title_Helpdesk",pwmApplication.getConfig())
+            + " - " + searchedUserInfo.getUsername();
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-    <jsp:param name="pwm.PageName" value="Title_Helpdesk"/>
+    <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
 </jsp:include>
 <div id="centerbody">
-<% final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean(); %>
-<h1><%=searchedUserInfo.getUsername()%></h1>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
     <div style="max-height: 400px; overflow: auto;">
@@ -333,15 +337,15 @@
                 </td>
                 <td>
                     <% if (searchedUserInfo.getPasswordPolicy().getValue(rule) != null) { %>
-                        <% if (ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType()) { %>
-                            <% if (Boolean.parseBoolean(searchedUserInfo.getPasswordPolicy().getValue(rule))) { %>
-                            <pwm:Display key="Value_True"/>
-                            <% } else { %>
-                            <pwm:Display key="Value_False"/>
-                            <% } %>
-                        <% } else { %>
-                            <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
-                        <% } %>
+                    <% if (ChaiPasswordRule.RuleType.BOOLEAN == rule.getRuleType()) { %>
+                    <% if (Boolean.parseBoolean(searchedUserInfo.getPasswordPolicy().getValue(rule))) { %>
+                    <pwm:Display key="Value_True"/>
+                    <% } else { %>
+                    <pwm:Display key="Value_False"/>
+                    <% } %>
+                    <% } else { %>
+                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
+                    <% } %>
                     <% } %>
                 </td>
             </tr>

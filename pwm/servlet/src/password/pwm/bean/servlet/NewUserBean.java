@@ -24,6 +24,7 @@ package password.pwm.bean.servlet;
 
 import password.pwm.bean.PwmSessionBean;
 
+import java.util.Date;
 import java.util.Map;
 
 public class NewUserBean implements PwmSessionBean {
@@ -35,8 +36,9 @@ public class NewUserBean implements PwmSessionBean {
     private boolean emailTokenPassed;
     private boolean smsTokenIssued;
     private boolean smsTokenPassed;
-    private boolean allPassed;
+    private boolean formPassed;
     private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
+    private Date createStartTime;
 
     public NewUserBean() {
     }
@@ -99,12 +101,12 @@ public class NewUserBean implements PwmSessionBean {
         this.smsTokenPassed = smsTokenPassed;
     }
 
-    public boolean isAllPassed() {
-        return allPassed;
+    public boolean isFormPassed() {
+        return formPassed;
     }
 
-    public void setAllPassed(final boolean allPassed) {
-        this.allPassed = allPassed;
+    public void setFormPassed(final boolean formPassed) {
+        this.formPassed = formPassed;
     }
     
     public void setVerificationPhase(NewUserVerificationPhase verificationPhase) {
@@ -119,5 +121,15 @@ public class NewUserBean implements PwmSessionBean {
     	NONE,
     	EMAIL,
     	SMS
+    }
+
+    public Date getCreateStartTime()
+    {
+        return createStartTime;
+    }
+
+    public void setCreateStartTime(Date createStartTime)
+    {
+        this.createStartTime = createStartTime;
     }
 }

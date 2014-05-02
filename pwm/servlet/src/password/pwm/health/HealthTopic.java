@@ -33,6 +33,8 @@ public enum HealthTopic {
     Email,
     Integrity,
     TokenService,
+    Platform,
+    LocalDB,
 
     ;
 

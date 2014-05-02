@@ -32,6 +32,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.servlet.UpdateProfileServlet;
 import password.pwm.util.FormMap;
@@ -108,7 +109,9 @@ public class RestProfileServer {
             final List<FormConfiguration> formFields = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
 
             if (restRequestBean.getUserIdentity() != null) {
-                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity());
+                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(
+                        restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(),
+                        restRequestBean.getUserIdentity());
                 UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,userDataReader);
             } else {
                 UpdateProfileServlet.populateFormFromLdap(formFields,restRequestBean.getPwmSession(),formData,restRequestBean.getPwmSession().getSessionManager().getUserDataReader(restRequestBean.getPwmApplication()));

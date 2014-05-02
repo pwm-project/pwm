@@ -307,7 +307,9 @@ public class StoredConfiguration implements Serializable {
         try {
             final StoredValue currentValue = readSetting(setting, profileID);
             final StoredValue defaultValue = defaultValue(setting, this.getTemplate());
-            return currentValue.toDebugString().equals(defaultValue.toDebugString());
+            final String currentJsonValue = Helper.getGson().toJson(currentValue.toNativeObject());
+            final String defaultJsonValue = Helper.getGson().toJson(defaultValue.toNativeObject());
+            return defaultJsonValue.equalsIgnoreCase(currentJsonValue);
         } finally {
             domModifyLock.readLock().unlock();
         }
@@ -345,7 +347,7 @@ public class StoredConfiguration implements Serializable {
 
     public String toString(final PwmSetting setting, final String profileID ) {
         final StoredValue storedValue = readSetting(setting, profileID);
-        return setting.getKey() + "=" + storedValue.toDebugString();
+        return setting.getKey() + "=" + storedValue.toDebugString(false, null);
     }
 
     public String toString(final boolean linebreaks) {
@@ -357,7 +359,7 @@ public class StoredConfiguration implements Serializable {
                 if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
                     if (!isDefaultValue(setting,null)) {
                         final StoredValue value = readSetting(setting);
-                        outputObject.put(setting.getKey(), value.toDebugString());
+                        outputObject.put(setting.getKey(), value.toDebugString(false, null));
                     }
                 }
             }
@@ -370,7 +372,7 @@ public class StoredConfiguration implements Serializable {
                         for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                             if (!isDefaultValue(profileSetting, profileID)) {
                                 final StoredValue value = readSetting(profileSetting, profileID);
-                                profileObject.put(profileSetting.getKey(), value.toDebugString());
+                                profileObject.put(profileSetting.getKey(), value.toDebugString(false, null));
                             }
                         }
                         final String key = "".equals(profileID) ? "default" : profileID;
@@ -529,7 +531,7 @@ public class StoredConfiguration implements Serializable {
             return false;
         }
         {
-            final String valueDebug = value.toDebugString();
+            final String valueDebug = value.toDebugString(false, null);
             if (valueDebug.toLowerCase().contains(searchTerm.toLowerCase())) {
                 return true;
             }
@@ -894,8 +896,8 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String changeLogAsDebugString(final Locale locale) {
-        return changeLog.changeLogAsDebugString(locale);
+    public String changeLogAsDebugString(final Locale locale, final boolean asHtml) {
+        return changeLog.changeLogAsDebugString(locale, asHtml);
     }
 
     public String getKey() {
@@ -914,7 +916,7 @@ public class StoredConfiguration implements Serializable {
             return !changeLog.isEmpty();
         }
 
-        public String changeLogAsDebugString(final Locale locale) {
+        public String changeLogAsDebugString(final Locale locale, boolean asHtml) {
             final Map<String,String> outputMap = new TreeMap<String,String>();
             for (final ConfigRecordID configRecordID : changeLog.keySet()) {
                 switch (configRecordID.recordType) {
@@ -929,7 +931,7 @@ public class StoredConfiguration implements Serializable {
                             keyName.append(" -> ");
                             keyName.append(configRecordID.profileID);
                         }
-                        final String debugValue = currentValue.toDebugString();
+                        final String debugValue = currentValue.toDebugString(asHtml, locale);
                         outputMap.put(keyName.toString(),debugValue);
                     }
                     break;
@@ -958,11 +960,19 @@ public class StoredConfiguration implements Serializable {
             } else {
                 for (final String keyName : outputMap.keySet()) {
                     final String value = outputMap.get(keyName);
-                    output.append(keyName);
-                    output.append("\n");
-                    output.append(" Value: ");
-                    output.append(value);
-                    output.append("\n");
+                    if (asHtml) {
+                        output.append("<div class=\"changeLogKey\">");
+                        output.append(keyName);
+                        output.append("</div><div class=\"changeLogValue\">");
+                        output.append(value);
+                        output.append("</div>");
+                    } else {
+                        output.append(keyName);
+                        output.append("\n");
+                        output.append(" Value: ");
+                        output.append(value);
+                        output.append("\n");
+                    }
                 }
             }
             return output.toString();

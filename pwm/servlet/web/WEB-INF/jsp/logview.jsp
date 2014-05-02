@@ -47,11 +47,11 @@
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog(null,null,function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')});">refresh</a>
+    <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')}});">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a style="cursor: pointer" onclick="self.close()">close</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;PWM_MAIN.showWaitDialog(null,null,function(){PWM_CONFIG.openLogViewer(level)});">
+    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});">
         <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
         </option>
         <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR

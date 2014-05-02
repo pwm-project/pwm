@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.bean.PwmSessionBean;
 import password.pwm.bean.SessionStateBean;
@@ -31,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -338,7 +340,7 @@ public class PwmSession implements Serializable {
             return "exception generating PwmSession.toString(): " + e.getMessage();
         }
 
-        return "PwmSession instance: " + Helper.getGson().toJson(debugData);
+        return "PwmSession instance: " + Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugData);
     }
 
     public boolean setLocale(final PwmApplication pwmApplication, final String localeString)
@@ -349,11 +351,11 @@ public class PwmSession implements Serializable {
         }
 
         final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-        final Locale requestedLocale = Helper.parseLocaleString(localeString);
+        final Locale requestedLocale = LocaleHelper.parseLocaleString(localeString);
         if (knownLocales.contains(requestedLocale) || localeString.equalsIgnoreCase("default")) {
             LOGGER.debug(this, "setting session locale to '" + localeString + "'");
             final SessionStateBean ssBean = this.getSessionStateBean();
-            ssBean.setLocale(new Locale(localeString.equalsIgnoreCase("default") ? "" : localeString));
+            ssBean.setLocale(localeString.equalsIgnoreCase("default") ? PwmConstants.DEFAULT_LOCALE : requestedLocale);
             if (ssBean.isAuthenticated()) {
                 try {
                     final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
@@ -406,5 +408,9 @@ public class PwmSession implements Serializable {
 
     private static class Settings implements Serializable {
         private int restKeyLength = 36; // default
+    }
+
+    public int size() {
+        return Helper.getGson().toJson(this).length();
     }
 }

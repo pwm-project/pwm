@@ -42,6 +42,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
@@ -250,7 +251,8 @@ public class GuestRegistrationServlet extends TopServlet {
                         involvedAttrs.add(formItem.getName());
                     }
                 }
-                final UserDataReader userDataReader = UserDataReader.selfProxiedReader(pwmApplication,pwmSession,theGuest);
+                final UserDataReader userDataReader = LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession,
+                        theGuest);
                 final Map<String,String> userAttrValues = userDataReader.readStringAttributes(involvedAttrs);
                 if (origAdminOnly && adminDnAttribute != null && adminDnAttribute.length() > 0) {
                     final String origAdminDn = userAttrValues.get(adminDnAttribute);

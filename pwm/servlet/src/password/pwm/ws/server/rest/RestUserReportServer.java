@@ -27,6 +27,7 @@ import password.pwm.Permission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.report.ReportService;
@@ -77,11 +78,18 @@ public class RestUserReportServer {
         }
 
         final ArrayList<UserCacheRecord> reportData = new ArrayList<UserCacheRecord>();
-        final Iterator<UserCacheRecord> cacheBeanIterator = restRequestBean.getPwmApplication().getUserReportService().iterator();
-        while (cacheBeanIterator.hasNext() && reportData.size() < maximum) {
-            final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
-            if (userCacheRecord != null) {
-                reportData.add(userCacheRecord);
+        ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
+        try {
+            cacheBeanIterator = restRequestBean.getPwmApplication().getUserReportService().iterator();
+            while (cacheBeanIterator.hasNext() && reportData.size() < maximum) {
+                final UserCacheRecord userCacheRecord = cacheBeanIterator.next();
+                if (userCacheRecord != null) {
+                    reportData.add(userCacheRecord);
+                }
+            }
+        } finally {
+            if (cacheBeanIterator != null) {
+                //cacheBeanIterator.close();
             }
         }
 

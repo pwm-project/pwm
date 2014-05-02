@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class LocalizedStringValue implements StoredValue {
+public class LocalizedStringValue extends AbstractValue implements StoredValue {
     final Map<String, String> value;
 
     public LocalizedStringValue(final Map<String, String> values) {
@@ -100,13 +100,5 @@ public class LocalizedStringValue implements StoredValue {
         }
 
         return Collections.emptyList();
-    }
-
-    public String toString() {
-        return Helper.getGson().toJson(value);
-    }
-
-    public String toDebugString() {
-        return toString();
     }
 }

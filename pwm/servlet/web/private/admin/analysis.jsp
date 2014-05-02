@@ -208,16 +208,15 @@
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_ADMIN.refreshReportDataSummary(5 * 1000);
-        PWM_ADMIN.refreshReportDataStatus(5 * 1000);
-
         require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
+            dojoParser.parse();
             ready(function(){
-                dojoParser.parse();
                 registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
                 setTimeout(function(){
                     refreshChart();
                 },5*1000);
+                PWM_ADMIN.refreshReportDataSummary(5 * 1000);
+                PWM_ADMIN.refreshReportDataStatus(5 * 1000);
             });
         });
     });

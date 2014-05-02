@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiConstant;
 import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.*;
+import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -49,11 +50,14 @@ import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UserAuthenticator {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(UserAuthenticator.class.getName());
-
+    private static final String ORACLE_ATTR_PW_ALLOW_CHG_TIME = "passwordAllowChangeTime";
 
     public static void authenticateUser(
             final String username,
@@ -100,23 +104,39 @@ public class UserAuthenticator {
         try {
             testCredentials(userIdentity, password, pwmApplication, pwmSession);
         } catch (PwmOperationalException e) {
-            final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD);
-            final boolean ldapVendorIsAD = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
-            if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError() // handle stupid ad case where it denies bind with valid password
-                    && ldapVendorIsAD
-                    && configAlwaysUseProxy) {
-                LOGGER.info("auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
-                allowBindAsUser = false;
-            } else if (PwmError.PASSWORD_EXPIRED == e.getError() // handle ad case where password is expired
-                    && ldapVendorIsAD
-                    && configAlwaysUseProxy) {
-                if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
-                    throw e;
+            boolean permitAuthDespiteError = false;
+            final ChaiProvider.DIRECTORY_VENDOR vendor = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor();
+            if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError()) {
+                if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                        LOGGER.info(
+                                "auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
+                        allowBindAsUser = false;
+                        permitAuthDespiteError = true;
+                    }
+                } else if (vendor == ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS) {
+                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                        LOGGER.info(
+                                "auth bind failed, but will allow login due to 'pwdReset' user attribute, error: " + e.getErrorInformation().toDebugStr());
+                        allowBindAsUser = false;
+                        permitAuthDespiteError = true;
+                    }
                 }
-                LOGGER.info("auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
-                allowBindAsUser = false;
-            } else {
-                // auth failed, presumably due to wrong password.
+            } else if (PwmError.PASSWORD_EXPIRED == e.getError()) { // handle ad case where password is expired
+                if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
+                            throw e;
+                        }
+                        LOGGER.info(
+                                "auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
+                        allowBindAsUser = false;
+                        permitAuthDespiteError = true;
+                    }
+                }
+            }
+
+            if (!permitAuthDespiteError) {    // auth failed, presumably due to wrong password.
                 LOGGER.info(pwmSession, "login attempt for " + userIdentity + " failed: " + e.getErrorInformation().toDebugStr());
                 statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
                 intruderManager.convenience().markUserIdentity(userIdentity, pwmSession);
@@ -241,12 +261,25 @@ public class UserAuthenticator {
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user
-                currentPass = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
+                RandomPasswordGenerator.RandomGeneratorConfig randomGeneratorConfig = new RandomPasswordGenerator.RandomGeneratorConfig();
+                randomGeneratorConfig.setSeedlistPhrases(RandomPasswordGenerator.DEFAULT_SEED_PHRASES);
+                randomGeneratorConfig.setPasswordPolicy(pwmSession.getUserInfoBean().getPasswordPolicy());
 
-                // write the random password for the user.
+                currentPass = RandomPasswordGenerator.createRandomPassword(pwmSession, randomGeneratorConfig, pwmApplication);
+
                 try {
+                    final String oracleDS_PrePasswordAllowChangeTime = oraclePreUnknownPwAuthHandler(
+                            pwmApplication, pwmSession, chaiProvider, chaiUser
+                    );
+
+                    // write the random password for the user.
                     chaiUser.setPassword(currentPass);
-                    LOGGER.info(pwmSession, "user " + userIdentity + " password has been set to random value for pwm to use for user authentication");
+
+                    oraclePostUnknownPwAuthHandler(
+                            pwmApplication, pwmSession, chaiProvider, chaiUser, oracleDS_PrePasswordAllowChangeTime
+                    );
+
+                    LOGGER.info(pwmSession, "user " + userIdentity + " password has been set to random value to use for user authentication");
                     // force a user password change.
                     pwmSession.getUserInfoBean().setRequiresNewPassword(true);
                 } catch (ChaiPasswordPolicyException e) {
@@ -267,7 +300,12 @@ public class UserAuthenticator {
                 authenticateUser(userIdentity, currentPass, pwmSession, pwmApplication, secure);
 
                 // close any outstanding ldap connections (since they cache the old password)
-                pwmSession.getSessionManager().closeConnections();
+                final boolean vendorIsOracleDS = ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS == pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor();
+                if (!vendorIsOracleDS ) {
+                    //leave the connection open for oracleDS.  The connection is actually successfully bound at this point, but will fail
+                    //for everything but a change password operation.
+                    pwmSession.getSessionManager().closeConnections();
+                }
 
                 return;
             } catch (PwmOperationalException e) {
@@ -446,5 +484,86 @@ public class UserAuthenticator {
         //clear permission cache - needs rechecking after login
         LOGGER.debug("Clearing permission cache");
         userInfoBean.clearPermissions();
+    }
+
+    private static String oraclePreUnknownPwAuthHandler(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiProvider chaiProvider,
+            final ChaiUser chaiUser
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException, ChaiOperationException
+    {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME)) {
+            return null;
+        }
+
+        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
+            return null;
+        }
+
+        // oracle DS special case: passwordAllowChangeTime handler
+        final String oracleDS_PrePasswordAllowChangeTime = chaiProvider.readStringAttribute(
+                chaiUser.getEntryDN(),
+                ORACLE_ATTR_PW_ALLOW_CHG_TIME);
+        LOGGER.trace(pwmSession,
+                "read OracleDS value of passwordAllowChangeTime value=" + oracleDS_PrePasswordAllowChangeTime);
+
+        if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
+            final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
+            if (new Date().before(date)) {
+                final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(
+                        date);
+                throw new PwmUnrecoverableException(
+                        new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg));
+            }
+        }
+
+        return oracleDS_PrePasswordAllowChangeTime;
+    }
+
+    private static void oraclePostUnknownPwAuthHandler(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChaiProvider chaiProvider,
+            final ChaiUser chaiUser,
+            final String oracleDS_PrePasswordAllowChangeTime
+    )
+            throws ChaiUnavailableException, ChaiOperationException
+    {
+        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ORACLE_DS_ENABLE_MANIP_ALLOWCHANGETIME)) {
+            return;
+        }
+
+        // oracle DS special case: passwordAllowChangeTime handler
+        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS != chaiUser.getChaiProvider().getDirectoryVendor()) {
+            return;
+        }
+
+        if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
+            // write back the original pre-password allow change time.
+            final Set<String> values = new HashSet<String>(
+                    Collections.singletonList(oracleDS_PrePasswordAllowChangeTime));
+            chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
+                    values,
+                    true);
+            LOGGER.trace(pwmSession,
+                    "re-wrote passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + ", value=" + oracleDS_PrePasswordAllowChangeTime);
+        } else {
+            final String oracleDS_PostPasswordAllowChangeTime = chaiProvider.readStringAttribute(
+                    chaiUser.getEntryDN(),
+                    ORACLE_ATTR_PW_ALLOW_CHG_TIME);
+            if (oracleDS_PostPasswordAllowChangeTime != null && !oracleDS_PostPasswordAllowChangeTime.isEmpty()) {
+                // password allow change time has appeared, but wasn't present previously, so delete it.
+                LOGGER.trace(pwmSession,
+                        "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
+                final Set<String> values = new HashSet<String>(
+                        Collections.singletonList(OracleDSEntries.convertDateToZulu(new Date())));
+                chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
+                        values, true);
+                LOGGER.trace(pwmSession,
+                        "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
+            }
+        }
     }
 }

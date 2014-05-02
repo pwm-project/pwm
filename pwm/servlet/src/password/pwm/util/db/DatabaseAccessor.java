@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,29 @@ package password.pwm.util.db;
 
 import password.pwm.util.DataStore;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 public interface DatabaseAccessor {
+    /**
+     * Indicates if the method is actually performing an DB operation.
+     */
+    public
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface DbOperation {
+    }
+
+    /**
+     * Indicates if the method may cause a modification of the database.
+     */
+    public
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface DbModifyOperation {
+    }
+
+
+    @DbOperation
+    @DbModifyOperation
     boolean put(
             DatabaseTable table,
             String key,
@@ -32,27 +54,32 @@ public interface DatabaseAccessor {
     )
             throws DatabaseException;
 
+    @DbOperation
     boolean contains(
             DatabaseTable table,
             String key
     )
-                    throws DatabaseException;
+            throws DatabaseException;
 
+    @DbOperation
     String get(
             DatabaseTable table,
             String key
     )
-                            throws DatabaseException;
+            throws DatabaseException;
 
     DataStore.DataStoreIterator<String> iterator(DatabaseTable table)
-                                    throws DatabaseException;
+            throws DatabaseException;
 
+    @DbOperation
+    @DbModifyOperation
     boolean remove(
             DatabaseTable table,
             String key
     )
-                                            throws DatabaseException;
+            throws DatabaseException;
 
+    @DbOperation
     int size(DatabaseTable table) throws
-                                                    DatabaseException;
+            DatabaseException;
 }

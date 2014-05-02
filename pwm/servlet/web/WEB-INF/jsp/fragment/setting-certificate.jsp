@@ -1,16 +1,15 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.PwmConstants" %>
+<%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.config.PwmSetting" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2012 The PWM Project
+  ~ Copyright (c) 2009-2014 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -40,7 +39,7 @@
     <tr><td>Subject Name</td><td><%=certificate.getSubjectX500Principal().getName()%></td></tr>
     <tr><td>Issuer Name</td><td><%=certificate.getIssuerX500Principal().getName()%></td></tr>
     <tr><td>Serial Number</td><td style="word-break: break-all"><%=certificate.getSerialNumber().toString(16).toUpperCase()%></td></tr>
-    <tr><td>Validity</td><td>From <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%>&nbsp;&nbsp; To <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></td></tr>
+    <tr><td>Validity</td><td>From <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></span>&nbsp;&nbsp; To <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></span></td></tr>
     <tr><td colspan="2" class="key" style="text-align: center; font-size: smaller">
         <a href="#" onclick="showCert_<%=md5sum%>()">details</a>
     </td></tr>

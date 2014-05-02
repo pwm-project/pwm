@@ -403,7 +403,7 @@ PWM_CHANGEPW.setInputFocus=function() {
     }
 };
 
-PWM_CHANGEPW.refreshChangePasswordStatus=function(refreshInterval) {
+PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
         var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
         var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
@@ -447,14 +447,14 @@ PWM_CHANGEPW.refreshChangePasswordStatus=function(refreshInterval) {
                     PWM_MAIN.goto(completedUrl,{delay:1000})
                 } else {
                     setTimeout(function(){
-                        PWM_CHANGEPW.refreshChangePasswordStatus(refreshInterval);
+                        PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
                     },refreshInterval);
                 }
             },
             error: function(error) {
                 console.log('unable to read password change status: ' + error);
                 setTimeout(function(){
-                    PWM_CHANGEPW.refreshChangePasswordStatus(refreshInterval);
+                    PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
                 },refreshInterval);
             }
         });

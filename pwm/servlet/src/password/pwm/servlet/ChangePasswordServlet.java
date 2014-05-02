@@ -25,6 +25,8 @@ package password.pwm.servlet;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PasswordStatus;
@@ -62,7 +64,6 @@ public class ChangePasswordServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChangePasswordServlet.class);
 
-// -------------------------- OTHER METHODS --------------------------
 
     public void processRequest(
             final HttpServletRequest req,
@@ -97,7 +98,7 @@ public class ChangePasswordServlet extends TopServlet {
         }
 
         try {
-            checkMinimumLifetime(pwmApplication,pwmSession,pwmSession.getUserInfoBean());
+            checkMinimumLifetime(pwmApplication,pwmSession,cpb,pwmSession.getUserInfoBean());
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
             LOGGER.error(pwmSession,errorInformation.toDebugStr());
@@ -107,6 +108,14 @@ public class ChangePasswordServlet extends TopServlet {
 
         if (processRequestParam != null && processRequestParam.length() > 0) {
             Validator.validatePwmFormID(req);
+            if ("checkProgress".equalsIgnoreCase(processRequestParam)) {
+                restCheckProgress(pwmApplication, pwmSession, cpb, resp);
+                return;
+            } else if ("complete".equalsIgnoreCase(processRequestParam)) {
+                handleComplete(pwmApplication, pwmSession, cpb, req, resp);
+                return;
+            }
+
             if ("change".equalsIgnoreCase(processRequestParam)) {
                 this.handleChangeRequest(pwmApplication, pwmSession, req, resp);
             } else if ("form".equalsIgnoreCase(processRequestParam)) {
@@ -114,12 +123,6 @@ public class ChangePasswordServlet extends TopServlet {
             } else if ("agree".equalsIgnoreCase(processRequestParam)) {
                 LOGGER.debug(pwmSession, "user accepted password change agreement");
                 cpb.setAgreementPassed(true);
-            } else if ("checkProgress".equalsIgnoreCase(processRequestParam)) {
-                restCheckProgress(pwmApplication, pwmSession, cpb, resp);
-                return;
-            } else if ("complete".equalsIgnoreCase(processRequestParam)) {
-                handleComplete(pwmApplication, pwmSession, cpb, req, resp);
-                return;
             }
         }
 
@@ -432,9 +435,39 @@ public class ChangePasswordServlet extends TopServlet {
         pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader(pwmApplication));
     }
 
-    private static void checkMinimumLifetime(final PwmApplication pwmApplication, final PwmSession pwmSession, final UserInfoBean userInfoBean)
-            throws PwmOperationalException
+    private static void checkMinimumLifetime(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final ChangePasswordBean changePasswordBean,
+            final UserInfoBean userInfoBean
+    )
+            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
+        if (changePasswordBean.isNextAllowedTimePassed()) {
+            return;
+        }
+
+        // for oracle DS; this check is also handled in UserAuthenticator.
+        if (ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS == pwmSession.getSessionManager().getChaiProvider(pwmApplication).getDirectoryVendor()) {
+            try {
+                final String oracleDS_PrePasswordAllowChangeTime = pwmSession.getSessionManager().getActor(pwmApplication).readStringAttribute(
+                        "passwordAllowChangeTime");
+                if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
+                    final Date date = OracleDSEntries.convertZuluToDate(oracleDS_PrePasswordAllowChangeTime);
+                    if (new Date().before(date)) {
+                        LOGGER.debug("discovered oracleds allowed change time is set to: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date) + ", won't permit password change");
+                        final String errorMsg = "change not permitted until " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(date);
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.PASSWORD_TOO_SOON, errorMsg);
+                        throw new PwmUnrecoverableException(errorInformation);
+                    }
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.debug(pwmSession, "unexpected error reading OracleDS password allow modification time: " + e.getMessage());
+            }
+            changePasswordBean.setNextAllowedTimePassed(true);
+            return;
+        }
+
         final int minimumLifetime = userInfoBean.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLifetime);
         if (minimumLifetime < 1) {
             return;
@@ -443,18 +476,21 @@ public class ChangePasswordServlet extends TopServlet {
         final Date lastModified = userInfoBean.getPasswordLastModifiedTime();
         if (lastModified == null || lastModified.after(new Date())) {
             LOGGER.debug(pwmSession, "skipping minimum lifetime check, password last set time is unknown");
+            changePasswordBean.setNextAllowedTimePassed(true);
             return;
         }
 
         final TimeDuration passwordAge = TimeDuration.fromCurrent(lastModified);
         final boolean passwordTooSoon = passwordAge.getTotalSeconds() < minimumLifetime;
         if (!passwordTooSoon) {
+            changePasswordBean.setNextAllowedTimePassed(true);
             return;
         }
 
         final PasswordStatus passwordStatus = userInfoBean.getPasswordState();
         if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isWarnPeriod()) {
             LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because current password is expired");
+            changePasswordBean.setNextAllowedTimePassed(true);
             return;
         }
 
@@ -462,6 +498,7 @@ public class ChangePasswordServlet extends TopServlet {
         if (!enforceFromForgotten) {
             if (userInfoBean.isRequiresNewPassword()) {
                 LOGGER.debug(pwmSession, "current password is too young, but skipping enforcement of minimum lifetime check because user authenticated with unknown password");
+                changePasswordBean.setNextAllowedTimePassed(true);
                 return;
             }
         }

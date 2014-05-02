@@ -22,6 +22,7 @@
 
 package password.pwm.util.report;
 
+import com.novell.ldapchai.cr.Answer;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.option.DataStorageMethod;
@@ -49,6 +50,7 @@ public class UserCacheRecord implements Serializable {
     public boolean hasResponses;
     public Date responseSetTime;
     public DataStorageMethod responseStorageMethod;
+    public Answer.FormatType responseFormatType;
 
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
@@ -202,6 +204,16 @@ public class UserCacheRecord implements Serializable {
         this.responseStorageMethod = responseStorageMethod;
     }
 
+    public Answer.FormatType getResponseFormatType()
+    {
+        return responseFormatType;
+    }
+
+    public void setResponseFormatType(Answer.FormatType responseFormatType)
+    {
+        this.responseFormatType = responseFormatType;
+    }
+
     public void addUiBeanData(final UserInfoBean userInfoBean) {
         this.setUserDN(userInfoBean.getUserIdentity().getUserDN());
         this.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
@@ -220,6 +232,7 @@ public class UserCacheRecord implements Serializable {
                 userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getTimestamp() : null);
         this.setResponseStorageMethod(
                 userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getDataStorageMethod() : null);
+        this.setResponseFormatType(userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getFormatType() : null);
 
         this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
         this.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());

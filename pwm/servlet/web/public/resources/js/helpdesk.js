@@ -27,46 +27,48 @@ var PWM_HELPDESK = PWM_HELPDESK || {};
 var PWM_VAR = PWM_VAR || {};
 
 PWM_HELPDESK.executeAction = function(actionName) {
-    PWM_MAIN.showWaitDialog(null,null,function(){
-        require(["dojo","dijit/Dialog"],function(dojo){
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
+        require(["dojo", "dijit/Dialog"], function (dojo) {
             dojo.xhrGet({
                 url: "Helpdesk?pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&processAction=executeAction&name=" + actionName,
                 preventCache: true,
                 dataType: "json",
                 handleAs: "json",
                 timeout: 90000,
-                load: function(data){
+                load: function (data) {
                     PWM_MAIN.closeWaitDialog();
                     if (data['error'] == true) {
-                        PWM_MAIN.showDialog(PWM_MAIN.showString('Title_Error'),data['errorDetail']);
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
                     } else {
-                        PWM_MAIN.showDialog(PWM_MAIN.showString('Title_Success'),data['successMessage'],function(){PWM_MAIN.getObject('continueForm').submit();});
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], nextAction: function () {
+                            PWM_MAIN.getObject('continueForm').submit();
+                        }});
                     }
                 },
-                error: function(errorObj){
+                error: function (errorObj) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showError('error executing action: ' + errorObj);
                 }
             });
         });
-    });
+    }});
 };
 
 PWM_HELPDESK.doResponseClear = function() {
     var username = PWM_VAR['helpdesk_obfuscatedDN'];
     require(["dojo","dijit/Dialog"],function(dojo){
         PWM_MAIN.closeWaitDialog();
-        PWM_MAIN.showWaitDialog(null,null,function(){
-            var inputValues = { 'username':username };
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+            var inputValues = { 'username': username };
             dojo.xhrDelete({
                 url: PWM_GLOBAL['url-restservice'] + "/challenges",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+                headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
                 content: inputValues,
                 preventCache: true,
                 timeout: 90000,
                 sync: false,
                 handleAs: "json",
-                load: function(results){
+                load: function (results) {
                     var bodyText = "";
                     if (results['error'] != true) {
                         bodyText += results['successMessage'];
@@ -81,18 +83,18 @@ PWM_HELPDESK.doResponseClear = function() {
                         style: "width: 450px",
                         content: bodyText,
                         closable: false,
-                        hide: function(){
+                        hide: function () {
                             PWM_MAIN.clearDijitWidget('result-popup');
                         }
                     });
                     theDialog.show();
                 },
-                error: function(errorObj){
+                error: function (errorObj) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showError("unexpected clear responses error: " + errorObj);
                 }
             });
-        });
+        }});
     });
 };
 
@@ -105,17 +107,17 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
         inputValues['password'] = password;
     }
     var htmlBody = PWM_MAIN.showString('Field_NewPassword') + ': <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>';
-    PWM_MAIN.showWaitDialog(PWM_MAIN.showString('Title_PleaseWait'),htmlBody,function(){
-        require(["dojo","dijit/Dialog"],function(dojo,Dialog){
+    PWM_MAIN.showWaitDialog({text:htmlBody,loadFunction:function() {
+        require(["dojo", "dijit/Dialog"], function (dojo, Dialog) {
             dojo.xhrPost({
                 url: PWM_GLOBAL['url-restservice'] + "/setpassword",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+                headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
                 content: inputValues,
                 preventCache: true,
                 timeout: 90000,
                 sync: false,
                 handleAs: "json",
-                load: function(results){
+                load: function (results) {
                     var bodyText = "";
                     if (results['error'] == true) {
                         bodyText += results['errorMessage'];
@@ -141,19 +143,19 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                         style: "width: 450px",
                         content: bodyText,
                         closable: false,
-                        hide: function(){
+                        hide: function () {
                             PWM_MAIN.closeWaitDialog();
                         }
                     });
                     theDialog.show();
                 },
-                error: function(errorObj){
+                error: function (errorObj) {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.showError("unexpected set password error: " + errorObj);
                 }
             });
         });
-    });
+    }});
 };
 
 PWM_HELPDESK.generatePasswordPopup = function() {
@@ -219,12 +221,12 @@ PWM_HELPDESK.setRandomPasswordPopup = function() {
 };
 
 PWM_HELPDESK.loadSearchDetails = function(userKey) {
-    PWM_MAIN.showWaitDialog(null,null,function(){
-        setTimeout(function(){
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
+        setTimeout(function () {
             PWM_MAIN.getObject("userKey").value = userKey;
             PWM_MAIN.getObject("loadDetailsForm").submit();
-        },10);
-    });
+        }, 10);
+    }});
 };
 
 PWM_HELPDESK.processHelpdeskSearch = function() {
@@ -234,7 +236,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
     validationProps['usernameField'] = PWM_MAIN.getObject('username').value;
     validationProps['readDataFunction'] = function(){
         return { username:PWM_MAIN.getObject('username').value }
-    }
+    };
     validationProps['messageWorking'] = PWM_MAIN.showString('Display_PleaseWait');
     validationProps['processResultsFunction'] = function(data) {
         var grid = PWM_VAR['heldesk_search_grid'];
@@ -259,7 +261,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
                 }
             } else {
                 if (sizeExceeded) {
-                    PWM_MAIN.showError(PWM_MAIN.showString('Display_SearchCompleted') + '  '  + PWM_MAIN.showString('Display_SearchResultsExceeded'));
+                    PWM_MAIN.showError(PWM_MAIN.showString('Display_SearchResultsExceeded'));
                 } else {
                     PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_SearchCompleted'));
                 }

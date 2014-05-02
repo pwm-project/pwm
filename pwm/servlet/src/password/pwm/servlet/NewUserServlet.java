@@ -46,15 +46,14 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
 import password.pwm.token.TokenPayload;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.*;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -66,6 +65,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -99,12 +99,6 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            ssBean.setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-            return;
-        }
-
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
 
@@ -121,42 +115,62 @@ public class NewUserServlet extends TopServlet {
             }
         }
 
+        final NewUserBean newUserBean = pwmSession.getNewUserBean();
+
+        if (processAction != null && processAction.length() > 1) {
+            Validator.validatePwmFormID(req);
+            if ("checkProgress".equalsIgnoreCase(processAction)) {
+                restCheckProgress(pwmApplication, pwmSession, newUserBean, req, resp);
+                return;
+            } else if ("complete".equalsIgnoreCase(processAction)) {
+                handleComplete(pwmApplication, pwmSession, newUserBean, req, resp);
+                return;
+            }
+        }
+
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            ssBean.setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
+            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            return;
+        }
+
         if (processAction != null && processAction.length() > 1) {
             Validator.validatePwmFormID(req);
             if ("create".equalsIgnoreCase(processAction)) {
                 handleCreateRequest(req,resp);
+                return;
             } else if ("validate".equalsIgnoreCase(processAction)) {
                 restValidateForm(req, resp);
                 return;
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterCodeRequest(req, resp, pwmApplication, pwmSession);
-            } else if ("doCreate".equalsIgnoreCase(processAction)) {
-                handleDoCreateRequest(req, resp);
             } else if ("reset".equalsIgnoreCase(processAction)) {
                 pwmSession.clearSessionBean(NewUserBean.class);
-                advancedToNextStage(req,resp);
-            } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
+            } else if ("agree".equalsIgnoreCase(processAction)) {
+                // accept password change agreement
                 LOGGER.debug(pwmSession, "user accepted newuser agreement");
-                final NewUserBean newUserBean = pwmSession.getNewUserBean();
                 newUserBean.setAgreementPassed(true);
-                advancedToNextStage(req,resp);
             }
-            return;
         }
 
-        this.advancedToNextStage(req,resp);
+        if (!resp.isCommitted()) {
+            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        }
     }
 
-    private void advancedToNextStage(final HttpServletRequest req, final HttpServletResponse resp)
+    private void advancedToNextStage(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final Configuration config = pwmApplication.getConfig();
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         if (newUserBean.getFormData() == null) {
-            this.forwardToJSP(req,resp);
+            this.forwardToFormJSP(req, resp);
             return;
         }
 
@@ -165,7 +179,7 @@ public class NewUserServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            this.forwardToJSP(req,resp);
+            this.forwardToFormJSP(req, resp);
             return;
         }
 
@@ -199,8 +213,26 @@ public class NewUserServlet extends TopServlet {
             }
         }
 
-        newUserBean.setAllPassed(true);
-        this.forwardToWaitJSP(req,resp);
+        if (!newUserBean.isFormPassed()) {
+            this.forwardToFormJSP(req, resp);
+        }
+
+        // success so create the new user.
+        final Map<String,String> formValues = newUserBean.getFormData();
+        final String newUserDN = determineUserDN(pwmApplication, pwmSession, formValues);
+
+        try {
+            createUser(formValues, pwmApplication, newUserDN, pwmSession);
+            newUserBean.setCreateStartTime(new Date());
+            this.forwardToWaitJSP(req, resp);
+        } catch (PwmOperationalException e) {
+            if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
+                deleteUserAccount(newUserDN, pwmSession, pwmApplication);
+            }
+            LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
+            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+            this.forwardToFormJSP(req, resp);
+        }
     }
 
     /**
@@ -225,37 +257,49 @@ public class NewUserServlet extends TopServlet {
         final Map<String,String> userValues = readResponsesFromJsonRequest(req);
 
         try {
-            verifyFormAttributes(userValues, pwmSession, pwmApplication);
-            { // no form errors, so check the password
-                final UserInfoBean uiBean = new UserInfoBean();
-                uiBean.setCachedPasswordRuleAttributes(userValues);
-                uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,locale));
-                PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
-                        pwmApplication,
-                        pwmSession.getSessionStateBean().getLocale(),
-                        null,
-                        uiBean,
-                        userValues.get("password1"),
-                        userValues.get("password2"),
-                        pwmSession.getSessionManager()
-                );
-                if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
-                    passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
-                            Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_NEWUSER_FORM,pwmApplication.getConfig()),
-                            passwordCheckInfo.isPassed(),
-                            passwordCheckInfo.getStrength(),
-                            passwordCheckInfo.getMatch(),
-                            passwordCheckInfo.getErrorCode()
-                    );
-                }
-                final RestCheckPasswordServer.JsonData jsonData = RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo);
-                final RestResultBean restResultBean = new RestResultBean();
-                restResultBean.setData(jsonData);
-                ServletHelper.outputJsonResult(resp,restResultBean);
-            }
+            final RestCheckPasswordServer.JsonData jsonData = validateForm(pwmApplication, pwmSession, userValues,
+                    locale);
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(jsonData);
+            ServletHelper.outputJsonResult(resp,restResultBean);
         } catch (PwmOperationalException e) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp,restResultBean);
+        }
+    }
+
+    private static RestCheckPasswordServer.JsonData validateForm(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final Map<String,String> formValues,
+            final Locale locale
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        verifyFormAttributes(formValues, pwmSession, pwmApplication);
+        { // no form errors, so check the password
+            final UserInfoBean uiBean = new UserInfoBean();
+            uiBean.setCachedPasswordRuleAttributes(formValues);
+            uiBean.setPasswordPolicy(pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication,locale));
+            PasswordUtility.PasswordCheckInfo passwordCheckInfo = PasswordUtility.checkEnteredPassword(
+                    pwmApplication,
+                    pwmSession.getSessionStateBean().getLocale(),
+                    null,
+                    uiBean,
+                    formValues.get("password1"),
+                    formValues.get("password2"),
+                    pwmSession.getSessionManager()
+            );
+            if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
+                passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
+                        Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_NEWUSER_FORM,pwmApplication.getConfig()),
+                        passwordCheckInfo.isPassed(),
+                        passwordCheckInfo.getStrength(),
+                        passwordCheckInfo.getMatch(),
+                        passwordCheckInfo.getErrorCode()
+                );
+            }
+            return RestCheckPasswordServer.JsonData.fromPasswordCheckInfo(passwordCheckInfo);
         }
     }
 
@@ -269,7 +313,6 @@ public class NewUserServlet extends TopServlet {
     {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
-
 
         try {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
@@ -296,54 +339,28 @@ public class NewUserServlet extends TopServlet {
             this.forwardToEnterCodeJSP(req, resp);
             return;
         }
-        this.advancedToNextStage(req,resp);
+        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
 
     private void handleCreateRequest(final HttpServletRequest req, final HttpServletResponse resp)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
         pwmSession.clearSessionBean(NewUserBean.class);
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
-        final Map<String, String> formValues = Validator.readRequestParametersAsMap(req);
-
-        newUserBean.setFormData(formValues);
-        this.advancedToNextStage(req,resp);
-    }
-
-    private void handleDoCreateRequest(final HttpServletRequest req, final HttpServletResponse resp)
-            throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
-    {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final Configuration config = pwmApplication.getConfig();
-        final NewUserBean newUserBean = pwmSession.getNewUserBean();
-
-        if (!newUserBean.isAllPassed()) {
-            this.advancedToNextStage(req,resp);
-            return;
-        }
-
-        // get form data
-        final Map<String, String> formValues = newUserBean.getFormData();
-
-        // get new user DN
-        final String newUserDN = determineUserDN(formValues, config);
-
         try {
-            createUser(formValues, pwmApplication, newUserDN, pwmSession);
-            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
-            ServletHelper.forwardToSuccessPage(req,resp);
+            final Map<String, String> formValues = Validator.readRequestParametersAsMap(req);
+            validateForm(pwmApplication, pwmSession, formValues, pwmSession.getSessionStateBean().getLocale());
+            newUserBean.setFormData(formValues);
+            newUserBean.setFormPassed(true);
+            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
         } catch (PwmOperationalException e) {
-            if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
-                deleteUserAccount(newUserDN, pwmSession, pwmApplication);
-            }
-            LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req, resp);
+            this.forwardToFormJSP(req, resp);
         }
     }
 
@@ -374,7 +391,6 @@ public class NewUserServlet extends TopServlet {
 
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
-
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE);
         try { // create the ldap entry
@@ -410,7 +426,7 @@ public class NewUserServlet extends TopServlet {
             }
         }
 
-        LOGGER.trace(pwmSession, "new user creation process complete, now authenticating user");
+        LOGGER.trace(pwmSession, "new user ldap creation process complete, now authenticating user");
 
         //authenticate the user to pwm
         UserAuthenticator.authenticateUser(theUser.getEntryDN(), userPassword, null, null, pwmSession, pwmApplication, true);
@@ -425,10 +441,11 @@ public class NewUserServlet extends TopServlet {
             actionExecutor.executeActions(actions, settings, pwmSession);
         }
 
-        //everything good so forward to change password page.
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication,
-                new UserIdentity(newUserDN, PwmConstants.DEFAULT_LDAP_PROFILE));
-        sendNewUserEmailConfirmation(pwmSession, userDataReader ,pwmApplication);
+        { // send user email
+            final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication,
+                    pwmSession.getUserInfoBean().getUserIdentity());
+            sendNewUserEmailConfirmation(pwmSession, userDataReader, pwmApplication);
+        }
 
         // add audit record
         pwmApplication.getAuditManager().submit(AuditEvent.CREATE_USER, pwmSession.getUserInfoBean(), pwmSession);
@@ -436,14 +453,7 @@ public class NewUserServlet extends TopServlet {
         // increment the new user creation statistics
         pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
-        // be sure minimum wait time has passed
-        final long minWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
-        if ((System.currentTimeMillis() - startTime) < minWaitTime) {
-            LOGGER.trace(pwmSession, "waiting for minimum new user create time (" + minWaitTime + "ms)...");
-            while ((System.currentTimeMillis() - startTime) < minWaitTime) {
-                Helper.pause(500);
-            }
-        }
+        LOGGER.debug(pwmSession,"beginning createUser process for " + newUserDN + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 
     private static void verifyFormAttributes(
@@ -493,35 +503,73 @@ public class NewUserServlet extends TopServlet {
         pwmSession.unauthenticateUser();
     }
 
-    private static String determineUserDN(final Map<String, String> formValues, final Configuration config)
-            throws PwmUnrecoverableException
+    private static String determineUserDN(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final Map<String, String> formValues
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        String rdnValue;
+        final Configuration config = pwmApplication.getConfig();
+        final List<String> configuredNames = config.readSettingAsStringArray(PwmSetting.NEWUSER_USERNAME_DEFINITION);
+        final List<String> failedValues = new ArrayList<String>();
 
-        final String newUserContextDN = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
+        int attemptCount = 0;
+        String generatedDN;
+        while (attemptCount < configuredNames.size()) {
+            final String expandedName;
+            final String expandedContext;
+            {
+                final UserInfoBean stubBean = new UserInfoBean();
+                final UserDataReader stubReader = new NewUSerUserDataReader(formValues);
+                final MacroMachine macroMachine = new MacroMachine(pwmApplication, stubBean, stubReader);
 
-        if (isUsernameRandomGenerated(config)) {
-            final String randUsernameChars = config.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
-            final int randUsernameLength = (int)config.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
-            final PwmRandom RANDOM = PwmRandom.getInstance();
+                {
+                    final String configuredName = configuredNames.get(attemptCount);
+                    expandedName = macroMachine.expandMacros(configuredName);
+                }
 
-            final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < randUsernameLength; i++) {
-                sb.append(randUsernameChars.charAt(RANDOM.nextInt(randUsernameChars.length())));
+                if (!testIfDNExists(pwmApplication, pwmSession, expandedName)) {
+                    LOGGER.trace(pwmSession, "generated entry name for new user is unique: " + expandedName);
+                    final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
+                    expandedContext = macroMachine.expandMacros(configuredContext);
+                    final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+                    generatedDN = namingAttribute + "=" + expandedName + "," + expandedContext;
+                    LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
+                    return generatedDN;
+                } else {
+                    failedValues.add(expandedName);
+                }
             }
 
-            rdnValue = sb.toString();
-        } else {
-            rdnValue = formValues.get(namingAttribute);
+            LOGGER.debug(pwmSession, "generated entry name for new user is not unique, will try again");
+            attemptCount++;
         }
+        LOGGER.error(pwmSession, "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + Helper.getGson().toJson(failedValues));;
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
+                "unable to generate a unique DN value"));
+    }
 
-        if (rdnValue == null || rdnValue.length() == 0) {
-            final String errorMsg = "unable to determine new user DN due to missing form value for naming attribute '" + namingAttribute + '"';
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
+    private static boolean testIfDNExists(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final String rdnValue
+    )
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final String namingAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final String searchFilter = "(" + namingAttribute + "=" + rdnValue + ")";
+        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+        searchConfiguration.setFilter(searchFilter);
+        try {
+            Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
+            return results != null && !results.isEmpty();
+        } catch (PwmOperationalException e) {
+            final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
+            LOGGER.error(pwmSession, msg);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,msg));
         }
-
-        return namingAttribute + "=" + rdnValue + "," + newUserContextDN;
     }
 
     private static void sendNewUserEmailConfirmation(
@@ -544,7 +592,7 @@ public class NewUserServlet extends TopServlet {
         pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
     }
 
-    private void forwardToJSP(
+    private void forwardToFormJSP(
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -574,71 +622,19 @@ public class NewUserServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException {
 
-        final StringBuilder returnURL = new StringBuilder();
-        returnURL.append(req.getContextPath());
-        returnURL.append(req.getServletPath());
-        returnURL.append("?" + PwmConstants.PARAM_ACTION_REQUEST + "=" + "doCreate");
-        final String rewrittenURL = SessionFilter.rewriteURL(returnURL.toString(), req, resp);
-        req.setAttribute("nextURL",rewrittenURL );
         this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_WAIT).forward(req, resp);
     }
 
 
-    public static List<HealthRecord> checkConfiguration(final Configuration configuration, final Locale locale)
+    public static List<HealthRecord> checkConfiguration(
+            final Configuration configuration,
+            final Locale locale)
     {
         final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
 
         final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
-
-        boolean usernameIsGenerated = isUsernameRandomGenerated(configuration);
-
-        {
-            boolean namingIsInForm = false;
-            boolean namingIsUnique = false;
-            for (final FormConfiguration formItem : formItems) {
-                if (ldapNamingattribute.equalsIgnoreCase(formItem.getName())) {
-                    namingIsInForm = true;
-                    if (formItem.isUnique()) {
-                        namingIsUnique = true;
-                    }
-                }
-            }
-
-            if (!namingIsInForm && !usernameIsGenerated) {
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.NEWUSER_FORM.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.NEWUSER_FORM.getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" does not contain the ldap naming attribute '").append(ldapNamingattribute).append("'");
-                errorMsg.append(", but is required because it is the ldap naming attribute and the username is not being automatically generated.");
-                returnRecords.add(new HealthRecord(HealthStatus.WARN,"Configuration",errorMsg.toString()));
-            }
-
-            if (!namingIsUnique && !usernameIsGenerated) {
-                final StringBuilder errorMsg = new StringBuilder();
-                errorMsg.append(PwmSetting.NEWUSER_FORM.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" -> ");
-                errorMsg.append(PwmSetting.NEWUSER_FORM.getLabel(PwmConstants.DEFAULT_LOCALE));
-                errorMsg.append(" the ldap naming attribute '").append(ldapNamingattribute).append("'");
-                errorMsg.append(", must be configured with the unique flag enabled.");
-                returnRecords.add(new HealthRecord(HealthStatus.WARN,"Configuration",errorMsg.toString()));
-            }
-        }
         return returnRecords;
-    }
-
-    private static boolean isUsernameRandomGenerated(final Configuration configuration) {
-        boolean usernameIsGenerated = false;
-        {
-            final String randUsernameChars = configuration.readSettingAsString(PwmSetting.NEWUSER_USERNAME_CHARS);
-            final int randUsernameLength = (int)configuration.readSettingAsLong(PwmSetting.NEWUSER_USERNAME_LENGTH);
-            if (randUsernameChars != null && randUsernameChars.length() > 0 && randUsernameLength > 0) {
-                usernameIsGenerated = true;
-            }
-        }
-
-        return usernameIsGenerated;
     }
 
     private static Map<String, String> readResponsesFromJsonRequest(
@@ -726,8 +722,6 @@ public class NewUserServlet extends TopServlet {
                         null,
                         pwmSession.getSessionStateBean().getLocale());
 
-
-
                 final String tokenKey;
                 try {
                     final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(outputDestTokenData.getEmail()));
@@ -760,6 +754,139 @@ public class NewUserServlet extends TopServlet {
             default:
                 LOGGER.error("Unimplemented token purpose: " + phase);
                 newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+        }
+    }
+
+    private void restCheckProgress(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final NewUserBean newUserBean,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws IOException, ServletException
+    {
+        final Date startTime = newUserBean.getCreateStartTime();
+        if (startTime == null) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE));
+            ServletHelper.forwardToErrorPage(req,resp,true);
+            return;
+        }
+
+        final long minWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
+        final Date completeTime = new Date(startTime.getTime() + minWaitTime);
+
+        final BigDecimal percentComplete;
+        final boolean complete;
+
+        // be sure minimum wait time has passed
+        if (new Date().after(completeTime)) {
+            percentComplete = new BigDecimal("100");
+            complete = true;
+        } else {
+            final TimeDuration elapsedTime = TimeDuration.fromCurrent(startTime);
+            complete = false;
+            percentComplete = new Percent(elapsedTime.getTotalMilliseconds(), minWaitTime).asBigDecimal();
+        }
+
+        final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<String, Object>();
+        outputMap.put("percentComplete",percentComplete);
+        outputMap.put("complete",complete);
+
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(outputMap);
+
+        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + Helper.getGson().toJson(restResultBean));
+        ServletHelper.outputJsonResult(resp,restResultBean);
+    }
+
+    private void handleComplete(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final NewUserBean newUserBean,
+            final HttpServletRequest req,
+            final HttpServletResponse resp
+    )
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final Date startTime = newUserBean.getCreateStartTime();
+        if (startTime == null) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE));
+            ServletHelper.forwardToErrorPage(req,resp,true);
+            return;
+        }
+
+        final long minWaitTime = pwmApplication.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME) * 1000L;
+        final Date completeTime = new Date(startTime.getTime() + minWaitTime);
+
+        // be sure minimum wait time has passed
+        if (new Date().before(completeTime)) {
+            this.forwardToWaitJSP(req,resp);
+            return;
+        }
+
+        pwmSession.clearSessionBean(NewUserBean.class);
+        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_CREATE_USER, null);
+        ServletHelper.forwardToSuccessPage(req, resp);
+    }
+
+    private static class NewUSerUserDataReader implements UserDataReader {
+        private final Map<String,String> attributeData;
+
+        private NewUSerUserDataReader(final Map<String, String> attributeData)
+        {
+            this.attributeData = attributeData;
+        }
+
+        @Override
+        public String getUserDN()
+        {
+            return null;
+        }
+
+        @Override
+        public String readStringAttribute(String attribute)
+                throws ChaiUnavailableException, ChaiOperationException
+        {
+            return readStringAttribute(attribute,false);
+        }
+
+        @Override
+        public String readStringAttribute(
+                String attribute,
+                boolean ignoreCache
+        )
+                throws ChaiUnavailableException, ChaiOperationException
+        {
+            return attributeData.get(attribute);
+        }
+
+        @Override
+        public Date readDateAttribute(String attribute)
+                throws ChaiUnavailableException, ChaiOperationException
+        {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> readStringAttributes(Collection<String> attributes)
+                throws ChaiUnavailableException, ChaiOperationException
+        {
+            return readStringAttributes(attributes,false);
+        }
+
+        @Override
+        public Map<String, String> readStringAttributes(
+                Collection<String> attributes,
+                boolean ignoreCache
+        )
+                throws ChaiUnavailableException, ChaiOperationException
+        {
+            final Map<String,String> returnObj = new LinkedHashMap<String, String>();
+            for (final String key : attributes) {
+                returnObj.put(key, readStringAttribute(key));
+            }
+            return Collections.unmodifiableMap(returnObj);
         }
     }
 }

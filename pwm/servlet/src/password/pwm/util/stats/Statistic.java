@@ -129,6 +129,8 @@ public enum Statistic {
         INTRUDER_ATTEMPTS(Statistic.INTRUDER_ATTEMPTS),
         PWMDB_WRITES(null),
         PWMDB_READS(null),
+        DB_WRITES(null),
+        DB_READS(null),
         ;
 
         private Statistic relatedStatistic;

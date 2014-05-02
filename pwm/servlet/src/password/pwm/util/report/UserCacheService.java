@@ -33,6 +33,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
@@ -40,7 +41,6 @@ import password.pwm.util.localdb.LocalDBException;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class UserCacheService implements PwmService {
@@ -98,7 +98,7 @@ public class UserCacheService implements PwmService {
         cacheStore.clear();
     }
 
-    public Iterator<StorageKey> iterator() {
+    public ClosableIterator<StorageKey> iterator() {
         try {
             return new UserStatusCacheBeanIterator();
         } catch (LocalDBException e) {
@@ -107,7 +107,7 @@ public class UserCacheService implements PwmService {
         }
     }
 
-    private class UserStatusCacheBeanIterator implements Iterator {
+    private class UserStatusCacheBeanIterator implements ClosableIterator {
 
         private LocalDB.LocalDBIterator<String> innerIterator;
 
@@ -126,6 +126,10 @@ public class UserCacheService implements PwmService {
 
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        public void close() {
+            innerIterator.close();
         }
     }
 

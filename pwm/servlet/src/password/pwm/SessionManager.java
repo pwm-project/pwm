@@ -36,6 +36,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -263,7 +264,8 @@ public class SessionManager implements Serializable {
         }
 
         if (userDataReader == null) {
-            userDataReader = UserDataReader.appProxiedReader(pwmApplication, pwmSession.getUserInfoBean().getUserIdentity());
+            userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication,
+                    pwmSession.getUserInfoBean().getUserIdentity());
         }
         return userDataReader;
     }

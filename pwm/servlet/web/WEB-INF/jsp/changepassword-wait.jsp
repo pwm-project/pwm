@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.util.Date" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -54,7 +53,7 @@
             --%>
         </div>
         <br/>
-        <table id="progressMessageTable" style="padding-bottom: 20px">
+        <table id="progressMessageTable" style="padding-bottom: 20px; width: 80%; margin-right: 10%; margin-left: 10%">
         </table>
     </div>
     <div class="push"></div>
@@ -64,7 +63,7 @@
         PWM_GLOBAL['idle_suspendTimeout'] = true;
         require(["dojo/parser", "dijit/ProgressBar","dojo/ready"], function(parser,registry){
             parser.parse();
-            PWM_CHANGEPW.refreshChangePasswordStatus(<%=checkIntervalSeconds * 1000%>);
+            PWM_CHANGEPW.refreshCreateStatus(<%=checkIntervalSeconds * 1000%>);
         });
     });
 </script>

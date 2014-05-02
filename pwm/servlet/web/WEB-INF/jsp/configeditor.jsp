@@ -48,20 +48,45 @@
     PWM_GLOBAL['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
 </script>
 <div id="wrapper" style="border:1px; background-color: black">
-    <div id="header" style="height: 25px; text-align: center; position: fixed">
-        <div id="header-title">
-            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-            <% if (category.getType() == PwmSetting.Category.Type.SETTING) { %>
-            Settings - <%=category.getLabel(locale)%>
-            <% } else if (category.getType() == PwmSetting.Category.Type.PROFILE) { %>
-            Profile - <%=category.getLabel(locale)%>
-            <% } else { %>
-            Modules - <%=category.getLabel(locale)%>
-            <% } %>
-            <% } else { %>
-            <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
-            Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
-            <% } %>
+    <div id="header" style="height: 25px; position: fixed">
+        <div id="header-center">
+            <div id="header-title">
+                <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
+                <% if (category.getType() == PwmSetting.Category.Type.SETTING) { %>
+                Settings - <%=category.getLabel(locale)%>
+                <% } else if (category.getType() == PwmSetting.Category.Type.PROFILE) { %>
+                Profile - <%=category.getLabel(locale)%>
+                <% } else { %>
+                Modules - <%=category.getLabel(locale)%>
+                <% } %>
+                <% } else { %>
+                <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
+                Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
+                <% } %>
+                <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
+                <div class="headerIcon" style="float: right" id="cancelButton_icon" onclick="PWM_CFGEDIT.cancelEditing()">
+                    <span class="fa fa-sign-out"></span>
+                </div>
+                <div class="headerIcon" style="float: right" id="saveButton_icon" onclick="PWM_CFGEDIT.saveConfiguration()">
+                    <span class="fa fa-save"></span>
+                </div>
+                <div class="headerIcon" style="float: right" id="setPassword_icon" onclick="PWM_CFGEDIT.setConfigurationPassword()">
+                    <span class="fa fa-key"></span>
+                </div>
+                <div class="headerIcon" style="float: right" id="searchButton_icon" onclick="PWM_CFGEDIT.searchDialog()">
+                    <span class="fa fa-search"></span>
+                </div>
+                <script>
+                    PWM_GLOBAL['startupFunctions'].push(function() {
+                        require(["dijit/Tooltip"],function(Tooltip){
+                            new Tooltip({connectId: ['cancelButton_icon'],label: 'Cancel', position:['below']});
+                            new Tooltip({connectId: ['saveButton_icon'],label: 'Save', position:['below']});
+                            new Tooltip({connectId: ['setPassword_icon'],label: 'Set Configuration Password', position:['below']});
+                            new Tooltip({connectId: ['searchButton_icon'],label: 'Search', position:['below']});
+                        });
+                    });
+                </script>
+            </div>
         </div>
     </div>
     <div id="TopMenu_Wrapper" class="menu-wrapper">

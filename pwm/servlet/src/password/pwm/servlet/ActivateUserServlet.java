@@ -38,6 +38,7 @@ import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
@@ -502,7 +503,7 @@ public class ActivateUserServlet extends TopServlet {
 
         final RestTokenDataClient.TokenDestinationData inputTokenDestData;
         {
-            final UserDataReader dataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+            final UserDataReader dataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
             final String toAddress;
             try {
                 toAddress = dataReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
@@ -615,7 +616,7 @@ public class ActivateUserServlet extends TopServlet {
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
-        final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, theUser);
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, theUser);
 
         Helper.TokenSender.sendToken(
                 pwmApplication,

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ import password.pwm.util.DataStore;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import java.io.File;
 import java.io.Serializable;
@@ -68,6 +70,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     private volatile Connection connection;
     private volatile PwmService.STATUS status = PwmService.STATUS.NEW;
     private ErrorInformation lastError;
+    private PwmApplication pwmApplication;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -98,6 +101,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 
         this.instanceID = pwmApplication.getInstanceID();
         this.traceLogging = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
+        this.pwmApplication = pwmApplication;
 
         if (this.dbConfiguration.isEmpty()) {
             status = PwmService.STATUS.CLOSED;
@@ -325,6 +329,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             LOGGER.trace("put operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
+        updateStats(false,true);
         return true;
     }
 
@@ -420,6 +425,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("result",result);
             LOGGER.trace("contains operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
+        updateStats(true,false);
         return result;
     }
 
@@ -466,6 +472,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             LOGGER.trace("get operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
+        updateStats(true,false);
         return returnValue;
     }
 
@@ -516,6 +523,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             LOGGER.trace("remove operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
+        updateStats(true,false);
         return result;
     }
 
@@ -544,6 +552,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             close(resultSet);
         }
 
+        updateStats(true,false);
         return 0;
     }
 
@@ -607,6 +616,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                 finished = true;
                 LOGGER.warn("unexpected error during result set iteration: " + e.getMessage());
             }
+            updateStats(true,false);
         }
 
         public void close() {
@@ -689,6 +699,20 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
+        }
+    }
+
+    private void updateStats(boolean readOperation, boolean writeOperation) {
+        if (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+            final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+            if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
+                if (readOperation) {
+                    statisticsManager.updateEps(Statistic.EpsType.DB_READS,1);
+                }
+                if (writeOperation) {
+                    statisticsManager.updateEps(Statistic.EpsType.DB_WRITES,1);
+                }
+            }
         }
     }
 }

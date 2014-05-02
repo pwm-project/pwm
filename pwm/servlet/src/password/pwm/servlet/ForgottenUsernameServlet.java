@@ -34,6 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
@@ -129,7 +130,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             LOGGER.info(pwmSession, "found user " + userIdentity.getUserDN());
             try {
                 final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_USERNAME_ATTRIBUTE);
-                final UserDataReader userDataReader = UserDataReader.appProxiedReader(pwmApplication, userIdentity);
+                final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
                 final String username = userDataReader.readStringAttribute(usernameAttribute);
                 LOGGER.trace(pwmSession, "read username attribute '" + usernameAttribute + "' value=" + username);
                 ssBean.setSessionSuccess(Message.SUCCESS_FORGOTTEN_USERNAME, username);
@@ -276,7 +277,7 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         final UserDataReader userDataReader;
         try {
-            userDataReader = UserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
+            userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
         } catch (ChaiUnavailableException e) {
             return new ErrorInformation(PwmError.forChaiError(e.getErrorCode()));
         } catch (PwmUnrecoverableException e) {
@@ -305,7 +306,7 @@ public class ForgottenUsernameServlet extends TopServlet {
 
         final UserDataReader userDataReader;
         try {
-            userDataReader = UserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
+            userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
         } catch (ChaiUnavailableException e) {
             return new ErrorInformation(PwmError.forChaiError(e.getErrorCode()));
         } catch (PwmUnrecoverableException e) {

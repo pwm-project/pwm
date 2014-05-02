@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.config.value;
 
+import com.google.gson.GsonBuilder;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -36,7 +37,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class X509CertificateValue implements StoredValue {
+public class X509CertificateValue extends AbstractValue implements StoredValue {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(X509CertificateValue.class);
     private X509Certificate[] certificates;
 
@@ -103,7 +104,7 @@ public class X509CertificateValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString() {
+    public String toDebugString(boolean prettyFormat) {
         final List<Map<String,String>> list = new ArrayList<Map<String,String>>();
         for (X509Certificate cert : certificates) {
             final Map<String,String> map = new TreeMap<String,String>();
@@ -121,6 +122,8 @@ public class X509CertificateValue implements StoredValue {
             }
             list.add(map);
         }
-        return Helper.getGson().toJson(list);
+        return prettyFormat
+                ? Helper.getGson(new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()).toJson(list)
+                : Helper.getGson().toJson(list);
     }
 }

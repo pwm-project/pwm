@@ -204,7 +204,11 @@ public abstract class TopServlet extends HttpServlet {
                 return true;
 
             default:
-                LOGGER.error(pwmSession, "error during page generation: " + e.getMessage());
+                String errorMsg = "error during page generation: " + e.getMessage();
+                try {
+                    errorMsg = ServletHelper.debugHttpRequest(pwmApplication, req, errorMsg);
+                } catch (Exception e2) { /* noop */ }
+                LOGGER.error(pwmSession, errorMsg);
         }
         return false;
     }

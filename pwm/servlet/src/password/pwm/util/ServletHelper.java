@@ -178,7 +178,7 @@ public class ServletHelper {
     public static String debugHttpHeaders(final HttpServletRequest req) {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("http session headers: ");
+        sb.append("http" + (req.isSecure() ? "s " : " non-") + "secure request headers: ");
         sb.append("\n");
 
         for (Enumeration enumeration = req.getHeaderNames(); enumeration.hasMoreElements();) {

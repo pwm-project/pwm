@@ -140,3 +140,35 @@ PWM_NEWUSER.markStrength=function(strength) { //strength meter
     }
 };
 
+
+PWM_NEWUSER.refreshCreateStatus=function(refreshInterval) {
+    require(["dojo","dijit/registry"],function(dojo,registry){
+        var displayStringsUrl = "NewUser?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var completedUrl = "NewUser?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        dojo.xhrGet({
+            url: displayStringsUrl,
+            preventCache: true,
+            handleAs: 'json',
+            timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
+            headers: { "Accept": "application/json" },
+            load: function(data) {
+                var progressBar = registry.byId('createProgressBar');
+                progressBar.set("value",data['data']['percentComplete']);
+
+                if (data['data']['complete'] == true) {
+                    PWM_MAIN.goto(completedUrl,{delay:1000})
+                } else {
+                    setTimeout(function(){
+                        PWM_NEWUSER.refreshCreateStatus(refreshInterval);
+                    },refreshInterval);
+                }
+            },
+            error: function(error) {
+                console.log('unable to read password change status: ' + error);
+                setTimeout(function(){
+                    PWM_NEWUSER.refreshCreateStatus(refreshInterval);
+                },refreshInterval);
+            }
+        });
+    });
+}

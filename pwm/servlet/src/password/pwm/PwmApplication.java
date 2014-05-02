@@ -274,7 +274,7 @@ public class PwmApplication {
     }
 
     private void initialize() {
-        final long startTime = System.currentTimeMillis();
+        final Date startTime = new Date();
 
         // initialize log4j
         {
@@ -353,7 +353,7 @@ public class PwmApplication {
             pwmServices.put(serviceClass,newServiceInstance);
         }
 
-        final TimeDuration totalTime = new TimeDuration(System.currentTimeMillis() - startTime);
+        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
         LOGGER.info(PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " open for bidness! (" + totalTime.asCompactString() + ")");
         getStatisticsManager().incrementValue(Statistic.PWM_STARTUPS);
         LOGGER.debug("buildTime=" + PwmConstants.BUILD_TIME + ", javaLocale=" + Locale.getDefault() + ", DefaultLocale=" + PwmConstants.DEFAULT_LOCALE );

@@ -20,30 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*
- * Password Management Servlets (PWM)
- * http://code.google.com/p/pwm/
- *
- * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 #wrapper {
-    background-image: url('paper-bg.jpg');
+    background-color: #FBFBFB;
 }
 
 #centerbody {
@@ -87,10 +65,14 @@
     box-shadow: 2px 2px 2px 2px #f1f1f1;
     padding-left: 3px;
     padding-right: 3px;
+    font-size: 10pt;
+    font-family: monospace;
 }
 
 .changepasswordfield {
     box-shadow: 2px 2px 2px 2px #f1f1f1;
+    font-size: 10pt;
+    font-family: monospace;
 }
 
 h1 {
@@ -108,3 +90,12 @@ h3 {
 #wrapper {
     background-color: #f6f6f6;
 }
+
+.header-button {
+    border-radius: 3px;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E8E1F6), color-stop(1, #B2B1B9) );
+    background:linear-gradient(to bottom, #E8E1F6 5%, #B2B1B9 100% );
+}.header-button:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
+     background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+ }

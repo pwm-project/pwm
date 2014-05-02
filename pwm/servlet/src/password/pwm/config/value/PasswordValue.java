@@ -35,6 +35,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class PasswordValue extends StringValue {
     PasswordValue() {
@@ -51,17 +52,23 @@ public class PasswordValue extends StringValue {
     static PasswordValue fromXmlValue(final Element settingElement, final String key) throws PwmOperationalException {
         final Element valueElement = settingElement.getChild("value");
         final String encodedValue = valueElement.getText();
-        try {
-            final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
-            final String decodedValue = Helper.SimpleTextCrypto.decryptValue(encodedValue, secretKey);
-            final PasswordValue passwordValue = new PasswordValue();
-            passwordValue.value = decodedValue;
-            return passwordValue;
-        } catch (Exception e) {
-            final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-            throw new PwmOperationalException(errorInfo);
+        final String plainTextAttributeStr = valueElement.getAttributeValue("plaintext");
+        final boolean plainText = plainTextAttributeStr != null && Boolean.parseBoolean(plainTextAttributeStr);
+        final PasswordValue passwordValue = new PasswordValue();
+        if (plainText) {
+            passwordValue.value = encodedValue;
+        } else {
+            try {
+                final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
+                passwordValue.value = Helper.SimpleTextCrypto.decryptValue(encodedValue, secretKey);
+                return passwordValue;
+            } catch (Exception e) {
+                final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
+                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorMsg);
+                throw new PwmOperationalException(errorInfo);
+            }
         }
+        return passwordValue;
 
     }
 
@@ -89,8 +96,8 @@ public class PasswordValue extends StringValue {
         return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
-    public String toDebugString() {
-        return "**not shown**";
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        return PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT;
     }
 
     public static String encryptValue(final String key, final String value)

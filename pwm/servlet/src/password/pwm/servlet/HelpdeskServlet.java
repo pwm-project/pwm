@@ -44,6 +44,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
@@ -386,8 +387,8 @@ public class HelpdeskServlet extends TopServlet {
         {
             final Configuration config = pwmApplication.getConfig();
             final UserDataReader userDataReader = useProxy
-                    ? UserDataReader.appProxiedReader(pwmApplication, userIdentity)
-                    : UserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
+                    ? LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity)
+                    : LdapUserDataReader.selfProxiedReader(pwmApplication, pwmSession, userIdentity);
             final List<FormConfiguration> detailFormConfig = config.readSettingAsForm(PwmSetting.HELPDESK_DETAIL_FORM);
             final Map<FormConfiguration,String> formData = new LinkedHashMap<FormConfiguration,String>();
             for (final FormConfiguration formConfiguration : detailFormConfig) {

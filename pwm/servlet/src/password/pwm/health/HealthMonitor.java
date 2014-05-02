@@ -116,7 +116,7 @@ public class HealthMonitor implements PwmService {
         registerHealthCheck(new LDAPStatusChecker());
         registerHealthCheck(new JavaChecker());
         registerHealthCheck(new ConfigurationChecker());
-        registerHealthCheck(new PwmDBHealthChecker());
+        registerHealthCheck(new LocalDBHealthChecker());
         registerHealthCheck(new CertificateChecker());
 
         final Set<HealthRecord> newHealthRecords = new HashSet<HealthRecord>();
