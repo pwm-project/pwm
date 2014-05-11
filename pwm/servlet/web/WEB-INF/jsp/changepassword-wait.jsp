@@ -37,6 +37,7 @@
     <meta http-equiv="refresh" content="<%=checkIntervalSeconds%>;url='ChangePassword?processAction=complete&pwmFormID=<pwm:FormID/>">
 </noscript>
 <div id="wrapper">
+    <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>

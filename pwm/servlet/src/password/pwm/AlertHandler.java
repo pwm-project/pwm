@@ -54,7 +54,7 @@ public abstract class AlertHandler {
             makeEmailBody(pwmApplication, dailyStatistics, locale, textBody, htmlBody);
             final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, textBody.toString(), htmlBody.toString());
             LOGGER.debug("sending daily summary email to " + toAddress);
-            pwmApplication.getEmailQueue().submit(emailItem, null, null);
+            pwmApplication.getEmailQueue().submitEmail(emailItem, null, null);
         }
     }
 

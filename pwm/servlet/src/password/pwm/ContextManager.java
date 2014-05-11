@@ -24,6 +24,7 @@ package password.pwm;
 
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -53,6 +54,7 @@ public class ContextManager implements Serializable {
     private ErrorInformation startupErrorInformation;
 
     private volatile boolean restartRequestedFlag = false;
+    private int restartCount = 0;
 
     private final transient Set<PwmSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<PwmSession, Boolean>());
 
@@ -158,7 +160,7 @@ public class ContextManager implements Serializable {
         }
 
         try {
-            pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath);
+            pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath, true);
         } catch (Exception e) {
             handleStartupError("unable to initialize pwm: ",e);
         }
@@ -172,7 +174,39 @@ public class ContextManager implements Serializable {
 
         LOGGER.debug(
                 "configuration file was loaded from " + (configurationFile == null ? "null" : configurationFile.getAbsoluteFile()));
+
+        checkConfigForSaveOnRestart(configReader, pwmApplication);
     }
+
+    private void checkConfigForSaveOnRestart(
+            final ConfigurationReader configReader,
+            final PwmApplication pwmApplication
+    )
+    {
+        if (configReader == null || configReader.getStoredConfiguration() == null) {
+            return;
+        }
+
+        final String saveConfigOnRestartStrValue = configReader.getStoredConfiguration().readConfigProperty(
+                StoredConfiguration.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START);
+
+        if (saveConfigOnRestartStrValue == null ||  !Boolean.parseBoolean(saveConfigOnRestartStrValue)) {
+            return;
+        }
+
+        LOGGER.warn("configuration file contains property \"" + StoredConfiguration.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, will save configuration and set property to false.");
+
+        try {
+            final StoredConfiguration newConfig = StoredConfiguration.copy(configReader.getStoredConfiguration());
+            newConfig.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START, "false");
+            configReader.saveConfiguration(newConfig, pwmApplication);
+            restartRequestedFlag = true;
+        } catch (Exception e) {
+            LOGGER.error("error while saving configuration file commanded by property \"" + StoredConfiguration.ConfigProperty.PROPERTY_KEY_SAVE_CONFIG_ON_START + "\"=true, error: " + e.getMessage());
+        }
+    }
+
+
 
     private void handleStartupError(final String msgPrefix, final Throwable throwable) {
         final String errorMsg;
@@ -288,16 +322,17 @@ public class ContextManager implements Serializable {
             }
         }
 
-        public void doReinitialize() {
+        private void doReinitialize() {
             LOGGER.info("beginning application restart");
             try {
                 ResourceFileServlet.clearCache(servletContext);
                 shutdown();
             } catch (Exception e) {
-                LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
+                LOGGER.fatal("unexpected error during shutdown: " + e.getMessage(),e);
             }
 
             LOGGER.info("application restart; shutdown completed, now starting new application instance");
+            restartCount++;
             initialize();
 
             if (PwmConstants.CLEAR_SESSIONS_ON_RESTART) {
@@ -329,7 +364,7 @@ public class ContextManager implements Serializable {
             sVersion = sVersion.substring(0, 3);
             final Float f = Float.valueOf(sVersion);
             if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
-                final String errorMsg = "The minimum version required for PWM is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
+                final String errorMsg = "The minimum version required is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
                 System.out.println(errorMsg);
                 System.err.println(errorMsg);
                 LOGGER.fatal(errorMsg);
@@ -368,5 +403,10 @@ public class ContextManager implements Serializable {
             LOGGER.error("error during session debug generation: " + e.getMessage());
         }
         return Collections.emptyMap();
+    }
+
+    public int getRestartCount()
+    {
+        return restartCount;
     }
 }

@@ -173,17 +173,15 @@ PWM_MAIN.initPage = function() {
 
     require(["dojo/domReady!"],function(){
         if (PWM_GLOBAL['enableIdleTimeout']) {
-            IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
+            PWM_MAIN.IdleTimeoutHandler.initCountDownTimer(PWM_GLOBAL['MaxInactiveInterval']);
         }
         PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
     });
 
     if (PWM_MAIN.getObject('logoutDiv')) {
-        require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-            new Tooltip({
-                connectId: ["logoutDiv"],
-                label: PWM_MAIN.showString("Long_Title_Logout")
-            });
+        PWM_MAIN.showTooltip({
+            id: ["logoutDiv"],
+            text: PWM_MAIN.showString("Long_Title_Logout")
         });
     }
 
@@ -195,7 +193,7 @@ PWM_MAIN.initPage = function() {
         }
     }
 
-    PWM_MAIN.initAllTimestamps();
+    PWM_MAIN.TimestampHandler.initAllElements();
 
     PWM_MAIN.preloadResources();
 
@@ -406,6 +404,33 @@ PWM_MAIN.trimString = function(sInString) {
     // strip trailing
 };
 
+PWM_MAIN.showTooltip = function(options){
+    options = options || {};
+
+    if (!options['id']) {
+        return;
+    }
+
+
+    var id = options['id'] instanceof Array ? options['id'] : [options['id']];
+    var position = options['position'] instanceof Array ? options['position'] : [options['position']];
+
+    var dojoOptions = {};
+    dojoOptions['connectId'] = id;
+    dojoOptions['id'] = id[0];
+    dojoOptions['label'] = 'text' in options ? options['text'] : "missing text option";
+    dojoOptions['position'] = position;
+
+    if (options['width']) {
+        dojoOptions['label'] = '<div style="max-width:' + options['width'] + 'px">' + dojoOptions['label'] + '</div>'
+    }
+
+    require(["dijit/Tooltip"],function(Tooltip){
+        new Tooltip(dojoOptions);
+    });
+
+};
+
 PWM_MAIN.clearDijitWidget = function (widgetName) {
     require(["dijit/registry"],function(registry){
         var oldDijitNode = registry.byId(widgetName);
@@ -582,22 +607,23 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
     });
 };
 
-PWM_MAIN.showConfirmDialog = function(title, text, trueAction, falseAction) {
-    PWM_GLOBAL['confirm_true_action'] = trueAction ? trueAction : function(){};
-    PWM_GLOBAL['confirm_false_action'] = falseAction ? falseAction : function(){};
+PWM_MAIN.showConfirmDialog = function(options) {
+    options = options || {};
+    PWM_VAR['confirm_okFunction'] = options['okFunction'] ? options['okFunction'] : function(){};
+    PWM_VAR['confirm_cancelFunction'] = options['cancelFunction'] ? options['cancelFunction'] : function(){};
+
     var bodyText = '';
     bodyText += '<div><p>';
-    bodyText += text;
+    bodyText += 'text' in options ? options['text'] : "DialogText missing";
     bodyText += '</p></div>';
     bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_true_action\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
-    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_GLOBAL[\'confirm_false_action\']()">' + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'confirm_okFunction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
+    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'confirm_cancelFunction\']()">' + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
 
-    var dialogOptions = {};
-    dialogOptions['showOk'] = false;
-    dialogOptions['text'] = bodyText;
-    dialogOptions['title'] = title == null ? PWM_MAIN.showString('Button_Confirm') : title;
-    PWM_MAIN.showDialog(dialogOptions);
+    options['text'] = bodyText;
+    options['showOk'] = false;
+    options['title'] = 'title' in options ? options['title'] : PWM_MAIN.showString('Button_Confirm');
+    PWM_MAIN.showDialog(options);
 };
 
 PWM_MAIN.closeWaitDialog = function() {
@@ -1163,39 +1189,39 @@ ShowHidePasswordHandler.setupTooltip = function(nodeName) {
 
 //---------- idle timeout handler
 
-var IdleTimeoutHandler = {};
+PWM_MAIN.IdleTimeoutHandler = {};
 
-IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000;   // milliseconds
-IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;       // seconds
-IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS = 10; //
-IdleTimeoutHandler.timeoutSeconds = 0; // idle timeout time permitted
-IdleTimeoutHandler.lastActivityTime = new Date(); // time at which we are "idled out"
-IdleTimeoutHandler.lastPingTime = new Date(); // date at which the last ping occured
-IdleTimeoutHandler.realWindowTitle = "";
-IdleTimeoutHandler.warningDisplayed = false;
+PWM_MAIN.IdleTimeoutHandler.SETTING_LOOP_FREQUENCY = 1000;   // milliseconds
+PWM_MAIN.IdleTimeoutHandler.SETTING_WARN_SECONDS = 30;       // seconds
+PWM_MAIN.IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS = 10; //
+PWM_MAIN.IdleTimeoutHandler.timeoutSeconds = 0; // idle timeout time permitted
+PWM_MAIN.IdleTimeoutHandler.lastActivityTime = new Date(); // time at which we are "idled out"
+PWM_MAIN.IdleTimeoutHandler.lastPingTime = new Date(); // date at which the last ping occured
+PWM_MAIN.IdleTimeoutHandler.realWindowTitle = "";
+PWM_MAIN.IdleTimeoutHandler.warningDisplayed = false;
 
-IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
-    IdleTimeoutHandler.timeoutSeconds = secondsRemaining;
-    IdleTimeoutHandler.lastPingTime = new Date();
-    IdleTimeoutHandler.realWindowTitle = document.title;
-    IdleTimeoutHandler.resetIdleCounter();
-    setInterval(function(){IdleTimeoutHandler.pollActivity()}, IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
+PWM_MAIN.IdleTimeoutHandler.initCountDownTimer = function(secondsRemaining) {
+    PWM_MAIN.IdleTimeoutHandler.timeoutSeconds = secondsRemaining;
+    PWM_MAIN.IdleTimeoutHandler.lastPingTime = new Date();
+    PWM_MAIN.IdleTimeoutHandler.realWindowTitle = document.title;
+    PWM_MAIN.IdleTimeoutHandler.resetIdleCounter();
+    setInterval(function(){PWM_MAIN.IdleTimeoutHandler.pollActivity()}, PWM_MAIN.IdleTimeoutHandler.SETTING_LOOP_FREQUENCY); //poll scrolling
     require(["dojo/on"], function(on){
-        on(document, "click", function(){IdleTimeoutHandler.resetIdleCounter()});
-        on(document, "keypress", function(){IdleTimeoutHandler.resetIdleCounter()});
-        on(document, "scroll", function(){IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "click", function(){PWM_MAIN.IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "keypress", function(){PWM_MAIN.IdleTimeoutHandler.resetIdleCounter()});
+        on(document, "scroll", function(){PWM_MAIN.IdleTimeoutHandler.resetIdleCounter()});
     });
 };
 
-IdleTimeoutHandler.resetIdleCounter = function() {
-    IdleTimeoutHandler.lastActivityTime = new Date();
-    IdleTimeoutHandler.closeIdleWarning();
-    IdleTimeoutHandler.pollActivity();
+PWM_MAIN.IdleTimeoutHandler.resetIdleCounter = function() {
+    PWM_MAIN.IdleTimeoutHandler.lastActivityTime = new Date();
+    PWM_MAIN.IdleTimeoutHandler.closeIdleWarning();
+    PWM_MAIN.IdleTimeoutHandler.pollActivity();
 };
 
-IdleTimeoutHandler.pollActivity = function() {
-    var secondsRemaining = IdleTimeoutHandler.calcSecondsRemaining();
-    var idleDisplayString = IdleTimeoutHandler.makeIdleDisplayString(secondsRemaining);
+PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
+    var secondsRemaining = PWM_MAIN.IdleTimeoutHandler.calcSecondsRemaining();
+    var idleDisplayString = PWM_MAIN.IdleTimeoutHandler.makeIdleDisplayString(secondsRemaining);
     var idleStatusFooter = PWM_MAIN.getObject("idle_status");
     if (idleStatusFooter != null) {
         idleStatusFooter.firstChild.nodeValue = idleDisplayString;
@@ -1217,16 +1243,16 @@ IdleTimeoutHandler.pollActivity = function() {
         return;
     }
 
-    var pingAgoMs = (new Date()).getTime() - IdleTimeoutHandler.lastPingTime.getTime();
-    if (pingAgoMs > (IdleTimeoutHandler.timeoutSeconds - IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS) * 1000) {
-        IdleTimeoutHandler.pingServer();
+    var pingAgoMs = (new Date()).getTime() - PWM_MAIN.IdleTimeoutHandler.lastPingTime.getTime();
+    if (pingAgoMs > (PWM_MAIN.IdleTimeoutHandler.timeoutSeconds - PWM_MAIN.IdleTimeoutHandler.SETTING_POLL_SERVER_SECONDS) * 1000) {
+        PWM_MAIN.IdleTimeoutHandler.pingServer();
     }
 
-    if (secondsRemaining < IdleTimeoutHandler.SETTING_WARN_SECONDS) {
+    if (secondsRemaining < PWM_MAIN.IdleTimeoutHandler.SETTING_WARN_SECONDS) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            IdleTimeoutHandler.showIdleWarning();
+            PWM_MAIN.IdleTimeoutHandler.showIdleWarning();
             if (secondsRemaining % 2 == 0) {
-                document.title = IdleTimeoutHandler.realWindowTitle;
+                document.title = PWM_MAIN.IdleTimeoutHandler.realWindowTitle;
             } else {
                 document.title = idleDisplayString;
             }
@@ -1234,22 +1260,22 @@ IdleTimeoutHandler.pollActivity = function() {
     }
 };
 
-IdleTimeoutHandler.pingServer = function() {
-    IdleTimeoutHandler.lastPingTime = new Date();
+PWM_MAIN.IdleTimeoutHandler.pingServer = function() {
+    PWM_MAIN.IdleTimeoutHandler.lastPingTime = new Date();
     var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&time=" + new Date().getTime() + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     require(["dojo"], function(dojo){
         dojo.xhrPost({url:pingURL,sync:false});
     });
 };
 
-IdleTimeoutHandler.calcSecondsRemaining = function() {
-    var timeoutTime = IdleTimeoutHandler.lastActivityTime.getTime() + (IdleTimeoutHandler.timeoutSeconds * 1000)
+PWM_MAIN.IdleTimeoutHandler.calcSecondsRemaining = function() {
+    var timeoutTime = PWM_MAIN.IdleTimeoutHandler.lastActivityTime.getTime() + (PWM_MAIN.IdleTimeoutHandler.timeoutSeconds * 1000)
     var amount = timeoutTime - (new Date()).getTime();
     amount = Math.floor(amount / 1000);
     return amount;
 };
 
-IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
+PWM_MAIN.IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
     if (amount < 1) {
         return "";
     }
@@ -1332,9 +1358,9 @@ IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
     return output;
 };
 
-IdleTimeoutHandler.showIdleWarning = function() {
-    if (!IdleTimeoutHandler.warningDisplayed) {
-        IdleTimeoutHandler.warningDisplayed = true;
+PWM_MAIN.IdleTimeoutHandler.showIdleWarning = function() {
+    if (!PWM_MAIN.IdleTimeoutHandler.warningDisplayed) {
+        PWM_MAIN.IdleTimeoutHandler.warningDisplayed = true;
 
         var dialogBody = PWM_MAIN.showString('Display_IdleWarningMessage') + '<br/><br/><span id="IdleDialogWindowIdleText">&nbsp;</span>';
         require(["dijit/Dialog"],function(){
@@ -1351,49 +1377,78 @@ IdleTimeoutHandler.showIdleWarning = function() {
     }
 };
 
-IdleTimeoutHandler.closeIdleWarning = function() {
-    PWM_MAIN.clearDijitWidget('idleDia  log');
-    document.title = IdleTimeoutHandler.realWindowTitle;
-    IdleTimeoutHandler.warningDisplayed = false;
+PWM_MAIN.IdleTimeoutHandler.closeIdleWarning = function() {
+    PWM_MAIN.clearDijitWidget('idleDialog');
+    document.title = PWM_MAIN.IdleTimeoutHandler.realWindowTitle;
+    PWM_MAIN.IdleTimeoutHandler.warningDisplayed = false;
 };
 
-PWM_MAIN.initAllTimestamps = function() {
+PWM_MAIN.TimestampHandler = PWM_MAIN.TimestampHandler || {};
+PWM_MAIN.TimestampHandler.Key_ToggleState = false;
+PWM_MAIN.TimestampHandler.ElementList = [];
+
+PWM_MAIN.TimestampHandler.initAllElements = function() {
     require(["dojo/query", "dojo/NodeList-dom"], function(query){
         query(".timestamp").forEach(function(node){
-            PWM_MAIN.handleTimestamp(node);
+            PWM_MAIN.TimestampHandler.initElement(node);
         });
     });
 };
 
+PWM_MAIN.TimestampHandler.testIfStringIsTimestamp = function(input, trueFunction) {
+    require(["dojo","dojo/date/stamp"], function(dojo,IsoDate) {
+        input = dojo.trim(input);
+        var dateObj = IsoDate.fromISOString(input);
+        if (dateObj) {
+            trueFunction(dateObj);
+        }
+    });
+};
 
-PWM_MAIN.handleTimestamp = function(element) {
+PWM_MAIN.TimestampHandler.initElement = function(element) {
     if (!element) {
         return
     }
 
-    require(["dojo","dojo/date/stamp","dojo/date/locale"], function(dojo,IsoDate,LocaleDate){
-        if (element.getAttribute('data-timestamp-init') !== 'true') {
-            var innerText = dojo.attr(element, 'innerHTML');
-            innerText = dojo.trim(innerText);
-            var dateObj = IsoDate.fromISOString(innerText);
-            if (!dateObj) {
-                console.log('skipping element text ' + innerText + ', not a valid date stamp');
-                return;
-            }
+    if (element.getAttribute('data-timestamp-init') === 'true') {
+        return;
+    }
 
+    require(["dojo"], function(dojo) {
+        var innerText = dojo.attr(element, 'innerHTML');
+        innerText = dojo.trim(innerText);
+        PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(innerText, function (dateObj) {
             element.setAttribute('data-timestamp-original', innerText);
-            require(["dojo","dojo/on"], function(dojo,on){
-                on(element, "click", function(event){
-                    for (var el in PWM_VAR['seen_timestampElements']) {
-                        PWM_MAIN.handleTimestamp(PWM_MAIN.handleTimestamp(PWM_VAR['seen_timestampElements'][el]));
-                    }
+            require(["dojo", "dojo/on"], function (dojo, on) {
+                on(element, "click", function (event) {
+                    PWM_MAIN.TimestampHandler.toggleAllElements();
                 });
             });
-            element.setAttribute('data-timestamp-init','true');
-            PWM_VAR['seen_timestampElements'] = PWM_VAR['seen_timestampElements'] || new Array();
-            PWM_VAR['seen_timestampElements'].push(element);
-        }
 
+            if (!dojo.hasClass(element,"timestamp")) {
+                dojo.addClass(element,"timestamp");
+            }
+
+            element.setAttribute('data-timestamp-init', 'true');
+            PWM_MAIN.TimestampHandler.ElementList.push(element);
+            PWM_MAIN.TimestampHandler.toggleElement(element);
+        });
+    });
+};
+
+PWM_MAIN.TimestampHandler.toggleAllElements = function() {
+    for (var el in PWM_MAIN.TimestampHandler.ElementList) {
+        var element = PWM_MAIN.TimestampHandler.ElementList[el];
+        if (document.body.contains(element)) {
+            PWM_MAIN.TimestampHandler.toggleElement(element);
+        } else {
+            delete PWM_MAIN.TimestampHandler.ElementList[el];
+        }
+    }
+};
+
+PWM_MAIN.TimestampHandler.toggleElement = function(element) {
+    require(["dojo","dojo/date/stamp","dojo/date/locale"], function(dojo,IsoDate,LocaleDate) {
         var localized = element.getAttribute('data-timestamp-state') === 'localized';
         if (localized) {
             dojo.attr(element,'innerHTML',element.getAttribute('data-timestamp-original'));
@@ -1401,10 +1456,9 @@ PWM_MAIN.handleTimestamp = function(element) {
         } else {
             var isoDateStr = element.getAttribute('data-timestamp-original');
             var date = IsoDate.fromISOString(isoDateStr);
-            //var localizedStr = LocaleDate.format(date,{selector:"date", datePattern:'EEEE, MMMM d yyyy, h:m:s.SSS a z'});
             var localizedStr = LocaleDate.format(date,{formatLength:'long'});
             dojo.attr(element,'innerHTML',localizedStr);
             element.setAttribute('data-timestamp-state','localized');
         }
-    });
+    })
 };

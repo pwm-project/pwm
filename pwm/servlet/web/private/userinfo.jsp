@@ -108,11 +108,15 @@
                     <td class="key">
                         <pwm:Display key="Field_PasswordSetTime"/>
                     </td>
+                    <% if (uiBean.getPasswordLastModifiedTime() == null) { %>
                     <td>
-                            <span class="timestamp">
-                            <%= uiBean.getPasswordLastModifiedTime() != null ? dateFormatter.format(uiBean.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
-                            </span>
+                        <pwm:Display key="Value_NotApplicable"/>
                     </td>
+                    <% } else { %>
+                    <td class="timestamp">
+                        <%= dateFormatter.format(uiBean.getPasswordLastModifiedTime()) %>
+                    </td>
+                    <% } %>
                 </tr>
                 <tr>
                     <td class="key">
@@ -126,9 +130,15 @@
                     <td class="key">
                         <pwm:Display key="Field_PasswordExpirationTime"/>
                     </td>
+                    <% if (uiBean.getPasswordExpirationTime() == null) { %>
                     <td>
-                        <%= uiBean.getPasswordExpirationTime() != null ? dateFormatter.format(uiBean.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+                        <pwm:Display key="Value_NotApplicable"/>
                     </td>
+                    <% } else { %>
+                    <td class="timestamp">
+                        <%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>
+                    </td>
+                    <% } %>
                 </tr>
             </table>
             <br/>
@@ -146,11 +156,15 @@
                     <td class="key">
                         <pwm:Display key="Field_ResponsesTimestamp"/>
                     </td>
+                    <% if (responseInfoBean == null || responseInfoBean.getTimestamp() == null ) { %>
                     <td>
-                        <span class="timestamp">
-                        <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
-                        </span>
+                        <pwm:Display key="Value_NotApplicable"/>
                     </td>
+                    <% } else { %>
+                    <td class="timestamp">
+                        <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
+                    </td>
+                    <% } %>
                 </tr>
             </table>
             <br/>

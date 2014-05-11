@@ -31,6 +31,7 @@ import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.ErrorInformation;
@@ -59,6 +60,7 @@ public class StoredConfiguration implements Serializable {
         PROPERTY_KEY_TEMPLATE("configTemplate"),
         PROPERTY_KEY_NOTES("notes"),
         PROPERTY_KEY_PASSWORD_HASH("configPasswordHash"),
+        PROPERTY_KEY_SAVE_CONFIG_ON_START("saveConfigOnStart"),
         ;
 
         private final String key;
@@ -74,6 +76,21 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
+    public static class SettingMetaData implements Serializable {
+        private Date modifyDate;
+        private UserIdentity userIdentity;
+
+        public Date getModifyDate()
+        {
+            return modifyDate;
+        }
+
+        public UserIdentity getUserIdentity()
+        {
+            return userIdentity;
+        }
+    }
+
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
     private static final String XML_FORMAT_VERSION = "3";
 
@@ -82,13 +99,17 @@ public class StoredConfiguration implements Serializable {
     private static final String XML_ELEMENT_PROPERTY = "property";
     private static final String XML_ELEMENT_SETTINGS = "settings";
     private static final String XML_ELEMENT_SETTING = "setting";
+    private static final String XML_ELEMENT_DEFAULT = "default";
 
     private static final String XML_ATTRIBUTE_TYPE = "type";
     private static final String XML_ATTRIBUTE_KEY = "key";
+    private static final String XML_ATTRIBUTE_SYNTAX = "syntax";
+    private static final String XML_ATTRIBUTE_PROFILE = "profile";
     private static final String XML_ATTRIBUTE_VALUE_APP = "app";
     private static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
     private static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";
     private static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
+    private static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
 
     private String createTime;
 
@@ -105,9 +126,21 @@ public class StoredConfiguration implements Serializable {
         return new StoredConfiguration();
     }
 
+    public static StoredConfiguration copy(final StoredConfiguration input)
+            throws PwmUnrecoverableException
+    {
+        try {
+            final String inputAsXML = input.toXml();
+            return fromXml(inputAsXML);
+        } catch (IOException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected io error during configuration memory copy: " + e.getMessage()));
+        }
+    }
+
     public static StoredConfiguration fromXml(final String xmlData)
             throws PwmUnrecoverableException
     {
+        final Date startTime = new Date();
         validateXmlSchema(xmlData);
 
         final SAXBuilder builder = new SAXBuilder();
@@ -135,8 +168,40 @@ public class StoredConfiguration implements Serializable {
             throw new PwmUnrecoverableException(errorInfo);
         }
 
-        LOGGER.debug("successfully loaded configuration");
+        checkIfXmlRequiresUpdate(newConfiguration);
+        final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
+        LOGGER.debug("successfully loaded configuration (" + totalDuration.asCompactString() + ")");
         return newConfiguration;
+    }
+
+    /**
+     * Loop through all settings to see if setting value has flag {@link StoredValue#requiresStoredUpdate()} set to true.
+     * If so, then call {@link #writeSetting(PwmSetting, StoredValue, password.pwm.bean.UserIdentity)} or {@link #writeSetting(PwmSetting, String, StoredValue, password.pwm.bean.UserIdentity)}
+     * for that value so that the xml dom can be updated.
+     * @param storedConfiguration stored configuration to check
+     */
+    private static void checkIfXmlRequiresUpdate(final StoredConfiguration storedConfiguration) {
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                final StoredValue value = storedConfiguration.readSetting(setting);
+                if (value.requiresStoredUpdate()) {
+                    storedConfiguration.writeSetting(setting, value, null);
+                }
+            }
+        }
+
+        for (final PwmSetting.Category category : PwmSetting.Category.values()) {
+            if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+                for (final String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
+                    for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
+                        final StoredValue value = storedConfiguration.readSetting(profileSetting, profileID);
+                        if (value.requiresStoredUpdate()) {
+                            storedConfiguration.writeSetting(profileSetting, profileID, value, null);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public StoredConfiguration()
@@ -272,27 +337,19 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public void resetSetting(final PwmSetting setting) {
-        resetSetting(setting, null);
+    public void resetSetting(final PwmSetting setting, final UserIdentity userIdentity) {
+        resetSetting(setting, null, userIdentity);
     }
 
-    public void resetSetting(final PwmSetting setting, final String profileID) {
+    public void resetSetting(final PwmSetting setting, final String profileID, final UserIdentity userIdentity) {
         changeLog.updateChangeLog(setting, profileID, defaultValue(setting, this.getTemplate()));
-        resetSettingInternal(setting,profileID);
-    }
-
-    protected void resetSettingInternal(final PwmSetting setting, final String profileID) {
         domModifyLock.writeLock().lock();
         preModifyActions();
         try {
-            final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
-            final List<Element> oldSettingElements = xp.evaluate(document);
-            if (oldSettingElements != null) {
-                for (final Element settingElement : oldSettingElements) {
-                    final Element parent = settingElement.getParentElement();
-                    parent.removeContent(settingElement);
-                }
-            }
+            final Element settingElement = createOrGetSettingElement(document, setting, profileID);
+            settingElement.removeContent();
+            settingElement.addContent(new Element(XML_ELEMENT_DEFAULT));
+            updateMetaData(settingElement, userIdentity);
         } finally {
             domModifyLock.writeLock().unlock();
         }
@@ -476,6 +533,28 @@ public class StoredConfiguration implements Serializable {
         return errorStrings;
     }
 
+    public SettingMetaData readSettingMetadata(final PwmSetting setting, final String profileID) {
+        final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
+        final Element settingElement = (Element)xp.evaluateFirst(document);
+
+        if (settingElement == null) {
+            return null;
+        }
+
+        final SettingMetaData metaData = new SettingMetaData();
+        try {
+            metaData.modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
+        } catch (Exception e) {
+            LOGGER.error("can't read modifyDate for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
+        }
+        try {
+            metaData.userIdentity = UserIdentity.fromDelimitedKey(settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER));
+        } catch (Exception e) {
+            LOGGER.error("can't read userIdentity for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
+        }
+        return metaData;
+    }
+
     public List<ConfigRecordID> search(final String searchTerm, final Locale locale) {
         if (searchTerm == null) {
             return Collections.emptyList();
@@ -558,7 +637,7 @@ public class StoredConfiguration implements Serializable {
                 return defaultValue(setting, getTemplate());
             }
 
-            if (settingElement.getChild("default") != null) {
+            if (settingElement.getChild(XML_ELEMENT_DEFAULT) != null) {
                 return defaultValue(setting, getTemplate());
             }
 
@@ -621,14 +700,20 @@ public class StoredConfiguration implements Serializable {
     }
 
 
-    public void writeSetting(final PwmSetting setting, final StoredValue value) {
-        writeSetting(setting, null, value);
+    public void writeSetting(
+            final PwmSetting setting,
+            final StoredValue value,
+            final UserIdentity userIdentity
+    )
+    {
+        writeSetting(setting, null, value, userIdentity);
     }
 
     public void writeSetting(
             final PwmSetting setting,
             final String profileID,
-            final StoredValue value
+            final StoredValue value,
+            final UserIdentity userIdentity
     ) {
         final Class correctClass = setting.getSyntax().getStoredValueImpl();
 
@@ -642,15 +727,10 @@ public class StoredConfiguration implements Serializable {
 
         preModifyActions();
         changeLog.updateChangeLog(setting, profileID, value);
-        resetSettingInternal(setting, profileID);
         domModifyLock.writeLock().lock();
         try {
-            final Element settingElement = new Element(XML_ELEMENT_SETTING);
-            settingElement.setAttribute("key", setting.getKey());
-            settingElement.setAttribute("syntax", setting.getSyntax().toString());
-            if (profileID != null && profileID.length() > 0) {
-                settingElement.setAttribute("profile", profileID);
-            }
+            final Element settingElement = createOrGetSettingElement(document, setting, profileID);
+            settingElement.removeContent();
 
             if (setting_writeLabels) {
                 final Element labelElement = new Element("label");
@@ -667,15 +747,7 @@ public class StoredConfiguration implements Serializable {
                 settingElement.addContent(value.toXmlValues("value"));
             }
 
-            Element settingsElement = document.getRootElement().getChild(XML_ELEMENT_SETTINGS);
-            if (settingsElement == null) {
-                settingsElement = new Element(XML_ELEMENT_SETTINGS);
-                document.getRootElement().addContent(settingsElement);
-            }
-            settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            settingsElement.addContent(settingElement);
-
+            updateMetaData(settingElement, userIdentity);
         } finally {
             domModifyLock.writeLock().unlock();
         }
@@ -1032,5 +1104,45 @@ public class StoredConfiguration implements Serializable {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg));
         }
         */
+    }
+
+    private static void updateMetaData(final Element settingElement, final UserIdentity userIdentity) {
+        final Element settingsElement = settingElement.getDocument().getRootElement().getChild(XML_ELEMENT_SETTINGS);
+        settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        settingElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
+        settingsElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
+        if (userIdentity != null) {
+            settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDeliminatedKey());
+            settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDeliminatedKey());
+        }
+    }
+
+    private static Element createOrGetSettingElement(
+            final Document document,
+            final PwmSetting setting,
+            final String profileID
+    ) {
+        final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
+        final Element existingSettingElement = (Element)xp.evaluateFirst(document);
+        if (existingSettingElement != null) {
+            return existingSettingElement;
+        }
+
+        final Element settingElement = new Element(XML_ELEMENT_SETTING);
+        settingElement.setAttribute(XML_ATTRIBUTE_KEY, setting.getKey());
+        settingElement.setAttribute(XML_ATTRIBUTE_SYNTAX, setting.getSyntax().toString());
+        if (profileID != null && profileID.length() > 0) {
+            settingElement.setAttribute(XML_ATTRIBUTE_PROFILE, profileID);
+        }
+
+        Element settingsElement = document.getRootElement().getChild(XML_ELEMENT_SETTINGS);
+        if (settingsElement == null) {
+            settingsElement = new Element(XML_ELEMENT_SETTINGS);
+            document.getRootElement().addContent(settingsElement);
+        }
+        settingsElement.addContent(settingElement);
+
+        return settingElement;
     }
 }

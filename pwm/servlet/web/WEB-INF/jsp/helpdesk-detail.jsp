@@ -141,9 +141,15 @@
             <td class="key">
                 <pwm:Display key="Field_LastLoginTime"/>
             </td>
-            <td class="timestamp">
-                <%= helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null ? dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()) : ""%>
+            <% if (helpdeskBean.getAdditionalUserInfo().getLastLoginTime() == null) { %>
+            <td>
+                <pwm:Display key="Value_NotApplicable"/>
             </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(helpdeskBean.getAdditionalUserInfo().getLastLoginTime()) %>
+            </td>
+            <% } %>
         </tr>
         <% if (helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null) { %>
         <tr>
@@ -191,9 +197,15 @@
             <td class="key">
                 <pwm:Display key="Field_PasswordSetTime"/>
             </td>
-            <td class="timestamp">
-                <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+            <% if (searchedUserInfo.getPasswordLastModifiedTime() == null) { %>
+            <td>
+                <pwm:Display key="Value_NotApplicable"/>
             </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(searchedUserInfo.getPasswordLastModifiedTime()) %>
+            </td>
+            <% } %>
         </tr>
         <tr>
             <td class="key">
@@ -207,9 +219,15 @@
             <td class="key">
                 <pwm:Display key="Field_PasswordExpirationTime"/>
             </td>
-            <td class="timestamp">
-                <%= searchedUserInfo.getPasswordExpirationTime() != null ? dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+            <% if (searchedUserInfo.getPasswordExpirationTime() == null) { %>
+            <td>
+                <pwm:Display key="Value_NotApplicable"/>
             </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(searchedUserInfo.getPasswordExpirationTime()) %>
+            </td>
+            <% } %>
         </tr>
         <tr>
             <td class="key">
@@ -253,9 +271,17 @@
             <td class="key">
                 <pwm:Display key="Field_ResponsesTimestamp"/>
             </td>
-            <td class="timestamp">
-                <%= responseInfoBean != null && responseInfoBean.getTimestamp() != null ? dateFormatter.format(responseInfoBean.getTimestamp()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig()) %>
+
+
+            <% if (responseInfoBean == null || responseInfoBean.getTimestamp() == null) { %>
+            <td>
+                <pwm:Display key="Value_NotApplicable"/>
             </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(responseInfoBean.getTimestamp()) %>
+            </td>
+            <% } %>
         </tr>
     </table>
 </div>
@@ -398,11 +424,9 @@
     </button>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-                new Tooltip({
-                    connectId: ["unlockBtn"],
-                    label: 'User is not locked'
-                });
+            PWM_MAIN.showTooltip({
+                id: "unlockBtn",
+                text: 'User is not locked'
             });
         });
     </script>
@@ -418,12 +442,10 @@
     <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="PWM_HELPDESK.executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/domReady!","dijit/Tooltip"],function(dojo,Tooltip){
-                new Tooltip({
-                    connectId: ["action-<%=loopAction.getName()%>"],
-                    position: 'above',
-                    label: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
-                });
+            PWM_MAIN.showTooltip({
+                id: "action-<%=loopAction.getName()%>",
+                position: 'above',
+                text: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
             });
         });
     </script>

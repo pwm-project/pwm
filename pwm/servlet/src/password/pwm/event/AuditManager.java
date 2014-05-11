@@ -334,7 +334,7 @@ public class AuditManager implements PwmService {
         }
 
         final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        pwmApplication.getEmailQueue().submit(emailItem, null, null);
+        pwmApplication.getEmailQueue().submitEmail(emailItem, null, null);
     }
 
     public int vaultSize() {

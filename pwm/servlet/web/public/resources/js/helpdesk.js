@@ -212,12 +212,12 @@ PWM_HELPDESK.changePasswordPopup = function() {
 };
 
 PWM_HELPDESK.setRandomPasswordPopup = function() {
-    var title = PWM_MAIN.showString('Title_ChangePassword') + ': ' + PWM_VAR['helpdesk_username'];
+    var titleText = PWM_MAIN.showString('Title_ChangePassword') + ': ' + PWM_VAR['helpdesk_username'];
     var body = PWM_MAIN.showString('Display_SetRandomPasswordPrompt');
     var yesAction = function() {
         PWM_HELPDESK.doPasswordChange('[' + PWM_MAIN.showString('Display_Random') +  ']',true);
     };
-    PWM_MAIN.showConfirmDialog(title,body,yesAction);
+    PWM_MAIN.showConfirmDialog({title:titleText,text:body,okFunction:yesAction});
 };
 
 PWM_HELPDESK.loadSearchDetails = function(userKey) {

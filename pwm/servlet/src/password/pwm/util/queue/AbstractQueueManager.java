@@ -42,9 +42,9 @@ import java.io.Serializable;
 import java.util.*;
 
 public abstract class AbstractQueueManager implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractQueueManager.class);
+    protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractQueueManager.class);
 
-    private static final long QUEUE_POLL_INTERVAL = 30 * 1003; // 10 seconds
+    private static final long QUEUE_POLL_INTERVAL = 30 * 1003;
 
     protected PwmApplication pwmApplication;
     protected STATUS status = PwmService.STATUS.NEW;
@@ -54,6 +54,8 @@ public abstract class AbstractQueueManager implements PwmService {
     protected HealthRecord lastSendFailure;
     protected Date lastSendFailureTime;
     protected LocalDBStoredQueue sendQueue;
+    protected int itemCounter;
+    protected PwmApplication.AppAttribute itemCountAppAttribute;
 
     public STATUS status() {
         return status;
@@ -75,12 +77,13 @@ public abstract class AbstractQueueManager implements PwmService {
         }
 
         if (sendQueue.size() >= settings.getMaxQueueItemCount()) {
-            LOGGER.warn("queue full, discarding email send request: " + event.getItem());
+            LOGGER.warn("queue full, discarding item send request: " + event.getItem());
             return;
         }
 
         final String jsonEvent = Helper.getGson().toJson(event);
         sendQueue.add(jsonEvent);
+        LOGGER.trace("submitted item to queue: " + queueItemToDebugString(event));
 
         timerThread.schedule(new QueueProcessorTask(), 1);
     }
@@ -88,10 +91,16 @@ public abstract class AbstractQueueManager implements PwmService {
     protected static class QueueEvent implements Serializable {
         private String item;
         private Date timestamp;
+        private int itemID;
 
-        protected QueueEvent(final String item, final Date timestamp) {
+        protected QueueEvent(
+                final String item,
+                final Date timestamp,
+                final int itemID
+        ) {
             this.item = item;
             this.timestamp = timestamp;
+            this.itemID = itemID;
         }
 
         public String getItem() {
@@ -100,6 +109,11 @@ public abstract class AbstractQueueManager implements PwmService {
 
         public Date getTimestamp() {
             return timestamp;
+        }
+
+        public int getItemID()
+        {
+            return itemID;
         }
     }
 
@@ -114,10 +128,16 @@ public abstract class AbstractQueueManager implements PwmService {
         return false;
     }
 
-    public void init(final PwmApplication pwmApplication, final LocalDB.DB DB, final Settings settings)
+    public void init(
+            final PwmApplication pwmApplication,
+            final LocalDB.DB DB,
+            final Settings settings,
+            final PwmApplication.AppAttribute itemCountAppAttribute
+    )
             throws PwmException
     {
         this.pwmApplication = pwmApplication;
+        this.itemCountAppAttribute = itemCountAppAttribute;
         this.settings = settings;
 
         final LocalDB localDB = this.pwmApplication.getLocalDB();
@@ -134,12 +154,38 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
+        readItemCounter();
         sendQueue = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, DB);
         final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer thread";
         timerThread = new Timer(threadName,true);
         status = PwmService.STATUS.OPEN;
-        LOGGER.debug(settings.getDebugName() + " is now open");
+        LOGGER.debug(settings.getDebugName() + " is now open, " + this.queueSize() + " items in queue");
         timerThread.schedule(new QueueProcessorTask(),1,QUEUE_POLL_INTERVAL);
+    }
+
+    protected void readItemCounter() {
+        final String itemCountStr = pwmApplication.readAppAttribute(itemCountAppAttribute);
+        if (itemCountStr != null) {
+            try {
+                itemCounter = Integer.parseInt(itemCountStr);
+            } catch (Exception e) {
+                LOGGER.error("error reading stored item counter app attribute: " + e.getMessage());
+            }
+        }
+    }
+
+    protected void storeItemCounter() {
+        try {
+            pwmApplication.writeAppAttribute(itemCountAppAttribute, String.valueOf(itemCounter));
+        } catch (Exception e) {
+            LOGGER.error("error writing stored item counter app attribute: " + e.getMessage());
+        }
+    }
+
+    protected int getNextItemCount() {
+        itemCounter++;
+        storeItemCounter();
+        return itemCounter;
     }
 
     public synchronized void close() {
@@ -196,11 +242,15 @@ public abstract class AbstractQueueManager implements PwmService {
                 } else {
                     final String item = event.getItem();
 
+                    LOGGER.trace("preparing to send item in queue: " + queueItemToDebugString(event));
                     final boolean success = sendItem(item);
                     if (success) {
                         sendQueue.pollFirst();
+                        LOGGER.trace("queued item successfully sent and removed from queue: " + queueItemToDebugString(
+                                event));
                     } else {
                         lastSendFailureTime = new Date();
+                        LOGGER.debug("queued item was not successfully sent, will retry: " + queueItemToDebugString(event));
                     }
                 }
             }
@@ -261,4 +311,6 @@ public abstract class AbstractQueueManager implements PwmService {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
     }
+
+    protected abstract String queueItemToDebugString(QueueEvent queueEvent);
 }

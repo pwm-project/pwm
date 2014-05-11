@@ -78,12 +78,10 @@
                 </div>
                 <script>
                     PWM_GLOBAL['startupFunctions'].push(function() {
-                        require(["dijit/Tooltip"],function(Tooltip){
-                            new Tooltip({connectId: ['cancelButton_icon'],label: 'Cancel', position:['below']});
-                            new Tooltip({connectId: ['saveButton_icon'],label: 'Save', position:['below']});
-                            new Tooltip({connectId: ['setPassword_icon'],label: 'Set Configuration Password', position:['below']});
-                            new Tooltip({connectId: ['searchButton_icon'],label: 'Search', position:['below']});
-                        });
+                        PWM_MAIN.showTooltip({id:'cancelButton_icon',text:'Cancel',position:'below'});
+                        PWM_MAIN.showTooltip({id:'saveButton_icon',text:'Save',position:'below'});
+                        PWM_MAIN.showTooltip({id:'setPassword_icon',text:'Set Configuration Password',position:'below'});
+                        PWM_MAIN.showTooltip({id:'searchButton_icon',text:'Search',position:'below'});
                     });
                 </script>
             </div>
@@ -101,12 +99,12 @@
         <div id="mainContentPane" style="width: 600px">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS || cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.getType() == PwmSetting.Category.Type.PROFILE) { %>
-            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_PROFILE%>"/>
+            <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_PROFILE.getPath()%>"/>
             <% } else { %>
-            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS%>"/>
+            <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SETTINGS.getPath()%>"/>
             <% } %>
             <% } else { %>
-            <jsp:include page="<%=PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE%>"/>
+            <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_LOCALEBUNDLE.getPath()%>"/>
             <% } %>
         </div>
         <span style="display:none; visibility: hidden" id="message" class="message"></span>

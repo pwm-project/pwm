@@ -110,7 +110,7 @@ public abstract class PwmConstants {
     public static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
-    public static final String DEFAULT_LDAP_PROFILE = "_default";
+    public static final String DEFAULT_PROFILE_ID = "_default";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String DEFAULT_CHALLENGE_PROFILE = "";
 
@@ -133,64 +133,82 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
     public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
     public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
+    public static final String REQUEST_ATTR_HIDE_HEADER_BUTTONS = "pwm.hideHeaderButtons";
     public static final String REQUEST_ATTR_NO_REQ_COUNTER = "pwm.noReqCounterIncrement";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
     public static final String LOG_REMOVED_VALUE_REPLACEMENT = readPwmConstantsBundle("log.removedValue");
 
-    public static final String URL_JSP_LOGIN = "WEB-INF/jsp/login.jsp";
-    public static final String URL_JSP_LOGIN_PW_ONLY = "WEB-INF/jsp/login-passwordonly.jsp";
-    public static final String URL_JSP_LOGOUT = "WEB-INF/jsp/logout.jsp";
-    public static final String URL_JSP_SUCCESS = "WEB-INF/jsp/success.jsp";
-    public static final String URL_JSP_ERROR = "WEB-INF/jsp/error.jsp";
-    public static final String URL_JSP_INIT = "WEB-INF/jsp/init.jsp";
-    public static final String URL_JSP_PASSWORD_CHANGE = "WEB-INF/jsp/changepassword.jsp";
-    public static final String URL_JSP_PASSWORD_FORM = "WEB-INF/jsp/changepassword-form.jsp";
-    public static final String URL_JSP_PASSWORD_CHANGE_WAIT = "WEB-INF/jsp/changepassword-wait.jsp";
-    public static final String URL_JSP_PASSWORD_AGREEMENT = "WEB-INF/jsp/changepassword-agreement.jsp";
-    public static final String URL_JSP_PASSWORD_COMPLETE = "WEB-INF/jsp/changepassword-complete.jsp";
-    public static final String URL_JSP_SETUP_RESPONSES = "WEB-INF/jsp/setupresponses.jsp";
-    public static final String URL_JSP_SETUP_HELPDESK_RESPONSES = "WEB-INF/jsp/setupresponses-helpdesk.jsp";
-    public static final String URL_JSP_SETUP_OTP_SECRET_EXISTING = "WEB-INF/jsp/setupotpsecret-existing.jsp";
-    public static final String URL_JSP_SETUP_OTP_SECRET = "WEB-INF/jsp/setupotpsecret.jsp";
-    public static final String URL_JSP_SETUP_OTP_SECRET_TEST = "WEB-INF/jsp/setupotpsecret-test.jsp";
-    public static final String URL_JSP_CONFIRM_RESPONSES = "WEB-INF/jsp/setupresponses-confirm.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_SEARCH = "WEB-INF/jsp/forgottenpassword-search.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_RESPONSES = "WEB-INF/jsp/forgottenpassword-responses.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_CHOICE = "WEB-INF/jsp/forgottenpassword-choice.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_ENTER_CODE = "WEB-INF/jsp/forgottenpassword-entercode.jsp";
-    public static final String URL_JSP_RECOVER_PASSWORD_ENTER_OTP = "WEB-INF/jsp/forgottenpassword-enterotp.jsp";
-    public static final String URL_JSP_FORGOTTEN_USERNAME = "WEB-INF/jsp/forgottenusername-search.jsp";
-    public static final String URL_JSP_ACTIVATE_USER = "WEB-INF/jsp/activateuser.jsp";
-    public static final String URL_JSP_ACTIVATE_USER_AGREEMENT = "WEB-INF/jsp/activateuser-agreement.jsp";
-    public static final String URL_JSP_ACTIVATE_USER_ENTER_CODE = "WEB-INF/jsp/activateuser-entercode.jsp";
-    public static final String URL_JSP_UPDATE_ATTRIBUTES = "WEB-INF/jsp/updateprofile.jsp";
-    public static final String URL_JSP_UPDATE_ATTRIBUTES_AGREEMENT = "WEB-INF/jsp/updateprofile-agreement.jsp";
-    public static final String URL_JSP_UPDATE_ATTRIBUTES_CONFIRM = "WEB-INF/jsp/updateprofile-confirm.jsp";
-    public static final String URL_JSP_NEW_USER = "WEB-INF/jsp/newuser.jsp";
-    public static final String URL_JSP_NEW_USER_ENTER_CODE = "WEB-INF/jsp/newuser-entercode.jsp";
-    public static final String URL_JSP_NEW_USER_WAIT = "WEB-INF/jsp/newuser-wait.jsp";
-    public static final String URL_JSP_NEW_USER_AGREEMENT = "WEB-INF/jsp/newuser-agreement.jsp";
-    public static final String URL_JSP_GUEST_REGISTRATION = "WEB-INF/jsp/guest-create.jsp";
-    public static final String URL_JSP_GUEST_UPDATE = "WEB-INF/jsp/guest-update.jsp";
-    public static final String URL_JSP_GUEST_UPDATE_SEARCH = "WEB-INF/jsp/guest-search.jsp";
-    public static final String URL_JSP_SHORTCUT = "WEB-INF/jsp/shortcut.jsp";
-    public static final String URL_JSP_PASSWORD_WARN = "private/passwordwarn.jsp";
-    public static final String URL_JSP_CAPTCHA = "WEB-INF/jsp/captcha.jsp";
-    public static final String URL_JSP_PEOPLE_SEARCH = "WEB-INF/jsp/peoplesearch.jsp";
-    public static final String URL_JSP_PEOPLE_SEARCH_DETAIL = "WEB-INF/jsp/peoplesearch-detail.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR = "WEB-INF/jsp/configeditor.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_SETTINGS = "fragment/configeditor-settings.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_LOCALEBUNDLE = "fragment/configeditor-localeBundle.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_EDITOR_PROFILE = "fragment/configeditor-profiles.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_LOGVIEW = "WEB-INF/jsp/logview.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION = "WEB-INF/jsp/configmanager.jsp";
-    public static final String URL_JSP_CONFIG_MANAGER_LOGIN = "WEB-INF/jsp/configmanager-login.jsp";
-    public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
-    public static final String URL_JSP_HELPDESK_SEARCH = "WEB-INF/jsp/helpdesk.jsp";
-    public static final String URL_JSP_HELPDESK_DETAIL = "WEB-INF/jsp/helpdesk-detail.jsp";
+    public static enum JSP_URL {
 
+        ACTIVATE_USER("activateuser.jsp"),
+        ACTIVATE_USER_AGREEMENT("activateuser-agreement.jsp"),
+        ACTIVATE_USER_ENTER_CODE("activateuser-entercode.jsp"),
+        LOGIN("login.jsp"),
+        LOGIN_PW_ONLY("login-passwordonly.jsp"),
+        LOGOUT("logout.jsp"),
+        SUCCESS("success.jsp"),
+        ERROR("error.jsp"),
+        INIT("init.jsp"),
+        PASSWORD_CHANGE("changepassword.jsp"),
+        PASSWORD_FORM("changepassword-form.jsp"),
+        PASSWORD_CHANGE_WAIT("changepassword-wait.jsp"),
+        PASSWORD_AGREEMENT("changepassword-agreement.jsp"),
+        PASSWORD_COMPLETE("changepassword-complete.jsp"),
+        RECOVER_PASSWORD_SEARCH("forgottenpassword-search.jsp"),
+        RECOVER_PASSWORD_RESPONSES("forgottenpassword-responses.jsp"),
+        RECOVER_PASSWORD_CHOICE("forgottenpassword-choice.jsp"),
+        RECOVER_PASSWORD_ENTER_CODE("forgottenpassword-entercode.jsp"),
+        RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
+        SETUP_RESPONSES("setupresponses.jsp"),
+        SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
+        SETUP_RESPONSES_HELPDESK("setupresponses-helpdesk.jsp"),
+        SETUP_RESPONSES_EXISTING("setupresponses-existing.jsp"),
+        SETUP_OTP_SECRET_EXISTING("setupotpsecret-existing.jsp"),
+        SETUP_OTP_SECRET("setupotpsecret.jsp"),
+        SETUP_OTP_SECRET_TEST("setupotpsecret-test.jsp"),
+        FORGOTTEN_USERNAME("forgottenusername-search.jsp"),
+        UPDATE_ATTRIBUTES("updateprofile.jsp"),
+        UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
+        UPDATE_ATTRIBUTES_CONFIRM("updateprofile-confirm.jsp"),
+        NEW_USER("newuser.jsp"),
+        NEW_USER_ENTER_CODE("newuser-entercode.jsp"),
+        NEW_USER_WAIT("newuser-wait.jsp"),
+        NEW_USER_AGREEMENT("newuser-agreement.jsp"),
+        GUEST_REGISTRATION("guest-create.jsp"),
+        GUEST_UPDATE("guest-update.jsp"),
+        GUEST_UPDATE_SEARCH("guest-search.jsp"),
+        SHORTCUT("shortcut.jsp"),
+        CAPTCHA("captcha.jsp"),
+        PEOPLE_SEARCH("peoplesearch.jsp"),
+        PEOPLE_SEARCH_DETAIL("peoplesearch-detail.jsp"),
+        CONFIG_MANAGER_EDITOR("configeditor.jsp"),
+        CONFIG_MANAGER_EDITOR_SETTINGS("fragment/configeditor-settings.jsp"),
+        CONFIG_MANAGER_EDITOR_LOCALEBUNDLE("fragment/configeditor-localeBundle.jsp"),
+        CONFIG_MANAGER_EDITOR_PROFILE("fragment/configeditor-profiles.jsp"),
+        CONFIG_MANAGER_LOGVIEW("logview.jsp"),
+        CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
+        CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
+        HELPDESK_SEARCH("helpdesk.jsp"),
+        HELPDESK_DETAIL("helpdesk-detail.jsp"),
+
+        ;
+
+        private String path;
+        private static final String JSP_ROOT_URL = "/WEB-INF/jsp/";
+
+        private JSP_URL(String path) {
+            this.path = path;
+        }
+
+        public String getPath() {
+            return JSP_ROOT_URL + path;
+        }
+    }
+
+    public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
+    public static final String URL_JSP_PASSWORD_WARN = "private/passwordwarn.jsp";
     public static final String URL_SERVLET_LOGIN = "Login";
     public static final String URL_SERVLET_OAUTH_COSUMER = "oauth";
     public static final String URL_SERVLET_LOGOUT = "Logout";

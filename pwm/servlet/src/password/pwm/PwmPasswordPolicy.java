@@ -27,6 +27,7 @@ import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.config.AbstractProfile;
 import password.pwm.config.Profile;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.util.PwmLogger;
@@ -40,7 +41,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * @author Jason D. Rivard
  */
-public class PwmPasswordPolicy implements Profile,Serializable {
+public class PwmPasswordPolicy extends AbstractProfile implements Profile,Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmPasswordPolicy.class);

@@ -23,6 +23,7 @@
 package password.pwm.bean.servlet;
 
 import password.pwm.bean.PwmSessionBean;
+import password.pwm.servlet.NewUserServlet;
 
 import java.util.Date;
 import java.util.Map;
@@ -120,7 +121,12 @@ public class NewUserBean implements PwmSessionBean {
     public enum NewUserVerificationPhase {
     	NONE,
     	EMAIL,
-    	SMS
+    	SMS,
+        ;
+
+        public String getTokenName() {
+            return NewUserServlet.class.getName() + "_" + this.toString();
+        }
     }
 
     public Date getCreateStartTime()

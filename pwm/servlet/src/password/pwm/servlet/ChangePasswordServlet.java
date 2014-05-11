@@ -157,7 +157,7 @@ public class ChangePasswordServlet extends TopServlet {
         } catch (PwmDataValidationException e) {
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession, "failed password validation check: " + e.getErrorInformation().toDebugStr());
-            this.forwardToChangeJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE);
             return;
         }
 
@@ -167,67 +167,17 @@ public class ChangePasswordServlet extends TopServlet {
         if (PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH != PasswordUtility.figureMatchStatus(caseSensitive,
                 password1, password2)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.PASSWORD_DOESNOTMATCH));
-            this.forwardToChangeJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE);
             return;
         }
 
         try {
             executeChangePassword(pwmApplication, pwmSession, password1);
-            forwardToWaitPage(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
         } catch (PwmOperationalException e) {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
-        }
-    }
-
-    private void forwardToAgreementJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_AGREEMENT).forward(req, resp);
-    }
-
-    private void forwardToCompleteJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_COMPLETE).forward(req, resp);
-    }
-
-    private void forwardToFormJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_FORM).forward(req, resp);
-    }
-
-
-    private void forwardToChangeJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE).forward(req, resp);
-    }
-
-    public void forwardToWaitPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        try {
-            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PASSWORD_CHANGE_WAIT, req, resp);
-            this.getServletContext().getRequestDispatcher(url).forward(req, resp);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to wait page: " + e.toString());
         }
     }
 
@@ -249,7 +199,7 @@ public class ChangePasswordServlet extends TopServlet {
             if (currentPassword == null || currentPassword.length() < 1) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER));
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is missing");
-                forwardToFormJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_FORM);
                 return;
             }
 
@@ -264,7 +214,7 @@ public class ChangePasswordServlet extends TopServlet {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_BAD_CURRENT_PASSWORD));
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(pwmSession.getUserInfoBean().getUserIdentity(), pwmSession);
                 LOGGER.debug(pwmSession, "failed password validation check: currentPassword value is incorrect");
-                forwardToFormJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_FORM);
                 return;
             }
             cpb.setCurrentPasswordPassed(passed);
@@ -284,7 +234,7 @@ public class ChangePasswordServlet extends TopServlet {
             pwmApplication.getIntruderManager().convenience().markUserIdentity(pwmSession.getUserInfoBean().getUserIdentity(), pwmSession);
             ssBean.setSessionError(e.getErrorInformation());
             LOGGER.debug(pwmSession,e.getErrorInformation().toDebugStr());
-            forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_FORM);
             return;
         }
 
@@ -328,29 +278,28 @@ public class ChangePasswordServlet extends TopServlet {
         final ChangePasswordBean cpb = pwmSession.getChangePasswordBean();
 
         if (cpb.getChangeProgressTracker() != null) {
-            forwardToWaitPage(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
             return;
         }
 
         final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
         if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {
-            forwardToAgreementJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_AGREEMENT);
             return;
         }
 
         if (determineIfCurrentPasswordRequired(pwmApplication,pwmSession) && !cpb.isCurrentPasswordPassed()) {
-            forwardToFormJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_FORM);
             return;
         }
 
         if (!config.readSettingAsForm(PwmSetting.PASSWORD_REQUIRE_FORM).isEmpty() && !cpb.isFormPassed()) {
-            forwardToFormJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_FORM);
             return;
         }
 
         cpb.setAllChecksPassed(true);
-
-        forwardToChangeJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE);
     }
 
     private static boolean determineIfCurrentPasswordRequired(
@@ -432,7 +381,8 @@ public class ChangePasswordServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader(pwmApplication));
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, pwmSession.getUserInfoBean(),
+                pwmSession.getSessionManager().getUserDataReader(pwmApplication));
     }
 
     private static void checkMinimumLifetime(
@@ -573,7 +523,7 @@ public class ChangePasswordServlet extends TopServlet {
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
             final String completeMessage = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE,locale);
             if (completeMessage != null && !completeMessage.isEmpty()) {
-                forwardToCompleteJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_COMPLETE);
             } else {
                 final SessionStateBean ssBean = pwmSession.getSessionStateBean();
                 pwmSession.clearSessionBean(ChangePasswordBean.class);
@@ -581,7 +531,7 @@ public class ChangePasswordServlet extends TopServlet {
                 ServletHelper.forwardToSuccessPage(req,resp);
             }
         } else {
-            forwardToWaitPage(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
         }
     }
 }

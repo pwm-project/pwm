@@ -74,7 +74,7 @@ public class LdapCertImportFunction implements SettingUIFunction {
             ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
             throw new PwmOperationalException(errorInformation);
         }
-        storedConfiguration.writeSetting(setting, profile, new X509CertificateValue(resultCertificates));
+        storedConfiguration.writeSetting(setting, profile, new X509CertificateValue(resultCertificates), pwmSession.getUserInfoBean().getUserIdentity());
         return "Successfully Imported Certificates";
     }
 }

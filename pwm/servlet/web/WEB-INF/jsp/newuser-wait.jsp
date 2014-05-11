@@ -32,6 +32,7 @@
 %>
 <meta http-equiv="refresh" content="<%=refreshSeconds%>;url=NewUser?processAction=complete&pwmFormID=<pwm:FormID/>">
 <div id="wrapper">
+    <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>

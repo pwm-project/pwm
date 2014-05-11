@@ -76,4 +76,10 @@ public class BooleanValue implements StoredValue {
             return Boolean.toString(value);
         }
     }
+
+    @Override
+    public boolean requiresStoredUpdate()
+    {
+        return false;
+    }
 }

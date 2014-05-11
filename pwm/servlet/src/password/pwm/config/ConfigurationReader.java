@@ -148,7 +148,10 @@ public class ConfigurationReader {
         return storedConfiguration;
     }
 
-    public void saveConfiguration(final StoredConfiguration storedConfiguration, final PwmApplication pwmApplication)
+    public void saveConfiguration(
+            final StoredConfiguration storedConfiguration,
+            final PwmApplication pwmApplication
+    )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
         File backupDirectory = null;

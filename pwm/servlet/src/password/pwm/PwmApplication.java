@@ -95,6 +95,8 @@ public class PwmApplication {
         REPORT_STATUS("reporting.status"),
         REPORT_SUMMARY("reporting.summary"),
         REPORT_CLEAN_FLAG("reporting.cleanFlag"),
+        SMS_ITEM_COUNTER("smsQueue.itemCount"),
+        EMAIL_ITEM_COUNTER("itemQueue.itemCount"),
 
         ;
 
@@ -157,12 +159,17 @@ public class PwmApplication {
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PwmApplication(final Configuration config, final MODE applicationMode, final File pwmApplicationPath)
+    public PwmApplication(
+            final Configuration config,
+            final MODE applicationMode,
+            final File pwmApplicationPath,
+            final boolean initLogging
+    )
     {
         this.configuration = config;
         this.applicationMode = applicationMode;
         this.pwmApplicationPath = pwmApplicationPath;
-        initialize();
+        initialize(initLogging);
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -273,11 +280,11 @@ public class PwmApplication {
         return (DatabaseAccessorImpl)pwmServices.get(DatabaseAccessorImpl.class);
     }
 
-    private void initialize() {
+    private void initialize(final boolean initLogging) {
         final Date startTime = new Date();
 
         // initialize log4j
-        {
+        if (initLogging) {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
             final File log4jFile = Helper.figureFilepath(log4jFileName, pwmApplicationPath);
             final String consoleLevel, fileLevel;

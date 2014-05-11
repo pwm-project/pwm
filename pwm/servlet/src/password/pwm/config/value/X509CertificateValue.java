@@ -104,15 +104,15 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         return Collections.emptyList();
     }
 
-    public String toDebugString(boolean prettyFormat) {
+    public String toDebugString(boolean prettyFormat, Locale locale) {
         final List<Map<String,String>> list = new ArrayList<Map<String,String>>();
         for (X509Certificate cert : certificates) {
-            final Map<String,String> map = new TreeMap<String,String>();
+            final LinkedHashMap<String,String> map = new LinkedHashMap<String,String>();
             map.put("subject",cert.getSubjectDN().toString());
             map.put("serial",cert.getSerialNumber().toString());
             map.put("issuer",cert.getIssuerDN().toString());
-            map.put("expireDate",cert.getNotAfter().toString());
             map.put("issueDate",cert.getNotBefore().toString());
+            map.put("expireDate",cert.getNotAfter().toString());
             try {
                 map.put("md5sum",Helper.checksum(new ByteArrayInputStream(cert.getEncoded()), "MD5"));
             } catch (IOException e) {

@@ -39,10 +39,12 @@
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
+
+    final boolean hideButtons = "true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS));
+    final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();
+    final boolean showLogout = !hideButtons && loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
+    final boolean showHome = !hideButtons && loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON);
 %>
-<% final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();%>
-<% final boolean showLogout = loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON); %>
-<% final boolean showHome =  loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON); %>
 <%@ include file="header-warnings.jsp" %>
 <div id="header">
     <div id="header-company-logo">
@@ -63,7 +65,7 @@
                 <span class="fa fa-home"></span>&nbsp;
                 <pwm:Display key="Button_Home"/>
             </a>
-                <%-- this section handles the logout link (if user is logged in) --%>
+            <%-- this section handles the logout link (if user is logged in) --%>
             <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
                 <span class="fa fa-sign-out"></span>&nbsp;
                 <pwm:Display key="Button_Logout"/>
@@ -74,12 +76,11 @@
 <% if (showLogout) { %>
 <script type="application/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dijit/Tooltip"],function(Tooltip){
-            new Tooltip({
-                connectId: ['LogoutButton'],
-                position: ['below','above'],
-                label: '<div style="max-width:500px"><pwm:Display key="Long_Title_Logout"/></div>'
-            });
+        PWM_MAIN.showTooltip({
+            id: 'LogoutButton',
+            position: ['below','above'],
+            text: '<pwm:Display key="Long_Title_Logout"/>',
+            width: 500
         });
     });
 </script>

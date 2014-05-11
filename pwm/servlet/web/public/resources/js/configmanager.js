@@ -28,7 +28,7 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 PWM_GLOBAL['localeBundle'].push('Config');
 
 PWM_CONFIG.lockConfiguration=function() {
-    PWM_MAIN.showConfirmDialog(null,PWM_CONFIG.showString('Confirm_LockConfig'),function(){
+    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okFunction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function() {
             require(["dojo"], function (dojo) {
                 dojo.xhrGet({
@@ -40,17 +40,23 @@ PWM_CONFIG.lockConfiguration=function() {
                     load: function (data) {
                         if (data['error'] == true) {
                             PWM_MAIN.closeWaitDialog();
-                            PWM_MAIN.showDialog({title: PWM_MAIN.showDialog('Title_Error'), text: data['errorDetail']});
+                            PWM_MAIN.showDialog({
+                                title: PWM_MAIN.showString('Title_Error'),
+                                text: data['errorDetail']
+                            });
                         } else {
                             PWM_MAIN.showWaitDialog();
                             PWM_MAIN.showError('Waiting for server restart');
                             PWM_CONFIG.waitForRestart(new Date().getTime());
                         }
+                    },
+                    error: function(error) {
+                        alert('error:' + error);
                     }
                 });
             });
         }});
-    });
+    }});
 };
 
 PWM_CONFIG.waitForRestart=function(startTime) {

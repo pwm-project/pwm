@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class LdapProfile implements Profile {
+public class LdapProfile extends AbstractProfile implements Profile {
     final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP_PROFILE));
 
     final protected String identifier;
@@ -46,7 +46,7 @@ public class LdapProfile implements Profile {
     static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<PwmSetting, StoredValue>();
         for (final PwmSetting setting : LDAP_SETTINGS) {
-            final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.DEFAULT_LDAP_PROFILE.equals(identifier) ? "" : identifier);
+            final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.DEFAULT_PROFILE_ID.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);
         }
         return new LdapProfile(identifier, valueMap);
@@ -88,7 +88,7 @@ public class LdapProfile implements Profile {
     public String getDisplayName(final Locale locale) {
         final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
         final String returnDisplayName = displayName == null || displayName.length() < 1 ? identifier : displayName;
-        return PwmConstants.DEFAULT_LDAP_PROFILE.equals(returnDisplayName) ? "Default" : returnDisplayName;
+        return PwmConstants.DEFAULT_PROFILE_ID.equals(returnDisplayName) ? "Default" : returnDisplayName;
     }
 
 }

@@ -60,12 +60,10 @@
         <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
-                require(["dijit/Tooltip"],function(Tooltip){
-                    new Tooltip({
-                        connectId: ["label_required_<%=loopConfiguration.getName()%>"],
-                        label: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
-                        position: ['above']
-                    });
+                PWM_MAIN.showTooltip({
+                    id: "label_required_<%=loopConfiguration.getName()%>",
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{loopConfiguration.getLabel(ssBean.getLocale())})%>',
+                    position: ['above']
                 });
             });
         </script>
@@ -120,19 +118,17 @@
 <% if (showPasswordFields) { %>
 <h2>
     <label for="password1"><pwm:Display key="Field_NewPassword"/>
-    <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dijit/Tooltip"],function(Tooltip){
-                new Tooltip({
-                    connectId: ["label_required_password"],
-                    label: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
+        <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
+        <script type="text/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.showTooltip({
+                    id: "label_required_password",
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
                     position: ['above']
                 });
             });
-        });
-    </script>
-        </label>
+        </script>
+    </label>
 </h2>
 <div id="PasswordRequirements">
     <ul>
@@ -156,11 +152,10 @@
             </div>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    require(["dijit/Tooltip"],function(Tooltip){
-                        new Tooltip({
-                            connectId: ["strengthBox"],
-                            label: '<div style="width: 350px">' + PWM_MAIN.showString('Tooltip_PasswordStrength') + '</div>'
-                        });
+                    PWM_MAIN.showTooltip({
+                        id: ["strengthBox"],
+                        text: PWM_MAIN.showString('Tooltip_PasswordStrength'),
+                        width: 350
                     });
                 });
             </script>

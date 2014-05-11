@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.util.queue;
 
+import com.google.gson.GsonBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -45,7 +46,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,8 +57,6 @@ import java.util.regex.Pattern;
  */
 public class SmsQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
 
     public enum SmsNumberFormat {
         PLAIN,
@@ -82,14 +83,19 @@ public class SmsQueueManager extends AbstractQueueManager {
 
 // --------------------- Interface PwmService ---------------------
 
-    public void init(final PwmApplication pwmApplication) throws PwmException {
+    public void init(
+            final PwmApplication pwmApplication
+    )
+            throws PwmException
+    {
+        LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
         final Settings settings = new Settings(
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))),
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))),
                 Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)),
                 EmailQueueManager.class.getSimpleName()
         );
-        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE, settings);
+        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE, settings, PwmApplication.AppAttribute.SMS_ITEM_COUNTER);
     }
 
 
@@ -104,7 +110,8 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
 
         final String smsItemGson = Helper.getGson().toJson(smsItem);
-        final QueueEvent event = new QueueEvent(smsItemGson, new Date());
+        final int itemID = getNextItemCount();
+        final QueueEvent event = new QueueEvent(smsItemGson, new Date(), itemID);
         try {
             add(event);
         } catch (Exception e) {
@@ -358,4 +365,19 @@ public class SmsQueueManager extends AbstractQueueManager {
         }
         return returnValue;
     }
+
+    @Override
+    protected String queueItemToDebugString(QueueEvent queueEvent)
+    {
+        final Map<String,Object> debugOutputMap = new LinkedHashMap<String, Object>();
+        debugOutputMap.put("itemID", queueEvent.getItemID());
+        debugOutputMap.put("timestamp", queueEvent.getTimestamp());
+        final SmsItemBean smsItemBean = Helper.getGson().fromJson(queueEvent.getItem(), SmsItemBean.class);
+
+        debugOutputMap.put("to", smsItemBean.getTo());
+        debugOutputMap.put("from", smsItemBean.getFrom());
+
+        return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
+    }
+
 }

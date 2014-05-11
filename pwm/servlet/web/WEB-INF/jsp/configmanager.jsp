@@ -129,7 +129,7 @@
             <% if (!configManagerBean.isConfigLocked()) { %>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog(null,PWM_CONFIG.showString('MenuDisplay_UploadConfig'),function(){PWM_CONFIG.uploadConfigDialog()},null)" id="MenuItem_UploadConfig">
+                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okFunction:function(){PWM_CONFIG.uploadConfigDialog()}})" id="MenuItem_UploadConfig">
                         <span class="fa fa-upload"></span>&nbsp;
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
@@ -244,13 +244,12 @@
     }
 
     function makeTooltip(id,text) {
-        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-            new Tooltip({
-                connectId: [id],
-                showDelay: 800,
-                position: ['below','above'],
-                label: '<div style="max-width: 300px">'+text+'</div>'
-            });
+        PWM_MAIN.showTooltip({
+            id: id,
+            showDelay: 800,
+            position: ['below','above'],
+            text: text,
+            width: 300
         });
     }
 

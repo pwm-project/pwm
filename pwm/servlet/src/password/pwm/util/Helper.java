@@ -868,7 +868,7 @@ public class
 
             pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
 
-            pwmApplication.getEmailQueue().submit(new EmailItemBean(
+            pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
                     toAddress,
                     configuredEmailSetting.getFrom(),
                     configuredEmailSetting.getSubject(),

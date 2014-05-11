@@ -20,13 +20,20 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ page import="password.pwm.AppProperty" %>
 <%@ page import="password.pwm.Permission" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.util.PwmServletURLHelper" %>
-<% if (!PwmServletURLHelper.isConfigManagerURL(request)) { %>
-<% final boolean adminUser = Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody); %>
-<% final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE; %>
-<% final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser; %>
+<%
+    boolean headerEnabled = Boolean.parseBoolean(pwmApplicationHeaderBody.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))
+            && !PwmServletURLHelper.isConfigManagerURL(request);
+%>
+<% if (headerEnabled) { %>
+<%
+        final boolean adminUser = Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody);
+        final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE;
+        final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser;
+%>
 <% if (showHeader || healthCheck) { %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
@@ -38,12 +45,11 @@
     </span>
     <script type="application/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-                new Tooltip({
-                    connectId: ['header-warning-message'],
-                    position: ['below','above'],
-                    label: '<div style="max-width:500px"><pwm:Display key="HealthMessage_Health_Config_ConfigMode" bundle="Health"/></div>'
-                });
+            PWM_MAIN.showTooltip({
+                id: ['header-warning-message'],
+                position: ['below','above'],
+                text: '<pwm:Display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
+                width: 500
             });
         });
     </script>

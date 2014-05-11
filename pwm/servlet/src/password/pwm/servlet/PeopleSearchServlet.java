@@ -89,7 +89,7 @@ public class PeopleSearchServlet extends TopServlet {
             }
         }
 
-        this.forwardToJSP(req,resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PEOPLE_SEARCH);
     }
 
     private void processDetailRequest(
@@ -109,7 +109,7 @@ public class PeopleSearchServlet extends TopServlet {
 
         final UserIdentity userIdentity = UserIdentity.fromObfuscatedKey(userKey,pwmApplication.getConfig());
         peopleSearchBean.setSearchDetails(doDetailLookup(pwmApplication, pwmSession, userIdentity));
-        this.forwardToDetailJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PEOPLE_SEARCH_DETAIL);
     }
 
     private void processUserSearch(
@@ -132,10 +132,10 @@ public class PeopleSearchServlet extends TopServlet {
         if (searchResults != null && searchResults.getResults().size() == 1) {
             final UserIdentity userIdentity = searchResults.getResults().keySet().iterator().next();
             peopleSearchBean.setSearchDetails(doDetailLookup(pwmApplication, pwmSession, userIdentity));
-            this.forwardToDetailJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PEOPLE_SEARCH_DETAIL);
         } else {
             peopleSearchBean.setSearchDetails(null);
-            this.forwardToJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PEOPLE_SEARCH);
         }
     }
 
@@ -241,23 +241,5 @@ public class PeopleSearchServlet extends TopServlet {
         }
 
         return returnData;
-    }
-
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PEOPLE_SEARCH, req, resp);
-        this.getServletContext().getRequestDispatcher(url).forward(req, resp);
-    }
-
-    private void forwardToDetailJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_PEOPLE_SEARCH_DETAIL, req, resp);
-        this.getServletContext().getRequestDispatcher(url).forward(req, resp);
     }
 }

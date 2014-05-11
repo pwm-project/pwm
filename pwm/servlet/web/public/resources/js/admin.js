@@ -185,9 +185,13 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
                     var fields = data['data']['presentable'];
                     var htmlTable = '';
                     for (var field in fields) {
-                        htmlTable += '<tr><td>' + field + '</td><td>' + fields[field] + '</tr>';
+                        htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
                     }
                     PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
+                    for (var field in fields) {(function(field){
+                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field))
+                        console.log('called + ' + field);
+                    }(field)); }
                 }
                 if (data['data']['raw']['inprogress']) {
                     PWM_MAIN.getObject("reportStartButton").disabled = true;
@@ -198,8 +202,6 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
                     PWM_MAIN.getObject("reportStopButton").disabled = true;
                     PWM_MAIN.getObject("reportClearButton").disabled = false;
                 }
-                if (refreshTime) {
-                }
                 doRefresh();
             },
             error: function(error) {
@@ -209,7 +211,7 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
             }
         });
     });
-}
+};
 
 PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
     var doRefresh = refreshTime
@@ -243,7 +245,7 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
             }
         });
     });
-}
+};
 
 PWM_ADMIN.reportAction=function(action) {
     var confirmText, successText;
@@ -260,7 +262,7 @@ PWM_ADMIN.reportAction=function(action) {
         confirmText = PWM_ADMIN.showString('Confirm_Report_Clear');
         successText = PWM_ADMIN.showString('Display_Clear_Report_Success');
     }
-    PWM_MAIN.showConfirmDialog(null,confirmText,function(){
+    PWM_MAIN.showConfirmDialog({text:confirmText,okFunction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function(){
             setTimeout(function(){
                 require(["dojo"],function(dojo){
@@ -285,7 +287,7 @@ PWM_ADMIN.reportAction=function(action) {
                 });
             },3000);
         }});
-    },function(){});
+    }});
 };
 
 PWM_ADMIN.initActiveSessionGrid=function() {
@@ -471,15 +473,15 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
     var epsTypes = PWM_GLOBAL['epsTypes'];
     var epsDurations = PWM_GLOBAL['epsDurations'];
     require(["dojo",
-        "dijit",
-        "dijit/registry",
-        "dojox/charting/Chart2D",
-        "dojox/charting/axis2d/Default",
-        "dojox/charting/plot2d/Default",
-        "dojox/charting/themes/Wetland",
-        "dijit/form/Button",
-        "dojox/gauges/GlossyCircularGauge",
-        "dojo/domReady!"],
+            "dijit",
+            "dijit/registry",
+            "dojox/charting/Chart2D",
+            "dojox/charting/axis2d/Default",
+            "dojox/charting/plot2d/Default",
+            "dojox/charting/themes/Wetland",
+            "dijit/form/Button",
+            "dojox/gauges/GlossyCircularGauge",
+            "dojo/domReady!"],
         function(dojo,dijit,registry){
             var statsGetUrl = PWM_GLOBAL['url-restservice'] + "/statistics";
             statsGetUrl += "?statName=" + statName;
@@ -655,7 +657,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
                         }, refreshTime);
                     }
                     if (showTimestamp) {
-                        PWM_MAIN.handleTimestamp(PWM_MAIN.getObject('healthCheckTimestamp'));
+                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('healthCheckTimestamp'));
                     }
                     if (finishFunction) {
                         finishFunction();

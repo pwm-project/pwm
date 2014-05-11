@@ -38,6 +38,7 @@ public enum AppProperty {
     CLIENT_AJAX_TYPING_WAIT                         ("client.ajax.typingWait"),
     CLIENT_FORM_NONCE_ENABLE                        ("client.formNonce.enable"),
     CLIENT_FORM_NONCE_LENGTH                        ("client.formNonce.length"),
+    CLIENT_WARNING_HEADER_SHOW                      ("client.warningHeader.show"),
     CLIENT_PW_SHOW_REVERT_TIMEOUT                   ("client.pwShowRevertTimeout"),
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ("http.resources.maxCacheItems"),

@@ -218,7 +218,8 @@ public class ConfigGuideServlet extends TopServlet {
         configGuideBean.getStoredConfiguration().writeSetting(
                 PwmSetting.LDAP_SERVER_CERTS,
                 LDAP_PROFILE_KEY,
-                newStoredValue
+                newStoredValue,
+                null
         );
         ServletHelper.outputJsonResult(resp,new RestResultBean());
     }
@@ -261,8 +262,8 @@ public class ConfigGuideServlet extends TopServlet {
         LOGGER.trace("setting template to: " + requestedTemplate);
         newStoredConfig.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
 
-        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,new StringValue(""));
-        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,new StringValue(""));
+        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,new StringValue(""),null);
+        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,new StringValue(""),null);
 
         configGuideBean.setFormData(new HashMap<String,String>(defaultForm(template)));
         updateLdapInfo(newStoredConfig, new HashMap<String,String>(defaultForm(template)),Collections.<String,String>emptyMap());
@@ -277,10 +278,10 @@ public class ConfigGuideServlet extends TopServlet {
     {
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
-        final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null);
+        final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
-        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.DEFAULT_LDAP_PROFILE);
+        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID);
         switch (configGuideBean.getStep()) {
             case LDAP:
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,ldapProfile,false));
@@ -416,14 +417,14 @@ public class ConfigGuideServlet extends TopServlet {
 
             final String newLdapURI = "ldap" + (ldapServerSecure ? "s" : "") +  "://" + ldapServerIP + ":" + ldapServerPort;
             final StringArrayValue newValue = new StringArrayValue(Collections.singletonList(newLdapURI));
-            storedConfiguration.writeSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY, newValue);
+            storedConfiguration.writeSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY, newValue, null);
         }
 
         { // proxy/admin account
             final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
             final String ldapAdminPW = ldapForm.get(PARAM_LDAP_ADMIN_PW);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapAdminDN));
-            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, new PasswordValue(ldapAdminPW));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapAdminDN), null);
+            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, new PasswordValue(ldapAdminPW), null);
         }
 
         // set context based on ldap dn
@@ -435,21 +436,21 @@ public class ConfigGuideServlet extends TopServlet {
             }
             ldapForm.put(PARAM_LDAP2_CONTEXT, contextDN);
         }
-        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP2_CONTEXT))));
+        storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapForm.get(PARAM_LDAP2_CONTEXT))), null);
 
         {  // set context based on ldap dn
             final String ldapContext = ldapForm.get(PARAM_LDAP2_CONTEXT);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapContext)));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_CONTEXTLESS_ROOT, LDAP_PROFILE_KEY, new StringArrayValue(Collections.singletonList(ldapContext)), null);
         }
 
         {  // set context based on ldap dn
             final String ldapTestUserDN = ldapForm.get(PARAM_LDAP2_TEST_USER);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapTestUserDN));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_TEST_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapTestUserDN), null);
         }
 
         {  // set admin query
             final String ldapTestUserDN = ldapForm.get(PARAM_LDAP2_ADMINS);
-            storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new StringValue(ldapTestUserDN));
+            storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new StringValue(ldapTestUserDN), null);
         }
     }
 
@@ -468,8 +469,8 @@ public class ConfigGuideServlet extends TopServlet {
         { // determine Cr Preference setting.
             final String crPref = configGuideBean.getFormData().get(PARAM_CR_STORAGE_PREF);
             if (crPref != null && crPref.length() > 0) {
-                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE, new StringValue(crPref));
-                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, new StringValue(crPref));
+                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE, new StringValue(crPref), null);
+                storedConfiguration.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE, new StringValue(crPref), null);
             }
         }
 
@@ -486,7 +487,7 @@ public class ConfigGuideServlet extends TopServlet {
 
         try {
             // add a random security key
-            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)));
+            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)), null);
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication);

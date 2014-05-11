@@ -43,7 +43,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
@@ -97,7 +96,7 @@ public class ConfigManagerServlet extends TopServlet {
             return;
         }
 
-        forwardToJSP(req,resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CONFIG_MANAGER_MODE_CONFIGURATION);
     }
 
     static boolean checkAuthentication(
@@ -161,8 +160,7 @@ public class ConfigManagerServlet extends TopServlet {
         if (configManagerBean.getPrePasswordEntryUrl() == null) {
             configManagerBean.setPrePasswordEntryUrl(req.getRequestURL().toString());
         }
-        final ServletContext servletContext = req.getSession().getServletContext();
-        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGIN).forward(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CONFIG_MANAGER_LOGIN);
         return true;
     }
 
@@ -266,16 +264,6 @@ public class ConfigManagerServlet extends TopServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
         }
 
-    }
-
-    static void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        final ServletContext servletContext = req.getSession().getServletContext();
-        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_MODE_CONFIGURATION).forward(req, resp);
     }
 
     static void forwardToEditor(
@@ -411,9 +399,8 @@ public class ConfigManagerServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final ConfigurationReader runningConfigReader = contextManager.getConfigReader();
-        final File configurationFile = runningConfigReader.getConfigFile();
-        final ConfigurationReader newConfigReader = new ConfigurationReader(configurationFile);
-        return newConfigReader.getStoredConfiguration();
+        final StoredConfiguration runningConfig = runningConfigReader.getStoredConfiguration();
+        return StoredConfiguration.copy(runningConfig);
     }
 
     private void doExportLocalDB(

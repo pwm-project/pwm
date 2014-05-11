@@ -20,6 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* sterile style css */
+
+
 html, body {
     font: 100% verdana,helvetica,arial,sans-serif;
     font-size: 11px;
@@ -32,7 +35,7 @@ html, body {
     font-family: verdana,helvetica,arial,sans-serif;
     background: #ffffff;
     color: #444444;
-    height: 110px;
+    height: 65px;
     -moz-box-shadow: 0px 5px 5px #aaaaaa;
     -webkit-box-shadow: 0px 5px 5px #aaaaaa;
     box-shadow: 0px 5px 5px #aaaaaa;
@@ -146,4 +149,9 @@ table td {
     color: #444444;
     font-family: verdana,helvetica,arial,sans-serif;
     font-size: 11px;
+}
+
+#fa {
+    display: none;
+    background-color: red;
 }

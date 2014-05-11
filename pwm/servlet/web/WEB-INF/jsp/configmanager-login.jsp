@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,19 +26,18 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager", ContextManager.getPwmApplication(request).getConfig(),
+            password.pwm.i18n.Config.class);
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
-    <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigManager" bundle="Config"/>
-        </div>
-        <div id="header-title">
-        </div>
-    </div>
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
+    </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="configLogin" enctype="application/x-www-form-urlencoded"

@@ -192,7 +192,7 @@ public class GuestRegistrationServlet extends TopServlet {
             LOGGER.error(pwmSession, info);
             ssBean.setSessionError(info);
         }
-        forwardToUpdateJSP(req,resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.GUEST_UPDATE);
     }
 
     private void sendUpdateGuestEmailConfirmation(
@@ -211,7 +211,7 @@ public class GuestRegistrationServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, null);
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfoBean, null);
     }
 
     protected void handleSearchRequest(
@@ -283,7 +283,7 @@ public class GuestRegistrationServlet extends TopServlet {
 
                 guBean.setUpdateUserIdentity(theGuest);
 
-                this.forwardToUpdateJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.GUEST_UPDATE);
                 return;
             } catch (ChaiOperationException e) {
                 LOGGER.warn(pwmSession, "error reading current attributes for user: " + e.getMessage());
@@ -474,7 +474,7 @@ public class GuestRegistrationServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, guestUserInfoBean, null);
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, guestUserInfoBean, null);
     }
 
     private void forwardToJSP(
@@ -484,19 +484,10 @@ public class GuestRegistrationServlet extends TopServlet {
             throws IOException, ServletException, PwmUnrecoverableException {
         final GuestRegistrationBean grBean = PwmSession.getPwmSession(req).getGuestRegistrationBean();
         if ("search".equalsIgnoreCase(grBean.getMenumode())) {
-            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_GUEST_UPDATE_SEARCH).forward(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.GUEST_UPDATE_SEARCH);
         } else {
-            this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_GUEST_REGISTRATION).forward(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.GUEST_REGISTRATION);
         }
-    }
-
-    private void forwardToUpdateJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_GUEST_UPDATE).forward(req, resp);
     }
 
     private static void checkConfiguration(final Configuration configuration, final Locale locale)

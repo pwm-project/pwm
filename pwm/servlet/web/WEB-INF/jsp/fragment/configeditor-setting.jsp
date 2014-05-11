@@ -1,8 +1,12 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.ContextManager" %>
+<%@ page import="password.pwm.PwmApplication" %>
+<%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
+<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.Locale" %>
@@ -31,14 +35,17 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
+    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
     final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
     final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
     final boolean showDescription = (Boolean)request.getAttribute("showDescription");
+    final String profileID = (String)request.getAttribute("profileID");
+    final StoredConfiguration.SettingMetaData settingMetaData = configManagerBean.getConfiguration().readSettingMetadata(loopSetting,profileID);
 %>
 <div id="outline_<%=loopSetting.getKey()%>" class="setting_outline">
-    <%
+<%
     StringBuilder title = new StringBuilder();
     title.append(loopSetting.getLabel(locale));
     if (loopSetting.getLevel() == 1) {
@@ -66,18 +73,16 @@
 </div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dijit/Tooltip"],function(Tooltip){
-            new Tooltip({
-                connectId: ["resetButton-<%=loopSetting.getKey()%>"],
-                label: PWM_CONFIG.showString('Tooltip_ResetButton')
-            });
-            <% if (!showDescription) { %>
-            new Tooltip({
-                connectId: ["helpButton-<%=loopSetting.getKey()%>"],
-                label: PWM_CONFIG.showString('Tooltip_HelpButton')
-            });
-            <% } %>
+        PWM_MAIN.showTooltip({
+            id: "resetButton-<%=loopSetting.getKey()%>",
+            text: PWM_CONFIG.showString('Tooltip_ResetButton')
         });
+        <% if (!showDescription) { %>
+        PWM_MAIN.showTooltip({
+            id: "helpButton-<%=loopSetting.getKey()%>",
+            text: PWM_CONFIG.showString('Tooltip_HelpButton')
+        });
+        <% } %>
     });
 </script>
 <div id="titlePane_<%=loopSetting.getKey()%>" class="setting_body">
@@ -269,7 +274,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
         <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
-        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog(null,'Clear password for setting <%=loopSetting.getLabel(locale)%>?',function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')})">Clear Password</button>
+        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog({text:'Clear password for setting <%=loopSetting.getLabel(locale)%>?',okFunction:function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')}})">Clear Password</button>
     </div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -282,4 +287,19 @@
     <% } %>
 </div>
 </div>
+<% if (settingMetaData != null && (settingMetaData.getUserIdentity() != null || settingMetaData.getModifyDate() != null)) { %>
+<div style="font-size: 8pt; margin-top: 2px; text-align: center; padding: 0; border: 0;">
+    <% if (settingMetaData.getModifyDate() != null ) { %>
+    <span style="color: grey">modified </span>
+    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(settingMetaData.getModifyDate())%></span>
+    <% } %>
+    <% if (settingMetaData.getUserIdentity() != null ) { %>
+    <span style="color: grey">modified by </span>
+    <span><%=settingMetaData.getUserIdentity().getUserDN()%></span>
+    <% if (!settingMetaData.getUserIdentity().getLdapProfile(pwmApplication.getConfig()).isDefault()) { %>
+    <span style="color: grey"> (<%=settingMetaData.getUserIdentity().getLdapProfileID()%>)</span>
+    <% } %>
+    <% } %>
+</div>
+<% } %>
 <br/>

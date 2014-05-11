@@ -154,7 +154,7 @@ public class SetupResponsesServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
 
         if (!setupResponsesBean.isResponsesSatisfied()) {
-            this.forwardToSetupJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_RESPONSES);
             return;
         }
 
@@ -164,14 +164,14 @@ public class SetupResponsesServlet extends TopServlet {
             {
                 setupResponsesBean.setHelpdeskResponsesSatisfied(true);
             } else {
-                this.forwardToSetupHelpdeskJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_RESPONSES_HELPDESK);
                 return;
             }
         }
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_SHOW_CONFIRMATION)) {
             if (!setupResponsesBean.isConfirmed()) {
-                this.forwardToConfirmJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_RESPONSES_CONFIRM);
                 return;
             }
         }
@@ -432,30 +432,6 @@ public class SetupResponsesServlet extends TopServlet {
             final ErrorInformation errorInfo = convertChaiValidationException(e);
             throw new PwmDataValidationException(errorInfo);
         }
-    }
-
-    private void forwardToSetupJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_RESPONSES).forward(req, resp);
-    }
-
-    private void forwardToSetupHelpdeskJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_HELPDESK_RESPONSES).forward(req, resp);
-    }
-
-    private void forwardToConfirmJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIRM_RESPONSES).forward(req, resp);
     }
 
     private static ErrorInformation convertChaiValidationException(

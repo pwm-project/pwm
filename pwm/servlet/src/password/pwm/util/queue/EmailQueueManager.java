@@ -22,6 +22,7 @@
 
 package password.pwm.util.queue;
 
+import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
@@ -47,6 +48,7 @@ import javax.mail.Transport;
 import javax.mail.internet.*;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -55,9 +57,6 @@ import java.util.Properties;
  */
 public class EmailQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
-
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
 
     private Properties javaMailProps = new Properties();
 
@@ -74,6 +73,7 @@ public class EmailQueueManager extends AbstractQueueManager {
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
+        LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
         javaMailProps = makeJavaMailProps(pwmApplication.getConfig());
         final Settings settings = new Settings(
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))),
@@ -81,7 +81,7 @@ public class EmailQueueManager extends AbstractQueueManager {
                 Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_COUNT)),
                 EmailQueueManager.class.getSimpleName()
         );
-        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE, settings);
+        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE, settings, PwmApplication.AppAttribute.EMAIL_ITEM_COUNTER);
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -117,7 +117,7 @@ public class EmailQueueManager extends AbstractQueueManager {
         return true;
     }
 
-    public void submit(
+    public void submitEmail(
             final EmailItemBean emailItem,
             final UserInfoBean uiBean,
             final UserDataReader userDataReader
@@ -150,7 +150,8 @@ public class EmailQueueManager extends AbstractQueueManager {
         }
 
         try {
-            add(new QueueEvent(Helper.getGson().toJson(expandedEmailItem),new Date()));
+            final QueueEvent queueEvent = new QueueEvent(Helper.getGson().toJson(expandedEmailItem), new Date(), getNextItemCount());
+            add(queueEvent);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
@@ -265,7 +266,7 @@ public class EmailQueueManager extends AbstractQueueManager {
         return props;
     }
 
-    protected static InternetAddress makeInternetAddress(final String input)
+    protected InternetAddress makeInternetAddress(final String input)
             throws AddressException
     {
         if (input == null) {
@@ -288,6 +289,21 @@ public class EmailQueueManager extends AbstractQueueManager {
             return address;
         }
         return new InternetAddress(input);
+    }
+
+    @Override
+    protected String queueItemToDebugString(QueueEvent queueEvent)
+    {
+        final Map<String,Object> debugOutputMap = new LinkedHashMap<String, Object>();
+        debugOutputMap.put("itemID", queueEvent.getItemID());
+        debugOutputMap.put("timestamp", queueEvent.getTimestamp());
+        final EmailItemBean emailItemBean = Helper.getGson().fromJson(queueEvent.getItem(), EmailItemBean.class);
+
+        debugOutputMap.put("to", emailItemBean.getTo());
+        debugOutputMap.put("from", emailItemBean.getFrom());
+        debugOutputMap.put("subject", emailItemBean.getSubject());
+
+        return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
     }
 }
 

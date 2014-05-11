@@ -130,7 +130,7 @@
 %>
 <% if (challenge.isAdminDefined()) { %>
 <h2>
-    <label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
+    <label for="PwmReseesponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
 </h2>
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
@@ -140,7 +140,7 @@
 <p>
     <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
-           onkeyup="PWM_RESPONSES.validateResponses();" required="required"/>
+           onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
 <% } %>
 <% } %>

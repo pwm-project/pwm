@@ -39,4 +39,9 @@ public abstract class AbstractValue implements StoredValue {
                 this.toNativeObject())
                 : Helper.getGson().toJson(this.toNativeObject());
     }
+
+    public boolean requiresStoredUpdate()
+    {
+        return false;
+    }
 }

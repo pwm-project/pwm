@@ -2448,7 +2448,7 @@ function buildMenuBar() {
                             label: templateItem['description'],
                             checked: templateItem['key'] == PWM_GLOBAL['selectedTemplate'],
                             onClick: function() {
-                                PWM_MAIN.showConfirmDialog(null,confirmText,function(){
+                                PWM_MAIN.showConfirmDialog({text:confirmText,okFunction:function() {
                                     PWM_MAIN.showWaitDialog({loadFunction:function() {
                                         dojo.xhrGet({
                                             url: "ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
@@ -2461,7 +2461,7 @@ function buildMenuBar() {
                                             }
                                         });
                                     }});
-                                });
+                                }});
                             }
                         }));
                     })();
@@ -2562,36 +2562,32 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
                         bodyText += '</div><br/><div>';
                         bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
                         bodyText += '</div>';
-                        PWM_MAIN.showConfirmDialog(
-                            null,
-                            bodyText,
-                            function () {
-                                PWM_MAIN.showWaitDialog({title: 'Saving Configuration...', loadFunction: function () {
-                                    require(["dojo"], function (dojo) {
-                                        dojo.xhrGet({
-                                            url: "ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                                            preventCache: true,
-                                            dataType: "json",
-                                            handleAs: "json",
-                                            load: function (data) {
-                                                if (data['error'] == true) {
-                                                    PWM_MAIN.closeWaitDialog();
-                                                    PWM_MAIN.showError(data['errorDetail']);
+                        PWM_MAIN.showConfirmDialog({text: bodyText, width: 650, okFunction: function () {
+                            PWM_MAIN.showWaitDialog({title: 'Saving Configuration...', loadFunction: function () {
+                                require(["dojo"], function (dojo) {
+                                    dojo.xhrGet({
+                                        url: "ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                                        preventCache: true,
+                                        dataType: "json",
+                                        handleAs: "json",
+                                        load: function (data) {
+                                            if (data['error'] == true) {
+                                                PWM_MAIN.closeWaitDialog();
+                                                PWM_MAIN.showError(data['errorDetail']);
+                                            } else {
+                                                if (waitForReload) {
+                                                    var currentTime = new Date().getTime();
+                                                    PWM_MAIN.showError('Waiting for server restart');
+                                                    PWM_CONFIG.waitForRestart(currentTime);
                                                 } else {
-                                                    if (waitForReload) {
-                                                        var currentTime = new Date().getTime();
-                                                        PWM_MAIN.showError('Waiting for server restart');
-                                                        PWM_CONFIG.waitForRestart(currentTime);
-                                                    } else {
-                                                        window.location = "ConfigManager";
-                                                    }
+                                                    window.location = "ConfigManager";
                                                 }
                                             }
-                                        });
+                                        }
                                     });
-                                }});
-                            }
-                        );
+                                });
+                            }});
+                        }});
                     }
                 },
                 error: function (errorObj) {
@@ -2649,6 +2645,7 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
 };
 
 PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
+    console.log('begin toggle help display for key ' + key);
     PWM_VAR['toggleHelpDisplay'] = PWM_VAR['toggleHelpDisplay'] || {};
     var helpDiv = PWM_MAIN.getObject('helpDiv_' + key);
     var titleId = 'title_' + key;
@@ -2675,13 +2672,13 @@ PWM_CFGEDIT.toggleHelpDisplay=function(key, options) {
         } else {
             PWM_VAR['toggleHelpDisplay'][key] = 'hidden';
             var helpText = PWM_SETTINGS['settings'][key]['description'];
-            require(["dijit","dojo/fx","dijit/Tooltip"],function(dijit,fx,Tooltip){
-                new Tooltip({
-                    connectId: [titleId],
-                    id: titleId,
-                    position: ['above','below'],
-                    label: '<div style="max-width:520px">' + helpText + '</div>'
-                });
+            PWM_MAIN.showTooltip({
+                id: [titleId],
+                position: ['above','below'],
+                text: helpText,
+                width: 520
+            });
+            require(["dojo/fx"],function(fx){
                 fx.wipeOut({node:helpDiv}).play();
             });
         }
@@ -2747,12 +2744,12 @@ function handleResetClick(settingKey) {
     }
     dialogText += ' to the default value?';
 
-    var title = 'Reset ' + label ? label : '';
+    var titleText = 'Reset ' + label ? label : '';
 
-    PWM_MAIN.showConfirmDialog(title,dialogText,function(){
+    PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okFunction:function(){
         PWM_CFGEDIT.resetSetting(settingKey);
         loadMainPageBody();
-    });
+    }});
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
@@ -2884,27 +2881,26 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
                 PWM_MAIN.getObject('settingSearchResults').innerHTML = bodyText;
                 if (!PWM_MAIN.isEmpty(data['data'])) {
                     (function(){
-                        require(["dijit/Tooltip"],function(Tooltip){
                             for (var categoryIter in data['data']) {
                                 var category = data['data'][categoryIter];
                                 for (var settingIter in category) {
                                     var setting = category[settingIter];
                                     var profileID = setting['profile'];
                                     var settingID = "search_" + (profileID ? profileID + '_' : '') +  settingIter;
-                                    var toolBody = '<div style="max-width: 650px"><span style="font-weight: bold">Setting</span>';
+                                    var toolBody = '<span style="font-weight: bold">Setting</span>';
                                     toolBody += '<br/>' + setting['label'] + '<br/><br/>';
                                     toolBody += '<span style="font-weight: bold">Description</span>';
                                     toolBody += '<br/>' + setting['description'] + '<br/><br/>';
-                                    toolBody += '<span style="font-weight: bold">Value</span>';
-                                    toolBody += '<br/>' + setting['value'] + '<br/></div>';
-                                    new Tooltip({
-                                        connectId: [settingID],
-                                        label: toolBody,
-                                        position: ['above']
+                                    toolBody += '<span style="font-weight: boldb">Value</span>';
+                                    toolBody += '<br/>' + setting['value'] + '<br/>';
+                                    PWM_MAIN.showTooltip({
+                                        id: settingID,
+                                        text: toolBody,
+                                        position: ['above'],
+                                        width: 650
                                     });
                                 }
                             }
-                        });
                     }());
                 }
                 PWM_MAIN.showSuccess(resultCount + ' Results');
@@ -3006,15 +3002,12 @@ PWM_CFGEDIT.cancelEditing = function() {
                         bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
                         bodyText += data['data'];
                         bodyText += '</pre></div>';
-                        PWM_MAIN.showConfirmDialog(
-                            null,
-                            bodyText,
+                        PWM_MAIN.showConfirmDialog({text:bodyText,okFunction:
                             function () {
                                 PWM_MAIN.showWaitDialog({loadFunction: function () {
                                     PWM_MAIN.goto('ConfigEditor?processAction=cancelEditing', {addFormID: true});
                                 }});
-                            }
-                        );
+                            }});
                     }
                 },
                 error: function (errorObj) {

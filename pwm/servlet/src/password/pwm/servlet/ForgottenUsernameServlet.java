@@ -73,7 +73,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             return;
         }
 
-        forwardToJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
     }
 
     public void handleSearchRequest(
@@ -116,7 +116,7 @@ public class ForgottenUsernameServlet extends TopServlet {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-                forwardToJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
                 return;
             }
 
@@ -153,17 +153,8 @@ public class ForgottenUsernameServlet extends TopServlet {
         }
 
         pwmApplication.getStatisticsManager().incrementValue(Statistic.FORGOTTEN_USERNAME_FAILURES);
-        forwardToJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.FORGOTTEN_USERNAME);
     }
-
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_FORGOTTEN_USERNAME).forward(req, resp);
-    }
-
 
 
     private void sendUsername(
@@ -313,7 +304,7 @@ public class ForgottenUsernameServlet extends TopServlet {
             return e.getErrorInformation();
         }
 
-        pwmApplication.getEmailQueue().submit(emailItemBean, userInfoBean, userDataReader);
+        pwmApplication.getEmailQueue().submitEmail(emailItemBean, userInfoBean, userDataReader);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
 
         return null;

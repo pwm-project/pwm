@@ -112,10 +112,10 @@
                                                         console.log('onchange trigger!');
                                                         PWM_MAIN.getObject('widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>').value = this.checked ? '636' : '389';
                                                         if (!this.checked) {
-                                                            PWM_MAIN.showConfirmDialog(null,'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', null, function(){
-                                                                registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked','true');
+                                                            PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SSLDisable" bundle="Config"/>', okFunction:function() {
+                                                                registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').set('checked', 'true');
                                                                 handleFormActivity();
-                                                            });
+                                                            }});
                                                         }
                                                         handleFormActivity();
                                                     },

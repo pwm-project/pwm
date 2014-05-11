@@ -517,7 +517,7 @@ public class IntruderManager implements Serializable, PwmService {
             LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }
 
-        pwmApplication.getEmailQueue().submit(new EmailItemBean(
+        pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
                 configuredEmailSetting.getTo(),
                 configuredEmailSetting.getFrom(),
                 configuredEmailSetting.getSubject(),

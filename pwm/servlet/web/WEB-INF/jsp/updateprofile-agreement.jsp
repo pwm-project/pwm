@@ -27,6 +27,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
+    <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>

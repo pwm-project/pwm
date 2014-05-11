@@ -611,7 +611,7 @@
     </setting>
     <setting key="email.smtp.port" level="0">
         <label>SMTP Email Server Port</label>
-        <description><![CDATA[Port Number for SMTP server]]></description>
+        <description><![CDATA[Network port number for SMTP server]]></description>
         <default>
             <value>25</value>
         </default>
@@ -2277,8 +2277,15 @@
         </default>
     </setting>
     <setting key="newUser.username.definition" level="0">
-        <label>Username definition</label>
-        <description><![CDATA[]]></description>
+        <label>LDAP Entry ID Definition</label>
+        <description><![CDATA[
+        <p>This setting controls the entry id of the newly created LDAP entry.  In some directories this is often used
+        as the "username", though many directories separate the concepts and values of entry ID and username.</p>
+        <p>Values can (and usually do) include <a onclick="PWM_CFGEDIT.showMacroHelp()">macros</a>.  In case the first value
+        is already existing in the directory, each successive value is tried until a free value is found.  Though the user
+        is not yet created when the macros are evaluated, LDAP macros will use the data provided on the new user form.  Other
+        macros may not be useful as there no data yet available on the user.
+          ]]></description>
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
         </default>

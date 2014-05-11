@@ -295,7 +295,7 @@ public class SessionFilter implements Filter {
             resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location",returnURL);
-                servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_INIT).forward(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.INIT);
             } else {
                 resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
             }

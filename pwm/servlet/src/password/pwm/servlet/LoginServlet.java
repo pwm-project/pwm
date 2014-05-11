@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserAuthenticator;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.ldap.UserAuthenticator;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -101,7 +101,7 @@ public class
                 final String originalURL = ssBean.getOriginalRequestURL();
                 ssBean.setOriginalRequestURL(null);
 
-                if (originalURL != null && originalURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) == -1) {
+                if (originalURL != null && !originalURL.contains(PwmConstants.URL_SERVLET_LOGIN)) {
                     resp.sendRedirect(SessionFilter.rewriteRedirectURL(originalURL, req, resp));
                 } else {
                     resp.sendRedirect(SessionFilter.rewriteRedirectURL(req.getContextPath(), req, resp));
@@ -123,14 +123,8 @@ public class
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final String url;
-        if (passwordOnly) {
-            url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN_PW_ONLY, req, resp);
-        } else {
-            url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGIN, req, resp);
-        }
-
-        this.getServletContext().getRequestDispatcher(url).forward(req, resp);
+        final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
+        ServletHelper.forwardToJsp(req, resp, url);
     }
 }
 

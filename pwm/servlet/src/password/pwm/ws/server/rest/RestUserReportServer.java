@@ -211,7 +211,7 @@ public class RestUserReportServer {
         }
 
         int cachedRecords = reportService.recordsInCache();
-        presentableMap.put("Records in Cache",cachedRecords);
+        presentableMap.put("Records in Cache",numberFormat.format(cachedRecords));
         if (cachedRecords > 0) {
             presentableMap.put("Mean Record Cache Time",reportService.getSummaryData().getMeanCacheTime());
         }

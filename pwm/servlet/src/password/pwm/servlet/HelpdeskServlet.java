@@ -132,7 +132,7 @@ public class HelpdeskServlet extends TopServlet {
             }
         }
 
-        forwardToSearchJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_SEARCH);
     }
 
     private void processExecuteActionRequest(
@@ -255,7 +255,7 @@ public class HelpdeskServlet extends TopServlet {
 
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, userIdentity);
         pwmApplication.getStatisticsManager().incrementValue(Statistic.HELPDESK_USER_LOOKUP);
-        forwardToDetailJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
     }
 
     private void restSearchRequest(
@@ -415,7 +415,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "password unlock request, but no user result in search";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
-            this.forwardToDetailJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
             return;
         }
 
@@ -423,7 +423,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "password unlock request, but helpdesk unlock is not enabled";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
-            this.forwardToDetailJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
             return;
         }
 
@@ -470,7 +470,7 @@ public class HelpdeskServlet extends TopServlet {
 
         Helper.pause(1000); // delay before re-reading data
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
-        this.forwardToDetailJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
     }
 
     private void processClearOtpSecret(HttpServletRequest req, HttpServletResponse resp, PwmApplication pwmApplication, PwmSession pwmSession) throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException {
@@ -481,7 +481,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "password unlock request, but no user result in search";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
-            this.forwardToDetailJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
             return;
         }
 
@@ -489,7 +489,7 @@ public class HelpdeskServlet extends TopServlet {
             final String errorMsg = "clear responses request, but helpdesk clear responses button is not enabled";
             LOGGER.error(pwmSession, errorMsg);
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
-            this.forwardToDetailJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
             return;
         }
 
@@ -532,18 +532,6 @@ public class HelpdeskServlet extends TopServlet {
 
         Helper.pause(1000); // delay before re-reading data
         populateHelpDeskBean(pwmApplication, pwmSession, helpdeskBean, helpdeskBean.getUserInfoBean().getUserIdentity());
-        this.forwardToDetailJSP(req, resp);
-    }
-
-    private void forwardToSearchJSP(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_HELPDESK_SEARCH).forward(req, resp);
-    }
-
-    private void forwardToDetailJSP(final HttpServletRequest req, final HttpServletResponse resp)
-            throws IOException, ServletException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_HELPDESK_DETAIL).forward(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_DETAIL);
     }
 }

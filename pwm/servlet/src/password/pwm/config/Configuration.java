@@ -105,7 +105,7 @@ public class Configuration implements Serializable {
         final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
         for (String profileID : profiles) {
             if ("".equals(profileID)) {
-                profileID = PwmConstants.DEFAULT_LDAP_PROFILE;
+                profileID = PwmConstants.DEFAULT_PROFILE_ID;
             }
             final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID);
             if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_PROFILE_ENABLED)) {
@@ -519,7 +519,7 @@ public class Configuration implements Serializable {
                 return cachedPolicy;
             }
 
-            final LdapProfile defaultLdapProfile = getLdapProfiles().get(PwmConstants.DEFAULT_LDAP_PROFILE);
+            final LdapProfile defaultLdapProfile = getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID);
             final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
             if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
                 final PwmPasswordPolicy thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE, userLocale);
@@ -536,10 +536,10 @@ public class Configuration implements Serializable {
 
                 final PwmPasswordPolicy thePolicy;
                 if (lookupDN == null || lookupDN.isEmpty()) {
-                    thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_LDAP_PROFILE,userLocale);
+                    thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_PROFILE_ID,userLocale);
                 } else {
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE));
-                    final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_LDAP_PROFILE);
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID));
+                    final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_PROFILE_ID);
                     thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
                 }
                 dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);

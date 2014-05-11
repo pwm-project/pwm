@@ -479,6 +479,14 @@
                             Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
+            <tr>
+                <td class="key">
+                    Configuration Restart Counter
+                </td>
+                <td>
+                    <%= ContextManager.getContextManager(request.getSession()).getRestartCount() %>
+                </td>
+            </tr>
         </table>
     </div>
 </div>
@@ -707,13 +715,11 @@
         });
     });
 
-    function showTooltip(id, text) {
-        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-            new Tooltip({
-                connectId: [id],
-                position: ['below','above'],
-                label: '<pre>' + text + '</pre>'
-            });
+    function showTooltip(nodeID, displayText) {
+        PWM_MAIN.showTooltip({
+            id:nodeID,
+            position: ['below','above'],
+            text: '<pre>' + displayText + '</pre>'
         });
     }
 </script>

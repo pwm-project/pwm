@@ -29,4 +29,6 @@ public interface Profile extends Serializable {
     String getIdentifier();
 
     String getDisplayName(Locale locale);
+
+    boolean isDefault();
 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.bean;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.config.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -54,6 +55,10 @@ public class UserIdentity implements Serializable {
 
     public String getLdapProfileID() {
         return ldapProfile;
+    }
+
+    public LdapProfile getLdapProfile(final Configuration configuration) {
+        return configuration.getLdapProfiles().get(this.getLdapProfileID());
     }
 
     public String toString() {
@@ -104,7 +109,7 @@ public class UserIdentity implements Serializable {
 
         final StringTokenizer st = new StringTokenizer(key, DELIM_SEPARATOR);
         if (st.countTokens() < 2) {
-            return new UserIdentity(st.nextToken(), PwmConstants.DEFAULT_LDAP_PROFILE);
+            return new UserIdentity(st.nextToken(), PwmConstants.DEFAULT_PROFILE_ID);
         } else if (st.countTokens() > 2) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"too many string tokens while parsing delimited identity key"));
         }

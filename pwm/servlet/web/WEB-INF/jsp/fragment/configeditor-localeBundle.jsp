@@ -126,17 +126,15 @@
     }
 
     function initTooltips() {
-        require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-            for (var localeKey in PWM_VAR['localeKey_tooltips']) {
-                var connectIDs = PWM_VAR['localeKey_tooltips'][localeKey];
-                var labelText = localeKey + ' - ' + PWM_GLOBAL['localeInfo'][localeKey];
-                new Tooltip({
-                    connectId: connectIDs,
-                    position: ['below','above'],
-                    label: labelText
-                });
-            }
-        });
+        for (var localeKey in PWM_VAR['localeKey_tooltips']) {
+            var connectIDs = PWM_VAR['localeKey_tooltips'][localeKey];
+            var labelText = localeKey + ' - ' + PWM_GLOBAL['localeInfo'][localeKey];
+            PWM_MAIN.showTooltip({
+                id: connectIDs,
+                position: ['below','above'],
+                text: labelText
+            });
+        }
     }
 
     function startEditor(element,key) {

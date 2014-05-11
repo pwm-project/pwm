@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,10 +27,17 @@ import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.servlet.SetupOtpBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.operations.OtpService;
+import password.pwm.util.otp.OTPUserConfiguration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -40,10 +47,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import password.pwm.bean.servlet.SetupOtpBean;
-import password.pwm.config.Configuration;
-import password.pwm.util.operations.OtpService;
-import password.pwm.util.otp.OTPUserConfiguration;
 
 /**
  * User interaction servlet for setting up OTP secret
@@ -123,7 +126,7 @@ public class SetupOtpSecretServlet extends TopServlet {
         if (otpBean.getOtp() != null && !otpBean.isCleared()) {
             if (!"clearOtp".equals(actionParam)) {
                 LOGGER.info(String.format("Existing configuration found for %s", uiBean.getUsername()));
-                forwardToSetupExistingJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_EXISTING);
                 return;
             }
         }
@@ -162,10 +165,12 @@ public class SetupOtpSecretServlet extends TopServlet {
                             pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
                         }
                     }
-                    forwardToConfirmJSP(req, resp);
+                    /* TODO: handle case to HOTP */
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
                     return;
                 } else if ("testOtpSecret".equalsIgnoreCase(actionParam)) {
-                    forwardToConfirmJSP(req, resp);
+                    /* TODO: handle case to HOTP */
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
                     return;
                 }
             }
@@ -199,7 +204,7 @@ public class SetupOtpSecretServlet extends TopServlet {
         otpBean.setCleared(true);
         initializeBean(pwmSession, pwmApplication, otpBean, true);
         otpBean.setConfirmed(false);
-        forwardToSetupJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET);
     }
 
     private void handleSetupOtpSecret(
@@ -219,32 +224,7 @@ public class SetupOtpSecretServlet extends TopServlet {
             ServletHelper.forwardToSuccessPage(req, resp);
             return;
         }
-        forwardToSetupJSP(req, resp);
-    }
-
-    private void forwardToSetupExistingJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp)
-            throws IOException, ServletException {
-        LOGGER.trace(String.format("Enter: forwardToSetupExistingJSP(%s, %s)", req, resp));
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_OTP_SECRET_EXISTING).forward(req, resp);
-    }
-
-    private void forwardToSetupJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp)
-            throws IOException, ServletException {
-        LOGGER.trace(String.format("Enter: forwardToSetupJSP(%s, %s)", req, resp));
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_OTP_SECRET).forward(req, resp);
-    }
-
-    private void forwardToConfirmJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp)
-            throws IOException, ServletException {
-        LOGGER.trace(String.format("Enter: forwardToConfirmJSP(%s, %s)", req, resp));
-        /* TODO: handle case to HOTP */
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_SETUP_OTP_SECRET_TEST).forward(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET);
     }
 
     private void initializeBean(final PwmSession pwmSession, final PwmApplication pwmApplication, final SetupOtpBean otpBean, final boolean newOtp) throws PwmUnrecoverableException {

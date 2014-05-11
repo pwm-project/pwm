@@ -42,7 +42,6 @@ import password.pwm.util.ServletHelper;
 import password.pwm.util.report.ReportService;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -464,8 +463,7 @@ public class CommandServlet extends TopServlet {
             }
         }
 
-        final ServletContext servletContext = req.getSession().getServletContext();
-        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_LOGVIEW).forward(req, resp);
+        ServletHelper.forwardToJsp(req,resp, PwmConstants.JSP_URL.CONFIG_MANAGER_LOGVIEW);
     }
 
     private void outputAuditLogCsv(final HttpServletRequest req, final HttpServletResponse resp)
@@ -524,7 +522,6 @@ public class CommandServlet extends TopServlet {
 
         RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp,restResultBean);
-        return;
     }
 }
 

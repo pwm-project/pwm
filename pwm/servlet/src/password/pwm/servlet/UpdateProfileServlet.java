@@ -27,7 +27,6 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
@@ -180,7 +179,7 @@ public class UpdateProfileServlet extends TopServlet {
 
         if (newUserAgreementText != null && newUserAgreementText.length() > 0) {
             if (!updateProfileBean.isAgreementPassed()) {
-                this.forwardToAgreementJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_AGREEMENT);
                 return;
             }
         }
@@ -189,13 +188,13 @@ public class UpdateProfileServlet extends TopServlet {
             final Map<FormConfiguration,String> formMap = updateProfileBean.getFormData();
             final List<FormConfiguration> formFields = pwmApplication.getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
             populateFormFromLdap(formFields, pwmSession, formMap, pwmSession.getSessionManager().getUserDataReader(pwmApplication));
-            forwardToJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
             return;
         }
 
         //make sure there is form data in the bean.
         if (updateProfileBean.getFormData() == null) {
-            forwardToJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
             return;
         }
 
@@ -210,18 +209,18 @@ public class UpdateProfileServlet extends TopServlet {
         } catch (PwmDataValidationException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
             return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getMessage());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
             return;
         }
 
         final boolean requireConfirmation = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_SHOW_CONFIRMATION);
         if (requireConfirmation && !updateProfileBean.isConfirmationPassed()) {
-            this.forwardToConfirmationJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES_CONFIRM);
             return;
         }
 
@@ -241,7 +240,7 @@ public class UpdateProfileServlet extends TopServlet {
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
         }
 
-        this.forwardToJSP(req, resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
     }
 
 
@@ -336,7 +335,6 @@ public class UpdateProfileServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
         // verify form meets the form requirements (may be redundant, but shouldn't hurt)
         verifyFormAttributes(
@@ -403,9 +401,6 @@ public class UpdateProfileServlet extends TopServlet {
     {
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
 
-        //read current values from user.
-        final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
-
         // see if the values meet form requirements.
         Validator.validateParmValuesMeetRequirements(formValues, userLocale);
 
@@ -424,32 +419,6 @@ public class UpdateProfileServlet extends TopServlet {
         }
     }
 
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES).forward(req, resp);
-    }
-
-    private void forwardToAgreementJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES_AGREEMENT).forward(req, resp);
-    }
-
-    private void forwardToConfirmationJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_UPDATE_ATTRIBUTES_CONFIRM).forward(req, resp);
-    }
-
     private static void sendProfileUpdateEmailNotice(
             final UserDataReader userDataReader,
             final PwmSession pwmSession,
@@ -465,7 +434,7 @@ public class UpdateProfileServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
     }
 
 }

@@ -137,7 +137,8 @@ public class ForgottenPasswordServlet extends TopServlet {
                 return;
             }
         }
-        this.forwardToSearchJSP(req, resp);
+
+        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
     private void processSearch(final HttpServletRequest req, final HttpServletResponse resp)
@@ -184,7 +185,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                forwardToSearchJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
                 return;
             }
 
@@ -200,7 +201,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
-            this.forwardToSearchJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
             return;
         }
 
@@ -218,6 +219,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
+        ErrorInformation errorInformation = null;
         try {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
                     pwmSession,
@@ -230,10 +232,18 @@ public class ForgottenPasswordServlet extends TopServlet {
                 forgottenPasswordBean.setTokenSatisfied(true);
             }
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToEnterCodeJSP(req, resp);
-            return;
+            final String errorMsg = "token incorrect: " + e.getMessage();
+            errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
         }
+
+        if (!forgottenPasswordBean.isTokenSatisfied()) {
+            if (errorInformation == null) {
+                errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
+            }
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+        }
+
         this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
@@ -257,16 +267,15 @@ public class ForgottenPasswordServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_OTP_PASSED);
             LOGGER.debug(pwmSession, "one time password validation has been passed");
             forgottenPasswordBean.setOtpSatisfied(true);
-            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
-            return;
+        } else {
+            LOGGER.debug(pwmSession, "one time password validation has failed");
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
+            final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
+            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
+            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
         }
-        LOGGER.debug(pwmSession, "one time password validation has failed");
-        pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
-        final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
-        UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
-        pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
-        pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-        this.forwardToEnterOtpTokenJSP(req, resp);
+        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
     private static void loadResponsesIntoBean(
@@ -362,15 +371,6 @@ public class ForgottenPasswordServlet extends TopServlet {
     }
 
 
-    private void forwardToResponsesJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException
-    {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_RECOVER_PASSWORD_RESPONSES).forward(req, resp);
-    }
-
     private void processCheckResponses(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
@@ -384,7 +384,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (forgottenPasswordBean.getUserIdentity() == null) {
-            this.forwardToSearchJSP(req, resp);
+            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
             return;
         }
 
@@ -393,12 +393,14 @@ public class ForgottenPasswordServlet extends TopServlet {
             validateRequiredAttributes(theUser, req, pwmSession);
         } catch (PwmDataValidationException e) {
             ssBean.setSessionError(e.getErrorInformation());
-            LOGGER.debug(pwmSession, "incorrect attribute value during check for " + forgottenPasswordBean.getUserIdentity());
+            LOGGER.debug(pwmSession,
+                    "incorrect attribute value during check for " + forgottenPasswordBean.getUserIdentity());
             pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-            pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(), pwmSession);
+            pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(),
+                    pwmSession);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
-            this.forwardToResponsesJSP(req, resp);
+            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
             return;
         }
 
@@ -446,13 +448,13 @@ public class ForgottenPasswordServlet extends TopServlet {
                     UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
                     pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(), pwmSession);
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-                    this.forwardToResponsesJSP(req, resp);
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
                     return;
                 }
             } catch (ChaiValidationException e) {
                 LOGGER.debug(pwmSession, "chai validation error checking user responses: " + e.getMessage());
                 ssBean.setSessionError(new ErrorInformation(PwmError.forChaiError(e.getErrorCode())));
-                this.forwardToResponsesJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
                 return;
             }
         }
@@ -475,7 +477,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         // check for proxied user;
         if (forgottenPasswordBean.getUserIdentity() == null) {
-            this.forwardToSearchJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
             return;
         }
 
@@ -487,7 +489,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             } catch (PwmOperationalException e) {
                 pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                 LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-                this.forwardToSearchJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
                 return;
             }
         }
@@ -500,13 +502,13 @@ public class ForgottenPasswordServlet extends TopServlet {
                 } catch (PwmOperationalException e) {
                     pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                     LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-                    this.forwardToSearchJSP(req, resp);
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
                     return;
                 }
             }
 
             if (!forgottenPasswordBean.isResponsesSatisfied()) {
-                this.forwardToResponsesJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
                 return;
             }
         }
@@ -516,7 +518,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             final List<FormConfiguration> requiredAttributesForm = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
 
             if (!requiredAttributesForm.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
-                this.forwardToResponsesJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
                 return;
             }
         }
@@ -530,12 +532,12 @@ public class ForgottenPasswordServlet extends TopServlet {
                 } catch (PwmOperationalException e) {
                     pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                     LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-                    this.forwardToSearchJSP(req, resp);
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
                     return;
                 }
             }
             if (!forgottenPasswordBean.isOtpSatisfied()) {
-                this.forwardToEnterOtpTokenJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_OTP);
                 return;
             }
         }
@@ -545,7 +547,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (tokenEnabled) {
             if (!forgottenPasswordBean.isTokenSatisfied()) {
                 this.initializeToken(pwmSession, pwmApplication, forgottenPasswordBean.getUserIdentity());
-                this.forwardToEnterCodeJSP(req, resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_CODE);
                 return;
             }
         }
@@ -577,7 +579,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {
                     if (theUser.isLocked()) {
-                        this.forwardToChoiceJSP(req, resp);
+                        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_CHOICE);
                         return;
                     }
                 } catch (ChaiOperationException e) {
@@ -613,7 +615,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
         }
 
-        this.forwardToChoiceJSP(req, resp);
+        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
 
@@ -653,7 +655,8 @@ public class ForgottenPasswordServlet extends TopServlet {
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
             // mark the event log
-            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
+            pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(),
+                    pwmSession);
 
             // add the post-forgotten password actions
             addPostChangeAction(pwmApplication, pwmSession, userIdentity);
@@ -749,38 +752,6 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         return responses;
-    }
-
-    private void forwardToSearchJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_RECOVER_PASSWORD_SEARCH).forward(req, resp);
-    }
-
-    private void forwardToChoiceJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_RECOVER_PASSWORD_CHOICE).forward(req, resp);
-    }
-
-    private void forwardToEnterCodeJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_RECOVER_PASSWORD_ENTER_CODE).forward(req, resp);
-    }
-
-    private void forwardToEnterOtpTokenJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_RECOVER_PASSWORD_ENTER_OTP).forward(req, resp);
     }
 
     private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)

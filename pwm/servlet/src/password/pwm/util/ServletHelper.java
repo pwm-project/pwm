@@ -97,14 +97,7 @@ public class ServletHelper {
     )
             throws IOException, ServletException {
         try {
-            String errorPageURL = '/' + PwmConstants.URL_JSP_ERROR;
-            try {
-                errorPageURL = SessionFilter.rewriteURL(errorPageURL, req, resp);
-            } catch (PwmUnrecoverableException e) {
-                /* system must not be up enough to handle the rewrite */
-            }
-
-            req.getSession().getServletContext().getRequestDispatcher(errorPageURL).forward(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ERROR);
             if (forceLogout) {
                 PwmSession.getPwmSession(req).unauthenticateUser();
             }
@@ -124,18 +117,6 @@ public class ServletHelper {
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to error page: " + e.toString());
         }
-    }
-
-    public static void forwardToRedirectPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final String redirectURL
-    )
-            throws IOException, ServletException
-    {
-        req.setAttribute("nextURL",redirectURL);
-        final String redirectPageJsp = '/' + PwmConstants.URL_JSP_INIT;
-        req.getSession().getServletContext().getRequestDispatcher(redirectPageJsp).forward(req, resp);
     }
 
     public static void forwardToSuccessPage(
@@ -168,8 +149,7 @@ public class ServletHelper {
                 ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
             }
 
-            final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_SUCCESS, req, resp);
-            req.getSession().getServletContext().getRequestDispatcher(url).forward(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SUCCESS);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unexpected error sending user to success page: " + e.toString());
         }
@@ -178,7 +158,7 @@ public class ServletHelper {
     public static String debugHttpHeaders(final HttpServletRequest req) {
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("http" + (req.isSecure() ? "s " : " non-") + "secure request headers: ");
+        sb.append("http").append(req.isSecure() ? "s " : " non-").append("secure request headers: ");
         sb.append("\n");
 
         for (Enumeration enumeration = req.getHeaderNames(); enumeration.hasMoreElements();) {
@@ -762,5 +742,18 @@ public class ServletHelper {
         }
 
         return output.toString();
+    }
+
+    public static void forwardToJsp(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final PwmConstants.JSP_URL jspURL
+    )
+            throws ServletException, IOException, PwmUnrecoverableException
+    {
+        final ServletContext servletContext = request.getSession().getServletContext();
+        final String url = jspURL.getPath();
+        LOGGER.trace(PwmSession.getPwmSession(request),"forwarding to " + url);
+        servletContext.getRequestDispatcher(url).forward(request, response);
     }
 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import password.pwm.*;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -91,17 +92,7 @@ public class LogoutServlet extends TopServlet {
         }
 
         // if we didn't go anywhere yet, then show the pwm logout jsp
-        forwardToJSP(req,resp);
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.LOGOUT);
         pwmSession.invalidate();
     }
-
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        final String url = SessionFilter.rewriteURL('/' + PwmConstants.URL_JSP_LOGOUT, req, resp);
-        this.getServletContext().getRequestDispatcher(url).forward(req, resp);
-    }
-
 }

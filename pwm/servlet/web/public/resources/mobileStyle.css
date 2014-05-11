@@ -44,14 +44,12 @@ html, body {
 
 #header-page {
     width: auto;
-    padding-left: 3px;
-    text-align: center;
+    padding-left: 10px;
 }
 
 #header-title {
     width: auto;
-    padding-left: 3px;
-    text-align: center;
+    padding-left: 10px;
 }
 
 .inputfield {

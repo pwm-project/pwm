@@ -45,7 +45,6 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
-import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserAuthenticator;
@@ -78,8 +77,6 @@ public class NewUserServlet extends TopServlet {
 
     private static final String FIELD_PASSWORD = "password1";
 
-    private static final String TOKEN_NAME = NewUserServlet.class.getName();
-
     protected void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -101,12 +98,6 @@ public class NewUserServlet extends TopServlet {
 
         // try to read the new user policy to make sure it's readable, that way an exception is thrown here instead of by the jsp
         pwmApplication.getConfig().getNewUserPasswordPolicy(pwmApplication, pwmSession.getSessionStateBean().getLocale());
-
-        final List<HealthRecord> healthIssues = checkConfiguration(config,ssBean.getLocale());
-        if (healthIssues != null && !healthIssues.isEmpty()) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,healthIssues.get(0).getDetail(pwmSession.getSessionStateBean().getLocale(),pwmApplication.getConfig()));
-            throw new PwmUnrecoverableException(errorInformation);
-        }
 
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
         if (processAction == null || processAction.length() < 1) {
@@ -170,7 +161,7 @@ public class NewUserServlet extends TopServlet {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
 
         if (newUserBean.getFormData() == null) {
-            this.forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER);
             return;
         }
 
@@ -179,7 +170,7 @@ public class NewUserServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-            this.forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER);
             return;
         }
 
@@ -189,7 +180,7 @@ public class NewUserServlet extends TopServlet {
             }
 
             if (!newUserBean.isEmailTokenPassed()) {
-                this.forwardToEnterCodeJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
                 return;
             }
         }
@@ -200,7 +191,7 @@ public class NewUserServlet extends TopServlet {
             }
 
             if (!newUserBean.isSmsTokenPassed()) {
-                this.forwardToEnterCodeJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER_ENTER_CODE);
                 return;
             }
         }
@@ -208,13 +199,13 @@ public class NewUserServlet extends TopServlet {
         final String newUserAgreementText = config.readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
         if (newUserAgreementText != null && newUserAgreementText.length() > 0) {
             if (!newUserBean.isAgreementPassed()) {
-                this.forwardToAgreementJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER_AGREEMENT);
                 return;
             }
         }
 
         if (!newUserBean.isFormPassed()) {
-            this.forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER);
         }
 
         // success so create the new user.
@@ -224,14 +215,14 @@ public class NewUserServlet extends TopServlet {
         try {
             createUser(formValues, pwmApplication, newUserDN, pwmSession);
             newUserBean.setCreateStartTime(new Date());
-            this.forwardToWaitJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER_WAIT);
         } catch (PwmOperationalException e) {
             if (config.readSettingAsBoolean(PwmSetting.NEWUSER_DELETE_ON_FAIL)) {
                 deleteUserAccount(newUserDN, pwmSession, pwmApplication);
             }
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER);
         }
     }
 
@@ -314,11 +305,13 @@ public class NewUserServlet extends TopServlet {
         final NewUserBean newUserBean = pwmSession.getNewUserBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
+        boolean tokenPassed = false;
+        ErrorInformation errorInformation = null;
         try {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
                     pwmSession,
                     null,
-                    TOKEN_NAME,
+                    newUserBean.getVerificationPhase().getTokenName(),
                     userEnteredCode
             );
             if (tokenPayload != null) {
@@ -326,19 +319,30 @@ public class NewUserServlet extends TopServlet {
                     LOGGER.debug("Email token passed");
                     newUserBean.setEmailTokenPassed(true);
                     newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                    tokenPassed = true;
                 } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) {
                     LOGGER.debug("SMS token passed");
                     newUserBean.setSmsTokenPassed(true);
                     newUserBean.setVerificationPhase(NewUserBean.NewUserVerificationPhase.NONE);
+                    tokenPassed = true;
                 }
                 final Map<String,String> formData = tokenPayload.getData();
                 newUserBean.setFormData(formData);
             }
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToEnterCodeJSP(req, resp);
-            return;
+            final String errorMsg = "token incorrect: " + e.getMessage();
+            errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
         }
+
+
+        if (!tokenPassed) {
+            if (errorInformation == null) {
+                errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
+            }
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+        }
+
         this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
@@ -360,7 +364,7 @@ public class NewUserServlet extends TopServlet {
             this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToFormJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER);
         }
     }
 
@@ -392,7 +396,7 @@ public class NewUserServlet extends TopServlet {
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
 
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE);
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID);
         try { // create the ldap entry
             chaiProvider.createEntry(newUserDN, createObjectClasses, createAttributes);
 
@@ -492,7 +496,7 @@ public class NewUserServlet extends TopServlet {
     {
         try {
             LOGGER.warn(pwmSession, "deleting ldap user account " + userDN);
-            pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_LDAP_PROFILE).deleteEntry(userDN);
+            pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID).deleteEntry(userDN);
             LOGGER.warn(pwmSession, "ldap user account " + userDN + " has been deleted");
         } catch (ChaiUnavailableException e) {
             LOGGER.error(pwmSession, "error deleting ldap user account " + userDN + ", " + e.getMessage());
@@ -520,9 +524,7 @@ public class NewUserServlet extends TopServlet {
             final String expandedName;
             final String expandedContext;
             {
-                final UserInfoBean stubBean = new UserInfoBean();
-                final UserDataReader stubReader = new NewUSerUserDataReader(formValues);
-                final MacroMachine macroMachine = new MacroMachine(pwmApplication, stubBean, stubReader);
+                final MacroMachine macroMachine = createMacroMachineForNewUser(pwmApplication, formValues);
 
                 {
                     final String configuredName = configuredNames.get(attemptCount);
@@ -545,7 +547,7 @@ public class NewUserServlet extends TopServlet {
             LOGGER.debug(pwmSession, "generated entry name for new user is not unique, will try again");
             attemptCount++;
         }
-        LOGGER.error(pwmSession, "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + Helper.getGson().toJson(failedValues));;
+        LOGGER.error(pwmSession, "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + Helper.getGson().toJson(failedValues));
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
                 "unable to generate a unique DN value"));
     }
@@ -589,53 +591,9 @@ public class NewUserServlet extends TopServlet {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, pwmSession.getUserInfoBean(), userDataReader);
     }
 
-    private void forwardToFormJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER).forward(req, resp);
-    }
-
-    private void forwardToAgreementJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_AGREEMENT).forward(req, resp);
-    }
-
-    private void forwardToEnterCodeJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_ENTER_CODE).forward(req, resp);
-    }
-
-    private void forwardToWaitJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException {
-
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_NEW_USER_WAIT).forward(req, resp);
-    }
-
-
-    public static List<HealthRecord> checkConfiguration(
-            final Configuration configuration,
-            final Locale locale)
-    {
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
-
-        final String ldapNamingattribute = configuration.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.NEWUSER_FORM);
-        return returnRecords;
-    }
 
     private static Map<String, String> readResponsesFromJsonRequest(
             final HttpServletRequest req
@@ -690,7 +648,12 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(outputDestTokenData.getSms()));
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
+                            NewUserBean.NewUserVerificationPhase.SMS.getTokenName(),
+                            formData,
+                            null,
+                            Collections.singleton(outputDestTokenData.getSms())
+                    );
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload,pwmSession);
                     LOGGER.trace(pwmSession, "generated new user sms token key code");
                 } catch (PwmOperationalException e) {
@@ -724,7 +687,12 @@ public class NewUserServlet extends TopServlet {
 
                 final String tokenKey;
                 try {
-                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, formData, null, Collections.singleton(outputDestTokenData.getEmail()));
+                    final TokenPayload tokenPayload = pwmApplication.getTokenService().createTokenPayload(
+                            NewUserBean.NewUserVerificationPhase.EMAIL.getTokenName(),
+                            formData,
+                            null,
+                            Collections.singleton(outputDestTokenData.getEmail())
+                    );
                     tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
                     LOGGER.trace(pwmSession, "generated new user email token key code");
                 } catch (PwmOperationalException e) {
@@ -821,7 +789,7 @@ public class NewUserServlet extends TopServlet {
 
         // be sure minimum wait time has passed
         if (new Date().before(completeTime)) {
-            this.forwardToWaitJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.NEW_USER_WAIT);
             return;
         }
 
@@ -830,10 +798,31 @@ public class NewUserServlet extends TopServlet {
         ServletHelper.forwardToSuccessPage(req, resp);
     }
 
-    private static class NewUSerUserDataReader implements UserDataReader {
+    private static MacroMachine createMacroMachineForNewUser(
+            final PwmApplication pwmApplication,
+            final Map<String,String> formValues
+    ) {
+
+        final UserInfoBean stubBean = new UserInfoBean();
+
+
+        final String emailAddressAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
+        stubBean.setUserEmailAddress(formValues.get(emailAddressAttribute));
+
+        final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        stubBean.setUsername(formValues.get(usernameAttribute));
+
+        stubBean.setUserCurrentPassword(formValues.get(NewUserServlet.FIELD_PASSWORD));
+
+        final UserDataReader stubReader = new NewUserUserDataReader(formValues);
+        return new MacroMachine(pwmApplication, stubBean, stubReader);
+
+    }
+
+    private static class NewUserUserDataReader implements UserDataReader {
         private final Map<String,String> attributeData;
 
-        private NewUSerUserDataReader(final Map<String, String> attributeData)
+        private NewUserUserDataReader(final Map<String, String> attributeData)
         {
             this.attributeData = attributeData;
         }

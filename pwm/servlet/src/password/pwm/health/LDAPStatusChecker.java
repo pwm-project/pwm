@@ -312,7 +312,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 final ChaiError chaiError = ChaiErrors.getErrorForMessage(e.getMessage());
                 final PwmError pwmError = PwmError.forChaiError(chaiError);
                 final StringBuilder errorString = new StringBuilder();
-                final String profileName = PwmConstants.DEFAULT_LDAP_PROFILE.equals(ldapProfile.getIdentifier()) ? "Default" : ldapProfile.getIdentifier();
+                final String profileName = PwmConstants.DEFAULT_PROFILE_ID.equals(ldapProfile.getIdentifier()) ? "Default" : ldapProfile.getIdentifier();
                 errorString.append("error connecting to ldap directory (").append(profileName).append("), error: ").append(e.getMessage());
                 if (chaiError != null && chaiError != ChaiError.UNKNOWN) {
                     errorString.append(" (");
@@ -437,7 +437,7 @@ public class LDAPStatusChecker implements HealthChecker {
         if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 2) {
             return TOPIC;
         }
-        return TOPIC + "-" + (PwmConstants.DEFAULT_LDAP_PROFILE.equals(profileID) ? "Default" : profileID);
+        return TOPIC + "-" + (PwmConstants.DEFAULT_PROFILE_ID.equals(profileID) ? "Default" : profileID);
     }
 
     private List<HealthRecord> checkVendorSameness(final PwmApplication pwmApplication) {

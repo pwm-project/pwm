@@ -173,7 +173,7 @@ public class PasswordUtility {
             return new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
         }
 
-        pwmApplication.getEmailQueue().submit(new EmailItemBean(
+        pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
                 configuredEmailSetting.getTo(),
                 configuredEmailSetting.getFrom(),
                 configuredEmailSetting.getSubject(),
@@ -878,7 +878,7 @@ public class PasswordUtility {
             return;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, userInfoBean, null);
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, null);
     }
 
     public static Date determinePwdLastModified(

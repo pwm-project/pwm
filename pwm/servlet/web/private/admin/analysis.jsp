@@ -71,11 +71,10 @@
                             </button>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
-                                    require(["dijit","dijit/Tooltip"],function(dijit,Tooltip){
-                                        new Tooltip({
-                                            connectId: ['Button_DownloadReportRecords'],
-                                            label: '<div style="max-width:350px"><pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/></div>'
-                                        });
+                                    PWM_MAIN.showTooltip({
+                                        id: 'Button_DownloadReportRecords',
+                                        text: '<pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
+                                        width: 350
                                     });
                                 });
                             </script>

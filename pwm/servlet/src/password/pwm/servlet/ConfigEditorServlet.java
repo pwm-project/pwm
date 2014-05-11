@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
 import password.pwm.bean.ConfigEditorCookie;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.ConfigManagerBean;
 import password.pwm.config.*;
 import password.pwm.config.value.ValueFactory;
@@ -40,7 +41,6 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -109,7 +109,7 @@ public class ConfigEditorServlet extends TopServlet {
             this.restWriteSetting(pwmSession, configManagerBean, req, resp);
             return;
         } else if ("resetSetting".equalsIgnoreCase(processActionParam)) {
-            this.restResetSetting(configManagerBean, req, resp);
+            this.restResetSetting(pwmSession, configManagerBean, req, resp);
             return;
         } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
             restFinishEditing(req, resp);
@@ -134,7 +134,7 @@ public class ConfigEditorServlet extends TopServlet {
         }
 
         if (!resp.isCommitted()) {
-            forwardToJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR);
         }
     }
 
@@ -264,6 +264,7 @@ public class ConfigEditorServlet extends TopServlet {
         final String bodyString = ServletHelper.readRequestBody(req);
         final PwmSetting setting = PwmSetting.forKey(key);
         final Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
+        final UserIdentity loggedInUser = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
 
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key,"-");
@@ -286,9 +287,9 @@ public class ConfigEditorServlet extends TopServlet {
                     returnMap.put("errorMessage",setting.getLabel(pwmSession.getSessionStateBean().getLocale()) + ": " + errorMsgs.get(0));
                 }
                 if (setting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
-                    storedConfig.writeSetting(setting, cookie.getProfile(), storedValue);
+                    storedConfig.writeSetting(setting, cookie.getProfile(), storedValue, loggedInUser);
                 } else {
-                    storedConfig.writeSetting(setting,storedValue);
+                    storedConfig.writeSetting(setting,storedValue, loggedInUser);
                 }
             } catch (Exception e) {
                 final String errorMsg = "error writing default value for setting " + setting.toString() + ", error: " + e.getMessage();
@@ -306,6 +307,7 @@ public class ConfigEditorServlet extends TopServlet {
     }
 
     private void restResetSetting(
+            final PwmSession pwmSession,
             final ConfigManagerBean configManagerBean,
             final HttpServletRequest req,
             final HttpServletResponse resp
@@ -313,6 +315,7 @@ public class ConfigEditorServlet extends TopServlet {
             throws IOException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
+        final UserIdentity loggedInUser = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
 
         final String bodyString = ServletHelper.readRequestBody(req);
 
@@ -333,9 +336,9 @@ public class ConfigEditorServlet extends TopServlet {
             } else {
                 if (setting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
                     final String profile = readConfigEditorCookie(req, resp).getProfile();
-                    storedConfig.resetSetting(setting, profile);
+                    storedConfig.resetSetting(setting, profile, loggedInUser);
                 } else {
-                    storedConfig.resetSetting(setting);
+                    storedConfig.resetSetting(setting, loggedInUser);
                 }
             }
         }
@@ -438,16 +441,6 @@ public class ConfigEditorServlet extends TopServlet {
                 }
             }
         }
-    }
-
-    static void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        final ServletContext servletContext = req.getSession().getServletContext();
-        servletContext.getRequestDispatcher('/' + PwmConstants.URL_JSP_CONFIG_MANAGER_EDITOR).forward(req, resp);
     }
 
     static void forwardToManager(

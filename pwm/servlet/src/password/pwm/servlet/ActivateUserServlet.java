@@ -124,7 +124,7 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         if (!resp.isCommitted()) {
-            forwardToJSP(req, resp);
+            this.advanceToNextStage(req, resp);
         }
     }
 
@@ -205,7 +205,7 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
         if (!activateUserBean.isFormValidated() || activateUserBean.getUserIdentity() == null) {
-            forwardToJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER);
             return;
         }
 
@@ -217,20 +217,21 @@ public class ActivateUserServlet extends TopServlet {
                     initializeToken(pwmSession, pwmApplication, locale, activateUserBean.getUserIdentity());
                 } catch (PwmOperationalException e) {
                     pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                    forwardToJSP(req, resp);
+                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER);
                     return;
                 }
             }
 
             if (!activateUserBean.isTokenPassed()) {
-                forwardToEnterCodeJSP(req,resp);
+                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER_ENTER_CODE);
                 return;
             }
         }
 
-        final String agreementMessage = config.readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,pwmSession.getSessionStateBean().getLocale());
+        final String agreementMessage = config.readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
+                pwmSession.getSessionStateBean().getLocale());
         if (agreementMessage != null && agreementMessage.length() > 0 && !activateUserBean.isAgreementPassed()) {
-            forwardToAgreementJSP(req,resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER_AGREEMENT);
             return;
         }
 
@@ -374,30 +375,6 @@ public class ActivateUserServlet extends TopServlet {
         }
     }
 
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER).forward(req, resp);
-    }
-
-    private void forwardToEnterCodeJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER_ENTER_CODE).forward(req, resp);
-    }
-
-    private void forwardToAgreementJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_ACTIVATE_USER_AGREEMENT).forward(req, resp);
-    }
-
     private void sendPostActivationNotice(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication
@@ -454,7 +431,8 @@ public class ActivateUserServlet extends TopServlet {
             return false;
         }
 
-        pwmApplication.getEmailQueue().submit(configuredEmailSetting, pwmSession.getUserInfoBean(), pwmSession.getSessionManager().getUserDataReader(pwmApplication));
+        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, pwmSession.getUserInfoBean(),
+                pwmSession.getSessionManager().getUserDataReader(pwmApplication));
         return true;
     }
 
@@ -557,7 +535,7 @@ public class ActivateUserServlet extends TopServlet {
         }
 
         final String tokenKey;
-        TokenPayload tokenPayload = null;
+        final TokenPayload tokenPayload;
         try {
             tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
             tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
@@ -582,6 +560,7 @@ public class ActivateUserServlet extends TopServlet {
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
 
+        ErrorInformation errorInformation = null;
         try {
             final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
                     pwmSession,
@@ -595,10 +574,18 @@ public class ActivateUserServlet extends TopServlet {
                 activateUserBean.setFormValidated(true);
             }
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            this.forwardToEnterCodeJSP(req, resp);
-            return;
+            final String errorMsg = "token incorrect: " + e.getMessage();
+            errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
         }
+
+        if (!activateUserBean.isTokenPassed()) {
+            if (errorInformation == null) {
+                errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
+            }
+            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
+            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+        }
+
         this.advanceToNextStage(req, resp);
     }
 

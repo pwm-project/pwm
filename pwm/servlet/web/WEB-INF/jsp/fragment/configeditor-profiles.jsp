@@ -109,6 +109,7 @@
     <% if (!"true".equalsIgnoreCase(loopSetting.getOptions().get("HideForDefaultProfile")) || !"".equals(cookie.getProfile())) { %>
     <% request.setAttribute("setting",loopSetting); %>
     <% request.setAttribute("showDescription",cookie.isShowDesc()); %>
+    <% request.setAttribute("profileID",cookie.getProfile()); %>
     <jsp:include page="configeditor-setting.jsp"/>
     <% } %>
     <% } %>

@@ -28,7 +28,6 @@ import password.pwm.PwmConstants;
 import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.servlet.NewUserServlet;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.net.URI;
@@ -177,14 +176,6 @@ public class ConfigurationChecker implements HealthChecker {
                             settingToOutputText(PwmSetting.CHALLENGE_USER_ATTRIBUTE)
                             ));
                 }
-            }
-        }
-
-        {
-            final List<HealthRecord> healthRecords = NewUserServlet.checkConfiguration(config,
-                    PwmConstants.DEFAULT_LOCALE);
-            if (healthRecords != null && !healthRecords.isEmpty()) {
-                records.addAll(healthRecords);
             }
         }
 

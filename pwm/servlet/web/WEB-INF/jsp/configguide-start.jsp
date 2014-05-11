@@ -73,9 +73,9 @@
 </div>
 <script type="text/javascript">
     function skipWizard() {
-        PWM_MAIN.showConfirmDialog(null,'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',function(){
+        PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okFunction:function() {
             gotoStep('FINISH');
-        });
+        }});
     }
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.preloadResources();

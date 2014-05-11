@@ -41,6 +41,8 @@ public class PasswordValue extends StringValue {
     PasswordValue() {
     }
 
+    boolean requiresStoredUpdate;
+
     public PasswordValue(String value) {
         super(value);
     }
@@ -57,6 +59,7 @@ public class PasswordValue extends StringValue {
         final PasswordValue passwordValue = new PasswordValue();
         if (plainText) {
             passwordValue.value = encodedValue;
+            passwordValue.requiresStoredUpdate = true;
         } else {
             try {
                 final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
@@ -105,5 +108,11 @@ public class PasswordValue extends StringValue {
     {
         final SecretKey secretKey = Helper.SimpleTextCrypto.makeKey(key);
         return Helper.SimpleTextCrypto.encryptValue(value, secretKey);
+    }
+
+    @Override
+    public boolean requiresStoredUpdate()
+    {
+        return requiresStoredUpdate;
     }
 }

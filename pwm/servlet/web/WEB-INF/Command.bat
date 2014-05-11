@@ -11,7 +11,7 @@ for /R ./lib %%a in (*.jar) do (
 )
 set CLASSPATH=!CLASSPATH!"
 
-%JAVA_HOME%\bin\java %JAVA_OPTS% -classpath !CLASSPATH! password.pwm.util.MainClass %1 %2 %3 %4 %5 %6 %7 %8 %9
+%JAVA_HOME%\bin\java %JAVA_OPTS% -classpath !CLASSPATH! password.pwm.util.cli.MainClass %1 %2 %3 %4 %5 %6 %7 %8 %9
 goto finally
 
 :err

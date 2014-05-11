@@ -31,7 +31,7 @@
 <% final SelectableContextMode selectableContextMode = selectorConfig.readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class); %>
 <% final Map<String,LdapProfile> ldapProfiles = selectorConfig.getLdapProfiles(); %>
 <% final String selectedProfileParam = Validator.readStringFromRequest(request,PwmConstants.PARAM_LDAP_PROFILE);%>
-<% final LdapProfile selectedProfile = selectorConfig.getLdapProfiles().containsKey(selectedProfileParam) ? selectorConfig.getLdapProfiles().get(selectedProfileParam) : selectorConfig.getLdapProfiles().get(PwmConstants.DEFAULT_LDAP_PROFILE); %>
+<% final LdapProfile selectedProfile = selectorConfig.getLdapProfiles().containsKey(selectedProfileParam) ? selectorConfig.getLdapProfiles().get(selectedProfileParam) : selectorConfig.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID); %>
 <% final boolean showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0; %>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
 <h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:Display key="Field_LdapProfile"/></label></h2>

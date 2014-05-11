@@ -37,7 +37,7 @@ import password.pwm.util.PwmLogger;
 import java.io.Serializable;
 import java.util.*;
 
-public class ChallengeProfile implements Profile, Serializable {
+public class ChallengeProfile extends AbstractProfile implements Profile, Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ChallengeProfile.class);
 
     private final String profileID;

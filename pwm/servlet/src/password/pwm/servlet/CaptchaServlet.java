@@ -81,7 +81,7 @@ public class CaptchaServlet extends TopServlet {
         }
 
         if (!resp.isCommitted()) {
-            this.forwardToJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CAPTCHA);
         }
     }
 
@@ -119,7 +119,7 @@ public class CaptchaServlet extends TopServlet {
 
             LOGGER.debug(pwmSession, "incorrect captcha passcode");
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            forwardToJSP(req, resp);
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CAPTCHA);
         }
     }
 
@@ -188,20 +188,9 @@ public class CaptchaServlet extends TopServlet {
     }
 
     private static String httpRequestToDebugString(final HttpRequest httpRequest) {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append(httpRequest.getRequestLine());
-
-        return sb.toString();
+        return httpRequest.getRequestLine().toString();
     }
 
-    private void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException {
-        this.getServletContext().getRequestDispatcher('/' + PwmConstants.URL_JSP_CAPTCHA).forward(req, resp);
-    }
 
     private void forwardToOriginalLocation(
             final HttpServletRequest req,
@@ -215,7 +204,7 @@ public class CaptchaServlet extends TopServlet {
             String destURL = ssBean.getPreCaptchaRequestURL();
             ssBean.setPreCaptchaRequestURL(null);
 
-            if (destURL == null || destURL.indexOf(PwmConstants.URL_SERVLET_LOGIN) != -1) { // fallback, shouldnt need to be used.
+            if (destURL == null || destURL.contains(PwmConstants.URL_SERVLET_LOGIN)) { // fallback, shouldnt need to be used.
                 destURL = req.getContextPath();
             }
 
