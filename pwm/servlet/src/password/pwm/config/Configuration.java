@@ -644,7 +644,7 @@ public class Configuration implements Serializable {
     public String getUsernameAttribute(final String profileID) {
         final LdapProfile ldapProfile = getLdapProfiles().get(profileID);
         final String configUsernameAttr = ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
-        final String ldapNamingAttribute = readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        final String ldapNamingAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
 

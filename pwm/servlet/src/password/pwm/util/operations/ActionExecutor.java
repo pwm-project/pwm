@@ -34,7 +34,9 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.ActionConfiguration;
 import password.pwm.error.ErrorInformation;
@@ -108,11 +110,15 @@ public class ActionExecutor {
                 settings.getChaiUser() :
                 pwmApplication.getProxiedChaiUser(settings.getUserInfoBean().getUserIdentity());
 
+        final UserDataReader userDataReader = new LdapUserDataReader(new UserIdentity(theUser.getEntryDN(),
+                PwmConstants.DEFAULT_PROFILE_ID),theUser);
+
         Helper.writeMapToLdap(
                 pwmApplication,
                 theUser,
                 attributeMap,
                 settings.getUserInfoBean(),
+                userDataReader,
                 settings.isExpandPwmMacros()
         );
     }

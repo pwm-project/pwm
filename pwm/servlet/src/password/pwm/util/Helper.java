@@ -48,6 +48,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.LocaleHelper;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.macro.MacroMachine;
@@ -310,7 +311,7 @@ public class
             final PwmSession pwmSession,
             final ChaiUser theUser,
             final Map<FormConfiguration,String> formValues,
-            final boolean expandPwmMacros
+            final boolean expandMacros
     )
             throws ChaiUnavailableException, PwmOperationalException
     {
@@ -321,8 +322,8 @@ public class
                 tempMap.put(formItem.getName(),formValues.get(formItem));
             }
         }
-
-        writeMapToLdap(pwmApplication, theUser, tempMap, pwmSession.getUserInfoBean(), expandPwmMacros);
+        final UserDataReader userDataReader = new LdapUserDataReader(pwmSession.getUserInfoBean().getUserIdentity(), theUser);
+        writeMapToLdap(pwmApplication, theUser, tempMap, pwmSession.getUserInfoBean(), userDataReader, expandMacros);
     }
 
     /**
@@ -341,7 +342,8 @@ public class
             final ChaiUser theUser,
             final Map<String,String> valueMap,
             final UserInfoBean userInfoBean,
-            final boolean expandPwmMacros
+            final UserDataReader userDataReader,
+            final boolean expandMacros
     )
             throws PwmOperationalException, ChaiUnavailableException
     {
@@ -358,8 +360,8 @@ public class
 
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
-            if (expandPwmMacros) {
-                final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, null);
+            if (expandMacros) {
+                final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, userDataReader);
                 attrValue = macroMachine.expandMacros(attrValue);
             }
             if (!attrValue.equals(currentValues.get(attrName))) {

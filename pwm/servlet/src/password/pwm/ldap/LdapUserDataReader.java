@@ -47,7 +47,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
     private final ChaiUser user;
     private final UserIdentity userIdentity;
 
-    LdapUserDataReader(
+    public LdapUserDataReader(
             UserIdentity userIdentity,
             ChaiUser user
     ) {

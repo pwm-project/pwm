@@ -531,11 +531,11 @@ public class NewUserServlet extends TopServlet {
                     expandedName = macroMachine.expandMacros(configuredName);
                 }
 
-                if (!testIfDNExists(pwmApplication, pwmSession, expandedName)) {
+                if (!testIfEntryNameExists(pwmApplication, pwmSession, expandedName)) {
                     LOGGER.trace(pwmSession, "generated entry name for new user is unique: " + expandedName);
                     final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
                     expandedContext = macroMachine.expandMacros(configuredContext);
-                    final String namingAttribute = config.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+                    final String namingAttribute = config.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
                     generatedDN = namingAttribute + "=" + expandedName + "," + expandedContext;
                     LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
                     return generatedDN;
@@ -552,18 +552,16 @@ public class NewUserServlet extends TopServlet {
                 "unable to generate a unique DN value"));
     }
 
-    private static boolean testIfDNExists(
+    private static boolean testIfEntryNameExists(
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final String rdnValue
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final String namingAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-        final String searchFilter = "(" + namingAttribute + "=" + rdnValue + ")";
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setFilter(searchFilter);
+        searchConfiguration.setUsername(rdnValue);
         try {
             Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
             return results != null && !results.isEmpty();
@@ -809,7 +807,7 @@ public class NewUserServlet extends TopServlet {
         final String emailAddressAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
         stubBean.setUserEmailAddress(formValues.get(emailAddressAttribute));
 
-        final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        final String usernameAttribute = pwmApplication.getConfig().getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
         stubBean.setUsername(formValues.get(usernameAttribute));
 
         stubBean.setUserCurrentPassword(formValues.get(NewUserServlet.FIELD_PASSWORD));

@@ -518,12 +518,20 @@ public class UserSearchEngine {
         }
 
         //if supplied user name starts with username attr assume its the full dn and skip the search
-        final String usernameAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        if (input.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
-            LOGGER.trace("username '" + input + "' appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
-            return true;
-        } else {
-            LOGGER.trace("username '" + input + "' does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
+        final Set<String> namingAttributes = new HashSet<String>();
+        for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
+            namingAttributes.add(ldapProfile.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
+        }
+
+        for (final String usernameAttribute : namingAttributes) {
+            if (input.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
+                LOGGER.trace(
+                        "username '" + input + "' appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
+                return true;
+            } else {
+                LOGGER.trace(
+                        "username '" + input + "' does not appear to be a DN (does not start with configured ldap naming attribute '" + usernameAttribute + "')");
+            }
         }
 
         return false;

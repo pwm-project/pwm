@@ -178,14 +178,14 @@ public enum PwmSetting {
             "ldap.profile.displayName", PwmSettingSyntax.LOCALIZED_STRING, Category.LDAP_PROFILE),
     LDAP_PROFILE_ENABLED(
             "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, Category.LDAP_PROFILE),
+    LDAP_NAMING_ATTRIBUTE(
+            "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
 
 
 
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, Category.GENERAL),
-    LDAP_NAMING_ATTRIBUTE(
-            "ldap.namingAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, Category.LDAP_GLOBAL),
     LDAP_IDLE_TIMEOUT(
