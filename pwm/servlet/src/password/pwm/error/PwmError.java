@@ -78,7 +78,7 @@ public enum PwmError {
     PASSWORD_NEW_PASSWORD_REQUIRED("Password_NewPasswordRequired", 4039, false, ChaiError.NEW_PASSWORD_REQUIRED),
     PASSWORD_EXPIRED("Password_Expired", 4040, false, ChaiError.PASSWORD_EXPIRED),
     PASSWORD_CUSTOM_ERROR("Password_CustomError", 4041, false),
-    PASSWORD_NOT_ENOUGH_GROUPS("Password_NotEnoughGroups", 4042, false, null),
+    PASSWORD_NOT_ENOUGH_GROUPS("Password_NotEnoughGroups", 4042, false, (ChaiError[]) null),
 
     ERROR_WRONGPASSWORD("Error_WrongPassword", 5001, false, ChaiError.FAILED_AUTHENTICATION),
     ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002, false),
