@@ -198,9 +198,10 @@ public class MainClass {
                     final List<String> argList = new LinkedList<String>(Arrays.asList(args));
                     argList.remove(0);
 
-                    CliEnvironment cliEnvironment = null;
+                    CliEnvironment cliEnvironment;
                     try {
                         cliEnvironment = createEnv(command.getCliParameters(), argList);
+                        command.execute(commandStr, cliEnvironment);
                     } catch (CliException e) {
                         System.out.println(e.getMessage());
                         System.exit(-1);
