@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,11 +34,11 @@ import java.util.Map;
 public class LocalDBCompressor implements LocalDB {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBCompressor.class);
 
-    private static final String COMPRESS_PREFIX = "c!";
+    static final String COMPRESS_PREFIX = "c!";
 
-    private final LocalDB innerLocalDB;
-    private final int minCompressLength;
-    private final boolean enableCompression;
+    final LocalDB innerLocalDB;
+    final int minCompressLength;
+    final boolean enableCompression;
 
     public LocalDBCompressor(
             final LocalDB innerLocalDB,

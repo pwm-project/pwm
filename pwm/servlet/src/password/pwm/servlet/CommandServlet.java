@@ -36,6 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -273,7 +274,10 @@ public class CommandServlet extends TopServlet {
             final Map<FormConfiguration,String> formValues = new HashMap<FormConfiguration, String>();
             for (final FormConfiguration formItem : updateFormFields) {
                 try {
-                    formValues.put(formItem, pwmSession.getSessionManager().getUserDataReader(pwmApplication).readStringAttribute(formItem.getName()));
+                    final SessionManager sessionManager = pwmSession.getSessionManager();
+                    final UserDataReader userDataReader = sessionManager.getUserDataReader(pwmApplication);
+                    final String ldapValue = userDataReader.readStringAttribute(formItem.getName());
+                    formValues.put(formItem, ldapValue);
                 } catch (ChaiOperationException e) {
                     LOGGER.error(pwmSession,"error reading attribute while executing checkProfile, attribute=" + formItem.getName() + ", error: " + e.getMessage());
                 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,22 @@
 package password.pwm.tests;
 
 import junit.framework.TestCase;
+import password.pwm.util.Helper;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBStoredQueue;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class LocalDBStoredQueueTest extends TestCase {
 
     private static final int SIZE = 5;
 
     private LocalDBStoredQueue storedQueue;
-    private LocalDB pwmDB;
+    private LocalDB localDB;
 
     @Override
     protected void setUp() throws Exception {
@@ -42,8 +46,8 @@ public class LocalDBStoredQueueTest extends TestCase {
         super.setUp();    //To change body of overridden methods use File | Settings | File Templates.
         TestHelper.setupLogging();
         final File fileLocation = new File(TestHelper.getParameter("pwmDBlocation"));
-        pwmDB = LocalDBFactory.getInstance(fileLocation, false, null, null);
-        storedQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmDB, LocalDB.DB.TEMP);
+        localDB = LocalDBFactory.getInstance(fileLocation, false, null, null);
+        storedQueue = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, LocalDB.DB.TEMP, true);
     }
 
     private void populatedQueue(final int n, final LocalDBStoredQueue storedQueue) {
@@ -62,13 +66,78 @@ public class LocalDBStoredQueueTest extends TestCase {
     public void testEmpty() {
         storedQueue.clear();
         assertTrue(storedQueue.isEmpty());
+    }
 
+    public void testRemove() {
+        storedQueue.clear();
         storedQueue.add("value1");
-        assertFalse(storedQueue.isEmpty());
         storedQueue.add("value2");
+        assertEquals(2, storedQueue.size());
         storedQueue.remove();
+        assertEquals(1, storedQueue.size());
         storedQueue.remove();
         assertTrue(storedQueue.isEmpty());
+        assertEquals(0, storedQueue.size());
+
+        try {
+            storedQueue.remove();
+            assertTrue(false);
+        } catch (NoSuchElementException e) {
+            assertTrue(true);
+        } catch (Exception e) {
+            assertTrue(false);
+        }
+
+        assertTrue(storedQueue.isEmpty());
+        assertEquals(0, storedQueue.size());
+    }
+
+    public void testDequeue() {
+        storedQueue.clear();
+        assertEquals(0,storedQueue.size());
+        storedQueue.addLast("value3");
+        assertEquals(1,storedQueue.size());
+        storedQueue.addLast("value4");
+        assertEquals(2,storedQueue.size());
+        storedQueue.addFirst("value2");
+        assertEquals(3,storedQueue.size());
+        storedQueue.addFirst("value1");
+        assertEquals(4,storedQueue.size());
+        storedQueue.addFirst("value0");
+        assertEquals(5,storedQueue.size());
+
+        {
+            final Iterator<String> iter = storedQueue.iterator(); iter.hasNext();
+            assertEquals("value0",iter.next());
+            assertEquals("value1",iter.next());
+            assertEquals("value2",iter.next());
+            assertEquals("value3",iter.next());
+            assertEquals("value4",iter.next());
+        }
+
+        {
+            final Iterator<String> iter = storedQueue.descendingIterator(); iter.hasNext();
+            assertEquals("value4",iter.next());
+            assertEquals("value3",iter.next());
+            assertEquals("value2",iter.next());
+            assertEquals("value1",iter.next());
+            assertEquals("value0",iter.next());
+        }
+
+        assertEquals(5,storedQueue.size());
+        assertEquals("value0",storedQueue.removeFirst());
+        assertEquals(4,storedQueue.size());
+        assertEquals("value4",storedQueue.removeLast());
+        assertEquals(3,storedQueue.size());
+
+        assertEquals("value3",storedQueue.peekLast());
+        assertEquals("value1",storedQueue.peekFirst());
+        assertEquals("value3",storedQueue.pollLast());
+        assertEquals("value1",storedQueue.pollFirst());
+        assertEquals("value2",storedQueue.peek());
+        assertEquals("value2",storedQueue.peekLast());
+        assertEquals("value2",storedQueue.peekFirst());
+        assertEquals(1,storedQueue.size());
     }
 
     /**
@@ -81,6 +150,7 @@ public class LocalDBStoredQueueTest extends TestCase {
         populatedQueue(SIZE, storedQueue);
         assertEquals(SIZE, storedQueue.size());
         for (int i = 0; i < SIZE; ++i) {
+            Helper.pause(PwmRandom.getInstance().nextInt(1000));
             assertEquals(SIZE - i, storedQueue.size());
             storedQueue.remove();
         }
@@ -153,9 +223,9 @@ public class LocalDBStoredQueueTest extends TestCase {
         if (storedQueue != null) {
             storedQueue = null;
         }
-        if (pwmDB != null) {
-            pwmDB.close();
-            pwmDB = null;
+        if (localDB != null) {
+            localDB.close();
+            localDB = null;
         }
     }
 }

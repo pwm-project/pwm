@@ -317,8 +317,7 @@ div.progress-container > div {
     width: 100%;
     background-color: #FFDC8B;
     text-align: center;
-    padding-top: 4px;
-    padding-bottom: 4px
+    padding: 4px;
 }
 
 .header-error {

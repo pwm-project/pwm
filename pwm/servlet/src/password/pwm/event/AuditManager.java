@@ -221,7 +221,7 @@ public class AuditManager implements PwmService {
             );
 
             if (pwmApplication.getLocalDB() != null && pwmApplication.getApplicationMode() != PwmApplication.MODE.READ_ONLY) {
-                auditVault = new LocalDbAuditVault(pwmApplication.getLocalDB());
+                auditVault = new LocalDbAuditVault(pwmApplication, pwmApplication.getLocalDB());
                 auditVault.init(settings);
             }
         }

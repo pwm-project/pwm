@@ -21,7 +21,6 @@
   --%>
 
 <%@ page import="password.pwm.util.LocalDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
 <!DOCTYPE html>
@@ -38,14 +37,15 @@
 <div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.showWaitDialog(null,null,function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
             PWM_CONFIG.openLogViewer('INFO');
-        });
+        }});
+        PWM_MAIN.TimestampHandler.toggleAllElements();
     });
 </script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
-    <%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%>
+    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%><span>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')}});">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -71,13 +71,14 @@
     final LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     final int eventCount = 1000;
     final long maxTime = 10000;
-    final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, "", "", maxTime, logType);
+    final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, "", "", maxTime, logType);
+    final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
 %>
-<pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
+<pre><% while (searchResults.hasNext()) { %><%= searchResults.next().toLogString(true) %><%="\n"%><% } %></pre>
 <% } %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;

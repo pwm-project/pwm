@@ -55,7 +55,8 @@ import java.util.Properties;
 /**
  * @author Jason D. Rivard
  */
-public class EmailQueueManager extends AbstractQueueManager {
+public class
+        EmailQueueManager extends AbstractQueueManager {
 // ------------------------------ FIELDS ------------------------------
 
     private Properties javaMailProps = new Properties();
@@ -81,7 +82,13 @@ public class EmailQueueManager extends AbstractQueueManager {
                 Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_COUNT)),
                 EmailQueueManager.class.getSimpleName()
         );
-        super.init(pwmApplication, LocalDB.DB.EMAIL_QUEUE, settings, PwmApplication.AppAttribute.EMAIL_ITEM_COUNTER);
+        super.init(
+                pwmApplication,
+                LocalDB.DB.EMAIL_QUEUE,
+                settings,
+                PwmApplication.AppAttribute.EMAIL_ITEM_COUNTER,
+                EmailQueueManager.class.getSimpleName()
+        );
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -150,8 +157,7 @@ public class EmailQueueManager extends AbstractQueueManager {
         }
 
         try {
-            final QueueEvent queueEvent = new QueueEvent(Helper.getGson().toJson(expandedEmailItem), new Date(), getNextItemCount());
-            add(queueEvent);
+            add(expandedEmailItem);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }

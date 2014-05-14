@@ -77,7 +77,7 @@ class SyslogAuditService {
         MAX_AGE_MS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_MAX_AGE_MS));
         RETRY_TIMEOUT_MS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SYSLOG_RETRY_TIMEOUT_MS));
 
-        syslogQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
+        syslogQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
 
         this.configuration = pwmApplication.getConfig();
         final String syslogConfigStrings = configuration.readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);

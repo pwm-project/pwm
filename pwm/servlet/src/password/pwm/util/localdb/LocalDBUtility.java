@@ -220,4 +220,72 @@ public class LocalDBUtility {
         writeStringToOut(out, "restore complete, restored " + importLineCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
         statTimer.cancel();
     }
+
+
+    public static Map<STATS_KEY, Object> dbStats(
+            final LocalDB localDB,
+            final LocalDB.DB db
+    )
+    {
+        int compressedValues = 0;
+        int totalValues = 0;
+        int uncompressedValues = 0;
+        long storedChars = 0;
+        long uncompressedChars = 0;
+        long compressedCharSavings = 0;
+
+        final LocalDBCompressor compressorLocalDB = localDB instanceof LocalDBCompressor
+                ? (LocalDBCompressor) localDB
+                : new LocalDBCompressor(localDB, 0, true);
+
+        LocalDB.LocalDBIterator<String> iter = null;
+        try {
+            iter = compressorLocalDB.iterator(db);
+            while (iter.hasNext()) {
+                final String key = iter.next();
+                final String rawValue = compressorLocalDB.innerLocalDB.get(db, key);
+                if (rawValue != null) {
+                    totalValues++;
+                    storedChars += rawValue.length();
+                    if (rawValue.startsWith(LocalDBCompressor.COMPRESS_PREFIX)) {
+                        compressedValues++;
+
+                        final String uncompressedValue = compressorLocalDB.get(db, key);
+                        uncompressedChars += uncompressedValue.length();
+
+                        final int diff = uncompressedValue.length() - rawValue.length();
+                        compressedCharSavings += diff;
+                    } else {
+                        uncompressedValues++;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+
+        int avgValueLength = totalValues == 0 ? 0 : (int)(uncompressedChars / totalValues);
+        final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<STATS_KEY, Object>();
+        returnObj.put(STATS_KEY.TOTAL_VALUES,totalValues);
+        returnObj.put(STATS_KEY.COMPRESSED_VALUES,compressedValues);
+        returnObj.put(STATS_KEY.UNCOMPRESSED_VALUES,uncompressedValues);
+        returnObj.put(STATS_KEY.UNCOMPRESSED_CHARS,uncompressedChars);
+        returnObj.put(STATS_KEY.COMPRESSED_CHAR_DIFF,compressedCharSavings);
+        returnObj.put(STATS_KEY.STORED_CHARS,storedChars);
+        returnObj.put(STATS_KEY.AVG_VALUE_LENGTH,avgValueLength);
+        return returnObj;
+    }
+
+    public enum STATS_KEY {
+        TOTAL_VALUES,
+        COMPRESSED_VALUES,
+        UNCOMPRESSED_VALUES,
+        UNCOMPRESSED_CHARS,
+        STORED_CHARS,
+        COMPRESSED_CHAR_DIFF,
+        AVG_VALUE_LENGTH,
+    }
+
 }

@@ -22,18 +22,30 @@
 
 package password.pwm.util.cli;
 
+import com.google.gson.GsonBuilder;
 import password.pwm.util.Helper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBUtility;
 
-public class LocalDbInfoCommand extends AbstractCliCommand {
+import java.text.NumberFormat;
+import java.util.Date;
+import java.util.Map;
+
+public class LocalDBInfoCommand extends AbstractCliCommand {
     public void doCommand() throws Exception {
+        final Date startTime = new Date();
         final LocalDB localDB = cliEnvironment.getLocalDB();
         final long pwmDBdiskSpace = Helper.getFileDirectorySize(localDB.getFileLocation());
-        out("LocalDB Total Disk Space = " + pwmDBdiskSpace + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
-        out("Checking row counts, this may take a moment.... ");
+        out("beginning LocalDBInfo");
+        out("LocalDB total disk space = " + NumberFormat.getInstance().format(pwmDBdiskSpace) + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
+        out("examining Localdb, this may take a while.... ");
         for (final LocalDB.DB db : LocalDB.DB.values()) {
-            out("  " + db.toString() + "=" + localDB.size(db));
+            out("---" + db.toString() + "---");
+            final Map<LocalDBUtility.STATS_KEY,Object> stats = LocalDBUtility.dbStats(localDB, db);
+            out(Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(stats));
         }
+        out("completed LocalDBInfo in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     @Override
@@ -43,6 +55,7 @@ public class LocalDbInfoCommand extends AbstractCliCommand {
         cliParameters.commandName = "LocalDBInfo";
         cliParameters.description = "Report information about the LocalDB";
         cliParameters.needsLocalDB = true;
+        cliParameters.readOnly = true;
 
         return cliParameters;
     }

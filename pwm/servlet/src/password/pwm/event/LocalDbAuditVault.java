@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 package password.pwm.event;
 
+import password.pwm.PwmApplication;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -43,8 +44,13 @@ public class LocalDbAuditVault implements AuditVault {
     private Settings settings;
     private Date oldestRecord;
 
-    public LocalDbAuditVault(final LocalDB localDB) throws LocalDBException {
-        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, LocalDB.DB.AUDIT_EVENTS);
+    public LocalDbAuditVault(
+            final PwmApplication pwmApplication,
+            final LocalDB localDB
+    )
+            throws LocalDBException
+    {
+        this.auditDB = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, localDB, LocalDB.DB.AUDIT_EVENTS);
     }
 
     public void init(final Settings settings) {

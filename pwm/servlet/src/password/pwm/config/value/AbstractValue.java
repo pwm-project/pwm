@@ -22,6 +22,7 @@
 
 package password.pwm.config.value;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import password.pwm.config.StoredValue;
 import password.pwm.util.Helper;
@@ -34,10 +35,11 @@ public abstract class AbstractValue implements StoredValue {
     }
 
     public String toDebugString(boolean prettyFormat, Locale locale) {
-        return prettyFormat
-                ? Helper.getGson(new GsonBuilder().setPrettyPrinting().disableHtmlEscaping()).toJson(
-                this.toNativeObject())
-                : Helper.getGson().toJson(this.toNativeObject());
+        final Gson gson =  prettyFormat
+                ? Helper.getGson(new GsonBuilder().setPrettyPrinting().disableHtmlEscaping())
+                : Helper.getGson(new GsonBuilder().disableHtmlEscaping());
+
+        return gson.toJson(this.toNativeObject());
     }
 
     public boolean requiresStoredUpdate()

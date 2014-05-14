@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,174 +28,161 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPOutputStream;
 
 public class GZIPFilter implements Filter {
-
     private ServletContext servletContext;
 
-    public void doFilter(ServletRequest req, ServletResponse res,
-                         FilterChain chain) throws IOException, ServletException {
-        if (req instanceof HttpServletRequest) {
-            final HttpServletRequest request = (HttpServletRequest) req;
-            final HttpServletResponse response = (HttpServletResponse) res;
-
-            boolean gzipEnabled = false;
-            try {
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication(servletContext);
-                gzipEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
-            } catch (PwmUnrecoverableException e) { /* noop */ }
-
-            if (gzipEnabled) {
-                final String acceptEncodingHeader = request.getHeader("accept-encoding");
-                if (acceptEncodingHeader != null && acceptEncodingHeader.contains("gzip")) {
-                    final GZIPResponseWrapper wrappedResponse = new GZIPResponseWrapper(response);
-                    chain.doFilter(req, wrappedResponse);
-                    wrappedResponse.finishResponse();
-                    return;
-                }
-            }
-            chain.doFilter(req, res);
-        }
-    }
-
-    public void init(FilterConfig filterConfig) {
+    public void init(FilterConfig filterConfig)
+            throws ServletException
+    {
         this.servletContext = filterConfig.getServletContext();
     }
 
-    public void destroy() {
-        this.servletContext = null;
+    public void destroy()
+    {
     }
 
-    public static class GZIPResponseWrapper extends HttpServletResponseWrapper {
-        protected HttpServletResponse origResponse = null;
-        protected ServletOutputStream stream = null;
-        protected PrintWriter writer = null;
+    public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain
+    )
+            throws IOException, ServletException
+    {
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        final HttpServletResponse httpResponse = (HttpServletResponse) response;
+        final String acceptEncoding = httpRequest.getHeader("Accept-Encoding");
+        if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled()) {
+            GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper(httpResponse);
+            chain.doFilter(request, gzipResponse);
+            gzipResponse.finish();
+        } else {
+            chain.doFilter(request, response);
+        }
+    }
 
-        public GZIPResponseWrapper(HttpServletResponse response) {
+    private boolean isEnabled() {
+        try {
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(servletContext);
+            return Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
+        } catch (PwmUnrecoverableException e) {
+            /* noop */
+        }
+        return false;
+    }
+
+
+    public static class GZIPHttpServletResponseWrapper extends HttpServletResponseWrapper {
+        private ServletResponseGZIPOutputStream gzipStream;
+        private ServletOutputStream outputStream;
+        private PrintWriter printWriter;
+
+        public GZIPHttpServletResponseWrapper(HttpServletResponse response) throws IOException {
             super(response);
-            origResponse = response;
+            response.addHeader("Content-Encoding", "gzip");
         }
 
-        public ServletOutputStream createOutputStream() throws IOException {
-            return (new GZIPResponseStream(origResponse));
-        }
-
-        public void finishResponse() {
-            try {
-                if (writer != null) {
-                    writer.close();
-                } else {
-                    if (stream != null) {
-                        stream.close();
-                    }
-                }
-            } catch (IOException e) {
-                //noop
+        public void finish() throws IOException {
+            if (printWriter != null) {
+                printWriter.close();
+            }
+            if (outputStream != null) {
+                outputStream.close();
+            }
+            if (gzipStream != null) {
+                gzipStream.close();
             }
         }
 
+        @Override
         public void flushBuffer() throws IOException {
-            stream.flush();
+            if (printWriter != null) {
+                printWriter.flush();
+            }
+            if (outputStream != null) {
+                outputStream.flush();
+            }
+            super.flushBuffer();
         }
 
+        @Override
         public ServletOutputStream getOutputStream() throws IOException {
-            if (writer != null) {
-                throw new IllegalStateException("getWriter() has already been called!");
+            if (printWriter != null) {
+                throw new IllegalStateException("printWriter already defined");
             }
-
-            if (stream == null)
-                stream = createOutputStream();
-            return (stream);
+            if (outputStream == null) {
+                initGzip();
+                outputStream = gzipStream;
+            }
+            return outputStream;
         }
 
+        @Override
         public PrintWriter getWriter() throws IOException {
-            if (writer != null) {
-                return (writer);
+            if (outputStream != null) {
+                throw new IllegalStateException("printWriter already defined");
             }
-
-            if (stream != null) {
-                throw new IllegalStateException("getOutputStream() has already been called!");
+            if (printWriter == null) {
+                initGzip();
+                printWriter = new PrintWriter(new OutputStreamWriter(gzipStream, getResponse().getCharacterEncoding()));
             }
-
-            stream = createOutputStream();
-            writer = new PrintWriter(new OutputStreamWriter(stream, "UTF-8"));
-            return (writer);
+            return printWriter;
         }
 
-        public void setContentLength(int length) {}
+        @Override
+        public void setContentLength(int len) {
+        }
+
+        private void initGzip() throws IOException {
+            gzipStream = new ServletResponseGZIPOutputStream(getResponse().getOutputStream());
+        }
     }
 
-    public static class GZIPResponseStream extends ServletOutputStream {
-        protected ByteArrayOutputStream baos = null;
-        protected GZIPOutputStream gzipstream = null;
-        protected boolean closed = false;
-        protected HttpServletResponse response = null;
-        protected ServletOutputStream output = null;
+    public static class ServletResponseGZIPOutputStream extends ServletOutputStream {
+        private final AtomicBoolean open = new AtomicBoolean(true);
+        private GZIPOutputStream gzipStream;
 
-        public GZIPResponseStream(HttpServletResponse response) throws IOException {
-            super();
-            closed = false;
-            this.response = response;
-            this.output = response.getOutputStream();
-            baos = new ByteArrayOutputStream();
-            gzipstream = new GZIPOutputStream(baos);
+        public ServletResponseGZIPOutputStream(OutputStream output) throws IOException {
+            gzipStream = new GZIPOutputStream(output);
         }
 
+        @Override
         public void close() throws IOException {
-            if (closed) {
-                throw new IOException("This output stream has already been closed");
+            if (open.compareAndSet(true, false)) {
+                gzipStream.close();
             }
-            gzipstream.finish();
-
-            byte[] bytes = baos.toByteArray();
-
-
-            response.addHeader("Content-Length",
-                    Integer.toString(bytes.length));
-            response.addHeader("Content-Encoding", "gzip");
-            output.write(bytes);
-            output.flush();
-            output.close();
-            closed = true;
         }
 
+        @Override
         public void flush() throws IOException {
-            if (closed) {
-                throw new IOException("Cannot flush a closed output stream");
-            }
-            gzipstream.flush();
+            gzipStream.flush();
         }
 
-        public void write(int b) throws IOException {
-            if (closed) {
-                throw new IOException("Cannot write to a closed output stream");
-            }
-            gzipstream.write((byte)b);
-        }
-
+        @Override
         public void write(byte b[]) throws IOException {
             write(b, 0, b.length);
         }
 
+        @Override
         public void write(byte b[], int off, int len) throws IOException {
-            if (closed) {
-                throw new IOException("Cannot write to a closed output stream");
+            if (!open.get()) {
+                throw new IOException("Stream closed!");
             }
-            gzipstream.write(b, off, len);
+            gzipStream.write(b, off, len);
         }
 
-        public boolean closed() {
-            return (this.closed);
-        }
-
-        public void reset() {
-            //noop
+        @Override
+        public void write(int b) throws IOException {
+            if (!open.get()) {
+                throw new IOException("Stream closed!");
+            }
+            gzipStream.write(b);
         }
     }
-
 }

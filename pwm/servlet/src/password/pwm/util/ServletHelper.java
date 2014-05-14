@@ -343,6 +343,8 @@ public class ServletHelper {
             if (includeXFrameDeny && fromServlet) {
                 resp.setHeader("X-Frame-Options", "DENY");
             }
+
+            resp.setHeader("Server",null);
         }
     }
 

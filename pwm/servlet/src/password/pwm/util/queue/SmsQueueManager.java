@@ -45,7 +45,6 @@ import password.pwm.util.localdb.LocalDB;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +94,13 @@ public class SmsQueueManager extends AbstractQueueManager {
                 Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_COUNT)),
                 EmailQueueManager.class.getSimpleName()
         );
-        super.init(pwmApplication, LocalDB.DB.SMS_QUEUE, settings, PwmApplication.AppAttribute.SMS_ITEM_COUNTER);
+        super.init(
+                pwmApplication,
+                LocalDB.DB.SMS_QUEUE,
+                settings,
+                PwmApplication.AppAttribute.SMS_ITEM_COUNTER,
+                SmsQueueManager.class.getSimpleName()
+        );
     }
 
 
@@ -109,11 +114,8 @@ public class SmsQueueManager extends AbstractQueueManager {
             return;
         }
 
-        final String smsItemGson = Helper.getGson().toJson(smsItem);
-        final int itemID = getNextItemCount();
-        final QueueEvent event = new QueueEvent(smsItemGson, new Date(), itemID);
         try {
-            add(event);
+            add(smsItem);
         } catch (Exception e) {
             LOGGER.error("error writing to LocalDB queue, discarding sms send request: " + e.getMessage());
         }

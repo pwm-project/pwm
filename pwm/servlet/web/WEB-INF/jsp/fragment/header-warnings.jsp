@@ -57,21 +57,21 @@
     <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
     &nbsp;&nbsp;
-    <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer;">
+    <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
         <span class="fa fa-gears"></span>&nbsp;
         <a>
             <pwm:Display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer;">
+    <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer; white-space: nowrap">
         <span class="fa fa-edit"></span>&nbsp;
         <a>
             <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer;">
+    <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer; white-space: nowrap">
         <span class="fa fa-list-alt"></span>&nbsp;
         <a>
             <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>

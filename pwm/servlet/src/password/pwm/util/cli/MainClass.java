@@ -46,7 +46,7 @@ public class MainClass {
     public static final Map<String,CliCommand> COMMANDS;
     static {
         final List<CliCommand> commandList = new ArrayList<CliCommand>();
-        commandList.add(new LocalDbInfoCommand());
+        commandList.add(new LocalDBInfoCommand());
         commandList.add(new ExportLogsCommand());
         commandList.add(new UserReportCommand());
         commandList.add(new ExportLocalDBCommand());

@@ -29,8 +29,8 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -53,9 +53,11 @@ public abstract class AbstractQueueManager implements PwmService {
 
     protected HealthRecord lastSendFailure;
     protected Date lastSendFailureTime;
-    protected LocalDBStoredQueue sendQueue;
-    protected int itemCounter;
+    private LocalDBStoredQueue sendQueue;
+    protected int itemIDCounter;
     protected PwmApplication.AppAttribute itemCountAppAttribute;
+    protected String serviceName = AbstractQueueManager.class.getSimpleName();
+
 
     public STATUS status() {
         return status;
@@ -69,9 +71,13 @@ public abstract class AbstractQueueManager implements PwmService {
         return this.sendQueue.size();
     }
 
-    protected void add(QueueEvent event)
+    protected void add(final Serializable input)
             throws PwmUnrecoverableException
     {
+        final String gsonInput = Helper.getGson().toJson(input);
+        final int nextItemID = getNextItemCount();
+        final QueueEvent event = new QueueEvent(gsonInput, new Date(), nextItemID);
+
         if (status != PwmService.STATUS.OPEN) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
         }
@@ -82,8 +88,8 @@ public abstract class AbstractQueueManager implements PwmService {
         }
 
         final String jsonEvent = Helper.getGson().toJson(event);
-        sendQueue.add(jsonEvent);
-        LOGGER.trace("submitted item to queue: " + queueItemToDebugString(event));
+        sendQueue.addLast(jsonEvent);
+        LOGGER.trace("submitted item to queue: " + queueItemToDebugString(event) + ", queue size: " + sendQueue.size());
 
         timerThread.schedule(new QueueProcessorTask(), 1);
     }
@@ -132,10 +138,12 @@ public abstract class AbstractQueueManager implements PwmService {
             final PwmApplication pwmApplication,
             final LocalDB.DB DB,
             final Settings settings,
-            final PwmApplication.AppAttribute itemCountAppAttribute
+            final PwmApplication.AppAttribute itemCountAppAttribute,
+            final String serviceName
     )
             throws PwmException
     {
+        this.serviceName = serviceName;
         this.pwmApplication = pwmApplication;
         this.itemCountAppAttribute = itemCountAppAttribute;
         this.settings = settings;
@@ -144,48 +152,52 @@ public abstract class AbstractQueueManager implements PwmService {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             status = STATUS.CLOSED;
-            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, LocalDB is not open");
+            lastSendFailure = HealthRecord.forMessage(HealthMessage.ServiceClosed_LocalDBUnavail,serviceName);
             return;
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
             status = STATUS.CLOSED;
-            lastSendFailure = new HealthRecord(HealthStatus.WARN, this.getClass().getSimpleName(), "unable to start, Application is in read-only mode");
+            lastSendFailure = HealthRecord.forMessage(HealthMessage.ServiceClosed_AppReadOnly,serviceName);
             return;
         }
 
-        readItemCounter();
-        sendQueue = LocalDBStoredQueue.createLocalDBStoredQueue(localDB, DB);
+        itemIDCounter = readItemIDCounter();
+        sendQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, localDB, DB);
         final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer thread";
         timerThread = new Timer(threadName,true);
         status = PwmService.STATUS.OPEN;
-        LOGGER.debug(settings.getDebugName() + " is now open, " + this.queueSize() + " items in queue");
+        LOGGER.debug(settings.getDebugName() + " is now open, " + sendQueue.size() + " items in queue");
         timerThread.schedule(new QueueProcessorTask(),1,QUEUE_POLL_INTERVAL);
     }
 
-    protected void readItemCounter() {
+    protected int readItemIDCounter() {
         final String itemCountStr = pwmApplication.readAppAttribute(itemCountAppAttribute);
         if (itemCountStr != null) {
             try {
-                itemCounter = Integer.parseInt(itemCountStr);
+                return Integer.parseInt(itemCountStr);
             } catch (Exception e) {
                 LOGGER.error("error reading stored item counter app attribute: " + e.getMessage());
             }
         }
+        return 0;
     }
 
     protected void storeItemCounter() {
         try {
-            pwmApplication.writeAppAttribute(itemCountAppAttribute, String.valueOf(itemCounter));
+            pwmApplication.writeAppAttribute(itemCountAppAttribute, String.valueOf(itemIDCounter));
         } catch (Exception e) {
             LOGGER.error("error writing stored item counter app attribute: " + e.getMessage());
         }
     }
 
-    protected int getNextItemCount() {
-        itemCounter++;
+    protected synchronized int getNextItemCount() {
+        itemIDCounter++;
+        if (itemIDCounter < 0) {
+            itemIDCounter = 0;
+        }
         storeItemCounter();
-        return itemCounter;
+        return itemIDCounter;
     }
 
     public synchronized void close() {
@@ -236,21 +248,28 @@ public abstract class AbstractQueueManager implements PwmService {
 
                 if (event == null || event.getTimestamp() == null) {
                     sendQueue.pollFirst();
-                } else if (TimeDuration.fromCurrent(event.getTimestamp()).isLongerThan(settings.getMaxQueueItemAge())) {
-                    LOGGER.debug("discarding event due to maximum retry age: " + event.getItem());
+                } else if (TimeDuration.fromCurrent(event.getTimestamp()).isLongerThan(
+                        settings.getMaxQueueItemAge())) {
+                    LOGGER.debug("discarding event due to maximum retry age: " + queueItemToDebugString(event));
                     sendQueue.pollFirst();
                 } else {
                     final String item = event.getItem();
 
-                    LOGGER.trace("preparing to send item in queue: " + queueItemToDebugString(event));
+                    LOGGER.trace("preparing to send item in queue: " + queueItemToDebugString(
+                            event) + ", queue size: " + sendQueue.size());
+
+                    // execute operation
                     final boolean success = sendItem(item);
+
                     if (success) {
                         sendQueue.pollFirst();
-                        LOGGER.trace("queued item successfully sent and removed from queue: " + queueItemToDebugString(
-                                event));
+                        LOGGER.trace(
+                                "queued item successfully sent and removed from queue: " + queueItemToDebugString(
+                                        event) + ", queue size: " + sendQueue.size());
                     } else {
                         lastSendFailureTime = new Date();
-                        LOGGER.debug("queued item was not successfully sent, will retry: " + queueItemToDebugString(event));
+                        LOGGER.debug("queued item was not successfully sent, will retry: " + queueItemToDebugString(
+                                event) + ", queue size: " + sendQueue.size());
                     }
                 }
             }
@@ -306,7 +325,7 @@ public abstract class AbstractQueueManager implements PwmService {
     public ServiceInfo serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }

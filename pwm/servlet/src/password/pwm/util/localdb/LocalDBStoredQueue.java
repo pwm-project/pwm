@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
 import password.pwm.util.PwmLogger;
 
 import java.math.BigInteger;
@@ -48,21 +50,45 @@ public class
 
     private final InternalQueue internalQueue;
 
-    private static final boolean developerDebug = false;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    private LocalDBStoredQueue(final LocalDB localDB, final LocalDB.DB DB)
-            throws LocalDBException {
-        internalQueue = new InternalQueue(localDB, DB);
+    private LocalDBStoredQueue(
+            final LocalDB localDB,
+            final LocalDB.DB DB,
+            final boolean developerDebug
+    )
+            throws LocalDBException
+    {
+        this.internalQueue = new InternalQueue(localDB, DB, developerDebug);
+    }
+
+    public static synchronized LocalDBStoredQueue createLocalDBStoredQueue(
+            final PwmApplication pwmApplication,
+            final LocalDB pwmDB,
+            final LocalDB.DB DB
+    )
+            throws LocalDBException
+    {
+
+        boolean developerDebug = false;
+        try {
+            developerDebug = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+        } catch (Exception e) {
+            LOGGER.debug("can't read app property for developerDebug mode: " + e.getMessage());
+        }
+
+        return new LocalDBStoredQueue(pwmDB, DB, developerDebug);
     }
 
     public static synchronized LocalDBStoredQueue createLocalDBStoredQueue(
             final LocalDB pwmDB,
-            final LocalDB.DB DB
+            final LocalDB.DB DB,
+            final boolean debugEnabled
     )
-            throws LocalDBException {
-        return new LocalDBStoredQueue(pwmDB, DB);
+            throws LocalDBException
+    {
+
+        return new LocalDBStoredQueue(pwmDB, DB, debugEnabled);
     }
 
     public void removeLast(final int removalCount) {
@@ -80,7 +106,11 @@ public class
 
 
     public boolean isEmpty() {
-        return internalQueue.size() == 0;
+        try {
+            return internalQueue.size() == 0;
+        } catch (LocalDBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public Object[] toArray() {
@@ -153,7 +183,11 @@ public class
     }
 
     public int size() {
-        return internalQueue.size();
+        try {
+            return internalQueue.size();
+        } catch (LocalDBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 // --------------------- Interface Deque ---------------------
@@ -211,12 +245,11 @@ public class
 
     public String pollFirst() {
         try {
-            if (internalQueue.size() == 0) {
+            final List<String> values = internalQueue.removeFirst(1);
+            if (values == null || values.isEmpty()) {
                 return null;
             }
-            final String value = internalQueue.getFirst(1).get(0);
-            internalQueue.removeFirst(1);
-            return value;
+            return values.get(0);
         } catch (LocalDBException e) {
             throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
         }
@@ -224,12 +257,11 @@ public class
 
     public String pollLast() {
         try {
-            if (internalQueue.size() == 0) {
+            final List<String> values = internalQueue.removeLast(1);
+            if (values == null || values.isEmpty()) {
                 return null;
             }
-            final String value = internalQueue.getLast(1).get(0);
-            internalQueue.removeLast(1);
-            return value;
+            return values.get(0);
         } catch (LocalDBException e) {
             throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
         }
@@ -253,10 +285,11 @@ public class
 
     public String peekFirst() {
         try {
-            if (internalQueue.size() == 0) {
+            final List<String> values = internalQueue.getFirst(1);
+            if (values == null || values.isEmpty()) {
                 return null;
             }
-            return internalQueue.getFirst(1).get(0);
+            return values.get(0);
         } catch (LocalDBException e) {
             throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
         }
@@ -264,10 +297,11 @@ public class
 
     public String peekLast() {
         try {
-            if (internalQueue.size() == 0) {
+            final List<String> values = internalQueue.getLast(1);
+            if (values == null || values.isEmpty()) {
                 return null;
             }
-            return internalQueue.getLast(1).get(0);
+            return values.get(0);
         } catch (LocalDBException e) {
             throw new IllegalStateException("unexpected localDB error while modifying queue: " + e.getMessage(), e);
         }
@@ -294,13 +328,21 @@ public class
     }
 
     public Iterator<String> descendingIterator() {
-        return new InnerIterator<String>(internalQueue, false);
+        try {
+            return new InnerIterator<String>(internalQueue, false);
+        } catch (LocalDBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 // --------------------- Interface Iterable ---------------------
 
     public Iterator<String> iterator() {
-        return new InnerIterator<String>(internalQueue, true);
+        try {
+            return new InnerIterator<String>(internalQueue, true);
+        } catch (LocalDBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 // --------------------- Interface Queue ---------------------
@@ -345,7 +387,9 @@ public class
         private int steps;
 
 
-        private InnerIterator(final InternalQueue internalQueue, final boolean first) {
+        private InnerIterator(final InternalQueue internalQueue, final boolean first)
+                throws LocalDBException
+        {
             this.internalQueue = internalQueue;
             this.first = first;
             position = internalQueue.size() == 0 ? null : first ? internalQueue.headPosition : internalQueue.tailPosition;
@@ -456,12 +500,18 @@ public class
         private final LocalDB.DB DB;
         private volatile Position headPosition;
         private volatile Position tailPosition;
-        private boolean empty;
-        private volatile int modCount;
+        private boolean developerDebug = false;
+        private static final int DEBUG_MAX_ROWS = 50;
+        private static final int DEBUG_MAX_WIDTH = 120;
+        private static final Set<LocalDB.DB> DEBUG_IGNORED_DBs = Collections.unmodifiableSet(new HashSet(Arrays.asList(
+                new LocalDB.DB[] {
+                        LocalDB.DB.EVENTLOG_EVENTS
+                }
+        )));
 
         private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
-        private InternalQueue(final LocalDB localDB, final LocalDB.DB DB)
+        private InternalQueue(final LocalDB localDB, final LocalDB.DB DB, final boolean developerDebug)
                 throws LocalDBException {
             try {
                 LOCK.writeLock().lock();
@@ -477,6 +527,7 @@ public class
                     throw new NullPointerException("DB cannot be null");
                 }
 
+                this.developerDebug = developerDebug;
                 this.localDB = localDB;
                 this.DB = DB;
                 init();
@@ -497,15 +548,11 @@ public class
             headPosition = headPositionStr != null && headPositionStr.length() > 0 ? new Position(headPositionStr) : new Position("0");
             tailPosition = tailPositionStr != null && tailPositionStr.length() > 0 ? new Position(tailPositionStr) : new Position("0");
 
-            empty = headPosition.equals(tailPosition) && localDB.get(DB, headPosition.toString()) == null;
-
             LOGGER.trace("loaded for db " + DB + "; headPosition=" + headPosition + ", tailPosition=" + tailPosition + ", size=" + this.size());
 
             repair();
 
-            if (developerDebug) {
-                LOGGER.trace("debug INIT\n" + debugOutput());
-            }
+            debugOutput("post init()");
         }
 
         private boolean checkVersion() throws LocalDBException {
@@ -530,22 +577,15 @@ public class
 
                 localDB.put(DB, KEY_VERSION, VALUE_VERSION);
 
-                empty = true;
-                modCount++;
-
-                if (developerDebug) {
-                    LOGGER.trace("debug CLEAR\n" + debugOutput());
-                }
+                debugOutput("post clear()");
             } finally {
                 LOCK.writeLock().unlock();
             }
         }
 
-        public int getModCount() {
-            return modCount;
-        }
-
-        public int size() {
+        public int size()
+                throws LocalDBException
+        {
             try {
                 LOCK.readLock().lock();
                 return internalSize();
@@ -554,67 +594,78 @@ public class
             }
         }
 
-        private int internalSize() {
-            return empty ? 0 : tailPosition.distanceToHead(headPosition).intValue() + 1;
+        private int internalSize()
+                throws LocalDBException
+        {
+            if (headPosition.equals(tailPosition) && localDB.get(DB, headPosition.toString()) == null) {
+                return 0;
+            }
+            return tailPosition.distanceToHead(headPosition).intValue() + 1;
         }
 
-        public void removeFirst(final int removalCount) throws LocalDBException {
+        public List<String> removeFirst(final int removalCount) throws LocalDBException {
             try {
                 LOCK.writeLock().lock();
-                if (removalCount < 1 || empty) {
-                    return;
-                }
 
-                if (removalCount >= internalSize()) {
-                    clear();
-                    return;
+                debugOutput("pre removeFirst()");
+
+                if (removalCount < 1) {
+                    Collections.emptyList();
                 }
 
                 final List<String> removalKeys = new ArrayList<String>();
-                Position nextHead = headPosition;
-                while (removalKeys.size() < removalCount && nextHead != tailPosition) {
-                    removalKeys.add(nextHead.toString());
-                    nextHead = nextHead.previous();
+                final List<String> removedValues = new ArrayList<String>();
+                Position previousHead = headPosition;
+                int removedPositions = 0;
+                while (removedPositions < removalCount) {
+                    removalKeys.add(previousHead.toString());
+                    final String loopValue = localDB.get(DB, previousHead.toString());
+                    if (loopValue != null) {
+                        removedValues.add(loopValue);
+                    }
+                    previousHead = previousHead.equals(tailPosition) ? previousHead : previousHead.previous();
+                    removedPositions++;
                 }
                 localDB.removeAll(DB, removalKeys);
-                localDB.put(DB, KEY_TAIL_POSITION, nextHead.toString());
-                headPosition = nextHead;
-                modCount++;
+                localDB.put(DB, KEY_HEAD_POSITION, previousHead.toString());
+                headPosition = previousHead;
 
-                if (developerDebug) {
-                    LOGGER.trace("debug removeFIRST\n" + debugOutput());
-                }
+                debugOutput("post removeFirst()");
+                return Collections.unmodifiableList(removedValues);
             } finally {
                 LOCK.writeLock().unlock();
             }
         }
 
-        public void removeLast(final int removalCount) throws LocalDBException {
+        public List<String> removeLast(final int removalCount) throws LocalDBException {
             try {
                 LOCK.writeLock().lock();
-                if (removalCount < 1 || empty) {
-                    return;
-                }
 
-                if (removalCount >= internalSize()) {
-                    clear();
-                    return;
+                debugOutput("pre removeLast()");
+
+                if (removalCount < 1) {
+                    Collections.emptyList();
                 }
 
                 final List<String> removalKeys = new ArrayList<String>();
+                final List<String> removedValues = new ArrayList<String>();
                 Position nextTail = tailPosition;
-                while (removalKeys.size() < removalCount && nextTail != headPosition) {
+                int removedPositions = 0;
+                while (removedPositions < removalCount) {
                     removalKeys.add(nextTail.toString());
-                    nextTail = nextTail.next();
+                    final String loopValue = localDB.get(DB, nextTail.toString());
+                    if (loopValue != null) {
+                        removedValues.add(loopValue);
+                    }
+                    nextTail = nextTail.equals(headPosition) ? nextTail : nextTail.next();
+                    removedPositions++;
                 }
                 localDB.removeAll(DB, removalKeys);
                 localDB.put(DB, KEY_TAIL_POSITION, nextTail.toString());
                 tailPosition = nextTail;
-                modCount++;
 
-                if (developerDebug) {
-                    LOGGER.trace("debug removeLAST\n" + debugOutput());
-                }
+                debugOutput("post removeLast()");
+                return Collections.unmodifiableList(removedValues);
             } finally {
                 LOCK.writeLock().unlock();
             }
@@ -625,6 +676,8 @@ public class
         {
             try {
                 LOCK.writeLock().lock();
+                debugOutput("pre addFirst()");
+
                 if (values == null || values.isEmpty()) {
                     return;
                 }
@@ -638,7 +691,7 @@ public class
                 final Map<String, String> keyValueMap = new HashMap<String, String>();
                 Position nextHead = headPosition;
 
-                if (empty) {
+                if (internalSize() == 0) {
                     keyValueMap.put(nextHead.toString(), valueIterator.next());
                 }
 
@@ -650,12 +703,8 @@ public class
                 localDB.putAll(DB, keyValueMap);
                 localDB.put(DB, KEY_HEAD_POSITION, String.valueOf(nextHead));
                 headPosition = nextHead;
-                modCount++;
-                empty = false;
 
-                if (developerDebug) {
-                    LOGGER.trace("debug addFirst\n" + debugOutput());
-                }
+                debugOutput("post addFirst()");
             } finally {
                 LOCK.writeLock().unlock();
             }
@@ -664,6 +713,7 @@ public class
         public void addLast(final Collection<String> values) throws LocalDBException {
             try {
                 LOCK.writeLock().lock();
+                debugOutput("pre addLast()");
                 if (values == null || values.isEmpty()) {
                     return;
                 }
@@ -677,7 +727,7 @@ public class
                 final Map<String, String> keyValueMap = new HashMap<String, String>();
                 Position nextTail = tailPosition;
 
-                if (empty) {
+                if (internalSize() == 0) {
                     keyValueMap.put(nextTail.toString(), valueIterator.next());
                 }
 
@@ -689,12 +739,8 @@ public class
                 localDB.putAll(DB, keyValueMap);
                 localDB.put(DB, KEY_TAIL_POSITION, String.valueOf(nextTail));
                 tailPosition = nextTail;
-                modCount++;
-                empty = false;
 
-                if (developerDebug) {
-                    LOGGER.trace("debug addLast\n" + debugOutput());
-                }
+                debugOutput("post addLast()");
             } finally {
                 LOCK.writeLock().unlock();
             }
@@ -704,7 +750,9 @@ public class
                 throws LocalDBException {
             try {
                 LOCK.readLock().lock();
-                if (getCount < 1 || empty) {
+                debugOutput("pre getFirst()");
+
+                if (getCount < 1) {
                     return Collections.emptyList();
                 }
 
@@ -720,9 +768,7 @@ public class
                     nextHead = nextHead.previous();
                 }
 
-                if (developerDebug) {
-                    LOGGER.trace("debug getFirst\n" + debugOutput());
-                }
+                debugOutput("post getFirst()");
 
                 return returnList;
             } finally {
@@ -735,7 +781,9 @@ public class
             try {
                 LOCK.readLock().lock();
 
-                if (getCount < 1 || empty) {
+                debugOutput("pre getLast()");
+
+                if (getCount < 1) {
                     return Collections.emptyList();
                 }
 
@@ -751,9 +799,7 @@ public class
                     nextTail = nextTail.next();
                 }
 
-                if (developerDebug) {
-                    LOGGER.trace("debug getLast\n" + debugOutput());
-                }
+                debugOutput("post getLast()");
 
                 return returnList;
             } finally {
@@ -761,30 +807,48 @@ public class
             }
         }
 
-        public String debugOutput() {
+        public void debugOutput(final String input) {
+            if (!developerDebug || DEBUG_IGNORED_DBs.contains(DB)) {
+                return;
+            }
+
             final StringBuilder sb = new StringBuilder();
             try {
-                sb.append("tailPosition=").append(tailPosition).append(", headPosition=").append(headPosition).append(", modCount=").append(modCount).append(", db=").append(DB);
-                sb.append(", size=").append(internalSize());
+                sb.append(input);
+                sb.append("  tailPosition=").append(tailPosition).append(", headPosition=").append(headPosition).append(", db=").append(DB);
+                sb.append(", size=").append(internalSize()).append("\n");
 
-                Position pos = new Position("ZZZZZS");
-                for (int i = 0; i < 20; i++) {
-                    sb.append("\n").append(pos.toString()).append("=").append(localDB.get(DB, pos.toString()));
-                    pos = pos.next();
+                LocalDB.LocalDBIterator<String> keyIter = null;
+                try {
+                    keyIter = localDB.iterator(DB);
+                    int rowCount = 0;
+                    while (keyIter.hasNext() && rowCount < DEBUG_MAX_ROWS) {
+                        final String key = keyIter.next();
+                        String value = localDB.get(DB, key);
+                        value = value == null ? "" : value;
+                        value = value.length() < DEBUG_MAX_WIDTH ? value : value.substring(0, DEBUG_MAX_WIDTH) + "...";
+                        String row = key + " " + value;
+                        sb.append(row).append("\n");
+                        rowCount++;
+                    }
+                } finally {
+                    if (keyIter != null) {
+                        keyIter.close();
+                    }
                 }
+
+
             } catch (LocalDBException e) {
                 e.printStackTrace();
             }
 
-            return sb.toString();
+            LOGGER.trace(sb.toString());
         }
 
         private void repair() throws LocalDBException {
             int headTrim = 0, tailTrim = 0;
 
-            if (developerDebug) {
-                LOGGER.trace("pre-repair:\n" + debugOutput());
-            }
+            debugOutput("pre repair()");
 
             // trim the top.
             while (!headPosition.equals(tailPosition) && localDB.get(DB,headPosition.toString()) == null) {

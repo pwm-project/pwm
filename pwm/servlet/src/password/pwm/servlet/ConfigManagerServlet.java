@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -305,19 +306,24 @@ public class ConfigManagerServlet extends TopServlet {
     {
         resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
         resp.setContentType("application/zip");
+        resp.setContentLength(0);
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
         ZipOutputStream zipOutput = null;
         try {
-            zipOutput = new ZipOutputStream(resp.getOutputStream());
+            zipOutput = new ZipOutputStream(resp.getOutputStream(), Charset.forName("UTF8"));
             final ContextManager contextManager = ContextManager.getContextManager(req.getSession());
             outputZipDebugFile(pwmApplication,pwmSession,contextManager,zipOutput,pathPrefix);
         } catch (Exception e) {
             LOGGER.error(pwmSession, "error during zip debug building: " + e.getMessage());
         } finally {
             if (zipOutput != null) {
-                zipOutput.close();
+                try {
+                    zipOutput.close();
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "error during zip debug closing: " + e.getMessage());
+                }
             }
         }
 
@@ -332,19 +338,23 @@ public class ConfigManagerServlet extends TopServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
+        { // kick off health check so that it might be faster later..
+            Thread healthThread = new Thread() {
+                public void run() {
+                    pwmApplication.getHealthMonitor().getHealthRecords();
+                }
+            };
+            healthThread.setName(Helper.makeThreadName(pwmApplication, ConfigManagerServlet.class) + "-HealthCheck");
+            healthThread.setDaemon(true);
+            healthThread.start();
+        }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.CONFIG_FILE_FILENAME));
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(contextManager);
             final String output = storedConfiguration.toXml();
             zipOutput.write(output.getBytes("UTF8"));
             zipOutput.closeEntry();
-        }
-        {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
-            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
-            final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
-            zipOutput.write(recordJson.getBytes("UTF8"));
-            zipOutput.closeEntry();
+            zipOutput.flush();
         }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "info.json"));
@@ -369,6 +379,7 @@ public class ConfigManagerServlet extends TopServlet {
             final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();
+            zipOutput.flush();
         }
         if (pwmApplication.getPwmApplicationPath() != null) {
             try {
@@ -377,6 +388,7 @@ public class ConfigManagerServlet extends TopServlet {
                 final String json = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
                 zipOutput.write(json.getBytes("UTF8"));
                 zipOutput.closeEntry();
+                zipOutput.flush();
             } catch (Exception e) {
                 LOGGER.error(pwmSession,"unable to generate fileMd5sums during zip debug building: " + e.getMessage());
             }
@@ -385,13 +397,36 @@ public class ConfigManagerServlet extends TopServlet {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "debug.log"));
             final int maxCount = 100 * 1000;
             final int maxSeconds = 30 * 1000;
-            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(null, PwmLogLevel.TRACE,maxCount,null,null,maxSeconds,null);
-            final List<PwmLogEvent> events = searchResults.getEvents();
-            for (final PwmLogEvent event  : events) {
+            final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(
+                    PwmLogLevel.TRACE,
+                    maxCount,
+                    null,
+                    null,
+                    maxSeconds,
+                    null
+            );
+            final LocalDBLogger.SearchResults searchResults = pwmApplication.getLocalDBLogger().readStoredEvents(
+                    searchParameters);
+            int counter = 0;
+            while (searchResults.hasNext()) {
+                final PwmLogEvent event = searchResults.next();
                 zipOutput.write(event.toLogString(false).getBytes("UTF8"));
                 zipOutput.write("\n".getBytes("UTF8"));
+                counter++;
+                if (counter % 100 == 0) {
+                    zipOutput.flush();
+                }
+                System.out.println(counter);
             }
             zipOutput.closeEntry();
+        }
+        {
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
+            final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
+            final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
+            zipOutput.write(recordJson.getBytes("UTF8"));
+            zipOutput.closeEntry();
+            zipOutput.flush();
         }
     }
 

@@ -39,8 +39,8 @@ public class ExportLogsCommand extends AbstractCliCommand {
     void doCommand()
             throws Exception
     {
-        final LocalDB pwmDB = this.cliEnvironment.getLocalDB();
-        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmDB,
+        final LocalDB localDB = this.cliEnvironment.getLocalDB();
+        final LocalDBStoredQueue logQueue = LocalDBStoredQueue.createLocalDBStoredQueue(null, localDB,
                 LocalDB.DB.EVENTLOG_EVENTS);
 
         if (logQueue.isEmpty()) {

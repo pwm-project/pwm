@@ -25,7 +25,6 @@ package password.pwm.util;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
-import password.pwm.PwmSession;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -77,7 +76,8 @@ public class LocalDBLogger implements PwmService {
         status = STATUS.OPENING;
         this.settings = settings.copy();
         this.localDB = localDB;
-        this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
+        this.localDBListQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication,
+                this.localDB, LocalDB.DB.EVENTLOG_EVENTS);
 
         if (settings.maxEvents == 0) {
             LOGGER.info("maxEvents set to zero, clearing LocalDBLogger history and LocalDBLogger will remain closed");
@@ -250,73 +250,65 @@ public class LocalDBLogger implements PwmService {
         User, System, Both
     }
 
-    public SearchResults readStoredEvents(
-            final PwmSession pwmSession,
-            final PwmLogLevel minimumLevel,
-            final int count,
-            final String username,
-            final String text,
-            final long maxQueryTime,
-            final EventType eventType
-    ) {
-        final long startTime = System.currentTimeMillis();
-        final int maxReturnedEvents = count > this.settings.getMaxEvents() ? this.settings.getMaxEvents() : count;
-        final int eventsInDb = localDBListQueue.size();
+    public static class SearchParameters {
+        final private PwmLogLevel minimumLevel;
+        final private int maxEvents;
+        final private String username;
+        final private String text;
+        final private long maxQueryTime;
+        final private EventType eventType;
 
-        Pattern pattern = null;
-        try {
-            if (username != null && username.length() > 0) {
-                pattern = Pattern.compile(username);
-            }
-        } catch (PatternSyntaxException e) {
-            LOGGER.trace("invalid regex syntax for " + username + ", reverting to plaintext search");
-        }
-
-        final List<PwmLogEvent> returnList = new ArrayList<PwmLogEvent>();
-        final Iterator<String> iterator = localDBListQueue.iterator();
-        boolean timeExceeded = false;
-
-        int examinedPositions = 0;
-        while (status == STATUS.OPEN && returnList.size() < maxReturnedEvents && examinedPositions < eventsInDb) {
-            final PwmLogEvent loopEvent = readEvent(iterator.next());
-            if (loopEvent != null) {
-                if (checkEventForParams(loopEvent, minimumLevel, username, text, pattern, eventType)) {
-                    returnList.add(loopEvent);
-                }
-            }
-
-            if ((System.currentTimeMillis() - startTime) > maxQueryTime) {
-                timeExceeded = true;
-                break;
-            }
-
-            examinedPositions++;
-        }
-
-        Collections.sort(returnList);
-        Collections.reverse(returnList);
-        final TimeDuration searchTime = TimeDuration.fromCurrent(startTime);
-
+        public SearchParameters(
+                final PwmLogLevel minimumLevel,
+                final int count,
+                final String username,
+                final String text,
+                final long maxQueryTime,
+                final EventType eventType        )
         {
-            final StringBuilder debugMsg = new StringBuilder();
-            debugMsg.append("dredged ").append(NumberFormat.getInstance().format(examinedPositions)).append(" events");
-            debugMsg.append(" to return ").append(NumberFormat.getInstance().format(returnList.size())).append(" events");
-            debugMsg.append(" for query (minimumLevel=").append(minimumLevel).append(", count=").append(count);
-            if (username != null && username.length() > 0) {
-                debugMsg.append(", username=").append(username);
-            }
-            if (text != null && text.length() > 0) {
-                debugMsg.append(", text=").append(text);
-            }
-            debugMsg.append(")");
-            debugMsg.append(" in ").append(searchTime.asCompactString());
-            if (timeExceeded) {
-                debugMsg.append(" (maximum query time reached)");
-            }
-            LOGGER.trace(pwmSession, debugMsg.toString());
+            this.eventType = eventType;
+            this.maxQueryTime = maxQueryTime;
+            this.text = text;
+            this.username = username;
+            this.maxEvents = count;
+            this.minimumLevel = minimumLevel;
         }
 
-        return new SearchResults(returnList, examinedPositions, searchTime);
+        public PwmLogLevel getMinimumLevel()
+        {
+            return minimumLevel;
+        }
+
+        public int getMaxEvents()
+        {
+            return maxEvents;
+        }
+
+        public String getUsername()
+        {
+            return username;
+        }
+
+        public String getText()
+        {
+            return text;
+        }
+
+        public long getMaxQueryTime()
+        {
+            return maxQueryTime;
+        }
+
+        public EventType getEventType()
+        {
+            return eventType;
+        }
+    }
+
+    public SearchResults readStoredEvents(
+            final SearchParameters searchParameters
+    ) {
+        return new SearchResults(localDBListQueue.iterator(), searchParameters);
     }
 
     public TimeDuration getDirtyQueueTime() {
@@ -341,11 +333,7 @@ public class LocalDBLogger implements PwmService {
 
     private boolean checkEventForParams(
             final PwmLogEvent event,
-            final PwmLogLevel level,
-            final String username,
-            final String text,
-            final Pattern pattern,
-            final EventType eventType
+            final SearchParameters searchParameters
     ) {
         if (event == null) {
             return false;
@@ -353,27 +341,35 @@ public class LocalDBLogger implements PwmService {
 
         boolean eventMatchesParams = true;
 
-        if (level != null) {
-            if (event.getLevel().compareTo(level) <= -1) {
+        if (searchParameters.getMinimumLevel()!= null) {
+            if (event.getLevel().compareTo(searchParameters.getMinimumLevel()) <= -1) {
                 eventMatchesParams = false;
             }
         }
 
+        Pattern pattern = null;
+        try {
+            if (searchParameters.getUsername() != null && searchParameters.getUsername().length() > 0) {
+                pattern = Pattern.compile(searchParameters.getUsername());
+            }
+        } catch (PatternSyntaxException e) {
+            LOGGER.trace("invalid regex syntax for " + searchParameters.getUsername() + ", reverting to plaintext search");
+        }
         if (pattern != null) {
             final Matcher matcher = pattern.matcher(event.getActor());
             if (!matcher.find()) {
                 eventMatchesParams = false;
             }
-        } else if (eventMatchesParams && (username != null && username.length() > 1)) {
+        } else if (eventMatchesParams && (searchParameters.getUsername() != null && searchParameters.getUsername().length() > 1)) {
             final String eventUsername = event.getActor();
-            if (eventUsername == null || !eventUsername.equalsIgnoreCase(username)) {
+            if (eventUsername == null || !eventUsername.equalsIgnoreCase(searchParameters.getUsername())) {
                 eventMatchesParams = false;
             }
         }
 
-        if (eventMatchesParams && (text != null && text.length() > 0)) {
+        if (eventMatchesParams && (searchParameters.getText() != null && searchParameters.getText().length() > 0)) {
             final String eventMessage = event.getMessage();
-            final String textLowercase = text.toLowerCase();
+            final String textLowercase = searchParameters.getText() .toLowerCase();
             boolean isAMatch = false;
             if (eventMessage != null && eventMessage.length() > 0) {
                 if (eventMessage.toLowerCase().contains(textLowercase)) {
@@ -389,12 +385,12 @@ public class LocalDBLogger implements PwmService {
             }
         }
 
-        if (eventType != null) {
-            if (eventType == EventType.System) {
+        if (searchParameters.getEventType() != null) {
+            if (searchParameters.getEventType() == EventType.System) {
                 if (event.getActor() != null && event.getActor().length() > 0) {
                     eventMatchesParams = false;
                 }
-            } else if (eventType == EventType.User) {
+            } else if (searchParameters.getEventType() == EventType.User) {
                 if (event.getActor() == null || event.getActor().length() < 1) {
                     eventMatchesParams = false;
                 }
@@ -476,27 +472,87 @@ public class LocalDBLogger implements PwmService {
         }
     }
 
-    public static class SearchResults implements Serializable {
-        final private List<PwmLogEvent> events;
-        final private int searchedEvents;
-        final private TimeDuration searchTime;
+    public class SearchResults implements Serializable, Iterator<PwmLogEvent> {
+        final private Iterator<String> localDBIterator;
+        final private SearchParameters searchParameters;
 
-        private SearchResults(final List<PwmLogEvent> events, final int searchedEvents, final TimeDuration searchTime) {
-            this.events = events;
-            this.searchedEvents = searchedEvents;
-            this.searchTime = searchTime;
+        private final Date startTime;
+
+        private PwmLogEvent nextEvent;
+        private int eventCount = 0;
+        private Date finishTime;
+
+        private SearchResults(
+                final Iterator<String> localDBIterator,
+                final SearchParameters searchParameters
+        ) {
+            startTime = new Date();
+            this.localDBIterator = localDBIterator;
+            this.searchParameters = searchParameters;
+            nextEvent = readNextEvent();
         }
 
-        public List<PwmLogEvent> getEvents() {
-            return events;
+        @Override
+        public boolean hasNext()
+        {
+            return nextEvent != null;
         }
 
-        public int getSearchedEvents() {
-            return searchedEvents;
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException();
         }
 
-        public TimeDuration getSearchTime() {
-            return searchTime;
+        public PwmLogEvent next() {
+            if (nextEvent == null) {
+                throw new NoSuchElementException();
+            }
+
+            final PwmLogEvent returnEvent = nextEvent;
+            nextEvent = readNextEvent();
+            return returnEvent;
+        }
+
+        private boolean isTimedout() {
+            //return false;
+            return TimeDuration.fromCurrent(startTime).isLongerThan(new TimeDuration(searchParameters.getMaxQueryTime()));
+        }
+
+        private PwmLogEvent readNextEvent()
+        {
+            if (eventCount >= searchParameters.getMaxEvents() || isTimedout()) {
+                finishTime = new Date();
+                return null;
+            }
+
+            while (!isTimedout() && localDBIterator.hasNext()) {
+                final String nextDbValue = localDBIterator.next();
+                if (nextDbValue == null) {
+                    finishTime = new Date();
+                    return null;
+                }
+
+                final PwmLogEvent logEvent = readEvent(nextDbValue);
+                if (logEvent != null && checkEventForParams(logEvent, searchParameters)) {
+                    eventCount++;
+                    return logEvent;
+                }
+            }
+
+            finishTime = new Date();
+            return null;
+        }
+
+        public int getReturnedEvents()
+        {
+            return eventCount;
+        }
+
+
+        public TimeDuration getSearchTime()
+        {
+            return finishTime == null ? TimeDuration.fromCurrent(startTime) : new TimeDuration(startTime,finishTime);
         }
     }
 

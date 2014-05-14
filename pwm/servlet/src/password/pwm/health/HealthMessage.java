@@ -70,6 +70,8 @@ public enum HealthMessage {
     LocalDB_BAD                             (HealthStatus.WARN,     HealthTopic.LocalDB),
     LocalDB_NEW                             (HealthStatus.WARN,     HealthTopic.LocalDB),
     LocalDB_CLOSED                          (HealthStatus.WARN,     HealthTopic.LocalDB),
+    ServiceClosed_LocalDBUnavail            (HealthStatus.CAUTION,  HealthTopic.Application),
+    ServiceClosed_AppReadOnly               (HealthStatus.CAUTION,  HealthTopic.Application),
 
     ;
 

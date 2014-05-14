@@ -164,24 +164,26 @@
         
             LocalDBLogger.SearchResults searchResults = null;
             try {
-                searchResults = localDBLogger.readStoredEvents(PwmSession.getPwmSession(session), logLevel, eventCount, username, text, maxTime, logType);
+                final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, username, text, maxTime, logType);
+                searchResults = localDBLogger.readStoredEvents(searchParameters);
             } catch (Exception e) {
                 out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");
             }
         %>
-        <% if (searchResults == null || searchResults.getEvents().isEmpty()) { %>
+        <% if (!searchResults.hasNext()) { %>
         <p style="text-align:center;">No events matched your search. Please refine your search query and try again.</p>
         <% } else { %>
         <% if (displayAsText) { %>
         <hr/>
-        <pre><% for (final PwmLogEvent event : searchResults.getEvents()) { %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
+        <pre><% while (searchResults.hasNext()) { final PwmLogEvent event = searchResults.next(); %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
         <hr/>
         <% } else {%>
         <script type="text/javascript">
             var data = [];
             <%
                 final Gson gson = Helper.getGson();
-                for (final PwmLogEvent event : searchResults.getEvents()) {
+                while (searchResults.hasNext()) {
+                    final PwmLogEvent event = searchResults.next();
                     try {
                         final Map<String, Object> rowData = new LinkedHashMap<String, Object>();
                         rowData.put("timestamp", event.getDate());
@@ -246,8 +248,8 @@
                 });
             </script>
         <% } %>
-        <p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getEvents().size()) %> entries after
-            searching <%= numberFormat.format(searchResults.getSearchedEvents()) %> log entries
+        <p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getReturnedEvents()) %> entries after
+            searching <%= numberFormat.format(searchResults.getReturnedEvents()) %> log entries
             in <%= searchResults.getSearchTime().asCompactString() %>.</p>
         <% } %>
     </div>
@@ -256,12 +258,8 @@
             This page shows the debug log
             history. This history is stored in the LocalDB cache of the debug log. For a
             permanent log
-            record of events, see the application server's log file.
-            All times listed are in
-            the <%= (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName() %>
-            timezone. The LocalDB contains <%=numberFormat.format(localDBLogger.getStoredEventCount())%> events. The oldest event is from
-            <%= SimpleDateFormat.getInstance().format(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %>
-            .
+            record of events, see the application server's log file.  The LocalDB contains <%=numberFormat.format(localDBLogger.getStoredEventCount())%> events. The oldest event is from
+            <span class="timestamp"><%= PwmConstants.DEFAULT_DATETIME_FORMAT.format(ContextManager.getPwmApplication(session).getLocalDBLogger().getTailDate()) %></span>.
             </p><p>
             The LocalDB is configured to capture events of level
             <b><%=ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL)%>
