@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.otp;
 
 import java.util.ArrayList;
@@ -29,10 +30,14 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.otp.OTPPamUtil;
+import password.pwm.util.otp.OTPUrlUtil;
 import password.pwm.util.otp.OTPUserConfiguration;
 
 /**
@@ -49,8 +54,9 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      *
      * @param otpconfig
      * @return
+     * @throws password.pwm.error.PwmUnrecoverableException
      */
-    public String composeOtpAttribute(OTPUserConfiguration otpconfig) {
+    public String composeOtpAttribute(OTPUserConfiguration otpconfig) throws PwmUnrecoverableException {
         String value = "";
         if (otpconfig != null) {
             String formatStr = config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT);
@@ -70,6 +76,19 @@ public abstract class AbstractOtpOperator implements OtpOperator {
                             LOGGER.warn(ex.getMessage(), ex);
                         }
                         break;
+                    case OTPURL:
+                        value = OTPUrlUtil.composeOtpUrl(otpconfig);
+                        break;
+                    case BASE32SECRET:
+                        value = otpconfig.getSecret();
+                        break;
+                    case PAM:
+                        value = OTPPamUtil.composePamData(otpconfig);
+                        break;
+                    default:
+                        String errorStr = String.format("Unsupported storage format: ", format.toString());
+                        ErrorInformation error = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorStr);
+                        throw new PwmUnrecoverableException(error);
                 }
             }
         }
@@ -108,14 +127,18 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @return
      */
     public OTPUserConfiguration decomposeOtpAttribute(String value) {
-        OTPUserConfiguration otpconfig = new OTPUserConfiguration();
+        if (value == null) {
+            return null;
+        }
+        OTPUserConfiguration otpconfig = null;
         /* Try format by format */
+        /* - PWM JSON */
         try {
             JSONObject json = new JSONObject(value);
-            /* PWM JSON */
             if (json.has("identifier")
                     && json.has("secret")
                     && json.has("type")) {
+                otpconfig = new OTPUserConfiguration();
                 otpconfig.setIdentifier(json.getString("identifier"));
                 otpconfig.setSecret(json.getString("secret"));
                 otpconfig.setType(OTPUserConfiguration.Type.valueOf(json.getString("type")));
@@ -132,17 +155,37 @@ public abstract class AbstractOtpOperator implements OtpOperator {
                         otpconfig.setRecoveryCodes(recoverycodes);
                     }
                 }
+                LOGGER.debug("Detected JSON format - returning");
                 return otpconfig;
             } else {
                 return null;
             }
         } catch (JSONException ex) {
-            LOGGER.warn(ex.getMessage(), ex);
+            LOGGER.info(ex.getMessage(), ex);
             /* So, it's not JSON, try something else */
             /* -- nothing to try, yet; for future use */
             /* no more options */
-            return null;
         }
+        /* - otpauth:// URL */
+        otpconfig = OTPUrlUtil.decomposeOtpUrl(value);
+        if (otpconfig != null) {
+            LOGGER.debug("Detected otpauth URL format - returning");
+            return otpconfig;
+        }
+        /* - PAM */
+        otpconfig = OTPPamUtil.decomposePamData(value);
+        if (otpconfig != null) {
+            LOGGER.debug("Detected PAM text format - returning");
+            return otpconfig;
+        }
+        /* - BASE32 secret */
+        if (value.trim().matches("^[A-Z2-7\\=]{16}$")) {
+            LOGGER.debug("Detected plain Base32 secret - returning");
+            otpconfig = new OTPUserConfiguration();
+            otpconfig.setSecret(value.trim());
+            return otpconfig;
+        }
+        return otpconfig;
     }
 
     /**
@@ -165,7 +208,8 @@ public abstract class AbstractOtpOperator implements OtpOperator {
 
         PWM(true),
         BASE32SECRET(false),
-        OTPURL(false);
+        OTPURL(false),
+        PAM(true);
 
         private final boolean useRecoveryCodes;
 

@@ -347,15 +347,23 @@ public class ForgottenPasswordServlet extends TopServlet {
         throw new PwmOperationalException(errorInformation);
     }
 
+    /**
+     * Load the OTP configuration for the user into the forgotten password bean.
+     *
+     * @param pwmApplication
+     * @param forgottenPasswordBean
+     * @throws PwmUnrecoverableException
+     * @throws ChaiUnavailableException
+     * @throws PwmOperationalException
+     */
     private static void loadOtpConfigIntoBean(
-            final PwmSession pwmSession,
             final PwmApplication pwmApplication,
             final ForgottenPasswordBean forgottenPasswordBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
-        final OTPUserConfiguration otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(theUser);
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+        final OTPUserConfiguration otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(userIdentity);
 
         LOGGER.trace("loaded one time password configuration for user");
         if (otpConfig != null) {
@@ -365,7 +373,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         forgottenPasswordBean.setOtpConfig(null);
 
-        final String errorMsg = "could not find a one time password configuration for " + theUser;
+        final String errorMsg = "could not find a one time password configuration for " + userIdentity;
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
         throw new PwmOperationalException(errorInformation);
     }
@@ -528,7 +536,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         if (otpEnabled) {
             if (forgottenPasswordBean.getOtpConfig() == null) {
                 try {
-                    loadOtpConfigIntoBean(pwmSession, pwmApplication, forgottenPasswordBean);
+                    loadOtpConfigIntoBean(pwmApplication, forgottenPasswordBean);
                 } catch (PwmOperationalException e) {
                     pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
                     LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());

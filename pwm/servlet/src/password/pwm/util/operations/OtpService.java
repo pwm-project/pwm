@@ -79,7 +79,7 @@ public class OtpService implements PwmService {
         return Collections.emptyList();
     }
 
-    public OTPUserConfiguration readOTPUserConfiguration(final UserIdentity theUser)
+    public OTPUserConfiguration readOTPUserConfiguration(final UserIdentity userIdentity)
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final Configuration config = pwmApplication.getConfig();
         final long methodStartTime = System.currentTimeMillis();
@@ -90,7 +90,7 @@ public class OtpService implements PwmService {
             final String userGUID;
             if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
                     DataStorageMethod.LOCALDB)) {
-                userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication,theUser, false);
+                userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
             } else {
                 userGUID = null;
             }
@@ -99,7 +99,7 @@ public class OtpService implements PwmService {
                 final DataStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
-                    otpConfig = operator.readOtpUserConfiguration(theUser, userGUID);
+                    otpConfig = operator.readOtpUserConfiguration(userIdentity, userGUID);
                 } else {
                     LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
                 }

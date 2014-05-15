@@ -1675,15 +1675,24 @@
             <option value="LOCALDB">LocalDB</option>
         </options>
     </setting>
-    <setting key="otp.secret.storageFormat" level="0" required="true" hidden="true">
-        <!--unhide when more options-->
+    <setting key="otp.secret.storageFormat" level="0" required="true">
         <label>Token Storage Method</label>
-        <description><![CDATA[Storage format used to save one time password secrets.<table style="width: 400px"><tr><td>Format</td><td>Description</td></tr><tr><td>PWM</td><td>Store the secret in PWM native format.</td></tr></table>]]></description>
+        <description><![CDATA[Storage format used to save one time password secrets.
+<table style="width: 400px">
+<tr><td>Format</td><td>Description</td></tr>
+<tr><td>PWM JSON</td><td>Store the secret, descriptions and recovery codes in PWM native (json) format.</td></tr>
+<tr><td>Base32 secret</td><td>Store only the TOTP-secret as a base32 encoded string. This format does not support recovery codes or counter based tokens.</td></tr>
+<tr><td>OTP URL</td><td>Store the secret and description as an otpauth:// url, used for generating the QR-code. This format does not support recovery codes.</td></tr>
+<tr><td>PAM text</td><td>Store the secret, description and recovery codes in the text file format, used by the Google Authenticator PAM module.</td></tr>
+</table>]]></description>
         <default>
             <value><![CDATA[PWM]]></value>
         </default>
         <options>
-            <option value="PWM">PWM</option>
+            <option value="PWM">PWM JSON</option>
+            <option value="BASE32SECRET">Base32 secret</option>
+            <option value="OTPURL">OTP URL</option>
+            <option value="PAM">PAM text</option>
         </options>
     </setting>
     <setting key="otp.secret.encrypt" level="0" required="true">
