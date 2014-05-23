@@ -264,7 +264,7 @@
     <setting key="password.allowChange.queryMatch" level="1" required="true">
         <label>Change Password Permission</label>
         <description><![CDATA[Permissions used to detect if a user is a permitted to change password.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
@@ -438,10 +438,10 @@
     <setting key="pwmAdmin.queryMatch" level="0" required="true">
         <label>Administrator Permission</label>
         <description><![CDATA[Permissions used to determine if a user will be granted administrator rights.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
-        <default template="AD">
+        <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
@@ -1713,7 +1713,7 @@
     <setting key="otp.secret.allowSetup.queryMatch" level="0" required="true">
         <label>OTP Secret Setup Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to setup an OTP secret.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
@@ -1996,14 +1996,14 @@
     <setting key="challenge.allowSetup.queryMatch" level="1" required="true">
         <label>Save Challenge Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
         <label>Check Responses Match</label>
         <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
@@ -2474,10 +2474,10 @@
     <setting key="activateUser.queryMatch" level="0" required="true">
         <label>Activation Permission</label>
         <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who have never been authenticated and are not disabled to activate.  The default example uses the last login time attribute(s) on the user object to determine if the user has never logged in.  It is the responsibility of the administrator to ensure this activation feature works correctly.  Misconfiguration could potentially result in unintended activations being able to take place.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
-        <default template="AD">
+        <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
         </default>
     </setting>
@@ -2534,7 +2534,7 @@
     <setting key="updateAttributes.queryMatch" level="0" required="true">
         <label>Update Profile Permission</label>
         <description><![CDATA[Only allow users who match this query to be update their profile.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=person)"}]]></value>
         </default>
     </setting>
@@ -2617,7 +2617,7 @@
     <setting key="peopleSearch.queryMatch" level="0" required="true">
         <label>Permitted Users</label>
         <description><![CDATA[Define the users permitted to access the People Search module.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
@@ -2791,10 +2791,10 @@
     <setting key="helpdesk.queryMatch" level="0" required="true">
         <label>Helpdesk Permission</label>
         <description><![CDATA[LDAP query string used to detect if logged in user is permitted to access the helpdesk module.  The user must be returned during this is ldap query or else the user will not be permitted to access the helpdesk module.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
-        <default template="AD">
+        <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
@@ -2824,13 +2824,6 @@
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
             <value>{"name":"userPrincipalName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"UPN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-        </default>
-        <default template="">
-            <value>{"name":"CN","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"CN"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"WorkforceID","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Workforce ID"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
     <setting key="helpdesk.detail.form" level="0" required="true">
@@ -3125,10 +3118,10 @@
     <setting key="webservices.thirdParty.queryMatch" level="0">
         <label>Web Services Third Party Query String</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
-        <default>
+        <default syntaxVersion="2">
             <value><![CDATA[{"ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
         </default>
-        <default template="AD">
+        <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>

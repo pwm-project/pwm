@@ -94,22 +94,23 @@ public class StoredConfiguration implements Serializable {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
     private static final String XML_FORMAT_VERSION = "3";
 
-    private static final String XML_ELEMENT_ROOT = "PwmConfiguration";
-    private static final String XML_ELEMENT_PROPERTIES = "properties";
-    private static final String XML_ELEMENT_PROPERTY = "property";
-    private static final String XML_ELEMENT_SETTINGS = "settings";
-    private static final String XML_ELEMENT_SETTING = "setting";
-    private static final String XML_ELEMENT_DEFAULT = "default";
+    public static final String XML_ELEMENT_ROOT = "PwmConfiguration";
+    public static final String XML_ELEMENT_PROPERTIES = "properties";
+    public static final String XML_ELEMENT_PROPERTY = "property";
+    public static final String XML_ELEMENT_SETTINGS = "settings";
+    public static final String XML_ELEMENT_SETTING = "setting";
+    public static final String XML_ELEMENT_DEFAULT = "default";
 
-    private static final String XML_ATTRIBUTE_TYPE = "type";
-    private static final String XML_ATTRIBUTE_KEY = "key";
-    private static final String XML_ATTRIBUTE_SYNTAX = "syntax";
-    private static final String XML_ATTRIBUTE_PROFILE = "profile";
-    private static final String XML_ATTRIBUTE_VALUE_APP = "app";
-    private static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
-    private static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";
-    private static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
-    private static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
+    public static final String XML_ATTRIBUTE_TYPE = "type";
+    public static final String XML_ATTRIBUTE_KEY = "key";
+    public static final String XML_ATTRIBUTE_SYNTAX = "syntax";
+    public static final String XML_ATTRIBUTE_PROFILE = "profile";
+    public static final String XML_ATTRIBUTE_VALUE_APP = "app";
+    public static final String XML_ATTRIBUTE_VALUE_CONFIG = "config";
+    public static final String XML_ATTRIBUTE_CREATE_TIME = "createTime";
+    public static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
+    public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
+    public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
 
     private String createTime;
 
@@ -732,6 +733,7 @@ public class StoredConfiguration implements Serializable {
             final Element settingElement = createOrGetSettingElement(document, setting, profileID);
             settingElement.removeContent();
             settingElement.setAttribute(XML_ATTRIBUTE_SYNTAX, setting.getSyntax().toString());
+            settingElement.setAttribute(XML_ATTRIBUTE_SYNTAX_VERSION, Integer.toString(value.currentSyntaxVersion()));
 
             if (setting_writeLabels) {
                 final Element labelElement = new Element("label");

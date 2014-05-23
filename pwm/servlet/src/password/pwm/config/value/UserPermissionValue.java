@@ -27,7 +27,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingSyntax;
+import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
 import password.pwm.error.PwmOperationalException;
@@ -61,8 +61,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
 
     static UserPermissionValue fromXmlElement(Element settingElement) throws PwmOperationalException
     {
-        final boolean oldType = PwmSettingSyntax.STRING.toString().equals(
-                settingElement.getAttributeValue("syntax"));
+        final boolean newType = "2".equals(settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
         final Gson gson = Helper.getGson();
         final List valueElements = settingElement.getChildren("value");
         final List<UserPermission> values = new ArrayList<UserPermission>();
@@ -70,16 +69,16 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
             if (value != null && !value.isEmpty()) {
-                if (oldType) {
-                        values.add(new UserPermission(null, value));
-                } else {
+                if (newType) {
                     final UserPermission userPermission = gson.fromJson(value,UserPermission.class);
                     values.add(userPermission);
+                } else {
+                    values.add(new UserPermission(null, value));
                 }
             }
         }
         final UserPermissionValue userPermissionValue = new UserPermissionValue(values);
-        userPermissionValue.needsXmlUpdate = oldType;
+        userPermissionValue.needsXmlUpdate = !newType;
         return userPermissionValue;
     }
 
@@ -126,5 +125,11 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         if (leftParens != rightParens) {
             throw new IllegalArgumentException("unbalanced parentheses");
         }
+    }
+
+    @Override
+    public int currentSyntaxVersion()
+    {
+        return 2;
     }
 }

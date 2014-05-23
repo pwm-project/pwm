@@ -46,4 +46,10 @@ public abstract class AbstractValue implements StoredValue {
     {
         return false;
     }
+
+    @Override
+    public int currentSyntaxVersion()
+    {
+        return 0;
+    }
 }

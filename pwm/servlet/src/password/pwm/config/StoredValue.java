@@ -38,4 +38,6 @@ public interface StoredValue extends Serializable {
     String toDebugString(boolean prettyFormat, Locale locale);
 
     boolean requiresStoredUpdate();
+
+    int currentSyntaxVersion();
 }

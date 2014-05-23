@@ -82,4 +82,10 @@ public class BooleanValue implements StoredValue {
     {
         return false;
     }
+
+    @Override
+    public int currentSyntaxVersion()
+    {
+        return 0;
+    }
 }
