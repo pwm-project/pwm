@@ -38,10 +38,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
@@ -233,7 +230,7 @@ public class PasswordUtility {
     {
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
 
-        if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.CHANGE_PASSWORD)) {
             final String errorMsg = "attempt to setUserPassword, but user does not have password change permission";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             throw new PwmOperationalException(errorInformation);
@@ -362,7 +359,7 @@ public class PasswordUtility {
             throw new PwmOperationalException(errorInformation);
         }
 
-        if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.HELPDESK)) {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user does not have helpdesk permission";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             throw new PwmOperationalException(errorInformation);
@@ -678,17 +675,15 @@ public class PasswordUtility {
         for (final String profile : profiles) {
             if (!PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(profile)) {
                 final PwmPasswordPolicy loopPolicy = pwmApplication.getConfig().getPasswordPolicy(profile,locale);
-                final String queryMatch = loopPolicy.getQueryMatch();
-                if (queryMatch != null && queryMatch.length() > 0) {
-                    LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
-                    try {
-                        boolean match = Permission.testQueryMatch(pwmApplication,pwmSession,userIdentity,queryMatch);
-                        if (match) {
-                            return loopPolicy;
-                        }
-                    } catch (PwmUnrecoverableException e) {
-                        LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+                final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
+                LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
+                try {
+                    boolean match = Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
+                    if (match) {
+                        return loopPolicy;
                     }
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error(pwmSession,"unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
                 }
             }
         }

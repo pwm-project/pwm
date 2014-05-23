@@ -40,7 +40,10 @@
             <% request.setAttribute("form",PwmSetting.ACTIVATE_USER_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
-                <input type="submit" name="button" class="btn" value="<pwm:Display key="Button_Activate"/>" id="submitBtn"/>
+                <button type="submit" name="button" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Activate"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="activate"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

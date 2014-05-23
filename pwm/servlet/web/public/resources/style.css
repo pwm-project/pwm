@@ -218,7 +218,6 @@ input[type=password]::-ms-reveal{display: none;}
 
 .btn {
     border-style:none;
-    border-radius: 5px;
     padding: 3px 11px;
     margin: 9px 7px;
     text-decoration: none;
@@ -265,6 +264,7 @@ div.progress-container > div {
     width: 600px;
     margin: 0 auto;
     position:relative;
+    padding:4px;
 }
 
 #header-center-left {
@@ -315,15 +315,14 @@ div.progress-container > div {
 
 #header-warning {
     width: 100%;
-    background-color: #FFDC8B;
+    background-color: #aaaaaa;
     text-align: center;
-    padding: 4px;
 }
 
 .header-error {
     text-align: center;
     white-space: normal;
-    max-width: 700px;
+    max-width: 600px;
     padding-left: 6px;
     padding-right: 6px;
     margin-left: auto;
@@ -580,6 +579,7 @@ body > iframe[src="about:blank"] {
 }
 
 img.qrcodeimage {
+    cursor: none;
     background-color: white;
     display: block;
     margin-left: auto;
@@ -594,4 +594,20 @@ img.qrcodeimage {
     background-color: #aa9f29;
     border-radius: 2px;
     color: white;
+}
+
+.btn-icon {
+    margin-right: 5px;
+}
+
+.pageOverlay {
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 1001;
+    display: none;
+    opacity:0.6;
+    background-color: black;
 }

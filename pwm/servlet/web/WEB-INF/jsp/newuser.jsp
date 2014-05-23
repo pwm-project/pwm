@@ -44,10 +44,12 @@
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
-                <input type="submit" name="Create" class="btn"
-                       value="<pwm:Display key="Button_Create"/>"
-                       id="submitBtn"/>
+                <button type="submit" name="Create" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

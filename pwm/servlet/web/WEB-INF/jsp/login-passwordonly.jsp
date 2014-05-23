@@ -39,16 +39,12 @@
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
             <input type="password" name="password" id="password" class="inputfield" autofocus/>
             <div id="buttonbar">
-                <input type="submit" class="btn"
-                       name="button"
-                       value="<pwm:Display key="Button_Login"/>"
-                       id="submitBtn"/>
-                <input type="hidden" name="processAction" value="login">
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
+                <button type="submit" class="btn" name="button" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
+                    <pwm:Display key="Button_Login"/>
                 </button>
-                <% } %>
+                <input type="hidden" name="processAction" value="login">
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

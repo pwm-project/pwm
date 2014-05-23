@@ -32,6 +32,7 @@
 
 .btn {
     font-family: Trebuchet MS, sans-serif;
+    border-radius: 3px;
     box-shadow: 2px 2px 1px 1px #8c8c8c;
     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #3e374c), color-stop(1, #08070f) );
     background:linear-gradient(to bottom, #3e374c 5%, #08070f 100% );
@@ -99,3 +100,7 @@ h3 {
      background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
+
+.btn-icon {
+    opacity:0.75;
+}

@@ -91,7 +91,7 @@ public class ChangePasswordServlet extends TopServlet {
             cpb.setCurrentPasswordRequired(true);
         }
 
-        if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.CHANGE_PASSWORD)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -281,6 +281,13 @@ public class ChangePasswordServlet extends TopServlet {
             ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);
             return;
         }
+
+        if (pwmSession.getUserInfoBean().getPasswordState().isWarnPeriod()) {
+            if (!pwmSession.getUserInfoBean().isRequiresNewPassword()) {
+
+            }
+        }
+
 
         final String agreementMsg = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_CHANGE_AGREEMENT_MESSAGE, pwmSession.getSessionStateBean().getLocale());
         if (agreementMsg != null && agreementMsg.length() > 0 && !cpb.isAgreementPassed()) {

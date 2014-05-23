@@ -41,13 +41,11 @@
             <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_Search"/>"
-                       id="submitBtn"/>
+                <input type="hidden" name="processAction" value="search"/>
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                    <pwm:Display key="Button_Search"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -36,25 +36,26 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            Password
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                Password
+            </div>
         </div>
     </div>
     <div id="centerbody">
         <form id="configForm" data-dojo-type="dijit/form/Form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-                <br/>
+            <br/>
             <div id="password" class="setting_outline">
                 <div class="setting_title">
                     Configuration Password
                 </div>
                 <div class="setting_body">
-                To protect this system, you will need to set a configuration password.  The configuration password will be required whenever
-                you wish to modify the configuration using the web based configuration manager.
+                    To protect this system, you will need to set a configuration password.  The configuration password will be required whenever
+                    you wish to modify the configuration using the web based configuration manager.
                     <div class="setting_item">
                         <b>Configuration Password</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
@@ -109,8 +110,15 @@
         </form>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('CR_STORAGE');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-            <button class="btn" id="button_next" onclick="gotoStep('END');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('CR_STORAGE');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn" id="button_next" onclick="gotoStep('END');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next" bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

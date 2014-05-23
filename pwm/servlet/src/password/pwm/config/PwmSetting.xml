@@ -29,6 +29,8 @@
     <setting key="pwm.selfURL" level="0">
         <label>Site URL</label>
         <description><![CDATA[The URL to this password servlet, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.]]></description>
+        <regex>^(http|https)://.+$</regex>
+        <placeholder>http://www.example.com/password</placeholder>
         <default>
             <value />
         </default>
@@ -42,7 +44,7 @@
     </setting>
     <setting key="pwm.publishStats.enable" level="0" required="true">
         <label>Enable Anonymous Statistics Publishing</label>
-        <description><![CDATA[If true, the statitistics of this application are periodically published statics to the project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps developers know which features are used by administrators.]]></description>
+        <description><![CDATA[If true, the statistics of this application are periodically published statics to the project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps developers know which features are used by administrators.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -93,7 +95,6 @@
     <setting key="knownLocales" level="1">
         <label>Known Locales</label>
         <description><![CDATA[List of locales available.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
-        <regex>^.+::.+$</regex>
         <default>
             <value><![CDATA[en::us]]></value>
             <value><![CDATA[cs::cz]]></value>
@@ -122,7 +123,7 @@
     </setting>
     <setting key="interface.theme" level="0" required="true">
         <label>Interface Theme</label>
-        <description><![CDATA[Change the look and feel by selecting a theme.  Themes are provided to provide CSS customizers inspiration.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
+        <description><![CDATA[Change the look and feel by selecting a theme.  The included themes are provided to mainly to inspiration to those wishing to make customizations.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
         <default>
             <value><![CDATA[pwm]]></value>
         </default>
@@ -173,7 +174,7 @@
         <label>Show Clear Button</label>
         <description><![CDATA[Where appropriate, show a "Clear" button to user.  Pressing the clear button will clear the form field values to their original values.]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting key="display.showSuccessPage" level="0" required="true">
@@ -261,10 +262,10 @@
         </default>
     </setting>
     <setting key="password.allowChange.queryMatch" level="1" required="true">
-        <label>Change Password Query Match</label>
-        <description><![CDATA[Query string used to detect if a user is a permitted to change password.  The user must be returned during this ldap query or else the user will not be permitted to change the password.]]></description>
+        <label>Change Password Permission</label>
+        <description><![CDATA[Permissions used to detect if a user is a permitted to change password.]]></description>
         <default>
-            <value><![CDATA[(objectClass=*)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
@@ -435,13 +436,13 @@
         </default>
     </setting>
     <setting key="pwmAdmin.queryMatch" level="0" required="true">
-        <label>Administrator Query String</label>
-        <description><![CDATA[Query string used to detect if a user will be granted administrator rights.  An LDAP query is performed during login against the logged in user to determine if the user is an administrator.  If the user matches the query, then the user is considered an administrator.]]></description>
+        <label>Administrator Permission</label>
+        <description><![CDATA[Permissions used to determine if a user will be granted administrator rights.]]></description>
         <default>
-            <value><![CDATA[(groupMembership=cn=Admins,ou=Groups,o=example)]]></value>
+            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)]]></value>
+            <value><![CDATA[{"ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="0" required="true">
@@ -951,8 +952,8 @@
         </default>
     </setting>
     <setting key="password.policy.queryMatch">
-        <label>Password Policy Profile Query Match</label>
-        <description><![CDATA[Password Policy Query Match]]></description>
+        <label>Password Policy Profile Match</label>
+        <description><![CDATA[Settings here are used to determine if this password policy applies to a given user.  During login, if a previous policy has not yet been assigned to the user, the matches here are considered and if positive, the user will then be assigned this policy.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
@@ -1697,23 +1698,30 @@
     </setting>
     <setting key="otp.secret.encrypt" level="0" required="true">
         <label>Encrypt OTP secret</label>
-        <description><![CDATA[If enabled, the configured encryption key is used to encrypt and decrypt token information, to make sure it is not readable as plain text.  Multiple instances of PWM must use the same encryption key.]]></description>
+        <description><![CDATA[If enabled, the configured encryption key is used to encrypt and decrypt token information, to make sure it is not readable as plain text.  Multiple application instances must use the same Security Key.  If the Security Key is changed, stored OTP passwords will no longer be usable.]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
-    <setting key="otp.secret.ldap.attribute" level="0" required="false">
+    <setting key="otp.secret.ldap.attribute" level="1" required="false">
         <label>OTP Secret LDAP Attribute</label>
         <description><![CDATA[LDAP attribute for storing the OTP secret.  This setting is used only when the storage method is set to LDAP.]]></description>
         <default>
-            <value/>
+            <value>pwmOtpSecret</value>
         </default>
     </setting>
     <setting key="otp.secret.allowSetup.queryMatch" level="0" required="true">
-        <label>OTP Secret Setup Query Match</label>
-        <description><![CDATA[Query string used to detect if a user is a permitted to setup an OTP secret.  The user must be returned during this ldap query or else the user will not be permitted to setup the secret.]]></description>
+        <label>OTP Secret Setup Permission</label>
+        <description><![CDATA[Permission used to determine if a user is a permitted to setup an OTP secret.]]></description>
         <default>
-            <value><![CDATA[(objectClass=*)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+        </default>
+    </setting>
+    <setting key="otp.secret.identifier" level="1" required="true">
+        <label>OTP Secret Identifier</label>
+        <description><![CDATA[User Identifier.  Macros are available.]]></description>
+        <default>
+            <value><![CDATA[@User:Email@]]></value>
         </default>
     </setting>
     <setting key="events.healthCheck.minInterval" level="1">
@@ -1986,17 +1994,17 @@
         </default>
     </setting>
     <setting key="challenge.allowSetup.queryMatch" level="1" required="true">
-        <label>Save Challenge Query Match</label>
-        <description><![CDATA[Query string used to detect if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
+        <label>Save Challenge Permission</label>
+        <description><![CDATA[Permission used to determine if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
         <default>
-            <value><![CDATA[(objectClass=*)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
-        <label>Check Responses Query Match</label>
+        <label>Check Responses Match</label>
         <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
         <default>
-            <value><![CDATA[(objectClass=*)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="challenge.enforceMinimumPasswordLifetime" level="1" required="true">
@@ -2015,7 +2023,7 @@
         </default>
     </setting>
     <setting key="challenge.policy.queryMatch">
-        <label>Challenge Profile Query Match</label>
+        <label>Challenge Profile Match</label>
         <description><![CDATA[Challenge Profile Query Match]]></description>
         <default>
             <value><![CDATA[]]></value>
@@ -2464,13 +2472,13 @@
         </default>
     </setting>
     <setting key="activateUser.queryMatch" level="0" required="true">
-        <label>Activation Query Match</label>
+        <label>Activation Permission</label>
         <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who have never been authenticated and are not disabled to activate.  The default example uses the last login time attribute(s) on the user object to determine if the user has never logged in.  It is the responsibility of the administrator to ensure this activation feature works correctly.  Misconfiguration could potentially result in unintended activations being able to take place.]]></description>
         <default>
-            <value><![CDATA[(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))]]></value>
+            <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))]]></value>
+            <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
         </default>
     </setting>
     <setting key="activateUser.writePreAttributes" level="0">
@@ -2524,10 +2532,10 @@
         </default>
     </setting>
     <setting key="updateAttributes.queryMatch" level="0" required="true">
-        <label>Update Query Match</label>
+        <label>Update Profile Permission</label>
         <description><![CDATA[Only allow users who match this query to be update their profile.]]></description>
         <default>
-            <value><![CDATA[(objectClass=person)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=person)"}]]></value>
         </default>
     </setting>
     <setting key="updateAttributes.writeAttributes" level="0">
@@ -2549,7 +2557,7 @@
         </options>
     </setting>
     <setting key="updateAttributes.check.queryMatch" level="0">
-        <label>Update Check Query Match</label>
+        <label>Update Profile Check Match</label>
         <description><![CDATA[When the "checkProfile" or "checkAll" parameter is used with the command servlet, this query match will be used to determine if the user should be required to populate the param values. <br/><br/>If this value is blank, then the user's current values will be checked against the form requirements.]]></description>
         <default>
             <value />
@@ -2607,10 +2615,10 @@
         </default>
     </setting>
     <setting key="peopleSearch.queryMatch" level="0" required="true">
-        <label>PeopleSearch Query Match</label>
-        <description><![CDATA[If configured, this query match controls if a user may access the PeopleSearch module.  The user must match this ldap filter to be able to use the PeopleSearch module.]]></description>
+        <label>Permitted Users</label>
+        <description><![CDATA[Define the users permitted to access the People Search module.]]></description>
         <default>
-            <value><![CDATA[(objectClass=*)]]></value>
+            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="peopleSearch.searchFilter" level="0" required="true">
@@ -2781,13 +2789,13 @@
         </default>
     </setting>
     <setting key="helpdesk.queryMatch" level="0" required="true">
-        <label>Helpdesk Query Match</label>
+        <label>Helpdesk Permission</label>
         <description><![CDATA[LDAP query string used to detect if logged in user is permitted to access the helpdesk module.  The user must be returned during this is ldap query or else the user will not be permitted to access the helpdesk module.]]></description>
         <default>
-            <value><![CDATA[(groupMembership=cn=Admins,ou=Groups,o=example)]]></value>
+            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)]]></value>
+            <value><![CDATA[{"ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="helpdesk.filter" level="0">
@@ -3118,10 +3126,10 @@
         <label>Web Services Third Party Query String</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
         <default>
-            <value><![CDATA[(groupMembership=cn=RestUsers,ou=Groups,o=example)]]></value>
+            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
         </default>
         <default template="AD">
-            <value><![CDATA[(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)]]></value>
+            <value><![CDATA[{"ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="external.webAuth.methods" level="0">
@@ -3374,7 +3382,7 @@
         <default/>
     </setting>
     <setting key="oauth.idserver.attributesUrl" level="0">
-        <label>OAuth Get Attributes Service URL</label>
+        <label>OAuth Profile Service URL</label>
         <description><![CDATA[Web service provided by the identity server to return attribute data about the user.]]></description>
         <placeholder>https://oauthserver.example.com/osp/a/idm/auth/oauth2/getattributes</placeholder>
         <default/>

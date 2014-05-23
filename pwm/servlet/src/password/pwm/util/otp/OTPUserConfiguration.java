@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,23 +21,23 @@
  */
 package password.pwm.util.otp;
 
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.crypto.Mac;
 import org.apache.commons.codec.binary.Base32;
-import java.security.SecureRandom;
-import java.util.Date;
-import javax.crypto.spec.SecretKeySpec;
 import password.pwm.PwmConstants;
 import password.pwm.util.PwmLogger;
 
-public class OTPUserConfiguration {
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.Serializable;
+import java.security.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-    static final PwmLogger LOGGER = PwmLogger.getLogger(OTPUserConfiguration.class);
+public class OTPUserConfiguration implements Serializable {
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(OTPUserConfiguration.class);
+
+    private Date timestamp;
     private String identifier = null;
     private String secret = null;
     private List<String> recoveryCodes = null;
@@ -52,6 +52,7 @@ public class OTPUserConfiguration {
     }
 
     public OTPUserConfiguration(String identifier, String secret, List<String> recoveryCodes) {
+        this.timestamp = new Date();
         this.identifier = identifier;
         this.secret = secret;
         this.recoveryCodes = recoveryCodes;
@@ -59,6 +60,7 @@ public class OTPUserConfiguration {
     }
 
     public OTPUserConfiguration(String identifier, String secret, List<String> recoveryCodes, Long counter) {
+        this.timestamp = new Date();
         this.identifier = identifier;
         this.secret = secret;
         this.recoveryCodes = recoveryCodes;
@@ -177,9 +179,8 @@ public class OTPUserConfiguration {
     }
 
     public static enum Type {
-
         HOTP,
-        TOTP
+        TOTP,
     }
 
     @Override
@@ -226,4 +227,9 @@ public class OTPUserConfiguration {
         return false;
     }
 
+
+    public Date getTimestamp()
+    {
+        return timestamp;
+    }
 }

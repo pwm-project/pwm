@@ -191,7 +191,7 @@ public class RestHealthServer {
             } else {
                 if (pwmSession.getSessionStateBean().isAuthenticated()) {
                     try {
-                        doRefresh = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
+                        doRefresh = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
                     } catch (Exception e) {
                         /* nooop */
                     }

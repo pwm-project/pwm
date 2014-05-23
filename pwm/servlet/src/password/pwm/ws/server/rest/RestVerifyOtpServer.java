@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
@@ -78,7 +79,7 @@ public class RestVerifyOtpServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
         try {
-            if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_OTP_SECRET)) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 

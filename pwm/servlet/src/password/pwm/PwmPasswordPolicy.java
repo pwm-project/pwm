@@ -30,6 +30,7 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.config.AbstractProfile;
 import password.pwm.config.Profile;
 import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.UserPermission;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
@@ -52,13 +53,13 @@ public class PwmPasswordPolicy extends AbstractProfile implements Profile,Serial
 
     private transient final ChaiPasswordPolicy chaiPasswordPolicy;
 
-    private String profile;
-    private String queryMatch;
+    private String profileID;
+    private List<UserPermission> userPermissions;
     private String ruleText;
 
     public String getIdentifier()
     {
-        return profile;
+        return profileID;
     }
 
     public String getDisplayName(final Locale locale) {
@@ -136,24 +137,19 @@ public class PwmPasswordPolicy extends AbstractProfile implements Profile,Serial
         return policyMap.get(rule.getKey());
     }
 
-    public String getProfile()
+    public void setProfileID(String profileID)
     {
-        return profile;
+        this.profileID = profileID;
     }
 
-    public void setProfile(String profile)
+    public List<UserPermission> getUserPermissions()
     {
-        this.profile = profile;
+        return userPermissions;
     }
 
-    public String getQueryMatch()
+    public void setUserPermissions(List<UserPermission> userPermissions)
     {
-        return queryMatch;
-    }
-
-    public void setQueryMatch(String queryMatch)
-    {
-        this.queryMatch = queryMatch;
+        this.userPermissions = userPermissions;
     }
 
     public String getRuleText()

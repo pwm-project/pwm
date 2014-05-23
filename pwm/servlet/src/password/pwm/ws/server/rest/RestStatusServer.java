@@ -84,7 +84,8 @@ public class RestStatusServer {
             jsonStatusData.requiresUpdateProfile = userInfoBean.isRequiresResponseConfig();
             jsonStatusData.requiresInteraction = userInfoBean.isRequiresNewPassword()
                     || userInfoBean.isRequiresResponseConfig()
-                    || userInfoBean.isRequiresUpdateProfile();
+                    || userInfoBean.isRequiresUpdateProfile()
+                    || userInfoBean.getPasswordState().isWarnPeriod();
 
 
             jsonStatusData.passwordPolicy = new HashMap<String,String>();

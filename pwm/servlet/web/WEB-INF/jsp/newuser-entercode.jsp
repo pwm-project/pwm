@@ -21,6 +21,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
+
 <%
     final NewUserBean newUserBean = PwmSession.getPwmSession(session).getNewUserBean();
     String destination = newUserBean.getTokenDisplayText();
@@ -48,22 +49,23 @@
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
             <div id="buttonbar">
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_CheckCode"/>"
-                       id="submitBtn"/>
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:Display key="Button_CheckCode"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
         <div style="text-align: center">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='NewUser'/>" method="post"
+            <form action="<pwm:url url='/public/NewUser' addContext="true"/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="reset"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Cancel"/>"
-                       id="button_reset"/>
+                <button type="submit" name="button" class="btn" id="button_reset">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:Display key="Button_Cancel"/>
+                </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>

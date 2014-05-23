@@ -25,37 +25,35 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-    <%@ include file="fragment/header.jsp" %>
-    <body class="nihilo">
-        <!--
+<%@ include file="fragment/header.jsp" %>
+<body class="nihilo">
+<!--
     <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
         -->
-        <div id="wrapper">
-            <jsp:include page="fragment/header-body.jsp">
-                <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
-            </jsp:include>
-            <div id="centerbody">
-                <h1><pwm:Display key="Display_SetupOtpSecret"/></h1>
-                <p><pwm:Display key="Display_WarnExistingOtpSecret"/></p>
-                <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
-                      enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this);
+<div id="wrapper">
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
+    </jsp:include>
+    <div id="centerbody">
+        <p><pwm:Display key="Display_WarnExistingOtpSecret"/></p>
+        <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
+              enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
+              onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this);
                       return false;">
-                    <%@ include file="fragment/message.jsp" %>
-                    <div id="buttonbar">
-                        <input type="hidden" name="processAction" value="clearOtp"/>
-                        <input type="submit" name="Button_Continue" class="btn" id="continue_button"
-                               value="<pwm:Display key="Button_Continue"/>"/>
-                        <button name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();
-                        return false;">
-                            <pwm:Display key="Button_Cancel"/>
-                        </button>
-                        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </div>
-                </form>
+            <%@ include file="fragment/message.jsp" %>
+            <div id="buttonbar">
+                <input type="hidden" name="processAction" value="clearOtp"/>
+                <button type="submit" name="Button_Continue" class="btn" id="continue_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span>&nbsp</pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
-            <div class="push"></div>
-        </div>
-        <%@ include file="fragment/footer.jsp" %>
-    </body>
+        </form>
+    </div>
+    <div class="push"></div>
+</div>
+<%@ include file="fragment/footer.jsp" %>
+</body>
 </html>

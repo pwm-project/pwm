@@ -26,7 +26,7 @@ import password.pwm.config.value.*;
 
 public enum PwmSettingSyntax {
     STRING(StringValue.class),
-    USER_PERMISSION(StringValue.class),
+    USER_PERMISSION(UserPermissionValue.class),
     STRING_ARRAY(StringArrayValue.class),
     TEXT_AREA(StringValue.class),
     LOCALIZED_STRING(LocalizedStringValue.class),
@@ -41,7 +41,6 @@ public enum PwmSettingSyntax {
     EMAIL(EmailValue.class),
     X509CERT(X509CertificateValue.class),
     CHALLENGE(ChallengeValue.class),
-    ENUM(StringValue.class),
 
     PROFILE(StringArrayValue.class),
 

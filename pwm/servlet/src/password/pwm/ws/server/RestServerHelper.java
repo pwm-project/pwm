@@ -121,7 +121,7 @@ public abstract class RestServerHelper {
 
         final boolean adminPermission;
         try {
-            adminPermission = Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication());
+            adminPermission = restRequestBean.getPwmSession().getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
         }
@@ -157,7 +157,7 @@ public abstract class RestServerHelper {
 
         if (isExternal) {
             try {
-                if (!Permission.checkPermission(Permission.WEBSERVICE_THIRDPARTY,pwmSession,pwmApplication)) {
+                if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE_THIRDPARTY)) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match thirdparty webservices query filter");
                     throw new PwmUnrecoverableException(errorInformation);
                 }
@@ -170,7 +170,7 @@ public abstract class RestServerHelper {
         if (!isExternal) {
             if (servicePermissions.isHelpdeskPermitted()) {
                 try {
-                    if (!Permission.checkPermission(Permission.HELPDESK,pwmSession,pwmApplication)) {
+                    if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.HELPDESK)) {
                         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match third-party webservices query filter");
                         throw new PwmUnrecoverableException(errorInformation);
                     }

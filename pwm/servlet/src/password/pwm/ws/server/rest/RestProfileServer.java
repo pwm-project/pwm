@@ -96,7 +96,7 @@ public class RestProfileServer {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
         }
 
-        if (!Permission.checkPermission(Permission.PROFILE_UPDATE,restRequestBean.getPwmSession(),restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PROFILE_UPDATE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
         }
 
@@ -165,7 +165,7 @@ public class RestProfileServer {
             throw new PwmUnrecoverableException(PwmError.ERROR_SERVICE_NOT_AVAILABLE);
         }
 
-        if (!Permission.checkPermission(Permission.PROFILE_UPDATE,restRequestBean.getPwmSession(),restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PROFILE_UPDATE)) {
             throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
         }
 

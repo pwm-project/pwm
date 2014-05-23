@@ -37,12 +37,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            <pwm:Display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -59,7 +60,8 @@
                     LDAP Server Certificates
                 </div>
                 <div class="setting_body">
-                    The following are the LDAP server certificates read from <b><%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%></b>.
+                    The following are the LDAP server certificates read from the server at
+                    <style></style><b><%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>:<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%></b>.
                     Please verify these certificates match your LDAP server.
                     <div>
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
@@ -117,8 +119,15 @@
         <% } %>
         <br/>
         <div id="buttonbar">
-            <button class="btn" onclick="gotoStep('LDAP');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-            <button class="btn" onclick="gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+            <button class="btn" onclick="gotoStep('LDAP');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn" onclick="gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>>
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next" bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

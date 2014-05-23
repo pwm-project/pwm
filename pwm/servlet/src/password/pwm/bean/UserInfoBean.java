@@ -27,6 +27,7 @@ import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.otp.OTPUserConfiguration;
 
 import java.util.*;
 
@@ -66,6 +67,7 @@ public class UserInfoBean implements PwmSessionBean {
     private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
     private ChallengeProfile challengeProfile = null;
     private ResponseInfoBean responseInfoBean = null;
+    private OTPUserConfiguration otpUserConfiguration = null;
 
     private Date passwordExpirationTime;
     private Date passwordLastModifiedTime;
@@ -308,6 +310,16 @@ public class UserInfoBean implements PwmSessionBean {
 
     public void setAuthenticationType(AuthenticationType authenticationType) {
         this.authenticationType = authenticationType;
+    }
+
+    public OTPUserConfiguration getOtpUserConfiguration()
+    {
+        return otpUserConfiguration;
+    }
+
+    public void setOtpUserConfiguration(OTPUserConfiguration otpUserConfiguration)
+    {
+        this.otpUserConfiguration = otpUserConfiguration;
     }
 }
 

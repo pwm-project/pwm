@@ -29,6 +29,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
@@ -113,7 +114,7 @@ public class ShortcutServlet extends TopServlet {
             visibleItems.keySet().retainAll(labelsFromHeader);
         } else {
             for (final ShortcutItem item : configuredItems) {
-                final boolean queryMatch = Permission.testQueryMatch(
+                final boolean queryMatch = Helper.testQueryMatch(
                         pwmApplication,
                         pwmSession, pwmSession.getUserInfoBean().getUserIdentity(),
                         item.getLdapQuery()

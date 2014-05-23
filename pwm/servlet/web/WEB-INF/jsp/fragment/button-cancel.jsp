@@ -23,8 +23,10 @@
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
+
+<pwm:if test="showCancel">
 <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
     <pwm:Display key="Button_Cancel"/>
 </button>
-<% } %>
+</pwm:if>

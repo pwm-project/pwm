@@ -69,7 +69,7 @@
             <% for (final Permission permission : Permission.values()) { %>
             <tr>
                 <td class="key"><%=permission.toString()%></td>
-                <td><%=Permission.checkPermission(permission,pwmSessionHeader,pwmApplicationHeader)%></td>
+                <td><%=pwmSessionHeader.getSessionManager().checkPermission(pwmApplicationHeader, permission)%></td>
             </tr>
             <% } %>
         </table>

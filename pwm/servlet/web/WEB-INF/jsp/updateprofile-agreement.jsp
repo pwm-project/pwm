@@ -47,16 +47,18 @@
                 <input type="hidden"
                        name="processAction"
                        value="agree"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Continue"/>"
-                       id="button_continue"/>
+                <button type="submit" name="button" class="btn" id="button_continue">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Logout"/>"
-                       id="button_logout"/>
+                <button type="submit" name="button" class="btn" id="button_logout">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
+                    <pwm:Display key="Button_Logout"/>
+                </button>
             </form>
         </div>
     </div>

@@ -226,6 +226,7 @@ public class UserStatusReader {
         if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
             final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(userIdentity);
+            uiBean.setOtpUserConfiguration(otpConfig);
             uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, userIdentity, otpConfig));
         }
 
@@ -356,7 +357,7 @@ public class UserStatusReader {
                     theUser, uiBean.getPasswordPolicy(), userLocale);
             uiBean.setChallengeSet(challengeProfile);
             uiBean.setResponseInfoBean(responseInfoBean);
-            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmSession, theUser, challengeProfile.getChallengeSet(), responseInfoBean));
+            uiBean.setRequiresResponseConfig(crService.checkIfResponseConfigNeeded(pwmApplication, pwmSession, uiBean.getUserIdentity(), challengeProfile.getChallengeSet(), responseInfoBean));
         }
 
         LOGGER.trace(pwmSession, "finished population of locale specific UserInfoBean in " + TimeDuration.fromCurrent(startTime).asCompactString());

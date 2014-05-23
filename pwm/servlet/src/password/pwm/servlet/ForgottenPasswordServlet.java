@@ -251,7 +251,10 @@ public class ForgottenPasswordServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession) throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
+            final PwmSession pwmSession
+    )
+            throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
+    {
         LOGGER.trace(String.format("Enter: processEnterForgottenOtpToken(%s, %s, %s, %s)", req, resp, pwmApplication, pwmSession));
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
@@ -561,7 +564,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         }
 
         // sanity check, shouldn't be possible to get here unless.....
-        if (!forgottenPasswordBean.isTokenSatisfied() && !forgottenPasswordBean.isResponsesSatisfied()) {
+        if (!forgottenPasswordBean.isTokenSatisfied() && !forgottenPasswordBean.isResponsesSatisfied() && !forgottenPasswordBean.isOtpSatisfied()) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "trying to advance through forgotten password, but responses and tokens are unsatisfied, perhaps both are disabled?"));
         }
 

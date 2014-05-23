@@ -96,6 +96,15 @@ public class Configuration implements Serializable {
         return (List<FormConfiguration>)value.toNativeObject();
     }
 
+    public List<UserPermission> readSettingAsUserPermission(final PwmSetting setting) {
+        if (PwmSettingSyntax.USER_PERMISSION != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read FORM value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = readStoredValue(setting);
+        return (List<UserPermission>)value.toNativeObject();
+    }
+
     public Map<String,LdapProfile> getLdapProfiles() {
         if (dataCache.ldapProfiles != null) {
             return dataCache.ldapProfiles;
@@ -373,10 +382,10 @@ public class Configuration implements Serializable {
 
         // set pwm-specific values
         final PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.createPwmPasswordPolicy(passwordPolicySettings);
-        passwordPolicy.setProfile(profile);
+        passwordPolicy.setProfileID(profile);
         if (!PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(profile)) {
-            final String queryMatch = JavaTypeConverter.valueToString(storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_QUERY_MATCH,profile));
-            passwordPolicy.setQueryMatch(queryMatch);
+            final List<UserPermission> queryMatch = (List<UserPermission>)storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_QUERY_MATCH,profile).toNativeObject();
+            passwordPolicy.setUserPermissions(queryMatch);
         }
         passwordPolicy.setRuleText(JavaTypeConverter.valueToLocalizedString(storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_RULE_TEXT,profile),locale));
         return passwordPolicy;

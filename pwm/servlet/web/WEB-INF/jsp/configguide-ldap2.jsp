@@ -39,12 +39,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -118,9 +119,15 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAPCERT');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAPCERT');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Next"  bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP3');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next"  bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

@@ -63,7 +63,7 @@ PWM_CONFIG.waitForRestart=function(startTime) {
     require(["dojo"],function(dojo){
         var currentTime = new Date().getTime();
         dojo.xhrGet({
-            url: PWM_GLOBAL['url-restservice'] + "/app-data/client/reload",
+            url: PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true",
             preventCache: true,
             timeout: 10 * 1000,
             dataType: "json",
@@ -204,7 +204,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
         dojo.xhrGet({
             url: clientConfigUrl,
             handleAs: 'json',
-            timeout: 30 * 1000,
+            timeout: PWM_MAIN.ajaxTimeout,
             headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
             load: function(data) {
                 if (data['error'] == true) {
@@ -249,7 +249,7 @@ PWM_CONFIG.showHeaderHealth = function() {
                 url: refreshUrl,
                 handleAs: "json",
                 headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-                timeout: 60 * 1000,
+                timeout: PWM_MAIN.ajaxTimeout,
                 preventCache: true,
                 load: function(data) {
                     var healthRecords = data['data']['records'];

@@ -37,6 +37,8 @@ import java.util.*;
 public class FormValue extends AbstractValue implements StoredValue {
     final List<FormConfiguration> values;
 
+    private boolean needsXmlUpdate;
+
     public FormValue(final List<FormConfiguration> values) {
         this.values = values;
     }
@@ -70,7 +72,9 @@ public class FormValue extends AbstractValue implements StoredValue {
                 }
             }
         }
-        return new FormValue(values);
+        final FormValue formValue = new FormValue(values);
+        formValue.needsXmlUpdate = oldType;
+        return formValue;
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -112,5 +116,10 @@ public class FormValue extends AbstractValue implements StoredValue {
         }
 
         return Collections.emptyList();
+    }
+
+    public boolean isNeedsXmlUpdate()
+    {
+        return needsXmlUpdate;
     }
 }

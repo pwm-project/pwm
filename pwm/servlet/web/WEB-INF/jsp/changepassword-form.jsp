@@ -54,9 +54,10 @@
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="form"/>
-                <input type="submit" name="change" class="btn"
-                       id="continue_button"
-                       value="<pwm:Display key="Button_Continue"/>"/>
+                <button type="submit" name="change" class="btn" id="continue_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="hideButton" class="btn"
                        value="<pwm:Display key="Button_Show"/>"

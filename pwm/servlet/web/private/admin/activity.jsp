@@ -45,7 +45,8 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
-                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
                     </button>
                 </div>
 
@@ -66,7 +67,8 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
-                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
                     </button>
                 </div>
             </div>
@@ -86,11 +88,13 @@
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData()">
-                        <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">
-                            <span class="fa fa-download">&nbsp;Download as CSV</span>
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                            Download as CSV
                         </button>
                         <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

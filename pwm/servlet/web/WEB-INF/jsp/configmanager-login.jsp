@@ -47,14 +47,11 @@
             <br class="clear"/>
             <input type="password" class="inputfield" name="password" id="password" autofocus/>
             <div id="buttonbar">
-                <input type="submit" class="btn"
-                       name="button"
-                       value="<pwm:Display key="Button_Login"/>"
-                       id="submitBtn"/>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                        onclick="document.location='<%=request.getContextPath()%>';return false">
-                    <pwm:Display key="Button_Cancel"/>
+                <button type="submit" class="btn" name="button" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
+                    <pwm:Display key="Button_Login"/>
                 </button>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
             </div>
         </form>

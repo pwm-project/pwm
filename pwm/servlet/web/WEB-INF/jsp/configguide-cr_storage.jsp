@@ -80,8 +80,15 @@
             environment and is provided only for testing purposes.  User challenge/response's stored in the LocalDB are server specific..
         </p>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');"><pwm:Display key="Button_Previous" bundle="Config"></pwm:Display></button>
-            <button class="btn" id="button_next" onclick="gotoStep('PASSWORD');"><pwm:Display key="Button_Next" bundle="Config"></pwm:Display></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn" id="button_next" onclick="gotoStep('PASSWORD');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next" bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

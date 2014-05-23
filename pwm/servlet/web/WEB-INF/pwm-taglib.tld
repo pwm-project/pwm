@@ -179,6 +179,22 @@
         <body-content>empty</body-content>
         <description>Output text "rtl" or "ltr" depending on session locale</description>
     </tag>
+    <tag>
+        <name>if</name>
+        <tag-class>password.pwm.tag.PwmIfTag</tag-class>
+        <body-content>JSP</body-content>
+        <description>If test is true, output body.</description>
+        <attribute>
+            <name>test</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>arg1</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
 </taglib>
 
 

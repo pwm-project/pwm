@@ -44,7 +44,10 @@
             <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">
-                <input id="submitBtn" type="submit" class="btn" name="button" value="<pwm:Display key="Button_Update"/>"/>
+                <button id="submitBtn" type="submit" class="btn" name="button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Update"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="updateProfile"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

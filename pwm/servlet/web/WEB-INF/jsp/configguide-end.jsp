@@ -34,24 +34,31 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            Save Configuration
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                Save Configuration
+            </div>
         </div>
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p>The installation process is now complete.  You can go back to any previous step if you would like to make changes, or click
-        <i>Save Configuration</i> to save the configuration and restart the application.</p>
+            <i>Save Configuration</i> to save the configuration and restart the application.</p>
         <br/>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('PASSWORD');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('PASSWORD');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('FINISH');"> Save Configuration </button>
+            <button class="btn" id="button_next" onclick="gotoStep('FINISH');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-save"></span></pwm:if>
+                Save Configuration
+            </button>
         </div>
     </div>
     <div class="push"></div>

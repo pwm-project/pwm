@@ -32,6 +32,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -251,15 +252,14 @@ public class CommandServlet extends TopServlet {
             return false;
         }
 
-        if (!Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PROFILE_UPDATE)) {
             LOGGER.info(pwmSession, "checkProfiles: " + userIdentity.toString() + " is not eligible for checkProfile due to query match");
             return false;
         }
 
-        final String checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsString(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
-
-        if (checkProfileQueryMatch != null && checkProfileQueryMatch.length() > 0) {
-            if (Helper.testUserMatchQueryString(pwmApplication.getProxiedChaiUser(userIdentity), checkProfileQueryMatch)) {
+        final List<UserPermission> checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
+        if (checkProfileQueryMatch != null && !checkProfileQueryMatch.isEmpty()) {
+            if (Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, checkProfileQueryMatch)) {
                 LOGGER.info(pwmSession, "checkProfiles: " + userIdentity.toString() + " matches 'checkProfiles query match', update profile will be required by user");
                 return true;
             } else {
@@ -409,7 +409,7 @@ public class CommandServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
             LOGGER.info(pwmSession, "unable to execute output user csv report, user unauthorized");
             return;
         }
@@ -459,7 +459,7 @@ public class CommandServlet extends TopServlet {
         final PwmApplication.MODE configMode = pwmApplication.getApplicationMode();
         if (configMode != PwmApplication.MODE.CONFIGURATION) {
             try {
-                if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+                if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
                 }
             } catch (ChaiUnavailableException e) {
@@ -481,7 +481,7 @@ public class CommandServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
             LOGGER.info(pwmSession, "unable to execute output audit log csv, user unauthorized");
             return;
         }
@@ -517,7 +517,7 @@ public class CommandServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
             LOGGER.info(pwmSession, "unable to execute clear intruder records");
             return;
         }

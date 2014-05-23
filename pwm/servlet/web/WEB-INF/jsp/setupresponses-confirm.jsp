@@ -68,24 +68,22 @@
         <br/>
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('confirm_btn',this);return false">
-                <input type="submit" name="confirm_btn" class="btn" id="confirm_btn"
-                       value="<pwm:Display key="Button_ConfirmResponses"/>"/>
+                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('confirm_btn',this);return false">
+                <button type="submit" name="confirm_btn" class="btn" id="confirm_btn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:Display key="Button_ConfirmResponses"/>
+                </button>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('change_btn',this);return false">
-                <input type="submit" name="change_btn" class="btn" id="change_btn"
-                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
+                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('change_btn',this);return false">
+                <buton type="submit" name="change_btn" class="btn" id="change_btn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:Display key="Button_GoBack"/>
+                </buton>
                 <input type="hidden" name="processAction" value="changeResponses"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
-                </button>
-                <% } %>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>

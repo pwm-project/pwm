@@ -35,7 +35,6 @@
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
-        <%-- <p/>You have <pwm:LdapValue name="loginGraceRemaining"/> remaining logins. --%>
         <% } %>
         <pwm:Display key="Display_ChangePassword"/>
         <div id="PasswordRequirements">
@@ -63,15 +62,15 @@
                             </h2>
                             &nbsp;&nbsp;
                             <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.showPasswordGuide()" ></div>
-                            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_AUTOGEN)) { %>
+                            <pwm:if test="showRandomPasswordGenerator">
                             &nbsp;&nbsp;
                             <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.doRandomGeneration();" ></div>
-                            <% } %>
+                            </pwm:if>
                         </div>
                         <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus/>
                     </td>
                     <td style="border:0; width:15%">
-                        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
+                        <pwm:if test="showStrengthMeter">
                         <div id="strengthBox" style="visibility:hidden;">
                             <div id="strengthLabel" style="padding-top:40px;">
                                 <pwm:Display key="Display_StrengthMeter"/>
@@ -80,7 +79,7 @@
                                 <div id="strengthBar" style="width: 0">&nbsp;</div>
                             </div>
                         </div>
-                        <% } %>
+                        </pwm:if>
                     </td>
                     <td style="border:0; width:10%">&nbsp;</td>
                 </tr>
@@ -104,6 +103,7 @@
             <div id="buttonbar" style="width:100%">
                 <input type="hidden" name="processAction" value="change"/>
                 <button type="submit" name="change" class="btn" id="password_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:Display key="Button_ChangePassword"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>

@@ -731,6 +731,7 @@ public class StoredConfiguration implements Serializable {
         try {
             final Element settingElement = createOrGetSettingElement(document, setting, profileID);
             settingElement.removeContent();
+            settingElement.setAttribute(XML_ATTRIBUTE_SYNTAX, setting.getSyntax().toString());
 
             if (setting_writeLabels) {
                 final Element labelElement = new Element("label");

@@ -37,16 +37,15 @@
             <p><pwm:SuccessMessage/></p>
             <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="continue"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Continue"/>"
-                       id="submitBtn"/>
+                <input type="hidden" name="processAction" value="continue"/>
+                <button type="submit" name="button" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
             </div>
         </form>
     </div>
-   <div class="push"></div>
+    <div class="push"></div>
 </div>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -62,12 +62,12 @@
         <div id="header-center-right">
             <%-- this section handles the home button link (if user is logged in) --%>
             <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/'/>" style="visibility: <%=showHome ? "inline" : "hidden"%>" id="HomeButton">
-                <span class="fa fa-home"></span>&nbsp;
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-home"></span></pwm:if>
                 <pwm:Display key="Button_Home"/>
             </a>
             <%-- this section handles the logout link (if user is logged in) --%>
             <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
-                <span class="fa fa-sign-out"></span>&nbsp;
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                 <pwm:Display key="Button_Logout"/>
             </a>
         </div>

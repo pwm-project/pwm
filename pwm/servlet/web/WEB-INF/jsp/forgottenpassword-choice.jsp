@@ -38,8 +38,10 @@
                 <td class="key" style="border: 0">
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
-                        <input class="btn" type="submit" name="submitBtn"
-                               value="<pwm:Display key="Button_UnlockPassword"/>"/>
+                        <button class="btn" type="submit" name="submitBtn">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                            <pwm:Display key="Button_UnlockPassword"/>
+                        </button>
                         <input type="hidden" name="processAction" value="selectUnlock"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
@@ -57,7 +59,10 @@
                 <td class="key" style="border: 0">
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
-                        <input class="btn" type="submit" name="submitBtn" value="<pwm:Display key="Button_ChangePassword"/>"/>
+                        <button class="btn" type="submit" name="submitBtn">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
+                            <pwm:Display key="Button_ChangePassword"/>
+                        </button>
                         <input type="hidden" name="processAction" value="selectResetPassword"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
@@ -69,10 +74,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
             <tr style="border: 0">
                 <td class="key" style="border: 0">
-                        <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                                onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                            <pwm:Display key="Button_Cancel"/>
-                        </button>
+                    <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                            onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
+                        <pwm:Display key="Button_Cancel"/>
+                    </button>
                 </td>
                 <td style="border: 0">
                     &nbsp;

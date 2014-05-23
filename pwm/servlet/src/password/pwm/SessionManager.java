@@ -33,6 +33,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -287,4 +288,36 @@ public class SessionManager implements Serializable {
             LOGGER.trace(pwmSession, "incremented request counter, current pwmFormID=" + pwmFormID);
         }
     }
+
+    public boolean checkPermission(final PwmApplication pwmApplication, final Permission permission)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+        if (devDebugMode) {
+            LOGGER.trace(pwmSession, String.format("entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
+        }
+
+        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+            if (devDebugMode) {
+                LOGGER.trace(pwmSession, "user is not authenticated, returning false for permission check");
+            }
+            return false;
+        }
+
+        Permission.PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
+        if (status == Permission.PERMISSION_STATUS.UNCHECKED) {
+            if (devDebugMode) {
+                LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
+            }
+
+            final PwmSetting setting = permission.getPwmSetting();
+            final List<UserPermission> userPermission = pwmApplication.getConfig().readSettingAsUserPermission(setting);
+            final boolean result = Helper.testUserPermissions(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), userPermission);
+            status = result ? Permission.PERMISSION_STATUS.GRANTED : Permission.PERMISSION_STATUS.DENIED;
+            pwmSession.getUserInfoBean().setPermission(permission, status);
+            LOGGER.debug(pwmSession, String.format("permission %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
+        }
+        return status == Permission.PERMISSION_STATUS.GRANTED;
+    }
+
 }

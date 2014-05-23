@@ -22,59 +22,61 @@
 
 package password.pwm.util.stats;
 
+import password.pwm.i18n.Admin;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.TimeDuration;
 
 import java.util.*;
 
 public enum Statistic {
-    AUTHENTICATIONS(Type.INCREMENTOR, "Authentications"),
-    AUTHENTICATION_FAILURES(Type.INCREMENTOR, "AuthenticationFailures"),
-    AUTHENTICATION_EXPIRED(Type.INCREMENTOR, "Authentications_Expired"),
-    AUTHENTICATION_PRE_EXPIRED(Type.INCREMENTOR, "Authentications_PreExpired"),
-    AUTHENTICATION_EXPIRED_WARNING(Type.INCREMENTOR, "Authentications_ExpiredWarning"),
-    PWM_STARTUPS(Type.INCREMENTOR, "PWM_Startups"),
-    PWM_UNKNOWN_ERRORS(Type.INCREMENTOR, "PWM_UnknownErrors"),
-    PASSWORD_CHANGES(Type.INCREMENTOR, "PasswordChanges"),
-    RECOVERY_SUCCESSES(Type.INCREMENTOR, "RecoverySuccesses"),
-    FORGOTTEN_USERNAME_FAILURES(Type.INCREMENTOR, "ForgottenUsernameFailures"),
-    FORGOTTEN_USERNAME_SUCCESSES(Type.INCREMENTOR, "ForgottenUsernameSuccesses"),
-    RECOVERY_FAILURES(Type.INCREMENTOR, "RecoveryFailures"),
-    EMAIL_SEND_SUCCESSES(Type.INCREMENTOR, "EmailSendSuccesses"),
-    EMAIL_SEND_FAILURES(Type.INCREMENTOR, "EmailSendFailures"),
-    PASSWORD_RULE_CHECKS(Type.INCREMENTOR, "PasswordRuleChecks"),
-    HTTP_REQUESTS(Type.INCREMENTOR, "HttpRequests"),
-    HTTP_SESSIONS(Type.INCREMENTOR, "HttpSessions"),
-    ACTIVATED_USERS(Type.INCREMENTOR, "ActivatedUsers"),
-    NEW_USERS(Type.INCREMENTOR, "NewUsers"),
-    GUESTS(Type.INCREMENTOR, "Guests"),
-    UPDATED_GUESTS(Type.INCREMENTOR, "UpdatedGuests"),
-    LOCKED_USERS(Type.INCREMENTOR, "LockedUsers"),
-    LOCKED_ADDRESSES(Type.INCREMENTOR, "LockedAddresses"),
-    CAPTCHA_SUCCESSES(Type.INCREMENTOR, "CaptchaSuccessess"),
-    CAPTCHA_FAILURES(Type.INCREMENTOR, "CaptchaFailures"),
-    LDAP_UNAVAILABLE_COUNT(Type.INCREMENTOR, "LdapUnavailableCount"),
-    SETUP_RESPONSES(Type.INCREMENTOR, "SetupResponses"),
-    SETUP_OTP_SECRET(Type.INCREMENTOR, "SetupOtpSecret"),
-    UPDATE_ATTRIBUTES(Type.INCREMENTOR, "UpdateAttributes"),
-    SHORTCUTS_SELECTED(Type.INCREMENTOR, "ShortcutsSelected"),
-    GENERATED_PASSWORDS(Type.INCREMENTOR, "GeneratedPasswords"),
-    RECOVERY_TOKENS_SENT(Type.INCREMENTOR, "RecoveryTokensSent"),
-    RECOVERY_TOKENS_PASSED(Type.INCREMENTOR, "RecoveryTokensPassed"),
-    RECOVERY_OTP_PASSED(Type.INCREMENTOR, "RecoveryOneTimePasswordsPassed"),
-    PEOPLESEARCH_SEARCHES(Type.INCREMENTOR, "PeopleSearchSearches"),
-    HELPDESK_PASSWORD_SET(Type.INCREMENTOR, "HelpdeskPasswordSet"),
-    HELPDESK_USER_LOOKUP(Type.INCREMENTOR, "HelpdeskUserLookup"),
-    REST_CHECKPASSWORD(Type.INCREMENTOR, "RestCheckPassword"),
-    REST_SETPASSWORD(Type.INCREMENTOR, "RestSetPassword"),
-    REST_RANDOMPASSWORD(Type.INCREMENTOR, "RestRandomPassword"),
-    REST_CHALLENGES(Type.INCREMENTOR, "RestChallenges"),
-    REST_HEALTH(Type.INCREMENTOR, "RestHealth"),
-    REST_STATISTICS(Type.INCREMENTOR, "RestStatistics"),
-    INTRUDER_ATTEMPTS(Type.INCREMENTOR, "IntruderAttempts"),
+    AUTHENTICATIONS                     (Type.INCREMENTOR, "Authentications"),
+    AUTHENTICATION_FAILURES             (Type.INCREMENTOR, "AuthenticationFailures"),
+    AUTHENTICATION_EXPIRED              (Type.INCREMENTOR, "Authentications_Expired"),
+    AUTHENTICATION_PRE_EXPIRED          (Type.INCREMENTOR, "Authentications_PreExpired"),
+    AUTHENTICATION_EXPIRED_WARNING      (Type.INCREMENTOR, "Authentications_ExpiredWarning"),
+    PWM_STARTUPS                        (Type.INCREMENTOR, "PWM_Startups"),
+    PWM_UNKNOWN_ERRORS                  (Type.INCREMENTOR, "PWM_UnknownErrors"),
+    PASSWORD_CHANGES                    (Type.INCREMENTOR, "PasswordChanges"),
+    RECOVERY_SUCCESSES                  (Type.INCREMENTOR, "RecoverySuccesses"),
+    FORGOTTEN_USERNAME_FAILURES         (Type.INCREMENTOR, "ForgottenUsernameFailures"),
+    FORGOTTEN_USERNAME_SUCCESSES        (Type.INCREMENTOR, "ForgottenUsernameSuccesses"),
+    RECOVERY_FAILURES                   (Type.INCREMENTOR, "RecoveryFailures"),
+    EMAIL_SEND_SUCCESSES                (Type.INCREMENTOR, "EmailSendSuccesses"),
+    EMAIL_SEND_FAILURES                 (Type.INCREMENTOR, "EmailSendFailures"),
+    PASSWORD_RULE_CHECKS                (Type.INCREMENTOR, "PasswordRuleChecks"),
+    HTTP_REQUESTS                       (Type.INCREMENTOR, "HttpRequests"),
+    HTTP_SESSIONS                       (Type.INCREMENTOR, "HttpSessions"),
+    ACTIVATED_USERS                     (Type.INCREMENTOR, "ActivatedUsers"),
+    NEW_USERS                           (Type.INCREMENTOR, "NewUsers"),
+    GUESTS                              (Type.INCREMENTOR, "Guests"),
+    UPDATED_GUESTS                      (Type.INCREMENTOR, "UpdatedGuests"),
+    LOCKED_USERS                        (Type.INCREMENTOR, "LockedUsers"),
+    LOCKED_ADDRESSES                    (Type.INCREMENTOR, "LockedAddresses"),
+    CAPTCHA_SUCCESSES                   (Type.INCREMENTOR, "CaptchaSuccessess"),
+    CAPTCHA_FAILURES                    (Type.INCREMENTOR, "CaptchaFailures"),
+    LDAP_UNAVAILABLE_COUNT              (Type.INCREMENTOR, "LdapUnavailableCount"),
+    SETUP_RESPONSES                     (Type.INCREMENTOR, "SetupResponses"),
+    SETUP_OTP_SECRET                    (Type.INCREMENTOR, "SetupOtpSecret"),
+    UPDATE_ATTRIBUTES                   (Type.INCREMENTOR, "UpdateAttributes"),
+    SHORTCUTS_SELECTED                  (Type.INCREMENTOR, "ShortcutsSelected"),
+    GENERATED_PASSWORDS                 (Type.INCREMENTOR, "GeneratedPasswords"),
+    RECOVERY_TOKENS_SENT                (Type.INCREMENTOR, "RecoveryTokensSent"),
+    RECOVERY_TOKENS_PASSED              (Type.INCREMENTOR, "RecoveryTokensPassed"),
+    RECOVERY_OTP_PASSED                 (Type.INCREMENTOR, "RecoveryOneTimePasswordsPassed"),
+    PEOPLESEARCH_SEARCHES               (Type.INCREMENTOR, "PeopleSearchSearches"),
+    HELPDESK_PASSWORD_SET               (Type.INCREMENTOR, "HelpdeskPasswordSet"),
+    HELPDESK_USER_LOOKUP                (Type.INCREMENTOR, "HelpdeskUserLookup"),
+    REST_CHECKPASSWORD                  (Type.INCREMENTOR, "RestCheckPassword"),
+    REST_SETPASSWORD                    (Type.INCREMENTOR, "RestSetPassword"),
+    REST_RANDOMPASSWORD                 (Type.INCREMENTOR, "RestRandomPassword"),
+    REST_CHALLENGES                     (Type.INCREMENTOR, "RestChallenges"),
+    REST_HEALTH                         (Type.INCREMENTOR, "RestHealth"),
+    REST_STATISTICS                     (Type.INCREMENTOR, "RestStatistics"),
+    INTRUDER_ATTEMPTS                   (Type.INCREMENTOR, "IntruderAttempts"),
 
-    AVG_PASSWORD_SYNC_TIME(Type.AVERAGE, "AvgPasswordSyncTime"),
-    AVG_AUTHENTICATION_TIME(Type.AVERAGE, "AvgAuthenticationTime"),
-    AVG_PASSWORD_STRENGTH(Type.AVERAGE, "AvgPasswordStrength")
+    AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime"),
+    AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime"),
+    AVG_PASSWORD_STRENGTH               (Type.AVERAGE, "AvgPasswordStrength")
 
     ;
 
@@ -111,16 +113,8 @@ public enum Statistic {
     }
 
     public String getLabel(final Locale locale) {
-        return readProps(this.getKey(), locale);
-    }
-
-    private static String readProps(final String key, final Locale locale) {
-        try {
-            final ResourceBundle bundle = ResourceBundle.getBundle(Statistic.class.getName(), locale);
-            return bundle.getString(key);
-        } catch (Exception e) {
-            return "RESOURCE MISSING: key=" + key;
-        }
+        final String keyName = "Statistic_" + this.getKey();
+        return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
     }
 
     public enum EpsType {
@@ -144,7 +138,8 @@ public enum Statistic {
         }
 
         public String getDescription(final Locale locale) {
-            return readProps(EpsType.class.getSimpleName() + "_" + this.name(), locale);
+            final String keyName = "Statistic_" + EpsType.class.getSimpleName() + "_" + this.name();
+            return LocaleHelper.getLocalizedMessage(locale, keyName, null, Admin.class);
         }
     }
 

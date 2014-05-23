@@ -231,7 +231,7 @@ public class RestChallengesServer {
         }
 
         try {
-            if (!Permission.checkPermission(Permission.SETUP_RESPONSE, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
@@ -292,7 +292,7 @@ public class RestChallengesServer {
         }
 
         try {
-            if (!Permission.checkPermission(Permission.SETUP_RESPONSE, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 

@@ -170,7 +170,7 @@ public class RestAppDataServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
             final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
@@ -225,7 +225,7 @@ public class RestAppDataServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
             final ErrorInformation errorInfo = PwmError.ERROR_UNAUTHORIZED.toInfo();
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
@@ -285,7 +285,7 @@ public class RestAppDataServer {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/client/{eTagUri}")
+    @Path("/client")
     public Response doGetAppClientData(
             @PathParam(value = "eTagUri") final String eTagUri,
             @Context HttpServletRequest request,

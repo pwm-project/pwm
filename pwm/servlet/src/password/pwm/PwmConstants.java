@@ -281,6 +281,7 @@ public abstract class PwmConstants {
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.", //nick helm
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
+            "passwords are like underwear, changing underwear regularly is a good thing." //menno
     };
 
     public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync

@@ -97,9 +97,10 @@
             </noscript>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="doVerify"/>
-                <input type="submit" name="verify" class="btn"
-                       id="verify_button"
-                       value="<pwm:Display key="Button_Verify"/>"/>
+                <button type="submit" name="verify" class="btn" id="verify_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:Display key="Button_Verify"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

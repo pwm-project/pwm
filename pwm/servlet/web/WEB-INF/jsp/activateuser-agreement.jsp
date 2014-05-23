@@ -54,29 +54,23 @@
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
-            <form action="<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
-                  style="display: inline;">
+            <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded"
+                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false" style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
-                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
-                    key="Button_Agree"/></label>
-                <input type="hidden"
-                       name="processAction"
-                       value="agree"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Continue"/>"
-                       id="submitBtn"/>
+                       onchange="updateContinueButton()"/>
+                    &nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display key="Button_Agree"/></label>
+                <input type="hidden" name="processAction" value="agree"/>
+                <button type="submit" name="button" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded"
-                  style="display: inline;">
+                  enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Cancel"/>"
-                       id="buttonCancel"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>

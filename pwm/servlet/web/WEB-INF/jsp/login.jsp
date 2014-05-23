@@ -46,10 +46,10 @@
             <input type="password" name="password" id="password" required="required" class="inputfield"/>
 
             <div id="buttonbar">
-                <input type="submit" class="btn"
-                       name="button"
-                       value="<pwm:Display key="Button_Login"/>"
-                       id="submitBtn"/>
+                <button type="submit" class="btn" name="button" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
+                    <pwm:Display key="Button_Login"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="login">
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
@@ -57,12 +57,15 @@
             </div>
         </form>
         <br/>
-        <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)) { %>
+        <pwm:if test="showLoginOptions">
         <table style="border:0">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenPassword" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>"><pwm:Display key="Title_ForgottenPassword"/></a>
+                    <a class="menubutton" id="Title_ForgottenPassword" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                        <pwm:Display key="Title_ForgottenPassword"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
@@ -75,6 +78,7 @@
                     <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
                 </td>
                 <td style="border: 0">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                     <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
                 </td>
             </tr>
@@ -82,7 +86,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ActivateUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>"><pwm:Display key="Title_ActivateUser"/></a>
+                    <a class="menubutton" id="Title_ActivateUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
+                        <pwm:Display key="Title_ActivateUser"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_ActivateUser"/></p>
@@ -92,7 +99,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_NewUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>"><pwm:Display key="Title_NewUser"/></a>
+                    <a class="menubutton" id="Title_NewUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
+                        <pwm:Display key="Title_NewUser"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:Display key="Long_Title_NewUser"/></p>
@@ -100,7 +110,7 @@
             </tr>
             <% } %>
         </table>
-        <% } %>
+        </pwm:if>
     </div>
     <div class="push"></div>
 </div>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,8 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author Jason D. Rivard
@@ -42,7 +33,7 @@ public enum Permission {
     CHANGE_PASSWORD(PwmSetting.QUERY_MATCH_CHANGE_PASSWORD),
     ACTIVATE_USER(PwmSetting.ACTIVATE_USER_QUERY_MATCH),
     SETUP_RESPONSE(PwmSetting.QUERY_MATCH_SETUP_RESPONSE),
-    SETUP_OTP_SECRET(PwmSetting.QUERY_MATCH_OTP_SETUP_RESPONSE),
+    SETUP_OTP_SECRET(PwmSetting.OTP_SETUP_USER_PERMISSION),
     GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP),
     PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
     HELPDESK(PwmSetting.HELPDESK_QUERY_MATCH),
@@ -50,6 +41,8 @@ public enum Permission {
     WEBSERVICE_THIRDPARTY(PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH),
 
     ;
+
+
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Permission.class);
@@ -58,77 +51,6 @@ public enum Permission {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static boolean checkPermission(final Permission permission, final PwmSession pwmSession, final PwmApplication pwmApplication)
-            throws ChaiUnavailableException, PwmUnrecoverableException
-    {
-        final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
-        if (devDebugMode) {
-            LOGGER.trace(pwmSession, String.format("entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
-        }
-
-        if (!pwmSession.getSessionStateBean().isAuthenticated()) {
-            if (devDebugMode) {
-                LOGGER.trace(pwmSession, "user is not authenticated, returning false for permission check");
-            }
-            return false;
-        }
-
-        PERMISSION_STATUS status = pwmSession.getUserInfoBean().getPermission(permission);
-        if (status == PERMISSION_STATUS.UNCHECKED) {
-            if (devDebugMode) {
-                LOGGER.debug(pwmSession, String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUsername()));
-            }
-            final PwmSetting setting = permission.getPwmSetting();
-            final boolean result = testQueryMatch(pwmApplication, pwmSession, pwmSession.getUserInfoBean().getUserIdentity(), pwmApplication.getConfig().readSettingAsString(setting));
-            status = result ? PERMISSION_STATUS.GRANTED : PERMISSION_STATUS.DENIED;
-            pwmSession.getUserInfoBean().setPermission(permission, status);
-            LOGGER.debug(pwmSession, String.format("permission %s for user %s is %s", permission.toString(), pwmSession.getUserInfoBean().getUsername(), status.toString()));
-        }
-        return status == PERMISSION_STATUS.GRANTED;
-    }
-
-    public static boolean testQueryMatch(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity,
-            final String queryMatch
-    )
-            throws PwmUnrecoverableException
-    {
-        if (userIdentity == null) {
-            return false;
-        }
-
-        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + queryMatch);
-
-        boolean result = false;
-
-        if (queryMatch == null || queryMatch.length() < 1) {
-
-            LOGGER.trace(pwmSession, "missing queryMatch value, skipping check");
-        } else if ("(objectClass=*)".equalsIgnoreCase(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
-            LOGGER.trace(pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query");
-            result = true;
-        } else {
-            try {
-                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + queryMatch + "'");
-                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
-                if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
-                    result = true;
-                }
-            } catch (ChaiException e) {
-                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + queryMatch + ", error:" + e.getMessage());
-            }
-        }
-
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch);
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch);
-        }
-        return result;
-    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

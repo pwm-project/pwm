@@ -28,6 +28,7 @@
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
+<%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -44,8 +45,13 @@
 <body class="nihilo">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
-    PWM_GLOBAL['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
-    PWM_GLOBAL['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
+    var PWM_VAR = PWM_VAR || {};
+    PWM_VAR['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
+    PWM_VAR['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
+    PWM_VAR['ldapProfileIds'] = [];
+    <% for (final String id : (List<String>)configManagerBean.getConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject()) { %>
+    PWM_VAR['ldapProfileIds'].push('<%=StringEscapeUtils.escapeJavaScript(id)%>');
+    <% } %>
 </script>
 <div id="wrapper" style="border:1px; background-color: black">
     <div id="header" style="height: 25px; position: fixed">

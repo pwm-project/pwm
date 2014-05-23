@@ -22,6 +22,7 @@
 
 package password.pwm.util.queue;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
@@ -203,12 +204,13 @@ public abstract class AbstractQueueManager implements PwmService {
     public synchronized void close() {
         status = PwmService.STATUS.CLOSED;
         final Date startTime = new Date();
+        final int maxCloseWaitMs = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_MAX_CLOSE_TIMEOUT_MS));
 
         if (sendQueue != null && !sendQueue.isEmpty()) {
             if (timerThread != null) {
                 timerThread.schedule(new QueueProcessorTask(),1);
                 LOGGER.warn("waiting up to 5 seconds for " + sendQueue.size() + " items in the queue to process");
-                while (!sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(5000)) {
+                while (!sendQueue.isEmpty() && TimeDuration.fromCurrent(startTime).isShorterThan(maxCloseWaitMs)) {
                     Helper.pause(100);
                 }
             }

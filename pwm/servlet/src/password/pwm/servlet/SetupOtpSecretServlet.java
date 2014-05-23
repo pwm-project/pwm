@@ -19,10 +19,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
+import net.glxn.qrgen.QRCode;
+import net.glxn.qrgen.image.ImageType;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
@@ -36,15 +39,16 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserConfiguration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -72,8 +76,8 @@ public class SetupOtpSecretServlet extends TopServlet {
     protected void processRequest(
             final HttpServletRequest req,
             final HttpServletResponse resp)
-            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException {
-        LOGGER.trace(String.format("Enter: processRequest(%s,%s)", req, resp));
+            throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
+    {
         // fetch the required beans / managers
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
@@ -82,15 +86,15 @@ public class SetupOtpSecretServlet extends TopServlet {
         final Configuration config = pwmApplication.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
-            LOGGER.error("Setup OTP Secret not enabled");
+            LOGGER.error(pwmSession, "setup OTP Secret not enabled");
             PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
         }
 
         // check to see if the user is permitted to setup OTP
-        if (!Permission.checkPermission(Permission.SETUP_OTP_SECRET, pwmSession, pwmApplication)) {
-            LOGGER.error(String.format("User %s does not have permission to setup an OTP secret", uiBean.getUsername()));
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.SETUP_OTP_SECRET)) {
+            LOGGER.error(pwmSession, String.format("user %s does not have permission to setup an OTP secret", uiBean.getUserIdentity()));
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -105,7 +109,7 @@ public class SetupOtpSecretServlet extends TopServlet {
         }
 
         if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD) {
-            LOGGER.error("OTP Secret requires a password login");
+            LOGGER.error(pwmSession, "OTP Secret requires a password login");
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
@@ -113,11 +117,10 @@ public class SetupOtpSecretServlet extends TopServlet {
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
         final String otpToken = Validator.readStringFromRequest(req, PwmConstants.PARAM_OTP_TOKEN);
 
-        SetupOtpBean otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
+        final SetupOtpBean otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
 
         // check if the locale has changed since first seen.
         if (pwmSession.getSessionStateBean().getLocale() != otpBean.getUserLocale()) {
-            otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
             otpBean.setUserLocale(pwmSession.getSessionStateBean().getLocale());
         }
         initializeBean(pwmSession, pwmApplication, otpBean, false);
@@ -172,6 +175,9 @@ public class SetupOtpSecretServlet extends TopServlet {
                     /* TODO: handle case to HOTP */
                     ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
                     return;
+                } else if ("showQrImage".equalsIgnoreCase(actionParam)) {
+                    handleQrImageRequest(pwmSession, req, resp);
+                    return;
                 }
             }
         } catch (PwmOperationalException ex) {
@@ -199,7 +205,8 @@ public class SetupOtpSecretServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp,
             final SetupOtpBean otpBean)
-            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    {
         otpBean.setOtp(null);
         otpBean.setCleared(true);
         initializeBean(pwmSession, pwmApplication, otpBean, true);
@@ -238,17 +245,8 @@ public class SetupOtpSecretServlet extends TopServlet {
                 }
                 if (otpBean.getOtp() == null && newOtp) { // setup OTP
                     LOGGER.info("Setting up new OTP secret.");
-                    UserInfoBean uibean = pwmSession.getUserInfoBean();
-                    String user = uibean.getUsername();
-                    String hostname;
-                    try {
-                        URL url = new URL(pwmApplication.getSiteURL());
-                        hostname = url.getHost();
-                    } catch (MalformedURLException e) {
-                        LOGGER.error("Malformed URL, not using hostname for identifier", e);
-                        hostname = "";
-                    }
-                    String identifier = user + ((hostname != null && hostname.length() > 0) ? ("@" + hostname) : "");
+                    final String identifierConfigValue = pwmApplication.getConfig().readSettingAsString(PwmSetting.OTP_SECRET_IDENTIFIER);
+                    String identifier = new MacroMachine(pwmApplication, pwmSession.getUserInfoBean()).expandMacros(identifierConfigValue);
                     OTPUserConfiguration otp = OTPUserConfiguration.getInstance(identifier, false, (service.supportsRecoveryCodes())?PwmConstants.OTP_RECOVERY_TOKEN_COUNT:0);
                     otpBean.setOtp(otp);
                     otpBean.setCleared(true);
@@ -295,5 +293,36 @@ public class SetupOtpSecretServlet extends TopServlet {
         public boolean isSuccess() {
             return success;
         }
+    }
+
+    private void handleQrImageRequest(
+            final PwmSession pwmSession,
+            final HttpServletRequest request,
+            final HttpServletResponse response
+    )
+            throws IOException
+    {
+        final String content = request.getParameter("content");
+        if (content == null || content.length() == 0) {
+            LOGGER.error(pwmSession, "unable to produce qrcode image, missing content parameter");
+        }
+
+        int height = 200;
+        int width = 200;
+        try {
+            width = Integer.parseInt(request.getParameter("width"));
+        } catch (Exception e) {
+            LOGGER.error(pwmSession, "error parsing width parameter: " + e.getMessage());
+        }
+        try {
+            height = Integer.parseInt(request.getParameter("height"));
+        } catch (NumberFormatException e) {
+            LOGGER.error(pwmSession, "error parsing height parameter: " + e.getMessage());
+        }
+
+        final QRCode code = QRCode.from(URLDecoder.decode(content, "UTF-8")).withCharset("UTF-8").withSize(width, height);
+        final ByteArrayOutputStream stream = code.to(ImageType.PNG).stream();
+        response.setContentType("image/png");
+        response.getOutputStream().write(stream.toByteArray());
     }
 }

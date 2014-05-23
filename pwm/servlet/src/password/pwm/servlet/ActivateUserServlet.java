@@ -30,10 +30,7 @@ import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.*;
 import password.pwm.bean.*;
 import password.pwm.bean.servlet.ActivateUserBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
@@ -170,9 +167,8 @@ public class ActivateUserServlet extends TopServlet {
 
             validateParamsAgainstLDAP(formValues, pwmApplication, pwmSession, userIdentity, config);
 
-            final String queryString = config.readSettingAsString(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
-            if (!Permission.testQueryMatch(pwmApplication, pwmSession,
-                    userIdentity, queryString)) {
+            final List<UserPermission> userPermissions = config.readSettingAsUserPermission(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
+            if (!Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions)) {
                 final String errorMsg = "user " + userIdentity + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);

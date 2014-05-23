@@ -23,6 +23,9 @@
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_RESET_BUTTON)) { %>
-<input type="reset" class="btn" name="reset" onclick="PWM_MAIN.handleFormClear();return false" value="<pwm:Display key="Button_Reset"/>"/>
-<% } %>
+<pwm:if test="showReset">
+<button type="reset" class="btn" name="reset" onclick="PWM_MAIN.handleFormClear();return false">
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-recycle"></span></pwm:if>
+    <pwm:Display key="Button_Reset"/>
+</button>
+</pwm:if>

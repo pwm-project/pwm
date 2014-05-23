@@ -321,7 +321,7 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
                 headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
                 content: dataInput,
                 preventCache: true,
-                timeout: 15000,
+                timeout: PWM_MAIN.ajaxTimeout,
                 sync: false,
                 handleAs: "json",
                 load: successFunction,

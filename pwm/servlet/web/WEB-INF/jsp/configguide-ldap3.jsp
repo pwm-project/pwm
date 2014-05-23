@@ -39,12 +39,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -56,32 +57,32 @@
                     LDAP Test User (Optional)
                 </div>
                 <div class="setting_body">
-                Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privileges and policies
-                as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
-                validate the configuration and health of both the LDAP server and this server.
-                <br/><br/>
-                This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
-                <div class="setting_item">
-                    <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
-                        <b>LDAP Test User DN</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
-                        <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>',
-                                        required: false,
-                                        style: "width: 550px",
-                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
-                                    }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
+                    Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privileges and policies
+                    as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
+                    validate the configuration and health of both the LDAP server and this server.
+                    <br/><br/>
+                    This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
+                    <div class="setting_item">
+                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
+                            <b>LDAP Test User DN</b>
+                            <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                            <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
+                            <script type="text/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                                        new ValidationTextBox({
+                                            name: '<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>',
+                                            required: false,
+                                            style: "width: 550px",
+                                            placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
+                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
+                                        }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
+                                    });
                                 });
-                            });
-                        </script>
+                            </script>
+                        </div>
                     </div>
                 </div>
-                    </div>
             </div>
         </form>
         <br/>
@@ -91,9 +92,15 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('CR_STORAGE');"><pwm:Display key="Button_Next"  bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('CR_STORAGE');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next"  bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

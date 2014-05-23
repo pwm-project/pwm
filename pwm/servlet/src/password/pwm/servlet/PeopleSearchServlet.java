@@ -66,7 +66,7 @@ public class PeopleSearchServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.PEOPLE_SEARCH, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PEOPLE_SEARCH)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;

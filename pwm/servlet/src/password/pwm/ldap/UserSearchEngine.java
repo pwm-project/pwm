@@ -224,8 +224,13 @@ public class UserSearchEngine {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final Collection<LdapProfile> ldapProfiles;
-        if (searchConfiguration.getLdapProfile() != null && pwmApplication.getConfig().getLdapProfiles().containsKey(searchConfiguration.getLdapProfile())) {
-            ldapProfiles = Collections.singletonList(pwmApplication.getConfig().getLdapProfiles().get(searchConfiguration.getLdapProfile()));
+        if (searchConfiguration.getLdapProfile() != null && !searchConfiguration.getLdapProfile().isEmpty()) {
+            if (pwmApplication.getConfig().getLdapProfiles().containsKey(searchConfiguration.getLdapProfile())) {
+                ldapProfiles = Collections.singletonList(pwmApplication.getConfig().getLdapProfiles().get(searchConfiguration.getLdapProfile()));
+            } else {
+                LOGGER.debug(pwmSession, "attempt to search for users in unknown ldap profile '" + searchConfiguration.getLdapProfile() + "', skipping search");
+                return Collections.emptyMap();
+            }
         } else {
             ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values();
         }

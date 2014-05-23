@@ -52,7 +52,8 @@ public class MainClass {
         commandList.add(new ExportLocalDBCommand());
         commandList.add(new ImportLocalDBCommand());
         commandList.add(new ExportAuditCommand());
-        commandList.add(new UnlockConfigCommand());
+        commandList.add(new ConfigUnlockCommand());
+        commandList.add(new ConfigLockCommand());
         commandList.add(new SetConfigPasswordCommand());
         commandList.add(new ExportStatsCommand());
         commandList.add(new ExportResponsesCommand());

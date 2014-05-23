@@ -28,10 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.SettingUIFunction;
-import password.pwm.config.StoredConfiguration;
+import password.pwm.config.*;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
@@ -59,31 +56,39 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final int maxResultSize = Integer.parseInt(
                 config.readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
 
-        final String queryMatchString = (String)storedConfiguration.readSetting(setting,profile).toNativeObject();
+        final List<UserPermission> queryMatchString = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
         final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
 
-        searchConfiguration.setFilter(queryMatchString);
-        final String output;
-        try {
-            final Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(
-                    null,
-                    searchConfiguration,
-                    maxResultSize,
-                    Collections.<String>emptyList()
-            );
-            final Map<String,List<String>> sortedMap = sortResults(results);
-            output = convertResultsToHtmlTable(
-                    pwmApplication, userLocale, sortedMap, maxResultSize
-            );
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error reading matching users: " + e.getMessage());
-            throw new PwmOperationalException(e.getErrorInformation());
-        } catch (ChaiUnavailableException e) {
-            LOGGER.error("error reading matching users: " + e.getMessage());
-            throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()));
+        final Map<UserIdentity, Map<String, String>> results = new HashMap<UserIdentity, Map<String, String>>();
+        for (final UserPermission userPermission : queryMatchString) {
+            if ((maxResultSize + 1) - results.size() > 0) {
+                final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
+                searchConfiguration.setFilter(userPermission.getLdapQuery());
+                if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty()) {
+                    searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
+                }
+
+                try {
+                    results.putAll(userSearchEngine.performMultiUserSearch(
+                                    pwmSession,
+                                    searchConfiguration,
+                                    (maxResultSize + 1) - results.size(),
+                                    Collections.<String>emptyList())
+                    );
+                } catch (PwmUnrecoverableException e) {
+                    LOGGER.error("error reading matching users: " + e.getMessage());
+                    throw new PwmOperationalException(e.getErrorInformation());
+                } catch (ChaiUnavailableException e) {
+                    LOGGER.error("error reading matching users: " + e.getMessage());
+                    throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()));
+                }
+            }
         }
-        return output;
+
+        final Map<String,List<String>> sortedMap = sortResults(results);
+        return convertResultsToHtmlTable(
+                pwmApplication, userLocale, sortedMap, maxResultSize
+        );
     }
 
     private String convertResultsToHtmlTable(

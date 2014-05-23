@@ -61,13 +61,15 @@
                                data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
                         Rows
                         <button class="btn" type="button" onclick="PWM_ADMIN.refreshReportDataGrid()">
-                            <span class="fa fa-refresh">&nbsp;<pwm:Display key="Button_Refresh" bundle="Admin"/></span>
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                            <pwm:Display key="Button_Refresh" bundle="Admin"/>
                         </button>
                     </div>
                     <div style="text-align: center">
                         <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                             <button type="submit" class="btn" id="Button_DownloadReportRecords">
-                                <span class="fa fa-download">&nbsp;<pwm:Display key="Button_DownloadReportRecords" bundle="Admin"/></span>
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                                <pwm:Display key="Button_DownloadReportRecords" bundle="Admin"/>
                             </button>
                             <script type="application/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
@@ -95,15 +97,18 @@
                     <table style="width:400px;">
                         <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
                             <button id="reportStartButton" class="btn" onclick="PWM_ADMIN.reportAction('start')">
-                                <i class="fa fa-play">&nbsp;<pwm:Display key="Button_Report_Start" bundle="Admin"/></i>
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
+                                <pwm:Display key="Button_Report_Start" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportStopButton" class="btn" onclick="PWM_ADMIN.reportAction('stop')">
-                                <i class="fa fa-stop">&nbsp;<pwm:Display key="Button_Report_Stop" bundle="Admin"/></i>
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-stop">&nbsp;</span></pwm:if>
+                                <pwm:Display key="Button_Report_Stop" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportClearButton" class="btn" onclick="PWM_ADMIN.reportAction('clear')">
-                                <span class="fa fa-trash-o">&nbsp;<pwm:Display key="Button_Report_Clear" bundle="Admin"/></span>
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-trash-o">&nbsp;</span></pwm:if>
+                                <pwm:Display key="Button_Report_Clear" bundle="Admin"/>
                             </button>
                         </td></tr>
                     </table>
@@ -165,7 +170,8 @@
                     <div style="text-align: center">
 
                         <button type="button" onclick="downloadCsv()" name="statisticsDownloadButton" class="btn">
-                            <span class="fa fa-download" >&nbsp;Download as CSV</span>
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download" >&nbsp;</span></pwm:if>
+                            Download as CSV
                         </button>
                     </div>
                 </div>

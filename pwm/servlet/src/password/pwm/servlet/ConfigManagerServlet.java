@@ -200,7 +200,7 @@ public class ConfigManagerServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN,pwmSession,pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"You must be authenticated with admin privileges before locking the configuration");
             final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             LOGGER.debug(pwmSession, errorInfo);

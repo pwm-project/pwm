@@ -67,7 +67,10 @@
             <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE))) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
-                <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter)%>.png"/>
+                <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
+                <% if (flagFileName != null && !flagFileName.isEmpty()) { %>
+                <img src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>
+                <% } %>
                 &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayName(userLocaleFooter)%>
             </span>
             <% segmentDisplayed = true; } %>

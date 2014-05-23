@@ -68,7 +68,17 @@ public class LocaleHelper {
 
         if (returnValue == null || returnValue.isEmpty()) {
             final ResourceBundle bundle = getMessageBundle(locale, bundleClass);
+            if (bundle == null) {
+                final String errorMsg = "missing bundle for " + bundleClass.getName();
+                LOGGER.warn(errorMsg);
+                return errorMsg;
+            }
             final String rawValue = bundle.getString(key);
+            if (rawValue == null) {
+                final String errorMsg = "missing key '" + key + "' for " + bundleClass.getName();
+                LOGGER.warn(errorMsg);
+                return errorMsg;
+            }
             returnValue = rawValue;
         }
 

@@ -32,9 +32,9 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
     </jsp:include>
     <div id="centerbody">
-        <% 
-           final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-           String destination = fpb.getTokenSendAddress();
+        <%
+            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+            String destination = fpb.getTokenSendAddress();
         %>
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
@@ -44,15 +44,13 @@
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required"></textarea>
             <div id="buttonbar">
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_CheckCode"/>"
-                       id="submitBtn"/>
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
+                    <pwm:Display key="Button_CheckCode"/>"
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
-                <% } %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>

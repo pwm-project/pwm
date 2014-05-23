@@ -127,6 +127,22 @@
             ChallengeTableHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
         });
     </script>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
+    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+    </table>
+    <div style="width: 100%; text-align: center">
+    <button id="<%=loopSetting.getKey()%>_ViewMatchesButton" data-dojo-type="dijit.form.Button">View Matches</button>
+    </div>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            UserPermissionHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
+            require(["dojo/parser","dijit/form/Button"],function(parser,Button){
+                new Button({
+                    onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'password.pwm.config.function.UserMatchViewerFunction')}
+                },'<%=loopSetting.getKey()%>_ViewMatchesButton');
+            });
+        });
+    </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
@@ -217,20 +233,8 @@
             });
         });
     </script>
-    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING || loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
+    <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
-    <% if (loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
-    <button id="<%=loopSetting.getKey()%>_ViewMatchesButton" data-dojo-type="dijit.form.Button">View Matches</button>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/form/Button"],function(parser,Button){
-                new Button({
-                    onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'password.pwm.config.function.UserMatchViewerFunction')}
-                },'<%=loopSetting.getKey()%>_ViewMatchesButton');
-            });
-        });
-    </script>
-    <% } %>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){

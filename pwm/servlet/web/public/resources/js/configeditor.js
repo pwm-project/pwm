@@ -24,6 +24,7 @@ var clientSettingCache = { };
 var preferences = { };
 var PWM_CFGEDIT = PWM_CFGEDIT || {};
 var PWM_MAIN = PWM_MAIN || {};
+var PWM_VAR = PWM_VAR || {};
 var outstandingOperations = 0;
 
 function readSetting(keyName, valueWriter) {
@@ -167,6 +168,35 @@ function clearDivElements(parentDiv, showLoading) {
             newTableRow.appendChild(newTableData);
         }
     }
+}
+
+function addValueButtonRow(parentDiv, keyName, addFunction) {
+
+    var buttonId = keyName + '-addValueButton';
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
+    newTableRow.setAttribute("colspan", "5");
+
+    var newTableData = document.createElement("td");
+    newTableData.setAttribute("style", "border-width: 0;");
+
+    var addItemButton = document.createElement("button");
+    addItemButton.setAttribute("type", "button");
+    addItemButton.setAttribute("id", buttonId)
+    addItemButton.innerHTML = "Add Value";
+    newTableData.appendChild(addItemButton);
+
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+    newTableRow.appendChild(newTableData);
+
+    PWM_MAIN.clearDijitWidget(keyName + '-addValueButton');
+    require(["dijit/form/Select","dijit/form/Button"],function(Select,Button) {
+        new Button({
+            id: buttonId,
+            onClick: addFunction
+        }, buttonId);
+    });
 }
 
 function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
@@ -2251,6 +2281,115 @@ ChallengeTableHandler.write = function(settingKey,redraw) {
     }
 };
 
+// -------------------------- user permission handler ------------------------------------
+
+var UserPermissionHandler = {};
+UserPermissionHandler.defaultItem = {ldapQuery:"(objectClass=*)"};
+
+UserPermissionHandler.init = function(parentDiv, keyName) {
+    console.log('UserPermissionHandler init for ' + keyName);
+    clearDivElements(parentDiv, true);
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        UserPermissionHandler.draw(parentDiv, keyName);
+    });
+};
+
+UserPermissionHandler.draw = function(parentDiv, keyName) {
+    var resultValue = clientSettingCache[keyName];
+
+    // clear the old dijit node (if it exists)
+    clearDivElements(parentDiv, false);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    // header row
+    if (!PWM_MAIN.isEmpty(resultValue)) {
+        var labelRowTr = document.createElement("tr");
+        labelRowTr.setAttribute("style", "border-width: 0;");
+        labelRowTr.innerHTML = '<td id="' + keyName + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
+            + '<td id="' + keyName + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</td>';
+        parentDivElement.appendChild(labelRowTr);
+    }
+
+    require(["dojo","dijit/registry","dojo/parser","dojo/json","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/ComboBox","dijit/form/NumberSpinner","dijit/form/ToggleButton"],
+        function(dojo,registry,dojoParser,json){
+            for (var iteration in resultValue) {
+                (function(rowKey) {
+                    var valueTableRow = document.createElement("tr");
+
+                    var valueTd1 = document.createElement("td");
+                    valueTd1.setAttribute("style", "border-width: 0;");
+                    var inputID = "value-" + keyName + "-" + rowKey;
+
+                    PWM_MAIN.clearDijitWidget(inputID + "-profile");
+                    var profileInput = document.createElement("select");
+                    profileInput.setAttribute("id", inputID + "-profile");
+                    profileInput.setAttribute("value", resultValue[rowKey]['ldapProfileID'] || '');
+                    profileInput.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapProfileID'] = this.value;UserPermissionHandler.write('" + keyName + "')");
+                    profileInput.setAttribute("data-dojo-type", "dijit.form.ComboBox");
+                    profileInput.setAttribute("style","width: 100px");
+                    valueTd1.appendChild(profileInput);
+                    valueTableRow.appendChild(valueTd1);
+
+                    profileInput.options[profileInput.options.length] = new Option('');
+                    profileInput.options[profileInput.options.length] = new Option('_default');
+                    profileInput.options[profileInput.options.length] = new Option('profile1');
+                    profileInput.options[profileInput.options.length] = new Option('profile2');
+
+                    var valueTd2 = document.createElement("td");
+                    valueTd2.setAttribute("style", "border-width: 0;");
+
+                    PWM_MAIN.clearDijitWidget(inputID + "-query");
+                    var inputElement = document.createElement("textarea");
+                    inputElement.setAttribute("id", inputID + "-query");
+                    inputElement.setAttribute("value", resultValue[rowKey]['ldapQuery']);
+                    inputElement.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapQuery'] = this.value;UserPermissionHandler.write('" + keyName + "')");
+                    inputElement.setAttribute("style", "width: 450px");
+                    inputElement.setAttribute("required","true");
+                    inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+                    valueTd2.appendChild(inputElement);
+                    valueTableRow.appendChild(valueTd2);
+
+                    // add remove button
+                    var valueTd3 = document.createElement("td");
+                    valueTd3.setAttribute("style", "border-width: 0;");
+                    var imgElement = document.createElement("div");
+                    imgElement.setAttribute("style", "width: 10px; height: 10px;");
+                    imgElement.setAttribute("class", "fa fa-times icon_button");
+                    imgElement.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + rowKey + "'];UserPermissionHandler.write('" + keyName + "',true)");
+                    valueTd3.appendChild(imgElement);
+                    valueTableRow.appendChild(valueTd3);
+
+                    parentDivElement.appendChild(valueTableRow);
+                }(iteration));
+            }
+
+            var addRowFunction = function() {
+                clientSettingCache[keyName].push(UserPermissionHandler.defaultItem);
+                UserPermissionHandler.write(keyName, true);
+            };
+
+            addValueButtonRow(parentDiv, keyName, addRowFunction)
+            dojoParser.parse(parentDiv);
+
+            PWM_MAIN.showTooltip({
+                id:keyName+'_profileHeader', width: 300,
+                text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Profile')
+            });
+            PWM_MAIN.showTooltip({
+                id:keyName+'_FilterHeader', width: 300,
+                text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Filter')
+            });
+        });
+};
+
+UserPermissionHandler.write = function(settingKey,redraw) {
+    writeSetting(settingKey, clientSettingCache[settingKey]);
+    if (redraw) {
+        var parentDiv = 'table_setting_' + settingKey;
+        UserPermissionHandler.draw(parentDiv, settingKey);
+    }
+};
 
 
 // ---------------------- menu bar section ---------------------------------------------------
@@ -2287,13 +2426,13 @@ function buildMenuBar() {
 
                         var showMenu = true;
                         if (menuCategory['key'] == 'EDIRECTORY') {
-                            showMenu = (PWM_GLOBAL['selectedTemplate'] == 'NOVL');
+                            showMenu = (PWM_VAR['selectedTemplate'] == 'NOVL');
                         }
                         if (menuCategory['key'] == 'ACTIVE_DIRECTORY') {
-                            showMenu = (PWM_GLOBAL['selectedTemplate'] == 'AD');
+                            showMenu = (PWM_VAR['selectedTemplate'] == 'AD');
                         }
                         if (menuCategory['key'] == 'ORACLE_DS') {
-                            showMenu = (PWM_GLOBAL['selectedTemplate'] == 'ORACLE_DS');
+                            showMenu = (PWM_VAR['selectedTemplate'] == 'ORACLE_DS');
                         }
                         if (menuCategory['hidden'] == true) {
                             showMenu = false;
@@ -2446,7 +2585,7 @@ function buildMenuBar() {
                         var templateItem = PWM_SETTINGS['templates'][template];
                         templateMenu.addChild(new CheckedMenuItem({
                             label: templateItem['description'],
-                            checked: templateItem['key'] == PWM_GLOBAL['selectedTemplate'],
+                            checked: templateItem['key'] == PWM_VAR['selectedTemplate'],
                             onClick: function() {
                                 PWM_MAIN.showConfirmDialog({text:confirmText,okFunction:function() {
                                     PWM_MAIN.showWaitDialog({loadFunction:function() {
@@ -2623,18 +2762,18 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
         PWM_MAIN.clearDijitWidget('dialogPopup');
         PWM_MAIN.showWaitDialog();
         dojo.xhrPost({
-            url:"ConfigEditor?processAction=PWM_CFGEDIT.setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+            url:"ConfigEditor?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: password,
             contentType: "application/text;charset=utf-8",
             dataType: "text",
             handleAs: "text",
             load: function(data){
                 PWM_MAIN.closeWaitDialog();
-                PWM_MAIN.showInfo('Configuration password set successfully.')
+                PWM_MAIN.showDialog({title:'Success',text:'Configuration password set successfully.'});
             },
             error: function(errorObj) {
                 PWM_MAIN.closeWaitDialog();
-                PWM_MAIN.showError("error saving notes text: " + errorObj);
+                PWM_MAIN.showDialog ({title:'Error',text:"error saving notes text: " + errorObj});
             }
         });
         return;
@@ -2701,7 +2840,7 @@ function showConfigurationNotes() {
             content: bodyText
         });
         theDialog.show();
-        PWM_MAIN.getObject(idName).value = PWM_GLOBAL['configurationNotes'];
+        PWM_MAIN.getObject(idName).value = PWM_VAR['configurationNotes'];
         preferences['seenNotes'] = true;
         setConfigEditorCookie();
     });
@@ -2710,7 +2849,7 @@ function showConfigurationNotes() {
 function writeConfigurationNotes() {
     require(["dojo","dijit/Dialog"],function(dojo){
         var value = PWM_MAIN.getObject('configNotesDialog').value;
-        PWM_GLOBAL['configurationNotes'] = value;
+        PWM_VAR['configurationNotes'] = value;
         PWM_MAIN.showWaitDialog({loadFunction:function(){
             dojo.xhrPost({
                 url:"ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&updateNotesText=true",
@@ -2756,7 +2895,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     readConfigEditorCookie();
     buildMenuBar();
 
-    var hasNotes = PWM_GLOBAL['configurationNotes'] && PWM_GLOBAL['configurationNotes'].length > 0;
+    var hasNotes = PWM_VAR['configurationNotes'] && PWM_VAR['configurationNotes'].length > 0;
 
     if (hasNotes && preferences['notesSeen']) {
         showPwmAlert(null,PWM_CONFIG.showString('Warning_ShowNotes'));
@@ -2794,8 +2933,8 @@ function executeSettingFunction(setting, profile, name) {
                         }});
                     } else {
                         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
-                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: msgBody, nextAction: function () {
-                            loadMainPageBody();
+                        PWM_MAIN.showDialog({width: 700, title: PWM_MAIN.showString("Title_Success"), text: msgBody, nextAction: function () {
+                            //loadMainPageBody();
                         }});
                     }
                 },
@@ -2881,26 +3020,26 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
                 PWM_MAIN.getObject('settingSearchResults').innerHTML = bodyText;
                 if (!PWM_MAIN.isEmpty(data['data'])) {
                     (function(){
-                            for (var categoryIter in data['data']) {
-                                var category = data['data'][categoryIter];
-                                for (var settingIter in category) {
-                                    var setting = category[settingIter];
-                                    var profileID = setting['profile'];
-                                    var settingID = "search_" + (profileID ? profileID + '_' : '') +  settingIter;
-                                    var toolBody = '<span style="font-weight: bold">Setting</span>';
-                                    toolBody += '<br/>' + setting['label'] + '<br/><br/>';
-                                    toolBody += '<span style="font-weight: bold">Description</span>';
-                                    toolBody += '<br/>' + setting['description'] + '<br/><br/>';
-                                    toolBody += '<span style="font-weight: boldb">Value</span>';
-                                    toolBody += '<br/>' + setting['value'] + '<br/>';
-                                    PWM_MAIN.showTooltip({
-                                        id: settingID,
-                                        text: toolBody,
-                                        position: ['above'],
-                                        width: 650
-                                    });
-                                }
+                        for (var categoryIter in data['data']) {
+                            var category = data['data'][categoryIter];
+                            for (var settingIter in category) {
+                                var setting = category[settingIter];
+                                var profileID = setting['profile'];
+                                var settingID = "search_" + (profileID ? profileID + '_' : '') +  settingIter;
+                                var toolBody = '<span style="font-weight: bold">Setting</span>';
+                                toolBody += '<br/>' + setting['label'] + '<br/><br/>';
+                                toolBody += '<span style="font-weight: bold">Description</span>';
+                                toolBody += '<br/>' + setting['description'] + '<br/><br/>';
+                                toolBody += '<span style="font-weight: bold">Value</span>';
+                                toolBody += '<br/>' + setting['value'] + '<br/>';
+                                PWM_MAIN.showTooltip({
+                                    id: settingID,
+                                    text: toolBody,
+                                    position: ['above'],
+                                    width: 650
+                                });
                             }
+                        }
                     }());
                 }
                 PWM_MAIN.showSuccess(resultCount + ' Results');

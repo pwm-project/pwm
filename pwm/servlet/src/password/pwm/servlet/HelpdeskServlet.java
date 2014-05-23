@@ -92,7 +92,7 @@ public class HelpdeskServlet extends TopServlet {
             return;
         }
 
-        if (!Permission.checkPermission(Permission.HELPDESK, pwmSession, pwmApplication)) {
+        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.HELPDESK)) {
             ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
             return;
@@ -296,6 +296,7 @@ public class HelpdeskServlet extends TopServlet {
                 pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.HELPDESK_SEARCH_BASE));
         searchConfiguration.setEnableContextValidation(false);
         searchConfiguration.setUsername(username);
+        searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_SEARCH_FILTER));
         if (!useProxy) {
             searchConfiguration.setLdapProfile(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID());

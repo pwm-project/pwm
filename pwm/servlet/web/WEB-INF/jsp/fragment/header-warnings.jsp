@@ -30,19 +30,40 @@
 %>
 <% if (headerEnabled) { %>
 <%
-        final boolean adminUser = Permission.checkPermission(Permission.PWMADMIN,pwmSessionHeaderBody,pwmApplicationHeaderBody);
-        final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE;
-        final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser;
+    final boolean adminUser = pwmSessionHeaderBody.getSessionManager().checkPermission(pwmApplicationHeaderBody, Permission.PWMADMIN);
+    final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE;
+    final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser;
 %>
 <% if (showHeader || healthCheck) { %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<div id="header-warning" style="width: 100%; <%=showHeader?"":"display: none"%>">
+<div id="header-warning" style="<%=showHeader?"":"display: none"%>">
+    <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
+        <a class="btn">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
+            <pwm:Display key="MenuItem_ConfigManager" bundle="Admin"/>
+        </a>
+    </span>
+    &nbsp;&nbsp;
+    <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer; white-space: nowrap">
+        <a class="btn">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
+            <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
+        </a>
+    </span>
+    &nbsp;&nbsp;
+    <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer; white-space: nowrap">
+        <a class="btn">
+            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
+            <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
+        </a>
+    </span>
+    <br/>    <br/>
+
+    <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
-    <span id="header-warning-message">
     <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-    </span>
     <script type="application/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.showTooltip({
@@ -56,26 +77,6 @@
     <% } else if (adminUser) { %>
     <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
-    &nbsp;&nbsp;
-    <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
-        <span class="fa fa-gears"></span>&nbsp;
-        <a>
-            <pwm:Display key="MenuItem_ConfigManager" bundle="Admin"/>
-        </a>
-    </span>
-    &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer; white-space: nowrap">
-        <span class="fa fa-edit"></span>&nbsp;
-        <a>
-            <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
-        </a>
-    </span>
-    &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer; white-space: nowrap">
-        <span class="fa fa-list-alt"></span>&nbsp;
-        <a>
-            <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
-        </a>
     </span>
     <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">
     </div>

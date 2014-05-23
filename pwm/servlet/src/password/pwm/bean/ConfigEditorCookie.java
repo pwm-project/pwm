@@ -36,7 +36,6 @@ public class ConfigEditorCookie implements Serializable {
     private boolean notesSeen;
     private String profile = PwmConstants.DEFAULT_PROFILE_ID;
     private String setting = "";
-    private boolean developerMode = false;
 
     public ConfigEditorCookie() {
     }
@@ -93,6 +92,7 @@ public class ConfigEditorCookie implements Serializable {
         SETTINGS,
         LOCALEBUNDLE,
         PROFILE,
+        APPPROPERTIES,
     }
 
     public String getProfile()

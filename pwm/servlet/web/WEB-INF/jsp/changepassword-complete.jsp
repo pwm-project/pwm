@@ -38,14 +38,13 @@
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+            <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="post"
                   enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
-                    <input type="hidden"
-                           name="processAction"
-                           value="continue"/>
-                    <input type="submit" name="button" class="btn"
-                           value="<pwm:Display key="Button_Continue"/>"
-                           id="submitBtn"/>
+                    <input type="hidden" name="processAction" value="continue"/>
+                    <button type="submit" name="button" class="btn" id="submitBtn">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                        <pwm:Display key="Button_Continue"/>
+                    </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <br/>

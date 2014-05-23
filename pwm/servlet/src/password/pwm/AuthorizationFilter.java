@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ public class AuthorizationFilter implements Filter {
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try {
-            hasPermission = Permission.checkPermission(Permission.PWMADMIN, pwmSession, pwmApplication);
+            hasPermission = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
         } catch (Exception e) {
             LOGGER.warn("error during authorization check: " + e.getMessage());
         }

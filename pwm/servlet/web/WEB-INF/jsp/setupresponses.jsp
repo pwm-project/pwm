@@ -45,8 +45,10 @@
             <jsp:include page="fragment/setupresponses-form.jsp"/>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
-                <input type="submit" name="setResponses" class="btn" id="setresponses_button"
-                       value="<pwm:Display key="Button_SetResponses"/>"/>
+                <button type="submit" name="setResponses" class="btn" id="setresponses_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_SetResponses"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

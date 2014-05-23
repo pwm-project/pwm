@@ -37,6 +37,7 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
@@ -155,11 +156,11 @@ public class CrService implements PwmService {
         for (final String profile : profiles) {
             if (!PwmConstants.DEFAULT_CHALLENGE_PROFILE.equalsIgnoreCase(profile)) {
                 final ChallengeProfile loopPolicy = pwmApplication.getConfig().getChallengeProfile(profile, locale);
-                final String queryMatch = loopPolicy.getQueryString();
-                if (queryMatch != null && queryMatch.length() > 0) {
+                final List<UserPermission> queryMatch = loopPolicy.getUserPermissions();
+                if (queryMatch != null && !queryMatch.isEmpty()) {
                     LOGGER.debug("testing challenge profiles '" + profile + "'");
                     try {
-                        boolean match = Permission.testQueryMatch(pwmApplication,null,userIdentity,queryMatch);
+                        boolean match = Helper.testUserPermissions(pwmApplication,null,userIdentity,queryMatch);
                         if (match) {
                             return profile;
                         }
@@ -454,8 +455,9 @@ public class CrService implements PwmService {
 
 
     public boolean checkIfResponseConfigNeeded(
+            final PwmApplication pwmApplication,
             final PwmSession pwmSession,
-            final ChaiUser theUser,
+            final UserIdentity userIdentity,
             final ChallengeSet challengeSet,
             final ResponseInfoBean responseInfoBean
     )
@@ -463,18 +465,17 @@ public class CrService implements PwmService {
     {
         LOGGER.trace(pwmSession, "beginning check to determine if responses need to be configured for user");
 
-        final String userDN = theUser.getEntryDN();
-
         final Configuration config = pwmApplication.getConfig();
 
-        if (!Helper.testUserMatchQueryString(theUser, config.readSettingAsString(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " is not eligible for checkIfResponseConfigNeeded due to query match");
+        if (!Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission(
+                PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match");
             return false;
         }
 
         // check to be sure there are actually challenges in the challenge set
         if (challengeSet == null || challengeSet.getChallenges().isEmpty()) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userDN);
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: no challenge sets configured for user " + userIdentity);
             return false;
         }
 
@@ -487,10 +488,10 @@ public class CrService implements PwmService {
             // check if responses meet the challenge set policy for the user
             //usersResponses.meetsChallengeSetRequirements(challengeSet);
 
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " has good responses");
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userIdentity + " has good responses");
             return false;
         } catch (Exception e) {
-            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userDN + " does not have good responses: " + e.getMessage());
+            LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userIdentity + " does not have good responses: " + e.getMessage());
             return true;
         }
     }

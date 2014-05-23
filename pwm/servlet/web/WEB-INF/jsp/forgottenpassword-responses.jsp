@@ -74,12 +74,12 @@ this is handled this way so on browsers where hiding fields is not possible, the
                    value="<%= ssBean.getLastParameterValues().get("PwmResponse_R_" + counter,"") %>"/>
             <% } %>
             <% } %>
-
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="checkResponses"/>
-                <input type="submit" name="checkResponses" class="btn"
-                       value="<pwm:Display key="Button_RecoverPassword"/>"
-                       id="submitBtn"/>
+                <button type="submit" name="checkResponses" class="btn" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:Display key="Button_RecoverPassword"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

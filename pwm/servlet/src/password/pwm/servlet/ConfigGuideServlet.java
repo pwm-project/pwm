@@ -30,10 +30,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.servlet.ConfigGuideBean;
 import password.pwm.config.*;
-import password.pwm.config.value.PasswordValue;
-import password.pwm.config.value.StringArrayValue;
-import password.pwm.config.value.StringValue;
-import password.pwm.config.value.X509CertificateValue;
+import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
 import password.pwm.i18n.Display;
@@ -89,7 +86,11 @@ public class ConfigGuideServlet extends TopServlet {
 
             defaultLdapForm.put(PARAM_LDAP2_CONTEXT, ((List<String>)PwmSetting.LDAP_CONTEXTLESS_ROOT.getDefaultValue(template).toNativeObject()).get(0));
             defaultLdapForm.put(PARAM_LDAP2_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
-            defaultLdapForm.put(PARAM_LDAP2_ADMINS, (String) PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject());
+            {
+                List<UserPermission> userPermissions = (List<UserPermission>)PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject();
+                final String query = userPermissions != null && userPermissions.size() > 0 ? userPermissions.get(0).getLdapQuery() : "";
+                defaultLdapForm.put(PARAM_LDAP2_ADMINS,query);
+            }
 
             defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
 
@@ -449,8 +450,9 @@ public class ConfigGuideServlet extends TopServlet {
         }
 
         {  // set admin query
-            final String ldapTestUserDN = ldapForm.get(PARAM_LDAP2_ADMINS);
-            storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new StringValue(ldapTestUserDN), null);
+            final String ldapAdminQuery = ldapForm.get(PARAM_LDAP2_ADMINS);
+            final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(null, ldapAdminQuery));
+            storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue(userPermissions), null);
         }
     }
 

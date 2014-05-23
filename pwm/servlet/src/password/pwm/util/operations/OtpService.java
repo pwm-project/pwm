@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
@@ -80,12 +81,15 @@ public class OtpService implements PwmService {
     }
 
     public OTPUserConfiguration readOTPUserConfiguration(final UserIdentity userIdentity)
-            throws PwmUnrecoverableException, ChaiUnavailableException {
-        final Configuration config = pwmApplication.getConfig();
-        final long methodStartTime = System.currentTimeMillis();
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
         OTPUserConfiguration otpConfig = null;
+        final Configuration config = pwmApplication.getConfig();
+        final Date methodStartTime = new Date();
 
-        final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
+        final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
+                PwmSetting.OTP_SECRET_READ_PREFERENCE);
+
         if (otpSecretStorageLocations != null) {
             final String userGUID;
             if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
@@ -94,19 +98,25 @@ public class OtpService implements PwmService {
             } else {
                 userGUID = null;
             }
-            Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
+
+            final Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (otpConfig == null && locationIterator.hasNext()) {
                 final DataStorageMethod location = locationIterator.next();
                 final OtpOperator operator = operatorMap.get(location);
                 if (operator != null) {
-                    otpConfig = operator.readOtpUserConfiguration(userIdentity, userGUID);
+                    try {
+                        otpConfig = operator.readOtpUserConfiguration(userIdentity, userGUID);
+                    } catch (Exception e) {
+                        LOGGER.error("unexpected error reading stored otp configuration from " + location + " for user " + userIdentity + ", error: " + e.getMessage());
+                    }
                 } else {
                     LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
                 }
             }
         }
 
-        LOGGER.trace("readOTPUserConfiguration completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+        LOGGER.trace("readOTPUserConfiguration completed in " + TimeDuration.fromCurrent(
+                methodStartTime).asCompactString());
         return otpConfig;
     }
 

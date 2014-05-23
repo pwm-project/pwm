@@ -27,51 +27,51 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
-    <body class="nihilo">
-        <div id="wrapper">
-            <jsp:include page="fragment/header-body.jsp">
-                <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
-            </jsp:include>
-            <div id="centerbody">
-                <%
-                    final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-                    OTPUserConfiguration otp = fpb.getOtpConfig();
-                    String identifier = otp.getIdentifier();
+<body class="nihilo">
+<div id="wrapper">
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_ForgottenPassword"/>
+    </jsp:include>
+    <div id="centerbody">
+        <%
+            final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
+            OTPUserConfiguration otp = fpb.getOtpConfig();
+            String identifier = otp.getIdentifier();
 
-                    if (identifier != null && identifier.length() > 0 ) {
-                %>
-                <p><pwm:Display key="Display_RecoverOTPIdentified" value1="<%=identifier%>"/></p>
-                <% } else { %>
-                <p><pwm:Display key="Display_RecoverOTP" /></p>
-                <% } %>
-                <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
-                      enctype="application/x-www-form-urlencoded" name="search"
-                      onsubmit="PWM_MAIN.handleFormSubmit('submitBtn', this);
+            if (identifier != null && identifier.length() > 0 ) {
+        %>
+        <p><pwm:Display key="Display_RecoverOTPIdentified" value1="<%=identifier%>"/></p>
+        <% } else { %>
+        <p><pwm:Display key="Display_RecoverOTP" /></p>
+        <% } %>
+        <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
+              enctype="application/x-www-form-urlencoded" name="search"
+              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn', this);
                               return false">
-                    <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-                    <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-                    <input type="password" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required"/>
-                    <div id="buttonbar">
-                        <input type="submit" class="btn"
-                               name="search"
-                               value="<pwm:Display key="Button_CheckCode"/>"
-                               id="submitBtn"/>
-                        <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                        <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
-                        <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
-                        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </div>
-                </form>
+            <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+            <input type="password" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required"/>
+            <div id="buttonbar">
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:Display key="Button_CheckCode"/>
+                </button>
+                <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
+                <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
+                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
-            <div class="push"></div>
-        </div>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function() {
-                PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
-                ShowHidePasswordHandler.initAllForms();
-            });
-        </script>
-        <%@ include file="fragment/footer.jsp" %>
-    </body>
+        </form>
+    </div>
+    <div class="push"></div>
+</div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function() {
+        PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
+        ShowHidePasswordHandler.initAllForms();
+    });
+</script>
+<%@ include file="fragment/footer.jsp" %>
+</body>
 </html>
 

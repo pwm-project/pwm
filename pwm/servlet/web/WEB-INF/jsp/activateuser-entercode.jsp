@@ -42,29 +42,30 @@
         <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post"
-              enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
-              style="display: inline;">
+                  enctype="application/x-www-form-urlencoded" name="search"
+                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
+                  style="display: inline;">
                 <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
-                <input type="submit" class="btn"
-                       name="search"
-                       value="<pwm:Display key="Button_CheckCode"/>"
-                       id="submitBtn"/>
+                <button type="submit" class="btn" name="search" id="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
+                    <pwm:Display key="Button_CheckCode"/>
+                </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded"
-                  style="display: inline;">
-                <input type="hidden" name="processAction" value="reset"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Cancel"/>"
-                       id="buttonCancel"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-            <% } %>
+            <pwm:if test="showCancel">
+                <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
+                      enctype="application/x-www-form-urlencoded"
+                      style="display: inline;">
+                    <input type="hidden" name="processAction" value="reset"/>
+                    <button type="submit" name="button" class="btn" id="buttonCancel">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
+                        <pwm:Display key="Button_Cancel"/>
+                    </button>
+                    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                </form>
+            </pwm:if>
         </div>
     </div>
     <div class="push"></div>

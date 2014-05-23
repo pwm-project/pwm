@@ -357,6 +357,7 @@ public class ConfigEditorServlet extends TopServlet {
         final String password = ServletHelper.readRequestBody(req);
         configManagerBean.getConfiguration().setPassword(password);
         configManagerBean.setPasswordVerified(true);
+        LOGGER.debug(pwmSession, "config password updated");
     }
 
     private void restFinishEditing(

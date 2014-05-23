@@ -1,0 +1,102 @@
+# The following section handles the add/delete operations neccessary to
+# update a pre-existing schema.  Import with option to continue after errors.
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmEventLog'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.1
+  NAME 'pwmEventLog'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmResponseSet'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.2
+  NAME 'pwmResponseSet'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmLastPwdUpdate'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.3
+  NAME 'pwmLastPwdUpdate'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmGUID'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.4
+  NAME 'pwmGUID'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmToken'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.5
+  NAME 'pwmToken'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+ )
+
+dn: cn=schema
+changetype: modify
+delete: attributeTypes
+attributeTypes: (
+  NAME 'pwmOtpSecret'
+ )
+-
+add: attributeTypes
+attributeTypes: (
+  1.3.6.1.4.1.35015.1.2.5
+  NAME 'pwmOtpSecret'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40
+ )
+
+dn: cn=schema
+changetype: modify
+delete: objectClasses
+objectClasses: (
+  1.3.6.1.4.1.35015.1.1.1
+  NAME 'pwmUser'
+ )
+-
+add: objectClasses
+objectClasses: (
+  1.3.6.1.4.1.35015.1.1.1
+  NAME 'pwmUser'
+  AUXILIARY
+  MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret )
+ )

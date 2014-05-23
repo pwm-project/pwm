@@ -123,8 +123,18 @@ public class RestSetPasswordServer {
         }
 
         try {
-            if (!Permission.checkPermission(Permission.CHANGE_PASSWORD, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            if (restRequestBean.getUserIdentity() == null) {
+                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(
+                        restRequestBean.getPwmApplication(), Permission.CHANGE_PASSWORD)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,
+                            "actor does not have required permission"));
+                }
+            } else {
+                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(
+                        restRequestBean.getPwmApplication(), Permission.HELPDESK)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,
+                            "actor does not have required permission"));
+                }
             }
 
             final JsonInputData jsonResultData = new JsonInputData();

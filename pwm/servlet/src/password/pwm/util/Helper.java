@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import com.google.gson.*;
 import com.novell.ldapchai.ChaiUser;
+import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
@@ -35,13 +36,11 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import password.pwm.*;
-import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.SmsItemBean;
-import password.pwm.bean.UserInfoBean;
+import password.pwm.bean.*;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -223,40 +222,6 @@ public class
         final Pattern pattern = Pattern.compile(PwmConstants.EMAIL_REGEX_MATCH);
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
-    }
-
-    public static boolean testUserMatchQueryString(
-            final ChaiUser theUser,
-            final String queryString
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        if (theUser == null) {
-            return false;
-        }
-
-        if (queryString == null || queryString.length() < 1) {
-            return true;
-        }
-
-        try {
-            final ChaiProvider provider = theUser.getChaiProvider();
-            final String objectDN = theUser.getEntryDN();
-            final Map<String, Map<String,String>> results = provider.search(objectDN, queryString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.SUBTREE);
-
-            if (results == null || results.size() != 1) {
-                return false;
-            }
-
-            final String returnedDN = Helper.trimString(results.keySet().iterator().next(), ",");
-
-            if (returnedDN.equals(objectDN)) {
-                return true;
-            }
-        } catch (ChaiOperationException e) {
-            LOGGER.error("error testing match query string: " + queryString, e);
-        }
-
-        return false;
     }
 
     /**
@@ -1002,5 +967,90 @@ public class
         }
 
         return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
+    }
+
+    public static boolean testUserPermissions(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final List<UserPermission> userPermissions
+    )
+            throws PwmUnrecoverableException
+    {
+        if (userPermissions == null) {
+            return false;
+        }
+
+        for (final UserPermission userPermission : userPermissions) {
+            if (testUserPermission(pwmApplication, pwmSession, userIdentity, userPermission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean testUserPermission(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final UserPermission userPermission
+    )
+            throws PwmUnrecoverableException
+    {
+        if (userPermission == null || userIdentity == null) {
+            return false;
+        }
+
+        boolean performTest = false;
+        if (userPermission.getLdapProfileID() == null || userPermission.getLdapProfileID().isEmpty()) {
+            performTest = true;
+        } else if (userIdentity.getLdapProfileID().equals(userPermission.getLdapProfileID())) {
+            performTest = true;
+        }
+
+        return performTest && testQueryMatch(pwmApplication, pwmSession, userIdentity, userPermission.getLdapQuery());
+    }
+
+    public static boolean testQueryMatch(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final String queryMatch
+    )
+            throws PwmUnrecoverableException
+    {
+        if (userIdentity == null) {
+            return false;
+        }
+
+        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + queryMatch);
+
+        boolean result = false;
+
+        if (queryMatch == null || queryMatch.length() < 1) {
+
+            LOGGER.trace(pwmSession, "missing queryMatch value, skipping check");
+        } else if ("(objectClass=*)".equalsIgnoreCase(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
+            LOGGER.trace(pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query");
+            result = true;
+        } else {
+            try {
+                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + queryMatch + "'");
+                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
+                if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
+                    result = true;
+                }
+            } catch (ChaiException e) {
+                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + queryMatch + ", error:" + e.getMessage());
+            }
+        }
+
+        if (result) {
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch);
+        } else {
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch);
+        }
+        return result;
     }
 }

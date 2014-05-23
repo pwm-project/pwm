@@ -185,6 +185,7 @@
                 <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        <!--
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordViolatesPolicy"/>
@@ -193,6 +194,7 @@
                 <% if (searchedUserInfo.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        -->
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordSetTime"/>
@@ -271,8 +273,6 @@
             <td class="key">
                 <pwm:Display key="Field_ResponsesTimestamp"/>
             </td>
-
-
             <% if (responseInfoBean == null || responseInfoBean.getTimestamp() == null) { %>
             <td>
                 <pwm:Display key="Value_NotApplicable"/>
@@ -283,6 +283,30 @@
             </td>
             <% } %>
         </tr>
+        <pwm:if test="otpEnabled">
+        <tr>
+            <td class="key">
+                OTP Enrollment required
+            </td>
+            <td>
+            <%if (searchedUserInfo.isRequiresOtpConfig()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                OTP Enrolled Date
+            </td>
+            <% if (searchedUserInfo.getOtpUserConfiguration() == null || searchedUserInfo.getOtpUserConfiguration().getTimestamp() == null) { %>
+            <td>
+                <pwm:Display key="Value_NotApplicable"/>
+            </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(searchedUserInfo.getOtpUserConfiguration().getTimestamp()) %>
+            </td>
+            <% } %>
+        </tr>
+        </pwm:if>
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
@@ -331,11 +355,11 @@
                     <pwm:Display key="Field_Profile"/>
                 </td>
                 <td>
-                    <%= searchedUserInfo.getPasswordPolicy().getProfile() == null
+                    <%= searchedUserInfo.getPasswordPolicy().getIdentifier() == null
                             ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplication.getConfig())
-                            : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getProfile())
+                            : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getIdentifier())
                             ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_Default",pwmApplication.getConfig())
-                            : searchedUserInfo.getPasswordPolicy().getProfile()
+                            : searchedUserInfo.getPasswordPolicy().getIdentifier()
                     %>
                 </td>
             </tr>
@@ -399,13 +423,13 @@
 <div id="buttonbar">
     <% if (SETTING_PW_UI_MODE != HelpdeskUIMode.none) { %>
     <button class="btn" onclick="initiateChangePasswordDialog()">
-        <i class="fa fa-key"></i>&nbsp;
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
         <pwm:Display key="Button_ChangePassword"/>
     </button>
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
     <button id="clearResponsesBtn" class="btn" onclick="PWM_HELPDESK.doResponseClear()">
-        <i class="fa fa-eraser"></i>&nbsp;
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
         <pwm:Display key="Button_ClearResponses"/>
     </button>
     <% } %>
@@ -418,7 +442,7 @@
     <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
     <% } else { %>
     <button id="unlockBtn" class="btn" disabled="disabled">
-        <i class="fa fa-unlock"></i>&nbsp;
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
         <pwm:Display key="Button_Unlock"/>
 
     </button>
@@ -432,7 +456,7 @@
     </script>
     <% } %>
     <button name="button_continue" class="btn" onclick="window.location = window.location" id="button_continue">
-        <i class="fa fa-search"></i>&nbsp;
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
         <pwm:Display key="Button_Search"/>
     </button>
     <% } %>

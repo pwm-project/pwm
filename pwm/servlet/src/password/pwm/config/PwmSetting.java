@@ -501,8 +501,10 @@ public enum PwmSetting {
             "otp.secret.encrypt", PwmSettingSyntax.BOOLEAN, Category.OTP),
     OTP_SECRET_LDAP_ATTRIBUTE(
             "otp.secret.ldap.attribute", PwmSettingSyntax.STRING, Category.OTP),
-    QUERY_MATCH_OTP_SETUP_RESPONSE(
+    OTP_SETUP_USER_PERMISSION(
             "otp.secret.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.OTP),
+    OTP_SECRET_IDENTIFIER(
+            "otp.secret.identifier", PwmSettingSyntax.STRING, Category.OTP),
 
     // logger settings
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(

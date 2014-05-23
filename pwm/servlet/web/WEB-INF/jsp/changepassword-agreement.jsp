@@ -51,20 +51,19 @@
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
                     key="Button_Agree"/></label>&nbsp;&nbsp;&nbsp;&nbsp;
-                <input type="hidden"
-                       name="processAction"
-                       value="agree"/>
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Continue"/>"
-                       id="button_continue"/>
+                <input type="hidden" name="processAction" value="agree"/>
+                <button type="submit" name="button" class="btn" id="button_continue">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <br/>
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
-                <input type="submit" name="button" class="btn"
-                       value="<pwm:Display key="Button_Logout"/>"
-                       id="button_logout"/>
+            <form action="<pwm:url url='/public/Logout' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
+                <button type="submit" name="button" class="btn" id="button_logout">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
+                    <pwm:Display key="Button_Logout"/>
+                </button>
             </form>
         </div>
     </div>

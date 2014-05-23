@@ -34,7 +34,7 @@ PWM_HELPDESK.executeAction = function(actionName) {
                 preventCache: true,
                 dataType: "json",
                 handleAs: "json",
-                timeout: 90000,
+                timeout: PWM_MAIN.ajaxTimeout,
                 load: function (data) {
                     PWM_MAIN.closeWaitDialog();
                     if (data['error'] == true) {
@@ -65,7 +65,7 @@ PWM_HELPDESK.doResponseClear = function() {
                 headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
                 content: inputValues,
                 preventCache: true,
-                timeout: 90000,
+                timeout: PWM_MAIN.ajaxTimeout,
                 sync: false,
                 handleAs: "json",
                 load: function (results) {
@@ -114,7 +114,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
                 headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
                 content: inputValues,
                 preventCache: true,
-                timeout: 90000,
+                timeout: PWM_MAIN.ajaxTimeout,
                 sync: false,
                 handleAs: "json",
                 load: function (results) {
@@ -232,12 +232,16 @@ PWM_HELPDESK.loadSearchDetails = function(userKey) {
 PWM_HELPDESK.processHelpdeskSearch = function() {
     var validationProps = {};
     validationProps['serviceURL'] = "Helpdesk?processAction=search";
+    validationProps['showMessage'] = false;
     validationProps['ajaxTimeout'] = 120 * 1000;
     validationProps['usernameField'] = PWM_MAIN.getObject('username').value;
     validationProps['readDataFunction'] = function(){
+        PWM_MAIN.getObject('searchIndicator').style.visibility = 'visible';
         return { username:PWM_MAIN.getObject('username').value }
     };
-    validationProps['messageWorking'] = PWM_MAIN.showString('Display_PleaseWait');
+    validationProps['completeFunction'] = function() {
+        PWM_MAIN.getObject('searchIndicator').style.visibility = 'hidden';
+    };
     validationProps['processResultsFunction'] = function(data) {
         var grid = PWM_VAR['heldesk_search_grid'];
         if (data['error']) {
@@ -253,22 +257,16 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
                 PWM_HELPDESK.loadSearchDetails(row.data['userKey']);
             });
             grid.set("sort",1);
-            if (PWM_MAIN.isEmpty(gridData)) {
-                if (validationProps['usernameField'] && validationProps['usernameField'].length > 0) {
-                    PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_SearchResultsNone'));
-                } else {
-                    PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_Helpdesk'));
-                }
+            if (sizeExceeded) {
+                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'visible';
+                PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
             } else {
-                if (sizeExceeded) {
-                    PWM_MAIN.showError(PWM_MAIN.showString('Display_SearchResultsExceeded'));
-                } else {
-                    PWM_MAIN.showSuccess(PWM_MAIN.showString('Display_SearchCompleted'));
-                }
+                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
             }
         }
     };
     PWM_MAIN.pwmFormValidator(validationProps);
+    PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
 };
 
 PWM_HELPDESK.makeSearchGrid = function() {
@@ -286,7 +284,6 @@ PWM_HELPDESK.makeSearchGrid = function() {
 };
 
 PWM_HELPDESK.initHelpdeskSearchPage = function() {
-    PWM_MAIN.showInfo(PWM_MAIN.showString('Display_Helpdesk'));
     PWM_HELPDESK.makeSearchGrid();
     if (PWM_MAIN.getObject('username').value) {
         PWM_HELPDESK.processHelpdeskSearch();

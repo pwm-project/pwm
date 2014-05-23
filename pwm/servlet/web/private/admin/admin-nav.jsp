@@ -46,15 +46,18 @@
 <div style="text-align: center">
     <% boolean selected = request.getRequestURI().contains("dashboard.jsp"); %>
     <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/dashboard.jsp')">
-        <span class="fa fa-dashboard"></span>&nbsp;Dashboard
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
+        Dashboard
     </a>
     <% selected = request.getRequestURI().contains("activity.jsp"); %>
     <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/activity.jsp')">
-        <span class="fa fa-users"></span>&nbsp;User Activity
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-users"></span></pwm:if>
+        User Activity
     </a>
     <% selected = request.getRequestURI().contains("analysis.jsp"); %>
     <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/analysis.jsp')">
-        <span class="fa fa-bar-chart-o"></span>&nbsp;Data Analysis
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-bar-chart-o"></span></pwm:if>
+        Data Analysis
     </a>
     <div style="display: inline" id="dropDownButtonContainer">
     </div>

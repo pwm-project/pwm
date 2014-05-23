@@ -42,12 +42,10 @@ TODO: support HOTP
                 <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
             </jsp:include>
             <div id="centerbody">
-                <h1><pwm:Display key="Display_SetupOtpSecret"/></h1>
                 <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
                 <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
                       enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this);
-            return false;">
+                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
                     <%@ include file="fragment/message.jsp" %>
                     <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
                     <h1>
@@ -58,14 +56,11 @@ TODO: support HOTP
                            onkeyup="validateResponses();"/>
                     <div id="buttonbar">
                         <input type="hidden" name="processAction" value="setOtpSecret"/>
-                        <input type="submit" name="setOtpSecret" class="btn" id="setotpsecret_button"
-                               value="<pwm:Display key="Button_CheckCode"/>"/>
-                        <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) {%>
-                        <button style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();
-                                return false;">
-                            <pwm:Display key="Button_Cancel"/>
+                        <button type="submit" name="setOtpSecret" class="btn" id="setotpsecret_button">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
+                            <pwm:Display key="Button_CheckCode"/>
                         </button>
-                        <% }%>
+                        <%@ include file="fragment/button-cancel.jsp"%>
                         <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
                     </div>
                 </form>

@@ -39,12 +39,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -53,9 +54,9 @@
             <div id="outline_ldap-server" class="setting_outline">
                 <div id="titlePaneHeader-ldap-server" class="setting_title">LDAP Server</div>
                 <div class="setting_body">
-                    Enter the connection information for your ldap server.
+                    Enter the connection information for your ldap server.  After the configuration wizard is completed you can enter additional servers.  Do not use an IP address, and do not use a virtual-ip or proxy server address.
                     <div class="setting_body">
-                        <b>LDAP Hostname / Server Address</b>
+                        <b>LDAP Server Hostname</b>
                         <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>"/>
                         <script type="text/javascript">
@@ -184,9 +185,15 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('TEMPLATE');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('TEMPLATE');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT');"><pwm:Display key="Button_Next" bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next" bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

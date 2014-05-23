@@ -77,7 +77,7 @@
 
     function editProfiles() {
         preferences['editMode'] = 'PROFILE';
-        PWM_MAIN.showWaitDialog({loadFuntion:function() {
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
             setConfigEditorCookie();
             loadMainPageBody();
         }});

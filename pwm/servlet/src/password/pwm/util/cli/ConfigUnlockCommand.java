@@ -28,7 +28,7 @@ import password.pwm.config.StoredConfiguration;
 
 import java.io.File;
 
-public class UnlockConfigCommand extends AbstractCliCommand {
+public class ConfigUnlockCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
@@ -44,7 +44,7 @@ public class UnlockConfigCommand extends AbstractCliCommand {
     public CliParameters getCliParameters()
     {
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "UnlockConfig";
+        cliParameters.commandName = "ConfigUnlock";
         cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
         cliParameters.needsPwmApplication = true;
         cliParameters.readOnly = true;

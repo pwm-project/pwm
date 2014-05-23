@@ -478,7 +478,7 @@ public class AuthenticationFilter implements Filter {
         }
 
         // high priority password changes.
-        if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+        if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.CHANGE_PASSWORD)) {
             if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN) {
                 if (!PwmServletURLHelper.isChangePasswordURL(req)) {
                     LOGGER.debug(pwmSession, "user password is unknown to application, redirecting to change password servlet");
@@ -493,7 +493,7 @@ public class AuthenticationFilter implements Filter {
         if (!PwmServletURLHelper.isSetupResponsesURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_FORCE_SETUP)) {
-                    if (Permission.checkPermission(Permission.SETUP_RESPONSE, pwmSession, pwmApplication)) {
+                    if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.SETUP_RESPONSE)) {
                         if (pwmSession.getUserInfoBean().isRequiresResponseConfig()) {
                             LOGGER.debug(pwmSession, "user is required to setup responses, redirecting to setup responses servlet");
                             resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
@@ -509,7 +509,7 @@ public class AuthenticationFilter implements Filter {
         if (!PwmServletURLHelper.isSetupOtpSecretURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.OTP_FORCE_SETUP)) {
-                    if (Permission.checkPermission(Permission.SETUP_OTP_SECRET, pwmSession, pwmApplication)) {
+                    if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.SETUP_OTP_SECRET)) {
                         if (pwmSession.getUserInfoBean().isRequiresOtpConfig()) {
                             LOGGER.debug(pwmSession, "user is required to setup OTP configuration, redirecting to OTP setup page");
                             resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_OTP_SECRET);
@@ -525,7 +525,7 @@ public class AuthenticationFilter implements Filter {
         if (!PwmServletURLHelper.isProfileUpdateURL(req)) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) {
                 if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_FORCE_SETUP)) {
-                    if (Permission.checkPermission(Permission.PROFILE_UPDATE, pwmSession, pwmApplication)) {
+                    if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PROFILE_UPDATE)) {
                         if (pwmSession.getUserInfoBean().isRequiresUpdateProfile()) {
                             LOGGER.debug(pwmSession, "user is required to update profile, redirecting to profile update servlet");
                             resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_UPDATE_PROFILE);
@@ -539,7 +539,7 @@ public class AuthenticationFilter implements Filter {
         }
 
         if (!PwmServletURLHelper.isChangePasswordURL(req)) {
-            if (Permission.checkPermission(Permission.CHANGE_PASSWORD, pwmSession, pwmApplication)) {
+            if (pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.CHANGE_PASSWORD)) {
                 boolean doRedirect = false;
                 if (pwmSession.getUserInfoBean().getPasswordState().isExpired()) {
                     LOGGER.debug(pwmSession, "user password is expired, redirecting to change password servlet");

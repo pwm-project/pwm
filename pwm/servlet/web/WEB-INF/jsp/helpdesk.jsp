@@ -37,7 +37,12 @@
     <div id="centerbody" class="wide">
         <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
             <br/>
-            <table style="border: 0; max-width: 700; margin-left: auto; margin-right: auto">
+            <table style="border: 0; margin-left: auto; margin-right: auto; max-width: 450px">
+                <tr style="border: 0">
+                    <td style="border:0" colspan="10">
+                        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+                    </td>
+                </tr>
                 <tr style="border: 0">
                     <td style="border:0">
                         <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
@@ -48,8 +53,15 @@
 
                         </form>
                     </td>
-                    <td style="border:0">
-                        <span style="display:none; width: 300px; text-align: center; margin: 5px" id="message" class="message">&nbsp;</span>
+                    <td style="border:0;">
+                        <div id="searchIndicator" style="visibility: hidden">
+                            <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                        </div>
+                    </td>
+                    <td style="border:0;">
+                        <div id="maxResultsIndicator" style="visibility: hidden;">
+                            <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
+                        </div>
                     </td>
                 </tr>
             </table>

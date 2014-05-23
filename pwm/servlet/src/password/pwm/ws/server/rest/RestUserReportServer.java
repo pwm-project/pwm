@@ -72,7 +72,7 @@ public class RestUserReportServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
             final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
@@ -117,7 +117,7 @@ public class RestUserReportServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
             final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
@@ -146,7 +146,7 @@ public class RestUserReportServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        if (!Permission.checkPermission(Permission.PWMADMIN, restRequestBean.getPwmSession(), restRequestBean.getPwmApplication())) {
+        if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
             final ErrorInformation errorInformation = PwmError.ERROR_UNAUTHORIZED.toInfo();
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }

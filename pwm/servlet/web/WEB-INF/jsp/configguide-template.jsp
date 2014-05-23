@@ -34,12 +34,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            <pwm:Display key="Title_ConfigGuide_template" bundle="Config"/>
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_template" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -56,16 +57,22 @@
             <% } %>
             <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
             <option value="<%=template.toString()%>"<% if (!noTemplateYet && template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
-               <%=template.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
+                <%=template.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
             </option>
             <% } %>
         </select>
         <br/>
 
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('START');"><pwm:Display key="Button_Previous" bundle="Config"/></button>
+            <button class="btn" id="button_previous" onclick="gotoStep('START');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:Display key="Button_Previous" bundle="Config"/>
+            </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP');"><pwm:Display key="Button_Next" bundle="Config"/></button>
+            <button class="btn" id="button_next" onclick="gotoStep('LDAP');">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:Display key="Button_Next" bundle="Config"/>
+            </button>
         </div>
     </div>
     <div class="push"></div>

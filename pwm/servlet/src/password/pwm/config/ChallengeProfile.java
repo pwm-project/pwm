@@ -110,9 +110,10 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
         return getIdentifier();
     }
 
-    public String getQueryString()
+    public List<UserPermission> getUserPermissions()
     {
-        return Configuration.JavaTypeConverter.valueToString(storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH,profileID));
+        final StoredValue readValue = storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH);
+        return (List<UserPermission>)readValue.toNativeObject();
     }
 
     public Locale getLocale()
