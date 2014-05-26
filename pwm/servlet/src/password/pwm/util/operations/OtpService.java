@@ -338,6 +338,15 @@ public class OtpService implements PwmService {
         }
     }
 
+    /**
+     * Check whether the user needs to setup an OTP secret.
+     * @param pwmSession
+     * @param theUser
+     * @param otpConfig
+     * @return true if the record is null or does not contain a shared secret; otherwise false.
+     * @throws ChaiUnavailableException
+     * @throws PwmUnrecoverableException
+     */
     public boolean checkIfOtpSetupNeeded(
             final PwmSession pwmSession,
             final UserIdentity theUser,
@@ -352,6 +361,12 @@ public class OtpService implements PwmService {
         Configuration config = pwmApplication.getConfig();
         AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
         return format.supportsRecoveryCodes();
+    }
+
+    public boolean supportsHashedRecoveryCodes() {
+        Configuration config = pwmApplication.getConfig();
+        AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
+        return format.supportsHashedRecoveryCodes();
     }
 
     public ServiceInfo serviceInfo()

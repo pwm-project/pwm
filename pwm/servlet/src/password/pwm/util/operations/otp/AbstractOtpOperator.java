@@ -169,21 +169,55 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         this.config = config;
     }
 
+    /**
+     * One Time Password Storage Format
+     */
     public enum StorageFormat {
 
-        PWM(true),
+        PWM(true, true),
         BASE32SECRET(false),
         OTPURL(false),
-        PAM(true);
+        PAM(true, false);
 
         private final boolean useRecoveryCodes;
+        private final boolean hashRecoveryCodes;
 
+        /**
+         * Constructor.
+         *
+         * @param useRecoveryCodes
+         */
         StorageFormat(boolean useRecoveryCodes) {
             this.useRecoveryCodes = useRecoveryCodes;
+            this.hashRecoveryCodes = useRecoveryCodes; // defaults to true, if recovery codes enabled.
         }
 
+        /**
+         * Constructor.
+         *
+         * @param useRecoveryCodes
+         * @param hashRecoveryCodes
+         */
+        StorageFormat(boolean useRecoveryCodes, boolean hashRecoveryCodes) {
+            this.useRecoveryCodes = useRecoveryCodes;
+            this.hashRecoveryCodes = useRecoveryCodes && hashRecoveryCodes;
+        }
+
+        /**
+         * Check support for recovery codes.
+         * @return true if recovery codes are supported.
+         */
         public boolean supportsRecoveryCodes() {
             return useRecoveryCodes;
         }
+
+        /**
+         * Check support for hashed recovery codes.
+         * @return true if recovery codes are supported and hashes are to be used.
+         */
+        public boolean supportsHashedRecoveryCodes() {
+            return useRecoveryCodes && hashRecoveryCodes;
+        }
+
     }
 }

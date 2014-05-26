@@ -77,7 +77,7 @@ public class OTPUserRecord implements Serializable {
     }
 
     public enum Type {
-        HOTP,
+        HOTP,           // NOT currently used!
         TOTP,
     }
 
