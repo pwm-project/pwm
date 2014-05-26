@@ -80,19 +80,20 @@ public class OTPPamUtil {
         }
         String secret = otp.getSecret();
         OTPUserRecord.Type type = otp.getType();
-        //List<String> recoveryCodes = otp.getRecoveryCodes();
-        List<String> recoveryCodes = Collections.emptyList();
+        List<OTPUserRecord.RecoveryCode> recoveryCodes = otp.getRecoveryCodes();
         String pamData = secret + "\n";
         if (OTPUserRecord.Type.HOTP.equals(type)) {
             pamData += String.format("\" HOTP_COUNTER %d\n", otp.getAttemptCount());
         } else {
             pamData += "\" TOTP_AUTH\n";
         }
+        /* TODO: write raw codes */
+        /*
         if (recoveryCodes != null && recoveryCodes.size() > 0) {
-            for (String code : recoveryCodes) {
-                pamData += code + "\n";
+            for (OTPUserRecord.RecoveryCode code : recoveryCodes) {
+                pamData += code.getHashCode() + "\n";
             }
-        }
+        }*/
         return pamData;
     }
 }

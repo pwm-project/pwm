@@ -119,13 +119,14 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         }
         OTPUserRecord otpconfig = null;
         /* Try format by format */
+        LOGGER.trace(String.format("Detecting format from value: \n%s", value));
         /* - PWM JSON */
         try {
             otpconfig = Helper.getGson().fromJson(value, OTPUserRecord.class);
             LOGGER.debug("Detected JSON format - returning");
             return otpconfig;
         } catch (JsonSyntaxException ex) {
-            LOGGER.info(ex.getMessage(), ex);
+            LOGGER.debug("No JSON format detected - returning");
             /* So, it's not JSON, try something else */
             /* -- nothing to try, yet; for future use */
             /* no more options */
