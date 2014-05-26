@@ -296,13 +296,13 @@
             <td class="key">
                 OTP Enrolled Date
             </td>
-            <% if (searchedUserInfo.getOtpUserConfiguration() == null || searchedUserInfo.getOtpUserConfiguration().getTimestamp() == null) { %>
+            <% if (searchedUserInfo.getOtpUserRecord() == null || searchedUserInfo.getOtpUserRecord().getTimestamp() == null) { %>
             <td>
                 <pwm:Display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp">
-                <%= dateFormatter.format(searchedUserInfo.getOtpUserConfiguration().getTimestamp()) %>
+                <%= dateFormatter.format(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
             </td>
             <% } %>
         </tr>

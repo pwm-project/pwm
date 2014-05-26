@@ -359,20 +359,30 @@ public class IntruderManager implements Serializable, PwmService {
     {
         final RecordManager manager = recordManagers.get(recordType);
         final ArrayList<Map<String,Object>> returnList = new ArrayList<Map<String,Object>>();
-        for (final Iterator<IntruderRecord> theIterator = manager.iterator(); theIterator.hasNext() && returnList.size() < maximum; ) {
-            final IntruderRecord intruderRecord = theIterator.next();
-            if (intruderRecord != null && intruderRecord.getType() == recordType) {
-                final Map<String,Object> rowData = new HashMap<String,Object>();
-                rowData.put("subject",intruderRecord.getSubject());
-                rowData.put("timestamp",intruderRecord.getTimeStamp());
-                rowData.put("count",String.valueOf(intruderRecord.getAttemptCount()));
-                try {
-                    check(recordType, intruderRecord.getSubject());
-                    rowData.put("status","watching");
-                } catch (PwmException e) {
-                    rowData.put("status","locked");
+
+
+        ClosableIterator<IntruderRecord> theIterator = null;
+        try {
+            theIterator = manager.iterator();
+            while (theIterator.hasNext() && returnList.size() < maximum) {
+                final IntruderRecord intruderRecord = theIterator.next();
+                if (intruderRecord != null && intruderRecord.getType() == recordType) {
+                    final Map<String, Object> rowData = new HashMap<String, Object>();
+                    rowData.put("subject", intruderRecord.getSubject());
+                    rowData.put("timestamp", intruderRecord.getTimeStamp());
+                    rowData.put("count", String.valueOf(intruderRecord.getAttemptCount()));
+                    try {
+                        check(recordType, intruderRecord.getSubject());
+                        rowData.put("status", "watching");
+                    } catch (PwmException e) {
+                        rowData.put("status", "locked");
+                    }
+                    returnList.add(rowData);
                 }
-                returnList.add(rowData);
+            }
+        } finally {
+            if (theIterator != null) {
+                theIterator.close();
             }
         }
         return returnList;

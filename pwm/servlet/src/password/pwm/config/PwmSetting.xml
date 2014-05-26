@@ -1698,7 +1698,7 @@
     </setting>
     <setting key="otp.secret.encrypt" level="0" required="true">
         <label>Encrypt OTP secret</label>
-        <description><![CDATA[If enabled, the configured encryption key is used to encrypt and decrypt token information, to make sure it is not readable as plain text.  Multiple application instances must use the same Security Key.  If the Security Key is changed, stored OTP passwords will no longer be usable.]]></description>
+        <description><![CDATA[If enabled, the Security Key is used to encrypt and decrypt token information, to make sure it is not readable as plain text.  Multiple application instances must use the same Security Key.  If the Security Key is changed, stored OTP passwords will no longer be usable.]]></description>
         <default>
             <value>false</value>
         </default>

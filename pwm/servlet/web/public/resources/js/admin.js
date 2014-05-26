@@ -414,13 +414,15 @@ PWM_ADMIN.initAuditGrid=function() {
         "targetID":PWM_ADMIN.showString('Field_Audit_TargetID'),
         "targetDN":PWM_ADMIN.showString('Field_Audit_TargetDN'),
         "sourceAddress":PWM_ADMIN.showString('Field_Audit_SourceAddress'),
-        "sourceHost":PWM_ADMIN.showString('Field_Audit_SourceHost')
+        "sourceHost":PWM_ADMIN.showString('Field_Audit_SourceHost'),
+        "guid":PWM_ADMIN.showString('Field_Audit_GUID')
     };
     var systemHeaders = {
         "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
         "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
         "message":PWM_ADMIN.showString('Field_Audit_Message'),
-        "instance":PWM_ADMIN.showString('Field_Audit_Instance')
+        "instance":PWM_ADMIN.showString('Field_Audit_Instance'),
+        "guid":PWM_ADMIN.showString('Field_Audit_GUID')
     };
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
         function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -436,6 +438,7 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-message').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetDN').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
+            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
 
             PWM_ADMIN.refreshAuditGridData();
         });

@@ -189,7 +189,6 @@ public class HelpdeskServlet extends TopServlet {
                 final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_ACTION,
                         pwmSession.getUserInfoBean().getUserIdentity(),
-                        new Date(),
                         action.getName(),
                         helpdeskBean.getUserInfoBean().getUserIdentity(),
                         pwmSession.getSessionStateBean().getSrcAddress(),
@@ -445,7 +444,6 @@ public class HelpdeskServlet extends TopServlet {
                 final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_UNLOCK_PASSWORD,
                         pwmSession.getUserInfoBean().getUserIdentity(),
-                        new Date(),
                         null,
                         userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
@@ -503,7 +501,7 @@ public class HelpdeskServlet extends TopServlet {
             final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
 
             OtpService service = pwmApplication.getOtpService();
-            service.clearOTPUserConfiguration(userIdentity, helpdeskBean.getUserInfoBean().getUserGuid());
+            service.clearOTPUserConfiguration(userIdentity);
             {
                 // mark the event log
                 //@todo

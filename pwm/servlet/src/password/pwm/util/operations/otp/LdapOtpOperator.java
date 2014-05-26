@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.otp.OTPUserConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
 
 /**
  *
@@ -60,7 +60,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @throws PwmUnrecoverableException
      */
     @Override
-    public OTPUserConfiguration readOtpUserConfiguration(UserIdentity userIdentity, String userGUID) throws PwmUnrecoverableException {
+    public OTPUserRecord readOtpUserConfiguration(UserIdentity userIdentity, String userGUID) throws PwmUnrecoverableException {
         Configuration config = getConfig();
         String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
@@ -68,7 +68,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
-        OTPUserConfiguration otp = null;
+        OTPUserRecord otp = null;
         try {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
             String value = theUser.readStringAttribute(ldapStorageAttribute);
@@ -102,7 +102,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @throws PwmUnrecoverableException
      */
     @Override
-    public void writeOtpUserConfiguration(UserIdentity userIdentity, String userGuid, OTPUserConfiguration otpConfig) throws PwmUnrecoverableException {
+    public void writeOtpUserConfiguration(UserIdentity userIdentity, String userGuid, OTPUserRecord otpConfig) throws PwmUnrecoverableException {
         Configuration config = getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {

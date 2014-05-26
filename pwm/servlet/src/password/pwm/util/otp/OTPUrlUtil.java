@@ -38,12 +38,12 @@ public class OTPUrlUtil {
     public final static int OTP_URL_SECRET = 3;
 
     /**
-     * Convert a OTPUserConfiguration object into an otpauth:// url.
+     * Convert a OTPUserRecord object into an otpauth:// url.
      * 
      * @param otp
      * @return 
      */
-    public static String composeOtpUrl(OTPUserConfiguration otp) {
+    public static String composeOtpUrl(OTPUserRecord otp) {
         String ident = otp.getIdentifier();
         String secret = otp.getSecret();
         String otptype = otp.getType().toString();
@@ -52,21 +52,21 @@ public class OTPUrlUtil {
     }
     
     /**
-     * Read a string with an otpauth:// url and convert to an OTPUserConfiguration object.
+     * Read a string with an otpauth:// url and convert to an OTPUserRecord object.
      * 
      * @param otpInfo
      * @return 
      */
-    public static OTPUserConfiguration decomposeOtpUrl(String otpInfo) {
-        OTPUserConfiguration otp = null;
+    public static OTPUserRecord decomposeOtpUrl(String otpInfo) {
+        OTPUserRecord otp = null;
         Pattern pattern = Pattern.compile(OTP_URL_PATTERN);
         Matcher matcher = pattern.matcher(otpInfo);
         if (matcher.matches() && matcher.groupCount() == OTP_URL_GROUPS) {
             String type = matcher.group(OTP_URL_TYPE);
             String ident = matcher.group(OTP_URL_IDENT);
             String secret = matcher.group(OTP_URL_SECRET);
-            otp = new OTPUserConfiguration();
-            otp.setType(OTPUserConfiguration.Type.valueOf(type.toUpperCase()));
+            otp = new OTPUserRecord();
+            otp.setType(OTPUserRecord.Type.valueOf(type.toUpperCase()));
             otp.setIdentifier(ident);
             otp.setSecret(secret);
         }

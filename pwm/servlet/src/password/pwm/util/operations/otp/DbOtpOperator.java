@@ -1,4 +1,26 @@
 /*
+ * Password Management Servlets (PWM)
+ * http://code.google.com/p/pwm/
+ *
+ * Copyright (c) 2006-2009 Novell, Inc.
+ * Copyright (c) 2009-2014 The PWM Project
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -17,7 +39,7 @@ import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDBException;
-import password.pwm.util.otp.OTPUserConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
 
 /**
  *
@@ -35,13 +57,13 @@ public class DbOtpOperator extends AbstractOtpOperator {
     }
     
     @Override
-    public OTPUserConfiguration readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
+    public OTPUserRecord readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
         LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
         }
 
-        OTPUserConfiguration otpConfig = null;
+        OTPUserRecord otpConfig = null;
         try {
             final DatabaseAccessorImpl databaseAccessor = pwmApplication.getDatabaseAccessor();
             String value = databaseAccessor.get(DatabaseTable.OTP, userGUID);
@@ -69,7 +91,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
     }
 
     @Override
-    public void writeOtpUserConfiguration(UserIdentity theUser, String userGUID, OTPUserConfiguration otpConfig) throws PwmUnrecoverableException {
+    public void writeOtpUserConfiguration(UserIdentity theUser, String userGUID, OTPUserRecord otpConfig) throws PwmUnrecoverableException {
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save OTP secret to remote database, user " + theUser +  " does not have a guid"));
         }

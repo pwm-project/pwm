@@ -35,7 +35,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
-import password.pwm.util.DataStore;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -477,7 +477,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     }
 
     @Override
-    public DataStore.DataStoreIterator<String> iterator(final DatabaseTable table)
+    public ClosableIterator<String> iterator(final DatabaseTable table)
             throws DatabaseException
     {
         preOperationCheck();
@@ -560,7 +560,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 
     // -------------------------- INNER CLASSES --------------------------
 
-    public class DBIterator implements DataStore.DataStoreIterator<String> {
+    public class DBIterator implements ClosableIterator<String> {
         private final DatabaseTable table;
         private final ResultSet resultSet;
         private java.lang.String nextValue;

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,51 +21,46 @@
  */
 package password.pwm.bean.servlet;
 
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
+import password.pwm.bean.PwmSessionBean;
+import password.pwm.util.PwmLogger;
+import password.pwm.util.otp.OTPUserRecord;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.Date;
-import password.pwm.bean.PwmSessionBean;
-import password.pwm.util.otp.OTPUserConfiguration;
-
-import java.util.Locale;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import org.apache.commons.codec.binary.Base32;
-import password.pwm.PwmConstants;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.otp.PasscodeGenerator;
+import java.util.List;
 
 public class SetupOtpBean implements PwmSessionBean {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(SetupOtpBean.class);
 
-    private OTPUserConfiguration otp = null;
-    private boolean confirmed = false;
-    private boolean cleared = false;
-    private Locale userLocale = Locale.getDefault();
-    private Long challenge = null; // for HOTP only
+    private OTPUserRecord otpUserRecord;
+    private boolean confirmed;
+    private boolean codeSeen;
+    private List<String> recoveryCodes;
+    private Long challenge; // for HOTP only
+    private boolean hasPreExistingOtp;
 
     public SetupOtpBean() {
     }
 
-    public OTPUserConfiguration getOtp() {
-        return otp;
+    public OTPUserRecord getOtpUserRecord() {
+        return otpUserRecord;
     }
 
-    public boolean validateToken(String token) {
-        LOGGER.trace(String.format("Enter: validateToken(%s)", token));
-        return otp.validateToken(token);
+    public boolean isHasPreExistingOtp()
+    {
+        return hasPreExistingOtp;
     }
 
-    public boolean hasValidOtp() {
-        return (this.otp != null && this.otp.getSecret() != null);
+    public void setHasPreExistingOtp(boolean hasPreExistingOtp)
+    {
+        this.hasPreExistingOtp = hasPreExistingOtp;
     }
-    
-    public void setOtp(OTPUserConfiguration otp) {
-        this.otp = otp;
+
+    public void setOtpUserRecord(OTPUserRecord otp) {
+        this.otpUserRecord = otp;
     }
 
     public boolean isConfirmed() {
@@ -74,22 +69,6 @@ public class SetupOtpBean implements PwmSessionBean {
 
     public void setConfirmed(boolean confirmed) {
         this.confirmed = confirmed;
-    }
-
-    public boolean isCleared() {
-        return cleared;
-    }
-
-    public void setCleared(boolean cleared) {
-        this.cleared = cleared;
-    }
-
-    public Locale getUserLocale() {
-        return userLocale;
-    }
-
-    public void setUserLocale(Locale userLocale) {
-        this.userLocale = userLocale;
     }
 
     public Long getChallenge() {
@@ -112,5 +91,25 @@ public class SetupOtpBean implements PwmSessionBean {
 
     public void setChallenge(Long challenge) {
         this.challenge = challenge;
+    }
+
+    public List<String> getRecoveryCodes()
+    {
+        return recoveryCodes;
+    }
+
+    public void setRecoveryCodes(List<String> recoveryCodes)
+    {
+        this.recoveryCodes = recoveryCodes;
+    }
+
+    public boolean isCodeSeen()
+    {
+        return codeSeen;
+    }
+
+    public void setCodeSeen(boolean codeSeen)
+    {
+        this.codeSeen = codeSeen;
     }
 }

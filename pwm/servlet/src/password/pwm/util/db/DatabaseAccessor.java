@@ -22,7 +22,7 @@
 
 package password.pwm.util.db;
 
-import password.pwm.util.DataStore;
+import password.pwm.util.ClosableIterator;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -68,7 +68,7 @@ public interface DatabaseAccessor {
     )
             throws DatabaseException;
 
-    DataStore.DataStoreIterator<String> iterator(DatabaseTable table)
+    ClosableIterator<String> iterator(DatabaseTable table)
             throws DatabaseException;
 
     @DbOperation

@@ -323,7 +323,6 @@ public class RestChallengesServer {
                 final UserAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createUserAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
-                        new Date(),
                         null,
                         restRequestBean.getUserIdentity(),
                         restRequestBean.getPwmSession().getSessionStateBean().getSrcAddress(),

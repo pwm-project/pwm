@@ -64,7 +64,6 @@ public class AuditManager implements PwmService {
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
             final UserIdentity perpetrator,
-            final Date timestamp,
             final String message,
             final UserIdentity target,
             final String sourceAddress,
@@ -89,7 +88,8 @@ public class AuditManager implements PwmService {
             }
         }
 
-        return new UserAuditRecord(eventCode, perpUserID, perpUserDN, timestamp, message, targetUserID, targetUserDN, sourceAddress, sourceHost);
+        return UserAuditRecord.create(eventCode, perpUserID, perpUserDN, message, targetUserID, targetUserDN,
+                sourceAddress, sourceHost);
     }
 
     public UserAuditRecord createUserAuditRecord(
@@ -116,7 +116,6 @@ public class AuditManager implements PwmService {
         return createUserAuditRecord(
                 eventCode,
                 perpetrator,
-                new Date(),
                 message,
                 perpetrator,
                 pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null,
@@ -133,7 +132,6 @@ public class AuditManager implements PwmService {
         return createUserAuditRecord(
                 eventCode,
                 userInfoBean.getUserIdentity(),
-                new Date(),
                 null,
                 userInfoBean.getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),

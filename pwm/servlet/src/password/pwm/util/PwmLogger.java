@@ -233,9 +233,8 @@ public class PwmLogger {
                     messageInfo.put("errorMessage",logEvent.getMessage());
 
                     final String messageInfoStr = Helper.getGson().toJson(messageInfo);
-                    pwmApplication.getAuditManager().submit(new SystemAuditRecord(
+                    pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
                             AuditEvent.FATAL_EVENT,
-                            new Date(),
                             messageInfoStr,
                             pwmApplication.getInstanceID()
                     ));

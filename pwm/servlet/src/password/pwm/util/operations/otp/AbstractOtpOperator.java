@@ -22,12 +22,7 @@
 
 package password.pwm.util.operations.otp;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.crypto.SecretKey;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+import com.google.gson.JsonSyntaxException;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -38,7 +33,9 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPPamUtil;
 import password.pwm.util.otp.OTPUrlUtil;
-import password.pwm.util.otp.OTPUserConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
+
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -52,38 +49,28 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     /**
      * Compose a single line of OTP information.
      *
-     * @param otpconfig
+     * @param otpUserRecord
      * @return
      * @throws password.pwm.error.PwmUnrecoverableException
      */
-    public String composeOtpAttribute(OTPUserConfiguration otpconfig) throws PwmUnrecoverableException {
+    public String composeOtpAttribute(OTPUserRecord otpUserRecord) throws PwmUnrecoverableException {
         String value = "";
-        if (otpconfig != null) {
+        if (otpUserRecord != null) {
             String formatStr = config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT);
             if (formatStr != null) {
                 StorageFormat format = StorageFormat.valueOf(formatStr);
                 switch (format) {
                     case PWM:
-                        try {
-                            JSONObject json = new JSONObject();
-                            json.put("identifier", otpconfig.getIdentifier());
-                            json.put("secret", otpconfig.getSecret());
-                            json.put("type", otpconfig.getType().toString());
-                            json.put("recoverycodes", otpconfig.getRecoveryCodes());
-                            json.put("counter", otpconfig.getCurrentCounter());
-                            value = json.toString();
-                        } catch (JSONException ex) {
-                            LOGGER.warn(ex.getMessage(), ex);
-                        }
+                        value = Helper.getGson().toJson(otpUserRecord);
                         break;
                     case OTPURL:
-                        value = OTPUrlUtil.composeOtpUrl(otpconfig);
+                        value = OTPUrlUtil.composeOtpUrl(otpUserRecord);
                         break;
                     case BASE32SECRET:
-                        value = otpconfig.getSecret();
+                        value = otpUserRecord.getSecret();
                         break;
                     case PAM:
-                        value = OTPPamUtil.composePamData(otpconfig);
+                        value = OTPPamUtil.composePamData(otpUserRecord);
                         break;
                     default:
                         String errorStr = String.format("Unsupported storage format: ", format.toString());
@@ -126,41 +113,18 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      * @param value
      * @return
      */
-    public OTPUserConfiguration decomposeOtpAttribute(String value) {
+    public OTPUserRecord decomposeOtpAttribute(String value) {
         if (value == null) {
             return null;
         }
-        OTPUserConfiguration otpconfig = null;
+        OTPUserRecord otpconfig = null;
         /* Try format by format */
         /* - PWM JSON */
         try {
-            JSONObject json = new JSONObject(value);
-            if (json.has("identifier")
-                    && json.has("secret")
-                    && json.has("type")) {
-                otpconfig = new OTPUserConfiguration();
-                otpconfig.setIdentifier(json.getString("identifier"));
-                otpconfig.setSecret(json.getString("secret"));
-                otpconfig.setType(OTPUserConfiguration.Type.valueOf(json.getString("type")));
-                if (json.has("counter")) {
-                    otpconfig.setCounter(json.getLong("counter"));
-                }
-                if (json.has("recoverycodes")) {
-                    JSONArray reccodes = json.getJSONArray("recoverycodes");
-                    if (reccodes != null && reccodes.length() > 0) {
-                        List<String> recoverycodes = new ArrayList();
-                        for (int i = 0; i < reccodes.length(); i++) {
-                            recoverycodes.add(reccodes.getString(i));
-                        }
-                        otpconfig.setRecoveryCodes(recoverycodes);
-                    }
-                }
-                LOGGER.debug("Detected JSON format - returning");
-                return otpconfig;
-            } else {
-                return null;
-            }
-        } catch (JSONException ex) {
+            otpconfig = Helper.getGson().fromJson(value, OTPUserRecord.class);
+            LOGGER.debug("Detected JSON format - returning");
+            return otpconfig;
+        } catch (JsonSyntaxException ex) {
             LOGGER.info(ex.getMessage(), ex);
             /* So, it's not JSON, try something else */
             /* -- nothing to try, yet; for future use */
@@ -181,10 +145,11 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         /* - BASE32 secret */
         if (value.trim().matches("^[A-Z2-7\\=]{16}$")) {
             LOGGER.debug("Detected plain Base32 secret - returning");
-            otpconfig = new OTPUserConfiguration();
+            otpconfig = new OTPUserRecord();
             otpconfig.setSecret(value.trim());
             return otpconfig;
         }
+
         return otpconfig;
     }
 

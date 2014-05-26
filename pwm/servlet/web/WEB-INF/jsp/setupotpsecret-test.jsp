@@ -34,45 +34,54 @@ TODO: support HOTP
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
 <html dir="<pwm:LocaleOrientation/>">
-    <%@ include file="fragment/header.jsp" %>
-    <body class="nihilo">
-        <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
-        <div id="wrapper">
-            <jsp:include page="fragment/header-body.jsp">
-                <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
-            </jsp:include>
-            <div id="centerbody">
-                <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
-                <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
-                      enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                      onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
-                    <%@ include file="fragment/message.jsp" %>
-                    <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
-                    <h1>
-                        <label for="PwmOneTimePassword"><pwm:Display key="Field_OneTimePassword"/></label>
-                    </h1>
-                    <input type="password" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
-                           id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required"
-                           onkeyup="validateResponses();"/>
-                    <div id="buttonbar">
-                        <input type="hidden" name="processAction" value="setOtpSecret"/>
-                        <button type="submit" name="setOtpSecret" class="btn" id="setotpsecret_button">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
-                            <pwm:Display key="Button_CheckCode"/>
-                        </button>
-                        <%@ include file="fragment/button-cancel.jsp"%>
-                        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-                    </div>
-                </form>
+<%@ include file="fragment/header.jsp" %>
+<body class="nihilo">
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
+<div id="wrapper">
+    <jsp:include page="fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
+    </jsp:include>
+    <div id="centerbody">
+        <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
+        <%@ include file="fragment/message.jsp" %>
+        <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
+        <h1>
+            <label for="PwmOneTimePassword"><pwm:Display key="Field_OneTimePassword"/></label>
+        </h1>
+        <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
+              enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
+              onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
+            <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
+                   id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required"
+                   onkeyup="validateResponses();" autofocus/>
+            <div id="buttonbar">
+                <input type="hidden" name="processAction" value="testOtpSecret"/>
+                <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
+                    <pwm:Display key="Button_CheckCode"/>
+                </button>
+                <button type="submit" name="testOtpSecret" class="btn" id="goback_buton"
+                        onclick="PWM_MAIN.handleFormSubmit('goback_button', PWM_MAIN.getObject('goBackForm'))">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
+                    <pwm:Display key="Button_GoBack"/>
+                </button>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
-            <div class="push"></div>
-        </div>
-        <script type="text/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function() {
-                document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
-                ShowHidePasswordHandler.initAllForms();
-            });
-        </script>
-        <%@ include file="fragment/footer.jsp" %>
-    </body>
+        </form>
+    </div>
+    <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="goBackForm"
+          enctype="application/x-www-form-urlencoded" onchange="" id="goBackForm">
+        <input type="hidden" name="processAction" value="toggleSeen"/>
+        <input type="hidden" id="pwmFormID_" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
+    <div class="push"></div>
+</div>
+<script type="text/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function() {
+        document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
+        ShowHidePasswordHandler.initAllForms();
+    });
+</script>
+<%@ include file="fragment/footer.jsp" %>
+</body>
 </html>

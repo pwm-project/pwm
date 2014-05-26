@@ -290,6 +290,8 @@ public abstract class PwmConstants {
     public final static int OTP_TOKEN_LENGTH = 6;
     public final static int OTP_RECOVERY_TOKEN_LENGTH = 8;
     public final static int OTP_RECOVERY_TOKEN_COUNT = 5;
+    public final static int OTP_RECOVERY_HASH_COUNT = 1000;
+    public final static String OTP_RECOVERY_HASH_METHOD = "SHA1";
 
     private static String readPwmConstantsBundle(final String key) {
         return  ResourceBundle.getBundle(PwmConstants.class.getName()).getString(key);

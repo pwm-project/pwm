@@ -21,9 +21,7 @@
   --%>
 
 <%@page import="password.pwm.bean.servlet.SetupOtpBean"%>
-<%@page import="password.pwm.util.otp.OTPUserConfiguration"%>
-<%@page import="java.net.URLEncoder"%>
-<%@ page import="java.util.List" %>
+<%@page import="password.pwm.util.otp.OTPUserRecord"%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -45,35 +43,29 @@
             <%@ include file="fragment/message.jsp" %>
             <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
             <%
-                OTPUserConfiguration otp = otpBean.getOtp();
-                String ident = otp.getIdentifier();
-                String secret = otp.getSecret();
-                String otptype = otp.getType().toString();
-                String otpInfo = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), ident, secret);
-                //String imageUrl = String.format("%s/public/qrcode.jsp?width=250&height=250&content=%s", request.getContextPath(), URLEncoder.encode(otpInfo));
-                String imageUrl = String.format("SetupOtpSecret?processAction=showQrImage&width=250&height=250&content=%s", URLEncoder.encode(otpInfo,"UTF8"));
-                List<String> recovery = otp.getRecoveryCodes();
+                final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
+                final String ident = otpUserRecord.getIdentifier();
             %>
             <div id="qrcodeblock" style="visibility: visible" class="qrcodeblock">
-                <img class="qrcodeimage" src="<%=imageUrl%>&pwmFormID=<pwm:FormID/>" alt="QR code" width="250" height="250"/>
+                <img class="qrcodeimage" src="SetupOtpSecret?processAction=showQrImage&width=250&height=250&pwmFormID=<pwm:FormID/>" alt="QR code" width="250" height="250"/>
                 <div style="width: 100%;">
                     <table border="0" style="width: 400px; margin-right: auto; margin-left: auto">
                         <tr valign="top">
                             <td><b><pwm:Display key="Field_OTP_Identifier"/></b></td>
-                            <td><%=(ident == null) ? "PWM" : ident%></td>
+                            <td><%=otpUserRecord.getIdentifier()%></td>
                         </tr>
                         <tr valign="top">
                             <td><b><pwm:Display key="Field_OTP_Secret"/></b></td>
-                            <td><%=secret%></td>
+                            <td><%=otpUserRecord.getSecret()%></td>
                         </tr>
                         <tr valign="top">
                             <td><b><pwm:Display key="Field_OTP_Type"/></b></td>
-                            <td><%=otptype%></td>
+                            <td><%=otpUserRecord.getType().toString()%></td>
                         </tr>
-                        <% if (recovery != null && recovery.size() > 0) {%>
+                        <% if (otpBean.getRecoveryCodes()!= null && otpBean.getRecoveryCodes().size() > 0) {%>
                         <tr valign="top">
                             <td><b><pwm:Display key="Field_OTP_RecoveryCodes"/></b></td>
-                            <td><% for (String code : recovery) {%>
+                            <td><% for (String code : otpBean.getRecoveryCodes()) {%>
                                 <div><%=code%></div>
                                 <% }%>
                             </td>
@@ -83,7 +75,7 @@
                 </div>
             </div>
             <div id="buttonbar">
-                <input type="hidden" name="processAction" value="testOtpSecret"/>
+                <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:Display key="Button_Continue"/>

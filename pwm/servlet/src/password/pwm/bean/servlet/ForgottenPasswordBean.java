@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,14 @@
 
 package password.pwm.bean.servlet;
 
-import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.bean.PwmSessionBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
 
 import java.util.List;
-import password.pwm.util.otp.OTPUserConfiguration;
 
 /**
  * @author Jason D. Rivard
@@ -40,7 +39,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     private transient UserIdentity proxiedUser;
     private transient ResponseSet responseSet;
-    private transient OTPUserConfiguration otpConfig;
+    private transient OTPUserRecord otpConfig;
     private ChallengeSet challengeSet;
     private String tokenSendAddress;
 
@@ -77,11 +76,11 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         return proxiedUser;
     }
 
-    public OTPUserConfiguration getOtpConfig() {
+    public OTPUserRecord getOtpConfig() {
         return otpConfig;
     }
 
-    public void setOtpConfig(OTPUserConfiguration otpConfig) {
+    public void setOtpConfig(OTPUserRecord otpConfig) {
         this.otpConfig = otpConfig;
     }
 

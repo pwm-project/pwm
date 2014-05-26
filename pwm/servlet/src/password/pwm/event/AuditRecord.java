@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,18 +24,22 @@ package password.pwm.event;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.UUID;
 
 public abstract class AuditRecord implements Serializable {
     protected AuditEvent.Type type;
     protected AuditEvent eventCode;
+    protected String guid;
     protected Date timestamp = new Date();
     protected String message;
 
-    protected AuditRecord(final AuditEvent eventCode, final Date timestamp, final String message) {
+    protected AuditRecord(final AuditEvent eventCode, final String message) {
         this.type = eventCode.getType();
         this.eventCode = eventCode;
-        this.timestamp = timestamp;
         this.message = message;
+
+        this.timestamp = new Date();
+        this.guid = UUID.randomUUID().toString();
     }
 
     public AuditEvent.Type getType() {

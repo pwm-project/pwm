@@ -22,7 +22,7 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.util.DataStore;
+import password.pwm.util.ClosableIterator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -148,7 +148,7 @@ public interface LocalDB {
     }
 
 
-    public static interface LocalDBIterator<K> extends DataStore.DataStoreIterator<String> {
+    public static interface LocalDBIterator<K> extends ClosableIterator<String> {
     }
 
     public static class TransactionItem implements Serializable, Comparable {

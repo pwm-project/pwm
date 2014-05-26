@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 package password.pwm.util.localdb;
 
 import password.pwm.error.PwmDataStoreException;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.DataStore;
 
-import java.util.Iterator;
 import java.util.Map;
 
 public class LocalDBDataStore implements DataStore {
@@ -49,7 +49,7 @@ public class LocalDBDataStore implements DataStore {
         return localDB.get(db, key);
     }
 
-    public DataStoreIterator<String> iterator() throws PwmDataStoreException {
+    public ClosableIterator<String> iterator() throws PwmDataStoreException {
         return localDB.iterator(db);
     }
 

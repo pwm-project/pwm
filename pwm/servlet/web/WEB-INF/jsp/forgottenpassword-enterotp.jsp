@@ -23,7 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
-<%@ page import="password.pwm.util.otp.OTPUserConfiguration" %>
+<%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -35,7 +35,7 @@
     <div id="centerbody">
         <%
             final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-            OTPUserConfiguration otp = fpb.getOtpConfig();
+            OTPUserRecord otp = fpb.getOtpConfig();
             String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {
@@ -50,7 +50,7 @@
                               return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
-            <input type="password" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required"/>
+            <input type="text" pattern="[0-9]*" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required" autofocus/>
             <div id="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>

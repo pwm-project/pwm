@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 
 package password.pwm.event;
 
-import java.util.Date;
-
 /**
  * UserAuditRecord data
  */
@@ -35,23 +33,38 @@ public class UserAuditRecord extends AuditRecord {
     protected String sourceAddress;
     protected String sourceHost;
 
-    UserAuditRecord(
+    private UserAuditRecord(
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,
-            final Date timestamp,
             final String message,
             final String targetID,
             final String targetDN,
             final String sourceAddress,
-            final String sourceHost) {
-        super(eventCode, timestamp, message);
+            final String sourceHost
+    ) {
+        super(eventCode, message);
         this.perpetratorID = perpetratorID;
         this.perpetratorDN = perpetratorDN;
         this.targetID = targetID;
         this.targetDN = targetDN;
         this.sourceAddress = sourceAddress;
         this.sourceHost = sourceHost;
+    }
+
+    static UserAuditRecord create(
+            final AuditEvent eventCode,
+            final String perpetratorID,
+            final String perpetratorDN,
+            final String message,
+            final String targetID,
+            final String targetDN,
+            final String sourceAddress,
+            final String sourceHost
+    )
+    {
+        return new UserAuditRecord(eventCode, perpetratorID, perpetratorDN, message, targetID, targetDN,
+                sourceAddress, sourceHost);
     }
 
 

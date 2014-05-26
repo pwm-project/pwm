@@ -42,9 +42,7 @@
             <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">
-                <input type="hidden"
-                       name="processAction"
-                       value="search"/>
+                <input type="hidden" name="processAction" value="search"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
                     <pwm:Display key="Button_Search"/>

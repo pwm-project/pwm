@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,10 +56,6 @@ public class PwmRandom {
         return internalRand.nextBoolean();
     }
 
-    public String nextLongHex() {
-        return Long.toHexString(internalRand.nextLong()).toUpperCase();
-    }
-
     public String alphaNumericString(final int length) {
         return alphaNumericString(ALPHANUMERIC_STRING,length);
     }
@@ -81,5 +77,10 @@ public class PwmRandom {
             throw new NullPointerException("characters cannot be null");
         }
         return characters.charAt(nextInt(characters.length()));
+    }
+
+    public void nextBytes(byte[] secArray)
+    {
+        internalRand.nextBytes(secArray);
     }
 }

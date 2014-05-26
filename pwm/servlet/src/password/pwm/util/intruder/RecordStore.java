@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,18 +24,16 @@ package password.pwm.util.intruder;
 
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
-
-import java.util.Iterator;
 
 interface RecordStore {
     IntruderRecord read(String key) throws PwmUnrecoverableException;
 
     void write(String key, IntruderRecord record) throws PwmOperationalException;
 
-    Iterator<IntruderRecord> iterator() throws PwmOperationalException;
+    ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException;
 
     void cleanup(TimeDuration maxRecordAge) throws LocalDBException;
 }

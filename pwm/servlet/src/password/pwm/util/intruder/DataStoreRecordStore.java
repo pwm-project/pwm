@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,11 @@ package password.pwm.util.intruder;
 
 import password.pwm.PwmService;
 import password.pwm.error.*;
-import password.pwm.util.DataStore;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 class DataStoreRecordStore implements RecordStore {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(DataStoreRecordStore.class);
@@ -89,7 +88,7 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     @Override
-    public Iterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
         try {
             return new RecordIterator(dataStore.iterator());
         } catch (PwmDataStoreException e) {
@@ -97,10 +96,10 @@ class DataStoreRecordStore implements RecordStore {
         }
     }
 
-    private class RecordIterator implements Iterator<IntruderRecord> {
-        private final Iterator<String> dbIterator;
+    private class RecordIterator implements ClosableIterator<IntruderRecord> {
+        private final ClosableIterator<String> dbIterator;
 
-        private RecordIterator(Iterator<String> dbIterator) {
+        private RecordIterator(ClosableIterator<String> dbIterator) {
             this.dbIterator = dbIterator;
         }
 
@@ -122,6 +121,10 @@ class DataStoreRecordStore implements RecordStore {
         @Override
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        public void close() {
+            dbIterator.close();
         }
     }
 
@@ -161,7 +164,7 @@ class DataStoreRecordStore implements RecordStore {
 
     private List<String> discoverPurgableKeys(final TimeDuration maxRecordAge) {
         final List<String> recordsToRemove = new ArrayList<String>();
-        DataStore.DataStoreIterator<String> dbIterator = null;
+        ClosableIterator<String> dbIterator = null;
         try {
             dbIterator = dataStore.iterator();
             while (intruderManager.status() == PwmService.STATUS.OPEN && dbIterator.hasNext() && recordsToRemove.size() < MAX_REMOVALS_PER_CYCLE) {

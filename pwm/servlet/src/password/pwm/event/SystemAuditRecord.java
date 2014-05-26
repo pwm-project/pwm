@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,20 +22,26 @@
 
 package password.pwm.event;
 
-import java.util.Date;
-
 public class SystemAuditRecord extends AuditRecord {
 
     protected String instance;
 
-    public SystemAuditRecord(
+    private SystemAuditRecord(
             final AuditEvent eventCode,
-            final Date timestamp,
             final String message,
             final String instance
-    ) {
-        super(eventCode, timestamp, message);
+            ) {
+        super(eventCode, message);
         this.instance = instance;
+    }
+
+    public static SystemAuditRecord create(
+            final AuditEvent eventCode,
+            final String message,
+            final String instance
+    )
+    {
+        return new SystemAuditRecord(eventCode, message, instance);
     }
 
     public String getInstance() {

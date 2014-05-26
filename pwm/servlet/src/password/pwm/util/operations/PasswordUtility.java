@@ -390,7 +390,6 @@ public class PasswordUtility {
             final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmSession.getUserInfoBean().getUserIdentity(),
-                    new Date(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),
@@ -439,7 +438,6 @@ public class PasswordUtility {
             final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmSession.getUserInfoBean().getUserIdentity(),
-                    new Date(),
                     null,
                     userIdentity,
                     pwmSession.getSessionStateBean().getSrcAddress(),

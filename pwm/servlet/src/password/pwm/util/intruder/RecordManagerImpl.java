@@ -25,12 +25,12 @@ package password.pwm.util.intruder;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 class RecordManagerImpl implements RecordManager {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(RecordManagerImpl.class);
@@ -145,14 +145,14 @@ class RecordManagerImpl implements RecordManager {
 
 
     @Override
-    public Iterator<IntruderRecord> iterator() throws PwmOperationalException {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
         return new RecordIterator<IntruderRecord>(recordStore.iterator());
     }
 
-    public static class RecordIterator<IntruderRecord> implements Iterator<IntruderRecord> {
-        private Iterator<IntruderRecord> innerIter;
+    public static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord> {
+        private ClosableIterator<IntruderRecord> innerIter;
 
-        public RecordIterator(final Iterator<IntruderRecord> recordIterator) throws PwmOperationalException {
+        public RecordIterator(final ClosableIterator<IntruderRecord> recordIterator) throws PwmOperationalException {
             this.innerIter = recordIterator;
         }
 
@@ -169,6 +169,10 @@ class RecordManagerImpl implements RecordManager {
         }
 
         public void remove() {
+        }
+
+        public void close() {
+            innerIter.close();
         }
     }
 }

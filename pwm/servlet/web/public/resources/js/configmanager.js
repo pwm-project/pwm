@@ -208,7 +208,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
             headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
             load: function(data) {
                 if (data['error'] == true) {
-                    alert('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                    console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
                 } else {
                     for (var settingKey in data['data']) {
                         PWM_SETTINGS[settingKey] = data['data'][settingKey];

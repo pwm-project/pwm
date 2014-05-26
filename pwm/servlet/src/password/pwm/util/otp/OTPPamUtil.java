@@ -19,15 +19,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.otp;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import password.pwm.PwmConstants;
+import java.util.*;
+
 
 /**
  *
@@ -44,13 +40,13 @@ public class OTPPamUtil {
         return list;
     }
 
-    public static OTPUserConfiguration decomposePamData(String otpInfo) {
+    public static OTPUserRecord decomposePamData(String otpInfo) {
         List<String> lines = splitLines(otpInfo);
         if (lines.size() >= 2) {
             Iterator<String> iterator = lines.iterator();
             String line = iterator.next();
             if (line.matches("^[A-Z2-7\\=]{16}$")) {
-                OTPUserConfiguration otp = new OTPUserConfiguration(PwmConstants.PWM_APP_NAME); // default identifier
+                OTPUserRecord otp = new OTPUserRecord(); // default identifier
                 otp.setSecret(line);
                 List<String> recoveryCodes = new ArrayList<String>();
                 while (iterator.hasNext()) {
@@ -58,11 +54,11 @@ public class OTPPamUtil {
                     if (line.startsWith("\" ")) {
                         String option = line.substring(2).trim();
                         if ("TOTP_AUTH".equals(option)) {
-                            otp.setType(OTPUserConfiguration.Type.TOTP);
+                            otp.setType(OTPUserRecord.Type.TOTP);
                         } else if (option.matches("^HOTP_COUNTER\\s+\\d+$")) {
                             String countStr = option.substring(option.indexOf(" ") + 1);
-                            otp.setType(OTPUserConfiguration.Type.HOTP);
-                            otp.setCounter(Long.parseLong(countStr));
+                            otp.setType(OTPUserRecord.Type.HOTP);
+                            otp.setAttemptCount(Long.parseLong(countStr));
                         }
                     }
                     else if(line.matches("^\\d{8}$")) {
@@ -70,7 +66,7 @@ public class OTPPamUtil {
                     }
                 }
                 if (!recoveryCodes.isEmpty()) {
-                    otp.setRecoveryCodes(recoveryCodes);
+                    otp.setRecoveryCodes(null);
                 }
                 return otp;
             }
@@ -78,16 +74,17 @@ public class OTPPamUtil {
         return null;
     }
 
-    public static String composePamData(OTPUserConfiguration otp) {
+    public static String composePamData(OTPUserRecord otp) {
         if (otp == null) {
             return "";
         }
         String secret = otp.getSecret();
-        OTPUserConfiguration.Type type = otp.getType();
-        List<String> recoveryCodes = otp.getRecoveryCodes();
+        OTPUserRecord.Type type = otp.getType();
+        //List<String> recoveryCodes = otp.getRecoveryCodes();
+        List<String> recoveryCodes = Collections.emptyList();
         String pamData = secret + "\n";
-        if (OTPUserConfiguration.Type.HOTP.equals(type)) {
-            pamData += String.format("\" HOTP_COUNTER %d\n", otp.getCurrentCounter());
+        if (OTPUserRecord.Type.HOTP.equals(type)) {
+            pamData += String.format("\" HOTP_COUNTER %d\n", otp.getAttemptCount());
         } else {
             pamData += "\" TOTP_AUTH\n";
         }

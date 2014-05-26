@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,7 @@
 package password.pwm.util.intruder;
 
 import password.pwm.error.PwmOperationalException;
-
-import java.util.Iterator;
+import password.pwm.util.ClosableIterator;
 
 class StubRecordManager implements RecordManager {
     public boolean checkSubject(String subject) {
@@ -48,8 +47,8 @@ class StubRecordManager implements RecordManager {
         return null;
     }
 
-    public Iterator<IntruderRecord> iterator() throws PwmOperationalException {
-        return new Iterator<IntruderRecord>() {
+    public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
+        return new ClosableIterator<IntruderRecord>() {
             public boolean hasNext() {
                 return false;
             }
@@ -59,6 +58,9 @@ class StubRecordManager implements RecordManager {
             }
 
             public void remove() {
+            }
+
+            public void close() {
             }
         };
     }

@@ -49,7 +49,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
-import password.pwm.util.otp.OTPUserConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
 
 import java.io.Serializable;
 import java.util.*;
@@ -225,8 +225,8 @@ public class UserStatusReader {
         //populate OTP data
         if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
-            final OTPUserConfiguration otpConfig = otpService.readOTPUserConfiguration(userIdentity);
-            uiBean.setOtpUserConfiguration(otpConfig);
+            final OTPUserRecord otpConfig = otpService.readOTPUserConfiguration(userIdentity);
+            uiBean.setOtpUserRecord(otpConfig);
             uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, userIdentity, otpConfig));
         }
 

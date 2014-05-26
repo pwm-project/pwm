@@ -281,6 +281,7 @@ public class PwmApplication {
     }
 
     private void initialize(final boolean initLogging) {
+        System.out.println(UUID.randomUUID().toString());
         final Date startTime = new Date();
 
         // initialize log4j
@@ -374,9 +375,8 @@ public class PwmApplication {
                 LOGGER.warn("configuration has been modified since last startup");
                 if (this.getAuditManager() != null) {
                     final String modifyMessage = "configuration was modified directly (not using ConfigEditor UI)";
-                    this.getAuditManager().submit(new SystemAuditRecord(
+                    this.getAuditManager().submit(SystemAuditRecord.create(
                             AuditEvent.MODIFY_CONFIGURATION,
-                            new Date(),
                             modifyMessage,
                             this.getInstanceID()
                     ));
@@ -400,9 +400,8 @@ public class PwmApplication {
         }
 
         // send system audit event
-        final SystemAuditRecord auditRecord = new SystemAuditRecord(
+        final SystemAuditRecord auditRecord = SystemAuditRecord.create(
                 AuditEvent.STARTUP,
-                new Date(),
                 null,
                 getInstanceID()
         );
@@ -517,9 +516,8 @@ public class PwmApplication {
         LOGGER.warn("shutting down");
         {
             // send system audit event
-            final SystemAuditRecord auditRecord = new SystemAuditRecord(
+            final SystemAuditRecord auditRecord = SystemAuditRecord.create(
                     AuditEvent.SHUTDOWN,
-                    new Date(),
                     null,
                     getInstanceID()
             );

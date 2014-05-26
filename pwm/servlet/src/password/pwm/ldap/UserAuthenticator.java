@@ -161,7 +161,6 @@ public class UserAuthenticator {
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 pwmSession.getUserInfoBean().getUserIdentity(),
-                new Date(),
                 authenticationType.toString(),
                 pwmSession.getUserInfoBean().getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),
@@ -324,7 +323,6 @@ public class UserAuthenticator {
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
                 pwmSession.getUserInfoBean().getUserIdentity(),
-                new Date(),
                 authenticationType.toString(),
                 pwmSession.getUserInfoBean().getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),

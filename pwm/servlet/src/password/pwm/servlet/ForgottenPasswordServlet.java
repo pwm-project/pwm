@@ -43,9 +43,10 @@ import password.pwm.token.TokenPayload;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.operations.ActionExecutor;
+import password.pwm.util.operations.OtpService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.operations.cr.NMASCrOperator;
-import password.pwm.util.otp.OTPUserConfiguration;
+import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 
@@ -255,28 +256,39 @@ public class ForgottenPasswordServlet extends TopServlet {
     )
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.trace(String.format("Enter: processEnterForgottenOtpToken(%s, %s, %s, %s)", req, resp, pwmApplication, pwmSession));
+        LOGGER.trace(pwmSession, String.format("Enter: processEnterForgottenOtpToken(%s, %s, %s, %s)", req, resp, pwmApplication, pwmSession));
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
-        LOGGER.debug(String.format("Entered OTP: %s", userEnteredCode));
+        LOGGER.debug(pwmSession, String.format("entered OTP: %s", userEnteredCode));
 
-        OTPUserConfiguration otpConfig = forgottenPasswordBean.getOtpConfig();
+        OTPUserRecord otpConfig = forgottenPasswordBean.getOtpConfig();
         boolean otpPass = false;
         if (otpConfig != null) {
-            LOGGER.info("Checking entered OTP");
-            otpPass = otpConfig.validateToken(userEnteredCode);
-        }
-        if (otpPass) {
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_OTP_PASSED);
-            LOGGER.debug(pwmSession, "one time password validation has been passed");
-            forgottenPasswordBean.setOtpSatisfied(true);
-        } else {
-            LOGGER.debug(pwmSession, "one time password validation has failed");
-            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
-            final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
-            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
-            pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
-            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            LOGGER.info(pwmSession, "checking entered OTP");
+            try {
+                otpPass = OtpService.validateToken(pwmApplication, forgottenPasswordBean.getUserIdentity(), otpConfig,
+                        userEnteredCode, true);
+
+                if (otpPass) {
+                    pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_OTP_PASSED);
+                    LOGGER.debug(pwmSession, "one time password validation has been passed");
+                    forgottenPasswordBean.setOtpSatisfied(true);
+                } else {
+                    LOGGER.debug(pwmSession, "one time password validation has failed");
+                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
+                    final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
+                    UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
+                    pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
+                    pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+                }
+            } catch (PwmOperationalException e) {
+                LOGGER.debug(pwmSession, "one time password validation has failed: " + e.getMessage());
+                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN,e.getErrorInformation().toDebugStr()));
+                final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
+                UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
+                pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
+                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+            }
         }
         this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
@@ -366,7 +378,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
         final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final OTPUserConfiguration otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(userIdentity);
+        final OTPUserRecord otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(userIdentity);
 
         LOGGER.trace("loaded one time password configuration for user");
         if (otpConfig != null) {
