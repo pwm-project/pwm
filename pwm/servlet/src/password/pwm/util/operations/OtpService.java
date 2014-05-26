@@ -142,6 +142,7 @@ public class OtpService implements PwmService {
             case TOTP:
                 otpUserRecord.setType(OTPUserRecord.Type.TOTP);
         }
+        /* TODO: depending on storage format generate recovery codes or not */
         final List<String> rawRecoveryCodes = createRawRecoveryCodes(recoveryCodeCount);
         final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<OTPUserRecord.RecoveryCode>();
         final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
@@ -150,6 +151,7 @@ public class OtpService implements PwmService {
         recoveryInfo.setHashMethod(PwmConstants.OTP_RECOVERY_HASH_METHOD);
         otpUserRecord.setRecoveryInfo(recoveryInfo);
         for (final String rawCode : rawRecoveryCodes) {
+            /* TODO: check storage format, decide on whether to hash or not */
             final String hashedCode = doRecoveryHash(rawCode, recoveryInfo);
             final OTPUserRecord.RecoveryCode recoveryCode = new OTPUserRecord.RecoveryCode();
             recoveryCode.setHashCode(hashedCode);
