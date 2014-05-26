@@ -41,12 +41,10 @@ import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.otp.*;
 import password.pwm.util.otp.OTPUserRecord;
-import password.pwm.util.otp.OTPUserRecordUtil;
 import password.pwm.util.otp.PasscodeGenerator;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -88,12 +86,8 @@ public class OtpService implements PwmService {
                     /* Not yet implemented */
                     break;
             }
-        } catch (NoSuchAlgorithmException ex) {
-            OTPUserRecordUtil.LOGGER.error(ex.getMessage(), ex);
-        } catch (InvalidKeyException ex) {
-            OTPUserRecordUtil.LOGGER.error(ex.getMessage(), ex);
-        } catch (GeneralSecurityException ex) {
-            OTPUserRecordUtil.LOGGER.error(ex.getMessage(), ex);
+        } catch (Exception e) {
+            LOGGER.error("error checking otp secret: " + e.getMessage());
         }
 
         if (!otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null) {
