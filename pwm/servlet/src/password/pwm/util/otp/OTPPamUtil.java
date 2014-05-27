@@ -74,6 +74,12 @@ public class OTPPamUtil {
         return null;
     }
 
+    /**
+     * Create a string representation to be stored by the operator.
+     *
+     * @param otp the record with OTP configuration
+     * @return the string representation of the OTP record
+     */
     public static String composePamData(OTPUserRecord otp) {
         if (otp == null) {
             return "";
@@ -87,13 +93,12 @@ public class OTPPamUtil {
         } else {
             pamData += "\" TOTP_AUTH\n";
         }
-        /* TODO: write raw codes */
-        /*
         if (recoveryCodes != null && recoveryCodes.size() > 0) {
+            // The codes are assumed to be non-hashed
             for (OTPUserRecord.RecoveryCode code : recoveryCodes) {
                 pamData += code.getHashCode() + "\n";
             }
-        }*/
+        }
         return pamData;
     }
 }

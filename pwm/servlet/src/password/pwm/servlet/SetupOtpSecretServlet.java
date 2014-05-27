@@ -37,6 +37,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.OtpService;
+import password.pwm.util.operations.otp.AbstractOtpOperator.StorageFormat;
 import password.pwm.util.otp.OTPUserRecord;
 
 import javax.servlet.ServletException;
@@ -260,15 +261,17 @@ public class SetupOtpSecretServlet extends TopServlet {
         // make a new user record.
         if (otpBean.getOtpUserRecord() == null) {
             try {
-                final String identifierConfigValue = pwmApplication.getConfig().readSettingAsString(
-                        PwmSetting.OTP_SECRET_IDENTIFIER);
-                final String identifier = new MacroMachine(pwmApplication, pwmSession.getUserInfoBean()).expandMacros(
-                        identifierConfigValue);
+                final Configuration config = pwmApplication.getConfig();
+                final String identifierConfigValue = config.readSettingAsString(PwmSetting.OTP_SECRET_IDENTIFIER);
+                final String identifier = new MacroMachine(pwmApplication, pwmSession.getUserInfoBean()).expandMacros(identifierConfigValue);
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
+                final String formatStr = config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT);
+                final StorageFormat format = (formatStr == null)?StorageFormat.PWM:StorageFormat.valueOf(formatStr);
                 final List<String> rawRecoveryCodes = OtpService.initializeUserRecord(
                         otpUserRecord,
                         identifier,
                         OTPUserRecord.Type.TOTP,
+                        format,
                         PwmConstants.OTP_RECOVERY_TOKEN_COUNT
                 );
                 otpBean.setOtpUserRecord(otpUserRecord);

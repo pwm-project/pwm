@@ -124,6 +124,7 @@ public class OtpService implements PwmService {
             final OTPUserRecord otpUserRecord,
             String identifier,
             OTPUserRecord.Type otpType,
+            AbstractOtpOperator.StorageFormat storageFormat,
             int recoveryCodeCount
     )
             throws NoSuchAlgorithmException, InvalidKeyException
@@ -142,23 +143,39 @@ public class OtpService implements PwmService {
             case TOTP:
                 otpUserRecord.setType(OTPUserRecord.Type.TOTP);
         }
-        /* TODO: depending on storage format generate recovery codes or not */
-        final List<String> rawRecoveryCodes = createRawRecoveryCodes(recoveryCodeCount);
-        final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<OTPUserRecord.RecoveryCode>();
-        final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
-        recoveryInfo.setSalt(PwmRandom.getInstance().alphaNumericString(32));
-        recoveryInfo.setHashCount(PwmConstants.OTP_RECOVERY_HASH_COUNT);
-        recoveryInfo.setHashMethod(PwmConstants.OTP_RECOVERY_HASH_METHOD);
-        otpUserRecord.setRecoveryInfo(recoveryInfo);
-        for (final String rawCode : rawRecoveryCodes) {
-            /* TODO: check storage format, decide on whether to hash or not */
-            final String hashedCode = doRecoveryHash(rawCode, recoveryInfo);
-            final OTPUserRecord.RecoveryCode recoveryCode = new OTPUserRecord.RecoveryCode();
-            recoveryCode.setHashCode(hashedCode);
-            recoveryCode.setUsed(false);
-            recoveryCodeList.add(recoveryCode);
+        final List<String> rawRecoveryCodes;
+        if (storageFormat.supportsRecoveryCodes()) {
+            rawRecoveryCodes = createRawRecoveryCodes(recoveryCodeCount);
+            final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<OTPUserRecord.RecoveryCode>();
+            final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
+            if (storageFormat.supportsHashedRecoveryCodes()) {
+                LOGGER.debug("Hashing the recovery codes");
+                recoveryInfo.setSalt(PwmRandom.getInstance().alphaNumericString(32));
+                recoveryInfo.setHashCount(PwmConstants.OTP_RECOVERY_HASH_COUNT);
+                recoveryInfo.setHashMethod(PwmConstants.OTP_RECOVERY_HASH_METHOD);
+            } else {
+                LOGGER.debug("Not hashing the recovery codes");
+                recoveryInfo.setSalt(null);
+                recoveryInfo.setHashCount(0);
+                recoveryInfo.setHashMethod(null);
+            }
+            otpUserRecord.setRecoveryInfo(recoveryInfo);
+            for (final String rawCode : rawRecoveryCodes) {
+                final String hashedCode;
+                if (storageFormat.supportsHashedRecoveryCodes()) {
+                    hashedCode = doRecoveryHash(rawCode, recoveryInfo);
+                } else {
+                    hashedCode = rawCode;
+                }
+                final OTPUserRecord.RecoveryCode recoveryCode = new OTPUserRecord.RecoveryCode();
+                recoveryCode.setHashCode(hashedCode);
+                recoveryCode.setUsed(false);
+                recoveryCodeList.add(recoveryCode);
+            }
+            otpUserRecord.setRecoveryCodes(recoveryCodeList);
+        } else {
+            rawRecoveryCodes = new ArrayList<String>();
         }
-        otpUserRecord.setRecoveryCodes(recoveryCodeList);
         return rawRecoveryCodes;
     }
 
