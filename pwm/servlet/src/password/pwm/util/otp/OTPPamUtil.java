@@ -22,7 +22,12 @@
 
 package password.pwm.util.otp;
 
-import java.util.*;
+import password.pwm.util.PwmLogger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -31,6 +36,14 @@ import java.util.*;
  */
 public class OTPPamUtil {
 
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(OTPPamUtil.class);
+
+    /**
+     * Split the string in lines; separate by CR, LF or CRLF.
+     *
+     * @param text
+     * @return list of Strings
+     */
     public static List<String> splitLines(String text) {
         List<String> list = new ArrayList<String>();
         if (text != null) {
@@ -40,6 +53,11 @@ public class OTPPamUtil {
         return list;
     }
 
+    /**
+     *
+     * @param otpInfo
+     * @return
+     */
     public static OTPUserRecord decomposePamData(String otpInfo) {
         List<String> lines = splitLines(otpInfo);
         if (lines.size() >= 2) {
@@ -48,7 +66,7 @@ public class OTPPamUtil {
             if (line.matches("^[A-Z2-7\\=]{16}$")) {
                 OTPUserRecord otp = new OTPUserRecord(); // default identifier
                 otp.setSecret(line);
-                List<String> recoveryCodes = new ArrayList<String>();
+                List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<OTPUserRecord.RecoveryCode>();
                 while (iterator.hasNext()) {
                     line = iterator.next();
                     if (line.startsWith("\" ")) {
@@ -62,11 +80,26 @@ public class OTPPamUtil {
                         }
                     }
                     else if(line.matches("^\\d{8}$")) {
-                        recoveryCodes.add(line);
+                        OTPUserRecord.RecoveryCode code = new OTPUserRecord.RecoveryCode();
+                        code.setUsed(false);
+                        code.setHashCode(line);
+                        recoveryCodes.add(code);
+                    } else {
+                        LOGGER.trace(String.format("Unrecognized line: \"%s\"", line));
                     }
                 }
-                if (!recoveryCodes.isEmpty()) {
+                if (recoveryCodes.isEmpty()) {
+                    LOGGER.debug("No recovery codes read.");
                     otp.setRecoveryCodes(null);
+                    otp.setRecoveryInfo(null);
+                } else {
+                    LOGGER.debug(String.format("%d recovery codes read.", recoveryCodes.size()));
+                    OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
+                    recoveryInfo.setHashCount(0);
+                    recoveryInfo.setSalt(null);
+                    recoveryInfo.setHashMethod(null);
+                    otp.setRecoveryInfo(recoveryInfo);
+                    otp.setRecoveryCodes(recoveryCodes);
                 }
                 return otp;
             }
@@ -96,7 +129,9 @@ public class OTPPamUtil {
         if (recoveryCodes != null && recoveryCodes.size() > 0) {
             // The codes are assumed to be non-hashed
             for (OTPUserRecord.RecoveryCode code : recoveryCodes) {
-                pamData += code.getHashCode() + "\n";
+                if (!code.isUsed()) {
+                    pamData += code.getHashCode() + "\n";
+                }
             }
         }
         return pamData;

@@ -94,7 +94,7 @@ public class OtpService implements PwmService {
             final OTPUserRecord.RecoveryInfo recoveryInfo = otpUserRecord.getRecoveryInfo();
             final String userHashedInput = doRecoveryHash(userInput, recoveryInfo);
             for (final OTPUserRecord.RecoveryCode code : otpUserRecord.getRecoveryCodes()) {
-                if (code.getHashCode().equals(userHashedInput)) {
+                if (code.getHashCode().equals(userInput) || code.getHashCode().equals(userHashedInput)) {
                     if (code.isUsed()) {
                         throw new PwmOperationalException(PwmError.ERROR_OTP_RECOVERY_USED,
                                 "recovery code has been previously used");
