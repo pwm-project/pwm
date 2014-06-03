@@ -45,14 +45,11 @@ TODO: support HOTP
         <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
         <%@ include file="fragment/message.jsp" %>
         <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
-        <h1>
-            <label for="PwmOneTimePassword"><pwm:Display key="Field_OneTimePassword"/></label>
-        </h1>
-        <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
+        <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
               onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
             <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
-                   id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required"
+                   id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
                    onkeyup="validateResponses();" autofocus/>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
@@ -69,7 +66,7 @@ TODO: support HOTP
             </div>
         </form>
     </div>
-    <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="goBackForm"
+    <form action="<pwm:url url='SetupOtp'/>" method="post" name="goBackForm"
           enctype="application/x-www-form-urlencoded" onchange="" id="goBackForm">
         <input type="hidden" name="processAction" value="toggleSeen"/>
         <input type="hidden" id="pwmFormID_" name="pwmFormID" value="<pwm:FormID/>"/>

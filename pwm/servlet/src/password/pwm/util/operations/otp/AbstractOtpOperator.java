@@ -25,6 +25,7 @@ package password.pwm.util.operations.otp;
 import com.google.gson.JsonSyntaxException;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -56,27 +57,24 @@ public abstract class AbstractOtpOperator implements OtpOperator {
     public String composeOtpAttribute(OTPUserRecord otpUserRecord) throws PwmUnrecoverableException {
         String value = "";
         if (otpUserRecord != null) {
-            String formatStr = config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT);
-            if (formatStr != null) {
-                StorageFormat format = StorageFormat.valueOf(formatStr);
-                switch (format) {
-                    case PWM:
-                        value = Helper.getGson().toJson(otpUserRecord);
-                        break;
-                    case OTPURL:
-                        value = OTPUrlUtil.composeOtpUrl(otpUserRecord);
-                        break;
-                    case BASE32SECRET:
-                        value = otpUserRecord.getSecret();
-                        break;
-                    case PAM:
-                        value = OTPPamUtil.composePamData(otpUserRecord);
-                        break;
-                    default:
-                        String errorStr = String.format("Unsupported storage format: ", format.toString());
-                        ErrorInformation error = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorStr);
-                        throw new PwmUnrecoverableException(error);
-                }
+            final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
+            switch (format) {
+                case PWM:
+                    value = Helper.getGson().toJson(otpUserRecord);
+                    break;
+                case OTPURL:
+                    value = OTPUrlUtil.composeOtpUrl(otpUserRecord);
+                    break;
+                case BASE32SECRET:
+                    value = otpUserRecord.getSecret();
+                    break;
+                case PAM:
+                    value = OTPPamUtil.composePamData(otpUserRecord);
+                    break;
+                default:
+                    String errorStr = String.format("Unsupported storage format: ", format.toString());
+                    ErrorInformation error = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG, errorStr);
+                    throw new PwmUnrecoverableException(error);
             }
         }
         return value;
@@ -170,55 +168,4 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         this.config = config;
     }
 
-    /**
-     * One Time Password Storage Format
-     */
-    public enum StorageFormat {
-
-        PWM(true, true),
-        BASE32SECRET(false),
-        OTPURL(false),
-        PAM(true, false);
-
-        private final boolean useRecoveryCodes;
-        private final boolean hashRecoveryCodes;
-
-        /**
-         * Constructor.
-         *
-         * @param useRecoveryCodes
-         */
-        StorageFormat(boolean useRecoveryCodes) {
-            this.useRecoveryCodes = useRecoveryCodes;
-            this.hashRecoveryCodes = useRecoveryCodes; // defaults to true, if recovery codes enabled.
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param useRecoveryCodes
-         * @param hashRecoveryCodes
-         */
-        StorageFormat(boolean useRecoveryCodes, boolean hashRecoveryCodes) {
-            this.useRecoveryCodes = useRecoveryCodes;
-            this.hashRecoveryCodes = useRecoveryCodes && hashRecoveryCodes;
-        }
-
-        /**
-         * Check support for recovery codes.
-         * @return true if recovery codes are supported.
-         */
-        public boolean supportsRecoveryCodes() {
-            return useRecoveryCodes;
-        }
-
-        /**
-         * Check support for hashed recovery codes.
-         * @return true if recovery codes are supported and hashes are to be used.
-         */
-        public boolean supportsHashedRecoveryCodes() {
-            return useRecoveryCodes && hashRecoveryCodes;
-        }
-
-    }
 }

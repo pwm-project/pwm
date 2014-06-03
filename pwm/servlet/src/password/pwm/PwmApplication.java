@@ -281,7 +281,6 @@ public class PwmApplication {
     }
 
     private void initialize(final boolean initLogging) {
-        System.out.println(UUID.randomUUID().toString());
         final Date startTime = new Date();
 
         // initialize log4j
@@ -354,7 +353,10 @@ public class PwmApplication {
             } catch (PwmException e) {
                 LOGGER.warn("error instantiating service class '" + serviceClass.getName() + "', service will remain unavailable, error: " + e.getMessage());
             } catch (Exception e) {
-                final String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
+                String errorMsg = "unexpected error instantiating service class '" + serviceClass.getName() + "', cannot load, error: " + e.getMessage();
+                if (e.getCause() != null) {
+                    errorMsg += ", cause: " + e.getCause();
+                }
                 LOGGER.fatal(errorMsg);
                 throw new IllegalStateException(errorMsg,e);
             }

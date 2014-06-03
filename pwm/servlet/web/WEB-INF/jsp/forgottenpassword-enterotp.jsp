@@ -35,7 +35,7 @@
     <div id="centerbody">
         <%
             final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-            OTPUserRecord otp = fpb.getOtpConfig();
+            OTPUserRecord otp = fpb.getOtpUserRecord();
             String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {

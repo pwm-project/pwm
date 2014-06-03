@@ -55,9 +55,10 @@
                 <input type="hidden"
                        name="processAction"
                        value="continue"/>
-                <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "
-                       id="button_continue" autofocus="autofocus"/>
+                <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Continue"/>
+                </button>
             </form>
         </div>
         <% } %>

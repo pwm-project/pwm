@@ -20,14 +20,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.util.cli;
+package password.pwm.config.option;
 
-public interface CliCommand {
-
-
-    void execute(String cli, CliEnvironment cliEnvironment);
-
-    CliParameters getCliParameters();
-
-
+public enum ViewStatusFields implements ConfigurationOption {
+    AccountEnabled,
+    GUID,
+    IntruderDetect,
+    ForwardURL,
+    LogoutURL,
+    LastLoginTime,
+    LastLoginTimeDelta,
+    NetworkAddress,
+    NetworkHost,
+    PasswordExpired,
+    PasswordExpireTime,
+    PasswordPreExpired,
+    PasswordSetTime,
+    PasswordSetTimeDelta,
+    PasswordWarnPeriod,
+    PasswordViolatesPolicy,
+    ResponsesStored,
+    ResponsesNeeded,
+    ResponsesTimestamp,
+    OTPStored,
+    OTPTimestamp,
+    Username,
+    UserDN,
+    UserEmail,
 }

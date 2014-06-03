@@ -73,7 +73,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                     final UserPermission userPermission = gson.fromJson(value,UserPermission.class);
                     values.add(userPermission);
                 } else {
-                    values.add(new UserPermission(null, value));
+                    values.add(new UserPermission(null, value, null));
                 }
             }
         }

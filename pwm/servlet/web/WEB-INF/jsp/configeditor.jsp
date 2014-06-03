@@ -69,7 +69,7 @@
                 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
                 Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
                 <% } %>
-                <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
+                <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-spinner fa-spin"></span>
                 <div class="headerIcon" style="float: right" id="cancelButton_icon" onclick="PWM_CFGEDIT.cancelEditing()">
                     <span class="fa fa-sign-out"></span>
                 </div>

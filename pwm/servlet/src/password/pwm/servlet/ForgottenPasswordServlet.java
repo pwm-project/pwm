@@ -261,12 +261,13 @@ public class ForgottenPasswordServlet extends TopServlet {
         final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
         LOGGER.debug(pwmSession, String.format("entered OTP: %s", userEnteredCode));
 
-        OTPUserRecord otpConfig = forgottenPasswordBean.getOtpConfig();
-        boolean otpPass = false;
-        if (otpConfig != null) {
+        final OTPUserRecord otpUserRecord = forgottenPasswordBean.getOtpUserRecord();
+        final OtpService otpService = pwmApplication.getOtpService();
+        boolean otpPass;
+        if (otpUserRecord != null) {
             LOGGER.info(pwmSession, "checking entered OTP");
             try {
-                otpPass = OtpService.validateToken(pwmApplication, forgottenPasswordBean.getUserIdentity(), otpConfig,
+                otpPass = otpService.validateToken(forgottenPasswordBean.getUserIdentity(), otpUserRecord,
                         userEnteredCode, true);
 
                 if (otpPass) {
@@ -382,11 +383,11 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         LOGGER.trace("loaded one time password configuration for user");
         if (otpConfig != null) {
-            forgottenPasswordBean.setOtpConfig(otpConfig);
+            forgottenPasswordBean.setOtpUserRecord(otpConfig);
             return;
         }
 
-        forgottenPasswordBean.setOtpConfig(null);
+        forgottenPasswordBean.setOtpUserRecord(null);
 
         final String errorMsg = "could not find a one time password configuration for " + userIdentity;
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
@@ -549,7 +550,7 @@ public class ForgottenPasswordServlet extends TopServlet {
         // process for OTP-enabled recovery
         final boolean otpEnabled = config.readSettingAsBoolean(PwmSetting.OTP_ENABLED) && config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP);
         if (otpEnabled) {
-            if (forgottenPasswordBean.getOtpConfig() == null) {
+            if (forgottenPasswordBean.getOtpUserRecord() == null) {
                 try {
                     loadOtpConfigIntoBean(pwmApplication, forgottenPasswordBean);
                 } catch (PwmOperationalException e) {

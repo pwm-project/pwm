@@ -28,7 +28,7 @@
 <settings>
     <setting key="pwm.selfURL" level="0">
         <label>Site URL</label>
-        <description><![CDATA[The URL to this password servlet, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.]]></description>
+        <description><![CDATA[The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.<br/><br/>Example: <b>http://www.example.com/password</b>]]></description>
         <regex>^(http|https)://.+$</regex>
         <placeholder>http://www.example.com/password</placeholder>
         <default>
@@ -157,8 +157,8 @@
         </default>
     </setting>
     <setting key="display.showHidePasswordFields" level="0" required="true">
-        <label>Show Show/Hide Password Field Button</label>
-        <description><![CDATA[Where available, allow the user to toggle the show/hide password field option.  This setting applies to all HTML masked password fields, regardless of the actual data type.]]></description>
+        <label>Enable Showing Masked Fields</label>
+        <description><![CDATA[Where available, allow the user to toggle the show/hide masked (hidden) data input fields.  This setting applies to all HTML masked password fields, regardless of the actual data type.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -184,6 +184,13 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="display.accountInformation" level="0" required="true">
+        <label>Enable Account Information</label>
+        <description><![CDATA[Show User Account Information menu on main menu.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="display.passwordHistory" level="0" required="true">
         <label>Show Password Event History</label>
         <description><![CDATA[Show logged in users their password event history.  The password event history will appear as a tab on the account information page.]]></description>
@@ -191,12 +198,51 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.accountInformation" level="0" required="true">
-        <label>Show User Account Information</label>
-        <description><![CDATA[Show User Account Information menu on main menu.]]></description>
+    <setting key="accountInfo.viewStatusValues" level="0">
+        <label>Viewable Status Fields</label>
+        <description><![CDATA[]]></description>
         <default>
-            <value>true</value>
+            <value>ForwardURL</value>
+            <value>LogoutURL</value>
+            <value>NetworkAddress</value>
+            <value>NetworkHost</value>
+            <value>PasswordExpired</value>
+            <value>PasswordExpireTime</value>
+            <value>PasswordPreExpired</value>
+            <value>PasswordSetTime</value>
+            <value>PasswordSetTimeDelta</value>
+            <value>PasswordWarnPeriod</value>
+            <value>PasswordViolatesPolicy</value>
+            <value>ResponsesStored</value>
+            <value>ResponsesNeeded</value>
+            <value>ResponsesTimestamp</value>
+            <value>OTPStored</value>
+            <value>OTPTimestamp</value>
+            <value>Username</value>
+            <value>UserEmail</value>
         </default>
+        <options>
+            <option value="GUID">GUID</option>
+            <option value="ForwardURL">Forward URL</option>
+            <option value="LogoutURL">Logout URL</option>
+            <option value="NetworkAddress">Network Address</option>
+            <option value="NetworkHost">Network Host</option>
+            <option value="PasswordExpired">Password Expired</option>
+            <option value="PasswordExpireTime">Password Expire Time</option>
+            <option value="PasswordPreExpired">Password Pre-Expired</option>
+            <option value="PasswordSetTime">Password Set Time</option>
+            <option value="PasswordSetTimeDelta">Password Set Time Delta</option>
+            <option value="PasswordWarnPeriod">Password Warn Period</option>
+            <option value="PasswordViolatesPolicy">Password Violates Policy</option>
+            <option value="ResponsesStored">Responses Stored</option>
+            <option value="ResponsesNeeded">Responses Needed</option>
+            <option value="ResponsesTimestamp">Responses Timestamp</option>
+            <option value="OTPStored">OTP Stored</option>
+            <option value="OTPTimestamp">OTP Timestamp</option>
+            <option value="Username">Username</option>
+            <option value="UserDN">User DN</option>
+            <option value="UserEmail">User Email</option>
+        </options>
     </setting>
     <setting key="display.showLoginPageOptions" level="0" required="true">
         <label>Show Login Page Options</label>
@@ -1457,7 +1503,7 @@
             <value>false</value>
         </default>
     </setting>
-    <setting key="enableSessionVerification" level="1" required="true">
+    <setting key="enableSessionVerification" level="0" required="true">
         <label>Enable Session Verification</label>
         <description><![CDATA[If enabled, browser sessions will be verified using an HTTP redirect and verification code.  This verification proves that the browser can correctly establish a session with the server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and application server is 'sticky' when their are multiple server instances.  Additionally it helps prevent some types of XSS attacks.<br/><br/>The pre-load browser cache will show a "please wait" screen to the user during the verification.  This has the added benefit that many of the HTTP resources (javascript, css, images, etc) will be "pre-cached" by the browser before any actual pages are loaded.]]></description>
         <default>
@@ -1558,6 +1604,34 @@
             <value>28800</value>
         </default>
     </setting>
+    <setting key="security.preventFraming" level="1">
+        <label>Prevent HTML Framing</label>
+        <description><![CDATA[When enabled, prevent this application from being displayed inside an IFrame.  This is done by setting the <i>X-Frame-Options</i> HTTP Header to <i>DENY</i> on all pages.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="security.redirectUrl.whiteList" level="0">
+        <label>Redirect Whitelist</label>
+        <description><![CDATA[A list of partial URL fragments.  Any attempt to set the forwardURL or logoutURL via request parameter
+        must match a URL fragment listed here.
+        <ul>
+          <li>Each item will be attempted to be matched from the <b>beginning</b> of the requested URL string.</li>
+          <li>The redirect URL is decoded and parsed before checked against the whitelist.</li>
+          <li>If an error occurs when setting a redirect URL, set the debug logs to TRACE and watch the output as the error occurs.</li>
+          <li>Wildcards or case mis-matches are not permitted, the values must match exactly.</li>
+          <li>If a fragment has the prefix <i>regex:</i>, the remainder of the fragment is treated as a regular expression.  Regular expression matches must match the entire URL.</li>
+        </ul>
+        <table>
+        <tr><td>Example</td><td>Matches</td><td>Not Matched</td></tr>
+        <td>https://www.example.com</td><td>https://www.example.com<br/>https://www.example.com/<br/>https://www.example.com/path</td><td>http://www.example.com<br/>https://mail.example.com</td></tr>
+        <td>http://www.example.com/p1</td><td>http://www.example.com/p1<br/>http://www.example.com/p1/p2<br/>http://www.example.com/p1?a1=v1</td><td>https://www.example.com/p1<br/>http://www.example.com/p2</td></tr>
+        <td>/path1</td><td>/path1<br/>/path1/path2<br/>/path1/path2/?param=v1</td><td>www.example.com/path1/<br/>https://www.example.com/path1<br/>/path2</td></tr>
+        <td>regex:^(https?:\/\/)[a-z]*\.example\.com.*?$</td><td>http://www.example.com<br/>https://www.example.com<br/>http://www.example.com/p1<br/>http://mail.example.com/p1</td><td>www.example.com<br/>http://www.example.org</td></tr>
+        </table>
+        ]]></description>
+        <default/>
+    </setting>
     <setting key="email.adminAlert.toAddress" level="0">
         <label>System Audit Event Email Alerts</label>
         <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
@@ -1565,12 +1639,70 @@
             <value><![CDATA[admin@example.com]]></value>
         </default>
     </setting>
+    <setting key="audit.system.eventList" level="0">
+        <label>System Audit Event Types</label>
+        <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
+        <default>
+            <value>STARTUP</value>
+            <value>SHUTDOWN</value>
+            <value>FATAL_EVENT</value>
+            <value>MODIFY_CONFIGURATION</value>
+        </default>
+        <options>
+            <option value="STARTUP">Startup</option>
+            <option value="SHUTDOWN">Shutdown</option>
+            <option value="FATAL_EVENT">Fatal Event</option>
+            <option value="MODIFY_CONFIGURATION">Modify Configuration</option>
+        </options>
+    </setting>
     <setting key="audit.userEvent.toAddress" level="0">
         <label>User Audit Event Email Alerts</label>
         <description><![CDATA[Send an email User Audit events occur to these email addresses.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
+    </setting>
+    <setting key="audit.user.eventList" level="0">
+        <label>User Audit Event Types</label>
+        <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
+        <default>
+            <value>AUTHENTICATE</value>
+            <value>CHANGE_PASSWORD</value>
+            <value>RECOVER_PASSWORD</value>
+            <value>SET_RESPONSES</value>
+            <value>SET_OTP_SECRET</value>
+            <value>ACTIVATE_USER</value>
+            <value>CREATE_USER</value>
+            <value>UPDATE_PROFILE</value>
+            <value>INTRUDER_LOCK</value>
+            <value>TOKEN_ISSUED</value>
+            <value>TOKEN_CLAIMED</value>
+            <value>CLEAR_RESPONSES</value>
+            <value>HELPDESK_SET_PASSWORD</value>
+            <value>HELPDESK_UNLOCK_PASSWORD</value>
+            <value>HELPDESK_CLEAR_RESPONSES</value>
+            <value>HELPDESK_CLEAR_OTP_SECRET</value>
+            <value>HELPDESK_ACTION</value>
+        </default>
+        <options>
+            <option value="AUTHENTICATE">Authenticate</option>
+            <option value="CHANGE_PASSWORD">Change Password</option>
+            <option value="RECOVER_PASSWORD">Recover Password</option>
+            <option value="SET_RESPONSES">Set Responses</option>
+            <option value="SET_OTP_SECRET">Set OTP</option>
+            <option value="ACTIVATE_USER">Activate User</option>
+            <option value="CREATE_USER">New User</option>
+            <option value="UPDATE_PROFILE">Update Profile</option>
+            <option value="INTRUDER_LOCK">Intruder Lock</option>
+            <option value="TOKEN_ISSUED">Token Issued</option>
+            <option value="TOKEN_CLAIMED">Token Claimed</option>
+            <option value="CLEAR_RESPONSES">Clear Responses</option>
+            <option value="HELPDESK_SET_PASSWORD">Helpdesk Set Password</option>
+            <option value="HELPDESK_UNLOCK_PASSWORD">Helpdesk Unlock Password</option>
+            <option value="HELPDESK_CLEAR_RESPONSES">Helpdesk Clear Responses</option>
+            <option value="HELPDESK_CLEAR_OTP_SECRET">Helpdesk Clear OTP</option>
+            <option value="HELPDESK_ACTION">Helpdesk Action</option>
+        </options>
     </setting>
     <setting key="audit.syslog.servers" level="0" required="false">
         <label>Syslog Audit Servers</label>
@@ -1633,7 +1765,7 @@
         <label>Force Setup of One Time Passwords</label>
         <description><![CDATA[If true and one time passwords are enabled, the user will be directed to configure a one time password secret when logging in.  The user is forced to configure one time password if they do not have a current valid secret stored.]]></description>
         <default>
-            <value>true</value>
+            <value>false</value>
         </default>
     </setting>
     <setting key="otp.secret.readPreference" level="0" required="true">
@@ -2909,6 +3041,51 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="helpdesk.viewStatusValues" level="0">
+        <label>Viewable Status Fields</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>AccountEnabled</value>
+            <value>IntruderDetect</value>
+            <value>LastLoginTime</value>
+            <value>LastLoginTimeDelta</value>
+            <value>PasswordExpired</value>
+            <value>PasswordExpireTime</value>
+            <value>PasswordPreExpired</value>
+            <value>PasswordSetTime</value>
+            <value>PasswordSetTimeDelta</value>
+            <value>PasswordWarnPeriod</value>
+            <value>ResponsesStored</value>
+            <value>ResponsesNeeded</value>
+            <value>ResponsesTimestamp</value>
+            <value>OTPStored</value>
+            <value>OTPTimestamp</value>
+            <value>Username</value>
+            <value>UserDN</value>
+            <value>UserEmail</value>
+        </default>
+        <options>
+            <option value="AccountEnabled">Account Enabled</option>
+            <option value="GUID">GUID</option>
+            <option value="IntruderDetect">Intruder Detect</option>
+            <option value="LastLoginTime">Last Login Time</option>
+            <option value="LastLoginTimeDelta">Last Login Time Delta</option>
+            <option value="PasswordExpired">Password Expired</option>
+            <option value="PasswordExpireTime">Password Expire Time</option>
+            <option value="PasswordPreExpired">Password Pre-Expired</option>
+            <option value="PasswordSetTime">Password Set Time</option>
+            <option value="PasswordSetTimeDelta">Password Set Time Delta</option>
+            <option value="PasswordWarnPeriod">Password Warn Period</option>
+            <option value="ResponsesStored">Responses Stored</option>
+            <option value="ResponsesNeeded">Responses Needed</option>
+            <option value="ResponsesTimestamp">Responses Timestamp</option>
+            <option value="OTPStored">OTP Stored</option>
+            <option value="OTPTimestamp">OTP Timestamp</option>
+            <option value="Username">Username</option>
+            <option value="UserDN">User DN</option>
+            <option value="UserEmail">User Email</option>
+        </options>
+    </setting>
     <setting key="helpdesk.idleTimeout" level="0">
         <label>Idle Timeout Seconds for Helpdesk Users</label>
         <description><![CDATA[Number of seconds after which an authenticated session becomes unauthenticated.   Session Idle timeout will be set to this value once a user successfully access the helpdesk module.]]></description>
@@ -3490,6 +3667,10 @@
     <category key="CHANGE_PASSWORD">
         <label>Change Password</label>
         <description>The change password module is the core functionality of the application.  Use these settings to control the behavior and functionality of the change password functionality seen by all users.</description>
+    </category>
+    <category key="ACCOUNT_INFO">
+        <label>Account Information</label>
+        <description>Show account information to the logged in user.</description>
     </category>
     <category key="RECOVERY">
         <label>Forgotten Password</label>

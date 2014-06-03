@@ -39,7 +39,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
 
     private transient UserIdentity proxiedUser;
     private transient ResponseSet responseSet;
-    private transient OTPUserRecord otpConfig;
+    private transient OTPUserRecord otpUserRecord;
     private ChallengeSet challengeSet;
     private String tokenSendAddress;
 
@@ -76,12 +76,12 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         return proxiedUser;
     }
 
-    public OTPUserRecord getOtpConfig() {
-        return otpConfig;
+    public OTPUserRecord getOtpUserRecord() {
+        return otpUserRecord;
     }
 
-    public void setOtpConfig(OTPUserRecord otpConfig) {
-        this.otpConfig = otpConfig;
+    public void setOtpUserRecord(OTPUserRecord otpUserRecord) {
+        this.otpUserRecord = otpUserRecord;
     }
 
     public boolean isOtpSatisfied() {

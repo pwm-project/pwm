@@ -27,6 +27,7 @@ import password.pwm.*;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.UserEventStorageMethod;
@@ -150,7 +151,8 @@ public class AuditManager implements PwmService {
 
         settings.systemEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO);
         settings.userEmailAddresses = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_USER_TO);
-        settings.alertFromAddress  = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
+        settings.alertFromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
+        settings.permittedEvents = figurePermittedEvents(pwmApplication.getConfig());
 
         if (pwmApplication.getApplicationMode() == null || pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
             this.status = STATUS.CLOSED;
@@ -224,24 +226,6 @@ public class AuditManager implements PwmService {
             }
         }
 
-        {
-            final String ignoredStringList = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_IGNORELIST);
-            if (ignoredStringList != null) {
-                for (final String ignoredString : ignoredStringList.split(AppProperty.VALUE_SEPARATOR)) {
-                    if (ignoredString != null && ignoredString.length() > 0) {
-                        try {
-                            final AuditEvent event = AuditEvent.valueOf(ignoredString);
-                            if (event != null) {
-                                settings.ignoredEvents.add(event);
-                                LOGGER.info("will ignore all events of type '" + event.toString() + "' due to AppProperty setting");
-                            }
-                        } catch (IllegalArgumentException e) {
-                            LOGGER.error("unknown event type '" + ignoredString + "' in AppProperty " + AppProperty.AUDIT_EVENTS_IGNORELIST.getKey());
-                        }
-                    }
-                }
-            }
-        }
         this.status = STATUS.OPEN;
     }
 
@@ -366,7 +350,7 @@ public class AuditManager implements PwmService {
             return;
         }
 
-        if (settings.ignoredEvents.contains(auditRecord.getEventCode())) {
+        if (!settings.permittedEvents.contains(auditRecord.getEventCode())) {
             LOGGER.warn("discarding audit event, '" + auditRecord.getEventCode() + "', are being ignored; event=" + gsonRecord);
             return;
         }
@@ -453,7 +437,7 @@ public class AuditManager implements PwmService {
         private List<String> systemEmailAddresses = new ArrayList<String>();
         private List<String> userEmailAddresses = new ArrayList<String>();
         private String alertFromAddress = "";
-        private Set<AuditEvent> ignoredEvents = new HashSet<AuditEvent>();
+        private Set<AuditEvent> permittedEvents = new HashSet<AuditEvent>();
     }
 
     public ServiceInfo serviceInfo()
@@ -463,5 +447,12 @@ public class AuditManager implements PwmService {
 
     public int syslogQueueSize() {
         return syslogManager != null ? syslogManager.queueSize() : 0;
+    }
+
+    private static Set<AuditEvent> figurePermittedEvents(final Configuration configuration) {
+        final Set<AuditEvent> eventSet = new HashSet<AuditEvent>();
+        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_SYSTEM_EVENTS,AuditEvent.class));
+        eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_USER_EVENTS,AuditEvent.class));
+        return Collections.unmodifiableSet(eventSet);
     }
 }

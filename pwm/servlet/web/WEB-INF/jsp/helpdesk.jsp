@@ -77,8 +77,8 @@
         <div style="text-align: center;">
             <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
                     onclick="window.location=PWM_GLOBAL['url-context']">
-                <i class="fa fa-home"></i>&nbsp;
-                <pwm:Display key="Title_MainPage"/>
+                <span class="btn-icon fa fa-home"></span>
+                <pwm:Display key="Button_Home"/>
             </button>
         </div>
     </div>

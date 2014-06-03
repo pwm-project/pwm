@@ -32,12 +32,14 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.HelpdeskClearResponseMode" %>
 <%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
+<%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Set" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -54,6 +56,7 @@
     final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean();
     final String pageTitle = Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Title_Helpdesk",pwmApplication.getConfig())
             + " - " + searchedUserInfo.getUsername();
+    final Set<ViewStatusFields> viewStatusFields = pwmApplication.getConfig().readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
@@ -67,12 +70,13 @@
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table>
+            <% if (viewStatusFields.contains(ViewStatusFields.UserDN)) { %>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_Username"/>
+                    <pwm:Display key="Field_UserDN"/>
                 </td>
                 <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUsername()) %>
+                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
                 </td>
             </tr>
             <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
@@ -85,14 +89,27 @@
                 </td>
             </tr>
             <% } %>
+            <% } %>
+            <% if (viewStatusFields.contains(ViewStatusFields.Username)) { %>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_UserDN"/>
+                    <pwm:Display key="Field_Username"/>
                 </td>
                 <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
+                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUsername()) %>
                 </td>
             </tr>
+            <% } %>
+            <% if (viewStatusFields.contains(ViewStatusFields.UserEmail)) { %>
+            <tr>
+                <td class="key">
+                    <pwm:Display key="Field_UserEmail"/>
+                </td>
+                <td>
+                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserEmailAddress()) %>
+                </td>
+            </tr>
+            <% } %>
         </table>
         <table>
             <% for (FormConfiguration formItem : helpdeskBean.getAdditionalUserInfo().getSearchDetails().keySet()) { %>
@@ -107,20 +124,11 @@
             </tr>
             <%  } %>
         </table>
-        <table>
-            <tr>
-                <td class="key">
-                    <%=PwmConstants.PWM_APP_NAME%> <pwm:Display key="Field_UserGUID"/>
-                </td>
-                <td>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
-                </td>
-            </tr>
-        </table>
     </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_Status"/>">
     <table>
+        <% if (viewStatusFields.contains(ViewStatusFields.Username)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_Username"/>
@@ -129,6 +137,8 @@
                 <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUsername()) %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.AccountEnabled)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_AccountEnabled"/>
@@ -137,6 +147,8 @@
                 <%if (helpdeskBean.getAdditionalUserInfo().isAccountEnabled()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.LastLoginTime)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_LastLoginTime"/>
@@ -151,6 +163,8 @@
             </td>
             <% } %>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.LastLoginTimeDelta)) { %>
         <% if (helpdeskBean.getAdditionalUserInfo().getLastLoginTime() != null) { %>
         <tr>
             <td class="key">
@@ -161,6 +175,8 @@
             </td>
         </tr>
         <% } %>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordExpired)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordExpired"/>
@@ -169,6 +185,8 @@
                 <%if (searchedUserInfo.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordPreExpired)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordPreExpired"/>
@@ -177,6 +195,8 @@
                 <%if (searchedUserInfo.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordWarnPeriod)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
@@ -185,6 +205,7 @@
                 <%if (searchedUserInfo.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
             </td>
         </tr>
+        <% } %>
         <!--
         <tr>
             <td class="key">
@@ -195,6 +216,7 @@
             </td>
         </tr>
         -->
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordSetTime)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordSetTime"/>
@@ -209,6 +231,8 @@
             </td>
             <% } %>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordSetTimeDelta)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordSetTimeDelta"/>
@@ -217,6 +241,8 @@
                 <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig())%>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.PasswordExpireTime)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordExpirationTime"/>
@@ -231,6 +257,8 @@
             </td>
             <% } %>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.IntruderDetect)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_PasswordLocked"/>
@@ -245,6 +273,8 @@
             </td>
             <% } %>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.ResponsesStored)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_ResponsesStored"/>
@@ -257,6 +287,8 @@
                 <% } %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.ResponsesNeeded)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_ResponsesNeeded"/>
@@ -269,6 +301,8 @@
                 <% } %>
             </td>
         </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.ResponsesTimestamp)) { %>
         <tr>
             <td class="key">
                 <pwm:Display key="Field_ResponsesTimestamp"/>
@@ -283,30 +317,45 @@
             </td>
             <% } %>
         </tr>
+        <% } %>
         <pwm:if test="otpEnabled">
-        <tr>
-            <td class="key">
-                OTP Enrollment required
-            </td>
-            <td>
-            <%if (searchedUserInfo.isRequiresOtpConfig()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                OTP Enrolled Date
-            </td>
-            <% if (searchedUserInfo.getOtpUserRecord() == null || searchedUserInfo.getOtpUserRecord().getTimestamp() == null) { %>
-            <td>
-                <pwm:Display key="Value_NotApplicable"/>
-            </td>
-            <% } else { %>
-            <td class="timestamp">
-                <%= dateFormatter.format(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
-            </td>
+            <% if (viewStatusFields.contains(ViewStatusFields.OTPStored)) { %>
+            <tr>
+                <td class="key">
+                    <pwm:Display key="Field_OTP_Stored"/>
+                </td>
+                <td>
+                <%if (searchedUserInfo.getOtpUserRecord() != null) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                </td>
+            </tr>
             <% } %>
-        </tr>
+            <% if (viewStatusFields.contains(ViewStatusFields.OTPTimestamp)) { %>
+            <tr>
+                <td class="key">
+                    <pwm:Display key="Field_OTP_Timestamp"/>
+                </td>
+                <% if (searchedUserInfo.getOtpUserRecord() == null || searchedUserInfo.getOtpUserRecord().getTimestamp() == null) { %>
+                <td>
+                    <pwm:Display key="Value_NotApplicable"/>
+                </td>
+                <% } else { %>
+                <td class="timestamp">
+                    <%= dateFormatter.format(searchedUserInfo.getOtpUserRecord().getTimestamp()) %>
+                </td>
+                <% } %>
+            </tr>
+            <% } %>
         </pwm:if>
+        <% if (viewStatusFields.contains(ViewStatusFields.GUID)) { %>
+        <tr>
+            <td class="key">
+                <pwm:Display key="Field_UserGUID"/>
+            </td>
+            <td>
+                <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
+            </td>
+        </tr>
+        <% } %>
     </table>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
@@ -457,7 +506,7 @@
     <% } %>
     <button name="button_continue" class="btn" onclick="window.location = window.location" id="button_continue">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-        <pwm:Display key="Button_Search"/>
+        <pwm:Display key="Button_GoBack"/>
     </button>
     <% } %>
     <br/>

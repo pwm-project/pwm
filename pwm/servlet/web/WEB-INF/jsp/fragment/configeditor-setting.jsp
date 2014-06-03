@@ -151,6 +151,14 @@
             FormTableHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.OPTIONLIST) { %>
+    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+    </table>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            OptionListHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
+        });
+    </script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>

@@ -29,15 +29,18 @@ public class UserPermission {
 
     private String ldapProfileID;
     private String ldapQuery;
+    private String ldapBase;
     private Type type = Type.ldapQuery;
 
     public UserPermission(
             String ldapProfileID,
-            String ldapQuery
+            String ldapQuery,
+            String ldapBase
     )
     {
         this.ldapProfileID = ldapProfileID;
         this.ldapQuery = ldapQuery;
+        this.ldapBase = ldapBase;
     }
 
     public String getLdapProfileID()
@@ -48,6 +51,11 @@ public class UserPermission {
     public String getLdapQuery()
     {
         return ldapQuery;
+    }
+
+    public String getLdapBase()
+    {
+        return ldapBase;
     }
 
     public Type getType()

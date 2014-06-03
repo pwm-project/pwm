@@ -114,7 +114,7 @@
                     </table>
                 </div>
                 <% } else { %>
-                <div class="message message-error">
+                <div>
                     <%= PwmError.ERROR_SERVICE_NOT_AVAILABLE.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),pwmApplicationHeader.getConfig()) %>
                 </div>
                 <% } %>

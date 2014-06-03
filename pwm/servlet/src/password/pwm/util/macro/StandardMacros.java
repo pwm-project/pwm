@@ -60,6 +60,7 @@ public abstract class StandardMacros {
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
+        defaultMacros.add(OtpSetupTimeMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -453,4 +454,30 @@ public abstract class StandardMacros {
         }
     }
 
+    public static class OtpSetupTimeMacro extends AbstractMacro {
+        UserInfoBean userInfoBean;
+
+        public Pattern getRegExPattern()
+        {
+            return Pattern.compile("@OtpSetupTime@");
+        }
+
+        public String replaceValue(String matchValue)
+        {
+
+            if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
+                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
+            }
+            return null;
+        }
+
+        public void init(
+                PwmApplication pwmApplication,
+                UserInfoBean userInfoBean,
+                UserDataReader userDataReader
+        )
+        {
+            this.userInfoBean = userInfoBean;
+        }
+    }
 }

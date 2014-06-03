@@ -80,10 +80,6 @@ public enum PwmSetting {
     // user interface
     INTERFACE_THEME(
             "interface.theme", PwmSettingSyntax.SELECT, Category.USER_INTERFACE),
-    PASSWORD_SHOW_AUTOGEN(
-            "password.showAutoGen", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
-    PASSWORD_SHOW_STRENGTH_METER(
-            "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_CANCEL_BUTTON(
@@ -92,10 +88,6 @@ public enum PwmSetting {
             "display.showResetButton", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_SUCCESS_PAGES(
             "display.showSuccessPage", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
-    DISPLAY_PASSWORD_HISTORY(
-            "display.passwordHistory", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
-    DISPLAY_ACCOUNT_INFORMATION(
-            "display.accountInformation", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_LOGIN_PAGE_OPTIONS(
             "display.showLoginPageOptions", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_LOGOUT_BUTTON(
@@ -146,6 +138,18 @@ public enum PwmSetting {
             "pwm.seedlist.location", PwmSettingSyntax.STRING, Category.CHANGE_PASSWORD),
     CHANGE_PASSWORD_WRITE_ATTRIBUTES(
             "changePassword.writeAttributes", PwmSettingSyntax.ACTION, Category.CHANGE_PASSWORD),
+    PASSWORD_SHOW_AUTOGEN(
+            "password.showAutoGen", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD),
+    PASSWORD_SHOW_STRENGTH_METER(
+            "password.showStrengthMeter", PwmSettingSyntax.BOOLEAN, Category.CHANGE_PASSWORD),
+
+    // account info
+    ACCOUNT_INFORMATION_ENABLED(
+            "display.accountInformation", PwmSettingSyntax.BOOLEAN, Category.ACCOUNT_INFO),
+    ACCOUNT_INFORMATION_HISTORY(
+            "display.passwordHistory", PwmSettingSyntax.BOOLEAN, Category.ACCOUNT_INFO),
+    ACCOUNT_INFORMATION_VIEW_STATUS_VALUES(
+            "accountInfo.viewStatusValues", PwmSettingSyntax.OPTIONLIST, Category.ACCOUNT_INFO),
 
     //ldap directories
     LDAP_SERVER_URLS(
@@ -431,6 +435,10 @@ public enum PwmSetting {
             "security.sso.authHeaderName", PwmSettingSyntax.STRING, Category.SECURITY),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.NUMERIC, Category.SECURITY),
+    SECURITY_PREVENT_FRAMING(
+            "security.preventFraming", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
+    SECURITY_REDIRECT_WHITELIST(
+            "security.redirectUrl.whiteList", PwmSettingSyntax.STRING_ARRAY, Category.SECURITY),
 
     // catpcha
     RECAPTCHA_KEY_PUBLIC(
@@ -535,8 +543,12 @@ public enum PwmSetting {
             "events.audit.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     AUDIT_EMAIL_SYSTEM_TO(
             "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
+    AUDIT_SYSTEM_EVENTS(
+            "audit.system.eventList", PwmSettingSyntax.OPTIONLIST, Category.LOGGING),
     AUDIT_EMAIL_USER_TO(
             "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
+    AUDIT_USER_EVENTS(
+            "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, Category.LOGGING),
     AUDIT_SYSLOG_SERVERS(
             "audit.syslog.servers", PwmSettingSyntax.STRING, Category.LOGGING),
 
@@ -800,6 +812,8 @@ public enum PwmSetting {
             "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_ENFORCE_PASSWORD_POLICY(
             "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+    HELPDESK_VIEW_STATUS_VALUES(
+            "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, Category.HELPDESK),
     HELPDESK_IDLE_TIMEOUT_SECONDS(
             "helpdesk.idleTimeout", PwmSettingSyntax.NUMERIC, Category.HELPDESK),
     HELPDESK_CLEAR_RESPONSES(
@@ -1081,13 +1095,10 @@ public enum PwmSetting {
 
     public enum Category {
         GENERAL             (Type.SETTING),
-        LDAP_PROFILE        (Type.PROFILE),
         LDAP_GLOBAL         (Type.SETTING),
         USER_INTERFACE      (Type.SETTING),
         PASSWORD_GLOBAL     (Type.SETTING),
-        PASSWORD_POLICY     (Type.PROFILE),
         CHALLENGE           (Type.SETTING),
-        CHALLENGE_POLICY    (Type.PROFILE),
         EMAIL               (Type.SETTING),
         SMS                 (Type.SETTING),
         SECURITY            (Type.SETTING),
@@ -1103,7 +1114,13 @@ public enum PwmSetting {
         REPORTING           (Type.SETTING),
         MISC                (Type.SETTING),
         OAUTH               (Type.SETTING),
+
+        LDAP_PROFILE        (Type.PROFILE),
+        PASSWORD_POLICY     (Type.PROFILE),
+        CHALLENGE_POLICY    (Type.PROFILE),
+
         CHANGE_PASSWORD     (Type.MODULE),
+        ACCOUNT_INFO        (Type.MODULE),
         RECOVERY            (Type.MODULE),
         FORGOTTEN_USERNAME  (Type.MODULE),
         NEWUSER             (Type.MODULE),

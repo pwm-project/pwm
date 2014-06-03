@@ -46,6 +46,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.health.ConfigurationChecker;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -1001,6 +1002,14 @@ public class
             return false;
         }
 
+        if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty()) {
+            final String permissionBase = userPermission.getLdapBase().trim();
+            final String userDN = userIdentity.getUserDN();
+            if (!userDN.endsWith(permissionBase)) {
+                return false;
+            }
+        }
+
         boolean performTest = false;
         if (userPermission.getLdapProfileID() == null || userPermission.getLdapProfileID().isEmpty()) {
             performTest = true;
@@ -1052,5 +1061,69 @@ public class
             LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch);
         }
         return result;
+    }
+
+    public static void checkUrlAgainstWhitelist(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final String inputURL
+    )
+            throws PwmOperationalException
+    {
+        LOGGER.trace(pwmSession, "beginning test of requested redirect URL: " + inputURL);
+        if (inputURL == null || inputURL.isEmpty()) {
+            return;
+        }
+
+        final URI inputURI = URI.create(inputURL);
+        final StringBuilder sb = new StringBuilder();
+        if (inputURI.getScheme() != null) {
+            sb.append(inputURI.getScheme());
+            sb.append("://");
+        }
+        if (inputURI.getHost() != null) {
+            sb.append(inputURI.getHost());
+        }
+        if (inputURI.getPort() != -1) {
+            sb.append(":");
+            sb.append(inputURI.getPort());
+        }
+        if (inputURI.getPath() != null) {
+            sb.append("/");
+            sb.append(inputURI.getPath());
+        }
+
+        final String testURI = sb.toString();
+        LOGGER.trace(pwmSession, "will test parsed and decoded URL: " + testURI);
+
+        final String REGEX_PREFIX = "regex:";
+        final List<String> whiteList = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.SECURITY_REDIRECT_WHITELIST);
+        for (final String loopFragment : whiteList) {
+            if (loopFragment.startsWith(REGEX_PREFIX)) {
+                try {
+                    final String strPattern = loopFragment.substring(REGEX_PREFIX.length(), loopFragment.length());
+                    final Pattern pattern = Pattern.compile(strPattern);
+                    if (pattern.matcher(testURI).matches()) {
+                        LOGGER.debug(pwmSession, "positive URL match for regex pattern: " + strPattern);
+                        return;
+                    } else {
+                        LOGGER.trace(pwmSession, "negative URL match for regex pattern: " + strPattern);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error(pwmSession, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage());;
+                }
+
+            } else {
+                if (testURI.startsWith(loopFragment)) {
+                    LOGGER.debug(pwmSession, "positive URL match for pattern: " + loopFragment);
+                    return;
+                } else {
+                    LOGGER.trace(pwmSession, "negative URL match for pattern: " + loopFragment);
+                }
+            }
+        }
+
+        final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: " + ConfigurationChecker.settingToOutputText(PwmSetting.SECURITY_REDIRECT_WHITELIST);
+        throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
     }
 }

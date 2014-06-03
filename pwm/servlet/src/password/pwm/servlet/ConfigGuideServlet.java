@@ -451,7 +451,7 @@ public class ConfigGuideServlet extends TopServlet {
 
         {  // set admin query
             final String ldapAdminQuery = ldapForm.get(PARAM_LDAP2_ADMINS);
-            final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(null, ldapAdminQuery));
+            final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(null, ldapAdminQuery, null));
             storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue(userPermissions), null);
         }
     }

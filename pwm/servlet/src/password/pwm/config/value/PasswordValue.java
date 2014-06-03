@@ -72,7 +72,6 @@ public class PasswordValue extends StringValue {
             }
         }
         return passwordValue;
-
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

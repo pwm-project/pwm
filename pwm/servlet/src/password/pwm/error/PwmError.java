@@ -155,6 +155,7 @@ public enum PwmError {
     ERROR_REPORTING_ERROR("Error_ReportingError", 5072, true),
     ERROR_INTRUDER_TOKEN_DEST("Error_TokenDestIntruder", 5073, true),
     ERROR_OTP_RECOVERY_USED("Error_OtpRecoveryUsed", 5074, true),
+    ERROR_REDIRECT_ILLEGAL("Error_RedirectIllegal", 5075, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

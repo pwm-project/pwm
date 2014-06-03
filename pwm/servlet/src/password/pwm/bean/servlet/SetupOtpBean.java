@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.bean.servlet;
 
 import password.pwm.bean.PwmSessionBean;
@@ -38,6 +39,7 @@ public class SetupOtpBean implements PwmSessionBean {
     private OTPUserRecord otpUserRecord;
     private boolean confirmed;
     private boolean codeSeen;
+    private boolean written;
     private List<String> recoveryCodes;
     private Long challenge; // for HOTP only
     private boolean hasPreExistingOtp;
@@ -111,5 +113,15 @@ public class SetupOtpBean implements PwmSessionBean {
     public void setCodeSeen(boolean codeSeen)
     {
         this.codeSeen = codeSeen;
+    }
+
+    public boolean isWritten()
+    {
+        return written;
+    }
+
+    public void setWritten(boolean written)
+    {
+        this.written = written;
     }
 }

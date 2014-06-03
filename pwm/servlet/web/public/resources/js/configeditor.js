@@ -2090,11 +2090,11 @@ BooleanHandler.init = function(keyName) {
             });
         });
     });
-}
+};
 
 BooleanHandler.toggle = function(keyName,widget) {
     writeSetting(keyName,widget.checked);
-}
+};
 
 // -------------------------- challenge handler ------------------------------------
 
@@ -2284,7 +2284,7 @@ ChallengeTableHandler.write = function(settingKey,redraw) {
 // -------------------------- user permission handler ------------------------------------
 
 var UserPermissionHandler = {};
-UserPermissionHandler.defaultItem = {ldapQuery:"(objectClass=*)"};
+UserPermissionHandler.defaultItem = {ldapQuery:"(objectClass=*)",ldapBase:""};
 
 UserPermissionHandler.init = function(parentDiv, keyName) {
     console.log('UserPermissionHandler init for ' + keyName);
@@ -2307,7 +2307,11 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
         var labelRowTr = document.createElement("tr");
         labelRowTr.setAttribute("style", "border-width: 0;");
         labelRowTr.innerHTML = '<td id="' + keyName + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
-            + '<td id="' + keyName + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</td>';
+            + '<td>'
+            + '<span id="' + keyName + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span>'
+            + '<br/>'
+            + '<span id="' + keyName + '_BaseHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Base') + '</span>'
+            + '</td>';
         parentDivElement.appendChild(labelRowTr);
     }
 
@@ -2340,14 +2344,25 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
                     valueTd2.setAttribute("style", "border-width: 0;");
 
                     PWM_MAIN.clearDijitWidget(inputID + "-query");
-                    var inputElement = document.createElement("textarea");
-                    inputElement.setAttribute("id", inputID + "-query");
-                    inputElement.setAttribute("value", resultValue[rowKey]['ldapQuery']);
-                    inputElement.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapQuery'] = this.value;UserPermissionHandler.write('" + keyName + "')");
-                    inputElement.setAttribute("style", "width: 450px");
-                    inputElement.setAttribute("required","true");
-                    inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-                    valueTd2.appendChild(inputElement);
+                    var queryInput = document.createElement("input");
+                    queryInput.setAttribute("id", inputID + "-query");
+                    queryInput.setAttribute("value", resultValue[rowKey]['ldapQuery']);
+                    queryInput.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapQuery'] = this.value;UserPermissionHandler.write('" + keyName + "')");
+                    queryInput.setAttribute("style", "width: 450px");
+                    queryInput.setAttribute("required","true");
+                    queryInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+                    valueTd2.appendChild(queryInput);
+
+                    PWM_MAIN.clearDijitWidget(inputID + "-base");
+                    var baseInput = document.createElement("input");
+                    baseInput.setAttribute("id", inputID + "-base");
+                    baseInput.setAttribute("value", ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "");
+                    baseInput.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapBase'] = this.value;UserPermissionHandler.write('" + keyName + "')");
+                    baseInput.setAttribute("style", "width: 450px");
+                    baseInput.setAttribute("required","true");
+                    baseInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+                    valueTd2.appendChild(baseInput);
+
                     valueTableRow.appendChild(valueTd2);
 
                     // add remove button
@@ -2380,6 +2395,10 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
                 id:keyName+'_FilterHeader', width: 300,
                 text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Filter')
             });
+            PWM_MAIN.showTooltip({
+                id:keyName+'_BaseHeader', width: 300,
+                text:PWM_CONFIG.showString('Tooltip_Setting_Permission_Base')
+            });
         });
 };
 
@@ -2391,6 +2410,81 @@ UserPermissionHandler.write = function(settingKey,redraw) {
     }
 };
 
+// -------------------------- option list handler ------------------------------------
+
+var OptionListHandler = {};
+OptionListHandler.defaultItem = [];
+
+OptionListHandler.init = function(keyName, options) {
+    console.log('OptionListHandler init for ' + keyName);
+    clientSettingCache[keyName + '_options'] = options;
+    readSetting(keyName, function(resultValue) {
+        clientSettingCache[keyName] = resultValue;
+        OptionListHandler.draw(keyName);
+    });
+};
+
+OptionListHandler.draw = function(keyName) {
+    // clear the old dijit node (if it exists)
+    var parentDiv = 'table_setting_' + keyName;
+    clearDivElements(parentDiv, false);
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    require(["dijit/form/ToggleButton","dojo/_base/array","dojo/on"],function(ToggleButton,array,on){
+        var resultValue = clientSettingCache[keyName];
+        var options = clientSettingCache[keyName + '_options'];
+        for (var key in options) {
+            (function (optionKey) {
+                var buttonElement = document.createElement("button");
+                var buttonID = keyName + "_button_" + optionKey;
+                var label = options[optionKey];
+
+                buttonElement.setAttribute("id", buttonID);
+                buttonElement.innerHTML = label;
+                parentDivElement.appendChild(buttonElement);
+
+                var checked = array.indexOf(resultValue,optionKey) > -1;
+                PWM_MAIN.clearDijitWidget(buttonID);
+                var toggleButton = new ToggleButton({
+                    id: buttonID,
+                    iconClass:'dijitCheckBoxIcon',
+                    checked: checked
+                },buttonID);
+
+                setTimeout(function(){
+                    on(toggleButton,"change",function(){
+                        OptionListHandler.toggle(keyName,optionKey);
+                    });
+                },100);
+            })(key);
+        }
+    });
+};
+
+OptionListHandler.toggle = function(keyName,optionKey) {
+    var resultValue = clientSettingCache[keyName];
+    require(["dijit/form/ToggleButton","dojo/_base/array"],function(ToggleButton,array){
+        var checked = array.indexOf(resultValue,optionKey) > -1;
+        if (checked) {
+            var index = array.indexOf(resultValue, optionKey);
+            while (index > -1) {
+                resultValue.splice(index, 1);
+                index = array.indexOf(resultValue, optionKey);
+            }
+        } else {
+            resultValue.push(optionKey);
+        }
+    });
+    OptionListHandler.write(keyName, true);
+};
+
+
+OptionListHandler.write = function(settingKey,redraw) {
+    writeSetting(settingKey, clientSettingCache[settingKey]);
+    if (redraw) {
+        OptionListHandler.draw(settingKey);
+    }
+};
 
 // ---------------------- menu bar section ---------------------------------------------------
 

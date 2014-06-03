@@ -67,6 +67,10 @@ public class UserMatchViewerFunction implements SettingUIFunction {
                 if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty()) {
                     searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
                 }
+                if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty()) {
+                    searchConfiguration.setContexts(Collections.singletonList(userPermission.getLdapProfileID()));
+                }
+
 
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(

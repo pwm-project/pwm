@@ -28,6 +28,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SessionVerificationMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
 import password.pwm.util.stats.Statistic;
@@ -178,12 +179,26 @@ public class SessionFilter implements Filter {
 
         final String forwardURLParam = Validator.readStringFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_FORWARD_URL));
         if (forwardURLParam != null && forwardURLParam.length() > 0) {
+            try {
+                Helper.checkUrlAgainstWhitelist(pwmApplication, pwmSession, forwardURLParam);
+            } catch (PwmOperationalException e) {
+                ssBean.setSessionError(e.getErrorInformation());
+                ServletHelper.forwardToErrorPage(req,resp, true);
+                return;
+            }
             ssBean.setForwardURL(forwardURLParam);
             LOGGER.debug(pwmSession, "forwardURL parameter detected in request, setting session forward url to " + forwardURLParam);
         }
 
         final String logoutURL = Validator.readStringFromRequest(req, pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_LOGOUT_URL));
         if (logoutURL != null && logoutURL.length() > 0) {
+            try {
+                Helper.checkUrlAgainstWhitelist(pwmApplication, pwmSession, logoutURL);
+            } catch (PwmOperationalException e) {
+                ssBean.setSessionError(e.getErrorInformation());
+                ServletHelper.forwardToErrorPage(req,resp, true);
+                return;
+            }
             ssBean.setLogoutURL(logoutURL);
             LOGGER.debug(pwmSession, "logoutURL parameter detected in request, setting session logout url to " + logoutURL);
         }

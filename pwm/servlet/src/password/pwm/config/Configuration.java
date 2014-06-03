@@ -141,32 +141,29 @@ public class Configuration implements Serializable {
         return availableLocaleMap.get(matchedLocale);
     }
 
-    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting pwmSetting,  Class<E> enumClass) {
-        final String strValue = (String)readStoredValue(pwmSetting).toNativeObject();
-        try {
-            return (E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
-        } catch (InvocationTargetException e1) {
-            if (e1.getCause() instanceof IllegalArgumentException) {
-                LOGGER.error("illegal setting value for setting '" + pwmSetting.getKey() + "', option '" + strValue + "' is not recognized, will use default");
-            }
-        } catch (Exception e1) {
-            LOGGER.error("unexpected error", e1);
+    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting,  Class<E> enumClass) {
+        /*
+        if (PwmSettingSyntax.SELECT!= setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read ACTION value for setting: " + setting.toString());
         }
+        */
 
-        // couldn't read enum, try to read default.
-        try {
-            final String defaultValue = (String)(pwmSetting.getDefaultValue(this.getTemplate()).toNativeObject());
-            return (E)enumClass.getMethod("valueOf", String.class).invoke(null, defaultValue);
-        } catch (InvocationTargetException e1) {
-            if (e1.getCause() instanceof IllegalArgumentException) {
-                LOGGER.error("illegal DEFAULT setting value for setting '" + pwmSetting.getKey() + "', option '" + strValue + "' is not recognized, will use return null");
-            }
-        } catch (Exception e1) {
-            LOGGER.error("unexpected error",e1);
-        }
-
-        return null;
+        final StoredValue value = readStoredValue(setting);
+        return JavaTypeConverter.valueToEnum(value, enumClass);
     }
+
+
+    public <E extends Enum<E>> Set<E> readSettingAsOptionList(final PwmSetting setting,  Class<E> enumClass) {
+        if (PwmSettingSyntax.OPTIONLIST != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read OPTIONLIST value for setting: " + setting.toString());
+        }
+
+        final StoredValue value = readStoredValue(setting);
+        return JavaTypeConverter.valueToOptionList(value, enumClass);
+    }
+
+
+
 
     public MessageSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
         return MessageSendMethod.valueOf(readSettingAsString(setting));
@@ -256,6 +253,39 @@ public class Configuration implements Serializable {
             final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
 
             return availableLocaleMap.get(matchedLocale);
+        }
+
+        static <E extends Enum<E>> E valueToEnum(StoredValue value,  Class<E> enumClass) {
+            final String strValue = (String)value.toNativeObject();
+            try {
+                return (E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
+            } catch (InvocationTargetException e1) {
+                if (e1.getCause() instanceof IllegalArgumentException) {
+                    LOGGER.error("illegal setting value for option '" + strValue + "' is not recognized, will use default");
+                }
+            } catch (Exception e1) {
+                LOGGER.error("unexpected error", e1);
+            }
+
+            return null;
+        }
+
+        static <E extends Enum<E>> Set<E> valueToOptionList(final StoredValue value,  Class<E> enumClass) {
+            final Set<E> returnSet = new HashSet<E>();
+            final Set<String> strValues = (Set<String>)value.toNativeObject();
+            for (final String strValue : strValues) {
+                try {
+                    returnSet.add((E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue));
+                } catch (InvocationTargetException e1) {
+                    if (e1.getCause() instanceof IllegalArgumentException) {
+                        LOGGER.error("illegal setting value for option '" + strValue + "' is not recognized, will use default");
+                    }
+                } catch (Exception e1) {
+                    LOGGER.error("unexpected error", e1);
+                }
+            }
+
+            return Collections.unmodifiableSet(returnSet);
         }
     }
 

@@ -97,7 +97,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
             headers: { "Accept": "application/json" },
             load: function(data) {
                 if (data['error'] == true) {
-                    alert('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                    console.error('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
                 } else {
                     PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
                     PWM_GLOBAL['localeStrings'][bundleName] = {};

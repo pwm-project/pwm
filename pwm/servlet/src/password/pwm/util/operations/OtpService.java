@@ -33,13 +33,17 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.operations.otp.*;
+import password.pwm.util.operations.otp.DbOtpOperator;
+import password.pwm.util.operations.otp.LdapOtpOperator;
+import password.pwm.util.operations.otp.LocalDbOtpOperator;
+import password.pwm.util.operations.otp.OtpOperator;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.otp.PasscodeGenerator;
 
@@ -63,8 +67,7 @@ public class OtpService implements PwmService {
     public OtpService() {
     }
 
-    public static boolean validateToken(
-            final PwmApplication pwmApplication,
+    public boolean validateToken(
             final UserIdentity userIdentity,
             final OTPUserRecord otpUserRecord,
             final String userInput,
@@ -124,7 +127,7 @@ public class OtpService implements PwmService {
             final OTPUserRecord otpUserRecord,
             String identifier,
             OTPUserRecord.Type otpType,
-            AbstractOtpOperator.StorageFormat storageFormat,
+            OTPStorageFormat storageFormat,
             int recoveryCodeCount
     )
             throws NoSuchAlgorithmException, InvalidKeyException
@@ -378,13 +381,13 @@ public class OtpService implements PwmService {
 
     public boolean supportsRecoveryCodes() {
         Configuration config = pwmApplication.getConfig();
-        AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
+        final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
         return format.supportsRecoveryCodes();
     }
 
     public boolean supportsHashedRecoveryCodes() {
         Configuration config = pwmApplication.getConfig();
-        AbstractOtpOperator.StorageFormat format = AbstractOtpOperator.StorageFormat.valueOf(config.readSettingAsString(PwmSetting.OTP_SECRET_STORAGEFORMAT));
+        final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
         return format.supportsHashedRecoveryCodes();
     }
 

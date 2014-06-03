@@ -65,7 +65,7 @@
             <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtpSecret'/>">
+                        <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtp'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-qrcode"></span></pwm:if>
                             <pwm:Display key="Title_SetupOtpSecret"/>
                         </a>
@@ -119,7 +119,7 @@
                 </tr>
             </pwm:if>
             <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_ACCOUNT_INFORMATION)) { %>
+            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_ENABLED)) { %>
             <tr style="border:0">
                 <td class="menubutton_key">
                     <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>">

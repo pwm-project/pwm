@@ -61,6 +61,7 @@ public class MainClass {
         commandList.add(new ImportResponsesCommand());
         commandList.add(new TokenInfoCommand());
         commandList.add(new IntegrityReportCommand());
+        commandList.add(new ConfigNewCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<String,CliCommand>();
         for (CliCommand command : commandList) {

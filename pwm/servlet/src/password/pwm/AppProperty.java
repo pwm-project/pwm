@@ -26,7 +26,6 @@ import java.util.ResourceBundle;
 
 public enum AppProperty {
 
-    AUDIT_EVENTS_IGNORELIST                         ("audit.events.ignoreList"),
     AUDIT_EVENTS_EMAILFROM                          ("audit.events.emailFrom"),
     AUDIT_VAULT_MAX_RECORDS                         ("audit.vault.maxRecords"),
     BACKUP_LOCATION                                 ("backup.path"),
@@ -55,7 +54,6 @@ public enum AppProperty {
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
     HTTP_ERRORS_ALLOW_HTML                          ("http.errors.allowHtml"),
     HTTP_HEADER_SEND_XAMB                           ("http.header.sendXAmb"),
-    HTTP_HEADER_SEND_XFRAMEDENY                     ("http.header.sendXFrameDeny"),
     HTTP_HEADER_SEND_XINSTANCE                      ("http.header.sendXInstance"),
     HTTP_HEADER_SEND_XNOISE                         ("http.header.sendXNoise"),
     HTTP_HEADER_SEND_XSESSIONID                     ("http.header.sendXSessionID"),

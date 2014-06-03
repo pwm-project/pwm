@@ -439,6 +439,7 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetDN').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
+            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
 
             PWM_ADMIN.refreshAuditGridData();
         });

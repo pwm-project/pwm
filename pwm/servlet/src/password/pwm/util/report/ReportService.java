@@ -134,7 +134,6 @@ public class ReportService implements PwmService {
         reportStatus.inprogress = false;
 
         timer = new Timer();
-        timer.schedule(new RecordPurger(),1);
 
         if (settings.jobOffsetSeconds >= 0) {
             final long nextZuluZeroTime = Helper.nextZuluZeroTime().getTime();
@@ -142,6 +141,12 @@ public class ReportService implements PwmService {
             timer.schedule(new DredgeTask(),new Date(nextScheduleTime), TimeDuration.DAY.getTotalMilliseconds());
         }
 
+        String startupMsg = "report service started with " + this.userCacheService.size() + " cached records";
+        if (summaryData != null && summaryData.getMeanCacheTime() != null) {
+            startupMsg += ", mean record timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.summaryData.getMeanCacheTime());
+        }
+        LOGGER.debug(startupMsg);
+        timer.schedule(new RecordPurger(), 1);
         status = STATUS.OPEN;
     }
 
@@ -543,7 +548,14 @@ public class ReportService implements PwmService {
             try {
                 updateAllCache();
             } catch (Exception e) {
-                e.printStackTrace();
+                if (e instanceof PwmException) {
+                    if (((PwmException) e).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
+                        if (timer != null) {
+                            timer.schedule(new DredgeTask(),10 * 60 * 1000);
+                        }
+                    }
+                }
+                LOGGER.warn("unable to dredge ldap for ");
             }
         }
     }
@@ -645,12 +657,14 @@ public class ReportService implements PwmService {
             final long startTime = System.currentTimeMillis();
             LOGGER.debug("beginning check for outdated cached report records");
             final ClosableIterator<UserCacheRecord> iterator = iterator();
+            int examinedRecords = 0;
             while (iterator.hasNext() && status == STATUS.OPEN) {
                 iterator.next(); // (purge routine is embedded in next();
+                examinedRecords++;
             }
             iterator.close();
             final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug("completed check for outdated cached report records in " + totalTime.asCompactString());
+            LOGGER.debug("completed internal examination of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
             timer.schedule(new RecordPurger(),Helper.nextZuluZeroTime());
         }
     }

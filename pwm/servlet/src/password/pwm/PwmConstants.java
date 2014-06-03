@@ -168,6 +168,7 @@ public abstract class PwmConstants {
         SETUP_OTP_SECRET_EXISTING("setupotpsecret-existing.jsp"),
         SETUP_OTP_SECRET("setupotpsecret.jsp"),
         SETUP_OTP_SECRET_TEST("setupotpsecret-test.jsp"),
+        SETUP_OTP_SECRET_SUCCESS("setupotpsecret-success.jsp"),
         FORGOTTEN_USERNAME("forgottenusername-search.jsp"),
         UPDATE_ATTRIBUTES("updateprofile.jsp"),
         UPDATE_ATTRIBUTES_AGREEMENT("updateprofile-agreement.jsp"),
@@ -215,7 +216,7 @@ public abstract class PwmConstants {
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
     public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
     public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
-    public static final String URL_SERVLET_SETUP_OTP_SECRET = "SetupOtpSecret";
+    public static final String URL_SERVLET_SETUP_OTP_SECRET = "SetupOtp";
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
     public static final String URL_SERVLET_NEW_USER = "NewUser";
     public static final String URL_SERVLET_GUEST_REGISTRATION = "GuestRegistration";

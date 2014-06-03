@@ -27,6 +27,10 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
+<%
+    final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
+    final String ident = otpUserRecord.getIdentifier();
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -37,44 +41,39 @@
     </jsp:include>
     <div id="centerbody">
         <p><pwm:Display key="Display_SetupOtpSecret"/></p>
-        <form action="<pwm:url url='SetupOtpSecret'/>" method="post" name="setupOtpSecret"
-              enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-              onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
-            <%@ include file="fragment/message.jsp" %>
-            <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
-            <%
-                final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
-                final String ident = otpUserRecord.getIdentifier();
-            %>
-            <div id="qrcodeblock" style="visibility: visible" class="qrcodeblock">
-                <img class="qrcodeimage" src="SetupOtpSecret?processAction=showQrImage&width=250&height=250&pwmFormID=<pwm:FormID/>" alt="QR code" width="250" height="250"/>
-                <div style="width: 100%;">
-                    <table border="0" style="width: 400px; margin-right: auto; margin-left: auto">
-                        <tr valign="top">
-                            <td><b><pwm:Display key="Field_OTP_Identifier"/></b></td>
-                            <td><%=otpUserRecord.getIdentifier()%></td>
-                        </tr>
-                        <tr valign="top">
-                            <td><b><pwm:Display key="Field_OTP_Secret"/></b></td>
-                            <td><%=otpUserRecord.getSecret()%></td>
-                        </tr>
-                        <tr valign="top">
-                            <td><b><pwm:Display key="Field_OTP_Type"/></b></td>
-                            <td><%=otpUserRecord.getType().toString()%></td>
-                        </tr>
-                        <% if (otpBean.getRecoveryCodes()!= null && otpBean.getRecoveryCodes().size() > 0) {%>
-                        <tr valign="top">
-                            <td><b><pwm:Display key="Field_OTP_RecoveryCodes"/></b></td>
-                            <td><% for (String code : otpBean.getRecoveryCodes()) {%>
-                                <div><%=code%></div>
-                                <% }%>
-                            </td>
-                        </tr>
-                        <% }%>
-                    </table>
-                </div>
+        <%@ include file="fragment/message.jsp" %>
+        <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Android_Title"/>">
+                <pwm:Display key="Display_SetupOtp_Android_Steps"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
             </div>
-            <div id="buttonbar">
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_iPhone_Title"/>">
+                <pwm:Display key="Display_SetupOtp_iPhone_Steps"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Other_Title"/>">
+                <pwm:Display key="Display_SetupOtp_Other_Steps"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
+                <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
+                    <tr valign="top">
+                        <td><b><pwm:Display key="Field_OTP_Identifier"/></b></td>
+                        <td><%=otpUserRecord.getIdentifier()%></td>
+                    </tr>
+                    <tr valign="top">
+                        <td><b><pwm:Display key="Field_OTP_Secret"/></b></td>
+                        <td><%=otpUserRecord.getSecret()%></td>
+                    </tr>
+                    <tr valign="top">
+                        <td><b><pwm:Display key="Field_OTP_Type"/></b></td>
+                        <td><%=otpUserRecord.getType().toString()%></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="buttonbar">
+            <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
+                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
+                  onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -82,13 +81,19 @@
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     <div class="push"></div>
 </div>
 <script type="text/javascript">
-    // todo
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
+            ready(function(){
+                dojoParser.parse();
+            });
+        });
+    });
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
