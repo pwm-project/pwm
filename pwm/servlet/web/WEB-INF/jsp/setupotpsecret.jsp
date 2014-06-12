@@ -45,15 +45,15 @@
         <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Android_Title"/>">
                 <pwm:Display key="Display_SetupOtp_Android_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR Code" width="150" height="150"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_iPhone_Title"/>">
                 <pwm:Display key="Display_SetupOtp_iPhone_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
             </div>
             <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Other_Title"/>">
                 <pwm:Display key="Display_SetupOtp_Other_Steps"/>
-                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" title="QR code" width="150" height="150"/>
+                <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
                 <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
                     <tr valign="top">
                         <td><b><pwm:Display key="Field_OTP_Identifier"/></b></td>
@@ -73,7 +73,7 @@
         <div id="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
                   enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                  onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
+                  onsubmit="PWM_MAIN.handleFormSubmit(this); return false;">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

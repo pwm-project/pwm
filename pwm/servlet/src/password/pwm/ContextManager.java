@@ -27,17 +27,18 @@ import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,6 +58,11 @@ public class ContextManager implements Serializable {
     private int restartCount = 0;
 
     private final transient Set<PwmSession> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<PwmSession, Boolean>());
+
+    private enum ContextParameter {
+        applicationPath,
+        configurationFile,
+    }
 
     public ContextManager(ServletContext servletContext) {
         this.servletContext = servletContext;
@@ -116,8 +122,7 @@ public class ContextManager implements Serializable {
         try {
             Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
         } catch (Exception e) {
-            System.err.println("Unable to set default locale as Java machine default locale: " + e.getMessage());
-            System.out.println("Unable to set default locale as Java machine default locale: " + e.getMessage());
+            outputError("unable to set default locale as Java machine default locale: " + e.getMessage());
         }
 
         final EnvironmentTest[] tests = new EnvironmentTest[]{
@@ -128,18 +133,16 @@ public class ContextManager implements Serializable {
         }
 
         Configuration configuration = null;
-        File pwmApplicationPath = null;
+        File applicationPath = null;
         PwmApplication.MODE mode = PwmApplication.MODE.ERROR;
         File configurationFile = null;
         try {
-            if (startupErrorInformation == null) {
-                final String configFilePathName = servletContext.getInitParameter(PwmConstants.CONFIG_FILE_CONTEXT_PARAM);
-                configurationFile = ServletHelper.figureFilepath(configFilePathName, "WEB-INF/", servletContext);
-                configReader = new ConfigurationReader(configurationFile);
-                configReader.getStoredConfiguration().lock();
-                configuration = configReader.getConfiguration();
-                pwmApplicationPath = (ServletHelper.figureFilepath(".", "WEB-INF/", servletContext)).getCanonicalFile();
-            }
+            applicationPath = locateApplicationPath();
+            configurationFile = locateConfigurationFile(applicationPath);
+
+            configReader = new ConfigurationReader(configurationFile);
+            configReader.getStoredConfiguration().lock();
+            configuration = configReader.getConfiguration();
 
             if (configReader == null) {
                 mode = startupErrorInformation == null ? PwmApplication.MODE.ERROR : PwmApplication.MODE.ERROR;
@@ -152,24 +155,26 @@ public class ContextManager implements Serializable {
             }
 
             if (PwmApplication.MODE.ERROR == mode) {
-                System.err.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
-                System.out.println("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
+                outputError("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
             }
         } catch (Throwable e) {
-            handleStartupError("unable to initialize pwm due to configuration related error: ",e);
+            handleStartupError("unable to initialize application due to configuration related error: ",e);
         }
 
         try {
-            pwmApplication = new PwmApplication(configuration, mode, pwmApplicationPath, true);
+            pwmApplication = new PwmApplication(configuration, mode, applicationPath, true, configurationFile);
         } catch (Exception e) {
-            handleStartupError("unable to initialize pwm: ",e);
+            handleStartupError("unable to initialize application: ",e);
         }
 
-        if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
-            final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
-            taskMaster = new Timer(threadName, true);
-            taskMaster.schedule(new ConfigFileWatcher(), PwmConstants.CONFIG_FILE_SCAN_FREQUENCY, PwmConstants.CONFIG_FILE_SCAN_FREQUENCY);
-            taskMaster.schedule(new SessionWatcherTask(), 5031, 5031);
+        final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
+        taskMaster = new Timer(threadName, true);
+        taskMaster.schedule(new SessionWatcherTask(), 5031, 5031);
+
+        final boolean reloadOnChange = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_RELOAD_ON_CHANGE));
+        if (reloadOnChange) {
+            final long fileScanFrequencyMs = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_FILE_SCAN_FREQUENCY));
+            taskMaster.schedule(new ConfigFileWatcher(), fileScanFrequencyMs, fileScanFrequencyMs);
         }
 
         LOGGER.debug(
@@ -224,8 +229,7 @@ public class ContextManager implements Serializable {
             // noop
         }
 
-        System.err.println(errorMsg);
-        System.out.println(errorMsg);
+        outputError(errorMsg);
         throwable.printStackTrace();
     }
 
@@ -351,9 +355,6 @@ public class ContextManager implements Serializable {
         return startupErrorInformation;
     }
 
-    private void testCodebase() {
-    }
-
     private static interface EnvironmentTest {
         ErrorInformation doTest();
     }
@@ -364,9 +365,8 @@ public class ContextManager implements Serializable {
             sVersion = sVersion.substring(0, 3);
             final Float f = Float.valueOf(sVersion);
             if (f < PwmConstants.JAVA_MINIMUM_VERSION) {
-                final String errorMsg = "The minimum version required is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
-                System.out.println(errorMsg);
-                System.err.println(errorMsg);
+                final String errorMsg = "the minimum java version required is Java v" + PwmConstants.JAVA_MINIMUM_VERSION;
+                outputError(errorMsg);
                 LOGGER.fatal(errorMsg);
                 return new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, errorMsg);
             }
@@ -408,5 +408,82 @@ public class ContextManager implements Serializable {
     public int getRestartCount()
     {
         return restartCount;
+    }
+
+    public File locateConfigurationFile(final File applicationPath)
+            throws Exception
+    {
+        final String configurationFileSetting = servletContext.getInitParameter(
+                ContextParameter.configurationFile.toString());
+
+        try {
+            File file = new File(configurationFileSetting);
+            if (file.isAbsolute()) {
+                return file;
+            }
+        } catch (Exception e) {
+            outputError("error testing context " + ContextParameter.configurationFile.toString() + " parameter to verify if it is a valid file path: " + e.getMessage());
+        }
+
+        return new File(applicationPath.getAbsolutePath() + File.separator + configurationFileSetting);
+    }
+
+    public File locateApplicationPath()
+            throws PwmException
+    {
+        if (this.servletContext == null) {
+            return null;
+        }
+
+        final String contextAppPathSetting = servletContext.getInitParameter(
+                ContextParameter.applicationPath.toString());
+
+        // first try to check if context setting is a real directory.
+        try {
+            File file = new File(contextAppPathSetting);
+            if (file.exists() && file.isDirectory()) {
+                return file;
+            }
+        } catch (Exception e) {
+            outputError("error testing context " + ContextParameter.applicationPath.toString() + " parameter to verify if it is a valid file path: " + e.getMessage());
+        }
+
+        final String prefixedRealPath = contextAppPathSetting == null
+                ? "/" :
+                contextAppPathSetting.startsWith("/")
+                        ? contextAppPathSetting
+                        : "/" + contextAppPathSetting;
+
+        final String realPath = servletContext.getRealPath(prefixedRealPath);
+
+        if (realPath != null) {
+            final File servletPath = new File(realPath);
+            if (servletPath.exists()) {
+                return servletPath;
+            }
+        }
+
+        outputError("servlet container unable to return real file system path, will attempt discovery using classloader");
+
+        // for containers which do not return the real path, try to use the class loader to find the path.
+        final String cManagerName = PwmApplication.class.getCanonicalName();
+        final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
+        final URL fileURL = PwmApplication.class.getResource(resourcePathname);
+        if (fileURL != null) {
+            final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
+            try {
+                return new File(new URL(newString).toURI());
+            } catch (Exception e) {
+                outputError("unable to determine application path using classloader: " + e.getMessage());
+            }
+        }
+
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE,"unable to determine applicationPath working directory"));
+    }
+
+    static void outputError(String outputText) {
+        final String msg = PwmConstants.PWM_APP_NAME + " " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + outputText;
+        System.out.println(msg);
+        System.out.println(msg);
     }
 }

@@ -510,7 +510,7 @@ public class ReportService implements PwmService {
         final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
         final List<String> csvRow = new ArrayList<String>();
         csvRow.add(userCacheRecord.getUserDN());
-        csvRow.add(PwmConstants.DEFAULT_PROFILE_ID.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
+        csvRow.add(PwmConstants.PROFILE_ID_DEFAULT.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
         csvRow.add(userCacheRecord.getUsername());
         csvRow.add(userCacheRecord.getEmail());
         csvRow.add(userCacheRecord.getUserGUID());

@@ -217,7 +217,7 @@ PWM_HELPDESK.setRandomPasswordPopup = function() {
     var yesAction = function() {
         PWM_HELPDESK.doPasswordChange('[' + PWM_MAIN.showString('Display_Random') +  ']',true);
     };
-    PWM_MAIN.showConfirmDialog({title:titleText,text:body,okFunction:yesAction});
+    PWM_MAIN.showConfirmDialog({title:titleText,text:body,okAction:yesAction});
 };
 
 PWM_HELPDESK.loadSearchDetails = function(userKey) {

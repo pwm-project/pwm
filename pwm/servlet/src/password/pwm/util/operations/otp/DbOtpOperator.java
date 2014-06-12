@@ -28,6 +28,7 @@
 package password.pwm.util.operations.otp;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -91,7 +92,14 @@ public class DbOtpOperator extends AbstractOtpOperator {
     }
 
     @Override
-    public void writeOtpUserConfiguration(UserIdentity theUser, String userGUID, OTPUserRecord otpConfig) throws PwmUnrecoverableException {
+    public void writeOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity theUser,
+            final String userGUID,
+            final OTPUserRecord otpConfig
+    )
+            throws PwmUnrecoverableException
+    {
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save OTP secret to remote database, user " + theUser +  " does not have a guid"));
         }
@@ -116,7 +124,13 @@ public class DbOtpOperator extends AbstractOtpOperator {
     }
 
     @Override
-    public void clearOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
+    public void clearOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity theUser,
+            final String userGUID
+    )
+            throws PwmUnrecoverableException
+    {
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save OTP secret to remote database, user " + theUser +  " does not have a guid"));
         }

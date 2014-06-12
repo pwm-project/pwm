@@ -47,7 +47,7 @@ TODO: support HOTP
         <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-              onsubmit="PWM_MAIN.handleFormSubmit('setotpsecret_button', this); return false;">
+              onsubmit="PWM_MAIN.handleFormSubmit(this); return false;">
             <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
                    id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
                    onkeyup="validateResponses();" autofocus/>
@@ -58,7 +58,7 @@ TODO: support HOTP
                     <pwm:Display key="Button_CheckCode"/>
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="goback_buton"
-                        onclick="PWM_MAIN.handleFormSubmit('goback_button', PWM_MAIN.getObject('goBackForm'))">
+                        onclick="PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
                     <pwm:Display key="Button_GoBack"/>
                 </button>

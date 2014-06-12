@@ -600,6 +600,10 @@ img.qrcodeimage {
     margin-right: 5px;
 }
 
+.action-icon {
+    cursor: pointer;
+}
+
 .pageOverlay {
     top: 0;
     left: 0;

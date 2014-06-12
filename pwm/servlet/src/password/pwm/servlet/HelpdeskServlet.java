@@ -28,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
@@ -129,6 +130,9 @@ public class HelpdeskServlet extends TopServlet {
             } else if (processAction.equalsIgnoreCase("executeAction")) {
                 processExecuteActionRequest(req, resp, pwmApplication, pwmSession);
                 return;
+            } else if (processAction.equalsIgnoreCase("deleteUser")) {
+                processDeleteUserRequest(req, resp, pwmApplication, pwmSession, helpdeskBean);
+                return;
             }
         }
 
@@ -209,6 +213,66 @@ public class HelpdeskServlet extends TopServlet {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
             ServletHelper.outputJsonResult(resp, restResultBean);
         }
+    }
+
+    private void processDeleteUserRequest(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final HelpdeskBean helpdeskBean
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final String userKey = Validator.readStringFromRequest(req, "userKey");
+        if (userKey.length() < 1) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"userKey parameter is missing"));
+            ServletHelper.forwardToErrorPage(req,resp,false);
+            return;
+        }
+
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication.getConfig());
+        LOGGER.info(pwmSession, "received deleteUser request by " + pwmSession.getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
+
+        // check user identity matches helpdesk bean user
+        if (userIdentity == null || helpdeskBean == null || helpdeskBean.getUserInfoBean() == null || !userIdentity.equals(helpdeskBean.getUserInfoBean().getUserIdentity())) {
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,"requested user for delete  is not currently selected user"));
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_SEARCH);
+            return;
+        }
+
+        // execute user delete operation
+        ChaiProvider provider = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY)
+                ? pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID())
+                : pwmSession.getSessionManager().getChaiProvider(pwmApplication);
+
+
+        try {
+            provider.deleteEntry(userIdentity.getUserDN());
+        } catch (ChaiOperationException e) {
+            final String errorMsg = "error while attempting to delete user " + userIdentity.toString() + ", error: " + e.getMessage();
+            LOGGER.debug(pwmSession, errorMsg);
+            pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_SEARCH);
+            return;
+        }
+
+        // mark the event log
+        {
+            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+                    AuditEvent.HELPDESK_DELETE_USER,
+                    pwmSession.getUserInfoBean().getUserIdentity(),
+                    null,
+                    userIdentity,
+                    pwmSession.getSessionStateBean().getSrcAddress(),
+                    pwmSession.getSessionStateBean().getSrcHostname()
+            );
+            pwmApplication.getAuditManager().submit(auditRecord);
+        }
+
+        LOGGER.info(pwmSession, "user " + userIdentity + " has been deleted");
+
+        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.HELPDESK_SEARCH);
     }
 
     private void processDetailRequest(
@@ -501,7 +565,7 @@ public class HelpdeskServlet extends TopServlet {
             final UserIdentity userIdentity = helpdeskBean.getUserInfoBean().getUserIdentity();
 
             OtpService service = pwmApplication.getOtpService();
-            service.clearOTPUserConfiguration(userIdentity);
+            service.clearOTPUserConfiguration(pwmSession, userIdentity);
             {
                 // mark the event log
                 //@todo

@@ -31,7 +31,6 @@ import password.pwm.ChallengeItemBean;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.Serializable;
@@ -54,6 +53,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
             ChallengeSet helpdeskChallengeSet
     )
     {
+        super(profileID, null);
         this.profileID = profileID;
         this.locale = locale;
         this.storedConfiguration = storedConfiguration;
@@ -67,6 +67,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
             StoredConfiguration storedConfiguration
     )
     {
+        super(profileID, null);
         this.profileID = profileID;
         this.locale = locale;
         this.storedConfiguration = storedConfiguration;
@@ -199,7 +200,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }

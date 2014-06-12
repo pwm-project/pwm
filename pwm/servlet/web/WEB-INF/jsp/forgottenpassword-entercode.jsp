@@ -39,7 +39,7 @@
         <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required"></textarea>

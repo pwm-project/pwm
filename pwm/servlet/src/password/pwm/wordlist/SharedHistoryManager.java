@@ -148,7 +148,7 @@ public class SharedHistoryManager implements Wordlist {
 
     private boolean checkDbVersion()
             throws Exception {
-        LOGGER.trace("checking version number stored in pwmDB");
+        LOGGER.trace("checking version number stored in LocalDB");
 
         final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
         final String currentVersion = "version=" + settings.version;
@@ -211,7 +211,7 @@ public class SharedHistoryManager implements Wordlist {
         status = STATUS.OPEN;
         //populateFromWordlist();  //only used for debugging!!!
 
-        {
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING || pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
             long frequencyMs = maxAgeMs > MAX_CLEANER_FREQUENCY ? MAX_CLEANER_FREQUENCY : maxAgeMs;
             frequencyMs = frequencyMs < MIN_CLEANER_FREQUENCY ? MIN_CLEANER_FREQUENCY : frequencyMs;
 
@@ -325,13 +325,18 @@ public class SharedHistoryManager implements Wordlist {
             try {
                 reduceWordDB();
             } catch (LocalDBException e) {
-                LOGGER.error("error during execution of reduce: " + e.getMessage(), e);
+                LOGGER.error("error during old record purge: " + e.getMessage());
             }
         }
 
 
         private void reduceWordDB()
                 throws LocalDBException {
+
+            if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
+                return;
+            }
+
             final long oldestEntryAge = System.currentTimeMillis() - oldestEntry;
             if (oldestEntryAge < settings.maxAgeMs) {
                 LOGGER.debug("skipping wordDB reduce operation, eldestEntry="

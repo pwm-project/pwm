@@ -39,7 +39,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
         final long pwmDBdiskSpace = Helper.getFileDirectorySize(localDB.getFileLocation());
         out("beginning LocalDBInfo");
         out("LocalDB total disk space = " + NumberFormat.getInstance().format(pwmDBdiskSpace) + " (" + Helper.formatDiskSize(pwmDBdiskSpace) + ")");
-        out("examining Localdb, this may take a while.... ");
+        out("examining LocalDB, this may take a while.... ");
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             out("---" + db.toString() + "---");
             final Map<LocalDBUtility.STATS_KEY,Object> stats = LocalDBUtility.dbStats(localDB, db);

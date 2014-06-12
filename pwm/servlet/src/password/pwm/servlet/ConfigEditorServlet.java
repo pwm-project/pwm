@@ -39,6 +39,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -507,6 +508,7 @@ public class ConfigEditorServlet extends TopServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
+        final Date startTime = new Date();
         final String bodyData = ServletHelper.readRequestBody(req);
         final Map<String, String> valueMap = Helper.getGson().fromJson(bodyData,
                 new TypeToken<Map<String, String>>() {
@@ -542,11 +544,12 @@ public class ConfigEditorServlet extends TopServlet {
             }
 
             restResultBean.setData(returnData);
+            LOGGER.trace(pwmSession,"finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } else {
             restResultBean.setData(new ArrayList<StoredConfiguration.ConfigRecordID>());
         }
 
-        ServletHelper.outputJsonResult(resp,restResultBean);
+        ServletHelper.outputJsonResult(resp, restResultBean);
     }
 
     private void restReadProperties(

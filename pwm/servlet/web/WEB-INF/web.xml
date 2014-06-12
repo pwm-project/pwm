@@ -31,16 +31,18 @@
     <distributable/>
     <description>Password Management Servlet</description>
     <context-param>
-        <description>Explicit location of PwmConfiguration.xml file. Without a value, PWM will look for the
-            file inside the servlet's WEB-INF directory.
+        <description>
+            Explicit location of application working directory.  If a relative path is specified, it is relative to the deployed applications base directory.
         </description>
-        <param-name>pwmConfigPath</param-name>
-        <param-value>PwmConfiguration.xml</param-value>
+        <param-name>applicationPath</param-name>
+        <param-value>/WEB-INF</param-value>
     </context-param>
     <context-param>
-        <description>Reload configuration on PwmConfiguration.xml modification.</description>
-        <param-name>configChange-reload</param-name>
-        <param-value>true</param-value>
+        <description>
+            Name of configuration XML file file.  If a relative path is specified, it is relative to the applicationPath param.
+        </description>
+        <param-name>configurationFile</param-name>
+        <param-value>PwmConfiguration.xml</param-value>
     </context-param>
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>

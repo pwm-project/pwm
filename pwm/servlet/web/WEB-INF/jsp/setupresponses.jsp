@@ -38,7 +38,7 @@
         <p><pwm:Display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
               enctype="application/x-www-form-urlencoded" onchange="" id="setupResponses"
-              onsubmit="PWM_MAIN.handleFormSubmit('setresponses_button',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>

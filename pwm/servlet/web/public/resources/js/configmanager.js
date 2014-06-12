@@ -28,7 +28,7 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 PWM_GLOBAL['localeBundle'].push('Config');
 
 PWM_CONFIG.lockConfiguration=function() {
-    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okFunction:function(){
+    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okAction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function() {
             require(["dojo"], function (dojo) {
                 dojo.xhrGet({

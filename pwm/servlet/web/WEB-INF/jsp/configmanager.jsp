@@ -31,7 +31,7 @@
 <%
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
     final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
-    String configFilePath = PwmConstants.CONFIG_FILE_FILENAME;
+    String configFilePath = PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
     String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager",pwmApplication.getConfig(),password.pwm.i18n.Config.class);
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
 %>
@@ -129,7 +129,7 @@
             <% if (!configManagerBean.isConfigLocked()) { %>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okFunction:function(){PWM_CONFIG.uploadConfigDialog()}})" id="MenuItem_UploadConfig">
+                    <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})" id="MenuItem_UploadConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>

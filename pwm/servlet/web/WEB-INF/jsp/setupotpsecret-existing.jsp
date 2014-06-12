@@ -43,11 +43,11 @@
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <h2>Verify Existing Code</h2>
+        <h2>Check Existing Code</h2>
         <table style="width: 130px; border:0; margin-left: 0">
             <tr>
                 <td style="width: 110px; border: 0">
-                    <input type="text" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" style="width: 100px" oninput="checkCode()">
+                    <input type="text" class="inputfield" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" style="width: 100px" oninput="checkCode()">
                 </td>
                 <td style="border: 0; width: 10px">
                     <span style="display:none;color:green" id="checkIcon" class="btn-icon fa fa-lg fa-check"></span>
@@ -105,12 +105,11 @@
     function confirmContinue() {
         PWM_MAIN.showConfirmDialog({
             text: PWM_MAIN.showString("Display_OtpClearWarning"),
-            okFunction:function(){
-                PWM_MAIN.handleFormSubmit('setotpsecret_button', PWM_MAIN.getObject('setupOtpSecretForm'));
+            okAction:function(){
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('setupOtpSecretForm'));
             }
         });
     }
-
 </script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

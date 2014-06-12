@@ -101,7 +101,7 @@ PWM_ADMIN.initAdminOtherMenu=function() {
             });
             dom.byId("dropDownButtonContainer").appendChild(dropDownButton.domNode);
         });
-}
+};
 
 PWM_ADMIN.initReportDataGrid=function() {
     var headers = {
@@ -262,7 +262,7 @@ PWM_ADMIN.reportAction=function(action) {
         confirmText = PWM_ADMIN.showString('Confirm_Report_Clear');
         successText = PWM_ADMIN.showString('Display_Clear_Report_Success');
     }
-    PWM_MAIN.showConfirmDialog({text:confirmText,okFunction:function(){
+    PWM_MAIN.showConfirmDialog({text:confirmText,okAction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function(){
             setTimeout(function(){
                 require(["dojo"],function(dojo){
@@ -404,46 +404,55 @@ PWM_ADMIN.refreshIntruderGrid=function() {
     });
 };
 
-PWM_ADMIN.initAuditGrid=function() {
-    var userHeaders = {
-        "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
-        "perpetratorID":PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
-        "perpetratorDN":PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
-        "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
-        "message":PWM_ADMIN.showString('Field_Audit_Message'),
-        "targetID":PWM_ADMIN.showString('Field_Audit_TargetID'),
-        "targetDN":PWM_ADMIN.showString('Field_Audit_TargetDN'),
-        "sourceAddress":PWM_ADMIN.showString('Field_Audit_SourceAddress'),
-        "sourceHost":PWM_ADMIN.showString('Field_Audit_SourceHost'),
-        "guid":PWM_ADMIN.showString('Field_Audit_GUID')
+PWM_ADMIN.auditUserHeaders = function() {
+    return {
+        "timestamp": PWM_ADMIN.showString('Field_Audit_Timestamp'),
+        "perpetratorID": PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
+        "perpetratorDN": PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
+        "perpetratorLdapProfile": PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),
+        "eventCode": PWM_ADMIN.showString('Field_Audit_EventCode'),
+        "message": PWM_ADMIN.showString('Field_Audit_Message'),
+        "targetID": PWM_ADMIN.showString('Field_Audit_TargetID'),
+        "targetDN": PWM_ADMIN.showString('Field_Audit_TargetDN'),
+        "targetLdapProfile": PWM_ADMIN.showString('Field_Audit_TargetLdapProfile'),
+        "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
+        "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
+        "guid": PWM_ADMIN.showString('Field_Audit_GUID')
     };
-    var systemHeaders = {
+};
+
+PWM_ADMIN.auditSystemHeaders = function() {
+    return {
         "timestamp":PWM_ADMIN.showString('Field_Audit_Timestamp'),
         "eventCode":PWM_ADMIN.showString('Field_Audit_EventCode'),
         "message":PWM_ADMIN.showString('Field_Audit_Message'),
         "instance":PWM_ADMIN.showString('Field_Audit_Instance'),
         "guid":PWM_ADMIN.showString('Field_Audit_GUID')
     };
+};
+
+PWM_ADMIN.initAuditGrid=function() {
     require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
         function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
             // Create a new constructor by mixing in the components
             var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
             // Now, create an instance of our custom userGrid
-            PWM_VAR['auditUserGrid'] = new CustomGrid({columns: userHeaders}, "auditUserGrid");
-            PWM_VAR['auditSystemGrid'] = new CustomGrid({columns: systemHeaders}, "auditSystemGrid");
+            PWM_VAR['auditUserGrid'] = new CustomGrid({columns: PWM_ADMIN.auditUserHeaders()}, "auditUserGrid");
+            PWM_VAR['auditSystemGrid'] = new CustomGrid({columns: PWM_ADMIN.auditSystemHeaders()}, "auditSystemGrid");
 
             // unclick superfluous fields
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorDN').click();
+            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorLdapProfile').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-message').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetDN').click();
+            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetLdapProfile').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
-
             PWM_ADMIN.refreshAuditGridData();
         });
-}
+};
 
 PWM_ADMIN.refreshAuditGridData=function() {
     require(["dojo"],function(dojo){
@@ -461,6 +470,34 @@ PWM_ADMIN.refreshAuditGridData=function() {
                 PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
                 PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
                 PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+
+                var detailView = function(evt, headers, grid){
+                    var row = grid.row(evt);
+                    var text = '<table>';
+                    for (var item in headers) {
+                        (function(key){
+                            var value = key in row.data ? row.data[key] : '';
+                            var label = headers[key];
+                            text += '<tr><td class="key">' + label + '</td>';
+                            if (key == 'timestamp') {
+                                text += '<td class="timestamp" id="dialog_timestamp">' + value + '</td></tr>'
+                            } else {
+                                text += '<td>' + value + '</td></tr>'
+                            }
+                        })(item);
+                    }
+                    text += '</table>';
+                    PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,loadFunction:function(){
+                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('dialog_timestamp'));
+                    }});
+                };
+
+                PWM_VAR['auditUserGrid'].on(".dgrid-row .dgrid-cell:click", function(evt){
+                    detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
+                });
+                PWM_VAR['auditSystemGrid'].on(".dgrid-row .dgrid-cell:click", function(evt){
+                    detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
+                });
             },
             error: function(error) {
                 alert('unable to load data: ' + error);

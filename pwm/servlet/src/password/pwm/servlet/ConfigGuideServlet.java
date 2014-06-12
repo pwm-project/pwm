@@ -122,7 +122,7 @@ public class ConfigGuideServlet extends TopServlet {
             return;
         }
 
-        pwmSession.setSessionTimeout(req.getSession(),PwmConstants.CONFIGGUIDE_IDLE_TIMEOUT);
+        pwmSession.setSessionTimeout(req.getSession(), Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT)));
 
         if (configGuideBean.getStep() == STEP.LDAPCERT) {
             final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY).toNativeObject()).get(0);
@@ -279,10 +279,10 @@ public class ConfigGuideServlet extends TopServlet {
     {
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
-        final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false);
+        final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<HealthRecord>();
-        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID);
+        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
         switch (configGuideBean.getStep()) {
             case LDAP:
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,ldapProfile,false));

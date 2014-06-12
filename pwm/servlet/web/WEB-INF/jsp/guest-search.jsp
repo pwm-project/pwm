@@ -41,7 +41,7 @@
 
         <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false" id="searchForm">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
             <input type="text" id="username" name="username" class="inputfield"

@@ -24,8 +24,8 @@
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.List" %>
@@ -37,7 +37,7 @@
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
-<% localeList.remove(Helper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
+<% localeList.remove(LocaleHelper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
 <% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>

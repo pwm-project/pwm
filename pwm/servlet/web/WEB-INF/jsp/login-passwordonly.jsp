@@ -34,7 +34,7 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_LoginPasswordOnly"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password"
-              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
             <input type="password" name="password" id="password" class="inputfield" autofocus/>

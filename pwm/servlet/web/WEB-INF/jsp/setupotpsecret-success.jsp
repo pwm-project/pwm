@@ -64,7 +64,7 @@
         </table>
         <div id="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
                 <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
                 <div id="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>

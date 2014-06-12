@@ -54,7 +54,7 @@ public class MainClass {
         commandList.add(new ExportAuditCommand());
         commandList.add(new ConfigUnlockCommand());
         commandList.add(new ConfigLockCommand());
-        commandList.add(new SetConfigPasswordCommand());
+        commandList.add(new ConfigSetPasswordCommand());
         commandList.add(new ExportStatsCommand());
         commandList.add(new ExportResponsesCommand());
         commandList.add(new ClearResponsesCommand());
@@ -98,10 +98,12 @@ public class MainClass {
             throws Exception
     {
         final Map<String,Object> options = parseCommandOptions(parameters, args);
-        final File workingFolder = new File(".").getCanonicalFile();
-        final Configuration config = loadConfiguration();
+        final File applicationPath = new File(".").getCanonicalFile();
+        final File configurationFile = locateConfigurationFile(applicationPath);
+
+        final Configuration config = loadConfiguration(configurationFile);
         final PwmApplication pwmApplication = parameters.needsPwmApplication
-                ? loadPwmApplication(config,workingFolder,parameters.readOnly)
+                ? loadPwmApplication(applicationPath,config,configurationFile,parameters.readOnly)
                 : null;
         final LocalDB localDB = parameters.needsLocalDB
                 ? pwmApplication == null
@@ -110,7 +112,9 @@ public class MainClass {
                 : null;
 
         return new CliEnvironment(
+                configurationFile,
                 config,
+                applicationPath,
                 pwmApplication,
                 localDB,
                 new OutputStreamWriter(System.out),
@@ -247,15 +251,19 @@ public class MainClass {
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
-    static Configuration loadConfiguration() throws Exception {
-        return (new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME))).getConfiguration();
+    static Configuration loadConfiguration(final File configurationFile) throws Exception {
+        return (new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME))).getConfiguration();
     }
 
-    static PwmApplication loadPwmApplication(final Configuration config, final File workingDirectory, final boolean readonly)
+    static PwmApplication loadPwmApplication(final File applicationPath, final Configuration config, final File configurationFile, final boolean readonly)
             throws LocalDBException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
-        return new PwmApplication(config, mode, workingDirectory, false);
+        return new PwmApplication(config, mode, applicationPath, false, configurationFile);
+    }
+
+    static File locateConfigurationFile(File applicationPath) {
+        return new File(applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
     }
 
     static void handleEncryptConfigPassword(final String[] args) throws Exception {
@@ -276,7 +284,7 @@ public class MainClass {
         }
 
         final String input = args[1];
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
         final String key = configurationReader.getStoredConfiguration().getKey();
         final String output = PasswordValue.encryptValue(key,input);
         final FileWriter writer = new FileWriter(outputFile,true);

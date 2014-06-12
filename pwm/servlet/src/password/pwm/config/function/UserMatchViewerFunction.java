@@ -64,7 +64,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             if ((maxResultSize + 1) - results.size() > 0) {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setFilter(userPermission.getLdapQuery());
-                if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty()) {
+                if (userPermission.getLdapProfileID() != null && !userPermission.getLdapProfileID().isEmpty() && !userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_ALL)) {
                     searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
                 }
                 if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty()) {

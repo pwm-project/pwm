@@ -38,7 +38,7 @@
         <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
               id="newUserForm" onkeyup="PWM_NEWUSER.validateNewUserForm()"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
             <% request.setAttribute("form_showPasswordFields","true"); %>
             <jsp:include page="fragment/form.jsp"/>

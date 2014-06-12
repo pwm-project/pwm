@@ -25,6 +25,7 @@ package password.pwm.servlet;
 import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.*;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.bean.servlet.ConfigManagerBean;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
@@ -114,6 +115,17 @@ public class ConfigManagerServlet extends TopServlet {
         boolean authRequired = false;
         if (storedConfig.hasPassword()) {
             authRequired = true;
+        }
+
+        if (PwmApplication.MODE.RUNNING == pwmApplication.getApplicationMode()) {
+            if (!pwmSession.getSessionStateBean().isAuthenticated()) {
+                throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
+            }
+
+            if (pwmSession.getUserInfoBean().getAuthenticationType() != UserInfoBean.AuthenticationType.AUTHENTICATED) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,
+                        "Username/Password authentication is required to edit configuration.  This session has not been authenticated using a user password (SSO or other method used)."));
+            }
         }
 
         if (PwmApplication.MODE.CONFIGURATION != pwmApplication.getApplicationMode()) {
@@ -288,7 +300,7 @@ public class ConfigManagerServlet extends TopServlet {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(
                     ContextManager.getContextManager(req.getSession()));
             final String output = storedConfiguration.toXml();
-            resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.CONFIG_FILE_FILENAME);
+            resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
             resp.setContentType("text/xml;charset=utf-8");
             resp.getWriter().print(output);
         } catch (Exception e) {
@@ -349,7 +361,7 @@ public class ConfigManagerServlet extends TopServlet {
             healthThread.start();
         }
         {
-            zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.CONFIG_FILE_FILENAME));
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(contextManager);
             final String output = storedConfiguration.toXml();
             zipOutput.write(output.getBytes("UTF8"));
@@ -381,10 +393,10 @@ public class ConfigManagerServlet extends TopServlet {
             zipOutput.closeEntry();
             zipOutput.flush();
         }
-        if (pwmApplication.getPwmApplicationPath() != null) {
+        if (pwmApplication.getApplicationPath() != null) {
             try {
                 zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
-                final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getPwmApplicationPath());
+                final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getApplicationPath());
                 final String json = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
                 zipOutput.write(json.getBytes("UTF8"));
                 zipOutput.closeEntry();

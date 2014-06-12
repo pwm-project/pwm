@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -293,10 +294,13 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 
         public UserAuditRecord asAuditRecord(final UserInfoBean userInfoBean) {
             return UserAuditRecord.create(
+                    new Date(this.getTimestamp()),
                     this.getAuditEvent(),
+                    null,
                     null,
                     userInfoBean.getUserIdentity().getUserDN(),
                     this.getMessage(),
+                    null,
                     null,
                     null,
                     this.getSourceAddress(),

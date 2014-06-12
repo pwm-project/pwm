@@ -444,7 +444,7 @@ public class GuestRegistrationServlet extends TopServlet {
     private static String determineUserDN(final Map<FormConfiguration, String> formValues, final Configuration config)
             throws PwmUnrecoverableException
     {
-        final String namingAttribute = config.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(
+        final String namingAttribute = config.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(
                 PwmSetting.LDAP_NAMING_ATTRIBUTE);
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (namingAttribute.equals(formItem.getName())) {
@@ -495,7 +495,7 @@ public class GuestRegistrationServlet extends TopServlet {
             throws PwmUnrecoverableException
     {
         final String ldapNamingattribute = configuration.getLdapProfiles().get(
-                PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+                PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
 
         {

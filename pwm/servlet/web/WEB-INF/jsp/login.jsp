@@ -35,7 +35,7 @@
         <p><pwm:Display key="Display_Login"/></p>
 
         <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login"
-              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>

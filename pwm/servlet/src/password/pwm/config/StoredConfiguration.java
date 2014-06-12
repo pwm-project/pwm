@@ -855,7 +855,7 @@ public class StoredConfiguration implements Serializable {
         private static XPathExpression xpathForConfigProperty(final ConfigProperty configProperty) {
             final XPathFactory xpfac = XPathFactory.instance();
             final String xpathString;
-            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\" or (not (@" + XML_ATTRIBUTE_TYPE + "))]/"
+            xpathString = "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]/"
                     + XML_ELEMENT_PROPERTY + "[@" + XML_ATTRIBUTE_KEY + "=\"" + configProperty.getKey() + "\"]";
             return xpfac.compile(xpathString);
         }
@@ -885,6 +885,36 @@ public class StoredConfiguration implements Serializable {
         rootElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
         rootElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
         rootElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
+
+        { // migrate old properties
+
+            // get correct (new) //properties[@type="config"]
+            final XPathExpression configPropertiesXpath = XPathFactory.instance().compile(
+                    "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]");
+            final Element configPropertiesElement = (Element)configPropertiesXpath.evaluateFirst(rootElement);
+
+            // get list of old //properties[not (@type)]/property
+            final XPathExpression nonAttributedProperty = XPathFactory.instance().compile(
+                    "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]/" + XML_ELEMENT_PROPERTY);
+            final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate(rootElement);
+
+            if (configPropertiesElement != null && nonAttributedProperties != null) {
+                for (Element element : nonAttributedProperties) {
+                    element.detach();
+                    configPropertiesElement.addContent(element);
+                }
+            }
+
+            // remove old //properties[not (@type] element
+            final XPathExpression oldPropertiesXpath = XPathFactory.instance().compile(
+                    "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]");
+            final List<Element> oldPropertiesElements = oldPropertiesXpath.evaluate(rootElement);
+            if (oldPropertiesElements != null) {
+                for (Element element : oldPropertiesElements) {
+                    element.detach();
+                }
+            }
+        }
     }
 
     private static String generateCommentText() {
@@ -1016,7 +1046,7 @@ public class StoredConfiguration implements Serializable {
                         final String bundleName = key.split("!")[0];
                         final String keys = key.split("!")[1];
                         final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
-                        final String debugValue = Helper.getGson().toJson(currentValue);
+                        final String debugValue = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(currentValue);
                         outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
                     }
                     break;

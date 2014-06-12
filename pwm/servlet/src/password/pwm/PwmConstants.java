@@ -65,8 +65,7 @@ public abstract class PwmConstants {
                 : servletVersion;
     }
 
-    public static final String CONFIG_FILE_CONTEXT_PARAM = "pwmConfigPath";
-    public static final String CONFIG_FILE_FILENAME = readPwmConstantsBundle("configFilename");
+    public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle("defaultConfigFilename");
 
     public static final String PWM_APP_NAME = readPwmConstantsBundle("pwm.appName");
     public static final String PWM_URL_HOME = readPwmConstantsBundle("url.pwm-home");
@@ -76,7 +75,6 @@ public abstract class PwmConstants {
     public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
     public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));
 
-    public static final long NEWUSER_PASSWORD_POLICY_CACHE_MS = Long.parseLong(readPwmConstantsBundle("newuserPasswordPolicyCacheMs"));
     public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
 
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
@@ -89,7 +87,6 @@ public abstract class PwmConstants {
     }
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
-    public static final int CONFIG_FILE_SCAN_FREQUENCY = Integer.parseInt(readPwmConstantsBundle("configFileScanFrequency"));
     public static final int PWMDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
     public static final int PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
     public static final boolean CLEAR_SESSIONS_ON_RESTART = Boolean.parseBoolean(readPwmConstantsBundle("clearSessionsOnRestart"));
@@ -103,14 +100,10 @@ public abstract class PwmConstants {
     public static final int USER_COOKIE_MAX_AGE_SECONDS = Integer.parseInt(readPwmConstantsBundle("userCookieMaxAgeSeconds"));
     public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
-    public static final int CONFIGGUIDE_IDLE_TIMEOUT = Integer.parseInt(readPwmConstantsBundle("configGuide.idleTimeout"));
-
-    public static final long TOKEN_REMOVAL_DELAY_MS = Long.parseLong(readPwmConstantsBundle("token.removalDelayMS"));
-    public static final int TOKEN_PURGE_BATCH_SIZE = Integer.parseInt(readPwmConstantsBundle("token.purgeBatchSize"));
-    public static final int TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS = Integer.parseInt(readPwmConstantsBundle("token.maxUniqueCreateAttempts"));
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
-    public static final String DEFAULT_PROFILE_ID = "_default";
+    public static final String PROFILE_ID_DEFAULT = "default";
+    public static final String PROFILE_ID_ALL = "all";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String DEFAULT_CHALLENGE_PROFILE = "";
 

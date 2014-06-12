@@ -44,7 +44,7 @@
         <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
               enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>

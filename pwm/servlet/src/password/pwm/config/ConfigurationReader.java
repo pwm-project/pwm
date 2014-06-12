@@ -160,7 +160,7 @@ public class ConfigurationReader {
             final Configuration configuration = new Configuration(storedConfiguration);
             final String backupDirSetting = configuration.readAppProperty(AppProperty.BACKUP_LOCATION);
             if (backupDirSetting != null && backupDirSetting.length() > 0) {
-                final File pwmPath = pwmApplication.getPwmApplicationPath();
+                final File pwmPath = pwmApplication.getApplicationPath();
                 backupDirectory = Helper.figureFilepath(backupDirSetting, pwmPath);
             }
             backupRotations = Integer.parseInt(configuration.readAppProperty(AppProperty.BACKUP_CONFIG_COUNT));

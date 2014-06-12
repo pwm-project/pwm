@@ -114,7 +114,7 @@ public class Configuration implements Serializable {
         final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
         for (String profileID : profiles) {
             if ("".equals(profileID)) {
-                profileID = PwmConstants.DEFAULT_PROFILE_ID;
+                profileID = PwmConstants.PROFILE_ID_DEFAULT;
             }
             final LdapProfile ldapProfile = LdapProfile.makeFromStoredConfiguration(this.storedConfiguration, profileID);
             if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_PROFILE_ENABLED)) {
@@ -136,7 +136,7 @@ public class Configuration implements Serializable {
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
-        final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+        final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
         return availableLocaleMap.get(matchedLocale);
     }
@@ -236,7 +236,7 @@ public class Configuration implements Serializable {
             for (final String localeStr : availableValues.keySet()) {
                 availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), availableValues.get(localeStr));
             }
-            final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+            final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
             return availableLocaleMap.get(matchedLocale);
         }
@@ -250,7 +250,7 @@ public class Configuration implements Serializable {
             for (final String localeStr : storedValues.keySet()) {
                 availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
             }
-            final Locale matchedLocale = Helper.localeResolver(locale, availableLocaleMap.keySet());
+            final Locale matchedLocale = LocaleHelper.localeResolver(locale, availableLocaleMap.keySet());
 
             return availableLocaleMap.get(matchedLocale);
         }
@@ -342,6 +342,60 @@ public class Configuration implements Serializable {
         final ChallengeProfile challengeProfile = new ChallengeProfile(profile,locale,storedConfiguration);
         dataCache.challengeProfile.get(profile).put(locale,challengeProfile);
         return challengeProfile;
+    }
+
+    public List<String> getHelpdeskProfiles() {
+        return storedConfiguration.profilesForSetting(PwmSetting.HELPDESK_PROFILE_LIST);
+    }
+
+    public String determineHelpdeskProfileForUser(
+            final PwmApplication pwmApplication,
+            final UserIdentity userIdentity
+    ) {
+        final List<String> profiles = getHelpdeskProfiles();
+        if (profiles.isEmpty()) {
+            throw new IllegalStateException("no available helpdesk profiles");
+        } else if (profiles.size() == 1) {
+            LOGGER.trace("only one helpdesk profile defined, returning default");
+            return "";
+        }
+
+        /*
+        for (final String profile : profiles) {
+            if (!PwmConstants.DEFAULT_CHALLENGE_PROFILE.equalsIgnoreCase(profile)) {
+                final HelpdeskProfile loopPolicy = pwmApplication.getConfig().getHelpdeskProfile(profile);
+                final List<UserPermission> queryMatch = loopPolicy();
+                if (queryMatch != null && !queryMatch.isEmpty()) {
+                    LOGGER.debug("testing challenge profiles '" + profile + "'");
+                    try {
+                        boolean match = Helper.testUserPermissions(pwmApplication,null,userIdentity,queryMatch);
+                        if (match) {
+                            return profile;
+                        }
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error("unexpected error while testing password policy profile '" + profile + "', error: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        */
+
+        return PwmConstants.DEFAULT_CHALLENGE_PROFILE;
+    }
+
+
+    public HelpdeskProfile getHelpdeskProfile(final String profile) {
+        if (!"".equals(profile) && !getHelpdeskProfiles().contains(profile)) {
+            throw new IllegalArgumentException("unknown helpdesk profileID specified: " + profile);
+        }
+
+        if (dataCache.helpdeskProfile.containsKey(profile)) {
+            return dataCache.helpdeskProfile.get(profile);
+        }
+
+        final HelpdeskProfile helpdeskProfile = HelpdeskProfile.makeFromStoredConfiguration(storedConfiguration, profile);
+        dataCache.helpdeskProfile.put(profile,helpdeskProfile);
+        return helpdeskProfile;
     }
 
     public long readSettingAsLong(final PwmSetting setting) {
@@ -549,7 +603,8 @@ public class Configuration implements Serializable {
             throws PwmUnrecoverableException, ChaiUnavailableException {
 
         {
-            if ((System.currentTimeMillis() - newUserPasswordPolicyCacheTime) > PwmConstants.NEWUSER_PASSWORD_POLICY_CACHE_MS) {
+            final long maxNewUserCacheMS = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS));
+            if ((System.currentTimeMillis() - newUserPasswordPolicyCacheTime) > maxNewUserCacheMS) {
                 dataCache.newUserPasswordPolicy.clear();
             }
 
@@ -558,7 +613,7 @@ public class Configuration implements Serializable {
                 return cachedPolicy;
             }
 
-            final LdapProfile defaultLdapProfile = getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID);
+            final LdapProfile defaultLdapProfile = getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
             final String configuredNewUserPasswordDN = readSettingAsString(PwmSetting.NEWUSER_PASSWORD_POLICY_USER);
             if (configuredNewUserPasswordDN == null || configuredNewUserPasswordDN.length() < 1) {
                 final PwmPasswordPolicy thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_PASSWORD_PROFILE, userLocale);
@@ -575,10 +630,10 @@ public class Configuration implements Serializable {
 
                 final PwmPasswordPolicy thePolicy;
                 if (lookupDN == null || lookupDN.isEmpty()) {
-                    thePolicy = getPasswordPolicy(PwmConstants.DEFAULT_PROFILE_ID,userLocale);
+                    thePolicy = getPasswordPolicy(PwmConstants.PROFILE_ID_DEFAULT,userLocale);
                 } else {
-                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID));
-                    final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.DEFAULT_PROFILE_ID);
+                    final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(PwmConstants.PROFILE_ID_DEFAULT));
+                    final UserIdentity userIdentity = new UserIdentity(lookupDN,PwmConstants.PROFILE_ID_DEFAULT);
                     thePolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, null, userIdentity, chaiUser, userLocale);
                 }
                 dataCache.newUserPasswordPolicy.put(userLocale,thePolicy);
@@ -773,6 +828,7 @@ public class Configuration implements Serializable {
     private static class DataCache implements Serializable {
         private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<String,Map<Locale,PwmPasswordPolicy>>();
         private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<String,Map<Locale,ChallengeProfile>>();
+        private final Map<String,HelpdeskProfile> helpdeskProfile = new HashMap<String,HelpdeskProfile>();
         private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;

@@ -30,13 +30,13 @@ import java.io.Console;
 import java.io.File;
 import java.util.Collections;
 
-public class SetConfigPasswordCommand extends AbstractCliCommand {
+public class ConfigSetPasswordCommand extends AbstractCliCommand {
     protected static final String PASSWORD_OPTIONNAME = "password";
 
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
         final String password;
         if (cliEnvironment.getOptions().containsKey(PASSWORD_OPTIONNAME)) {
@@ -73,7 +73,7 @@ public class SetConfigPasswordCommand extends AbstractCliCommand {
         };
 
         CliParameters cliParameters = new CliParameters();
-        cliParameters.commandName = "SetConfigPassword";
+        cliParameters.commandName = "ConfigSetPassword";
         cliParameters.description = "Sets the configuration password";
         cliParameters.options = Collections.singletonList(passwordValueOption);
         cliParameters.needsPwmApplication = true;

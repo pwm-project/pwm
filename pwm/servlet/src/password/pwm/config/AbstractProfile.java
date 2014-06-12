@@ -24,10 +24,56 @@ package password.pwm.config;
 
 import password.pwm.PwmConstants;
 
+import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 public abstract class AbstractProfile implements Profile {
+
+    final protected String identifier;
+    final protected Map<PwmSetting,StoredValue> storedValueMap;
+
+    protected AbstractProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+        this.identifier = identifier;
+        this.storedValueMap = storedValueMap;
+    }
+
+    @Override
+    public String getIdentifier() {
+        return identifier;
+    }
+
     @Override
     public boolean isDefault()
     {
-        return PwmConstants.DEFAULT_PROFILE_ID.equals(this.getIdentifier());
+        return PwmConstants.PROFILE_ID_DEFAULT.equals(this.getIdentifier());
     }
+
+    public String readSettingAsString(final PwmSetting setting) {
+        return Configuration.JavaTypeConverter.valueToString(storedValueMap.get(setting));
+    }
+
+    public List<String> readSettingAsStringArray(final PwmSetting setting) {
+        return Configuration.JavaTypeConverter.valueToStringArray(storedValueMap.get(setting));
+    }
+
+    public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {
+        if (PwmSettingSyntax.X509CERT != setting.getSyntax()) {
+            throw new IllegalArgumentException("may not read X509CERT value for setting: " + setting.toString());
+        }
+        if (storedValueMap.containsKey(setting)) {
+            return (X509Certificate[])storedValueMap.get(setting).toNativeObject();
+        }
+        return new X509Certificate[0];
+    }
+
+    public boolean readSettingAsBoolean(final PwmSetting setting) {
+        return Configuration.JavaTypeConverter.valueToBoolean(storedValueMap.get(setting));
+    }
+
+    public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
+        return Configuration.JavaTypeConverter.valueToLocalizedString(storedValueMap.get(setting), locale);
+    }
+
 }

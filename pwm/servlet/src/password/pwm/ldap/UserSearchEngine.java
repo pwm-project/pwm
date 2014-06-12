@@ -127,7 +127,7 @@ public class UserSearchEngine {
 
             //see if we need to do a contextless search.
             if (userSearchEngine.checkIfStringIsDN(inputIdentity.getUserDN())) {
-                if (PwmConstants.DEFAULT_PROFILE_ID.equals(inputIdentity.getLdapProfileID())) {
+                if (PwmConstants.PROFILE_ID_DEFAULT.equals(inputIdentity.getLdapProfileID())) {
                     return userSearchEngine.resolveUserDN(inputIdentity.getUserDN());
                 } else {
                     final ChaiUser theUser = pwmApplication.getProxiedChaiUser(inputIdentity);

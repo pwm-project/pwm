@@ -30,9 +30,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
@@ -70,7 +70,7 @@ public abstract class RestServerHelper {
 
         if (pwmSession.getSessionStateBean().getLocale() == null) {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = Helper.localeResolver(request.getLocale(), knownLocales);
+            final Locale userLocale = LocaleHelper.localeResolver(request.getLocale(), knownLocales);
             pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
         }
 

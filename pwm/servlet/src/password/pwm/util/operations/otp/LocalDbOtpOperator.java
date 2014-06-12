@@ -27,6 +27,7 @@
  */
 package password.pwm.util.operations.otp;
 
+import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -94,7 +95,14 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     }
 
     @Override
-    public void writeOtpUserConfiguration(UserIdentity theUser, String userGUID, OTPUserRecord otpConfig) throws PwmUnrecoverableException {
+    public void writeOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity theUser,
+            final String userGUID,
+            final OTPUserRecord otpConfig
+    )
+            throws PwmUnrecoverableException
+    {
         LOGGER.trace(String.format("Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig));
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
@@ -130,7 +138,13 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     }
 
     @Override
-    public void clearOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
+    public void clearOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity theUser,
+            final String userGUID
+    )
+            throws PwmUnrecoverableException
+    {
         LOGGER.trace(String.format("Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));

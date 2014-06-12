@@ -24,13 +24,9 @@ package password.pwm.i18n;
 
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class LocaleHelper {
 
@@ -61,7 +57,7 @@ public class LocaleHelper {
         if (config != null) {
             final Map<Locale,String> configuredBundle = config.readLocalizedBundle(bundleClass.getName(),key);
             if (configuredBundle != null) {
-                final Locale resolvedLocale = Helper.localeResolver(locale, configuredBundle.keySet());
+                final Locale resolvedLocale = localeResolver(locale, configuredBundle.keySet());
                 returnValue = configuredBundle.get(resolvedLocale);
             }
         }
@@ -132,5 +128,45 @@ public class LocaleHelper {
 
         final String variant = st.nextToken("");
         return new Locale(language, country, variant);
+    }
+
+    public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
+        if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
+            return null;
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
+                    if (loopLocale.getVariant().equalsIgnoreCase(desiredLocale.getVariant())) {
+                        return loopLocale;
+                    }
+                }
+            }
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
+                    return loopLocale;
+                }
+            }
+        }
+
+        for (final Locale loopLocale : localePool) {
+            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
+                return loopLocale;
+            }
+        }
+
+        if (localePool.contains(PwmConstants.DEFAULT_LOCALE)) {
+            return PwmConstants.DEFAULT_LOCALE;
+        }
+
+        if (localePool.contains(new Locale(""))) {
+            return new Locale("");
+        }
+
+        return null;
     }
 }

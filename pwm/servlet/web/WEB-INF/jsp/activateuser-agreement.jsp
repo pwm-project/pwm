@@ -55,7 +55,7 @@
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false" style="display: inline;">
+                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false" style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
                        onchange="updateContinueButton()"/>

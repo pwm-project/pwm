@@ -71,9 +71,10 @@ public class AuditManager implements PwmService {
             final String sourceHost
     )
     {
-        String perpUserDN = null, perpUserID = null, targetUserDN = null, targetUserID = null;
+        String perpUserDN = null, perpUserID = null, perpLdapProfile = null, targetUserDN = null, targetUserID = null, targetLdapProfile = null;
         if (perpetrator != null) {
-            perpUserDN = perpetrator.toDeliminatedKey();
+            perpUserDN = perpetrator.getUserDN();
+            perpLdapProfile = perpetrator.getLdapProfileID();
             try {
                 perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
             } catch (Exception e) {
@@ -81,7 +82,8 @@ public class AuditManager implements PwmService {
             }
         }
         if (target != null) {
-            targetUserDN = target.toDeliminatedKey();
+            targetUserDN = target.getUserDN();
+            targetLdapProfile = target.getLdapProfileID();
             try {
                 targetUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,target);
             } catch (Exception e) {
@@ -89,8 +91,8 @@ public class AuditManager implements PwmService {
             }
         }
 
-        return UserAuditRecord.create(eventCode, perpUserID, perpUserDN, message, targetUserID, targetUserDN,
-                sourceAddress, sourceHost);
+        return UserAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
+                targetLdapProfile, sourceAddress, sourceHost);
     }
 
     public UserAuditRecord createUserAuditRecord(

@@ -320,7 +320,6 @@ public enum PwmSetting {
     PASSWORD_PROFILE_LIST(
             "password.profile.list", PwmSettingSyntax.PROFILE, Category.PASSWORD_GLOBAL),
 
-
     // password policy profile settings
     PASSWORD_POLICY_QUERY_MATCH(
             "password.policy.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.PASSWORD_POLICY),
@@ -788,8 +787,6 @@ public enum PwmSetting {
     // helpdesk
     HELPDESK_ENABLE(
             "helpdesk.enable", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
-    HELPDESK_QUERY_MATCH(
-            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.HELPDESK),
     HELPDESK_SEARCH_FILTER(
             "helpdesk.filter", PwmSettingSyntax.STRING, Category.HELPDESK),
     HELPDESK_SEARCH_FORM(
@@ -822,8 +819,17 @@ public enum PwmSetting {
             "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_CLEAR_OTP_BUTTON(
             "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+    HELPDESK_DELETE_USER_BUTTON(
+            "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_USE_PROXY(
             "helpdesk.useProxy",PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+
+    // helpdesk profile
+    HELPDESK_PROFILE_LIST(
+            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, Category.HELPDESK),
+    HELPDESK_PROFILE_QUERY_MATCH(
+            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, Category.HELPDESK),
+
 
     // Database
     DATABASE_CLASS(
@@ -1118,6 +1124,7 @@ public enum PwmSetting {
         LDAP_PROFILE        (Type.PROFILE),
         PASSWORD_POLICY     (Type.PROFILE),
         CHALLENGE_POLICY    (Type.PROFILE),
+        HELPDESK_PROFILE    (Type.PROFILE),
 
         CHANGE_PASSWORD     (Type.MODULE),
         ACCOUNT_INFO        (Type.MODULE),
@@ -1156,6 +1163,8 @@ public enum PwmSetting {
                     return PASSWORD_PROFILE_LIST;
                 case CHALLENGE_POLICY:
                     return CHALLENGE_PROFILE_LIST;
+                case HELPDESK_PROFILE:
+                    return HELPDESK_PROFILE_LIST;
             }
             throw new IllegalArgumentException("category " + this.toString() + " does not have a profileSetting value");
         }

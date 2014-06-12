@@ -49,9 +49,10 @@ public class CodeIntegrityChecker {
         Set<String> examinedResourceBundles = new TreeSet<String>();
         int totalLocales;
         int totalLocaleKeys;
-        int presentLocaliations;
+        int presentLocalizations;
         int missingLocalizations;
         int totalLocalizationSlots;
+        Map<String,String> perLocale_percentLocalizations = new TreeMap<String, String>();
         Map<String,Integer> perLocale_presentLocalizations = new TreeMap<String, Integer>();
         Map<String,Integer> perLocale_missingLocalizations = new TreeMap<String, Integer>();
     }
@@ -239,7 +240,7 @@ public class CodeIntegrityChecker {
                             stats.missingLocalizations++;
                             stats.perLocale_missingLocalizations.put(localeDescr,stats.perLocale_missingLocalizations.get(localeDescr) + 1);
                         } else {
-                            stats.presentLocaliations++;
+                            stats.presentLocalizations++;
                             stats.perLocale_presentLocalizations.put(localeDescr,stats.perLocale_presentLocalizations.get(localeDescr) + 1);
                         }
                     }
@@ -251,6 +252,16 @@ public class CodeIntegrityChecker {
                     LOGGER.trace("error loading resource bundle for class='" + checkClass.toString() + ", locale=" + locale.toString() + "', error: " + e.getMessage());
                 }
             }
+        }
+        for (final Locale locale : knownLocales().keySet()) {
+            final String localeDescr = knownLocales().get(locale);
+            if (stats.perLocale_missingLocalizations.containsKey(localeDescr)
+                    && stats.perLocale_presentLocalizations.containsKey(localeDescr)) {
+                int total = stats.perLocale_missingLocalizations.get(localeDescr) + stats.perLocale_presentLocalizations.get(localeDescr);
+                Percent percent = new Percent(stats.perLocale_presentLocalizations.get(localeDescr),total);
+                stats.perLocale_percentLocalizations.put(localeDescr,percent.pretty(0));
+            }
+
         }
         return returnMap;
     }

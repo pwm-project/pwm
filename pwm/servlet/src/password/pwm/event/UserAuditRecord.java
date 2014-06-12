@@ -22,32 +22,41 @@
 
 package password.pwm.event;
 
+import java.util.Date;
+
 /**
  * UserAuditRecord data
  */
 public class UserAuditRecord extends AuditRecord {
     protected String perpetratorID;
     protected String perpetratorDN;
+    protected String perpetratorLdapProfile;
     protected String targetID;
     protected String targetDN;
+    protected String targetLdapProfile;
     protected String sourceAddress;
     protected String sourceHost;
 
     private UserAuditRecord(
+            final Date timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,
+            final String perpetratorLdapProfile,
             final String message,
             final String targetID,
             final String targetDN,
+            final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
     ) {
-        super(eventCode, message);
+        super(timestamp, eventCode, message);
         this.perpetratorID = perpetratorID;
         this.perpetratorDN = perpetratorDN;
+        this.perpetratorLdapProfile = perpetratorLdapProfile;
         this.targetID = targetID;
         this.targetDN = targetDN;
+        this.targetLdapProfile = targetLdapProfile;
         this.sourceAddress = sourceAddress;
         this.sourceHost = sourceHost;
     }
@@ -56,17 +65,36 @@ public class UserAuditRecord extends AuditRecord {
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,
+            final String perpetratorLdapProfile,
             final String message,
             final String targetID,
             final String targetDN,
+            final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
     )
     {
-        return new UserAuditRecord(eventCode, perpetratorID, perpetratorDN, message, targetID, targetDN,
-                sourceAddress, sourceHost);
+        return new UserAuditRecord(new Date(), eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
+                targetLdapProfile, sourceAddress, sourceHost);
     }
 
+    static UserAuditRecord create(
+            final Date timestamp,
+            final AuditEvent eventCode,
+            final String perpetratorID,
+            final String perpetratorDN,
+            final String perpetratorLdapProfile,
+            final String message,
+            final String targetID,
+            final String targetDN,
+            final String targetLdapProfile,
+            final String sourceAddress,
+            final String sourceHost
+    )
+    {
+        return new UserAuditRecord(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
+                targetLdapProfile, sourceAddress, sourceHost);
+    }
 
     public String getPerpetratorID() {
         return perpetratorID;

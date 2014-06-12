@@ -40,7 +40,7 @@ public class TokenInfoCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
 
 

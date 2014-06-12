@@ -41,6 +41,10 @@ public enum AppProperty {
     CLIENT_PW_SHOW_REVERT_TIMEOUT                   ("client.pwShowRevertTimeout"),
     CLIENT_JSP_SHOW_ICONS                           ("client.jsp.showIcons"),
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
+    CONFIG_RELOAD_ON_CHANGE                         ("config.reloadOnChange"),
+    CONFIG_FILE_SCAN_FREQUENCY                      ("config.fileScanFrequencyMS"),
+    CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS         ("config.newuser.passwordPolicyCacheMS"),
+    CONFIG_GUIDE_IDLE_TIMEOUT                       ("config.guide.idleTimeoutSeconds"),
     HTTP_RESOURCES_MAX_CACHE_ITEMS                  ("http.resources.maxCacheItems"),
     HTTP_RESOURCES_MAX_CACHE_BYTES                  ("http.resources.maxCacheBytes"),
     HTTP_RESOURCES_EXPIRATION_SECONDS               ("http.resources.expirationSeconds"),
@@ -123,6 +127,9 @@ public enum AppProperty {
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),
     SECURITY_SHAREDHISTORY_CASE_INSENSITIVE         ("security.sharedHistory.caseInsensitive"),
+    TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
+    TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
+    TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
 
     ;

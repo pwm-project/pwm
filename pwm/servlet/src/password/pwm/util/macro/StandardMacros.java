@@ -44,9 +44,9 @@ import java.util.regex.Pattern;
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(StandardMacros.class);
 
-    public static final List<Class> STANDARD_MACROS;
+    public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
     static {
-        final List<Class> defaultMacros = new ArrayList<Class>();
+        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<Class<? extends MacroImplementation>>();
         defaultMacros.add(LdapMacro.class);
         defaultMacros.add(UserPwExpirationTimeMacro.class);
         defaultMacros.add(UserPwExpirationTimeDefaultMacro.class);
@@ -60,7 +60,6 @@ public abstract class StandardMacros {
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
-        defaultMacros.add(OtpSetupTimeMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
@@ -454,30 +453,4 @@ public abstract class StandardMacros {
         }
     }
 
-    public static class OtpSetupTimeMacro extends AbstractMacro {
-        UserInfoBean userInfoBean;
-
-        public Pattern getRegExPattern()
-        {
-            return Pattern.compile("@OtpSetupTime@");
-        }
-
-        public String replaceValue(String matchValue)
-        {
-
-            if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
-                return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
-            }
-            return null;
-        }
-
-        public void init(
-                PwmApplication pwmApplication,
-                UserInfoBean userInfoBean,
-                UserDataReader userDataReader
-        )
-        {
-            this.userInfoBean = userInfoBean;
-        }
-    }
 }

@@ -32,6 +32,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -45,7 +46,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.math.BigInteger;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class ServletHelper {
@@ -234,58 +238,6 @@ public class ServletHelper {
             sb.deleteCharAt(sb.length() - 1);
         }
         return sb.toString();
-    }
-
-    /**
-     * Try to find the real path to a file.  Used for configuration, database, and temporary files.
-     * <p/>
-     * Multiple strategies are used to determine the real path of files because different servlet containers
-     * have different symantics.  In principal, servlets are not supposed
-     *
-     * @param filename       A filename that will be appended to the end of the verified directory
-     * @param relativePath  The desired path of the file, either relative to the servlet directory or an absolute path
-     *                       on the file system
-     * @param servletContext The HttpServletContext to be used to retrieve a path.
-     * @return a File referencing the desired suggestedPath and filename.
-     * @throws Exception if unable to discover a path.
-     */
-    public static File figureFilepath(final String filename, final String relativePath, final ServletContext servletContext)
-            throws Exception
-    {
-        //tomcat8+ requires path string starts with '/' character
-        final String prefixedRealPath = relativePath == null
-                ? "/" :
-                relativePath.startsWith("/")
-                        ? relativePath
-                        : "/" + relativePath;
-
-
-        final String realPath = servletContext.getRealPath(prefixedRealPath);
-
-        if (realPath == null) {
-            LOGGER.warn("servlet container unable to return real file system path");
-            return null;
-        }
-
-        final File servletPath = new File(realPath);
-
-        if (!servletPath.isAbsolute()) {
-            // for containers which do not retrieve the real path, try to use the classloader to find the path.
-            final String cManagerName = PwmApplication.class.getCanonicalName();
-            final String resourcePathname = "/" + cManagerName.replace(".", "/") + ".class";
-            final URL fileURL = PwmApplication.class.getResource(resourcePathname);
-            if (fileURL != null) {
-                final String newString = fileURL.toString().replace("WEB-INF/classes" + resourcePathname, "");
-                final File finalDirectory = new File(new URL(newString + relativePath).toURI());
-                if (finalDirectory.exists()) {
-                    return Helper.figureFilepath(filename, finalDirectory);
-                }
-            }
-        } else {
-            return Helper.figureFilepath(filename, servletPath);
-        }
-
-        throw new Exception("unable to locate resource file path=" + relativePath + ", name=" + filename);
     }
 
     public static String readRequestBody(final HttpServletRequest request)
@@ -587,7 +539,7 @@ public class ServletHelper {
             pwmSession.setLocale(pwmApplication, localeCookie);
         } else {
             final List<Locale> knownLocales = pwmApplication.getConfig().getKnownLocales();
-            final Locale userLocale = Helper.localeResolver(req.getLocale(), knownLocales);
+            final Locale userLocale = LocaleHelper.localeResolver(req.getLocale(), knownLocales);
             pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
             LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
         }

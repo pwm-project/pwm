@@ -48,7 +48,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
 
         <form name="responseForm" action="<pwm:url url='ForgottenPassword'/>" method="post"
               enctype="application/x-www-form-urlencoded"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
             <% // loop through required attributes (challenge.requiredAttributes), if any are configured

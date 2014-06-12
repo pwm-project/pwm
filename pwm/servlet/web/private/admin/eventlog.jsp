@@ -44,7 +44,7 @@
     <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
     <%@ include file="admin-nav.jsp" %>
         <form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
-              name="searchForm" id="searchForm" onsubmit="PWM_MAIN.handleFormSubmit('submit_button',this)">
+              name="searchForm" id="searchForm" onsubmit="PWM_MAIN.handleFormSubmit(this)">
             <table style="">
                 <tr style="width:0">
                     <td class="key" style="border:0">

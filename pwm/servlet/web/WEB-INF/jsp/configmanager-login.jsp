@@ -41,7 +41,7 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="configLogin" enctype="application/x-www-form-urlencoded"
-              onsubmit="return PWM_MAIN.handleFormSubmit('submitBtn',this)">
+              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
 
             <h1>Configuration Password</h1>
             <br class="clear"/>

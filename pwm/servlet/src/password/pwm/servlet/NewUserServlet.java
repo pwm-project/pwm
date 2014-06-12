@@ -396,7 +396,7 @@ public class NewUserServlet extends TopServlet {
         // read the creation object classes from configuration
         final Set<String> createObjectClasses = new HashSet<String>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
 
-        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID);
+        final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.PROFILE_ID_DEFAULT);
         try { // create the ldap entry
             chaiProvider.createEntry(newUserDN, createObjectClasses, createAttributes);
 
@@ -496,7 +496,7 @@ public class NewUserServlet extends TopServlet {
     {
         try {
             LOGGER.warn(pwmSession, "deleting ldap user account " + userDN);
-            pwmApplication.getProxyChaiProvider(PwmConstants.DEFAULT_PROFILE_ID).deleteEntry(userDN);
+            pwmApplication.getProxyChaiProvider(PwmConstants.PROFILE_ID_DEFAULT).deleteEntry(userDN);
             LOGGER.warn(pwmSession, "ldap user account " + userDN + " has been deleted");
         } catch (ChaiUnavailableException e) {
             LOGGER.error(pwmSession, "error deleting ldap user account " + userDN + ", " + e.getMessage());
@@ -535,7 +535,7 @@ public class NewUserServlet extends TopServlet {
                     LOGGER.trace(pwmSession, "generated entry name for new user is unique: " + expandedName);
                     final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
                     expandedContext = macroMachine.expandMacros(configuredContext);
-                    final String namingAttribute = config.getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+                    final String namingAttribute = config.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
                     generatedDN = namingAttribute + "=" + expandedName + "," + expandedContext;
                     LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
                     return generatedDN;
@@ -807,7 +807,7 @@ public class NewUserServlet extends TopServlet {
         final String emailAddressAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
         stubBean.setUserEmailAddress(formValues.get(emailAddressAttribute));
 
-        final String usernameAttribute = pwmApplication.getConfig().getLdapProfiles().get(PwmConstants.DEFAULT_PROFILE_ID).readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        final String usernameAttribute = pwmApplication.getConfig().getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
         stubBean.setUsername(formValues.get(usernameAttribute));
 
         stubBean.setUserCurrentPassword(formValues.get(NewUserServlet.FIELD_PASSWORD));

@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.otp;
 
 import com.novell.ldapchai.ChaiUser;
@@ -27,6 +28,7 @@ import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -102,7 +104,12 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @throws PwmUnrecoverableException
      */
     @Override
-    public void writeOtpUserConfiguration(UserIdentity userIdentity, String userGuid, OTPUserRecord otpConfig) throws PwmUnrecoverableException {
+    public void writeOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final String userGuid,
+            final OTPUserRecord otpConfig
+    ) throws PwmUnrecoverableException {
         Configuration config = getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
@@ -120,7 +127,9 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             if (config.readSettingAsBoolean(PwmSetting.OTP_SECRET_ENCRYPT)) {
                 value = encryptAttributeValue(value);
             }
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+            final ChaiUser theUser = pwmSession == null
+                    ? pwmApplication.getProxiedChaiUser(userIdentity)
+                    : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
             theUser.writeStringAttribute(ldapStorageAttribute, value);
             LOGGER.info("saved OTP secret for user to chai-ldap format");
         } catch (ChaiException ex) {
@@ -149,7 +158,11 @@ public class LdapOtpOperator extends AbstractOtpOperator {
      * @throws PwmUnrecoverableException
      */
     @Override
-    public void clearOtpUserConfiguration(UserIdentity userIdentity, String userGuid) throws PwmUnrecoverableException {
+    public void clearOtpUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity,
+            final String userGuid
+    ) throws PwmUnrecoverableException {
         Configuration config = getConfig();
         final String ldapStorageAttribute = config.readSettingAsString(PwmSetting.OTP_SECRET_LDAP_ATTRIBUTE);
         if (ldapStorageAttribute == null || ldapStorageAttribute.length() < 1) {
@@ -158,11 +171,10 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             throw new PwmUnrecoverableException(errorInformation);
         }
         try {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-            final String currentValue = theUser.readStringAttribute(ldapStorageAttribute);
-            if (currentValue != null && currentValue.length() > 0) {
-                theUser.deleteAttribute(ldapStorageAttribute, null);
-            }
+            final ChaiUser theUser = pwmSession == null
+                    ? pwmApplication.getProxiedChaiUser(userIdentity)
+                    : pwmSession.getSessionManager().getActor(pwmApplication, userIdentity);
+            theUser.deleteAttribute(ldapStorageAttribute,null);
             LOGGER.info("cleared OTP secret for user to chai-ldap format");
         } catch (ChaiOperationException e) {
             final String errorMsg;

@@ -34,7 +34,7 @@ public class ConfigEditorCookie implements Serializable {
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
     private PwmSetting.Category category = PwmSetting.Category.LDAP_PROFILE;
     private boolean notesSeen;
-    private String profile = PwmConstants.DEFAULT_PROFILE_ID;
+    private String profile = PwmConstants.PROFILE_ID_DEFAULT;
     private String setting = "";
 
     public ConfigEditorCookie() {

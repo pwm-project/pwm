@@ -33,7 +33,7 @@
     </jsp:include>
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <p><pwm:SuccessMessage/></p>
             <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
             <div id="buttonbar">

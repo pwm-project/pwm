@@ -4,6 +4,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
+<%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
@@ -286,7 +287,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
         <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
-        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog({text:'Clear password for setting <%=loopSetting.getLabel(locale)%>?',okFunction:function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')}})">Clear Password</button>
+        <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog({text:'Clear password for setting <%=loopSetting.getLabel(locale)%>?',okAction:function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')}})">Clear Password</button>
     </div>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -308,7 +309,8 @@
     <% if (settingMetaData.getUserIdentity() != null ) { %>
     <span style="color: grey">modified by </span>
     <span><%=settingMetaData.getUserIdentity().getUserDN()%></span>
-    <% if (!settingMetaData.getUserIdentity().getLdapProfile(pwmApplication.getConfig()).isDefault()) { %>
+    <%  final LdapProfile storedProfile = settingMetaData.getUserIdentity().getLdapProfile(pwmApplication.getConfig()); %>
+    <%  if (storedProfile != null && !storedProfile.isDefault()) { %>
     <span style="color: grey"> (<%=settingMetaData.getUserIdentity().getLdapProfileID()%>)</span>
     <% } %>
     <% } %>

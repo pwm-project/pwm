@@ -263,14 +263,19 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         final OTPUserRecord otpUserRecord = forgottenPasswordBean.getOtpUserRecord();
         final OtpService otpService = pwmApplication.getOtpService();
-        boolean otpPass;
+        boolean otpPassed;
         if (otpUserRecord != null) {
             LOGGER.info(pwmSession, "checking entered OTP");
             try {
-                otpPass = otpService.validateToken(forgottenPasswordBean.getUserIdentity(), otpUserRecord,
-                        userEnteredCode, true);
+                otpPassed = otpService.validateToken(
+                        null, // forces service to use proxy account to update (write) updated otp record if neccessary.
+                        forgottenPasswordBean.getUserIdentity(),
+                        otpUserRecord,
+                        userEnteredCode,
+                        true
+                );
 
-                if (otpPass) {
+                if (otpPassed) {
                     pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_OTP_PASSED);
                     LOGGER.debug(pwmSession, "one time password validation has been passed");
                     forgottenPasswordBean.setOtpSatisfied(true);

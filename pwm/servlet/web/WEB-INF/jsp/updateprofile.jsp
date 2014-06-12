@@ -36,7 +36,7 @@
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false"
               onchange="validateForm()" onkeyup="validateForm()">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>

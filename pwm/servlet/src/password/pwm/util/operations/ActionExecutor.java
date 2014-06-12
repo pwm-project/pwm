@@ -111,7 +111,7 @@ public class ActionExecutor {
                 pwmApplication.getProxiedChaiUser(settings.getUserInfoBean().getUserIdentity());
 
         final UserDataReader userDataReader = new LdapUserDataReader(new UserIdentity(theUser.getEntryDN(),
-                PwmConstants.DEFAULT_PROFILE_ID),theUser);
+                PwmConstants.PROFILE_ID_DEFAULT),theUser);
 
         Helper.writeMapToLdap(
                 pwmApplication,

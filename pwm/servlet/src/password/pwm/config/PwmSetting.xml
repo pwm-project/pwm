@@ -311,7 +311,7 @@
         <label>Change Password Permission</label>
         <description><![CDATA[Permissions used to detect if a user is a permitted to change password.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
@@ -423,10 +423,8 @@
     <setting key="ldap.profile.list" level="0" hidden="true">
         <label>LDAP Directory Profiles</label>
         <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>Authentication will search the Default profile first, then any other profiles in the order shown here.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
-        <default>
-            <value><![CDATA[]]></value>
-        </default>
+        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default/>
     </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
@@ -485,10 +483,10 @@
         <label>Administrator Permission</label>
         <description><![CDATA[Permissions used to determine if a user will be granted administrator rights.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="0" required="true">
@@ -784,9 +782,7 @@
         <label>SMTP Email Advanced Settings</label>
         <description><![CDATA[Name/Value settings to control the behavior of the mail agent.Available settings are defined as part of the <a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html">JavaMail API</a>. The settings must be in "name=value" format, where name is the key value of a valid JavaMail API setting.]]></description>
         <regex>^[a-zA-Z0-9.]+=.+$</regex>
-        <default>
-            <value />
-        </default>
+        <default/>
     </setting>
     <setting key="sms.userSmsAttribute" level="0" required="true">
         <label>User SMS number attribute</label>
@@ -992,10 +988,8 @@
     <setting key="password.profile.list" level="0" hidden="true">
         <label>Password Policy Profiles</label>
         <description><![CDATA[List of Password Policy Profiles.  When multiple password policy profiles are configured, all profiles except for the default are evaluated in order to check if the <i>Password Policy Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
-        <default>
-            <value><![CDATA[]]></value>
-        </default>
+        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default/>
     </setting>
     <setting key="password.policy.queryMatch">
         <label>Password Policy Profile Match</label>
@@ -1682,6 +1676,7 @@
             <value>HELPDESK_UNLOCK_PASSWORD</value>
             <value>HELPDESK_CLEAR_RESPONSES</value>
             <value>HELPDESK_CLEAR_OTP_SECRET</value>
+            <value>HELPDESK_DELETE_USER</value>
             <value>HELPDESK_ACTION</value>
         </default>
         <options>
@@ -1701,6 +1696,7 @@
             <option value="HELPDESK_UNLOCK_PASSWORD">Helpdesk Unlock Password</option>
             <option value="HELPDESK_CLEAR_RESPONSES">Helpdesk Clear Responses</option>
             <option value="HELPDESK_CLEAR_OTP_SECRET">Helpdesk Clear OTP</option>
+            <option value="HELPDESK_DELETE_USER">Helpdesk Delete User</option>
             <option value="HELPDESK_ACTION">Helpdesk Action</option>
         </options>
     </setting>
@@ -1846,7 +1842,7 @@
         <label>OTP Secret Setup Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to setup an OTP secret.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="otp.secret.identifier" level="1" required="true">
@@ -2129,14 +2125,14 @@
         <label>Save Challenge Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
         <label>Check Responses Match</label>
         <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="challenge.enforceMinimumPasswordLifetime" level="1" required="true">
@@ -2149,14 +2145,12 @@
     <setting key="challenge.profile.list" level="0" hidden="true">
         <label>Challenge Profile</label>
         <description><![CDATA[List of Challenge Profiles.  When multiple challenge policies are configured, all profiles except for the default are evaluated in order to check if the <i>Challenge Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]{2,15}$</regex>
-        <default>
-            <value><![CDATA[]]></value>
-        </default>
+        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default/>
     </setting>
     <setting key="challenge.policy.queryMatch">
         <label>Challenge Profile Match</label>
-        <description><![CDATA[Challenge Profile Query Match]]></description>
+        <description><![CDATA[Challenge Profile Match]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
@@ -2607,10 +2601,10 @@
         <label>Activation Permission</label>
         <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who have never been authenticated and are not disabled to activate.  The default example uses the last login time attribute(s) on the user object to determine if the user has never logged in.  It is the responsibility of the administrator to ensure this activation feature works correctly.  Misconfiguration could potentially result in unintended activations being able to take place.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
         </default>
     </setting>
     <setting key="activateUser.writePreAttributes" level="0">
@@ -2667,7 +2661,7 @@
         <label>Update Profile Permission</label>
         <description><![CDATA[Only allow users who match this query to be update their profile.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=person)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
         </default>
     </setting>
     <setting key="updateAttributes.writeAttributes" level="0">
@@ -2750,7 +2744,7 @@
         <label>Permitted Users</label>
         <description><![CDATA[Define the users permitted to access the People Search module.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="peopleSearch.searchFilter" level="0" required="true">
@@ -2920,16 +2914,6 @@
             <value>false</value>
         </default>
     </setting>
-    <setting key="helpdesk.queryMatch" level="0" required="true">
-        <label>Helpdesk Permission</label>
-        <description><![CDATA[LDAP query string used to detect if logged in user is permitted to access the helpdesk module.  The user must be returned during this is ldap query or else the user will not be permitted to access the helpdesk module.]]></description>
-        <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
-        </default>
-        <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
-        </default>
-    </setting>
     <setting key="helpdesk.filter" level="0">
         <label>Helpdesk Search Filter</label>
         <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username]]></description>
@@ -3093,6 +3077,13 @@
             <value>3600</value>
         </default>
     </setting>
+    <setting key="helpdesk.deleteUser.button" level="0">
+        <label>Enable Delete User Button</label>
+        <description><![CDATA[Allow the helpdesk operator to delete the user.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
     <setting key="helpdesk.clearResponses.button" level="0">
         <label>Enable Clear Responses Button</label>
         <description><![CDATA[Allow the helpdesk operator to clear out a user's stored responses by clicking a button.]]></description>
@@ -3124,6 +3115,22 @@
         <description><![CDATA[Use the application proxy connection for all actions initiated in the helpdesk module.  When disabled, actions are initiated using the logged in user's ldap connection, requiring that the user have appropriate privileges in the ldap directory.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="helpdesk.profile.list" level="0" hidden="true">
+        <label>Helpdesk Profile</label>
+        <description><![CDATA[Helpdesk Profile List]]></description>
+        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default/>
+    </setting>
+    <setting key="helpdesk.queryMatch" level="0" required="true">
+        <label>Helpdesk Profile Match</label>
+        <description><![CDATA[Helpdesk Profile Match.]]></description>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="AD">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="pwmDb.location" level="1" required="true">
@@ -3296,10 +3303,10 @@
         <label>Web Services Third Party Query String</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="external.webAuth.methods" level="0">
@@ -3707,6 +3714,10 @@
     <category key="HELPDESK">
         <label>Helpdesk</label>
         <description><![CDATA[Configurations for administrative helpdesk.]]></description>
+    </category>
+    <category key="HELPDESK_PROFILE">
+        <label>Helpdesk Profile</label>
+        <description><![CDATA[Profile for administrative helpdesk.]]></description>
     </category>
     <template key="NOVL">
         <label>NetIQ eDirectory</label>

@@ -39,7 +39,7 @@
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
             <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="post"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
                     <input type="hidden" name="processAction" value="continue"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>

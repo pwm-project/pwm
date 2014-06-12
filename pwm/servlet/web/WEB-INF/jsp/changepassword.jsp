@@ -50,7 +50,7 @@
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               onkeyup="PWM_CHANGEPW.validatePasswords(null);" onchange="PWM_CHANGEPW.validatePasswords(null);"
-              onsubmit="PWM_CHANGEPW.handleChangePasswordSubmit(); PWM_MAIN.handleFormSubmit('password_button',this);return false"
+              onsubmit="PWM_CHANGEPW.handleChangePasswordSubmit(); PWM_MAIN.handleFormSubmit(this);return false"
               onreset="PWM_CHANGEPW.validatePasswords(null);PWM_CHANGEPW.setInputFocus();return false;" name="changePasswordForm"
               id="changePasswordForm">
             <table style="border:0">

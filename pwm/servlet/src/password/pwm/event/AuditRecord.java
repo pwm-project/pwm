@@ -33,13 +33,22 @@ public abstract class AuditRecord implements Serializable {
     protected Date timestamp = new Date();
     protected String message;
 
-    protected AuditRecord(final AuditEvent eventCode, final String message) {
+    protected AuditRecord(
+            final Date timestamp,
+            final AuditEvent eventCode,
+            final String message
+    ) {
         this.type = eventCode.getType();
         this.eventCode = eventCode;
         this.message = message;
 
-        this.timestamp = new Date();
+        this.timestamp = timestamp;
         this.guid = UUID.randomUUID().toString();
+    }
+
+
+    protected AuditRecord(final AuditEvent eventCode, final String message) {
+        this(new Date(), eventCode, message);
     }
 
     public AuditEvent.Type getType() {

@@ -95,6 +95,7 @@ public class RestVerifyOtpServer {
             final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();
             final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(userIdentity);
             final boolean verified = otpUserRecord !=null && otpService.validateToken(
+                    restRequestBean.getPwmSession(),
                     userIdentity,
                     otpUserRecord,
                     jsonInput.token,

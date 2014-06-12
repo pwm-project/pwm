@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class SetupResponsesBean implements PwmSessionBean {
+    private boolean hasExistingResponses;
     private SetupData responseData;
     private SetupData helpdeskResponseData;
     private boolean responsesSatisfied;
@@ -88,6 +89,16 @@ public class SetupResponsesBean implements PwmSessionBean {
 
     public void setUserLocale(Locale userLocale) {
         this.userLocale = userLocale;
+    }
+
+    public boolean isHasExistingResponses()
+    {
+        return hasExistingResponses;
+    }
+
+    public void setHasExistingResponses(boolean hasExistingResponses)
+    {
+        this.hasExistingResponses = hasExistingResponses;
     }
 
     public static class SetupData implements Serializable {

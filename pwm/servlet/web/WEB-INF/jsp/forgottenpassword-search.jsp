@@ -34,7 +34,7 @@
         <p><pwm:Display key="Display_ForgottenPassword"/></p>
         <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm"
-              onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false" id="searchForm">
+              onsubmit="PWM_MAIN.handleFormSubmit(this);return false" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <br/>

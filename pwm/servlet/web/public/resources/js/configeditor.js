@@ -381,21 +381,28 @@ var MultiTableHandler = {};
 
 MultiTableHandler.initMultiTable = function(parentDiv, keyName, regExPattern) {
     console.log('MultiTableHandler init for ' + keyName);
+    clientSettingCache[keyName + "_options"] = clientSettingCache[keyName + "_options"] || {};
+    clientSettingCache[keyName + "_options"]['parentDiv'] = parentDiv;
+    clientSettingCache[keyName + "_options"]['regExPattern'] = regExPattern;
     clearDivElements(parentDiv, true);
     readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
-        MultiTableHandler.draw(parentDiv, keyName, regExPattern);
+        MultiTableHandler.draw(keyName);
     });
 };
 
 
-MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
+MultiTableHandler.draw = function(settingKey) {
+    var parentDiv = clientSettingCache[settingKey + "_options"]['parentDiv'];
     clearDivElements(parentDiv, false);
-    var resultValue = clientSettingCache[keyName];
+    var resultValue = clientSettingCache[settingKey];
     var counter = 0;
+    var itemCount = PWM_MAIN.itemCount(clientSettingCache[settingKey]);
     for (var i in resultValue) {
-        MultiTableHandler.addMultiValueRow(parentDiv, keyName, i, resultValue[i], regExPattern);
-        counter++;
+        (function(iteration) {
+            MultiTableHandler.drawRow(settingKey, iteration, resultValue[iteration], itemCount);
+            counter++;
+        })(i);
     }
     {
         var newTableRow = document.createElement("tr");
@@ -407,7 +414,7 @@ MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
 
         var addItemButton = document.createElement("button");
         addItemButton.setAttribute("type", "[button");
-        addItemButton.setAttribute("onclick", "MultiTableHandler.addMultiSetting('" + keyName + "','" + parentDiv + "','" + regExPattern + "');");
+        addItemButton.setAttribute("onclick", "MultiTableHandler.addValueHandler('" + settingKey + "');");
         addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
         addItemButton.innerHTML = "Add Value";
         newTableData.appendChild(addItemButton);
@@ -416,77 +423,128 @@ MultiTableHandler.draw = function(parentDiv, keyName, regExPattern) {
         var parentDivElement = PWM_MAIN.getObject(parentDiv);
         parentDivElement.appendChild(newTableRow);
     }
-    require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
+    require(["dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox"],function(dojoParser){
         dojoParser.parse(parentDiv);
     });
 };
 
-MultiTableHandler.addMultiValueRow = function(parentDiv, settingKey, iteration, value, regExPattern) {
-    require(["dijit/registry"],function(registry){
-        var inputID = 'value-' + settingKey + '-' + iteration;
+MultiTableHandler.addValueHandler = function(settingKey) {
+    var text = '<div>' + PWM_SETTINGS['settings'][settingKey]['description'] + '</div><hr/>'
+        + '<input style="width: 500px" required="required" id="addValueDialog_input"/>';
 
-        // clear the old dijit node (if it exists)
-        var oldDijitNode = registry.byId(inputID);
-        if (oldDijitNode != null) {
-            try {
-                oldDijitNode.destroy();
-            } catch (error) {
-            }
-        }
+    var changeFunction = function() {
+        PWM_VAR['addDialog_value'] = this.value;
+        PWM_MAIN.getObject('dialog_ok_button').disabled = !this.validate();
+    };
 
-        var newTableRow = document.createElement("tr");
-        newTableRow.setAttribute("style", "border-width: 0");
-        {
-            var td1 = document.createElement("td");
-            td1.setAttribute("width", "100%");
-            td1.setAttribute("style", "border-width: 0;");
+    var loadFunction = function() {
+        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+        //PWM_MAIN.getObject('dialog_ok_button').innerHTML = 'Add Value';
+        require(["dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox"],function(dojoParser,Button,ValidationTextBox) {
+            new ValidationTextBox({
+                id:"addValueDialog_input",
+                regExp: clientSettingCache[settingKey + "_options"]['regExPattern'],
+                style: 'width: 500px',
+                required: true,
+                invalidMessage: 'The value does not have the correct format',
+                onChange: changeFunction,
+                onKeyUp: changeFunction
+            },"addValueDialog_input");
+        });
+    };
 
+    var okAction = function() {
+        var value = PWM_VAR['addDialog_value'];
+        clientSettingCache[settingKey].push(value);
+        writeSetting(settingKey, clientSettingCache[settingKey]);
+        MultiTableHandler.draw(settingKey);
+    };
 
-            var inputElement = document.createElement("input");
-            inputElement.setAttribute("id", inputID);
-            inputElement.setAttribute("value", value);
-            inputElement.setAttribute("onchange", "MultiTableHandler.writeMultiSetting('" + settingKey + "','" + iteration + "',this.value)");
-            inputElement.setAttribute("style", "width: 550px");
-            inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            inputElement.setAttribute("regExp", regExPattern);
-            inputElement.setAttribute("invalidMessage", "The value does not have the correct format.");
-            td1.appendChild(inputElement);
-            newTableRow.appendChild(td1);
-
-
-            if (PWM_MAIN.itemCount(clientSettingCache[settingKey]) > 1) {
-                var imgElement = document.createElement("img");
-                imgElement.setAttribute("style", "width: 10px; height: 10px");
-                imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-                imgElement.setAttribute("onclick", "MultiTableHandler.removeMultiSetting('" + settingKey + "','" + iteration + "','" + regExPattern + "')");
-                td1.appendChild(imgElement);
-            }
-        }
-        var parentDivElement = PWM_MAIN.getObject(parentDiv);
-        parentDivElement.appendChild(newTableRow);
+    PWM_MAIN.showDialog({
+        title:PWM_SETTINGS['settings'][settingKey]['label'] + " - Add Value",
+        text:text,
+        loadFunction:loadFunction,
+        width:550,
+        okAction:okAction,
+        showCancel:true,
+        showClose: true,
+        allowMove: true
     });
 };
 
-MultiTableHandler.writeMultiSetting = function(settingKey, iteration, value) {
+MultiTableHandler.drawRow = function(settingKey, iteration, value, itemCount) {
+    var parentDiv = clientSettingCache[settingKey + "_options"]['parentDiv'];
+
+    var inputID = 'value-' + settingKey + '-' + iteration;
+
+    // clear the old dijit node (if it exists)
+    PWM_MAIN.clearDijitWidget(inputID);
+
+    var newTableRow = document.createElement("tr");
+    newTableRow.setAttribute("style", "border-width: 0");
+    {
+        var td1 = document.createElement("td");
+        td1.setAttribute("width", "100%");
+        td1.setAttribute("style", "border-width: 0;");
+
+        var inputElement = document.createElement("input");
+        inputElement.setAttribute("id", inputID);
+        inputElement.setAttribute("value", value);
+        inputElement.setAttribute("readonly",null);
+        inputElement.setAttribute("style", "width: 540px; color: black");
+        inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+        td1.appendChild(inputElement);
+        newTableRow.appendChild(td1);
+
+        if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
+            var deleteButton = document.createElement("span");
+            deleteButton.setAttribute("class", "action-icon fa fa-times");
+            deleteButton.setAttribute("onclick", "MultiTableHandler.removeValue('" + settingKey + "','" + iteration + "')");
+            td1.appendChild(deleteButton);
+        }
+
+        if (itemCount > 1 && iteration != (itemCount -1)) {
+            var moveDownButton = document.createElement("span");
+            moveDownButton.setAttribute("class", "action-icon fa fa-caret-square-o-down");
+            moveDownButton.setAttribute("style", "margin-left: 2px;");
+            moveDownButton.setAttribute("onclick", "MultiTableHandler.move('" + settingKey + "',false,'" + iteration + "')");
+            td1.appendChild(moveDownButton);
+        }
+
+        if (itemCount > 1 && iteration != 0) {
+            var moveUpButton = document.createElement("span");
+            moveUpButton.setAttribute("class", "action-icon fa fa-caret-square-o-up");
+            moveUpButton.setAttribute("style", "margin-left: 2px;");
+            moveUpButton.setAttribute("onclick", "MultiTableHandler.move('" + settingKey + "',true,'" + iteration + "')");
+            td1.appendChild(moveUpButton);
+        }
+    }
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    parentDivElement.appendChild(newTableRow);
+};
+
+MultiTableHandler.move = function(settingKey, moveUp, iteration) {
     var currentValues = clientSettingCache[settingKey];
-    if (value == null) {
-        delete currentValues[iteration];
+    if (moveUp) {
+        MultiTableHandler.arrayMoveUtil(currentValues, iteration, iteration - 1);
     } else {
-        currentValues[iteration] = value;
+        MultiTableHandler.arrayMoveUtil(currentValues, iteration, iteration + 1);
     }
     writeSetting(settingKey, currentValues);
+    MultiTableHandler.draw(settingKey);
 };
 
-MultiTableHandler.removeMultiSetting = function(keyName, iteration, regExPattern) {
-    var parentDiv = 'table_setting_' + keyName;
-    MultiTableHandler.writeMultiSetting(keyName, iteration, null);
-    MultiTableHandler.draw(parentDiv, keyName, regExPattern);
+MultiTableHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
 };
 
-MultiTableHandler.addMultiSetting = function(keyName, parentDiv, regExPattern) {
-    clientSettingCache[keyName].push("");
-    writeSetting(keyName, clientSettingCache[keyName]);
-    MultiTableHandler.draw(parentDiv, keyName, regExPattern)
+MultiTableHandler.removeValue = function(settingKey, iteration) {
+    var currentValues = clientSettingCache[settingKey];
+    delete currentValues[iteration];
+    writeSetting(settingKey, currentValues);
+    MultiTableHandler.draw(settingKey);
 };
 
 // -------------------------- multi locale table handler ------------------------------------
@@ -2335,10 +2393,11 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
                     valueTd1.appendChild(profileInput);
                     valueTableRow.appendChild(valueTd1);
 
-                    profileInput.options[profileInput.options.length] = new Option('');
-                    profileInput.options[profileInput.options.length] = new Option('_default');
-                    profileInput.options[profileInput.options.length] = new Option('profile1');
-                    profileInput.options[profileInput.options.length] = new Option('profile2');
+                    profileInput.options[profileInput.options.length] = new Option('all');
+                    profileInput.options[profileInput.options.length] = new Option('default');
+                    for (var i in PWM_VAR['ldapProfileIds']) {
+                        profileInput.options[profileInput.options.length] = new Option(PWM_VAR['ldapProfileIds'][i]);
+                    }
 
                     var valueTd2 = document.createElement("td");
                     valueTd2.setAttribute("style", "border-width: 0;");
@@ -2359,7 +2418,6 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
                     baseInput.setAttribute("value", ('ldapBase' in resultValue[rowKey]) ? resultValue[rowKey]['ldapBase'] : "");
                     baseInput.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + rowKey + "']['ldapBase'] = this.value;UserPermissionHandler.write('" + keyName + "')");
                     baseInput.setAttribute("style", "width: 450px");
-                    baseInput.setAttribute("required","true");
                     baseInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
                     valueTd2.appendChild(baseInput);
 
@@ -2630,7 +2688,7 @@ function buildMenuBar() {
                     label: "Auto-Expand Help Text",
                     checked: preferences['showDesc'],
                     onClick: function() {
-                        PWM_MAIN.showWaitDialog({loadFuntion:function() {
+                        PWM_MAIN.showWaitDialog({loadFunction:function() {
                             preferences['showDesc'] = !preferences['showDesc'];
                             setConfigEditorCookie();
                             loadMainPageBody();
@@ -2681,7 +2739,7 @@ function buildMenuBar() {
                             label: templateItem['description'],
                             checked: templateItem['key'] == PWM_VAR['selectedTemplate'],
                             onClick: function() {
-                                PWM_MAIN.showConfirmDialog({text:confirmText,okFunction:function() {
+                                PWM_MAIN.showConfirmDialog({text:confirmText,okAction:function() {
                                     PWM_MAIN.showWaitDialog({loadFunction:function() {
                                         dojo.xhrGet({
                                             url: "ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
@@ -2795,7 +2853,7 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
                         bodyText += '</div><br/><div>';
                         bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
                         bodyText += '</div>';
-                        PWM_MAIN.showConfirmDialog({text: bodyText, width: 650, okFunction: function () {
+                        PWM_MAIN.showConfirmDialog({text: bodyText, width: 650, okAction: function () {
                             PWM_MAIN.showWaitDialog({title: 'Saving Configuration...', loadFunction: function () {
                                 require(["dojo"], function (dojo) {
                                     dojo.xhrGet({
@@ -2979,7 +3037,7 @@ function handleResetClick(settingKey) {
 
     var titleText = 'Reset ' + label ? label : '';
 
-    PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okFunction:function(){
+    PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okAction:function(){
         PWM_CFGEDIT.resetSetting(settingKey);
         loadMainPageBody();
     }});
@@ -3230,12 +3288,12 @@ PWM_CFGEDIT.cancelEditing = function() {
                     if (data['error']) {
                         PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
                     } else {
-                        var bodyText = '<div style="max-width: 590px;">';
-                        bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
-                        bodyText += '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+                        var bodyText = '<div class="changeLogViewBox">';
                         bodyText += data['data'];
-                        bodyText += '</pre></div>';
-                        PWM_MAIN.showConfirmDialog({text:bodyText,okFunction:
+                        bodyText += '</div><br/><div>';
+                        bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
+                        bodyText += '</div>';
+                        PWM_MAIN.showConfirmDialog({width:650,text:bodyText,okAction:
                             function () {
                                 PWM_MAIN.showWaitDialog({loadFunction: function () {
                                     PWM_MAIN.goto('ConfigEditor?processAction=cancelEditing', {addFormID: true});

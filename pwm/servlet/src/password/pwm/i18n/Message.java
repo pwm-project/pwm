@@ -77,6 +77,7 @@ public enum Message implements DisplayBundleMarker {
     EVENT_LOG_HELPDESK_CLEAR_RESPONSES("EventLog_HelpdeskClearResponses"),
     EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET("EventLog_HelpdeskClearOtpSecret"),
     EVENT_LOG_HELPDESK_ACTION("EventLog_HelpdeskAction"),
+    EVENT_LOG_HELPDESK_DELETE_USER("EventLog_HelpdeskDeleteUser"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),
     REQUIREMENT_MINLENGTHPLURAL("Requirement_MinLengthPlural"),

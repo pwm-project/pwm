@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,15 @@
 package password.pwm.tag;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.ContextManager;
+import password.pwm.PwmApplication;
+import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -79,7 +83,11 @@ public class ErrorMessageTag extends PwmAbstractTag {
                 if (!allowHtml) {
                     errorMsg = StringEscapeUtils.escapeHtml(errorMsg);
                 }
-                pageContext.getOut().write(errorMsg);
+
+                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+                final String rewrittenMsg = macroMachine.expandMacros(errorMsg);
+
+                pageContext.getOut().write(rewrittenMsg);
             }
         } catch (PwmUnrecoverableException e) {
             /* app not running */

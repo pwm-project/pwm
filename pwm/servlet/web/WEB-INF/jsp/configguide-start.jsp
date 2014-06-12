@@ -83,7 +83,7 @@
 </div>
 <script type="text/javascript">
     function skipWizard() {
-        PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okFunction:function() {
+        PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
             gotoStep('FINISH');
         }});
     }

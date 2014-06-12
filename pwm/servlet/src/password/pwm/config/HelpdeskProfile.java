@@ -26,33 +26,27 @@ import password.pwm.PwmConstants;
 
 import java.util.*;
 
-public class LdapProfile extends AbstractProfile implements Profile {
-    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.LDAP_PROFILE));
+public class HelpdeskProfile extends AbstractProfile implements Profile{
+    final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.HELPDESK_PROFILE));
 
-    protected LdapProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
-    static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
+
+    static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<PwmSetting, StoredValue>();
-        for (final PwmSetting setting : LDAP_SETTINGS) {
+        for (final PwmSetting setting : HELPDESK_PROFILE_SETTINGS) {
             final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);
         }
-        return new LdapProfile(identifier, valueMap);
+        return new HelpdeskProfile(identifier, valueMap);
 
-    }
-
-    public Map<String, String> getLoginContexts() {
-        final List<String> values = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        return Configuration.convertStringListToNameValuePair(values, ":::");
     }
 
     @Override
-    public String getDisplayName(final Locale locale) {
-        final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
-        final String returnDisplayName = displayName == null || displayName.length() < 1 ? identifier : displayName;
-        return PwmConstants.PROFILE_ID_DEFAULT.equals(returnDisplayName) ? "Default" : returnDisplayName;
+    public String getDisplayName(Locale locale)
+    {
+        return this.getIdentifier();
     }
-
 }

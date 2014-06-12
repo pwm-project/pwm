@@ -43,7 +43,7 @@
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded" name="search"
-                  onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false"
+                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false"
                   style="display: inline;">
                 <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
                 <button type="submit" class="btn" name="search" id="submitBtn">

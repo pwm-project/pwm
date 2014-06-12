@@ -68,6 +68,7 @@ public class OtpService implements PwmService {
     }
 
     public boolean validateToken(
+            final PwmSession pwmSession,
             final UserIdentity userIdentity,
             final OTPUserRecord otpUserRecord,
             final String userInput,
@@ -104,7 +105,7 @@ public class OtpService implements PwmService {
                     }
 
                     code.setUsed(true);
-                    pwmApplication.getOtpService().writeOTPUserConfiguration(userIdentity, otpUserRecord);
+                    pwmApplication.getOtpService().writeOTPUserConfiguration(null, userIdentity, otpUserRecord);
                     otpCorrect = true;
                 }
             }
@@ -274,6 +275,7 @@ public class OtpService implements PwmService {
     }
 
     public void writeOTPUserConfiguration(
+            final PwmSession pwmSession,
             final UserIdentity userIdentity,
             final OTPUserRecord otp
     )
@@ -285,19 +287,21 @@ public class OtpService implements PwmService {
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
         final String userGUID = readGuidIfNeeded(pwmApplication, otpSecretStorageLocations, userIdentity);
 
+        final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
             for (DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
                 final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
                     try {
-                        operator.writeOtpUserConfiguration(userIdentity, userGUID, otp);
+                        operator.writeOtpUserConfiguration(pwmSession, userIdentity, userGUID, otp);
                         successes++;
-                    } catch (PwmUnrecoverableException ex) {
-                        LOGGER.error(ex.getMessage(), ex);
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error(pwmSession, "error writing to " + otpSecretStorageLocation + ", error: " + e.getMessage());
+                        errorMsgs.append(otpSecretStorageLocation).append(" error: ").append(e.getMessage());
                     }
                 } else {
-                    LOGGER.warn(String.format("Storage location %s not implemented", otpSecretStorageLocation.toString()));
+                    LOGGER.warn(pwmSession, String.format("storage location %s not implemented", otpSecretStorageLocation.toString()));
                 }
             }
         }
@@ -309,16 +313,19 @@ public class OtpService implements PwmService {
         }
 
         if (attempts != successes) { // should be impossible to get here, but just in case.
-            final String errorMsg = "OTP secret storage only partially successful; attempts=" + attempts + ", successes=" + successes;
+            final String errorMsg = "OTP secret write only partially successful; attempts=" + attempts + ", successes=" + successes + ", errors: " + errorMsgs.toString();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }
     }
 
-    public void clearOTPUserConfiguration(final UserIdentity userIdentity)
+    public void clearOTPUserConfiguration(
+            final PwmSession pwmSession,
+            final UserIdentity userIdentity
+    )
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        LOGGER.trace("beginning clear otp user configuration");
+        LOGGER.trace(pwmSession, "beginning clear otp user configuration");
 
         int attempts = 0, successes = 0;
         final Configuration config = pwmApplication.getConfig();
@@ -326,21 +333,21 @@ public class OtpService implements PwmService {
 
         final String userGUID = readGuidIfNeeded(pwmApplication, otpSecretStorageLocations, userIdentity);
 
+        final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
-            final Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
-            while (locationIterator.hasNext()) {
+            for (DataStorageMethod otpSecretStorageLocation : otpSecretStorageLocations) {
                 attempts++;
-                final DataStorageMethod location = locationIterator.next();
-                final OtpOperator operator = operatorMap.get(location);
+                final OtpOperator operator = operatorMap.get(otpSecretStorageLocation);
                 if (operator != null) {
                     try {
-                        operator.clearOtpUserConfiguration(userIdentity, userGUID);
+                        operator.clearOtpUserConfiguration(pwmSession, userIdentity, userGUID);
                         successes++;
-                    } catch (PwmUnrecoverableException ex) {
-                        LOGGER.error(ex.getMessage(), ex);
+                    } catch (PwmUnrecoverableException e) {
+                        LOGGER.error(pwmSession, "error clearing " + otpSecretStorageLocation + ", error: " + e.getMessage());
+                        errorMsgs.append(otpSecretStorageLocation).append(" error: ").append(e.getMessage());
                     }
                 } else {
-                    LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
+                    LOGGER.warn(pwmSession, String.format("Storage location %s not implemented", otpSecretStorageLocation.toString()));
                 }
             }
         }
@@ -353,7 +360,7 @@ public class OtpService implements PwmService {
         }
 
         if (attempts != successes) { // should be impossible to get here, but just in case.
-            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes;
+            final String errorMsg = "OTP secret clearing only partially successful; attempts=" + attempts + ", successes=" + successes + ", error: " + errorMsgs.toString();
             /* TODO: replace error message */
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             throw new PwmOperationalException(errorInfo);

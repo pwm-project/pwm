@@ -24,10 +24,7 @@ package password.pwm.token;
 
 import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.PwmApplication;
-import password.pwm.PwmConstants;
-import password.pwm.PwmService;
-import password.pwm.PwmSession;
+import password.pwm.*;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -118,7 +115,7 @@ public class TokenService implements PwmService {
         }
         try {
             maxTokenAgeMS = configuration.readSettingAsLong(PwmSetting.TOKEN_LIFETIME) * 1000;
-            maxTokenPurgeAgeMS = maxTokenAgeMS + PwmConstants.TOKEN_REMOVAL_DELAY_MS;
+            maxTokenPurgeAgeMS = maxTokenAgeMS + Long.parseLong(configuration.readAppProperty(AppProperty.TOKEN_REMOVAL_DELAY_MS));
         } catch (Exception e) {
             final String errorMsg = "unable to parse max token age value: " + e.getMessage();
             errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
@@ -325,7 +322,8 @@ public class TokenService implements PwmService {
         final long startTime = System.currentTimeMillis();
         int cleanedTokens = 0;
         List<String> tempKeyList = new ArrayList<String>();
-        tempKeyList.addAll(discoverPurgeableTokenKeys(PwmConstants.TOKEN_PURGE_BATCH_SIZE));
+        final int purgeBatchSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.TOKEN_PURGE_BATCH_SIZE));
+        tempKeyList.addAll(discoverPurgeableTokenKeys(purgeBatchSize));
         while (status() == STATUS.OPEN && !tempKeyList.isEmpty()) {
             for (final String loopKey : tempKeyList) {
                 tokenMachine.removeToken(loopKey);
@@ -415,7 +413,8 @@ public class TokenService implements PwmService {
             throws PwmUnrecoverableException, PwmOperationalException {
         String tokenKey = null;
         int attempts = 0;
-        while (tokenKey == null && attempts < PwmConstants.TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS) {
+        final int maxUniqueCreateAttempts = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS));
+        while (tokenKey == null && attempts < maxUniqueCreateAttempts) {
             tokenKey = makeRandomCode(configuration);
             if (machine.retrieveToken(tokenKey) != null) {
                 tokenKey = null;
@@ -562,7 +561,7 @@ public class TokenService implements PwmService {
         }
 
         // check current session identity
-        if (tokenPayload.getUserIdentity() != null) {
+        if (tokenPayload.getUserIdentity() != null && sessionUserIdentity != null) {
             if (!tokenPayload.getUserIdentity().equals(sessionUserIdentity)) {
                 final String errorMsg = "user in session '" + sessionUserIdentity + "' entered code for user '" + tokenPayload.getUserIdentity()+ "', counting as invalid attempt";
                 throw new PwmOperationalException(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);

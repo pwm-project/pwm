@@ -20,48 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.option;
 
-import password.pwm.PwmConstants;
-
-public class UserPermission {
-    enum Type {
-        ldapQuery
-    }
-
-    private String ldapProfileID = PwmConstants.PROFILE_ID_ALL;
-    private String ldapQuery;
-    private String ldapBase;
-    private Type type = Type.ldapQuery;
-
-    public UserPermission(
-            String ldapProfileID,
-            String ldapQuery,
-            String ldapBase
-    )
-    {
-        this.ldapProfileID = ldapProfileID;
-        this.ldapQuery = ldapQuery;
-        this.ldapBase = ldapBase;
-    }
-
-    public String getLdapProfileID()
-    {
-        return ldapProfileID == null ? null : ldapProfileID.trim();
-    }
-
-    public String getLdapQuery()
-    {
-        return ldapQuery;
-    }
-
-    public String getLdapBase()
-    {
-        return ldapBase;
-    }
-
-    public Type getType()
-    {
-        return type;
-    }
+public enum ResponseAuthenticationMethod implements ConfigurationOption {
+    TOKEN_EMAIL,
+    TOKEN_SMS,
+    OTP,
+    CHALLENGE_RESPONSES,
+    ATTRIBUTES,
+    REMOTE_RESPONSES,
 }

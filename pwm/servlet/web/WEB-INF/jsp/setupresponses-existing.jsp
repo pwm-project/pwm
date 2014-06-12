@@ -22,76 +22,60 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
+<%@ page import="password.pwm.bean.ResponseInfoBean" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupResponsesBean responseBean = PwmSession.getPwmSession(session).getSetupResponseBean(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
+<% final ResponseInfoBean responseInfoBean = pwmSessionHeader.getUserInfoBean().getResponseInfoBean(); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ConfirmResponses"/></p>
+        <p>
+            <% if (responseInfoBean.getTimestamp() != null) { %>
+            <pwm:Display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>
+            <% } else { %>
+            <pwm:Display key="Display_WarnExistingResponse"/>
+            <% } %>
+        </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <%
-            for (final Challenge loopChallenge : responseBean.getResponseData().getResponseMap().keySet()) {
-                final String responseText = responseBean.getResponseData().getResponseMap().get(loopChallenge);
-        %>
-        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
-        </h2>
-
-        <p>
-            &nbsp;<%="\u00bb"%>&nbsp;
-            <%= StringEscapeUtils.escapeHtml(responseText) %>
-        </p>
-        <% } %>
-        <br/>
-        <%
-            for (final Challenge loopChallenge : responseBean.getHelpdeskResponseData().getResponseMap().keySet()) {
-                final String responseText = responseBean.getHelpdeskResponseData().getResponseMap().get(loopChallenge);
-        %>
-        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
-        </h2>
-
-        <p>
-            &nbsp;<%="\u00bb"%>&nbsp;
-            <%= StringEscapeUtils.escapeHtml(responseText) %>
-        </p>
+        <h2><pwm:Display key="Title_AnsweredQuestions"/></h2>
+        <% for (final Challenge loopChallenge : responseInfoBean.getCrMap().keySet()) { %>
+                <p><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %></p>
         <% } %>
         <br/>
         <div id="buttonbar">
-            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('confirm_btn',this);return false">
-                <input type="submit" name="confirm_btn" class="btn" id="confirm_btn"
-                       value="<pwm:Display key="Button_ConfirmResponses"/>"/>
-                <input type="hidden" name="processAction" value="confirmResponses"/>
-                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            </form>
-            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
-                  enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('change_btn',this);return false">
-                <input type="submit" name="change_btn" class="btn" id="change_btn"
-                       value="<pwm:Display key="Button_ChangeResponses"/>"/>
-                <input type="hidden" name="processAction" value="changeResponses"/>
-                <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-                <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
-                    <pwm:Display key="Button_Cancel"/>
+            <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="clearExistingForm" id="clearExistingForm"
+                  enctype="application/x-www-form-urlencoded" onsubmit="confirmContinue();return false">
+                <button type="submit" name="confirm_btn" class="btn" id="confirm_btn" value="">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                    <pwm:Display key="Button_ClearResponses"/>
                 </button>
-                <% } %>
+                <input type="hidden" name="processAction" value="clearExisting"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
+            <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
         </div>
     </div>
     <div class="push"></div>
 </div>
+<script type="application/javascript">
+    function confirmContinue() {
+        PWM_MAIN.showConfirmDialog({
+            text: PWM_MAIN.showString("Display_ResponsesClearWarning"),
+            okAction:function(){
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('clearExistingForm'));
+            }
+        });
+    }
+</script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

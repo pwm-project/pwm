@@ -58,7 +58,14 @@ public class UserIdentity implements Serializable {
     }
 
     public LdapProfile getLdapProfile(final Configuration configuration) {
-        return configuration.getLdapProfiles().get(this.getLdapProfileID());
+        if (configuration == null) {
+            return null;
+        }
+        if (configuration.getLdapProfiles().containsKey(this.getLdapProfileID())) {
+            return configuration.getLdapProfiles().get(this.getLdapProfileID());
+        } else {
+            return null;
+        }
     }
 
     public String toString() {
@@ -109,7 +116,7 @@ public class UserIdentity implements Serializable {
 
         final StringTokenizer st = new StringTokenizer(key, DELIM_SEPARATOR);
         if (st.countTokens() < 2) {
-            return new UserIdentity(st.nextToken(), PwmConstants.DEFAULT_PROFILE_ID);
+            return new UserIdentity(st.nextToken(), PwmConstants.PROFILE_ID_DEFAULT);
         } else if (st.countTokens() > 2) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"too many string tokens while parsing delimited identity key"));
         }

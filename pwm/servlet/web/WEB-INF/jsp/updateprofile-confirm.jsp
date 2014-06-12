@@ -44,7 +44,7 @@
         </form>
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('confirmBtn',this);return false">
+                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
                 <button id="confirmBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
                     <pwm:Display key="Button_Confirm"/>
@@ -53,7 +53,7 @@
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit('gobackBtn',this);return false">
+                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
                 <button id="gobackBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                     <pwm:Display key="Button_GoBack"/>

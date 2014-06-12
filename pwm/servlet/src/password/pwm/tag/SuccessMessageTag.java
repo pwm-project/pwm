@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
 import password.pwm.PwmSession;
 import password.pwm.i18n.Message;
+import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -50,7 +51,11 @@ public class SuccessMessageTag extends PwmAbstractTag {
             final String successField = pwmSession.getSessionStateBean().getSessionSuccessField();
 
             final String errorMsg = successMsg.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig(), successField);
-            pageContext.getOut().write(errorMsg);
+
+            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+            final String rewrittenMsg = macroMachine.expandMacros(errorMsg);
+
+            pageContext.getOut().write(rewrittenMsg);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

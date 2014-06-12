@@ -41,6 +41,7 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -320,4 +321,10 @@ public class SessionManager implements Serializable {
         return status == Permission.PERMISSION_STATUS.GRANTED;
     }
 
+    public MacroMachine getMacroMachine(final PwmApplication pwmApplication)
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final UserDataReader userDataReader = this.getUserDataReader(pwmApplication);
+        return new MacroMachine(pwmApplication, pwmSession.getUserInfoBean(), userDataReader);
+    }
 }

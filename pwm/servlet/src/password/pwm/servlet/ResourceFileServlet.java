@@ -128,7 +128,10 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     public static void clearCache(final ServletContext servletContext) {
-        getCache(servletContext).clear();
+        final Map cache = getCache(servletContext);
+        if (cache != null) {
+            cache.clear();
+        }
     }
 
     public void processRequest (

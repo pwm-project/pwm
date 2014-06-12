@@ -124,7 +124,8 @@ public class PwmApplication {
     private final Date startupTime = new Date();
     private Date installTime = new Date();
     private ErrorInformation lastLocalDBFailure = null;
-    private File pwmApplicationPath; //typically the WEB-INF servlet path
+    private File applicationPath;
+    private File configurationFile;
 
     private MODE applicationMode;
 
@@ -149,7 +150,7 @@ public class PwmApplication {
             OtpService.class
     ));
 
-    private static final List<Package> LOGGING_PACKAGES  = Collections.unmodifiableList(Arrays.<Package>asList(
+    private static final List<Package> LOGGING_PACKAGES  = Collections.unmodifiableList(Arrays.asList(
             PwmApplication.class.getPackage(),
             ChaiUser.class.getPackage(),
             Package.getPackage("org.jasig.cas.client")
@@ -162,13 +163,15 @@ public class PwmApplication {
     public PwmApplication(
             final Configuration config,
             final MODE applicationMode,
-            final File pwmApplicationPath,
-            final boolean initLogging
+            final File applicationPath,
+            final boolean initLogging,
+            final File configurationFile
     )
     {
         this.configuration = config;
         this.applicationMode = applicationMode;
-        this.pwmApplicationPath = pwmApplicationPath;
+        this.applicationPath = applicationPath;
+        this.configurationFile = configurationFile;
         initialize(initLogging);
     }
 
@@ -286,7 +289,7 @@ public class PwmApplication {
         // initialize log4j
         if (initLogging) {
             final String log4jFileName = configuration.readSettingAsString(PwmSetting.EVENTS_JAVA_LOG4JCONFIG_FILE);
-            final File log4jFile = Helper.figureFilepath(log4jFileName, pwmApplicationPath);
+            final File log4jFile = Helper.figureFilepath(log4jFileName, applicationPath);
             final String consoleLevel, fileLevel;
             switch (getApplicationMode()) {
                 case ERROR:
@@ -301,7 +304,7 @@ public class PwmApplication {
                     break;
             }
 
-            Initializer.initializeLogger(configuration, log4jFile, consoleLevel, pwmApplicationPath, fileLevel);
+            Initializer.initializeLogger(configuration, log4jFile, consoleLevel, applicationPath, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -317,10 +320,14 @@ public class PwmApplication {
             }
         }
 
+        LOGGER.info("initializing, application mode=" + getApplicationMode()
+                + ", applicationPath=" + (applicationPath == null ? "null" : applicationPath.getAbsolutePath())
+                + ", configurationFile=" + (configurationFile == null ? "null" : configurationFile.getAbsolutePath())
+        );
+
         Initializer.initializeLocalDB(this);
         Initializer.initializeLocalDBLogger(this);
 
-        LOGGER.info("initializing, application mode=" + getApplicationMode());
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
 
@@ -450,7 +457,7 @@ public class PwmApplication {
             LOGGER.trace("retrieved instanceID " + newInstanceID + "" + " from localDB");
         }
 
-        if (newInstanceID == null || newInstanceID.length() < 1) {
+        if (newInstanceID.length() < 1) {
             newInstanceID = DEFAULT_INSTANCE_ID;
         }
 
@@ -689,7 +696,7 @@ public class PwmApplication {
             // see if META-INF isn't already there, then use WEB-INF.
             try {
                 final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
-                databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.pwmApplicationPath);
+                databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.applicationPath);
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
@@ -741,8 +748,8 @@ public class PwmApplication {
         }
     }
 
-    public File getPwmApplicationPath() {
-        return pwmApplicationPath;
+    public File getApplicationPath() {
+        return applicationPath;
     }
 
     public enum MODE {

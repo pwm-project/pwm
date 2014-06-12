@@ -488,12 +488,14 @@
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_UNLOCK)) { %>
     <% if (helpdeskBean.getAdditionalUserInfo().isIntruderLocked()) { %>
-    <button class="btn" onclick="document.ldapUnlockForm.submit()">Unlock</button>
+    <button class="btn" onclick="document.ldapUnlockForm.submit()">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+        <pwm:Display key="Button_Unlock"/>
+    </button>
     <% } else { %>
     <button id="unlockBtn" class="btn" disabled="disabled">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
         <pwm:Display key="Button_Unlock"/>
-
     </button>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -503,6 +505,14 @@
             });
         });
     </script>
+    <% } %>
+    <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
+    <button class="btn" onclick="PWM_MAIN.showConfirmDialog({text:PWM_MAIN.showString('Confirm_DeleteUser'),okAction:function(){
+        PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('deleteUserForm'));
+    }})">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+        Delete User
+    </button>
     <% } %>
     <button name="button_continue" class="btn" onclick="window.location = window.location" id="button_continue">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
@@ -523,20 +533,23 @@
         });
     </script>
     <% } %>
-
-
     <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="detail"/>
         <input type="hidden" name="userKey" value="<%=StringEscapeUtils.escapeHtml(obfuscatedDN)%>"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('unlockBtn', this)">
+    <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this)">
         <input type="hidden" name="processAction" value="doUnlock"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
-    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('clearOtpSecretBtn', this)">
+    <form name="clearOtpSecretForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this)">
         <input type="hidden" name="processAction" value="doClearOtpSecret"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+    </form>
+    <form name="deleteUserForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" id="deleteUserForm">
+        <input type="hidden" name="processAction" value="deleteUser"/>
+        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+        <input type="hidden" name="userKey" value="<%=StringEscapeUtils.escapeHtml(obfuscatedDN)%>"/>
     </form>
 </div>
 </div>

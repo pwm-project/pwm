@@ -34,7 +34,7 @@
     <div id="centerbody">
         <p><pwm:Display key="Display_ActivateUser"/></p>
         <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
-              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit('submitBtn',this);return false">
+              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <% request.setAttribute("form",PwmSetting.ACTIVATE_USER_FORM); %>

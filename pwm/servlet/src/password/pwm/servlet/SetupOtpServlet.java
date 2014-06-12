@@ -38,7 +38,6 @@ import password.pwm.error.*;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
-import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.ws.server.RestResultBean;
@@ -154,7 +153,11 @@ public class SetupOtpServlet extends TopServlet {
             final OtpService otpService = pwmApplication.getOtpService();
             final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
             try {
-                otpService.writeOTPUserConfiguration(theUser, otpBean.getOtpUserRecord());
+                otpService.writeOTPUserConfiguration(
+                        pwmSession,
+                        theUser,
+                        otpBean.getOtpUserRecord()
+                );
                 otpBean.setWritten(true);
             } catch (Exception e) {
                 final ErrorInformation errorInformation;
@@ -219,6 +222,7 @@ public class SetupOtpServlet extends TopServlet {
 
         try {
             boolean passed = otpService.validateToken(
+                    pwmSession,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     otpUserRecord,
                     code,
@@ -249,7 +253,7 @@ public class SetupOtpServlet extends TopServlet {
         final OtpService service = pwmApplication.getOtpService();
         final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
         try {
-            service.clearOTPUserConfiguration(theUser);
+            service.clearOTPUserConfiguration(pwmSession, theUser);
         } catch (PwmOperationalException e) {
             pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
             LOGGER.error(e.getErrorInformation().toDebugStr());
@@ -275,6 +279,7 @@ public class SetupOtpServlet extends TopServlet {
             LOGGER.debug(pwmSession, String.format("received OTP token: %s", otpToken));
             try {
                 if (otpService.validateToken(
+                        pwmSession,
                         pwmSession.getUserInfoBean().getUserIdentity(),
                         otpBean.getOtpUserRecord(),
                         otpToken,
@@ -327,7 +332,7 @@ public class SetupOtpServlet extends TopServlet {
             try {
                 final Configuration config = pwmApplication.getConfig();
                 final String identifierConfigValue = config.readSettingAsString(PwmSetting.OTP_SECRET_IDENTIFIER);
-                final String identifier = new MacroMachine(pwmApplication, pwmSession.getUserInfoBean()).expandMacros(identifierConfigValue);
+                final String identifier = pwmSession.getSessionManager().getMacroMachine(pwmApplication).expandMacros(identifierConfigValue);
                 final OTPUserRecord otpUserRecord = new OTPUserRecord();
                 final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
                 final List<String> rawRecoveryCodes = OtpService.initializeUserRecord(

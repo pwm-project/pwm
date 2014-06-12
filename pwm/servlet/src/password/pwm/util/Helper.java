@@ -558,48 +558,8 @@ public class
             localeMap.put(LocaleHelper.parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
         }
 
-        final Locale selectedLocale = localeResolver(desiredLocale, localeMap.keySet());
+        final Locale selectedLocale = LocaleHelper.localeResolver(desiredLocale, localeMap.keySet());
         return localeMap.get(selectedLocale);
-    }
-
-    public static Locale localeResolver(final Locale desiredLocale, final Collection<Locale> localePool) {
-        if (desiredLocale == null || localePool == null || localePool.isEmpty()) {
-            return null;
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
-                    if (loopLocale.getVariant().equalsIgnoreCase(desiredLocale.getVariant())) {
-                        return loopLocale;
-                    }
-                }
-            }
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                if (loopLocale.getCountry().equalsIgnoreCase(desiredLocale.getCountry())) {
-                    return loopLocale;
-                }
-            }
-        }
-
-        for (final Locale loopLocale : localePool) {
-            if (loopLocale.getLanguage().equalsIgnoreCase(desiredLocale.getLanguage())) {
-                return loopLocale;
-            }
-        }
-
-        if (localePool.contains(PwmConstants.DEFAULT_LOCALE)) {
-            return PwmConstants.DEFAULT_LOCALE;
-        }
-
-        if (localePool.contains(new Locale(""))) {
-            return new Locale("");
-        }
-
-        return null;
     }
 
     public static void rotateBackups(final File inputFile, final int maxRotate) {
@@ -1011,9 +971,14 @@ public class
         }
 
         boolean performTest = false;
-        if (userPermission.getLdapProfileID() == null || userPermission.getLdapProfileID().isEmpty()) {
+        if (userPermission.getLdapProfileID() == null
+                || userPermission.getLdapProfileID().isEmpty()
+                || userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_ALL)) {
             performTest = true;
         } else if (userIdentity.getLdapProfileID().equals(userPermission.getLdapProfileID())) {
+            performTest = true;
+        } else if (userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_DEFAULT)
+                && userIdentity.getLdapProfileID().equals(PwmConstants.PROFILE_ID_DEFAULT)) {
             performTest = true;
         }
 

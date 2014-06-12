@@ -32,7 +32,7 @@ public class ConfigLockCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
         storedConfiguration.writeConfigProperty(
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(false));

@@ -26,25 +26,32 @@ import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.util.localdb.LocalDB;
 
+import java.io.File;
 import java.io.Writer;
 import java.util.Map;
 
 public class CliEnvironment {
+    final File configurationFile;
     final Configuration config;
+    final File applicationPath;
     final PwmApplication pwmApplication;
     final LocalDB localDB;
     final Writer debugWriter;
     final Map<String,Object> options;
 
     public CliEnvironment(
+            File configurationFile,
             Configuration config,
+            File applicationPath,
             PwmApplication pwmApplication,
             LocalDB localDB,
             Writer debugWriter,
             Map<String, Object> options
     )
     {
+        this.configurationFile = configurationFile;
         this.config = config;
+        this.applicationPath = applicationPath;
         this.pwmApplication = pwmApplication;
         this.localDB = localDB;
         this.debugWriter = debugWriter;
@@ -74,5 +81,15 @@ public class CliEnvironment {
     public Map<String, Object> getOptions()
     {
         return options;
+    }
+
+    public File getConfigurationFile()
+    {
+        return configurationFile;
+    }
+
+    public File getApplicationPath()
+    {
+        return applicationPath;
     }
 }

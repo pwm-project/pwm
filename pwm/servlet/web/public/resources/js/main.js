@@ -276,18 +276,13 @@ PWM_MAIN.handleFormCancel = function() {
     }});
 };
 
-PWM_MAIN.handleFormSubmit = function(buttonID, form) {
+PWM_MAIN.handleFormSubmit = function (form) {
     PWM_GLOBAL['idle_suspendTimeout'] = true;
-    var submitButton = PWM_MAIN.getObject(buttonID);
-    if (submitButton != null) {
-        PWM_MAIN.getObject(buttonID).disabled = true;
-
-        var formElements = submitButton.form.elements;
-        for (var i = 0; i < formElements.length; i++) {
-            formElements[i].readOnly = true;
-            if (formElements[i].type == 'button') {
-                formElements[i].disabled = true;
-            }
+    var formElements = form.elements;
+    for (var i = 0; i < formElements.length; i++) {
+        formElements[i].readOnly = true;
+        if (formElements[i].type == 'button' || formElements[i].type == 'submit') {
+            formElements[i].disabled = true;
         }
     }
 
@@ -551,20 +546,33 @@ PWM_MAIN.showDialog = function(options) {
     options = options || {};
     var title = options['title'] || 'DialogTitle';
     var text = options['text'] || 'DialogBody';
-    var nextAction = options['nextAction'] || function(){};
+    var okAction = 'okAction' in options ? options['okAction'] : function(){};
+    var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){};
+    var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){};
     var width = options['width'] || 300;
     var showOk = 'showOk' in options ? options['showOk'] : true;
-    var showCancel = options['showCancel'] || false;
-    var loadFunction = options['loadFunction'] || function(){};
-    var showClose = options['showClose'] || false;
+    var showCancel = 'showCancel' in options ? options['showCancel'] : false;
+    var showClose = 'showClose' in options ? options['showClose'] : false;
+    var allowMove = 'allowMove' in options ? ['allowMove'] : false;
 
-    PWM_VAR['dialog_nextAction'] = nextAction;
+    PWM_VAR['dialog_okAction'] = okAction;
+    PWM_VAR['dialog_cancelAction'] = cancelAction;
+    PWM_VAR['dialog_loadFunction'] = loadFunction;
+
     var bodyText = '';
     bodyText += '<p>' + text + '</p>';
     if (showOk) {
         bodyText += '<br/>';
-        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_nextAction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
+        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
+            + '<span class="btn-icon fa fa-forward"></span>'
+            + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
+    if (showCancel) {
+        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
+            + '<span class="btn-icon fa fa-backward"></span>'
+            + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+    }
+
     if (width > 0) {
         bodyText = '<div style="max-width: ' + width + 'px; width: ' + width + 'px">' + bodyText + '</div>';
     }
@@ -574,7 +582,7 @@ PWM_MAIN.showDialog = function(options) {
         var theDialog = new Dialog({
             id: idName,
             closable: showClose,
-            draggable: false,
+            draggable: allowMove,
             title: title,
             content: bodyText
         });
@@ -616,19 +624,7 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
 
 PWM_MAIN.showConfirmDialog = function(options) {
     options = options || {};
-    PWM_VAR['confirm_okFunction'] = options['okFunction'] ? options['okFunction'] : function(){};
-    PWM_VAR['confirm_cancelFunction'] = options['cancelFunction'] ? options['cancelFunction'] : function(){};
-
-    var bodyText = '';
-    bodyText += '<div><p>';
-    bodyText += 'text' in options ? options['text'] : "DialogText missing";
-    bodyText += '</p></div>';
-    bodyText += '<br/>';
-    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'confirm_okFunction\']()">' + PWM_MAIN.showString('Button_OK') + '</button>  ';
-    bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'confirm_cancelFunction\']()">' + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
-
-    options['text'] = bodyText;
-    options['showOk'] = false;
+    options['showCancel'] = true;
     options['title'] = 'title' in options ? options['title'] : PWM_MAIN.showString('Button_Confirm');
     PWM_MAIN.showDialog(options);
 };

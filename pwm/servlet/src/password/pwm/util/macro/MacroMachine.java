@@ -30,9 +30,7 @@ import password.pwm.util.PwmLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,9 +66,12 @@ public class MacroMachine {
     }
 
     private Map<Pattern,MacroImplementation> makeImplementations() {
+        final Set<Class<? extends MacroImplementation>> implementations = new HashSet<Class<? extends MacroImplementation>>();
+        implementations.addAll(StandardMacros.STANDARD_MACROS);
+        implementations.addAll(InternalMacros.INTERNAL_MACROS);
         final LinkedHashMap<Pattern,MacroImplementation> map = new LinkedHashMap<Pattern, MacroImplementation>();
 
-        for (Class macroClass : StandardMacros.STANDARD_MACROS) {
+        for (Class macroClass : implementations) {
             try {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
                 macroImplementation.init(pwmApplication,userInfoBean,userDataReader);
