@@ -56,7 +56,7 @@
 </script>
 <% } %>
 <p>
-    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+    <span class="fa fa-chevron-circle-right"></span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
            id="PwmResponse_R_<%=indexKey%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
@@ -85,7 +85,7 @@
     </select>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_GLOBAL['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
+            PWM_VAR['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
             require(["dijit/registry","dojo/parser","dijit/form/Select"],function(registry,parser){
                 parser.parse();
             });
@@ -93,7 +93,7 @@
     </script>
 </h2>
 <p>
-    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+    <span class="fa fa-chevron-circle-right"></span>
     <input type="password" name="PwmResponse_R_Random_<%=index%>" class="inputfield" maxlength="255" type="text"
            id="PwmResponse_R_Random_<%=index%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses()"/>
@@ -106,7 +106,7 @@
         if (!challenge.isRequired()) {
     %>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_GLOBAL['simpleRandomOptions'].push('<%=StringEscapeUtils.escapeJavaScript(challenge.getChallengeText())%>')
+        PWM_VAR['simpleRandomOptions'].push('<%=StringEscapeUtils.escapeJavaScript(challenge.getChallengeText())%>')
     });
     <% } %>
     <% } %>
@@ -138,7 +138,7 @@
           class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <% } %>
 <p>
-    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+    <span class="fa fa-chevron-circle-right"></span>
     <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>

@@ -20,14 +20,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-var responsesHidden = true;
 var PARAM_RESPONSE_PREFIX = "PwmResponse_R_";
 var PARAM_QUESTION_PREFIX = "PwmResponse_Q_";
 
-PWM_GLOBAL['simpleRandomSelectElements'] = {};
-PWM_GLOBAL['simpleRandomOptions'] = [];
-
 var PWM_RESPONSES = PWM_RESPONSES || {};
+var PWM_VAR = PWM_VAR || {};
+
+PWM_VAR['simpleRandomSelectElements'] = {};
+PWM_VAR['simpleRandomOptions'] = [];
+
 
 // takes response values in the fields, sends an http request to the servlet
 // and then parses (and displays) the response from the servlet.
@@ -85,13 +86,13 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
             PWM_GLOBAL['randomSelectEventHandlers'] = new Array();
 
             // all possible random questions (populated by the jsp)
-            var allPossibleTexts = PWM_GLOBAL['simpleRandomOptions'];
+            var allPossibleTexts = PWM_VAR['simpleRandomOptions'];
 
             // string that is used at the top of unconfigured select list
             var initialChoiceText = PWM_MAIN.showString('Display_SelectionIndicator');
 
             // the HTML select elements (populated by the jsp)
-            var simpleRandomSelectElements = PWM_GLOBAL['simpleRandomSelectElements'];
+            var simpleRandomSelectElements = PWM_VAR['simpleRandomSelectElements'];
 
             // texts that are in use
             var currentlySelectedTexts = [];
@@ -114,7 +115,7 @@ PWM_RESPONSES.makeSelectOptionsDistinct=function() {
                     if (selectedValue == 'UNSELECTED') {
                         PWM_MAIN.getObject(questionID).disabled = true;
                         PWM_MAIN.getObject(questionID).readonly = true;
-                        dataOptions.push({id:'UNSELECTED',label:'&nbsp;&nbsp---' + initialChoiceText + '---'})
+                        dataOptions.push({id:'UNSELECTED',label:'&nbsp;&mdash;&nbsp;' + initialChoiceText + '&nbsp;&mdash;&nbsp;'})
                     } else {
                         selectWidget.removeOption('UNSELECTED');
                         PWM_MAIN.getObject(questionID).disabled = false;

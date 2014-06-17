@@ -753,6 +753,16 @@ public enum PwmSetting {
             "peopleSearch.result.limit", PwmSettingSyntax.NUMERIC, Category.PEOPLE_SEARCH),
     PEOPLE_SEARCH_USE_PROXY(
             "peopleSearch.useProxy", PwmSettingSyntax.BOOLEAN, Category.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_DISPLAY_NAME(
+            "peopleSearch.displayName.user", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_PHOTO_ATTRIBUTE(
+            "peopleSearch.photo.ldapAttribute", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_PHOTO_URL_OVERRIDE(
+            "peopleSearch.photo.urlOverride", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_PHOTO_STYLE_ATTR(
+            "peopleSearch.photo.style", PwmSettingSyntax.STRING, Category.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_MAX_CACHE_SECONDS(
+            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.NUMERIC, Category.PEOPLE_SEARCH),
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(

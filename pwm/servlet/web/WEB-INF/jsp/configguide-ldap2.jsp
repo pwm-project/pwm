@@ -62,7 +62,8 @@
                     A default value has been generated but you may need to change it to be appropriate to your directory.
                     <div class="setting_item">
                         <b>LDAP Contextless Login Root</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
@@ -92,7 +93,8 @@
                     but any valid LDAP search filter can be used.
                     <div class="setting_item">
                         <b>Administrator Search Filter</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){

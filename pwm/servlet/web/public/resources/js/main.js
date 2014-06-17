@@ -538,6 +538,13 @@ PWM_MAIN.showWaitDialog = function(options) {
         options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>'
         options['width'] = 350;
         options['showOk'] = false;
+
+        /*
+        var overlayDiv = document.createElement('div');
+        overlayDiv.setAttribute("style","background-color: #000; opacity: .5; filter: alpha(opacity=50); position: absolute; top: 0; left: 0; width: 100%; height: 100%;z-index: 10;");
+        document.body.appendChild(overlayDiv);
+        */
+
         PWM_MAIN.showDialog(options);
     });
 };
@@ -560,7 +567,7 @@ PWM_MAIN.showDialog = function(options) {
     PWM_VAR['dialog_loadFunction'] = loadFunction;
 
     var bodyText = '';
-    bodyText += '<p>' + text + '</p>';
+    bodyText += text;
     if (showOk) {
         bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
@@ -1478,4 +1485,13 @@ PWM_MAIN.TimestampHandler.toggleElement = function(element) {
             element.setAttribute('data-timestamp-state','localized');
         }
     })
+};
+
+PWM_MAIN.addPwmFormIDtoURL = function(url) {
+    if (!url || url.length < 1) {
+        return '';
+    }
+    url += url.contains('?') ? '&' : '?';
+    url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    return url;
 };

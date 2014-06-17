@@ -20,9 +20,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.servlet.PeopleSearchBean" %>
-<%@ page import="password.pwm.ldap.UserSearchEngine" %>
 <%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -36,111 +35,53 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PeopleSearch"/>
     </jsp:include>
-    <div id="centerbody">
-        <form action="<pwm:url url='PeopleSearch'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
-            <%@ include file="fragment/message.jsp" %>
-            <p>&nbsp;</p>
+    <div id="centerbody" class="wide">
+        <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
+            <br/>
+            <table style="border: 0; margin-left: auto; margin-right: auto; max-width: 450px">
+                <tr style="border: 0">
+                    <td style="border:0" colspan="10">
+                        <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
+                    </td>
+                </tr>
+                <tr style="border: 0">
+                    <td style="border:0">
+                        <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
+                              id="searchForm" onkeyup="PWM_PS.processPeopleSearch();" onchange="PWM_PS.processPeopleSearch()"
+                              onsubmit="return false">
+                            <input type="search" id="username" name="username" class="inputfield" style="width: 400px"
+                                   value="<%=peopleSearchBean.getSearchString()!=null?peopleSearchBean.getSearchString():""%>" autofocus/>
 
-            <p><pwm:Display key="Display_PeopleSearch"/></p>
-            <input type="search" id="username" name="username" class="inputfield"
-                   value="<%=peopleSearchBean.getSearchString()!=null?peopleSearchBean.getSearchString():""%>"/>
-            <input type="submit" class="btn"
-                   name="search"
-                   value="<pwm:Display key="Button_Search"/>"
-                   id="submitBtn"/>
-            <input type="hidden"
-                   name="processAction"
-                   value="search"/>
-            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                    onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                <pwm:Display key="Button_Cancel"/>
-            </button>
-            <% } %>
-        </form>
-        <br class="clear"/>
-        <% final UserSearchEngine.UserSearchResults searchResults = peopleSearchBean.getSearchResults(); %>
-        <% if (searchResults != null) { %>
-        <% final Gson gson = Helper.getGson(); %>
-        <noscript>
-            <span>Javascript is required to view this page.</span>
-            <%--
-            <div style="max-height: 360px; overflow: auto;">
-                <table>
-                    <tr>
-                        <% for (final String keyName : searchResults.getHeaders()) { %>
-                        <td class="key" style="text-align: left; white-space: nowrap;">
-                            <%=keyName%>
-                        </td>
-                        <% } %>
-                    </tr>
-                    <% for (final String userDN: searchResults.getResults().keySet()) { %>
-                    <tr>
-                        <% for (final String attribute : searchResults.getAttributes()) { %>
-                        <% final String value = searchResults.getResults().get(userDN).get(attribute); %>
-                        <% final String userKey = PeopleSearchServlet.makeUserDetailKey(userDN,pwmSession); %>
-                        <td id="userDN-<%=userDN%>">
-                        <a href="PeopleSearch?pwmFormID=<%=Helper.buildPwmFormID(pwmSession.getSessionStateBean())%>&processAction=detail&userKey=<%=userKey%>">
-                        <%= value == null || value.length() < 1 ? "&nbsp;" : value %>
-                        </a>
-                        </td>
-                        <% } %>
-                    </tr>
-                    <% } %>
-                </table>
-            </div>
-            --%>
-        </noscript>
-        <div id="waitMessage" style="width:100%; text-align: center; display: none">
-            <pwm:Display key="Display_PleaseWait"/>
+                        </form>
+                    </td>
+                    <td style="border:0;">
+                        <div id="searchIndicator" style="visibility: hidden">
+                            <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                        </div>
+                    </td>
+                    <td style="border:0;">
+                        <div id="maxResultsIndicator" style="visibility: hidden;">
+                            <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <noscript>
+                <span>Javascript is required to view this page.  </span>
+                <a href="<%=request.getContextPath()%>"><pwm:Display key="Title_MainPage"/></a>
+            </noscript>
+            <br/>
         </div>
         <div id="grid">
         </div>
-        <script async="async">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                require(["dojo/domReady!"],function(){
-                    PWM_MAIN.getObject("waitMessage").style.display = 'inline';
-                    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
-                            function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                                var data = <%=gson.toJson(searchResults.resultsAsJsonOutput(pwmApplicationHeader))%>;
-                                var columnHeaders = <%=gson.toJson(searchResults.getHeaderAttributeMap())%>;
-
-                                // Create a new constructor by mixing in the components
-                                var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
-
-                                // Now, create an instance of our custom grid which
-                                // have the features we added!
-                                var grid = new CustomGrid({
-                                    columns: columnHeaders
-                                }, "grid");
-                                grid.renderArray(data);
-                                grid.set("sort","<%=searchResults.getHeaderAttributeMap().keySet().iterator().next()%>");
-                                grid.on(".dgrid-row .dgrid-cell:click", function(evt){
-                                    var row = grid.row(evt);
-                                    loadDetails(row.data['userKey']);
-                                });
-                                PWM_MAIN.getObject("waitMessage").style.display = 'none';
-                            });
-                });
-            });
-        </script>
-        <style scoped="scoped">
-            .dgrid { height: auto; }
-            .dgrid .dgrid-scroller { position: relative; max-height: 360px; overflow: auto; }
-        </style>
         <br/>
-        <% if (searchResults.isSizeExceeded()) { %>
-        <div style="width:100%; text-align: center; font-size: smaller">
-            <pwm:Display key="Display_SearchResultsExceeded"/>
+        <div style="text-align: center;">
+            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
+                    onclick="window.location=PWM_GLOBAL['url-context']">
+                <span class="btn-icon fa fa-home"></span>
+                <pwm:Display key="Button_Home"/>
+            </button>
         </div>
-        <% } %>
-        <% } else if (peopleSearchBean.getSearchString() != null && peopleSearchBean.getSearchString().length() > 0) { %>
-        <div style="width:100%; text-align: center">
-            <pwm:Display key="Display_SearchResultsNone"/>
-        </div>
-        <% } %>
     </div>
     <div class="push"></div>
 </div>
@@ -149,20 +90,15 @@
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
-<script type="text/javascript">
-    function loadDetails(userKey) {
-        PWM_MAIN.showWaitDialog({loadFunction:function(){
-            setTimeout(function () {
-                PWM_MAIN.getObject("userKey").value = userKey;
-                PWM_MAIN.getObject("loadDetailsForm").submit();
-            }, 10);
-        }});
-    }
-
+<script>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('username').focus();
+        PWM_VAR['peoplesearch_search_columns'] = <%=Helper.getGson().toJson(peopleSearchBean.getSearchColumnHeaders())%>;
+        PWM_VAR['photo_style_attribute'] = '<%=StringEscapeUtils.escapeJavaScript(pwmApplicationHeader.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR))%>';
+        PWM_PS.initPeopleSearchPage();
+        PWM_MAIN.getObject('username').focus()
     });
 </script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -297,8 +297,11 @@ public class IntruderManager implements Serializable, PwmService {
             if (!manager.isAlerted(subject) ) {
                 if (recordType == RecordType.USER_ID) {
                     final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication.getConfig());
-                    final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(AuditEvent.INTRUDER_LOCK,
-                            userIdentity, pwmSession);
+                    final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+                            AuditEvent.INTRUDER_LOCK,
+                            userIdentity,
+                            pwmSession
+                    );
                     pwmApplication.getAuditManager().submit(auditRecord);
                     sendAlert(manager.readIntruderRecord(subject));
                 }

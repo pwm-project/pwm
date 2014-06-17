@@ -568,19 +568,15 @@ public class HelpdeskServlet extends TopServlet {
             service.clearOTPUserConfiguration(pwmSession, userIdentity);
             {
                 // mark the event log
-                //@todo
-                /*
                 final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
-                        AuditEvent.EVENT,
+                        AuditEvent.HELPDESK_CLEAR_OTP_SECRET,
                         pwmSession.getUserInfoBean().getUserIdentity(),
-                        new Date(),
                         null,
                         userIdentity,
                         pwmSession.getSessionStateBean().getSrcAddress(),
                         pwmSession.getSessionStateBean().getSrcHostname()
                 );
                 pwmApplication.getAuditManager().submit(auditRecord);
-                */
             }
         } catch (PwmOperationalException e) {
             final PwmError returnMsg = e.getError();

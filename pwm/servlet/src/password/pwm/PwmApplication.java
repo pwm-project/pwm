@@ -47,6 +47,7 @@ import password.pwm.ldap.LdapConnectionService;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
+import password.pwm.util.cache.CacheService;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
@@ -119,7 +120,7 @@ public class PwmApplication {
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Map<Class,PwmService> pwmServices = new LinkedHashMap<Class, PwmService>();
+    private final Map<Class<? extends PwmService>,PwmService> pwmServices = new LinkedHashMap<Class<? extends PwmService>, PwmService>();
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
@@ -129,7 +130,7 @@ public class PwmApplication {
 
     private MODE applicationMode;
 
-    private static final List<Class> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.<Class>asList(
+    private static final List<Class<? extends PwmService>> PWM_SERVICE_CLASSES  = Collections.unmodifiableList(Arrays.asList(
             LdapConnectionService.class,
             DatabaseAccessorImpl.class,
             SharedHistoryManager.class,
@@ -147,7 +148,8 @@ public class PwmApplication {
             CrService.class,
             ReportService.class,
             CrService.class,
-            OtpService.class
+            OtpService.class,
+            CacheService.class
     ));
 
     private static final List<Package> LOGGING_PACKAGES  = Collections.unmodifiableList(Arrays.asList(
@@ -497,6 +499,10 @@ public class PwmApplication {
 
     public CrService getCrService() {
         return (CrService)pwmServices.get(CrService.class);
+    }
+
+    public CacheService getCacheService() {
+        return (CacheService)pwmServices.get(CacheService.class);
     }
 
     public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {

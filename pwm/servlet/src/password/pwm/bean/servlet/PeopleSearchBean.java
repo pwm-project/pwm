@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,12 @@ package password.pwm.bean.servlet;
 import password.pwm.bean.PwmSessionBean;
 import password.pwm.ldap.UserSearchEngine;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class PeopleSearchBean implements PwmSessionBean {
     private String searchString;
-    private UserSearchEngine.UserSearchResults searchResults;
+    private Map<String,String> searchColumnHeaders = Collections.emptyMap();
     private UserSearchEngine.UserSearchResults searchDetails;
 
     public String getSearchString() {
@@ -38,12 +41,14 @@ public class PeopleSearchBean implements PwmSessionBean {
         this.searchString = searchString;
     }
 
-    public UserSearchEngine.UserSearchResults getSearchResults() {
-        return searchResults;
+    public Map<String, String> getSearchColumnHeaders()
+    {
+        return searchColumnHeaders;
     }
 
-    public void setSearchResults(UserSearchEngine.UserSearchResults searchResults) {
-        this.searchResults = searchResults;
+    public void setSearchColumnHeaders(Map<String, String> searchColumnHeaders)
+    {
+        this.searchColumnHeaders = searchColumnHeaders;
     }
 
     public UserSearchEngine.UserSearchResults getSearchDetails() {

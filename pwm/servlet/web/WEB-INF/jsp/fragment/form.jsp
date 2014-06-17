@@ -75,7 +75,10 @@
 <% } %>
 <% boolean readonly = loopConfiguration.isReadonly() || forceReadOnly; %>
 <% if (readonly) { %>
-<span id="<%=loopConfiguration.getName()%>">&nbsp;<%="\u00bb"%>&nbsp;&nbsp;<%= currentValue %></span>
+<span id="<%=loopConfiguration.getName()%>">
+        <span class="fa fa-chevron-circle-right"></span>
+    <%= currentValue %>
+</span>
 <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
 <select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px">
     <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>

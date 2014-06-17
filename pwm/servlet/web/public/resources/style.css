@@ -97,7 +97,7 @@ table td.key {
     text-align: right;
     font-weight: bold;
     padding-right: 10px;
-    width: 40%;
+    max-width: 40%;
 }
 
 .health-GOOD {
@@ -224,7 +224,10 @@ input[type=password]::-ms-reveal{display: none;}
     color: white;
     background: #3e374c;
     cursor: pointer;
+}.btn:disabled {
+      color: #656565;
 }
+
 
 #WaitDialogBlank {
     height: 46px;
@@ -614,4 +617,13 @@ img.qrcodeimage {
     display: none;
     opacity:0.6;
     background-color: black;
+}
+
+#userPhotoParentDiv {
+    width: 100%;
+    text-align: center;
+}
+
+#userPhotoImage {
+    border: 2px solid #D4D4D4;
 }

@@ -176,7 +176,6 @@ public abstract class PwmConstants {
         SHORTCUT("shortcut.jsp"),
         CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
-        PEOPLE_SEARCH_DETAIL("peoplesearch-detail.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SETTINGS("fragment/configeditor-settings.jsp"),
         CONFIG_MANAGER_EDITOR_LOCALEBUNDLE("fragment/configeditor-localeBundle.jsp"),

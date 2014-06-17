@@ -57,7 +57,8 @@
                     Enter the connection information for your ldap server.  After the configuration wizard is completed you can enter additional servers.  Do not use an IP address, and do not use a virtual-ip or proxy server address.
                     <div class="setting_body">
                         <b>LDAP Server Hostname</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
@@ -82,7 +83,7 @@
                             </tr>
                             <tr style="border:0; padding:0">
                                 <td style="border:0; padding:0">
-                                    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                                    <span class="fa fa-chevron-circle-right"></span>
                                     <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
                                     <script type="text/javascript">
                                         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -100,7 +101,7 @@
                                     </script>
                                 </td>
                                 <td style="border:0; padding:0">
-                                    <span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                                    <span class="fa fa-chevron-circle-right"></span>
                                     <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
                                     <script type="text/javascript">
                                         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -142,7 +143,8 @@
                     administer the users that will be logging into this system.
                     <div class="setting_item">
                         <b>Proxy/Admin LDAP DN</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
@@ -159,7 +161,8 @@
                     </div>
                     <div class="setting_item">
                         <b>Password</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){

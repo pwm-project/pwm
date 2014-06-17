@@ -48,7 +48,7 @@
         </h2>
 
         <p>
-            &nbsp;<%="\u00bb"%>&nbsp;
+            <span class="fa fa-chevron-circle-right"></span>
             <%= StringEscapeUtils.escapeHtml(responseText) %>
         </p>
         <% } %>
@@ -61,7 +61,7 @@
         </h2>
 
         <p>
-            &nbsp;<%="\u00bb"%>&nbsp;
+            <span class="fa fa-chevron-circle-right"></span>
             <%= StringEscapeUtils.escapeHtml(responseText) %>
         </p>
         <% } %>

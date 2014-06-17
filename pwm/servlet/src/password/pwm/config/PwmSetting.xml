@@ -428,7 +428,7 @@
     </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
-        <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because you have manually added the public key certificate from the tree to the Java keystore or the certificate is imported into the setting <i>LDAP Server Certificates</i>.</p> <p><b>WARNING</b>: Avoid using non-secure connections for all but the most basic testing purposes.  Many LDAP servers will reject password operations on non-secure connections.</p><ul><li>Do not use a load-balancing device for LDAP high availability, instead use the built in LDAP server fail-over functionality.</li><li>Do not use a DNS round-robin address</li></ul>]]></description>
+        <description><![CDATA[List of ldap servers in URL format.  Each of these these servers will be used in a fail-over configuration.  The servers are used in order of appearance in this list.  If the first server is unavailable the next available server in the list will be used.  The first server will periodically be checked to see if it has become available.<ul><li>For secure SSL, use the "<i>ldaps://servername:636</i>" format</li><li>For plain-text servers, use "<i>ldap://serverame:389</i>" format (not recommended)</li></ul><p>When using secure connections, the Java virtual machine must trust the directory server, either because you have manually added the public key certificate from the tree to the Java keystore or the certificate is imported into the setting <i>LDAP Server Certificates</i>.<ul><li>Do not use a non-secure connection for anything but the most basic testing purposes (Many LDAP servers will reject password operations on non-secure connections)</li><li>Do not use a load-balancing device for LDAP high availability, instead use the built in LDAP server fail-over functionality</li><li>Do not use a DNS round-robin address</li><li>Avoid using the network address, use the proper fully-qualified domain name address for the server</li></ul>]]></description>
         <regex>^(ldap|ldaps)://[a-zA-Z0-9.-]+:[0-9]+$</regex>
         <default>
             <value><![CDATA[ldaps://ldap.example.com:636]]></value>
@@ -1688,6 +1688,7 @@
             <option value="ACTIVATE_USER">Activate User</option>
             <option value="CREATE_USER">New User</option>
             <option value="UPDATE_PROFILE">Update Profile</option>
+            <option value="INTRUDER_ATTEMPT">Intruder Attempt</option>
             <option value="INTRUDER_LOCK">Intruder Lock</option>
             <option value="TOKEN_ISSUED">Token Issued</option>
             <option value="TOKEN_CLAIMED">Token Claimed</option>
@@ -2255,7 +2256,7 @@
     </setting>
     <setting key="challenge.requiredAttributes" level="0">
         <label>Required Attributes</label>
-        <description><![CDATA[Required ldap attributes for challenge/response.  These attributes will be required to be supplied by the user as part of the forgotten password mechanism.   The ldap proxy user will require "compare" ldap rights to these attributes.]]></description>
+        <description><![CDATA[Required LDAP attributes for forgotten password authentication.  These attributes will be required to be supplied by the user as part of the forgotten password autentication process.   The LDAP Proxy User will require LDAP <i>compare</i> permission to these attributes.]]></description>
         <default />
     </setting>
     <setting key="challenge.requireResponses" level="0">
@@ -2397,7 +2398,7 @@
     </setting>
     <setting key="newUser.form" level="0" required="true">
         <label>New User Form</label>
-        <description><![CDATA[<p>New User form creation attributes/fields.</p><p>To control the LDAP entry name of the newly created user, the <i>LDAP Naming Attribute</i> must be included as a form value and the settings <i>Random Username Characters (Advanced)</i> and <i>Random Username Length (Advanced)</i> must be set to blank and 0.  If this is not the case, then the LDAP entry name will be randomly generated.</p>]]></description>
+        <description><![CDATA[<p>New User form creation attributes/fields.]]></description>
         <default>
             <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"unique":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"placeholder":"username@example.com","selectOptions":{}}</value>
             <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
@@ -2419,7 +2420,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="newUser.username.definition" level="0">
+    <setting key="newUser.username.definition" level="0" required="true">
         <label>LDAP Entry ID Definition</label>
         <description><![CDATA[
         <p>This setting controls the entry id of the newly created LDAP entry.  In some directories this is often used
@@ -2774,35 +2775,77 @@
         <label>PeopleSearch Detail Form</label>
         <description><![CDATA[Field(s) to be shown during the detail view of of an individual.]]></description>
         <default>
-            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"ou","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Department"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"businessCategory","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Business Category"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"company","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Company"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"street","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Street"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"physicalDeliveryOfficeName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"City"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"st","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"State"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"l","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Location"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"employeeType","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Type"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"givenName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"First Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"fullName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Full Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"telephoneNumber","minimumLength":1,"maximumLength":64,"type":"tel","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Telephone Number"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"title","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Title"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"ou","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Department"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"businessCategory","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Business Category"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"company","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Company"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"street","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Street"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"physicalDeliveryOfficeName","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"City"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"st","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"State"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"l","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Location"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeType","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Employee Type"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"employeeStatus","minimumLength":1,"maximumLength":64,"type":"text","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Employee Status"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"assistant","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Assistant"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"manager","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Manager"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"directReports","minimumLength":1,"maximumLength":64,"type":"userDN","required":false,"confirmationRequired":false,"readonly":true,"labels":{"":"Direct Reports"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
+        <options>
+            <option value="type-userDN">show</option>
+            <option value="readonly">true</option>
+        </options>
     </setting>
     <setting key="peopleSearch.result.limit" level="0" required="true">
-        <label>PeopleSearch result limit</label>
+        <label>PeopleSearch Result Limit</label>
         <description><![CDATA[Maximum number of records to return while searching.]]></description>
         <default>
             <value>100</value>
         </default>
     </setting>
     <setting key="peopleSearch.useProxy" level="1" required="true">
-        <label>Use proxy account</label>
+        <label>Use Proxy Account</label>
         <description><![CDATA[Use ldap proxy account to perform searches.  For proper security in most environments this setting should <b>not</b> be enabled.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.displayName.user" level="0" required="true">
+        <label>User Name Display</label>
+        <description><![CDATA[Display name for user in PeopleSearch detail.  May use <b>@LDAP:x@</b> macros, but other macros will not work.]]></description>
+        <default>
+            <value>@LDAP:givenName@ @LDAP:sn@ - @LDAP:title@</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.photo.ldapAttribute" level="1">
+        <label>LDAP Photo Attribute</label>
+        <description><![CDATA[LDAP Attribute to use for photo.  Or blank, if no photo is to be displayed.]]></description>
+        <default>
+            <value>photo</value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.photo.urlOverride" level="1">
+        <label>Photo URL Override</label>
+        <description><![CDATA[If the user's photo is not stored in ldap, this URL can be specified to load the photo for the user detail.  May use <b>@LDAP:x@</b> macros, but other macros will not work.  If this setting is specified, the photo will not be loaded from the LDAP directory.]]></description>
+        <default>
+            <value></value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.photo.style" level="1">
+        <label>LDAP Photo HTML Style Attribute</label>
+        <description><![CDATA[When displaying the photo, the value for this attribute will be used to specify the HTML <i>&lt;img&gt;</i> tag's <i>style</i> attribute.  Any valid CSS style attribute can be used.  Typically this is used to specify the height and width of the photo such as "<i>height: 100px; width: 100px</i>".]]></description>
+        <default>
+            <value></value>
+        </default>
+    </setting>
+    <setting key="peopleSearch.maxCacheSeconds" level="1">
+        <label>PeopleSearch Maximum Cache Seconds</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value>3600</value>
         </default>
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="0" required="true">

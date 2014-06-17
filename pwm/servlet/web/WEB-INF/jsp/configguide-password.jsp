@@ -58,7 +58,8 @@
                     you wish to modify the configuration using the web based configuration manager.
                     <div class="setting_item">
                         <b>Configuration Password</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" />
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
@@ -80,7 +81,8 @@
                     </div>
                     <div class="setting_item">
                         <b>Verify Configuration Password</b>
-                        <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                        <br/>
+                        <span class="fa fa-chevron-circle-right"></span>
                         <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" />
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"

@@ -110,6 +110,8 @@ public enum AppProperty {
     NMAS_THREADS_WATCHDOG_FREQUENCY                 ("nmas.threads.watchdogFrequencyMs"),
     OAUTH_ID_REQUEST_TYPE                           ("oauth.id.requestType"),
     OAUTH_ID_GRANT_TYPE                             ("oauth.id.grantType"),
+    PEOPLESEARCH_DISPLAYNAME_USEALLMACROS           ("peoplesearch.displayName.enableAllMacros"),
+    PEOPLESEARCH_MAX_VALUE_COUNT                    ("peoplesearch.maxValueCount"),
     QUEUE_EMAIL_RETRY_TIMEOUT_MS                    ("queue.email.retryTimeoutMs"),
     QUEUE_EMAIL_MAX_AGE_MS                          ("queue.email.maxAgeMs"),
     QUEUE_EMAIL_MAX_COUNT                           ("queue.email.maxCount"),

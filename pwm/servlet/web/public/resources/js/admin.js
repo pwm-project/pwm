@@ -449,16 +449,19 @@ PWM_ADMIN.initAuditGrid=function() {
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetLdapProfile').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
+            PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-instance').click();
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
             PWM_ADMIN.refreshAuditGridData();
         });
 };
 
-PWM_ADMIN.refreshAuditGridData=function() {
+PWM_ADMIN.refreshAuditGridData=function(maximum) {
     require(["dojo"],function(dojo){
         PWM_VAR['auditUserGrid'].refresh();
         PWM_VAR['auditSystemGrid'].refresh();
-        var maximum = PWM_MAIN.getObject('maxAuditGridResults').value;
+        if (!maximum) {
+            maximum = 1000;
+        }
         var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
         dojo.xhrGet({
             url: url,
@@ -487,7 +490,7 @@ PWM_ADMIN.refreshAuditGridData=function() {
                         })(item);
                     }
                     text += '</table>';
-                    PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,loadFunction:function(){
+                    PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,showClose:true,loadFunction:function(){
                         PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('dialog_timestamp'));
                     }});
                 };

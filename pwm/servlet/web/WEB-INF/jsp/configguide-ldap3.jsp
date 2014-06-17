@@ -65,7 +65,8 @@
                     <div class="setting_item">
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
                             <b>LDAP Test User DN</b>
-                            <br/><span>&nbsp;<%="\u00bb"%>&nbsp;&nbsp;</span>
+                            <br/>
+                            <span class="fa fa-chevron-circle-right"></span>
                             <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){

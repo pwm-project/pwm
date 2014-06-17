@@ -414,7 +414,7 @@ MultiTableHandler.draw = function(settingKey) {
 
         var addItemButton = document.createElement("button");
         addItemButton.setAttribute("type", "[button");
-        addItemButton.setAttribute("onclick", "MultiTableHandler.addValueHandler('" + settingKey + "');");
+        addItemButton.setAttribute("onclick", "MultiTableHandler.valueHandler('" + settingKey + "',-1);");
         addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
         addItemButton.innerHTML = "Add Value";
         newTableData.appendChild(addItemButton);
@@ -428,9 +428,12 @@ MultiTableHandler.draw = function(settingKey) {
     });
 };
 
-MultiTableHandler.addValueHandler = function(settingKey) {
-    var text = '<div>' + PWM_SETTINGS['settings'][settingKey]['description'] + '</div><hr/>'
-        + '<input style="width: 500px" required="required" id="addValueDialog_input"/>';
+MultiTableHandler.valueHandler = function(settingKey, iteration) {
+    var text = '';
+    if (iteration == -1) {
+        text += '<div>' + PWM_SETTINGS['settings'][settingKey]['description'] + '</div><hr/>';
+    }
+    text += '<input style="width: 500px" required="required" id="addValueDialog_input"/>';
 
     var changeFunction = function() {
         PWM_VAR['addDialog_value'] = this.value;
@@ -438,8 +441,8 @@ MultiTableHandler.addValueHandler = function(settingKey) {
     };
 
     var loadFunction = function() {
+        var value = iteration > -1 ? clientSettingCache[settingKey][iteration] : '';
         PWM_MAIN.getObject('dialog_ok_button').disabled = true;
-        //PWM_MAIN.getObject('dialog_ok_button').innerHTML = 'Add Value';
         require(["dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox"],function(dojoParser,Button,ValidationTextBox) {
             new ValidationTextBox({
                 id:"addValueDialog_input",
@@ -447,6 +450,7 @@ MultiTableHandler.addValueHandler = function(settingKey) {
                 style: 'width: 500px',
                 required: true,
                 invalidMessage: 'The value does not have the correct format',
+                value: value,
                 onChange: changeFunction,
                 onKeyUp: changeFunction
             },"addValueDialog_input");
@@ -455,13 +459,17 @@ MultiTableHandler.addValueHandler = function(settingKey) {
 
     var okAction = function() {
         var value = PWM_VAR['addDialog_value'];
-        clientSettingCache[settingKey].push(value);
+        if (iteration > -1) {
+            clientSettingCache[settingKey][iteration] = value;
+        } else {
+            clientSettingCache[settingKey].push(value);
+        }
         writeSetting(settingKey, clientSettingCache[settingKey]);
         MultiTableHandler.draw(settingKey);
     };
 
     PWM_MAIN.showDialog({
-        title:PWM_SETTINGS['settings'][settingKey]['label'] + " - Add Value",
+        title:PWM_SETTINGS['settings'][settingKey]['label'] + " - " + (iteration > -1 ? "Edit" : "Add") + " Value",
         text:text,
         loadFunction:loadFunction,
         width:550,
@@ -480,8 +488,9 @@ MultiTableHandler.drawRow = function(settingKey, iteration, value, itemCount) {
     // clear the old dijit node (if it exists)
     PWM_MAIN.clearDijitWidget(inputID);
 
-    var newTableRow = document.createElement("tr");
-    newTableRow.setAttribute("style", "border-width: 0");
+    var valueRow = document.createElement("tr");
+    valueRow.setAttribute("style", "border: 0");
+    valueRow.setAttribute("id",inputID + "_row");
     {
         var td1 = document.createElement("td");
         td1.setAttribute("width", "100%");
@@ -491,36 +500,45 @@ MultiTableHandler.drawRow = function(settingKey, iteration, value, itemCount) {
         inputElement.setAttribute("id", inputID);
         inputElement.setAttribute("value", value);
         inputElement.setAttribute("readonly",null);
-        inputElement.setAttribute("style", "width: 540px; color: black");
+        inputElement.setAttribute("style", "width: 530px; color: black");
         inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+        inputElement.setAttribute("onclick", "MultiTableHandler.valueHandler('" + settingKey + "'," + iteration + ")");
         td1.appendChild(inputElement);
-        newTableRow.appendChild(td1);
+        valueRow.appendChild(td1);
 
+        var deleteColumn = document.createElement("td");
         if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
             var deleteButton = document.createElement("span");
             deleteButton.setAttribute("class", "action-icon fa fa-times");
+            deleteButton.setAttribute("style", "color: #880000");
             deleteButton.setAttribute("onclick", "MultiTableHandler.removeValue('" + settingKey + "','" + iteration + "')");
-            td1.appendChild(deleteButton);
+            deleteColumn.appendChild(deleteButton);
         }
+        deleteColumn.setAttribute("style", "border-width: 0;");
+        valueRow.appendChild(deleteColumn);
 
+        var moveDownColumn = document.createElement("td");
         if (itemCount > 1 && iteration != (itemCount -1)) {
             var moveDownButton = document.createElement("span");
-            moveDownButton.setAttribute("class", "action-icon fa fa-caret-square-o-down");
-            moveDownButton.setAttribute("style", "margin-left: 2px;");
+            moveDownButton.setAttribute("class", "action-icon fa fa-chevron-down");
             moveDownButton.setAttribute("onclick", "MultiTableHandler.move('" + settingKey + "',false,'" + iteration + "')");
-            td1.appendChild(moveDownButton);
+            moveDownColumn.appendChild(moveDownButton);
         }
+        moveDownColumn.setAttribute("style", "border-width: 0;");
+        valueRow.appendChild(moveDownColumn);
 
+        var moveUpColumn = document.createElement("td");
         if (itemCount > 1 && iteration != 0) {
             var moveUpButton = document.createElement("span");
-            moveUpButton.setAttribute("class", "action-icon fa fa-caret-square-o-up");
-            moveUpButton.setAttribute("style", "margin-left: 2px;");
+            moveUpButton.setAttribute("class", "action-icon fa fa-chevron-up");
             moveUpButton.setAttribute("onclick", "MultiTableHandler.move('" + settingKey + "',true,'" + iteration + "')");
-            td1.appendChild(moveUpButton);
+            moveUpColumn.appendChild(moveUpButton);
         }
+        moveUpColumn.setAttribute("style", "border-width: 0;");
+        valueRow.appendChild(moveUpColumn);
     }
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    parentDivElement.appendChild(newTableRow);
+    parentDivElement.appendChild(valueRow);
 };
 
 MultiTableHandler.move = function(settingKey, moveUp, iteration) {
@@ -807,6 +825,8 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         }
 
         {
+            var userDNtypeAllowed = clientSettingCache[settingKey + '_options']['type-userDN'] == 'show';
+
             var td3 = document.createElement("td");
             td3.setAttribute("style", "border-width: 0");
             var optionList = PWM_GLOBAL['formTypeOptions'];
@@ -817,12 +837,15 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             typeSelect.setAttribute("onchange","clientSettingCache['" + settingKey + "'][" + iteration + "]['type'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
             for (var optionItem in optionList) {
                 var optionElement = document.createElement("option");
-                optionElement.value = optionList[optionItem];
-                optionElement.innerHTML = optionList[optionItem];
-                if (optionList[optionItem] == clientSettingCache[settingKey][iteration]['type']) {
-                    optionElement.setAttribute("selected","true");
+                if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
+                    optionElement.value = optionList[optionItem];
+                    optionElement.id = inputID + "type_option_" + optionList[optionItem];
+                    optionElement.innerHTML = optionList[optionItem];
+                    if (optionList[optionItem] == clientSettingCache[settingKey][iteration]['type']) {
+                        optionElement.setAttribute("selected", "true");
+                    }
+                    typeSelect.appendChild(optionElement);
                 }
-                typeSelect.appendChild(optionElement);
             }
 
             td3.appendChild(typeSelect);
@@ -1343,7 +1366,7 @@ ChangePasswordHandler.init = function(settingKey,settingName,writeFunction) {
     clientSettingCache[settingKey]['settings']['showFields'] = false;
     ChangePasswordHandler.clear(settingKey);
     ChangePasswordHandler.changePasswordPopup(settingKey);
-}
+};
 
 ChangePasswordHandler.validatePasswordPopupFields = function() {
     require(["dojo","dijit/registry"],function(dojo,registry){
@@ -1445,32 +1468,37 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
     require(["dojo/parser","dijit/registry","dijit/Dialog","dijit/form/Textarea","dijit/form/TextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],
         function(dojoParser,registry,Dialog,Textarea,TextBox)
         {
-            var bodyText = '<div id="changePasswordDialogDiv">';
-            bodyText += '<span id="message" class="message message-info">' + clientSettingCache[settingKey]['settings']['name'] + '</span><br/>';
-            bodyText += '<table style="border: 0">';
-            bodyText += '<tr style="border: 0"><td style="border: 0">';
-            bodyText += '<input name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off">' + '</input>';
-            bodyText += '</td></tr><tr style="border: 0">';
-            bodyText += '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><input name="password2" id="password2" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto;" autocomplete="off"/></input></td>';
+            /*
+             var bodyText = '<div id="changePasswordDialogDiv">'
+             + '<span id="message" class="message message-info">' + clientSettingCache[settingKey]['settings']['name'] + '</span><br/>'
+             */
+            var bodyText = '<table style="border: 0">'
+                + '<tr style="border: 0"><td style="border: 0">' + PWM_MAIN.showString('Field_NewPassword') + '</td></tr>'
+                + '<tr style="border: 0"><td style="border: 0">'
+                + '<input name="password1" id="password1" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto" autocomplete="off">' + '</input>'
+                + '</td></tr><tr style="border:0"><td style="border:0">&nbsp;</td></tr>'
+                + '<tr style="border: 0"><td style="border: 0">' + PWM_MAIN.showString('Field_ConfirmPassword') + '</span></td></tr>'
+                + '<tr style="border: 0">'
+                + '<td style="border: 0" xmlns="http://www.w3.org/1999/html"><input name="password2" id="password2" class="inputfield" style="width: 500px; max-height: 200px; overflow: auto;" autocomplete="off"/></input></td>'
 
-            bodyText += '<td style="border: 0"><div style="margin:0;">';
-            bodyText += '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">';
-            bodyText += '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">';
-            bodyText += '</div></td>';
+                + '<td style="border: 0"><div style="margin:0;">'
+                + '<img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/greenCheck.png">'
+                + '<img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png">'
+                + '</div></td>'
 
-            bodyText += '</tr></table>';
-            bodyText += '<button name="change" class="btn" id="password_button" onclick="' + writeFunction + '" disabled="true"/>';
-            bodyText += 'Store Password</button>&nbsp;&nbsp;';
-            bodyText += '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom(\'' + settingKey + '\')">Random</button>';
-            bodyText += '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="32"/>Length';
-            bodyText += '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit/form/CheckBox" value="10"/>Special';
-            bodyText += '&nbsp;&nbsp;<input type="checkbox" id="show" data-dojo-type="dijit/form/CheckBox" data-dojo-props="checked:' + clientSettingCache[settingKey]['settings']['showFields'] + '" value="10"/>Show';
-            bodyText += '</div>';
+                + '</tr></table>'
+                + '<button name="change" class="btn" id="password_button" onclick="' + writeFunction + '" disabled="true"/>'
+                + '<span class="fa fa-forward btn-icon"></span>Store Password</button>&nbsp;&nbsp;'
+                + '<button id="generateButton" name="generateButton" class="btn" onclick="ChangePasswordHandler.generateRandom(\'' + settingKey + '\')"><span class="fa fa-random btn-icon"></span>Random</button>'
+                + '&nbsp;&nbsp;<input style="width:60px" data-dojo-props="constraints: { min:1, max:102400 }" data-dojo-type="dijit/form/NumberSpinner" id="randomLength" value="32"/>Length'
+                + '&nbsp;&nbsp;<input type="checkbox" id="special" data-dojo-type="dijit/form/CheckBox" value="10"/>Special'
+                + '&nbsp;&nbsp;<input type="checkbox" id="show" data-dojo-type="dijit/form/CheckBox" data-dojo-props="checked:' + clientSettingCache[settingKey]['settings']['showFields'] + '" value="10"/>Show'
+                + '</div>';
 
             PWM_MAIN.clearDijitWidget('dialogPopup');
-            var theDialog = new dijit.Dialog({
+            var theDialog = new Dialog({
                 id: 'dialogPopup',
-                title: 'Store Password',
+                title: 'Store Password - ' + clientSettingCache[settingKey]['settings']['name'],
                 style: "width: 550px",
                 content: bodyText,
                 hide: function(){
@@ -1488,46 +1516,33 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
 
             var p1 = clientSettingCache[settingKey]['settings']['p1'];
             var p2 = clientSettingCache[settingKey]['settings']['p2'];
+            var p1Options = {
+                id: 'password1',
+                style: 'width: 100%',
+                type: 'password',
+                onKeyUp: function(){
+                    clientSettingCache[settingKey]['settings']['p1'] = this.get('value');
+                    ChangePasswordHandler.validatePasswordPopupFields();
+                    registry.byId('password2').set('value','')
+                },
+                value: p1
+            };
+            var p2Options = {
+                id: 'password2',
+                style: 'width: 100%',
+                type: 'password',
+                onKeyUp: function(){
+                    clientSettingCache[settingKey]['settings']['p2'] = this.get('value');
+                    ChangePasswordHandler.validatePasswordPopupFields();
+                },
+                value: p2
+            }
             if (clientSettingCache[settingKey]['settings']['showFields']) {
-                new Textarea({
-                    id: 'password1',
-                    onKeyUp: function(){
-                        clientSettingCache[settingKey]['settings']['p1'] = this.get('value');
-                        ChangePasswordHandler.validatePasswordPopupFields();
-                        registry.byId('password2').set('value','')
-                    },
-                    value: p1
-                },'password1');
-                new Textarea({
-                    id: 'password2',
-                    onKeyUp: function(){
-                        clientSettingCache[settingKey]['settings']['p2'] = this.get('value');
-                        ChangePasswordHandler.validatePasswordPopupFields();
-                    },
-                    value: p2
-                },'password2');
+                new Textarea(p1Options,'password1');
+                new Textarea(p2Options,'password2');
             } else {
-                new TextBox({
-                    id: 'password1',
-                    type: 'password',
-                    style: 'width: 100%',
-                    onKeyUp: function(){
-                        clientSettingCache[settingKey]['settings']['p1'] = this.get('value');
-                        ChangePasswordHandler.validatePasswordPopupFields();
-                        registry.byId('password2').set('value','')
-                    },
-                    value: p1
-                },'password1');
-                new TextBox({
-                    id: 'password2',
-                    type: 'password',
-                    style: 'width: 100%',
-                    onKeyUp: function(){
-                        clientSettingCache[settingKey]['settings']['p2'] = this.get('value');
-                        ChangePasswordHandler.validatePasswordPopupFields();
-                    },
-                    value: p2
-                },'password2');
+                new TextBox(p1Options,'password1');
+                new TextBox(p2Options,'password2');
             }
             PWM_MAIN.getObject('password1').focus();
             ChangePasswordHandler.validatePasswordPopupFields();
@@ -3206,21 +3221,15 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
         htmlBody += '<input type="search" id="settingSearchInput" style="width: 400px" onkeyup="PWM_CFGEDIT.searchDialog(true)"/>';
         htmlBody += '<br/><br/>';
         htmlBody += '<div id="settingSearchResults" style="max-height: 200px; min-height: 200px;overflow-y: auto"></div>';
-        htmlBody += '<br/><br/><button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_MAIN.getObject(\'base-message\').id = \'message\'">Ok</button>';
+        htmlBody += '<br/><br/>';
         htmlBody += '</div>';
         try { PWM_MAIN.getObject('message').id = "base-message"; } catch (e) {}
-        PWM_MAIN.clearDijitWidget('dialogPopup');
-        var theDialog = new dijit.Dialog({
-            id: 'dialogPopup',
-            title: 'Search Settings',
-            style: "width: 500px",
-            content: htmlBody,
-            hide: function(){
-                PWM_MAIN.closeWaitDialog();
-                PWM_MAIN.getObject('base-message').id = "message";
-            }
+        PWM_MAIN.showDialog({
+            title: 'Search Configuration',
+            width: 500,
+            text: htmlBody,
+            showClose: true
         });
-        theDialog.show();
     }
 }
 

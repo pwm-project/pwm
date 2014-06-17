@@ -177,3 +177,17 @@
     font-family: "Courier New", Courier, monospace;
     padding-bottom: 10px;
 }
+
+.btn {
+    font-family: Trebuchet MS, sans-serif;
+    border-radius: 3px;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #3e374c), color-stop(1, #08070f) );
+    background:linear-gradient(to bottom, #3e374c 5%, #08070f 100% );
+}.btn:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #08070f), color-stop(1, #3e374c) );
+     background:linear-gradient(to bottom, #08070f 5%, #3e374c 100% );
+ }.btn:disabled {
+      color: #656565;
+      background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #4f485d), color-stop(1, #191820) );
+      background:linear-gradient(to bottom, #4f485d 5%, #191820 100% );
+  }

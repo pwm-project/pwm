@@ -68,6 +68,7 @@ public enum Message implements DisplayBundleMarker {
     EVENT_LOG_ACTIVATE_USER("EventLog_ActivateUser"),
     EVENT_LOG_CREATE_USER("EventLog_CreateUser"),
     EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
+    EVENT_LOG_INTRUDER_ATTEMPT("EventLog_IntruderAttempt"),
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
     EVENT_LOG_TOKEN_ISSUED("EventLog_TokenIssued"),
     EVENT_LOG_TOKEN_CLAIMED("EventLog_TokenClaimed"),

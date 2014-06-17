@@ -23,8 +23,7 @@
 package password.pwm.config.option;
 
 public enum ResponseAuthenticationMethod implements ConfigurationOption {
-    TOKEN_EMAIL,
-    TOKEN_SMS,
+    TOKEN,
     OTP,
     CHALLENGE_RESPONSES,
     ATTRIBUTES,
