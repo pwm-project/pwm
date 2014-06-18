@@ -22,6 +22,7 @@
 
 package password.pwm.bean;
 
+import com.google.gson.GsonBuilder;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.LdapProfile;
@@ -69,7 +70,7 @@ public class UserIdentity implements Serializable {
     }
 
     public String toString() {
-        return "UserIdentity: " + Helper.getGson().toJson(this);
+        return "UserIdentity: " + Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(this);
     }
 
     public String toObfuscatedKey(final Configuration configuration)

@@ -53,20 +53,38 @@
 <% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
 <div class="profileSelectPanel">
     <label for="profileSelect">Selected Profile:</label>
-    <select class="btn" id="profileSelect" data-dojo-type="dijit/form/Select" onchange="selectProfile()">
-        <option value="">Default</option>
-        <% for (final String profile : profiles) { if (profile.length() > 0) { %>
-        <option <% if (cookie.getProfile().equals(profile)) {%>selected="selected"<%}%> value="<%=profile%>"><%=profile%></option>
-        <% } } %>
-    </select>
-    <button class="btn" onclick="selectProfile()">Go</button>
+    <span id="profileSelect" style="font-weight: bolder"><%="".equals(cookie.getProfile()) ? "Default" : cookie.getProfile() %></span>
+</div>
+<div style="width: 100%; text-align: center">
+    <% if (profiles.size() > 1) { %>
+    <button class="btn" onclick="selectProfile()">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+        Select Profile
+    </button>
     &nbsp;&nbsp;&nbsp;
-    <button class="btn" onclick="editProfiles()">Define Profiles</button>
+    <% } %>
+    <button class="btn" onclick="editProfiles()">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
+        Define Profiles
+    </button>
 </div>
 <script>
     function selectProfile() {
-        var element = PWM_MAIN.getObject("profileSelect");
-        var profile = element.options[element.selectedIndex].value;
+        var htmlBody = '<br/><div style="width:100%; text-align: center">';
+        htmlBody += '<a onclick="gotoProfile(\'\')">' + 'Default' + '</a>';
+        <% for (final String profile : profiles) { %>
+        htmlBody += '<a onclick="gotoProfile(\'<%=profile%>\')">' + '<%=profile%>' + '</a><br/>';
+        <% } %>
+        htmlBody += '</div><br/>';
+        PWM_MAIN.showDialog({
+            title:'Select Profile',
+            text:htmlBody,
+            showOk: false,
+            showCancel: true
+        });
+    }
+
+    function gotoProfile(profile) {
         preferences['profile'] = profile;
 
         PWM_MAIN.showWaitDialog({loadFunction:function(){
@@ -94,12 +112,12 @@
 <% boolean showAdvanced = cookie.getLevel() > 1; %>
 <% if (!advancedSettings.isEmpty()) { %>
 <a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay()">
-    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-down"></span>
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-arrow-down"></span></pwm:if>
     <pwm:Display key="Button_ShowAdvanced" bundle="Config" value1="<%=String.valueOf(advancedSettings.size())%>"/>
 </a>
 <% if (!showAdvanced) { %>
 <a onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay({})" style="cursor:pointer; display: none" id="hideAdvancedSettingsButton">
-    <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-up"></span>
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-arrow-up"></span></pwm:if>
     <pwm:Display key="Button_HideAdvanced" bundle="Config"/>
 </a>
 <% } %>

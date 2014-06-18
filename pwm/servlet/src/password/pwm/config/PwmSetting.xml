@@ -2752,7 +2752,7 @@
         <label>Search Filter</label>
         <description><![CDATA[LDAP search filter to query the directory with.  Substitute <i>%USERNAME%</i> for user supplied username]]></description>
         <default>
-            <value><![CDATA[(&(objectClass=Person)(|((givenName=*%USERNAME%*)(sn=*%USERNAME%*)(mail=*%USERNAME%*)(telephoneNumber=*%USERNAME%*))))]]></value>
+            <value><![CDATA[(&(objectClass=Person)(|(givenName=*%USERNAME%*)(sn=*%USERNAME%*)(mail=*%USERNAME%*)(telephoneNumber=*%USERNAME%*)))]]></value>
         </default>
     </setting>
     <setting key="peopleSearch.searchBase" level="0">

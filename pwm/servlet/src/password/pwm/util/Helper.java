@@ -989,7 +989,7 @@ public class
             final PwmApplication pwmApplication,
             final PwmSession pwmSession,
             final UserIdentity userIdentity,
-            final String queryMatch
+            final String filterString
     )
             throws PwmUnrecoverableException
     {
@@ -997,33 +997,31 @@ public class
             return false;
         }
 
-        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + queryMatch);
+        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + filterString);
 
         boolean result = false;
-
-        if (queryMatch == null || queryMatch.length() < 1) {
-
+        if (filterString == null || filterString.length() < 1) {
             LOGGER.trace(pwmSession, "missing queryMatch value, skipping check");
-        } else if ("(objectClass=*)".equalsIgnoreCase(queryMatch) || "objectClass=*".equalsIgnoreCase(queryMatch)) {
+        } else if ("(objectClass=*)".equalsIgnoreCase(filterString) || "objectClass=*".equalsIgnoreCase(filterString)) {
             LOGGER.trace(pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query");
             result = true;
         } else {
             try {
-                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + queryMatch + "'");
+                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + filterString + "'");
                 final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), queryMatch, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
+                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), filterString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
                 if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
                     result = true;
                 }
             } catch (ChaiException e) {
-                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + queryMatch + ", error:" + e.getMessage());
+                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + filterString + ", error:" + e.getMessage());
             }
         }
 
         if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + queryMatch);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + filterString + "'");
         } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + queryMatch);
+            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + filterString + "'");
         }
         return result;
     }

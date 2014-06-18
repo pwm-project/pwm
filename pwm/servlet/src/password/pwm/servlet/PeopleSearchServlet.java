@@ -393,7 +393,9 @@ public class PeopleSearchServlet extends TopServlet {
         try {
             checkIfUserIdentityPermitted(pwmApplication, pwmSession, userIdentity);
         } catch (PwmOperationalException e) {
+            LOGGER.error(pwmSession, "error during detail results request while checking if requested userIdentity is within search scope: " + e.getMessage());
             ServletHelper.outputJsonResult(resp,RestResultBean.fromError(e.getErrorInformation()));
+            return;
         }
 
         UserSearchEngine.UserSearchResults detailResults = doDetailLookup(pwmApplication, pwmSession, userIdentity);
@@ -495,7 +497,9 @@ public class PeopleSearchServlet extends TopServlet {
         try {
             checkIfUserIdentityPermitted(pwmApplication, pwmSession, userIdentity);
         } catch (PwmOperationalException e) {
+            LOGGER.error(pwmSession, "error during photo request while checking if requested userIdentity is within search scope: " + e.getMessage());
             ServletHelper.outputJsonResult(resp,RestResultBean.fromError(e.getErrorInformation()));
+            return;
         }
 
         LOGGER.info(pwmSession,
@@ -608,8 +612,12 @@ public class PeopleSearchServlet extends TopServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
         final String filterSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_SEARCH_FILTER);
-        final String queryString = filterSetting.replaceAll("%USERNAME%","*");
-        final boolean match = Helper.testQueryMatch(pwmApplication, pwmSession, userIdentity, queryString);
+        String filterString = filterSetting.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME,"*");
+        while (filterString.contains("**")) {
+            filterString = filterString.replace("**","*");
+        }
+
+        final boolean match = Helper.testQueryMatch(pwmApplication, pwmSession, userIdentity, filterString);
         if (!match) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"requested userDN is not available within configured search filter"));
         }
