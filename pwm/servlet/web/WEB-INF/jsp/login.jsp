@@ -75,10 +75,12 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>"><pwm:Display key="Title_ForgottenUsername"/></a>
+                    <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                        <pwm:Display key="Title_ForgottenUsername"/>
+                    </a>
                 </td>
                 <td style="border: 0">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
                     <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
                 </td>
             </tr>

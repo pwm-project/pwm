@@ -2,6 +2,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.X509Utils" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
 <%--
@@ -38,7 +39,8 @@
     </td></tr>
     <tr><td>Subject Name</td><td><%=certificate.getSubjectX500Principal().getName()%></td></tr>
     <tr><td>Issuer Name</td><td><%=certificate.getIssuerX500Principal().getName()%></td></tr>
-    <tr><td>Serial Number</td><td style="word-break: break-all"><%=certificate.getSerialNumber().toString(16).toUpperCase()%></td></tr>
+    <% final String serialNum = X509Utils.hexSerial(certificate); %>
+    <tr><td>Serial Number</td><td><span style="font-family: 'Courier New', monospace"><%=serialNum.substring(0,serialNum.length()/2)%><br/><%=serialNum.substring(serialNum.length()/2,serialNum.length())%></span></td></tr>
     <tr><td>Validity</td><td>From <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></span>&nbsp;&nbsp; To <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></span></td></tr>
     <tr><td colspan="2" class="key" style="text-align: center; font-size: smaller">
         <a href="#" onclick="showCert_<%=md5sum%>()">details</a>

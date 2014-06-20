@@ -95,6 +95,14 @@ public class AuditManager implements PwmService {
                 targetLdapProfile, sourceAddress, sourceHost);
     }
 
+    public SystemAuditRecord createSystemAuditRecord(
+            final AuditEvent eventCode,
+            final String message
+    )
+    {
+        return SystemAuditRecord.create(eventCode, message, pwmApplication.getInstanceID());
+    }
+
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
             final UserIdentity perpetrator,

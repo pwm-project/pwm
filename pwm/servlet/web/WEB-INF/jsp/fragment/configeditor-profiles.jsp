@@ -47,7 +47,10 @@
 <% request.setAttribute("showDescription",true); %>
 <jsp:include page="configeditor-setting.jsp"/>
 <div style="width: 100%; padding-bottom: 10px">
-    <a onclick="preferences['editMode'] = 'SETTINGS'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">Return to configuration editor</a>
+    <button class="btn" onclick="preferences['editMode'] = 'SETTINGS'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-chevron-circle-left"></span></pwm:if>
+        Return to configuration editor
+    </button>
 </div>
 <% } else { %>
 <% final List<String> profiles = configManagerBean.getConfiguration().profilesForSetting(category.getProfileSetting()); %>
@@ -58,13 +61,13 @@
 <div style="width: 100%; text-align: center">
     <% if (profiles.size() > 1) { %>
     <button class="btn" onclick="selectProfile()">
-        <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-tag"></span></pwm:if>
         Select Profile
     </button>
     &nbsp;&nbsp;&nbsp;
     <% } %>
     <button class="btn" onclick="editProfiles()">
-        <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-tags"></span></pwm:if>
         Define Profiles
     </button>
 </div>

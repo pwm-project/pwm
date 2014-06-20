@@ -482,11 +482,15 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
                             var value = key in row.data ? row.data[key] : '';
                             var label = headers[key];
                             text += '<tr><td class="key">' + label + '</td>';
+                            text += '<td>';
                             if (key == 'timestamp') {
-                                text += '<td class="timestamp" id="dialog_timestamp">' + value + '</td></tr>'
+                                text += '<span class="timestamp" id="dialog_timestamp">' + value + '</span>'
+                            } else if (key == 'message') {
+                                    text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
                             } else {
-                                text += '<td>' + value + '</td></tr>'
+                                text += value;
                             }
+                            text += '</td></tr>';
                         })(item);
                     }
                     text += '</table>';
@@ -501,6 +505,15 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
                 PWM_VAR['auditSystemGrid'].on(".dgrid-row .dgrid-cell:click", function(evt){
                     detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
                 });
+
+                /*
+                require(["dojo/query","dojo/_base/array"], function(query,array){
+                    var timestampGrids = query(".field-timestamp");
+                    array.forEach(timestampGrids, function(entry, i){
+                        PWM_MAIN.TimestampHandler.initElement(entry);
+                    });
+                });
+                */
             },
             error: function(error) {
                 alert('unable to load data: ' + error);

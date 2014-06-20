@@ -68,7 +68,7 @@ public class PeopleSearchServlet extends TopServlet {
         private String label;
         private FormConfiguration.Type type;
         private String value;
-        private List<UserReferenceBean> userReferences;
+        private Collection<UserReferenceBean> userReferences;
 
         public String getName()
         {
@@ -110,12 +110,12 @@ public class PeopleSearchServlet extends TopServlet {
             this.value = value;
         }
 
-        public List<UserReferenceBean> getUserReferences()
+        public Collection<UserReferenceBean> getUserReferences()
         {
             return userReferences;
         }
 
-        public void setUserReferences(List<UserReferenceBean> userReferences)
+        public void setUserReferences(Collection<UserReferenceBean> userReferences)
         {
             this.userReferences = userReferences;
         }
@@ -541,7 +541,7 @@ public class PeopleSearchServlet extends TopServlet {
                         final Set<String> values;
                         try {
                             values = chaiUser.readMultiStringAttribute(formConfiguration.getName());
-                            final List<UserReferenceBean> userReferences = new ArrayList<UserReferenceBean>();
+                            final TreeMap<String,UserReferenceBean> userReferences = new TreeMap<String,UserReferenceBean>();
                             for (final String value : values) {
                                 if (userReferences.size() < MAX_VALUES) {
                                     final UserIdentity loopIdentity = new UserIdentity(value,
@@ -551,10 +551,10 @@ public class PeopleSearchServlet extends TopServlet {
                                     final UserReferenceBean userReference = new UserReferenceBean();
                                     userReference.setUserKey(loopIdentity.toObfuscatedKey(pwmApplication.getConfig()));
                                     userReference.setDisplay(displayValue);
-                                    userReferences.add(userReference);
+                                    userReferences.put(displayValue,userReference);
                                 }
                             }
-                            bean.setUserReferences(userReferences);
+                            bean.setUserReferences(userReferences.values());
                         } catch (ChaiOperationException e) {
                             LOGGER.error(pwmSession, "error during user detail lookup: " + e.getMessage());
                         }

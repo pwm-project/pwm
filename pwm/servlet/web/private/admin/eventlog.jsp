@@ -168,6 +168,7 @@
                 searchResults = localDBLogger.readStoredEvents(searchParameters);
             } catch (Exception e) {
                 out.write("<p>Unexpected error while searching: " + e.getMessage()+"</p>");
+                e.printStackTrace();
             }
         %>
         <% if (!searchResults.hasNext()) { %>

@@ -310,10 +310,11 @@ public class Berkeley_LocalDB implements LocalDBProvider {
 // -------------------------- INNER CLASSES --------------------------
 
     private class DbIterator<K> implements LocalDB.LocalDBIterator<String> {
-
+        private DB db;
         private Iterator<String> innerIter;
 
         private DbIterator(final DB db) throws DatabaseException {
+            this.db = db;
             this.innerIter = cachedMaps.get(db).keySet().<Iterator>iterator();
         }
 
@@ -324,6 +325,7 @@ public class Berkeley_LocalDB implements LocalDBProvider {
         public void close() {
             innerIter = null;
             dbIterators.remove(this);
+            LOGGER.trace(this.getClass().getSimpleName() + " closed iterator for " + db.toString() + ", outstanding iterators: " + dbIterators.size());
         }
 
         public String next() {

@@ -1641,12 +1641,15 @@
             <value>SHUTDOWN</value>
             <value>FATAL_EVENT</value>
             <value>MODIFY_CONFIGURATION</value>
+            <value>INTRUDER_LOCK</value>
         </default>
         <options>
             <option value="STARTUP">Startup</option>
             <option value="SHUTDOWN">Shutdown</option>
             <option value="FATAL_EVENT">Fatal Event</option>
             <option value="MODIFY_CONFIGURATION">Modify Configuration</option>
+            <option value="INTRUDER_ATTEMPT">Intruder Attempt</option>
+            <option value="INTRUDER_LOCK">Intruder Lock</option>
         </options>
     </setting>
     <setting key="audit.userEvent.toAddress" level="0">
@@ -1668,7 +1671,7 @@
             <value>ACTIVATE_USER</value>
             <value>CREATE_USER</value>
             <value>UPDATE_PROFILE</value>
-            <value>INTRUDER_LOCK</value>
+            <value>INTRUDER_USER</value>
             <value>TOKEN_ISSUED</value>
             <value>TOKEN_CLAIMED</value>
             <value>CLEAR_RESPONSES</value>
@@ -1688,8 +1691,7 @@
             <option value="ACTIVATE_USER">Activate User</option>
             <option value="CREATE_USER">New User</option>
             <option value="UPDATE_PROFILE">Update Profile</option>
-            <option value="INTRUDER_ATTEMPT">Intruder Attempt</option>
-            <option value="INTRUDER_LOCK">Intruder Lock</option>
+            <option value="INTRUDER_USER">Intruder Lock User</option>
             <option value="TOKEN_ISSUED">Token Issued</option>
             <option value="TOKEN_CLAIMED">Token Claimed</option>
             <option value="CLEAR_RESPONSES">Clear Responses</option>
@@ -3020,7 +3022,7 @@
         <label>Helpdesk search result limit</label>
         <description><![CDATA[result limit]]></description>
         <default>
-            <value>100</value>
+            <value>500</value>
         </default>
     </setting>
     <setting key="helpdesk.setPassword.mode" level="0">

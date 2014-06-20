@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -205,7 +205,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         sb.append(", ");
         sb.append(this.level.toString().length() == 4 ? this.level + " " : this.level);
         sb.append(", ");
-        sb.append(this.topic);
+        sb.append(shortenTopic(this.topic));
         sb.append(", ");
         if (this.getActor() != null && this.getActor().length() > 0) {
             sb.append("{");
@@ -232,5 +232,24 @@ public class PwmLogEvent implements Serializable, Comparable {
                 ", throwable=" + throwable +
                 ", date=" + date +
                 '}';
+    }
+
+    private static String shortenTopic(final String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        final int keepParts = 2;
+        final String[] parts = input.split("\\.");
+        final StringBuilder output = new StringBuilder();
+        int partsAdded = 0;
+        for (int i = parts.length; i > 0 && partsAdded < keepParts ;i-- ) {
+            output.insert(0,parts[i-1]);
+            partsAdded++;
+            if (i > 0 && partsAdded < keepParts) {
+                output.insert(0,".");
+            }
+        }
+        return output.toString();
     }
 }

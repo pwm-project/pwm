@@ -52,6 +52,9 @@ public class UserCacheRecord implements Serializable {
     public DataStorageMethod responseStorageMethod;
     public Answer.FormatType responseFormatType;
 
+    public boolean hasOtpSecret;
+    public Date otpSecretSetTime;
+
     public boolean requiresPasswordUpdate;
     public boolean requiresResponseUpdate;
     public boolean requiresProfileUpdate;
@@ -214,6 +217,26 @@ public class UserCacheRecord implements Serializable {
         this.responseFormatType = responseFormatType;
     }
 
+    public boolean isHasOtpSecret()
+    {
+        return hasOtpSecret;
+    }
+
+    public void setHasOtpSecret(boolean hasOtpSecret)
+    {
+        this.hasOtpSecret = hasOtpSecret;
+    }
+
+    public Date getOtpSecretSetTime()
+    {
+        return otpSecretSetTime;
+    }
+
+    public void setOtpSecretSetTime(Date otpSecretSetTime)
+    {
+        this.otpSecretSetTime = otpSecretSetTime;
+    }
+
     public void addUiBeanData(final UserInfoBean userInfoBean) {
         this.setUserDN(userInfoBean.getUserIdentity().getUserDN());
         this.setLdapProfile(userInfoBean.getUserIdentity().getLdapProfileID());
@@ -228,16 +251,29 @@ public class UserCacheRecord implements Serializable {
         this.setLastLoginTime(userInfoBean.getLastLdapLoginTime());
 
         this.setHasResponses(!userInfoBean.isRequiresResponseConfig());
-        this.setResponseSetTime(
-                userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getTimestamp() : null);
-        this.setResponseStorageMethod(
-                userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getDataStorageMethod() : null);
-        this.setResponseFormatType(userInfoBean.getResponseInfoBean() != null ? userInfoBean.getResponseInfoBean().getFormatType() : null);
+        this.setResponseSetTime(userInfoBean.getResponseInfoBean() != null
+                ? userInfoBean.getResponseInfoBean().getTimestamp()
+                : null
+        );
+        this.setResponseStorageMethod(userInfoBean.getResponseInfoBean() != null
+                ? userInfoBean.getResponseInfoBean().getDataStorageMethod()
+                : null
+        );
+        this.setResponseFormatType(userInfoBean.getResponseInfoBean() != null
+                ? userInfoBean.getResponseInfoBean().getFormatType()
+                : null
+        );
 
         this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
         this.setRequiresResponseUpdate(userInfoBean.isRequiresResponseConfig());
         this.setRequiresProfileUpdate(userInfoBean.isRequiresUpdateProfile());
         this.setCacheTimestamp(new Date());
+
+        this.setHasOtpSecret(userInfoBean.getOtpUserRecord() != null);
+        this.setOtpSecretSetTime(userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null
+                ? userInfoBean.getOtpUserRecord().getTimestamp()
+                : null
+        );
     }
 
 }

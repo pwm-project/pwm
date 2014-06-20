@@ -29,6 +29,7 @@ import password.pwm.config.StoredValue;
 import password.pwm.util.Base64Util;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.X509Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -109,7 +110,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         for (X509Certificate cert : certificates) {
             final LinkedHashMap<String,String> map = new LinkedHashMap<String,String>();
             map.put("subject",cert.getSubjectDN().toString());
-            map.put("serial",cert.getSerialNumber().toString());
+            map.put("serial", X509Utils.hexSerial(cert));
             map.put("issuer",cert.getIssuerDN().toString());
             map.put("issueDate",cert.getNotBefore().toString());
             map.put("expireDate",cert.getNotAfter().toString());

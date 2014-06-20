@@ -40,11 +40,11 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true">
+        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:Display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
-                    <div style="max-height: 400px" id="summaryTableWarpper">
+                    <div style="max-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto" id="summaryTableWarpper">
                         <table id="summaryTable">
                             <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
                         </table>
@@ -214,7 +214,7 @@
 
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
-            dojoParser.parse();
+            dojoParser.parse('centerbody');
             ready(function(){
                 registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
                 setTimeout(function(){

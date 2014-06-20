@@ -67,7 +67,7 @@
 </jsp:include>
 <div id="centerbody">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Field_Profile"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table>
             <% if (viewStatusFields.contains(ViewStatusFields.UserDN)) { %>

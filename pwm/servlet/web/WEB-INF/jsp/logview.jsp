@@ -45,7 +45,7 @@
 </script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
-    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%><span>
+    <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')}});">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

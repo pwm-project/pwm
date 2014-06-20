@@ -269,7 +269,7 @@ PWM_HELPDESK.processHelpdeskSearch = function() {
     PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
 };
 
-PWM_HELPDESK.makeSearchGrid = function() {
+PWM_HELPDESK.makeSearchGrid = function(nextAction) {
     require(["dojo/domReady!"],function(){
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
             function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
@@ -279,15 +279,28 @@ PWM_HELPDESK.makeSearchGrid = function() {
                 PWM_VAR['heldesk_search_grid'] = new CustomGrid({
                     columns: PWM_VAR['helpdesk_search_columns']
                 }, "grid");
+
+                if (nextAction) {
+                    nextAction();
+                }
             });
     });
 };
 
 PWM_HELPDESK.initHelpdeskSearchPage = function() {
-    PWM_HELPDESK.makeSearchGrid();
-    if (PWM_MAIN.getObject('username').value) {
-        PWM_HELPDESK.processHelpdeskSearch();
-        PWM_MAIN.getObject('username').focus();
-        PWM_MAIN.getObject('username').select();
-    }
+    PWM_HELPDESK.makeSearchGrid(function(){
+        require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
+            on(PWM_MAIN.getObject('username'), "keyup, input", function(){
+                PWM_HELPDESK.processHelpdeskSearch();
+            });
+
+            if (PWM_MAIN.getObject('username').value) {
+                PWM_MAIN.getObject('username').focus();
+                PWM_MAIN.getObject('username').select();
+            }
+
+            console.log('yomama!');
+            PWM_HELPDESK.processHelpdeskSearch();
+        });
+    });
 };

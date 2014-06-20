@@ -568,8 +568,10 @@ PWM_MAIN.showDialog = function(options) {
 
     var bodyText = '';
     bodyText += text;
+    if (showOk || showCancel) {
+        bodyText += '<br/><br/>';
+    }
     if (showOk) {
-        bodyText += '<br/>';
         bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
             + '<span class="btn-icon fa fa-forward"></span>'
             + PWM_MAIN.showString('Button_OK') + '</button>  ';
@@ -1491,7 +1493,7 @@ PWM_MAIN.addPwmFormIDtoURL = function(url) {
     if (!url || url.length < 1) {
         return '';
     }
-    url += url.contains('?') ? '&' : '?';
+    url += url.indexOf('?') > 0 ? '&' : '?';
     url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     return url;
 };

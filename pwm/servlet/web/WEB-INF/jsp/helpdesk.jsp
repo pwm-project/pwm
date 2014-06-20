@@ -46,8 +46,7 @@
                 <tr style="border: 0">
                     <td style="border:0">
                         <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-                              id="searchForm" onkeyup="PWM_HELPDESK.processHelpdeskSearch();" onchange="PWM_HELPDESK.processHelpdeskSearch()"
-                              onsubmit="return false">
+                              id="searchForm" onsubmit="return false">
                             <input type="search" id="username" name="username" class="inputfield" style="width: 400px"
                                    value="<%=helpdeskBean.getSearchString()!=null?helpdeskBean.getSearchString():""%>" autofocus/>
 

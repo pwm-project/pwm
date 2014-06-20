@@ -2746,7 +2746,6 @@ function buildMenuBar() {
 
             { // Templates
                 var templateMenu = new Menu({});
-                var confirmText = 'Are you sure you want to change the default settings template?  \n\nIf you proceed, be sure to closely review the resulting configuration as any settings using default values may change.';
                 for (var template in PWM_SETTINGS['templates']) {
                     (function() {
                         var templateItem = PWM_SETTINGS['templates'][template];
@@ -2754,20 +2753,26 @@ function buildMenuBar() {
                             label: templateItem['description'],
                             checked: templateItem['key'] == PWM_VAR['selectedTemplate'],
                             onClick: function() {
-                                PWM_MAIN.showConfirmDialog({text:confirmText,okAction:function() {
-                                    PWM_MAIN.showWaitDialog({loadFunction:function() {
-                                        dojo.xhrGet({
-                                            url: "ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
-                                            preventCache: true,
-                                            error: function (errorObj) {
-                                                PWM_MAIN.showError("error loading " + keyName + ", reason: " + errorObj)
-                                            },
-                                            load: function () {
-                                                loadMainPageBody();
-                                            }
-                                        });
-                                    }});
-                                }});
+                                PWM_MAIN.showConfirmDialog({
+                                    text:PWM_CONFIG.showString('Warning_ChangeTemplate'),
+                                    cancelAction:function() {
+                                        loadMainPageBody();
+                                    },
+                                    okAction:function() {
+                                        PWM_MAIN.showWaitDialog({loadFunction:function() {
+                                            dojo.xhrGet({
+                                                url: "ConfigEditor?processAction=setOption&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&template=" + templateItem['key'],
+                                                preventCache: true,
+                                                error: function (errorObj) {
+                                                    PWM_MAIN.showError("error loading " + keyName + ", reason: " + errorObj)
+                                                },
+                                                load: function () {
+                                                    loadMainPageBody();
+                                                }
+                                            });
+                                        }});
+                                    }
+                                });
                             }
                         }));
                     })();
@@ -3038,18 +3043,14 @@ function writeConfigurationNotes() {
 }
 
 function loadMainPageBody() {
-    window.location.replace(PWM_GLOBAL['url-context'] + '/private/config/ConfigEditor');
+    PWM_MAIN.showWaitDialog({loadFunction:function(){
+        PWM_MAIN.goto('/private/config/ConfigEditor');
+    }});
 }
 
 function handleResetClick(settingKey) {
     var label = PWM_SETTINGS['settings'][settingKey] ? PWM_SETTINGS['settings'][settingKey]['label'] : null;
-
-    var dialogText = 'Are you sure you want to reset the setting ';
-    if (label) {
-        dialogText += '<span style="font-style: italic;">' + PWM_SETTINGS['settings'][settingKey]['label'] + '</span>';
-    }
-    dialogText += ' to the default value?';
-
+    var dialogText = PWM_CONFIG.showString('Warning_ResetSetting',{value1:PWM_SETTINGS['settings'][settingKey]['label']});
     var titleText = 'Reset ' + label ? label : '';
 
     PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okAction:function(){
@@ -3095,13 +3096,13 @@ function executeSettingFunction(setting, profile, name) {
                     PWM_MAIN.closeWaitDialog();
                     if (data['error']) {
                         var errorBody = '<div style="max-width: 400px">' + data['errorMessage'] + '<br/><br/>' + data['errorDetail'] + '</div>';
-                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: errorBody, nextAction: function () {
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: errorBody, okAction: function () {
                             loadMainPageBody();
                         }});
                     } else {
                         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
-                        PWM_MAIN.showDialog({width: 700, title: PWM_MAIN.showString("Title_Success"), text: msgBody, nextAction: function () {
-                            //loadMainPageBody();
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: msgBody, okAction: function () {
+                            loadMainPageBody();
                         }});
                     }
                 },

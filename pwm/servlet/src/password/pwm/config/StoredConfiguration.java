@@ -544,12 +544,18 @@ public class StoredConfiguration implements Serializable {
 
         final SettingMetaData metaData = new SettingMetaData();
         try {
-            metaData.modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
+            if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME) != null) {
+                metaData.modifyDate = PwmConstants.DEFAULT_DATETIME_FORMAT.parse(
+                        settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME));
+            }
         } catch (Exception e) {
             LOGGER.error("can't read modifyDate for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
         }
         try {
-            metaData.userIdentity = UserIdentity.fromDelimitedKey(settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER));
+            if (settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER) != null) {
+                metaData.userIdentity = UserIdentity.fromDelimitedKey(
+                        settingElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_USER));
+            }
         } catch (Exception e) {
             LOGGER.error("can't read userIdentity for setting " + setting.getKey() + ", profile " + profileID + ", error: " + e.getMessage());
         }

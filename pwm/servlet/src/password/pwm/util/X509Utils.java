@@ -150,4 +150,12 @@ public abstract class X509Utils {
             return new X509Certificate[0];  //To change body of implemented methods use File | Settings | File Templates.
         }
     }
+
+    public static String hexSerial(final X509Certificate x509Certificate) {
+        String result = x509Certificate.getSerialNumber().toString(16).toUpperCase();
+        while (result.length() % 2 != 0) {
+            result = "0" + result;
+        }
+        return result;
+    }
 }

@@ -36,7 +36,7 @@ import java.io.Serializable;
 import java.util.StringTokenizer;
 
 public class UserIdentity implements Serializable {
-    private static final String CRYPO_HEADER = "userIdentity-C-";
+    private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
     private String userDN;

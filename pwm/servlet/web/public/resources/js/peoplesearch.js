@@ -148,6 +148,9 @@ PWM_PS.showUserDetail = function(userKey) {
                                 if (photoURL) {
                                     PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
                                 }
+                                setTimeout(function() {
+                                    try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
+                                },1000);
                             }
                         });
                     }
@@ -189,8 +192,8 @@ PWM_PS.initPeopleSearchPage = function() {
 PWM_PS.loadPicture = function(parentDiv,url) {
     require(["dojo/on"], function(on){
         var image = new Image();
-        image.id="userPhotoImage";
-        image.style = PWM_VAR['photo_style_attribute'];
+        image.setAttribute('id',"userPhotoImage");
+        image.setAttribute('style',PWM_VAR['photo_style_attribute']);
         on(image,"load",function(){
             while (parentDiv.firstChild) {
                 parentDiv.removeChild(parentDiv.firstChild);

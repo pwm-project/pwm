@@ -26,7 +26,7 @@
 
 <pwm:if test="showCancel">
 <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
-    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
     <pwm:Display key="Button_Cancel"/>
 </button>
 </pwm:if>

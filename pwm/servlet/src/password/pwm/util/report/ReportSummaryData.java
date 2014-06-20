@@ -45,12 +45,15 @@ public class ReportSummaryData {
     private Date meanCacheTime;
     private int totalUsers;
     private int hasResponses;
+    private int hasResponseSetTime;
     private int hasExpirationTime;
     private int hasLoginTime;
     private int hasChangePwTime;
-    private int hasResponseSetTime;
+    private int hasOtpSecret;
+    private int hasOtpSecretSetTime;
     private Map<DataStorageMethod, Integer> responseStorage = new HashMap<DataStorageMethod, Integer>();
     private Map<Answer.FormatType, Integer> responseFormatType = new HashMap<Answer.FormatType, Integer>();
+    private Map<String, Integer> ldapProfile = new HashMap<String, Integer>();
     private int pwExpired;
     private int pwPreExpired;
     private int pwWarnPeriod;
@@ -58,6 +61,7 @@ public class ReportSummaryData {
     private Map<Integer,Integer> pwExpirePrevious = new TreeMap<Integer, Integer>();
     private Map<Integer,Integer> changePwPrevious = new TreeMap<Integer, Integer>();
     private Map<Integer,Integer> responseSetPrevious = new TreeMap<Integer, Integer>();
+    private Map<Integer,Integer> otpSetPrevious = new TreeMap<Integer, Integer>();
     private Map<Integer,Integer> loginPrevious = new TreeMap<Integer, Integer>();
 
     private ReportSummaryData() {
@@ -250,6 +254,18 @@ public class ReportSummaryData {
             }
         }
 
+        if (userCacheRecord.getLdapProfile() != null) {
+            final String userProfile = userCacheRecord.getLdapProfile();
+            if (!ldapProfile.containsKey(userProfile)) {
+                ldapProfile.put(userProfile,0);
+            }
+            if (adding) {
+                ldapProfile.put(userProfile, ldapProfile.get(userProfile) + 1);
+            } else {
+                ldapProfile.put(userProfile, ldapProfile.get(userProfile) - 1);
+            }
+        }
+
         if (userCacheRecord.responseFormatType != null) {
             final Answer.FormatType type = userCacheRecord.responseFormatType;
             if (!responseFormatType.containsKey(type)) {
@@ -261,6 +277,30 @@ public class ReportSummaryData {
                 responseFormatType.put(type, responseFormatType.get(type) + 1);
             }
         }
+
+        if (userCacheRecord.isHasOtpSecret()) {
+            if (adding) {
+                hasOtpSecret++;
+            } else {
+                hasOtpSecret--;
+            }
+        }
+
+        if (userCacheRecord.getOtpSecretSetTime() != null) {
+            if (adding) {
+                hasOtpSecretSetTime++;
+            } else {
+                hasOtpSecretSetTime--;
+            }
+
+            for (final int days : trackedDays) {
+                if (!otpSetPrevious.containsKey(days)) {
+                    otpSetPrevious.put(days,0);
+                }
+                otpSetPrevious.put(days,otpSetPrevious.get(days) + calcTimeWindow(userCacheRecord.getOtpSecretSetTime(),MS_DAY * days,false,adding));
+            }
+        }
+
     }
 
     private void updateMeanTime(final Date newTime, final boolean adding) {
@@ -305,6 +345,17 @@ public class ReportSummaryData {
             return returnCollection;
         }
 
+        if (config.getLdapProfiles().keySet().size() > 1) {
+            for (final String userProfile : ldapProfile.keySet()) {
+                final int count = this.ldapProfile.get(userProfile);
+                final String displayName = config.getLdapProfiles().containsKey(userProfile)
+                        ? config.getLdapProfiles().get(userProfile).getDisplayName(locale)
+                        : userProfile;
+                returnCollection.add(
+                        builder.makeRow("Field_Report_Sum_LdapProfile", count, displayName));
+            }
+        }
+
         returnCollection.add(builder.makeRow("Field_Report_Sum_HaveLoginTime", this.hasLoginTime));
         for (final Integer days : loginPrevious.keySet()) {
             returnCollection.add(builder.makeRow("Field_Report_Sum_LoginTimePrevious", this.loginPrevious.get(days), String.valueOf(days)));
@@ -339,6 +390,14 @@ public class ReportSummaryData {
         returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponseTime", this.hasResponseSetTime));
         for (final Integer days : responseSetPrevious.keySet()) {
             returnCollection.add(builder.makeRow("Field_Report_Sum_ResponseTimePrevious", this.responseSetPrevious.get(days), String.valueOf(days)));
+        }
+
+        if (this.hasOtpSecret > 0) {
+            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecret", this.hasOtpSecret));
+            returnCollection.add(builder.makeRow("Field_Report_Sum_HaveOtpSecretSetTime", this.hasOtpSecretSetTime));
+            for (final Integer days : otpSetPrevious.keySet()) {
+                returnCollection.add(builder.makeRow("Field_Report_Sum_OtpSecretTimePrevious", this.otpSetPrevious.get(days), String.valueOf(days)));
+            }
         }
 
         return returnCollection;

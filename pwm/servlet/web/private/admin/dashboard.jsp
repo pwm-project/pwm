@@ -708,9 +708,10 @@
         require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
             ready(function(){
                 dojoParser.parse();
-
-                PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
-                PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+                ready(function(){
+                    PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
+                    PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+                });
             });
         });
     });

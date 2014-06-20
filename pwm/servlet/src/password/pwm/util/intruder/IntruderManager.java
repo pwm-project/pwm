@@ -35,6 +35,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.IntruderStorageMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
@@ -291,14 +292,33 @@ public class IntruderManager implements Serializable, PwmService {
 
         final RecordManager manager = recordManagers.get(recordType);
         manager.markSubject(subject);
+
+        { // send intruder attempt audit event
+            final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<String, Object>();
+            messageObj.put("type", recordType);
+            messageObj.put("subject", subject);
+            final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
+            final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
+            pwmApplication.getAuditManager().submit(auditRecord);
+        }
+
         try {
             check(recordType, subject);
         } catch (PwmUnrecoverableException e) {
             if (!manager.isAlerted(subject) ) {
+                { // send intruder attempt lock event
+                    final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<String, Object>();
+                    messageObj.put("type", recordType);
+                    messageObj.put("subject", subject);
+                    final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
+                    final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_LOCK,message);
+                    pwmApplication.getAuditManager().submit(auditRecord);
+                }
+
                 if (recordType == RecordType.USER_ID) {
                     final UserIdentity userIdentity = UserIdentity.fromKey(subject, pwmApplication.getConfig());
                     final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
-                            AuditEvent.INTRUDER_LOCK,
+                            AuditEvent.INTRUDER_USER,
                             userIdentity,
                             pwmSession
                     );

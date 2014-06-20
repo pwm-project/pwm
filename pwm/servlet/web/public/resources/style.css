@@ -97,7 +97,7 @@ table td.key {
     text-align: right;
     font-weight: bold;
     padding-right: 10px;
-    max-width: 40%;
+    width: 36%;
 }
 
 .health-GOOD {
