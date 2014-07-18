@@ -54,7 +54,7 @@ dn: m-oid=1.3.6.1.4.1.35015.1.2.6, ou=attributeTypes, cn=pwm, ou=schema
 objectclass: metaAttributeType
 objectclass: metaTop
 objectclass: top
-m-oid: 1.3.6.1.4.1.35015.1.2.2
+m-oid: 1.3.6.1.4.1.35015.1.2.6
 m-name: pwmOtpSecret
 m-syntax: 1.3.6.1.4.1.1466.115.121.1.40
 m-length: 0

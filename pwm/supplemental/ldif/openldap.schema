@@ -1,0 +1,38 @@
+# We try to define OID's "correctly" as outlined here:
+#
+# http://www.openldap.org/doc/admin23/schema.html
+#
+# 1.3.6.1.4.1 base OID
+# 35015 organization idenfifier
+# 1.1 if an objectclass
+# 1.2 if an attribute
+# n extra identifier
+#
+attributetype ( 1.3.6.1.4.1.35015.1.2.1
+        NAME 'pwmEventLog'
+        EQUALITY octetStringMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+
+attributetype ( 1.3.6.1.4.1.35015.1.2.2
+        NAME 'pwmResponseSet'
+        EQUALITY octetStringMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+
+attributetype ( 1.3.6.1.4.1.35015.1.2.3
+        NAME 'pwmLastPwdUpdate'
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.35015.1.2.4
+        NAME 'pwmGUID'
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.35015.1.2.6
+        NAME 'pwmOtpSecret'
+        EQUALITY octetStringMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+
+objectclass ( 1.3.6.1.4.1.35015.1.1.1
+        NAME 'pwmUser'
+        AUXILIARY
+        MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $
+                pwmOtpSecret $ pwmGUID ) )
