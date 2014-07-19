@@ -27,7 +27,7 @@ TODO: show/hide the entered code.
 TODO: support HOTP
 
 -->
-<%@ page import="password.pwm.bean.servlet.SetupOtpBean" %>
+<%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -36,7 +36,6 @@ TODO: support HOTP
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
@@ -44,7 +43,6 @@ TODO: support HOTP
     <div id="centerbody">
         <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
         <%@ include file="fragment/message.jsp" %>
-        <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
               onsubmit="PWM_MAIN.handleFormSubmit(this); return false;">
@@ -57,7 +55,7 @@ TODO: support HOTP
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
                     <pwm:Display key="Button_CheckCode"/>
                 </button>
-                <button type="submit" name="testOtpSecret" class="btn" id="goback_buton"
+                <button type="submit" name="testOtpSecret" class="btn" id="goback_button"
                         onclick="PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
                     <pwm:Display key="Button_GoBack"/>
@@ -73,12 +71,16 @@ TODO: support HOTP
     </form>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
+    PWM_GLOBAL['responseMode'] = "user";
     PWM_GLOBAL['startupFunctions'].push(function() {
         document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

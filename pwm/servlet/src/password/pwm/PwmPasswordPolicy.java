@@ -48,7 +48,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 
     private static final PwmPasswordPolicy defaultPolicy;
 
-    private final Map<String, String> policyMap = new HashMap<String, String>();
+    private final Map<String, String> policyMap = new HashMap<>();
 
     private transient final ChaiPasswordPolicy chaiPasswordPolicy;
 
@@ -68,7 +68,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 // -------------------------- STATIC METHODS --------------------------
 
     static {
-        final Map<String, String> defaultPolicyMap = new HashMap<String, String>();
+        final Map<String, String> defaultPolicyMap = new HashMap<>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
             defaultPolicyMap.put(rule.getKey(), rule.getDefaultValue());
         }
@@ -97,7 +97,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         sb.append("PwmPasswordPolicy");
         sb.append(": ");
 
-        final List<String> outputList = new ArrayList<String>();
+        final List<String> outputList = new ArrayList<>();
         for (final String key : policyMap.keySet()) {
             final PwmPasswordRule rule = PwmPasswordRule.forKey(key);
             if (rule != null) {
@@ -166,7 +166,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
             return this;
         }
 
-        final Map<String, String> newPasswordPolicies = new HashMap<String, String>();
+        final Map<String, String> newPasswordPolicies = new HashMap<>();
 
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
             final String ruleKey = rule.getKey();
@@ -178,7 +178,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                     case RegExNoMatch:
                     case CharGroupsValues:
                         final String seperator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
-                        final Set<String> combinedSet = new HashSet<String>();
+                        final Set<String> combinedSet = new HashSet<>();
                         combinedSet.addAll(StringHelper.tokenizeString(this.policyMap.get(rule.getKey()), seperator));
                         combinedSet.addAll(StringHelper.tokenizeString(otherPolicy.policyMap.get(rule.getKey()), seperator));
                         newPasswordPolicies.put(ruleKey, StringHelper.stringCollectionToString(combinedSet, seperator));
@@ -323,8 +323,8 @@ public class PwmPasswordPolicy implements Profile,Serializable {
                 return Collections.emptyList();
             }
             final String separator = (rule == PwmPasswordRule.RegExMatch || rule == PwmPasswordRule.RegExNoMatch) ? ";;;" : "\n";
-            final List<String> values = new ArrayList<String>(StringHelper.tokenizeString(input, separator));
-            final List<Pattern> patterns = new ArrayList<Pattern>();
+            final List<String> values = new ArrayList<>(StringHelper.tokenizeString(input, separator));
+            final List<Pattern> patterns = new ArrayList<>();
 
             for (final String value : values) {
                 if (value != null && value.length() > 0) {

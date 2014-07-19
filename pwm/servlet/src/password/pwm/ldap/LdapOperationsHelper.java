@@ -50,10 +50,7 @@ import password.pwm.util.stats.StatisticsManager;
 
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LdapOperationsHelper {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(LdapOperationsHelper.class);
@@ -64,7 +61,7 @@ public class LdapOperationsHelper {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException {
         final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
-        final Set<String> newObjClasses = new HashSet<String>(ldapProfile.readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
+        final Set<String> newObjClasses = new HashSet<>(ldapProfile.readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
         if (newObjClasses.isEmpty()) {
             return;
         }
@@ -342,6 +339,8 @@ public class LdapOperationsHelper {
             }
         }
 
+        chaiConfig.setSetting(ChaiSetting.JNDI_ENABLE_POOL, "false"); // can cause issues with previous password authentication
+
         chaiConfig.setSetting(ChaiSetting.CR_DEFAULT_FORMAT_TYPE, Answer.FormatType.SHA1_SALT.toString());
         final String storageMethodString = config.readSettingAsString(PwmSetting.CHALLENGE_STORAGE_HASHED);
         try {
@@ -379,14 +378,17 @@ public class LdapOperationsHelper {
         //chaiConfig.setSetting(ChaiSetting.CACHE_MAXIMUM_SIZE, "5000");
 
         // write out any configured values;
-        final List<String> rawValues = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_CHAI_SETTINGS);
-        final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(rawValues, "=");
+        final String rawValue = config.readAppProperty(AppProperty.LDAP_CHAI_SETTINGS);
+        final String[] rawValues = rawValue != null ? rawValue.split(AppProperty.VALUE_SEPARATOR) : new String[0];
+        final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(Arrays.asList(rawValues), "=");
         for (final String key : configuredSettings.keySet()) {
-            final ChaiSetting theSetting = ChaiSetting.forKey(key);
-            if (theSetting == null) {
-                LOGGER.error("ignoring unknown chai setting '" + key + "'");
-            } else {
-                chaiConfig.setSetting(theSetting, configuredSettings.get(key));
+            if (key != null && !key.isEmpty()) {
+                final ChaiSetting theSetting = ChaiSetting.forKey(key);
+                if (theSetting == null) {
+                    LOGGER.error("ignoring unknown chai setting '" + key + "'");
+                } else {
+                    chaiConfig.setSetting(theSetting, configuredSettings.get(key));
+                }
             }
         }
 
@@ -407,7 +409,8 @@ public class LdapOperationsHelper {
     )
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
-        final String uIDattr = pwmApplication.getConfig().getUsernameAttribute(userIdentity.getLdapProfileID());
+        final String profileID = userIdentity.getLdapProfileID();
+        final String uIDattr = pwmApplication.getConfig().getLdapProfiles().get(profileID).getUsernameAttribute();
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
         return userDataReader.readStringAttribute(uIDattr);
     }

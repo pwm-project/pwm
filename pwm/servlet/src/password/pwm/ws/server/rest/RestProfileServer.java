@@ -31,10 +31,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.servlet.UpdateProfileServlet;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.servlet.UpdateProfileServlet;
 import password.pwm.util.FormMap;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -100,9 +100,9 @@ public class RestProfileServer {
             throw new PwmUnrecoverableException(PwmError.ERROR_UNAUTHORIZED);
         }
 
-        final Map<String,String> profileData = new HashMap<String,String>();
+        final Map<String,String> profileData = new HashMap<>();
         {
-            final Map<FormConfiguration,String> formData = new HashMap<FormConfiguration,String>();
+            final Map<FormConfiguration,String> formData = new HashMap<>();
             for (final FormConfiguration formConfiguration : restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM)) {
                 formData.put(formConfiguration,"");
             }
@@ -171,7 +171,7 @@ public class RestProfileServer {
 
         final FormMap inputFormData = new FormMap(jsonInput.profile);
         final List<FormConfiguration> profileForm = restRequestBean.getPwmApplication().getConfig().readSettingAsForm(PwmSetting.UPDATE_PROFILE_FORM);
-        final Map<FormConfiguration,String> profileFormData = new HashMap<FormConfiguration,String>();
+        final Map<FormConfiguration,String> profileFormData = new HashMap<>();
         for (FormConfiguration formConfiguration : profileForm) {
             if (!formConfiguration.isReadonly() && inputFormData.containsKey(formConfiguration.getName())) {
                 profileFormData.put(formConfiguration,inputFormData.get(formConfiguration.getName()));

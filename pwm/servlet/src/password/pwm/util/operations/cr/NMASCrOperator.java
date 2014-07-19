@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.util.operations.cr;
 
 import com.google.gson.GsonBuilder;
@@ -45,7 +46,6 @@ import org.xml.sax.SAXException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.SessionManager;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -56,6 +56,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.SessionManager;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -86,7 +87,7 @@ public class NMASCrOperator implements CrOperator {
 
     private static final Map<String,Object> CR_OPTIONS_MAP;
     static {
-        final HashMap<String,Object> crOptionsMap = new HashMap<String,Object>();
+        final HashMap<String,Object> crOptionsMap = new HashMap<>();
         crOptionsMap.put("com.novell.security.sasl.client.pkgs", "com.novell.sasl.client");
         crOptionsMap.put("javax.security.sasl.client.pkgs", "com.novell.sasl.client");
         crOptionsMap.put("LoginSequence", "Challenge Response");
@@ -171,6 +172,11 @@ public class NMASCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         try {
+            if (theUser.getChaiProvider().getDirectoryVendor() != ChaiProvider.DIRECTORY_VENDOR.NOVELL_EDIRECTORY) {
+                LOGGER.debug("skipping request to read NMAS responses for " + userIdentity + ", directory type is not eDirectory");
+                return null;
+            }
+
             final ResponseSet responseSet = NmasCrFactory.readNmasResponseSet(theUser);
             if (responseSet == null) {
                 return null;
@@ -236,7 +242,7 @@ public class NMASCrOperator implements CrOperator {
         if (questions == null || questions.isEmpty()) {
             return null;
         }
-        final List<Challenge> challenges = new ArrayList<Challenge>();
+        final List<Challenge> challenges = new ArrayList<>();
         for (final String question : questions) {
             challenges.add(new ChaiChallenge(true, question, 1, 256, true));
         }
@@ -247,7 +253,7 @@ public class NMASCrOperator implements CrOperator {
         final XPath xpath = XPathFactory.newInstance().newXPath();
         final XPathExpression challengesExpr = xpath.compile("/Challenges/Challenge/text()");
         final NodeList challenges = (NodeList)challengesExpr.evaluate(doc, XPathConstants.NODESET);
-        final List<String> res = new ArrayList<String>();
+        final List<String> res = new ArrayList<>();
         for (int i = 0; i < challenges.getLength(); ++i) {
             String question = challenges.item(i).getTextContent();
             res.add(question);
@@ -369,7 +375,7 @@ public class NMASCrOperator implements CrOperator {
             if (passed) {
                 throw new IllegalStateException("test may not be called after success returned");
             }
-            final List<String> answers = new ArrayList<String>(challengeStringMap == null ? Collections.<String>emptyList() : challengeStringMap.values());
+            final List<String> answers = new ArrayList<>(challengeStringMap == null ? Collections.<String>emptyList() : challengeStringMap.values());
             if (answers.isEmpty() || answers.size() < challengeSet.minimumResponses()) {
                 return false;
             }
@@ -688,7 +694,7 @@ public class NMASCrOperator implements CrOperator {
         }
 
         public String toDebugString() {
-            final TreeMap<String,String> debugInfo = new TreeMap<String, String>();
+            final TreeMap<String,String> debugInfo = new TreeMap<>();
             debugInfo.put("loginDN", this.loginDN);
             debugInfo.put("id",Integer.toString(threadID));
             debugInfo.put("loginState", this.getLoginState().toString());

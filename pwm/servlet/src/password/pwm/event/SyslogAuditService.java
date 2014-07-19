@@ -59,8 +59,8 @@ class SyslogAuditService {
     private final int MAX_QUEUE_SIZE;
     private final long MAX_AGE_MS;
     private final long RETRY_TIMEOUT_MS;
-    private final Map<SyslogConfig,SyslogIF> syslogInstances = new LinkedHashMap<SyslogConfig,SyslogIF>();
-    private final Map<SyslogConfig,ErrorInformation> syslogErrors = new LinkedHashMap<SyslogConfig,ErrorInformation>();
+    private final Map<SyslogConfig,SyslogIF> syslogInstances = new LinkedHashMap<>();
+    private final Map<SyslogConfig,ErrorInformation> syslogErrors = new LinkedHashMap<>();
     private final LocalDBStoredQueue syslogQueue;
 
     private volatile Date lastSendError;
@@ -143,7 +143,7 @@ class SyslogAuditService {
     }
 
     public List<HealthRecord> healthCheck() {
-        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> healthRecords = new ArrayList<>();
         for (final SyslogConfig syslogConfig : syslogErrors.keySet()) {
             final ErrorInformation errorInformation = syslogErrors.get(syslogConfig);
             if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {

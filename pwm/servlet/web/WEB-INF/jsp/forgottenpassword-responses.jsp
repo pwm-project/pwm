@@ -22,8 +22,8 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.bean.servlet.ForgottenPasswordBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -42,7 +42,6 @@ this is handled this way so on browsers where hiding fields is not possible, the
 <jsp:include page="fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="Title_RecoverPassword"/>
 </jsp:include>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
     <div id="centerbody">
         <p><pwm:Display key="Display_RecoverPassword"/></p>
 
@@ -88,6 +87,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_RESPONSES.startupResponsesPage();
@@ -95,6 +95,8 @@ this is handled this way so on browsers where hiding fields is not possible, the
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

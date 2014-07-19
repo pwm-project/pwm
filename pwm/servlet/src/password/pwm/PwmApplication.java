@@ -120,7 +120,7 @@ public class PwmApplication {
     private LocalDB localDB;
     private LocalDBLogger localDBLogger;
 
-    private final Map<Class<? extends PwmService>,PwmService> pwmServices = new LinkedHashMap<Class<? extends PwmService>, PwmService>();
+    private final Map<Class<? extends PwmService>,PwmService> pwmServices = new LinkedHashMap<>();
 
     private final Date startupTime = new Date();
     private Date installTime = new Date();
@@ -214,7 +214,7 @@ public class PwmApplication {
     }
 
     public List<PwmService> getPwmServices() {
-        final List<PwmService> pwmServices = new ArrayList<PwmService>();
+        final List<PwmService> pwmServices = new ArrayList<>();
         pwmServices.add(this.localDBLogger);
         pwmServices.addAll(this.pwmServices.values());
         pwmServices.remove(null);
@@ -400,7 +400,7 @@ public class PwmApplication {
         if (this.getConfig() != null) {
             final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
             if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
-                final LinkedHashMap<String,String> tempMap = new LinkedHashMap<String, String>();
+                final LinkedHashMap<String,String> tempMap = new LinkedHashMap<>();
                 for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
                     tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
                 }
@@ -467,7 +467,7 @@ public class PwmApplication {
     }
 
     private static String logEnvironment() {
-        final Map<String,Object> envStats = new LinkedHashMap<String, Object>();
+        final Map<String,Object> envStats = new LinkedHashMap<>();
         envStats.put("java.vm.vendor",System.getProperty("java.vm.vendor"));
         envStats.put("java.vm.version",System.getProperty("java.vm.version"));
         envStats.put("java.vm.name",System.getProperty("java.vm.name"));
@@ -481,7 +481,7 @@ public class PwmApplication {
     }
 
     private static String logDebugInfo() {
-        final Map<String,Object> debugStats = new LinkedHashMap<String, Object>();
+        final Map<String,Object> debugStats = new LinkedHashMap<>();
         debugStats.put("memfree",Runtime.getRuntime().freeMemory());
         debugStats.put("memallocd",Runtime.getRuntime().totalMemory());
         debugStats.put("memmax",Runtime.getRuntime().maxMemory());

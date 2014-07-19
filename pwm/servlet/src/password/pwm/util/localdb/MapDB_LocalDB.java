@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@
 
 package password.pwm.util.localdb;
 
-import org.mapdb.*;
-
+import org.mapdb.DBMaker;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.PwmLogger;
@@ -31,7 +30,10 @@ import password.pwm.util.TimeDuration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -47,7 +49,7 @@ public class MapDB_LocalDB implements LocalDBProvider {
     private static final String FILE_NAME = "mapdb";
 
     private org.mapdb.DB recman;
-    private final Map<LocalDB.DB, Map<String, String>> treeMap = new HashMap<LocalDB.DB, Map<String, String>>();
+    private final Map<LocalDB.DB, Map<String, String>> treeMap = new HashMap<>();
     private File dbDirectory;
 
     // operation lock

@@ -35,7 +35,7 @@
     final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser;
 %>
 <% if (showHeader || healthCheck) { %>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="<%=showHeader?"":"display: none"%>">
     <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
         <a class="btn">
@@ -57,14 +57,15 @@
             <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
         </a>
     </span>
-    <br/>    <br/>
-
+    <br/>
+    <br/>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
     <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-    <script type="application/javascript">
+<pwm:script>
+    <script nonce="<pwm:value name="cspNonce"/>" type="application/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.showTooltip({
                 id: ['header-warning-message'],
@@ -74,6 +75,7 @@
             });
         });
     </script>
+</pwm:script>
     <% } else if (adminUser) { %>
     <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
@@ -87,11 +89,13 @@
     </div>
 </div>
 <% if (healthCheck) { %>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_CONFIG.showHeaderHealth();
-    });
-</script>
+<pwm:script>
+    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_CONFIG.showHeaderHealth();
+        });
+    </script>
+</pwm:script>
 <% } %>
 <% } %>
 <% } %>

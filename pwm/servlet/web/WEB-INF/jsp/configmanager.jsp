@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
+<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
 <%--
@@ -30,7 +30,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(session);
-    final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
+    final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     String configFilePath = PwmConstants.DEFAULT_CONFIG_FILE_FILENAME;
     String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager",pwmApplication.getConfig(),password.pwm.i18n.Config.class);
     try { configFilePath = ContextManager.getContextManager(session).getConfigReader().getConfigFile().toString(); } catch (Exception e) { /* */ }
@@ -47,8 +47,9 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <div id="healthBody" style="border: #808080 1px solid; margin-top:5px; padding:0; max-height: 300px; overflow-y: auto">
-            <div id="WaitDialogBlank"></div>
+            <div class="WaitDialogBlank"></div>
         </div>
+        <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 require(["dojo/domReady!"],function(){
@@ -56,6 +57,7 @@
                 });
             });
         </script>
+        </pwm:script>
         <style>
             .buttoncell {
                 border: 0;
@@ -80,26 +82,31 @@
         <table style="border:0">
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" onclick="PWM_CONFIG.startConfigurationEditor()" id="MenuItem_ConfigEditor">
+                    <a class="menubutton" id="MenuItem_ConfigEditor">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
                         <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
+                            PWM_MAIN.addEventHandler('MenuItem_ConfigEditor','click',function(){PWM_CONFIG.startConfigurationEditor()});
                             makeTooltip('MenuItem_ConfigEditor',PWM_CONFIG.showString('MenuDisplay_ConfigEditor'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_CONFIG.openLogViewer(null)" id="MenuItem_ViewLog">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
                         <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_ViewLog',PWM_CONFIG.showString('MenuDisplay_ViewLog'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
             </tr>
             <tr class="buttonrow">
@@ -108,22 +115,26 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-suitcase"></span></pwm:if>
                         <pwm:Display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_DownloadBundle',PWM_CONFIG.showString('MenuDisplay_DownloadBundle'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" onclick="downloadConfig()" id="MenuItem_DownloadConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                         <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_DownloadConfig',PWM_CONFIG.showString('MenuDisplay_DownloadConfig'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
             </tr>
             <% if (!configManagerBean.isConfigLocked()) { %>
@@ -133,22 +144,26 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
                         <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_UploadConfig',PWM_CONFIG.showString('MenuDisplay_UploadConfig'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_CONFIG.lockConfiguration()" id="MenuItem_LockConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-lock"></span></pwm:if>
                         <pwm:Display key="MenuItem_LockConfig" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_LockConfig',PWM_CONFIG.showString('MenuDisplay_LockConfig',{value1:'<%=configFilePath%>'}));
                         });
                     </script>
+                    </pwm:script>
                 </td>
             </tr>
             <% } %>
@@ -158,22 +173,26 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
                         <pwm:Display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_ExportLocalDB',PWM_CONFIG.showString('MenuDisplay_ExportLocalDB'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_MAIN.goto('/')" id="MenuItem_MainMenu">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-arrow-circle-left"></span></pwm:if>
                         <pwm:Display key="MenuItem_MainMenu" bundle="Config"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_MainMenu',PWM_CONFIG.showString('MenuDisplay_MainMenu'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
             </tr>
             <tr class="buttonrow">
@@ -182,11 +201,13 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
                         <pwm:Display key="Title_Admin"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_Administration',PWM_MAIN.showString('Long_Title_Admin'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <% if (pwmSessionHeader.getSessionStateBean().isAuthenticated()) { %>
                 <td class="buttoncell">
@@ -194,11 +215,13 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                         <pwm:Display key="Title_Logout"/>
                     </a>
+                    <pwm:script>
                     <script type="application/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             makeTooltip('MenuItem_Logout',PWM_MAIN.showString('Long_Title_Logout'));
                         });
                     </script>
+                    </pwm:script>
                 </td>
                 <% } %>
             </tr>
@@ -208,6 +231,7 @@
 </div>
 <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/TitlePane","dojo/domReady!","dojox/form/Uploader"],function(dojoParser){
@@ -255,6 +279,7 @@
 
     PWM_GLOBAL['localeBundle'].push('Config');
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

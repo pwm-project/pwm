@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
+<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
@@ -79,18 +79,21 @@
     <% } %>
     <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
     <% if (customScript != null && customScript.length() > 0) { %>
-    <script type="text/javascript">
+    <pwm:script>
+    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
         <% final MacroMachine macroMachineFooter = new MacroMachine(pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader(pwmApplicationFooter)); %>
         <%= macroMachineFooter.expandMacros(customScript) %>
     </script>
+    </pwm:script>
     <% } %>
-    <script type="text/javascript">
-        PWM_GLOBAL['url-context']='<%=request.getContextPath()%>';
-        PWM_GLOBAL['pwmFormID']='<pwm:FormID/>';
-        PWM_GLOBAL['clientEtag']='<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationFooter,pwmSessionFooter)%>';
-        PWM_GLOBAL['restClientKey']='<%=pwmSessionFooter.getRestClientKey()%>';
-    </script>
-    <script data-dojo-config="async: true" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-    <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
-    <script type="text/javascript">PWM_MAIN.pageLoadHandler()</script>
+    <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
+    <pwm:script>
+        <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
+            PWM_MAIN.pageLoadHandler();
+        </script>
+    </pwm:script>
+    <pwm:if test="stripInlineJavascript">
+        <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:url url='/public/CommandServlet?processAction=scriptContents' addContext="true"/>&time=<%=System.currentTimeMillis()%>"></script>
+    </pwm:if>
 </div>

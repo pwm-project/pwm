@@ -45,7 +45,7 @@ public class MainClass {
 
     public static final Map<String,CliCommand> COMMANDS;
     static {
-        final List<CliCommand> commandList = new ArrayList<CliCommand>();
+        final List<CliCommand> commandList = new ArrayList<>();
         commandList.add(new LocalDBInfoCommand());
         commandList.add(new ExportLogsCommand());
         commandList.add(new UserReportCommand());
@@ -63,7 +63,7 @@ public class MainClass {
         commandList.add(new IntegrityReportCommand());
         commandList.add(new ConfigNewCommand());
 
-        final Map<String,CliCommand> sortedMap = new TreeMap<String,CliCommand>();
+        final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {
             sortedMap.put(command.getCliParameters().commandName,command);
         }
@@ -128,8 +128,8 @@ public class MainClass {
     )
             throws CliException
     {
-        final Queue<String> argQueue = new LinkedList<String>(args);
-        final Map<String,Object> returnObj = new LinkedHashMap<String, Object>();
+        final Queue<String> argQueue = new LinkedList<>(args);
+        final Map<String,Object> returnObj = new LinkedHashMap<>();
 
         if (cliParameters.options != null) {
             for (CliParameters.Option option : cliParameters.options) {
@@ -201,7 +201,7 @@ public class MainClass {
             for (CliCommand command : COMMANDS.values()) {
                 if (commandStr.equalsIgnoreCase(command.getCliParameters().commandName)) {
 
-                    final List<String> argList = new LinkedList<String>(Arrays.asList(args));
+                    final List<String> argList = new LinkedList<>(Arrays.asList(args));
                     argList.remove(0);
 
                     CliEnvironment cliEnvironment;

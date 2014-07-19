@@ -41,6 +41,8 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -184,11 +186,11 @@ public class SmsQueueManager extends AbstractQueueManager {
         // Replace strings in requestData
         {
             final String senderId = smsItemBean.getFrom() == null ? "" : smsItemBean.getFrom();
-            requestData = requestData.replaceAll("%USER%", smsDataEncode(gatewayUser, encoding));
-            requestData = requestData.replaceAll("%PASS%", smsDataEncode(gatewayPass, encoding));
-            requestData = requestData.replaceAll("%SENDERID%", smsDataEncode(senderId, encoding));
-            requestData = requestData.replaceAll("%MESSAGE%", smsDataEncode(smsItemBean.getNextPart(), encoding));
-            requestData = requestData.replaceAll("%TO%", smsDataEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
+            requestData = requestData.replace("%USER%", smsDataEncode(gatewayUser, encoding));
+            requestData = requestData.replace("%PASS%", smsDataEncode(gatewayPass, encoding));
+            requestData = requestData.replace("%SENDERID%", smsDataEncode(senderId, encoding));
+            requestData = requestData.replace("%MESSAGE%", smsDataEncode(smsItemBean.getNextPart(), encoding));
+            requestData = requestData.replace("%TO%", smsDataEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
         }
 
         if (requestData.contains("%REQUESTID%")) {
@@ -245,13 +247,16 @@ public class SmsQueueManager extends AbstractQueueManager {
             final List<String> okMessages = config.readSettingAsStringArray(PwmSetting.SMS_RESPONSE_OK_REGEX);
             if (okMessages == null || okMessages.size() == 0 || matchExpressions(responseBody, okMessages)) {
                 LOGGER.debug("SMS send successful, HTTP status: " + httpResponse.getStatusLine()  + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
+                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
                 return true;
             }
 
             LOGGER.error("SMS send failure, HTTP status: " + httpResponse.getStatusLine() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
+            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_FAILURES);
             return false;
         } catch (IOException e) {
-            LOGGER.error("unexpected exception while sending SMS: " + e.getMessage(), e);
+            LOGGER.error("IO error while sending SMS: " + e.getMessage(), e);
+            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_FAILURES);
             return false;
         }
     }
@@ -371,7 +376,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     @Override
     protected String queueItemToDebugString(QueueEvent queueEvent)
     {
-        final Map<String,Object> debugOutputMap = new LinkedHashMap<String, Object>();
+        final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
         final SmsItemBean smsItemBean = Helper.getGson().fromJson(queueEvent.getItem(), SmsItemBean.class);
@@ -380,6 +385,12 @@ public class SmsQueueManager extends AbstractQueueManager {
         debugOutputMap.put("from", smsItemBean.getFrom());
 
         return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
+    }
+
+    @Override
+    protected void noteDiscardedItem(QueueEvent queueEvent)
+    {
+        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_DISCARDS);
     }
 
 }

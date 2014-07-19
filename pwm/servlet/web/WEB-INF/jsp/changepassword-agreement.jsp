@@ -36,7 +36,6 @@
         <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
-        <%-- <p/>You have <pwm:LdapValue name="loginGraceRemaining"/> remaining logins. --%>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
         <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
@@ -69,6 +68,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function updateContinueButton() {
         var checkBox = PWM_MAIN.getObject("agreeCheckBox");
@@ -89,6 +89,7 @@
         });
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -23,7 +23,10 @@
 package password.pwm.event;
 
 import com.google.gson.reflect.TypeToken;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -34,6 +37,7 @@ import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -253,7 +257,7 @@ public class AuditManager implements PwmService {
             return Collections.emptyList();
         }
 
-        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> healthRecords = new ArrayList<>();
         if (syslogManager != null) {
             healthRecords.addAll(syslogManager.healthCheck());
         }
@@ -400,7 +404,7 @@ public class AuditManager implements PwmService {
         csvWriter.writeComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
 
         if (includeHeader) {
-            final List<String> headers = new ArrayList<String>();
+            final List<String> headers = new ArrayList<>();
             headers.add("Type");
             headers.add("Event");
             headers.add("Timestamp");
@@ -420,7 +424,7 @@ public class AuditManager implements PwmService {
             final AuditRecord loopRecord = recordIterator.next();
             counter++;
 
-            final List<String> lineOutput = new ArrayList<String>();
+            final List<String> lineOutput = new ArrayList<>();
             lineOutput.add(loopRecord.getEventCode().getType().toString());
             lineOutput.add(loopRecord.getEventCode().toString());
             lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
@@ -444,10 +448,10 @@ public class AuditManager implements PwmService {
     }
 
     private static class Settings {
-        private List<String> systemEmailAddresses = new ArrayList<String>();
-        private List<String> userEmailAddresses = new ArrayList<String>();
+        private List<String> systemEmailAddresses = new ArrayList<>();
+        private List<String> userEmailAddresses = new ArrayList<>();
         private String alertFromAddress = "";
-        private Set<AuditEvent> permittedEvents = new HashSet<AuditEvent>();
+        private Set<AuditEvent> permittedEvents = new HashSet<>();
     }
 
     public ServiceInfo serviceInfo()
@@ -460,7 +464,7 @@ public class AuditManager implements PwmService {
     }
 
     private static Set<AuditEvent> figurePermittedEvents(final Configuration configuration) {
-        final Set<AuditEvent> eventSet = new HashSet<AuditEvent>();
+        final Set<AuditEvent> eventSet = new HashSet<>();
         eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_SYSTEM_EVENTS,AuditEvent.class));
         eventSet.addAll(configuration.readSettingAsOptionList(PwmSetting.AUDIT_USER_EVENTS,AuditEvent.class));
         return Collections.unmodifiableSet(eventSet);

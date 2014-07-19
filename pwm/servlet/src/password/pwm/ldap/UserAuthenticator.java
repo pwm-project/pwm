@@ -31,7 +31,6 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -41,6 +40,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
+import password.pwm.http.PwmSession;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -256,7 +256,13 @@ public class UserAuthenticator {
             LOGGER.debug(pwmSession, "attempting to set temporary random password");
             String currentPass = null;
             try {
-                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication, pwmSession, userIdentity, chaiUser, pwmSession.getSessionStateBean().getLocale());
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                        pwmApplication,
+                        pwmSession.getSessionLabel(),
+                        userIdentity,
+                        chaiUser,
+                        pwmSession.getSessionStateBean().getLocale()
+                );
                 pwmSession.getUserInfoBean().setPasswordPolicy(passwordPolicy);
 
                 // createSharedHistoryManager random password for user
@@ -457,7 +463,7 @@ public class UserAuthenticator {
         final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
         if (!bindAsUser) {
             userStatusReader.populateUserInfoBean(
-                    pwmSession,
+                    pwmSession.getSessionLabel(),
                     userInfoBean,
                     ssBean.getLocale(),
                     userIdentity,
@@ -540,7 +546,7 @@ public class UserAuthenticator {
 
         if (oracleDS_PrePasswordAllowChangeTime != null && !oracleDS_PrePasswordAllowChangeTime.isEmpty()) {
             // write back the original pre-password allow change time.
-            final Set<String> values = new HashSet<String>(
+            final Set<String> values = new HashSet<>(
                     Collections.singletonList(oracleDS_PrePasswordAllowChangeTime));
             chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
                     values,
@@ -555,7 +561,7 @@ public class UserAuthenticator {
                 // password allow change time has appeared, but wasn't present previously, so delete it.
                 LOGGER.trace(pwmSession,
                         "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
-                final Set<String> values = new HashSet<String>(
+                final Set<String> values = new HashSet<>(
                         Collections.singletonList(OracleDSEntries.convertDateToZulu(new Date())));
                 chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
                         values, true);

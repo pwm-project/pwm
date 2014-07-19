@@ -37,11 +37,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

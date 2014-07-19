@@ -29,7 +29,12 @@ var PWM_VAR = PWM_VAR || {};
 PWM_MAIN.ajaxTimeout = 120 * 1000;
 
 PWM_MAIN.pageLoadHandler = function() {
-    PWM_GLOBAL['localeBundle'] = PWM_GLOBAL['localeBundle'] || [];
+    PWM_GLOBAL['localeBundle']=PWM_GLOBAL['localeBundle'] || [];
+    PWM_GLOBAL['url-context']=PWM_MAIN.getObject('application-info').getAttribute('data-url-context');
+    PWM_GLOBAL['pwmFormID']=PWM_MAIN.getObject('application-info').getAttribute('data-pwmFormID');
+    PWM_GLOBAL['clientEtag']=PWM_MAIN.getObject('application-info').getAttribute('data-clientEtag');
+    PWM_GLOBAL['restClientKey']=PWM_MAIN.getObject('application-info').getAttribute('data-restClientKey');
+
     require(["dojo/_base/array","dojo/_base/Deferred","dojo/promise/all"], function(array,Deferred,all){
         var promises = [];
         {
@@ -41,6 +46,11 @@ PWM_MAIN.pageLoadHandler = function() {
             var clientConfigLoadDeferred = new Deferred();
             PWM_CONFIG.initConfigPage(function(){clientConfigLoadDeferred.resolve()});
             promises.push(clientConfigLoadDeferred.promise);
+        }
+        if (typeof PWM_ADMIN !== 'undefined') {
+            var adminLoadDeferred = new Deferred();
+            PWM_CONFIG.initAdminPage(function(){adminLoadDeferred.resolve()});
+            promises.push(adminLoadDeferred.promise);
         }
         {
             var seenBundles = [];
@@ -179,10 +189,12 @@ PWM_MAIN.initPage = function() {
         PWM_MAIN.initLocaleSelectorMenu('localeSelectionMenu');
     });
 
-    if (PWM_MAIN.getObject('logoutDiv')) {
+    if (PWM_MAIN.getObject('LogoutButton')) {
         PWM_MAIN.showTooltip({
-            id: ["logoutDiv"],
-            text: PWM_MAIN.showString("Long_Title_Logout")
+            id: 'LogoutButton',
+            position: ['below', 'above'],
+            text: PWM_MAIN.showString("Long_Title_Logout"),
+            width: 500
         });
     }
 
@@ -232,6 +244,14 @@ PWM_MAIN.showString = function (key, options) {
         return "UNDEFINED STRING-" + key;
     }
 };
+
+PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
+    var element = PWM_MAIN.getObject(nodeId);
+    require(["dojo","dojo/on"], function(dojo,on){
+        on(element, eventType, functionToAdd);
+    });
+};
+
 
 PWM_MAIN.goto = function(url,options) {
     options = options || {};
@@ -608,7 +628,7 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
         agreeFunction();
         return;
     }
-    var eulaLocation = PWM_GLOBAL['url-context'] + '/public/resources/text/eula.html';
+    var eulaLocation = PWM_GLOBAL['url-resources'] + '/text/eula.html';
     PWM_GLOBAL['dialog_agreeAction'] = agreeFunction ? agreeFunction : function(){};
     var bodyText = '<iframe width="600" height="400" src="' + eulaLocation + '">';
     bodyText += '</iframe>';
@@ -1048,15 +1068,21 @@ PWM_MAIN.updateLoginContexts = function() {
     var contextElement = PWM_MAIN.getObject('context');
     if (contextElement && ldapProfileElement) {
         var selectedProfile = ldapProfileElement.options[ldapProfileElement.selectedIndex].value;
-        contextElement.options.length = 0;
-        for (var key in PWM_GLOBAL['ldapProfiles'][selectedProfile]) {
-            (function(key) {
-                var display = PWM_GLOBAL['ldapProfiles'][selectedProfile][key];
-                var optionElement = document.createElement('option');
-                optionElement.setAttribute('value', key);
-                optionElement.appendChild(document.createTextNode(display));
-                contextElement.appendChild(optionElement);
-            }(key));
+        var contextList = PWM_GLOBAL['ldapProfiles'][selectedProfile];
+        if (PWM_MAIN.isEmpty(contextList)) {
+            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'none';
+        } else {
+            PWM_MAIN.getObject('contextSelectorWrapper').style.display = 'inherit';
+            contextElement.options.length = 0;
+            for (var key in contextList) {
+                (function (key) {
+                    var display = contextList[key];
+                    var optionElement = document.createElement('option');
+                    optionElement.setAttribute('value', key);
+                    optionElement.appendChild(document.createTextNode(display));
+                    contextElement.appendChild(optionElement);
+                }(key));
+            }
         }
     }
 };

@@ -28,7 +28,7 @@
 <settings>
     <setting key="pwm.selfURL" level="0">
         <label>Site URL</label>
-        <description><![CDATA[The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.<br/><br/>Example: <b>http://www.example.com/password</b>]]></description>
+        <description><![CDATA[The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.<br/><br/>Example: <b>http://www.example.com/password</b>.  The site URL must use a valid fully qualified hostname and can not use a network address.]]></description>
         <regex>^(http|https)://.+$</regex>
         <placeholder>http://www.example.com/password</placeholder>
         <default>
@@ -488,6 +488,9 @@
         <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
         </default>
+        <default syntaxVersion="2" template="ORACLE_DS">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="0" required="true">
         <label>Username Search Filter</label>
@@ -558,14 +561,6 @@
         </default>
         <default template="ORACLE_DS">
             <value>true</value>
-        </default>
-    </setting>
-    <setting key="ldapChaiSettings" level="1">
-        <label>LDAP Chai Settings</label>
-        <description><![CDATA[Name/Value settings to control the behavior of the <a href="http://code.google.com/p/ldapchai">LDAP Chai API</a>.  The settings must be in "name=value" format, where name is the key value of a valid <a href="http://ldapchai.googlecode.com/svn/trunk/javadoc/com/novell/ldapchai/provider/ChaiSetting.html">ChaiSetting</a>.]]></description>
-        <regex>^chai\.[a-zA-Z0-9.]*=.+$</regex>
-        <default>
-            <value />
         </default>
     </setting>
     <setting key="ldap.duplicateMode" level="1">
@@ -1626,6 +1621,13 @@
         ]]></description>
         <default/>
     </setting>
+    <setting key="security.cspHeader" level="1">
+        <label>HTTP Content Security Policy Header</label>
+        <description><![CDATA[Set the HTTP Content-Security-Policy header.  This header instructs the browser to limit the locations from which it will load fonts, scripts and css files.]]></description>
+        <default>
+            <value><![CDATA[default-src 'self';style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' www.google.com/recaptcha]]></value>
+        </default>
+    </setting>
     <setting key="email.adminAlert.toAddress" level="0">
         <label>System Audit Event Email Alerts</label>
         <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
@@ -1635,7 +1637,7 @@
     </setting>
     <setting key="audit.system.eventList" level="0">
         <label>System Audit Event Types</label>
-        <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
+        <description><![CDATA[Event types to record and act upon.]]></description>
         <default>
             <value>STARTUP</value>
             <value>SHUTDOWN</value>
@@ -2133,7 +2135,7 @@
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
         <label>Check Responses Match</label>
-        <description><![CDATA[if the command servlet is called with the checkIfResponseConfigNeeded command:<br/><br/><i>/private/CommandServlet?command=checkIfResponseConfigNeeded</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
+        <description><![CDATA[If the command servlet is called with the checkResponses command:<br/><br/><i>/private/CommandServlet?processAction=checkResponses</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
         <default syntaxVersion="2">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
@@ -2306,6 +2308,7 @@
         <options>
             <option value="RESETPW">Allow user to set new password</option>
             <option value="SENDNEWPW">Send new password</option>
+            <option value="SENDNEWPW_AND_EXPIRE">Send new password and mark as expired</option>
         </options>
     </setting>
     <setting key="recovery.sendNewPassword.sendMethod" level="1">
@@ -3162,6 +3165,13 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="helpdesk.displayName" level="1">
+        <label>User Detail Display Name</label>
+        <description><![CDATA[The display name used to identify the user on the user detail screen.  Macros are resolved to the displayed user.]]></description>
+        <default>
+            <value>@User:ID@ - @User:Email@</value>
+        </default>
+    </setting>
     <setting key="helpdesk.profile.list" level="0" hidden="true">
         <label>Helpdesk Profile</label>
         <description><![CDATA[Helpdesk Profile List]]></description>
@@ -3176,6 +3186,9 @@
         </default>
         <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="ORACLE_DS">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="pwmDb.location" level="1" required="true">
@@ -3352,6 +3365,9 @@
         </default>
         <default syntaxVersion="2" template="AD">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="ORACLE_DS">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="external.webAuth.methods" level="0">

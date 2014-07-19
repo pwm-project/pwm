@@ -22,6 +22,7 @@
 
 package password.pwm.i18n;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.util.PwmLogger;
@@ -169,4 +170,26 @@ public class LocaleHelper {
 
         return null;
     }
+
+    public static class DisplayMaker {
+        private final PwmApplication pwmApplication;
+        private final Class<? extends DisplayBundleMarker> bundleClass;
+        private final Locale locale;
+
+        public DisplayMaker(
+                Locale locale,
+                Class<? extends DisplayBundleMarker> bundleClass,
+                PwmApplication pwmApplication
+        )
+        {
+            this.locale = locale;
+            this.bundleClass = bundleClass;
+            this.pwmApplication = pwmApplication;
+        }
+
+        public String forKey(String input, String... values) {
+            return LocaleHelper.getLocalizedMessage(locale,input,pwmApplication.getConfig(),bundleClass,values);
+        }
+    }
+
 }

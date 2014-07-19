@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.servlet.ActivateUserBean" %>
+<%@ page import="password.pwm.http.bean.ActivateUserBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,19 +28,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript">
-    function updateContinueButton() {
-        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
-        var continueButton = PWM_MAIN.getObject("submitBtn");
-        if (checkBox != null && continueButton != null) {
-            if (checkBox.checked) {
-                continueButton.removeAttribute('disabled');
-            } else {
-                continueButton.disabled = "disabled";
-            }
-        }
-    }
-</script>
 <div id="wrapper">
     <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
     <jsp:include page="fragment/header-body.jsp">
@@ -77,7 +64,19 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
+    function updateContinueButton() {
+        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+        var continueButton = PWM_MAIN.getObject("submitBtn");
+        if (checkBox != null && continueButton != null) {
+            if (checkBox.checked) {
+                continueButton.removeAttribute('disabled');
+            } else {
+                continueButton.disabled = "disabled";
+            }
+        }
+    }
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
@@ -85,6 +84,7 @@
         });
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

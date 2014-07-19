@@ -34,6 +34,8 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -58,7 +60,7 @@ public class RestVerifyResponsesServer {
 
         public Map<Challenge,String> toCrMap()
         {
-            final Map<Challenge,String> crMap = new LinkedHashMap<Challenge, String>();
+            final Map<Challenge,String> crMap = new LinkedHashMap<>();
             if (challenges != null) {
                 for (final ChallengeBean challengeBean : challenges) {
                     if (challengeBean.getAnswer() == null) {
@@ -119,6 +121,10 @@ public class RestVerifyResponsesServer {
 
             final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser);
             final boolean verified = responseSet.test(jsonInput.toCrMap());
+
+            if (restRequestBean.isExternal()) {
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
+            }
 
             final String successMsg = Message.SUCCESS_UNKNOWN.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
             RestResultBean resultBean = new RestResultBean();

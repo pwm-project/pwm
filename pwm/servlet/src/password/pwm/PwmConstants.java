@@ -121,6 +121,7 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String CONTEXT_ATTR_RESOURCE_CACHE = "ResourceFileServlet-Cache";
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
+    public static final String REQUEST_ATTR_PWM_REQUEST = "PwmRequest";
     public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
     public static final String REQUEST_ATTR_SHOW_LOCALE = "pwm.showLocale";
     public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
@@ -128,6 +129,8 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
     public static final String REQUEST_ATTR_HIDE_HEADER_BUTTONS = "pwm.hideHeaderButtons";
     public static final String REQUEST_ATTR_NO_REQ_COUNTER = "pwm.noReqCounterIncrement";
+    public static final String REQUEST_ATTR_HELPDESK_DETAILNAME = "pwm.helpdeskDetailName";
+
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
@@ -274,7 +277,9 @@ public abstract class PwmConstants {
             "I needed a password eight characters long so I picked Snow White and the Seven Dwarves.", //nick helm
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
-            "passwords are like underwear, changing underwear regularly is a good thing." //menno
+            "passwords are like underwear, changing underwear regularly is a good thing.", //menno
+            "daisy, daisy, give me your password do..."
+
     };
 
     public final static int TOTP_PAST_INTERVALS = 1;    // Allows one older TOTP token - compensate for clock out of sync

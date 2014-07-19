@@ -229,7 +229,7 @@ input[type=password]::-ms-reveal{display: none;}
 }
 
 
-#WaitDialogBlank {
+.WaitDialogBlank {
     height: 46px;
     width: 46px;
     margin-left: auto;
@@ -438,7 +438,7 @@ div.progress-container > div {
 }
 
 /* recaptcha section */
-#recaptcha_WaitDialogBlank {
+.recaptcha_WaitDialogBlank {
     background: url("wait.gif") no-repeat center center;
     min-height: 150px;
     min-width: 46px;

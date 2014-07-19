@@ -22,16 +22,20 @@
 
 package password.pwm.config.function;
 
+import com.novell.ldapchai.ChaiEntry;
+import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.PwmLogger;
@@ -43,23 +47,37 @@ public class UserMatchViewerFunction implements SettingUIFunction {
 
     @Override
     public String provideFunction(
-            PwmApplication pwmApplication,
-            PwmSession pwmSession,
-            StoredConfiguration storedConfiguration,
-            PwmSetting setting,
-            String profile
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final StoredConfiguration storedConfiguration,
+            final PwmSetting setting,
+            final String profile
     )
-            throws PwmOperationalException
+            throws Exception
     {
         final Locale userLocale = pwmSession == null ? PwmConstants.DEFAULT_LOCALE : pwmSession.getSessionStateBean().getLocale();
-        final Configuration config = pwmApplication.getConfig();
         final int maxResultSize = Integer.parseInt(
-                config.readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
+                pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT));
+        final Map<String,List<String>> matchingUsers = discoverMatchingUsers(maxResultSize, storedConfiguration, setting, profile);
+        return convertResultsToHtmlTable(
+                pwmApplication, userLocale, matchingUsers, maxResultSize
+        );
+    }
 
+    public Map<String,List<String>> discoverMatchingUsers(
+            final int maxResultSize,
+            final StoredConfiguration storedConfiguration,
+            final PwmSetting setting,
+            final String profile
+    )
+            throws Exception
+    {
+        final Configuration config = new Configuration(storedConfiguration);
+        final PwmApplication tempApplication = new PwmApplication(config, PwmApplication.MODE.CONFIGURATION, null, false, null);
         final List<UserPermission> queryMatchString = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
 
-        final Map<UserIdentity, Map<String, String>> results = new HashMap<UserIdentity, Map<String, String>>();
+        final Map<UserIdentity, Map<String, String>> results = new HashMap<>();
         for (final UserPermission userPermission : queryMatchString) {
             if ((maxResultSize + 1) - results.size() > 0) {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
@@ -68,13 +86,14 @@ public class UserMatchViewerFunction implements SettingUIFunction {
                     searchConfiguration.setLdapProfile(userPermission.getLdapProfileID());
                 }
                 if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().isEmpty()) {
-                    searchConfiguration.setContexts(Collections.singletonList(userPermission.getLdapProfileID()));
+                    testIfLdapDNIsValid(tempApplication, userPermission.getLdapBase(), userPermission.getLdapProfileID());
+                    searchConfiguration.setEnableContextValidation(false);
+                    searchConfiguration.setContexts(Collections.singletonList(userPermission.getLdapBase()));
                 }
-
 
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(
-                                    pwmSession,
+                                    null,
                                     searchConfiguration,
                                     (maxResultSize + 1) - results.size(),
                                     Collections.<String>emptyList())
@@ -89,10 +108,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             }
         }
 
-        final Map<String,List<String>> sortedMap = sortResults(results);
-        return convertResultsToHtmlTable(
-                pwmApplication, userLocale, sortedMap, maxResultSize
-        );
+        return sortResults(results);
     }
 
     private String convertResultsToHtmlTable(
@@ -136,7 +152,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     }
 
     private Map<String,List<String>> sortResults(final Map<UserIdentity, Map<String, String>> results) {
-        final Map<String,List<String>> sortedMap = new TreeMap<String,List<String>>();
+        final Map<String,List<String>> sortedMap = new TreeMap<>();
 
         for (final UserIdentity userIdentity : results.keySet()) {
             if (!sortedMap.containsKey(userIdentity.getLdapProfileID())) {
@@ -146,5 +162,31 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         }
 
         return sortedMap;
+    }
+
+    private void testIfLdapDNIsValid(final PwmApplication pwmApplication, final String baseDN, final String profileID)
+            throws PwmOperationalException
+    {
+        final Set<String> profileIDsToTest = new LinkedHashSet<>();
+        if (profileID == null || profileID.isEmpty()) {
+            profileIDsToTest.add(PwmConstants.PROFILE_ID_DEFAULT);
+        } else if (profileID.equals(PwmConstants.PROFILE_ID_ALL)) {
+            profileIDsToTest.addAll(pwmApplication.getConfig().getLdapProfiles().keySet());
+        } else {
+            profileIDsToTest.add(profileID);
+        }
+        for (final String loopID : profileIDsToTest) {
+            ChaiEntry chaiEntry = null;
+            try {
+                final ChaiProvider proxiedProvider = pwmApplication.getProxyChaiProvider(loopID);
+                chaiEntry = ChaiFactory.createChaiEntry(baseDN, proxiedProvider);
+            } catch (Exception e) {
+                LOGGER.error("error while testing baseDN for profile '" + profileID + "', error:" + profileID);
+            }
+            if (chaiEntry != null && !chaiEntry.isValid()) {
+                final String errorMsg = "error reading matching users: entryDN '" + baseDN + "' is not valid for profile " + loopID;
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            }
+        }
     }
 }

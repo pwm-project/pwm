@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.servlet.HelpdeskBean" %>
+<%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.util.Helper" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
@@ -88,6 +88,7 @@
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
+<pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_VAR['helpdesk_search_columns'] = <%=Helper.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
@@ -95,6 +96,7 @@
         PWM_MAIN.getObject('username').focus()
     });
 </script>
+</pwm:script>
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>

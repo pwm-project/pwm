@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,26 @@
 
 package password.pwm.util.intruder;
 
+import password.pwm.util.stats.Statistic;
+
 public enum RecordType {
-    ADDRESS,
-    USERNAME,
-    USER_ID,
-    ATTRIBUTE,
-    TOKEN_DEST
+    ADDRESS(Statistic.LOCKED_ADDRESSES),
+    USERNAME(Statistic.LOCKED_USERS),
+    USER_ID(Statistic.LOCKED_USERIDS),
+    ATTRIBUTE(Statistic.LOCKED_ATTRIBUTES),
+    TOKEN_DEST(Statistic.LOCKED_TOKENDESTS),
+
+    ;
+
+    private final Statistic lockStatistic;
+
+    RecordType(Statistic lockStatistic)
+    {
+        this.lockStatistic = lockStatistic;
+    }
+
+    public Statistic getLockStatistic()
+    {
+        return lockStatistic;
+    }
 }

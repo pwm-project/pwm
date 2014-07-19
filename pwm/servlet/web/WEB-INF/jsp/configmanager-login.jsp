@@ -58,12 +58,14 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('password').focus();
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

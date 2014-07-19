@@ -292,7 +292,7 @@ public class FormConfiguration implements Serializable {
         if (formConfigurations == null) {
             return Collections.emptyList();
         }
-        final ArrayList<String> returnList = new ArrayList<String>();
+        final ArrayList<String> returnList = new ArrayList<>();
         for (final FormConfiguration formConfiguration : formConfigurations) {
             returnList.add(formConfiguration.getName());
         }

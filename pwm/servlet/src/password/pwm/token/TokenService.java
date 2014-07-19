@@ -24,8 +24,14 @@ package password.pwm.token;
 
 import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmService;
+import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
@@ -35,7 +41,9 @@ import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserAuthenticator;
+import password.pwm.ldap.UserDataReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -44,6 +52,7 @@ import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -225,6 +234,8 @@ public class TokenService implements PwmService {
                 pwmSession,
                 Helper.getGson().toJson(tokenPayload)
         ));
+
+        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.TOKENS_PASSSED);
     }
 
     public TokenPayload retrieveTokenData(final String tokenKey)
@@ -269,7 +280,7 @@ public class TokenService implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
 
         if (tokensAreUsedInConfig(configuration)) {
             if (errorInformation != null) {
@@ -321,7 +332,7 @@ public class TokenService implements PwmService {
     {
         final long startTime = System.currentTimeMillis();
         int cleanedTokens = 0;
-        List<String> tempKeyList = new ArrayList<String>();
+        List<String> tempKeyList = new ArrayList<>();
         final int purgeBatchSize = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.TOKEN_PURGE_BATCH_SIZE));
         tempKeyList.addAll(discoverPurgeableTokenKeys(purgeBatchSize));
         while (status() == STATUS.OPEN && !tempKeyList.isEmpty()) {
@@ -339,7 +350,7 @@ public class TokenService implements PwmService {
     private List<String> discoverPurgeableTokenKeys(final int maxCount)
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final List<String> returnList = new ArrayList<String>();
+        final List<String> returnList = new ArrayList<>();
         Iterator<String> keyIterator = null;
 
         try {
@@ -504,7 +515,6 @@ public class TokenService implements PwmService {
                 }
             }
             pwmApplication.getTokenService().markTokenAsClaimed(userEnteredCode, pwmSession);
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_PASSED);
             return tokenPayload;
         } catch (Exception e) {
             final ErrorInformation errorInformation;
@@ -573,7 +583,7 @@ public class TokenService implements PwmService {
             try {
                 final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                         pwmApplication,
-                        pwmSession,
+                        pwmSession.getSessionLabel(),
                         sessionUserIdentity);
                 final String dateStringInToken = tokenPayload.getData().get(PwmConstants.TOKEN_KEY_PWD_CHG_DATE);
                 if (userLastPasswordChange != null && dateStringInToken != null) {
@@ -584,11 +594,7 @@ public class TokenService implements PwmService {
                         throw new PwmOperationalException(errorInformation);
                     }
                 }
-            } catch (ChaiUnavailableException e) {
-                final String errorMsg = "unexpected error reading user's last password change time while validating token: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            } catch (PwmUnrecoverableException e) {
+            } catch (ChaiUnavailableException | PwmUnrecoverableException e) {
                 final String errorMsg = "unexpected error reading user's last password change time while validating token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT, errorMsg);
                 throw new PwmOperationalException(errorInformation);
@@ -597,5 +603,113 @@ public class TokenService implements PwmService {
 
         LOGGER.debug(pwmSession, "token validation has been passed");
         return tokenPayload;
+    }
+
+    public static class TokenSender {
+        public static void sendToken(
+                final PwmApplication pwmApplication,
+                final UserInfoBean userInfoBean,
+                final UserDataReader userDataReader,
+                final EmailItemBean configuredEmailSetting,
+                final MessageSendMethod tokenSendMethod,
+                final String emailAddress,
+                final String smsNumber,
+                final String smsMessage,
+                final String tokenKey
+        )
+                throws PwmUnrecoverableException, ChaiUnavailableException
+        {
+            final boolean success;
+            switch (tokenSendMethod) {
+                case NONE:
+                    // should never get here
+                    LOGGER.error("attempt to send token to destination type 'NONE'");
+                    throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
+                case BOTH:
+                    // Send both email and SMS, success if one of both succeeds
+                    final boolean suc1 = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
+                    final boolean suc2 = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
+                    success = suc1 || suc2;
+                    break;
+                case EMAILFIRST:
+                    // Send email first, try SMS if email is not available
+                    success = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey) ||
+                            sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
+                    break;
+                case SMSFIRST:
+                    // Send SMS first, try email if SMS is not available
+                    success = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey) ||
+                            sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
+                    break;
+                case SMSONLY:
+                    // Only try SMS
+                    success = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
+                    break;
+                case EMAILONLY:
+                default:
+                    // Only try email
+                    success = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
+                    break;
+            }
+            if (!success) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
+            }
+            pwmApplication.getStatisticsManager().incrementValue(Statistic.TOKENS_SENT);
+        }
+
+        public static boolean sendEmailToken(
+                final PwmApplication pwmApplication,
+                final UserInfoBean userInfoBean,
+                final UserDataReader userDataReader,
+                final EmailItemBean configuredEmailSetting,
+                final String toAddress,
+                final String tokenKey
+        )
+                throws PwmUnrecoverableException, ChaiUnavailableException
+        {
+            if (toAddress == null || toAddress.length() < 1) {
+                return false;
+            }
+
+            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
+
+            pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
+                    toAddress,
+                    configuredEmailSetting.getFrom(),
+                    configuredEmailSetting.getSubject(),
+                    configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
+                    configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
+            ), userInfoBean, userDataReader);
+            LOGGER.debug("token email added to send queue for " + toAddress);
+            return true;
+        }
+
+        public static boolean sendSmsToken(
+                final PwmApplication pwmApplication,
+                final UserInfoBean userInfoBean,
+                final UserDataReader userDataReader,
+                final String smsNumber,
+                final String smsMessage,
+                final String tokenKey
+        )
+                throws PwmUnrecoverableException, ChaiUnavailableException
+        {
+            final Configuration config = pwmApplication.getConfig();
+            String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
+            if (senderId == null) { senderId = ""; }
+
+            if (smsNumber == null || smsNumber.length() < 1) {
+                return false;
+            }
+
+            final String modifiedMessage = smsMessage.replaceAll("%TOKEN%", tokenKey);
+
+            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, null);
+
+            final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
+            pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, senderId, modifiedMessage, maxlen), userInfoBean, userDataReader);
+            LOGGER.debug("token SMS added to send queue for " + smsNumber);
+            return true;
+        }
     }
 }

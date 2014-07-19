@@ -25,13 +25,19 @@ package password.pwm.util;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
+import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.util.stats.Statistic;
@@ -56,7 +62,7 @@ public class ServletHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ServletHelper.class);
 
-    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<String>(
+    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<>(
             Arrays.asList(new String[] {
                     "password",
                     PwmConstants.PARAM_TOKEN,
@@ -208,7 +214,7 @@ public class ServletHelper {
 
             for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
                 final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = new HashSet<String>();
+                final Set<String> paramValues = new HashSet<>();
                 try {
                     paramValues.addAll(Validator.readStringsFromRequest(req, paramName, 1024));
                 } catch (PwmUnrecoverableException e) {
@@ -295,6 +301,17 @@ public class ServletHelper {
             if (includeXFrameDeny && fromServlet) {
                 resp.setHeader("X-Frame-Options", "DENY");
             }
+
+            //resp.setHeader("Content-Security-Policy","default-src 'self' 'unsafe-inline' 'unsafe-eval'");
+            if (fromServlet && pwmSession != null) {
+                final String contentPolicy = pwmApplication.getConfig().readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
+                if (contentPolicy != null && !contentPolicy.isEmpty()) {
+                    final String nonce = pwmSession.getSessionStateBean().getSessionVerificationKey();
+                    final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);
+                    resp.setHeader("Content-Security-Policy", expandedPolicy);
+                }
+            }
+
 
             resp.setHeader("Server",null);
         }
@@ -463,7 +480,7 @@ public class ServletHelper {
 
         // read the old session data
         final HttpSession oldSession = req.getSession(true);
-        final Map<String,Object> sessionAttributes = new HashMap<String,Object>();
+        final Map<String,Object> sessionAttributes = new HashMap<>();
         final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
         while (oldSessionAttrNames.hasMoreElements()) {
             final String attrName = (String)oldSessionAttrNames.nextElement();

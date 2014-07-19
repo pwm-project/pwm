@@ -29,10 +29,10 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 
 import java.io.Serializable;
 import java.util.*;
@@ -139,19 +139,19 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
         }
 
         // figure out uncached attributes.
-        final List<String> uncachedAttributes = new ArrayList<String>(attributes);
+        final List<String> uncachedAttributes = new ArrayList<>(attributes);
         uncachedAttributes.removeAll(cacheMap.keySet());
 
         // read uncached attributes into cache
         if (!uncachedAttributes.isEmpty()) {
-            final Map<String,String> readData = user.readStringAttributes(new HashSet<String>(uncachedAttributes));
+            final Map<String,String> readData = user.readStringAttributes(new HashSet<>(uncachedAttributes));
             for (final String attribute : attributes) {
                 cacheMap.put(attribute,readData.containsKey(attribute) ? readData.get(attribute) : NULL_CACHE_VALUE);
             }
         }
 
         // build result data from cache
-        final Map<String,String> returnMap = new HashMap<String,String>();
+        final Map<String,String> returnMap = new HashMap<>();
         for (final String attribute : attributes) {
             final Object cachedValue = cacheMap.get(attribute);
             if (cachedValue != null && !NULL_CACHE_VALUE.equals(cachedValue)) {

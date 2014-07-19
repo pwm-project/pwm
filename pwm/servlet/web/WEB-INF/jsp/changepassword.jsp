@@ -48,11 +48,7 @@
         <% } %>
         <br/>
         <%@ include file="fragment/message.jsp" %>
-        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onkeyup="PWM_CHANGEPW.validatePasswords(null);" onchange="PWM_CHANGEPW.validatePasswords(null);"
-              onsubmit="PWM_CHANGEPW.handleChangePasswordSubmit(); PWM_MAIN.handleFormSubmit(this);return false"
-              onreset="PWM_CHANGEPW.validatePasswords(null);PWM_CHANGEPW.setInputFocus();return false;" name="changePasswordForm"
-              id="changePasswordForm">
+        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" id="changePasswordForm">
             <table style="border:0">
                 <tr>
                     <td style="border:0;">
@@ -116,12 +112,14 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_CHANGEPW.startupChangePasswordPage();
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

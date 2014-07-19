@@ -75,7 +75,7 @@ class ExternalRestMacro extends AbstractMacro {
     )
     {
         final String inputString = matchValue.substring(11,matchValue.length() -1);
-        final HashMap<String,Object> sendData = new HashMap<String, Object>();
+        final HashMap<String,Object> sendData = new HashMap<>();
         if (userInfoBean != null) {
             final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
             sendData.put("userInfo",jsonStatusData);

@@ -58,7 +58,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
 
     static StringArrayValue fromXmlElement(final Element settingElement) {
         final List valueElements = settingElement.getChildren("value");
-        final List<String> values = new ArrayList<String>();
+        final List<String> values = new ArrayList<>();
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
@@ -68,7 +68,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         for (final String value : this.value) {
             final Element valueElement = new Element(valueElementName);
             valueElement.addContent(new CDATA(value));

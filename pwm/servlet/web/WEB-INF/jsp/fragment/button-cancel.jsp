@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.ContextManager" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/

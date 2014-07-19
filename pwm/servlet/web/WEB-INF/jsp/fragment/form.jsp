@@ -1,11 +1,11 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
@@ -40,6 +40,7 @@
     final Map<FormConfiguration,String> formDataMap = (Map<FormConfiguration,String>)request.getAttribute("formData");
 %>
 <%
+    boolean focusSet = false;
     final PwmSession pwmSession = PwmSession.getPwmSession(session);
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
     final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -58,6 +59,7 @@
     <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %>
         <%if(loopConfiguration.isRequired()){%>
         <span style="font-style: italic; font-size: smaller" id="label_required_<%=loopConfiguration.getName()%>">*&nbsp;</span>
+        <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
@@ -67,6 +69,7 @@
                 });
             });
         </script>
+        </pwm:script>
         <%}%>
     </label>
 </h2>
@@ -80,7 +83,7 @@
     <%= currentValue %>
 </span>
 <% } else if (loopConfiguration.getType() == FormConfiguration.Type.select) { %>
-<select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px">
+<select id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" style="width:20%;margin-left: 5px"<% if (!focusSet) { %> autofocus<% }; focusSet = true; %>>
     <% for (final String optionName : loopConfiguration.getSelectOptions().keySet()) {%>
     <option value="<%=optionName%>" <%if(optionName.equals(currentValue)){%>selected="selected"<%}%>>
         <%=loopConfiguration.getSelectOptions().get(optionName)%>
@@ -93,7 +96,7 @@
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isConfirmationRequired()) { %> onkeypress="PWM_MAIN.getObject('<%=loopConfiguration.getName()%>_confirm').value=''"<% } %>
-       maxlength="<%=loopConfiguration.getMaximumLength()%>"/>
+       maxlength="<%=loopConfiguration.getMaximumLength()%>"<% if (!focusSet) { %> autofocus<% }; focusSet = true; %>/>
 <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
 <h2>
     <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
@@ -108,6 +111,7 @@
 <% } %>
 <% } %>
 <% if (loopConfiguration.getJavascript() != null && loopConfiguration.getJavascript().length() > 0) { %>
+<pwm:script>
 <script type="text/javascript">
     try {
         <%=loopConfiguration.getJavascript()%>
@@ -115,6 +119,7 @@
         console.log('error executing custom javascript for form field \'' + <%=loopConfiguration.getName()%> + '\', error: ' + e)
     }
 </script>
+</pwm:script>
 <% } %>
 <% } %>
 
@@ -122,6 +127,7 @@
 <h2>
     <label for="password1"><pwm:Display key="Field_NewPassword"/>
         <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
+        <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
@@ -131,6 +137,7 @@
                 });
             });
         </script>
+        </pwm:script>
     </label>
 </h2>
 <div id="PasswordRequirements">
@@ -153,6 +160,7 @@
                     <div id="strengthBar" style="width: 0">&nbsp;</div>
                 </div>
             </div>
+            <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     PWM_MAIN.showTooltip({
@@ -162,6 +170,7 @@
                     });
                 });
             </script>
+            </pwm:script>
             <% } %>
         </td>
         <td style="border:0; width:10%">&nbsp;</td>

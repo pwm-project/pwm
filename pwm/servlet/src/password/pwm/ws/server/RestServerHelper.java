@@ -23,13 +23,18 @@
 package password.pwm.ws.server;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
+import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
@@ -207,7 +212,8 @@ public abstract class RestServerHelper {
 
         if (BasicAuthInfo.parseAuthHeader(pwmApplication, request) != null) {
             try {
-                AuthenticationFilter.authUserUsingBasicHeader(request, BasicAuthInfo.parseAuthHeader(pwmApplication,request));
+                AuthenticationFilter.authUserUsingBasicHeader(request,
+                        BasicAuthInfo.parseAuthHeader(pwmApplication, request));
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             }

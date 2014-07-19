@@ -26,7 +26,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.lang.NullArgumentException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -87,7 +87,7 @@ public class RestTokenDataClient implements RestClient {
     }
 
     private TokenDestinationData invoke(
-            final PwmSession pwmSession,
+            final SessionLabel pwmSession,
             final TokenDestinationData tokenDestinationData,
             final UserIdentity userIdentity,
             final String url,
@@ -99,7 +99,7 @@ public class RestTokenDataClient implements RestClient {
             throw new NullArgumentException("tokenDestinationData can not be null");
         }
 
-        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<String, Object>();
+        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
             final UserInfoBean userInfoBean = new UserInfoBean();
@@ -123,7 +123,7 @@ public class RestTokenDataClient implements RestClient {
     }
 
     public TokenDestinationData figureDestTokenDisplayString(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final TokenDestinationData tokenDestinationData,
             final UserIdentity userIdentity,
             final Locale locale
@@ -133,11 +133,11 @@ public class RestTokenDataClient implements RestClient {
         final String configuredUrl = pwmApplication.getConfig().readSettingAsString(PwmSetting.EXTERNAL_MACROS_DEST_TOKEN_URLS);
         if (configuredUrl != null && !configuredUrl.isEmpty()) {
             try {
-                LOGGER.trace(pwmSession, "beginning token destination rest client call to " + configuredUrl);
-                return invoke(pwmSession, tokenDestinationData, userIdentity, configuredUrl, locale);
+                LOGGER.trace(sessionLabel, "beginning token destination rest client call to " + configuredUrl);
+                return invoke(sessionLabel, tokenDestinationData, userIdentity, configuredUrl, locale);
             } catch (Exception e) {
                 final String errorMsg = "error making token destination rest client call; error: " + e.getMessage();
-                LOGGER.error(pwmSession, errorMsg);
+                LOGGER.error(sessionLabel, errorMsg);
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,errorMsg));
             }
         }

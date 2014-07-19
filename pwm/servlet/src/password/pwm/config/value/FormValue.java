@@ -60,7 +60,7 @@ public class FormValue extends AbstractValue implements StoredValue {
         final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
         final Gson gson = Helper.getGson();
         final List valueElements = settingElement.getChildren("value");
-        final List<FormConfiguration> values = new ArrayList<FormConfiguration>();
+        final List<FormConfiguration> values = new ArrayList<>();
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
@@ -78,7 +78,7 @@ public class FormValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         final Gson gson = Helper.getGson();
         for (final FormConfiguration value : values) {
             final Element valueElement = new Element(valueElementName);
@@ -99,7 +99,7 @@ public class FormValue extends AbstractValue implements StoredValue {
             }
         }
 
-        final Set<String> seenNames = new HashSet<String>();
+        final Set<String> seenNames = new HashSet<>();
         for (final FormConfiguration loopConfig : values) {
             if (seenNames.contains(loopConfig.getName().toLowerCase())) {
                 return Collections.singletonList("each form name must be unique: " + loopConfig.getName());

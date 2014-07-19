@@ -59,7 +59,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
         final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
         final Gson gson = Helper.getGson();
         final List valueElements = settingElement.getChildren("value");
-        final List<ActionConfiguration> values = new ArrayList<ActionConfiguration>();
+        final List<ActionConfiguration> values = new ArrayList<>();
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
@@ -77,7 +77,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         final Gson gson = Helper.getGson();
         for (final ActionConfiguration value : values) {
             final Element valueElement = new Element(valueElementName);
@@ -98,7 +98,7 @@ public class ActionValue extends AbstractValue implements StoredValue {
             }
         }
 
-        final Set<String> seenNames = new HashSet<String>();
+        final Set<String> seenNames = new HashSet<>();
         for (final ActionConfiguration actionConfiguration : values) {
             if (seenNames.contains(actionConfiguration.getName().toLowerCase())) {
                 return Collections.singletonList("each action name must be unique: " + actionConfiguration.getName());

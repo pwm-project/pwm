@@ -32,8 +32,12 @@ import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserSearchEngine;
+import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.cache.CacheService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -48,6 +52,8 @@ public class Validator {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(Validator.class);
+
+    final private static String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
 
     public static final String PARAM_CONFIRM_SUFFIX = "_confirm";
 
@@ -112,7 +118,7 @@ public class Validator {
             return Collections.emptyMap();
         }
 
-        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<FormConfiguration,String>();
+        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
 
         if (inputMap == null) {
             return returnMap;
@@ -186,8 +192,8 @@ public class Validator {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String pwmFormID = ssBean.getSessionVerificationKey();
-        final long requestSequenceCounter = ssBean.getRequestCounter();
+        final String sessionVerificationKey = ssBean.getSessionVerificationKey();
+        final String requestVerificationKey = ssBean.getRequestVerificationKey();
 
         final String submittedPwmFormID = req.getParameter(PwmConstants.PARAM_FORM_ID);
         if (submittedPwmFormID == null || submittedPwmFormID.isEmpty()) {
@@ -196,11 +202,10 @@ public class Validator {
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_ENABLE_REQUEST_SEQUENCE)) {
             try {
-                final String submittedSequenceCounterStr = submittedPwmFormID.substring(pwmFormID.length(),submittedPwmFormID.length());
-                final long submittedSequenceCounter = Long.parseLong(submittedSequenceCounterStr,36);
-                if (submittedSequenceCounter != requestSequenceCounter) {
-                    final String debugMsg = "expectedPageID=" + Long.toString(requestSequenceCounter,36)
-                            + ", submittedPageID=" + submittedSequenceCounterStr
+                final String submittedReqestVerificationKey = submittedPwmFormID.substring(sessionVerificationKey.length(),submittedPwmFormID.length());
+                if (requestVerificationKey != null && !requestVerificationKey.equals(submittedReqestVerificationKey)) {
+                    final String debugMsg = "expectedPageID=" + requestVerificationKey
+                            + ", submittedPageID=" + submittedReqestVerificationKey
                             +  ", url=" + req.getRequestURI();
 
                     throw new PwmOperationalException(PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE, debugMsg);
@@ -270,7 +275,7 @@ public class Validator {
         final PwmApplication theManager = ContextManager.getPwmApplication(req);
 
         final String theStrings[] = req.getParameterValues(value);
-        final Set<String> resultSet = new HashSet<String>();
+        final Set<String> resultSet = new HashSet<>();
 
         for (String theString : theStrings) {
             if (req.getCharacterEncoding() == null) {
@@ -348,13 +353,12 @@ public class Validator {
             final PwmApplication pwmApplication,
             final Map<FormConfiguration,String> formValues,
             final Locale locale,
-            final SessionManager sessionManager,
             final Collection<UserIdentity> excludeDN
     )
             throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
     {
-        final Map<String, String> filterClauses = new HashMap<String, String>();
-        final Map<String,String> labelMap = new HashMap<String,String>();
+        final Map<String, String> filterClauses = new HashMap<>();
+        final Map<String,String> labelMap = new HashMap<>();
         final List<String> uniqueAttributes = new ArrayList();
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (formItem.isUnique() && !formItem.isReadonly()) {
@@ -395,15 +399,18 @@ public class Validator {
             filter.append(")");
         }
 
-        final Boolean NEGATIVE_CACHE_HIT = Boolean.TRUE;
-        final String cacheKey = "attr_unique_check_" + filter.toString();
-        if (sessionManager != null) {
-            final Object cacheValue = sessionManager.getTypingCacheValue(cacheKey);
+        final CacheService cacheService = pwmApplication.getCacheService();
+        final CacheService.CacheKey cacheKey = CacheService.CacheKey.makeCacheKey(
+                Validator.class, null, "attr_unique_check_" + filter.toString()
+        );
+        if (cacheService != null) {
+            final String cacheValue = cacheService.get(cacheKey);
             if (cacheValue != null) {
                 if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
                     return;
                 } else {
-                    throw new PwmDataValidationException((ErrorInformation)cacheValue);
+                    final ErrorInformation errorInformation = Helper.getGson().fromJson(cacheValue,ErrorInformation.class);
+                    throw new PwmDataValidationException(errorInformation);
                 }
             }
         }
@@ -415,10 +422,11 @@ public class Validator {
         searchConfiguration.setFilter(filter.toString());
 
         int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
+        final CacheService.CachePolicy cachePolicy = CacheService.CachePolicy.makePolicy(30 * 1000);
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<UserIdentity, Map<String, String>>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {
@@ -457,13 +465,14 @@ public class Validator {
                 throw new PwmDataValidationException(error);
             }
         } catch (PwmOperationalException e) {
-            if (sessionManager != null) {
-                sessionManager.putLruTypingCacheValue(cacheKey,e.getErrorInformation());
+            if (cacheService != null) {
+                final String jsonPayload = Helper.getGson().toJson(e.getErrorInformation());
+                cacheService.put(cacheKey, cachePolicy, jsonPayload);
             }
             throw new PwmDataValidationException(e.getErrorInformation());
         }
-        if (sessionManager != null) {
-            sessionManager.putLruTypingCacheValue(cacheKey,NEGATIVE_CACHE_HIT);
+        if (cacheService != null) {
+            cacheService.put(cacheKey, cachePolicy, NEGATIVE_CACHE_HIT);
         }
     }
 
@@ -474,7 +483,7 @@ public class Validator {
             return Collections.emptyMap();
         }
 
-        final Map<String,String> tempMap = new LinkedHashMap<String,String>();
+        final Map<String,String> tempMap = new LinkedHashMap<>();
         for (Enumeration keyEnum = req.getParameterNames(); keyEnum.hasMoreElements();) {
             final String keyName = keyEnum.nextElement().toString();
             final String value = readStringFromRequest(req,keyName);

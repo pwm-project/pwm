@@ -45,7 +45,7 @@ public class OTPPamUtil {
      * @return list of Strings
      */
     public static List<String> splitLines(String text) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (text != null) {
             String lines[] = text.split("\r?\n|\r");
             list.addAll(Arrays.asList(lines));
@@ -66,7 +66,7 @@ public class OTPPamUtil {
             if (line.matches("^[A-Z2-7\\=]{16}$")) {
                 OTPUserRecord otp = new OTPUserRecord(); // default identifier
                 otp.setSecret(line);
-                List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<OTPUserRecord.RecoveryCode>();
+                List<OTPUserRecord.RecoveryCode> recoveryCodes = new ArrayList<>();
                 while (iterator.hasNext()) {
                     line = iterator.next();
                     if (line.startsWith("\" ")) {

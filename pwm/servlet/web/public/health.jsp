@@ -31,7 +31,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% try { password.pwm.PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
+<% try { PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <%
     if (!ContextManager.getPwmApplication(request).getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES)) {
         final Locale locale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale();
@@ -52,7 +52,7 @@
             <tr>
                 <td colspan="10"  style="margin:0; padding:0">
                     <div id="healthBody" style="border:0; margin:0; padding:0">
-                        <div id="WaitDialogBlank"></div>
+                        <div class="WaitDialogBlank"></div>
                     </div>
                 </td>
             </tr>
@@ -71,6 +71,7 @@
 </div>
 <div id="floatparent">
 </div>
+<pwm:script>
 <script type="text/javascript">
     var H_RANGE = 20;
     var V_RANGE = 20;
@@ -234,6 +235,7 @@
         PWM_GLOBAL['idle_suspendTimeout'] = true;
     });
 </script>
+</pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

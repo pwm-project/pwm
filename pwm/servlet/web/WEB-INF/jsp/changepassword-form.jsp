@@ -35,7 +35,6 @@
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
         <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
-        <%-- <p/>You have <pwm:LdapValue name="loginGraceRemaining"/> remaining logins. --%>
         <% } %>
         <p><pwm:Display key="Display_ChangePasswordForm"/></p>
         <%@ include file="fragment/message.jsp" %>
@@ -71,11 +70,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.changePasswordForm.elements[0].focus();
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

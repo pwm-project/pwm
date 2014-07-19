@@ -69,6 +69,8 @@ public enum PwmPasswordRule {
     DisallowedAttributes    (ChaiPasswordRule.DisallowedAttributes     ,PwmSetting.PASSWORD_POLICY_DISALLOWED_ATTRIBUTES        ,ChaiPasswordRule.DisallowedAttributes    .getRuleType(), ChaiPasswordRule.DisallowedAttributes    .getDefaultValue(),false),
     ADComplexity            (ChaiPasswordRule.ADComplexity             ,PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY                ,ChaiPasswordRule.ADComplexity            .getRuleType(), ChaiPasswordRule.ADComplexity            .getDefaultValue(),true),
     DisallowCurrent         (null                                      ,PwmSetting.PASSWORD_POLICY_DISALLOW_CURRENT             ,ChaiPasswordRule.RuleType.BOOLEAN        ,"false"                                                 ,true),
+    AllowUserChange         (ChaiPasswordRule.AllowUserChange          ,null                                                    ,ChaiPasswordRule.AllowUserChange         .getRuleType(), ChaiPasswordRule.AllowUserChange         .getDefaultValue(),true),
+    AllowAdminChange        (ChaiPasswordRule.AllowAdminChange         ,null                                                    ,ChaiPasswordRule.AllowAdminChange        .getRuleType(), ChaiPasswordRule.AllowAdminChange        .getDefaultValue(),true),
 
     // pwm specific rules
     MaximumOldChars         (null                                      ,PwmSetting.PASSWORD_POLICY_MAXIMUM_OLD_PASSWORD_CHARS   ,ChaiPasswordRule.RuleType.NUMERIC, "",false),
@@ -86,7 +88,7 @@ public enum PwmPasswordRule {
     ;
 
     static {
-        final Set<String> keys = new HashSet<String>();
+        final Set<String> keys = new HashSet<>();
         for (final PwmSetting setting : PwmSetting.values()) keys.add(setting.getKey());
         assert keys.size() == PwmSetting.values().length;
     }

@@ -25,7 +25,6 @@
 var PWM_SETTINGS = PWM_SETTINGS || {};
 var PWM_CONFIG = PWM_CONFIG || {};
 var PWM_GLOBAL = PWM_GLOBAL || {};
-PWM_GLOBAL['localeBundle'].push('Config');
 
 PWM_CONFIG.lockConfiguration=function() {
     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okAction:function(){
@@ -45,9 +44,7 @@ PWM_CONFIG.lockConfiguration=function() {
                                 text: data['errorDetail']
                             });
                         } else {
-                            PWM_MAIN.showWaitDialog();
-                            PWM_MAIN.showError('Waiting for server restart');
-                            PWM_CONFIG.waitForRestart(new Date().getTime());
+                            PWM_CONFIG.waitForRestart();
                         }
                     },
                     error: function(error) {
@@ -60,6 +57,20 @@ PWM_CONFIG.lockConfiguration=function() {
 };
 
 PWM_CONFIG.waitForRestart=function(startTime) {
+    if (!startTime) {
+        var oldMessage = PWM_MAIN.getObject('message');
+        if (oldMessage) {
+            oldMessage.setAttribute('id','message_original');
+        }
+        var bodyText = '<span id="message" class="message message-success">&nbsp;</span>';
+        bodyText += '<br/><div id="progressBar" style="margin: 8px; width: 100%"/>';
+        PWM_MAIN.showWaitDialog({
+            text: bodyText
+        });
+        PWM_CONFIG.waitForRestart(new Date().getTime());
+        return;
+    }
+
     require(["dojo"],function(dojo){
         var currentTime = new Date().getTime();
         dojo.xhrGet({
@@ -189,9 +200,7 @@ PWM_CONFIG.uploadConfigDialog=function() {
                 } else {
                     PWM_MAIN.closeWaitDialog();
                     PWM_MAIN.clearDijitWidget(idName);
-                    PWM_MAIN.showWaitDialog({loadFunction: function () {
-                        PWM_CONFIG.waitForRestart(new Date().getTime());
-                    }});
+                    PWM_CONFIG.waitForRestart();
                 }
             });
         }});
@@ -215,7 +224,9 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
                     }
                 }
                 console.log('loaded client-config data');
-                if (nextFunction) nextFunction();
+                PWM_MAIN.loadLocaleBundle('Config',function(){
+                    if (nextFunction) nextFunction();
+                });
             },
             error: function(error) {
                 var errorMsg = 'unable to read config settings app-data: ' + error;

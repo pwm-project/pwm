@@ -22,10 +22,10 @@
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
+<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.List" %>
@@ -38,12 +38,13 @@
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
 <% localeList.remove(LocaleHelper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
-<% final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
-<% final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean(); %>
+<% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final password.pwm.config.PwmSetting.Category category = cookie.getCategory(); %>
 <body class="nihilo">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
+<pwm:script>
 <script type="text/javascript">
     var PWM_VAR = PWM_VAR || {};
     PWM_VAR['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
@@ -53,6 +54,7 @@
     PWM_VAR['ldapProfileIds'].push('<%=StringEscapeUtils.escapeJavaScript(id)%>');
     <% } %>
 </script>
+</pwm:script>
 <div id="wrapper" style="border:1px; background-color: black">
     <div id="header" style="height: 25px; position: fixed">
         <div id="header-center">
@@ -82,6 +84,7 @@
                 <div class="headerIcon" style="float: right" id="searchButton_icon" onclick="PWM_CFGEDIT.searchDialog()">
                     <span class="fa fa-search"></span>
                 </div>
+                <pwm:script>
                 <script>
                     PWM_GLOBAL['startupFunctions'].push(function() {
                         PWM_MAIN.showTooltip({id:'cancelButton_icon',text:'Cancel',position:'below'});
@@ -90,6 +93,7 @@
                         PWM_MAIN.showTooltip({id:'searchButton_icon',text:'Search',position:'below'});
                     });
                 </script>
+                </pwm:script>
             </div>
         </div>
     </div>
@@ -117,15 +121,18 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_CFGEDIT.initConfigEditor();
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

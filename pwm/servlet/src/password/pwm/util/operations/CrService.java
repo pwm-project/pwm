@@ -31,8 +31,12 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.impl.edir.NmasCrFactory;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.*;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmPasswordPolicy;
+import password.pwm.PwmService;
 import password.pwm.bean.ResponseInfoBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.config.Configuration;
@@ -41,6 +45,7 @@ import password.pwm.config.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -56,7 +61,7 @@ import java.util.*;
 public class CrService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(CrService.class);
 
-    private final Map<DataStorageMethod,CrOperator> operatorMap = new HashMap<DataStorageMethod,CrOperator>();
+    private final Map<DataStorageMethod,CrOperator> operatorMap = new HashMap<>();
     private PwmApplication pwmApplication;
 
     public CrService() {
@@ -243,7 +248,7 @@ public class CrService implements PwmService {
         }
 
         { // check for duplicate questions.  need to check the actual req params because the following dupes wont populate duplicates
-            final Set<String> userQuestionTexts = new HashSet<String>();
+            final Set<String> userQuestionTexts = new HashSet<>();
             for (final Challenge challenge : responseMap.keySet()) {
                 final String text = challenge.getChallengeText();
                 if (text != null) {
@@ -287,7 +292,7 @@ public class CrService implements PwmService {
     }
 
     public ResponseInfoBean readUserResponseInfo(
-            final PwmSession pwmSession,
+            final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final ChaiUser theUser
     )
@@ -379,7 +384,7 @@ public class CrService implements PwmService {
     {
 
         int attempts = 0, successes = 0;
-        final Map<DataStorageMethod,String> errorMessages = new LinkedHashMap<DataStorageMethod, String>();
+        final Map<DataStorageMethod,String> errorMessages = new LinkedHashMap<>();
         final Configuration config = pwmApplication.getConfig();
 
         final List<DataStorageMethod> writeMethods = config.helper().getCrWritePreference();
@@ -456,7 +461,7 @@ public class CrService implements PwmService {
 
     public boolean checkIfResponseConfigNeeded(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final ChallengeSet challengeSet,
             final ResponseInfoBean responseInfoBean
@@ -499,7 +504,7 @@ public class CrService implements PwmService {
     @Override
     public ServiceInfo serviceInfo()
     {
-        final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<DataStorageMethod>();
+        final LinkedHashSet<DataStorageMethod> usedStorageMethods = new LinkedHashSet<>();
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrReadPreference());
         usedStorageMethods.addAll(pwmApplication.getConfig().helper().getCrWritePreference());
         return new ServiceInfo(Collections.unmodifiableList(new ArrayList(usedStorageMethods)));

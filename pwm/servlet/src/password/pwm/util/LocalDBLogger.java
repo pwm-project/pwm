@@ -58,7 +58,7 @@ public class LocalDBLogger implements PwmService {
 
     private final LocalDB localDB;
     private final Settings settings;
-    private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<PwmLogEvent>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
+    private final Queue<PwmLogEvent> eventQueue = new LinkedBlockingQueue<>(PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE);
     private final LocalDBStoredQueue localDBListQueue;
 
     private volatile STATUS status = STATUS.NEW;
@@ -91,7 +91,7 @@ public class LocalDBLogger implements PwmService {
         }
 
         if (localDB == null) {
-            throw new IllegalArgumentException("localDB cannot be null");
+            throw new IllegalArgumentException("LocalDB is not available");
         }
 
         this.tailTimestampMs = readTailTimestamp();
@@ -167,7 +167,7 @@ public class LocalDBLogger implements PwmService {
     }
 
     private int flushQueue() {
-        final List<PwmLogEvent> tempList = new ArrayList<PwmLogEvent>();
+        final List<PwmLogEvent> tempList = new ArrayList<>();
         final int desiredTransactionSize = transactionCalculator.getTransactionSize();
         PwmLogEvent nextEvent = eventQueue.poll();
         while (nextEvent != null && tempList.size() < desiredTransactionSize) {
@@ -185,7 +185,7 @@ public class LocalDBLogger implements PwmService {
     }
 
     private void doWrite(final Collection<PwmLogEvent> events) {
-        final List<String> transactions = new ArrayList<String>();
+        final List<String> transactions = new ArrayList<>();
         try {
             for (final PwmLogEvent event : events) {
                 final String encodedString = event.toEncodedString();
@@ -561,7 +561,7 @@ public class LocalDBLogger implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
-        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> healthRecords = new ArrayList<>();
 
         if (status != STATUS.OPEN) {
             healthRecords.add(new HealthRecord(HealthStatus.WARN, "LocalDBLogger", "LocalDBLogger is not open, status is " + status.toString()));

@@ -22,7 +22,7 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -78,10 +78,10 @@
             </form>
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
                   enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
-                <buton type="submit" name="change_btn" class="btn" id="change_btn">
+                <button type="submit" name="change_btn" class="btn" id="change_btn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                     <pwm:Display key="Button_GoBack"/>
-                </buton>
+                </button>
                 <input type="hidden" name="processAction" value="changeResponses"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

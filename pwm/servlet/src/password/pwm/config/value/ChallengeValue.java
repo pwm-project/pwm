@@ -49,14 +49,14 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
             final Gson gson = Helper.getGson();
             Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<ChallengeItemBean>>>() {
             }.getType());
-            srcMap = srcMap == null ? Collections.<String,List<ChallengeItemBean>>emptyMap() : new TreeMap<String, List<ChallengeItemBean>>(srcMap);
+            srcMap = srcMap == null ? Collections.<String,List<ChallengeItemBean>>emptyMap() : new TreeMap<>(srcMap);
             return new ChallengeValue(Collections.unmodifiableMap(srcMap));
         }
     }
 
     static ChallengeValue fromXmlElement(final Element settingElement) {
         final List valueElements = settingElement.getChildren("value");
-        final Map<String, List<ChallengeItemBean>> values = new TreeMap<String, List<ChallengeItemBean>>();
+        final Map<String, List<ChallengeItemBean>> values = new TreeMap<>();
         final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals(settingElement.getAttributeValue("syntax"));
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
@@ -79,7 +79,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         for (final String locale : values.keySet()) {
             for (final ChallengeItemBean value : values.get(locale)) {
                 if (value != null) {

@@ -37,7 +37,7 @@
             <pwm:Display key="Display_PleaseWait"/>
             <br/>
             <br/>
-        <div id="WaitDialogBlank"></div>
+        <div class="WaitDialogBlank"></div>
 
         </p>
 
@@ -45,15 +45,18 @@
         <p id="failsafeAnchor">
             <a href="<%=StringEscapeUtils.escapeHtml(nextURL)%>">Click here to continue...</a>
         </p>
-        <script>
+        <pwm:script>
+        <script type="text/javascript">
             var div = document.getElementById('failsafeAnchor');
             while(div.firstChild){
                 div.removeChild(div.firstChild);
             }
         </script>
+        </pwm:script>
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
@@ -62,6 +65,7 @@
         });
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

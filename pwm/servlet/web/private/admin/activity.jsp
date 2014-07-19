@@ -36,12 +36,12 @@
     </jsp:include>
     <div id="centerbody" class="wide">
         <%@ include file="admin-nav.jsp" %>
-        <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_Sessions" bundle="Admin"/>">
+        <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:Display key="Title_Sessions" bundle="Admin"/>">
                 <div id="activeSessionGrid">
                 </div>
                 <div style="text-align: center">
-                    <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                    <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
@@ -54,12 +54,12 @@
 
             <% for (RecordType recordType : RecordType.values()) { %>
             <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),"IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(), Admin.class); %>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Intruders<br/><%=titleName%>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>">
                 <div id="<%=recordType%>_Grid">
                 </div>
                 <br/>
                 <div style="text-align: center">
-                    <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                    <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
@@ -70,11 +70,11 @@
             </div>
             <% } %>
 
-            <div data-dojo-type="dijit.layout.ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditUsers" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditUsers" bundle="Admin"/>">
                 <div id="auditUserGrid">
                 </div>
                 <div style="text-align: center">
-                    <input name="maxAuditUserResults" id="maxAuditUserResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                    <input name="maxAuditUserResults" id="maxAuditUserResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value)">
@@ -91,11 +91,11 @@
                     </form>
                 </div>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditSystem" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditSystem" bundle="Admin"/>">
                 <div id="auditSystemGrid">
                 </div>
                 <div style="text-align: center">
-                    <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
+                    <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value)">
@@ -117,10 +117,11 @@
     <div>
         <div class="push"></div>
     </div>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser,ready){
-                dojoParser.parse();
+                dojoParser.parse(PWM_MAIN.getObject('centerbody'));
                 ready(function(){
                     PWM_ADMIN.initIntrudersGrid();
                     PWM_ADMIN.initActiveSessionGrid();
@@ -129,6 +130,7 @@
             });
         });
     </script>
+    </pwm:script>
     <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

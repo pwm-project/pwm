@@ -23,10 +23,8 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.ContextManager;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -34,14 +32,17 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
-import password.pwm.health.HealthRecord;
-import password.pwm.health.HealthStatus;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
+import password.pwm.ws.server.rest.bean.HealthData;
+import password.pwm.ws.server.rest.bean.HealthRecord;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -54,9 +55,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,36 +63,6 @@ import java.util.Locale;
 public class RestHealthServer {
     final private static PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
 
-
-    public static class JsonOutput implements Serializable {
-        public Date timestamp;
-        public String overall;
-        public List<HealthRecordBean> records;
-    }
-
-    public static class HealthRecordBean implements Serializable {
-        public HealthStatus status;
-        public String topic;
-        public String detail;
-
-        public static HealthRecordBean fromHealthRecord(HealthRecord healthRecord, Locale locale, final Configuration config) {
-            final HealthRecordBean bean = new HealthRecordBean();
-            bean.status = healthRecord.getStatus();
-            bean.topic = healthRecord.getTopic(locale,config);
-            bean.detail = healthRecord.getDetail(locale,config);
-            return bean;
-        }
-
-        public static List<HealthRecordBean> fromHealthRecords(final List<HealthRecord> healthRecords, final Locale locale, final Configuration config) {
-            final List<HealthRecordBean> beanList = new ArrayList<HealthRecordBean>();
-            for (HealthRecord record : healthRecords) {
-                if (record != null) {
-                    beanList.add(fromHealthRecord(record, locale, config));
-                }
-            }
-            return beanList;
-        }
-    }
 
     @Context
     HttpServletRequest request;
@@ -119,7 +88,7 @@ public class RestHealthServer {
             processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
             final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             if (restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
             return resultString;
         } catch (Exception e) {
@@ -145,9 +114,9 @@ public class RestHealthServer {
 
         try {
             processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
-            final JsonOutput jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+            final HealthData jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             if (restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_HEALTH);
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);
@@ -161,16 +130,17 @@ public class RestHealthServer {
         }
     }
 
-    private static JsonOutput processGetHealthCheckData(
+    private static HealthData processGetHealthCheckData(
             final PwmApplication pwmApplication,
             final Locale locale
     )
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
         final HealthMonitor healthMonitor = pwmApplication.getHealthMonitor();
-        final List<HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(false));
-        final List<HealthRecordBean> healthRecordBeans = HealthRecordBean.fromHealthRecords(healthRecords,locale,pwmApplication.getConfig());
-        final JsonOutput returnMap = new JsonOutput();
+        final List<password.pwm.health.HealthRecord> healthRecords = new ArrayList(healthMonitor.getHealthRecords(false));
+        final List<HealthRecord> healthRecordBeans = HealthRecord.fromHealthRecords(healthRecords, locale,
+                pwmApplication.getConfig());
+        final HealthData returnMap = new HealthData();
         returnMap.timestamp = healthMonitor.getLastHealthCheckDate();
         returnMap.overall = healthMonitor.getMostSevereHealthStatus().toString();
         returnMap.records = healthRecordBeans;

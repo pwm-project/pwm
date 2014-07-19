@@ -135,7 +135,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             return Collections.emptyList();
         }
 
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
 
         try {
             preOperationCheck();
@@ -147,7 +147,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 
         try {
             final Gson gson = Helper.getGson();
-            final Map<String,String> tempMap = new HashMap<String,String>();
+            final Map<String,String> tempMap = new HashMap<>();
             tempMap.put("instance",instanceID);
             tempMap.put("date",(new java.util.Date()).toString());
             this.put(DatabaseTable.PWM_META, DatabaseAccessorImpl.KEY_TEST, gson.toJson(tempMap));
@@ -322,7 +322,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("value",value);
@@ -419,7 +419,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     {
         final boolean result = get(table, key) != null;
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);
@@ -465,7 +465,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",returnValue);
@@ -516,7 +516,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);

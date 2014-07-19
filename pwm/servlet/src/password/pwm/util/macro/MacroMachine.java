@@ -66,10 +66,10 @@ public class MacroMachine {
     }
 
     private Map<Pattern,MacroImplementation> makeImplementations() {
-        final Set<Class<? extends MacroImplementation>> implementations = new HashSet<Class<? extends MacroImplementation>>();
+        final Set<Class<? extends MacroImplementation>> implementations = new HashSet<>();
         implementations.addAll(StandardMacros.STANDARD_MACROS);
         implementations.addAll(InternalMacros.INTERNAL_MACROS);
-        final LinkedHashMap<Pattern,MacroImplementation> map = new LinkedHashMap<Pattern, MacroImplementation>();
+        final LinkedHashMap<Pattern,MacroImplementation> map = new LinkedHashMap<>();
 
         for (Class macroClass : implementations) {
             try {

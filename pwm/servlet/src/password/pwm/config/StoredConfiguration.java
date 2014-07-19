@@ -307,7 +307,7 @@ public class StoredConfiguration implements Serializable {
             final XPathExpression xp = XPathBuilder.xpathForLocaleBundleSetting(bundleName, keyName);
             final Element localeBundleElement = (Element)xp.evaluateFirst(document);
             if (localeBundleElement != null) {
-                final Map<String,String> bundleMap = new LinkedHashMap<String, String>();
+                final Map<String,String> bundleMap = new LinkedHashMap<>();
                 for (final Element valueElement : localeBundleElement.getChildren("value")) {
                     final String localeStrValue = valueElement.getAttributeValue("locale");
                     bundleMap.put(localeStrValue == null ? "" : localeStrValue, valueElement.getText());
@@ -411,7 +411,7 @@ public class StoredConfiguration implements Serializable {
     public String toString(final boolean linebreaks) {
         domModifyLock.readLock().lock();
         try {
-            final TreeMap<String,Object> outputObject = new TreeMap<String,Object>();
+            final TreeMap<String,Object> outputObject = new TreeMap<>();
 
             for (final PwmSetting setting : PwmSetting.values()) {
                 if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
@@ -424,9 +424,9 @@ public class StoredConfiguration implements Serializable {
 
             for (final PwmSetting.Category category : PwmSetting.Category.values()) {
                 if (category.getType() == PwmSetting.Category.Type.PROFILE) {
-                    final TreeMap<String,Object> profiles = new TreeMap<String,Object>();
+                    final TreeMap<String,Object> profiles = new TreeMap<>();
                     for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
-                        final TreeMap<String,String> profileObject = new TreeMap<String,String>();
+                        final TreeMap<String,String> profileObject = new TreeMap<>();
                         for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                             if (!isDefaultValue(profileSetting, profileID)) {
                                 final StoredValue value = readSetting(profileSetting, profileID);
@@ -478,7 +478,7 @@ public class StoredConfiguration implements Serializable {
         }
 
         final List<String> settingValues = (List<String>)readSetting(profileSetting).toNativeObject();
-        final LinkedList<String> profiles = new LinkedList<String>();
+        final LinkedList<String> profiles = new LinkedList<>();
         profiles.addAll(settingValues);
         for (Iterator<String> iterator = profiles.iterator(); iterator.hasNext();) {
             final String profile = iterator.next();
@@ -492,7 +492,7 @@ public class StoredConfiguration implements Serializable {
 
     public List<String> validateValues() {
         final long startTime = System.currentTimeMillis();
-        final List<String> errorStrings = new ArrayList<String>();
+        final List<String> errorStrings = new ArrayList<>();
 
         for (final PwmSetting loopSetting : PwmSetting.values()) {
             final StringBuilder errorPrefix = new StringBuilder();
@@ -567,10 +567,10 @@ public class StoredConfiguration implements Serializable {
             return Collections.emptyList();
         }
 
-        final LinkedHashSet<ConfigRecordID> returnSet = new LinkedHashSet<ConfigRecordID>();
+        final LinkedHashSet<ConfigRecordID> returnSet = new LinkedHashSet<>();
         boolean firstIter = true;
         for (final String searchWord : searchTerm.split(" ")) {
-            final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<ConfigRecordID>();
+            final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<>();
             for (final PwmSetting loopSetting : PwmSetting.values()) {
                 if (loopSetting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
                     for (final String profile : profilesForSetting(loopSetting)) {
@@ -594,7 +594,7 @@ public class StoredConfiguration implements Serializable {
             firstIter = false;
         }
 
-        return new ArrayList<ConfigRecordID>(returnSet);
+        return new ArrayList<>(returnSet);
     }
 
     private boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
@@ -804,7 +804,18 @@ public class StoredConfiguration implements Serializable {
 
 // -------------------------- INNER CLASSES --------------------------
 
-    public void setPassword(final String password) {
+    public void setPassword(final String password)
+            throws PwmOperationalException
+    {
+        if (password == null || password.isEmpty()) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"can not set blank password"));
+        }
+        final String trimmedPassword = password.trim();
+        if (trimmedPassword.length() < 1) {
+            throw new PwmOperationalException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"can not set blank password"));
+        }
+
+
         final String salt = BCrypt.gensalt();
         final String passwordHash = BCrypt.hashpw(password,salt);
         this.writeConfigProperty(ConfigProperty.PROPERTY_KEY_PASSWORD_HASH, passwordHash);
@@ -926,7 +937,7 @@ public class StoredConfiguration implements Serializable {
     private static String generateCommentText() {
         final StringBuilder commentText = new StringBuilder();
         commentText.append("\t\t").append(" ").append("\n");
-        commentText.append("\t\t").append("This configuration file has been auto-generated by the Password Self Service application.").append("\n");
+        commentText.append("\t\t").append("This configuration file has been auto-generated by the ").append(PwmConstants.PWM_APP_NAME).append(" password self service application.").append("\n");
         commentText.append("\t\t").append("").append("\n");
         commentText.append("\t\t").append("WARNING: This configuration file contains sensitive security information, please handle with care!").append("\n");
         commentText.append("\t\t").append("").append("\n");
@@ -1021,14 +1032,14 @@ public class StoredConfiguration implements Serializable {
 
     private class ChangeLog implements Serializable {
         /* values contain the _original_ toJson version of the value. */
-        private Map<ConfigRecordID,String> changeLog = new LinkedHashMap<ConfigRecordID, String>();
+        private Map<ConfigRecordID,String> changeLog = new LinkedHashMap<>();
 
         public boolean isModified() {
             return !changeLog.isEmpty();
         }
 
         public String changeLogAsDebugString(final Locale locale, boolean asHtml) {
-            final Map<String,String> outputMap = new TreeMap<String,String>();
+            final Map<String,String> outputMap = new TreeMap<>();
             for (final ConfigRecordID configRecordID : changeLog.keySet()) {
                 switch (configRecordID.recordType) {
                     case SETTING: {

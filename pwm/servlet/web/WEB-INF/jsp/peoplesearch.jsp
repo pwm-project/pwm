@@ -21,13 +21,14 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.bean.servlet.PeopleSearchBean" %>
+<%@ page import="password.pwm.config.FormConfiguration" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="java.util.LinkedHashMap" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmSession pwmSession = PwmSession.getPwmSession(request); %>
-<% final PeopleSearchBean peopleSearchBean = (PeopleSearchBean)pwmSession.getSessionBean(PeopleSearchBean.class); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -49,8 +50,7 @@
                         <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
                               id="searchForm" onkeyup="PWM_PS.processPeopleSearch();" onchange="PWM_PS.processPeopleSearch()"
                               onsubmit="return false">
-                            <input type="search" id="username" name="username" class="inputfield" style="width: 400px"
-                                   value="<%=peopleSearchBean.getSearchString()!=null?peopleSearchBean.getSearchString():""%>" autofocus/>
+                            <input type="search" id="username" name="username" class="inputfield" style="width: 400px" autofocus/>
 
                         </form>
                     </td>
@@ -90,14 +90,27 @@
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
+<pwm:script>
 <script>
+    <%
+        final Map<String, String> searchColumns = new LinkedHashMap<String, String>();
+        {
+            final List<FormConfiguration> searchForm = pwmApplicationHeader.getConfig().readSettingAsForm(
+                    PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
+            for (final FormConfiguration formConfiguration : searchForm) {
+                searchColumns.put(formConfiguration.getName(),
+                    formConfiguration.getLabel(pwmSessionHeader.getSessionStateBean().getLocale()));
+            }
+        }
+    %>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['peoplesearch_search_columns'] = <%=Helper.getGson().toJson(peopleSearchBean.getSearchColumnHeaders())%>;
+        PWM_VAR['peoplesearch_search_columns'] = <%=Helper.getGson().toJson(searchColumns)%>;
         PWM_VAR['photo_style_attribute'] = '<%=StringEscapeUtils.escapeJavaScript(pwmApplicationHeader.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR))%>';
         PWM_PS.initPeopleSearchPage();
         PWM_MAIN.getObject('username').focus()
     });
 </script>
+</pwm:script>
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

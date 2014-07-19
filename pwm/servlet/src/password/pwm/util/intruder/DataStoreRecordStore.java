@@ -163,7 +163,7 @@ class DataStoreRecordStore implements RecordStore {
     }
 
     private List<String> discoverPurgableKeys(final TimeDuration maxRecordAge) {
-        final List<String> recordsToRemove = new ArrayList<String>();
+        final List<String> recordsToRemove = new ArrayList<>();
         ClosableIterator<String> dbIterator = null;
         try {
             dbIterator = dataStore.iterator();

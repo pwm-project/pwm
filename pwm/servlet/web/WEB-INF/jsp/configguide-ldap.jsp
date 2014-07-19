@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
-<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,7 +27,7 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -60,6 +60,7 @@
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST)%>"/>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -72,6 +73,7 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                         <table style="border:0; padding:0; margin-top: 10px">
                             <tr style="border:0; padding:0">
                                 <td style="border:0; padding: 0; width: 30%">
@@ -85,6 +87,7 @@
                                 <td style="border:0; padding:0">
                                     <span class="fa fa-chevron-circle-right"></span>
                                     <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_PORT%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT)%>"/>
+                                    <pwm:script>
                                     <script type="text/javascript">
                                         PWM_GLOBAL['startupFunctions'].push(function(){
                                             require(["dijit/registry","dijit/form/NumberSpinner"],function(registry,NumberSpinner){
@@ -99,10 +102,12 @@
                                             });
                                         });
                                     </script>
+                                    </pwm:script>
                                 </td>
                                 <td style="border:0; padding:0">
                                     <span class="fa fa-chevron-circle-right"></span>
                                     <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>"/>
+                                    <pwm:script>
                                     <script type="text/javascript">
                                         PWM_GLOBAL['startupFunctions'].push(function(){
                                             require(["dijit/registry","dijit/form/ToggleButton"],function(registry,ToggleButton){
@@ -126,6 +131,7 @@
                                             });
                                         });
                                     </script>
+                                    </pwm:script>
                                 </td>
                             </tr>
                         </table>
@@ -146,6 +152,7 @@
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -158,12 +165,14 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                     </div>
                     <div class="setting_item">
                         <b>Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input id="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" name="widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" type="password"/>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -177,6 +186,7 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                     </div>
                 </div>
             </div>
@@ -208,6 +218,7 @@
     <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>"/>
     <input type="hidden" name="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" id="<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>"/>
 </form>
+<pwm:script>
 <script type="text/javascript">
     function handleFormActivity() {
         require(["dijit/registry"],function(registry){
@@ -257,6 +268,7 @@
         PWM_ADMIN.showAppHealth('healthBody', options);
     }
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -182,7 +182,7 @@ public class LocalDBUtility {
             }
         },0, 30 * 1000);
 
-        final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<LocalDB.DB, Map<String, String>>();
+        final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             transactionMap.put(loopDB,new TreeMap<String, String>());
         }
@@ -267,7 +267,7 @@ public class LocalDBUtility {
         }
 
         int avgValueLength = totalValues == 0 ? 0 : (int)(uncompressedChars / totalValues);
-        final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<STATS_KEY, Object>();
+        final Map<STATS_KEY, Object> returnObj = new LinkedHashMap<>();
         returnObj.put(STATS_KEY.TOTAL_VALUES,totalValues);
         returnObj.put(STATS_KEY.COMPRESSED_VALUES,compressedValues);
         returnObj.put(STATS_KEY.UNCOMPRESSED_VALUES,uncompressedValues);

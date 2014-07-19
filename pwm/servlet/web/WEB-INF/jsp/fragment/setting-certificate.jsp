@@ -27,6 +27,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@ taglib uri="pwm" prefix="pwm" %>
 <% final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting"); %>
 <% X509Certificate[] certificates = (X509Certificate[])request.getAttribute("certificate"); %>
 <% final boolean hideActions = request.getAttribute("hideActions") != null && Boolean.parseBoolean((String)request.getAttribute("hideActions")); %>
@@ -41,30 +42,34 @@
     <tr><td>Issuer Name</td><td><%=certificate.getIssuerX500Principal().getName()%></td></tr>
     <% final String serialNum = X509Utils.hexSerial(certificate); %>
     <tr><td>Serial Number</td><td><span style="font-family: 'Courier New', monospace"><%=serialNum.substring(0,serialNum.length()/2)%><br/><%=serialNum.substring(serialNum.length()/2,serialNum.length())%></span></td></tr>
-    <tr><td>Validity</td><td>From <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></span>&nbsp;&nbsp; To <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></span></td></tr>
+    <tr><td>Validity</td><td>From <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></span><br/>To <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></span></td></tr>
     <tr><td colspan="2" class="key" style="text-align: center; font-size: smaller">
         <a href="#" onclick="showCert_<%=md5sum%>()">details</a>
     </td></tr>
 </table>
+<pwm:script>
 <script type="text/javascript">
     function showCert_<%=md5sum%>() {
-        var body = '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+        var body = '<pre style="white-space: pre-wrap; word-wrap: break-word; max-width: 640px">';
         body += 'md5sum: <%=md5sum%>\n';
         body += 'sha1sum: <%=sha1sum%>\n';
         body += '<%=StringEscapeUtils.escapeJavaScript(certificate.toString())%>';
         body += '</pre>'
-        require(["dijit/Dialog"], function(Dialog){
-            new Dialog({
-                title: "Certificate Detail",
-                content: body
-            }).show();
+        PWM_MAIN.showDialog({
+            title: "Certificate Detail",
+            text: body,
+            showClose: true,
+            showOk: false,
+            width:650
         });
     }
 </script>
+</pwm:script>
 <% } %>
 <% if (!hideActions) { %>
 <button id="<%=loopSetting.getKey()%>_ClearButton" data-dojo-type="dijit.form.Button">Clear</button>
 <button id="<%=loopSetting.getKey()%>_AutoImportButton" data-dojo-type="dijit.form.Button">Import From LDAP Server</button>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/Button"],function(parser,Button){
@@ -77,4 +82,5 @@
         });
     });
 </script>
+</pwm:script>
 <% } %>

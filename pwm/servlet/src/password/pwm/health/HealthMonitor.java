@@ -39,12 +39,12 @@ public class HealthMonitor implements PwmService {
 
     private PwmApplication pwmApplication;
     private Set<HealthRecord> healthRecords = Collections.emptySet();
-    private final List<HealthChecker> healthCheckers = new ArrayList<HealthChecker>();
+    private final List<HealthChecker> healthCheckers = new ArrayList<>();
 
     private Date lastHealthCheckDate = null;
     private int intervalSeconds = 0;
 
-    private Map<HealthProperty, Serializable> healthProperties = new HashMap<HealthProperty, Serializable>();
+    private Map<HealthProperty, Serializable> healthProperties = new HashMap<>();
 
     private STATUS status = STATUS.NEW;
 
@@ -119,7 +119,7 @@ public class HealthMonitor implements PwmService {
         registerHealthCheck(new LocalDBHealthChecker());
         registerHealthCheck(new CertificateChecker());
 
-        final Set<HealthRecord> newHealthRecords = new HashSet<HealthRecord>();
+        final Set<HealthRecord> newHealthRecords = new HashSet<>();
         newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started."));
         healthRecords = Collections.unmodifiableSet(newHealthRecords);
 
@@ -127,7 +127,7 @@ public class HealthMonitor implements PwmService {
     }
 
     public void close() {
-        final Set<HealthRecord> closeSet = new HashSet<HealthRecord>();
+        final Set<HealthRecord> closeSet = new HashSet<>();
         closeSet.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
         healthRecords = Collections.unmodifiableSet(closeSet);
         status = STATUS.CLOSED;
@@ -143,7 +143,7 @@ public class HealthMonitor implements PwmService {
         }
 
         LOGGER.trace("beginning health check process");
-        final List<HealthRecord> newResults = new ArrayList<HealthRecord>();
+        final List<HealthRecord> newResults = new ArrayList<>();
         for (final HealthChecker loopChecker : healthCheckers) {
             try {
                 final List<HealthRecord> loopResults = loopChecker.doHealthCheck(pwmApplication);
@@ -160,7 +160,7 @@ public class HealthMonitor implements PwmService {
                 newResults.addAll(loopResults);
             }
         }
-        final Set<HealthRecord> sortedRecordList = new TreeSet<HealthRecord>();
+        final Set<HealthRecord> sortedRecordList = new TreeSet<>();
         sortedRecordList.addAll(newResults);
         healthRecords = Collections.unmodifiableSet(sortedRecordList);
         lastHealthCheckDate = new Date();

@@ -83,7 +83,7 @@ public class LocalDBCompressor implements LocalDB {
 
     @Override
     public void putAll(DB db, Map<String, String> keyValueMap) throws LocalDBException {
-        final Map<String,String> tempMap = new LinkedHashMap<String, String>();
+        final Map<String,String> tempMap = new LinkedHashMap<>();
         for (final String key : keyValueMap.keySet()) {
             tempMap.put(key,compressData(keyValueMap.get(key)));
         }

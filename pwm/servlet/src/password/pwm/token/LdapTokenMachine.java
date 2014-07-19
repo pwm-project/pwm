@@ -66,7 +66,7 @@ class LdapTokenMachine implements TokenMachine {
         {
             final String md5sumToken = TokenService.makeTokenHash(tokenKey);
             final SearchHelper tempSearchHelper = new SearchHelper();
-            final Map<String,String> filterAttributes = new HashMap<String,String>();
+            final Map<String,String> filterAttributes = new HashMap<>();
             for (final String loopStr : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
                 filterAttributes.put("objectClass", loopStr);
             }

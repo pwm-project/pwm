@@ -1,6 +1,6 @@
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -37,6 +37,8 @@
         }
     }
 %>
+<%@ taglib uri="pwm" prefix="pwm" %>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         <% if (showAdvanced) { %>
@@ -57,3 +59,4 @@
         <% } %>
     });
 </script>
+</pwm:script>

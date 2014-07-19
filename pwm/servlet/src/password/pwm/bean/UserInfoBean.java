@@ -25,6 +25,7 @@ package password.pwm.bean;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.ChallengeProfile;
+import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
@@ -41,7 +42,7 @@ import java.util.*;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.ldap.UserStatusHelper#populateUserInfoBean(password.pwm.PwmSession, UserInfoBean, password.pwm.PwmApplication, java.util.Locale, String, String, com.novell.ldapchai.provider.ChaiProvider)
+ * @see password.pwm.ldap.UserStatusHelper#populateUserInfoBean(password.pwm.http.PwmSession, UserInfoBean, password.pwm.PwmApplication, java.util.Locale, String, String, com.novell.ldapchai.provider.ChaiProvider)
  */
 public class UserInfoBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
@@ -74,7 +75,7 @@ public class UserInfoBean implements PwmSessionBean {
     private Date localAuthTime;
     private Date lastLdapLoginTime;
 
-    private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<Permission, Permission.PERMISSION_STATUS>();
+    private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
@@ -83,7 +84,7 @@ public class UserInfoBean implements PwmSessionBean {
     
     private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
 
-    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<String, PostChangePasswordAction>();
+    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
     public enum AuthenticationType {
         UNAUTHENTICATED,
@@ -281,7 +282,7 @@ public class UserInfoBean implements PwmSessionBean {
     }
 
     public List<PostChangePasswordAction> removePostChangePasswordActions() {
-        final List<PostChangePasswordAction> copiedList = new ArrayList<PostChangePasswordAction>();
+        final List<PostChangePasswordAction> copiedList = new ArrayList<>();
         copiedList.addAll(postChangePasswordActions.values());
         postChangePasswordActions.clear();
         return copiedList;

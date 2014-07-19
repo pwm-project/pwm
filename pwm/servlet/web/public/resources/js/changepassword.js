@@ -207,7 +207,7 @@ PWM_CHANGEPW.showPasswordGuide=function() {
         theDialog.show();
 
         dojo.connect(theDialog, "hide", function(){
-             dojo.destroy(PWM_MAIN.getObject("passwordGuideTextContent"));
+            dojo.destroy(PWM_MAIN.getObject("passwordGuideTextContent"));
         });
     });
 };
@@ -336,6 +336,24 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
 PWM_CHANGEPW.startupChangePasswordPage=function() {
     //PWM_MAIN.getObject('password2').disabled = true;
     PWM_CHANGEPW.markStrength(0);
+
+    // add handlers for main form
+    require(["dojo/on"], function(on){
+        var changePasswordForm = PWM_MAIN.getObject('changePasswordForm');
+        on(changePasswordForm,"keyup, change",function(){
+            PWM_CHANGEPW.validatePasswords(null);
+        });
+        on(changePasswordForm,"submit",function(){
+            PWM_CHANGEPW.handleChangePasswordSubmit();
+            PWM_MAIN.handleFormSubmit(this);
+            return false;
+        });
+        on(changePasswordForm,"reset",function(){
+            PWM_CHANGEPW.validatePasswords(null);
+            PWM_CHANGEPW.setInputFocus();
+            return false;
+        });
+    });
 
     // show the auto generate password panel
     var autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");

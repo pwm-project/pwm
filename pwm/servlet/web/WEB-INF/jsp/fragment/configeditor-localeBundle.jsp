@@ -21,10 +21,11 @@
   --%>
 
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
@@ -34,20 +35,33 @@
 <% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
+<pwm:script>
 <script type="text/javascript">
     var LOAD_TRACKER = new Array();
 </script>
+</pwm:script>
+<div id="loadingDiv">
+    <div class="WaitDialogBlank">
+    </div>
+    <noscript>
+        <br/>
+        Javasciript is required to view this page.
+    </noscript>
+</div>
+<div id="localeEditor_body" style="display:none">
 <div>
     <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
 </div>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
-<% final boolean isDefault = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
+<% final boolean isDefault = PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
 <% if (!isDefault) { %>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         LOAD_TRACKER.push('<%=key%>');
     });
 </script>
+</pwm:script>
 <% } %>
 <div id="titlePane_<%=key%>" class="setting_outline" <%if(isDefault){%> onclick="startEditor(this,'<%=key%>')" style="cursor:pointer;" <%}%>>
     <div class="setting_title" id="title_localeBundle-<%=bundleName%>-<%=key%>">
@@ -86,6 +100,7 @@
                     <%= StringEscapeUtils.escapeHtml(localizedValue) %>
                 </td>
             </tr>
+            <pwm:script>
             <script>
                 PWM_GLOBAL['startupFunctions'].push(function() {
                     PWM_VAR['localeKey_tooltips'] = PWM_VAR['localeKey_tooltips'] || {};
@@ -93,6 +108,7 @@
                     PWM_VAR['localeKey_tooltips']['<%=loopLocale.toString()%>'].push('localeKey_<%=key%>_<%=loopLocale.toString()%>');
                 });
             </script>
+            </pwm:script>
             <% } %>
             <% } %>
             <% } else { %>
@@ -107,6 +123,8 @@
 </div>
 <br/>
 <% } %>
+</div>
+<pwm:script>
 <script type="text/javascript">
     function doLazyLoad(key) {
         var waitMsg = PWM_MAIN.getObject('waitMsg');
@@ -122,6 +140,7 @@
             },100); // time between element reads
         } else {
             PWM_MAIN.closeWaitDialog();
+            finishPageLoad();
         }
     }
 
@@ -139,7 +158,7 @@
 
     function startEditor(element,key) {
         doLazyLoad(key);
-        element.onclick=null
+        element.onclick=null;
         element.style.cursor = 'auto';
         var editIconDiv = PWM_MAIN.getObject('editIcon_' + key);
         if (editIconDiv) {
@@ -153,8 +172,15 @@
                 LOAD_TRACKER.reverse();
                 doLazyLoad(LOAD_TRACKER.pop());
             }});
+        } else {
+            finishPageLoad();
         }
         initTooltips();
     });
-</script>
 
+    function finishPageLoad() {
+        PWM_MAIN.getObject('loadingDiv').style.display = 'none';
+        PWM_MAIN.getObject('localeEditor_body').style.display = 'inline';
+    }
+</script>
+</pwm:script>

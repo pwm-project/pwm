@@ -119,4 +119,14 @@ public class UserAuditRecord extends AuditRecord {
     public String getSourceHost() {
         return sourceHost;
     }
+
+    public String getPerpetratorLdapProfile()
+    {
+        return perpetratorLdapProfile;
+    }
+
+    public String getTargetLdapProfile()
+    {
+        return targetLdapProfile;
+    }
 }

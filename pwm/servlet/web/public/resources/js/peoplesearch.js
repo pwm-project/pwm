@@ -26,6 +26,7 @@
 var PWM_PS = PWM_PS || {};
 var PWM_VAR = PWM_VAR || {};
 
+
 PWM_PS.processPeopleSearch = function() {
     var validationProps = {};
     validationProps['serviceURL'] = "PeopleSearch?processAction=search";
@@ -54,20 +55,13 @@ PWM_PS.processPeopleSearch = function() {
                 var userKey = row.data['userKey'];
                 PWM_PS.showUserDetail(userKey);
             });
-            grid.set("sort",1);
-            if (sizeExceeded) {
-                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'visible';
-                PWM_MAIN.showTooltip({id:'maxResultsIndicator',position:'below',text:PWM_MAIN.showString('Display_SearchResultsExceeded')})
-            } else {
-                PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
-            }
         }
     };
     PWM_MAIN.pwmFormValidator(validationProps);
     PWM_MAIN.getObject('maxResultsIndicator').style.visibility = 'hidden';
 };
 
-PWM_PS.convertDataResultToHtml = function(data) {
+PWM_PS.convertDetailResultToHtml = function(data) {
     var htmlBody = '';
     if (data['photoURL']) {
         var blankSrc = PWM_MAIN.addPwmFormIDtoURL(PWM_GLOBAL['url-resources'] + '/dojo/dojo/resources/blank.gif');
@@ -136,7 +130,7 @@ PWM_PS.showUserDetail = function(userKey) {
                             PWM_MAIN.closeWaitDialog();
                             return;
                         }
-                        var htmlBody = PWM_PS.convertDataResultToHtml(data['data']);
+                        var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
                         PWM_MAIN.showDialog({
                             title:data['data']['displayName'],
                             width:550,
@@ -164,6 +158,7 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
     require(["dojo/domReady!"],function(){
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
             function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+                PWM_MAIN.getObject('grid').innerHTML = '';
 
                 var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
@@ -179,10 +174,12 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
 };
 
 PWM_PS.initPeopleSearchPage = function() {
+    readCookie();
     PWM_PS.makeSearchGrid(function(){
         require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
             on(PWM_MAIN.getObject('username'), "keyup, input", function(){
                 PWM_PS.processPeopleSearch();
+                writeCookie();
             });
             PWM_PS.processPeopleSearch();
         });
@@ -203,3 +200,24 @@ PWM_PS.loadPicture = function(parentDiv,url) {
         image.src = url;
     });
 };
+
+function readCookie() {
+    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
+        try {
+            var preferences = json.parse(dojoCookie("preferences"));
+            if (preferences['username'] && !PWM_MAIN.getObject('username').value) {
+                PWM_MAIN.getObject('username').value = preferences['username'];
+            }
+        } catch (e) {
+            console.log("error reading preferences cookie: " + e);
+        }
+    });
+}
+
+function writeCookie() {
+    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
+        var preferences = {username: PWM_MAIN.getObject('username').value};
+        var cookieString = json.stringify(preferences);
+        dojoCookie("preferences", cookieString, {expires: 5}); // 5 days
+    });
+}

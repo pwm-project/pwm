@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
-<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,7 +26,7 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <% boolean enableNext = configGuideBean.isCertsTrustedbyKeystore() || configGuideBean.isUseConfiguredCerts() || configGuideBean.getLdapCertificates() == null; %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -93,6 +93,7 @@
                         <button id="button_useConfig">Enabled</button>
                     </div>
                 </div>
+                <pwm:script>
                 <script type="text/javascript">
                     PWM_GLOBAL['startupFunctions'].push(function(){
                         require(["dijit/form/ToggleButton"],function(ToggleButton){
@@ -116,6 +117,7 @@
                         });
                     });
                 </script>
+                </pwm:script>
             </div>
         </form>
         <% } %>
@@ -134,6 +136,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
@@ -141,6 +144,7 @@
         });
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

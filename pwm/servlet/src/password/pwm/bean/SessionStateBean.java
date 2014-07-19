@@ -24,6 +24,7 @@ package password.pwm.bean;
 
 import password.pwm.config.ShortcutItem;
 import password.pwm.error.ErrorInformation;
+import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.Message;
 import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.FormMap;
@@ -70,8 +71,7 @@ public class SessionStateBean implements PwmSessionBean {
     private Map<String, ShortcutItem> visibleShortcutItems;
     private BasicAuthInfo originalBasicAuthInfo;
 
-    private int requestCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
-    private int formCounter = PwmRandom.getInstance().nextInt(Integer.MAX_VALUE);
+    private String requestVerificationKey = "key";
     private String sessionVerificationKey = "key";
     private String restClientKey;
 
@@ -89,6 +89,7 @@ public class SessionStateBean implements PwmSessionBean {
 
     private int intruderAttempts;
     private boolean oauthInProgress;
+    private StringBuilder scriptContents = new StringBuilder();
 
     // settings
     private int sessionVerificationKeyLength;
@@ -266,13 +267,14 @@ public class SessionStateBean implements PwmSessionBean {
         this.debugInitialized = debugInitialized;
     }
 
-    public int getRequestCounter() {
-        return requestCounter;
+    public String getRequestVerificationKey()
+    {
+        return requestVerificationKey;
     }
 
-    public void setRequestCounter(int requestCounter)
+    public void setRequestVerificationKey(String requestVerificationKey)
     {
-        this.requestCounter = requestCounter;
+        this.requestVerificationKey = requestVerificationKey;
     }
 
     public String getTheme() {
@@ -355,17 +357,17 @@ public class SessionStateBean implements PwmSessionBean {
         this.sessionMaximumTimeout = sessionMaximumTimeout;
     }
 
-    public int getFormCounter()
+    public StringBuilder getScriptContents()
     {
-        return formCounter;
+        return scriptContents;
     }
 
-    public void setFormCounter(int formCounter)
+    public void clearScriptContents()
     {
-        this.formCounter = formCounter;
+        scriptContents = new StringBuilder();
     }
 
-// -------------------------- ENUMERATIONS --------------------------
+    // -------------------------- ENUMERATIONS --------------------------
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());

@@ -45,7 +45,8 @@
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right; width:10%">
-                    <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<%=request.getContextPath()%>/private/<pwm:url url='Shortcuts'/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
+                    <% String target = pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW) ? item.getLabel() : ""; %>
+                    <a class="menubutton" target="<%=target%>" href="<pwm:url url='/private/Shortcuts' addContext="true"/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
                         <%= item.getLabel() %>
                     </a>
                 </td>

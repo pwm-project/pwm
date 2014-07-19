@@ -23,7 +23,7 @@
 <!DOCTYPE html>
 
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
-<%@ page import="password.pwm.bean.servlet.ActivateUserBean" %>
+<%@ page import="password.pwm.http.bean.ActivateUserBean" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -70,11 +70,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

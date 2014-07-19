@@ -34,7 +34,7 @@ public class LocalDBHealthChecker implements HealthChecker {
             return null;
         }
 
-        final List<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> healthRecords = new ArrayList<>();
 
         final LocalDB localDB = pwmApplication.getLocalDB();
 

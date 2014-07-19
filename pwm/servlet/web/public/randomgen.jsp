@@ -35,6 +35,7 @@
     </table>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     var cellCount = 0;
     function makeTable() {
@@ -85,6 +86,7 @@
         });
     });
 </script>
+</pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

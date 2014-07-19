@@ -57,6 +57,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function validateForm() {
         var validationProps = new Array();
@@ -89,6 +90,7 @@
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

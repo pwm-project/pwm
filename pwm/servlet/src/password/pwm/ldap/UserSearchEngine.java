@@ -31,7 +31,6 @@ import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.LdapProfile;
@@ -41,6 +40,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
@@ -161,7 +161,7 @@ public class UserSearchEngine {
         final DuplicateMode dupeMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class);
         final int searchCount = (dupeMode == DuplicateMode.FIRST_ALL) ? 1 : 2;
         final Map<UserIdentity,Map<String,String>> searchResults = performMultiUserSearch(pwmSession, searchConfiguration, searchCount, Collections.<String>emptyList());
-        final List<UserIdentity> results = searchResults == null ? Collections.<UserIdentity>emptyList() : new ArrayList<UserIdentity>(searchResults.keySet());
+        final List<UserIdentity> results = searchResults == null ? Collections.<UserIdentity>emptyList() : new ArrayList<>(searchResults.keySet());
         if (results.isEmpty()) {
             final String errorMessage;
             if (searchConfiguration.getUsername() != null && searchConfiguration.getUsername().length() > 0) {
@@ -205,7 +205,7 @@ public class UserSearchEngine {
                 attributeHeaderMap.keySet()
         );
         final boolean resultsExceeded = searchResults.size() > maxResults;
-        final Map<UserIdentity,Map<String,String>> returnData = new LinkedHashMap<UserIdentity, Map<String, String>>();
+        final Map<UserIdentity,Map<String,String>> returnData = new LinkedHashMap<>();
         for (final UserIdentity loopUser : searchResults.keySet()) {
             returnData.put(loopUser, searchResults.get(loopUser));
             if (returnData.size() >= maxResults) {
@@ -236,9 +236,9 @@ public class UserSearchEngine {
         }
 
         final boolean ignoreUnreachableProfiles = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.LDAP_IGNORE_UNREACHABLE_PROFILES);
-        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
+        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<>();
 
-        final List<String> errors = new ArrayList<String>();
+        final List<String> errors = new ArrayList<>();
 
         final long profileRetryDelayMS = Long.valueOf(pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_PROFILE_RETRY_DELAY));
         for (final LdapProfile ldapProfile : ldapProfiles) {
@@ -338,7 +338,7 @@ public class UserSearchEngine {
                 searchConfiguration.getChaiProvider();
 
         final Map<UserIdentity,Map<String,String>> returnMap;
-        returnMap = new LinkedHashMap<UserIdentity,Map<String, String>>();
+        returnMap = new LinkedHashMap<>();
         for (final String loopContext : searchContexts) {
             final Map<UserIdentity,Map<String,String>> singleContextResults;
             try {
@@ -396,7 +396,7 @@ public class UserSearchEngine {
 
         LOGGER.trace(pwmSession, "found " + results.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString() + "; " + debugInfo);
 
-        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<UserIdentity, Map<String, String>>();
+        final Map<UserIdentity,Map<String,String>> returnMap = new LinkedHashMap<>();
         for (final String userDN : results.keySet()) {
             final UserIdentity userIdentity = new UserIdentity(userDN, ldapProfile.getIdentifier());
             final Map<String,String> attributeMap = results.get(userDN);
@@ -523,12 +523,8 @@ public class UserSearchEngine {
         }
 
         //if supplied user name starts with username attr assume its the full dn and skip the search
-        final Set<String> namingAttributes = new HashSet<String>();
         for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
-            namingAttributes.add(ldapProfile.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE));
-        }
-
-        for (final String usernameAttribute : namingAttributes) {
+            final String usernameAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
             if (input.toLowerCase().startsWith(usernameAttribute.toLowerCase() + "=")) {
                 LOGGER.trace(
                         "username '" + input + "' appears to be a DN (starts with configured ldap naming attribute'" + usernameAttribute + "'), skipping username search");
@@ -568,9 +564,9 @@ public class UserSearchEngine {
         public List<Map<String,String>> resultsAsJsonOutput(final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            final List<Map<String,String>> outputList = new ArrayList<Map<String, String>>();
+            final List<Map<String,String>> outputList = new ArrayList<>();
             for (final UserIdentity userIdentity : this.getResults().keySet()) {
-                final Map<String,String> rowMap = new LinkedHashMap<String, String>();
+                final Map<String,String> rowMap = new LinkedHashMap<>();
                 for (final String attribute : this.getHeaderAttributeMap().keySet()) {
                     rowMap.put(attribute,this.getResults().get(userIdentity).get(attribute));
                 }
@@ -581,7 +577,7 @@ public class UserSearchEngine {
         }
 
         public static Map<String,String> fromFormConfiguration(final List<FormConfiguration> formItems, final Locale locale) {
-            final Map<String,String> results = new LinkedHashMap<String, String>();
+            final Map<String,String> results = new LinkedHashMap<>();
             for (final FormConfiguration formItem : formItems) {
                 results.put(formItem.getName(), formItem.getLabel(locale));
             }

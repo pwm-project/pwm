@@ -24,11 +24,11 @@
   ~ This file is imported by most JSPs, it shows the main 'header' in the html
   - which by default is a blue-gray gradieted and rounded block.
   --%>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
+<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmSession" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionHeaderBody = null;
@@ -73,15 +73,3 @@
         </div>
     </div>
 </div>
-<% if (showLogout) { %>
-<script type="application/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.showTooltip({
-            id: 'LogoutButton',
-            position: ['below','above'],
-            text: '<pwm:Display key="Long_Title_Logout"/>',
-            width: 500
-        });
-    });
-</script>
-<% } %>

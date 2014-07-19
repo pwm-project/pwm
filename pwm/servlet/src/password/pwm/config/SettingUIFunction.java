@@ -23,8 +23,7 @@
 package password.pwm.config;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.http.PwmSession;
 
 public interface SettingUIFunction {
     String provideFunction(
@@ -34,5 +33,5 @@ public interface SettingUIFunction {
             final PwmSetting setting,
             final String profile
     )
-            throws PwmOperationalException;
+            throws Exception;
 }

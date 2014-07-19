@@ -33,7 +33,8 @@
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
         <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
-        <% final String messageText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
+        <% final String messageText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.PASSWORD_COMPLETE_MESSAGE, PwmSession.getPwmSession(
+                session).getSessionStateBean().getLocale()); %>
         <% final String expandedText = macroMachine.expandMacros(messageText); %>
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>

@@ -249,7 +249,7 @@ public class ReportService implements PwmService {
         reportStatus.inprogress = true;
         reportStatus.startDate = new Date();
         try {
-            final Queue<UserIdentity> allUsers = new LinkedList<UserIdentity>(generateListOfUsers());
+            final Queue<UserIdentity> allUsers = new LinkedList<>(generateListOfUsers());
             reportStatus.total = allUsers.size();
             while (status == STATUS.OPEN && !allUsers.isEmpty() && !cancelFlag) {
                 final long startUpdateTime = System.currentTimeMillis();
@@ -395,7 +395,7 @@ public class ReportService implements PwmService {
 
         final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, settings.maxSearchSize, Collections.<String>emptyList());
         LOGGER.debug("UserReportService user search found " + searchResults.size() + " users for reporting");
-        final List<UserIdentity> returnList = new ArrayList<UserIdentity>(searchResults.keySet());
+        final List<UserIdentity> returnList = new ArrayList<>(searchResults.keySet());
         Collections.shuffle(returnList);
         return returnList;
     }
@@ -458,7 +458,7 @@ public class ReportService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final Class localeClass = password.pwm.i18n.Admin.class;
         if (includeHeader) {
-            final List<String> headerRow = new ArrayList<String>();
+            final List<String> headerRow = new ArrayList<>();
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_UserDN", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_LDAP_Profile", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_Username", config, localeClass));
@@ -469,6 +469,7 @@ public class ReportService implements PwmService {
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdChangeTime", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseSaveTime", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasResponses", config, localeClass));
+            headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_HasHelpdeskResponses", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_ResponseStorageMethod", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdExpired", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_PwdPreExpired", config, localeClass));
@@ -508,7 +509,7 @@ public class ReportService implements PwmService {
         final String trueField = LocaleHelper.getLocalizedMessage(locale, "Value_True", config, password.pwm.i18n.Display.class);
         final String falseField = LocaleHelper.getLocalizedMessage(locale, "Value_False", config, password.pwm.i18n.Display.class);
         final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
-        final List<String> csvRow = new ArrayList<String>();
+        final List<String> csvRow = new ArrayList<>();
         csvRow.add(userCacheRecord.getUserDN());
         csvRow.add(PwmConstants.PROFILE_ID_DEFAULT.equals(userCacheRecord.getLdapProfile()) ? "Default" : userCacheRecord.getLdapProfile());
         csvRow.add(userCacheRecord.getUsername());
@@ -523,6 +524,7 @@ public class ReportService implements PwmService {
         csvRow.add(userCacheRecord.getResponseSetTime() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                 userCacheRecord.getResponseSetTime()));
         csvRow.add(userCacheRecord.isHasResponses() ? trueField : falseField);
+        csvRow.add(userCacheRecord.isHasHelpdeskResponses() ? trueField : falseField);
         csvRow.add(userCacheRecord.getResponseStorageMethod() == null ? naField : userCacheRecord.getResponseStorageMethod().toString());
         csvRow.add(userCacheRecord.getPasswordStatus().isExpired() ? trueField : falseField);
         csvRow.add(userCacheRecord.getPasswordStatus().isPreExpired() ? trueField : falseField);
@@ -619,7 +621,7 @@ public class ReportService implements PwmService {
 
     public static class AvgTracker {
         private final int maxSamples;
-        private final Queue<BigInteger> samples = new LinkedList<BigInteger>();
+        private final Queue<BigInteger> samples = new LinkedList<>();
 
         public AvgTracker(int maxSamples)
         {

@@ -174,7 +174,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
     }
 
     private static class StoredHistory {
-        private final LinkedList<StoredEvent> records = new LinkedList<StoredEvent>();
+        private final LinkedList<StoredEvent> records = new LinkedList<>();
 
         public void addEvent(final StoredEvent storedEvent) {
             records.add(storedEvent);
@@ -187,7 +187,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
         }
 
         public List<UserAuditRecord> asAuditRecords(final UserInfoBean userInfoBean) {
-            final List<UserAuditRecord> returnList = new LinkedList<UserAuditRecord>();
+            final List<UserAuditRecord> returnList = new LinkedList<>();
             for (final StoredEvent loopEvent : records) {
                 returnList.add(loopEvent.asAuditRecord(userInfoBean));
             }

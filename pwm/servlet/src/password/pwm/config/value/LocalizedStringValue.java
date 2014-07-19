@@ -55,7 +55,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
 
     static LocalizedStringValue fromXmlElement(Element settingElement) {
         final List elements = settingElement.getChildren("value");
-        final Map<String, String> values = new TreeMap<String, String>();
+        final Map<String, String> values = new TreeMap<>();
         for (final Object loopValue : elements) {
             final Element loopValueElement = (Element) loopValue;
             final String localeString = loopValueElement.getAttributeValue("locale");
@@ -66,7 +66,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         for (final String locale : value.keySet()) {
             final String value = this.value.get(locale);
             final Element valueElement = new Element(valueElementName);

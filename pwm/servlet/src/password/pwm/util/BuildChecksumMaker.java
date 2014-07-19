@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@ package password.pwm.util;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class BuildChecksumMaker {
 // ------------------------------ FIELDS ------------------------------
@@ -67,7 +68,7 @@ public class BuildChecksumMaker {
         }
 
         output("executing Build Checksum Maker rootDirectory=" + rootDirectory + " outputFile=" + outputFile);
-        final LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
+        final LinkedHashMap<String,String> results = new LinkedHashMap<>();
         results.putAll(readDirectorySums(rootDirectory));
 
         final Writer outputWriter = new BufferedWriter(new FileWriter(outputFile));
@@ -85,7 +86,7 @@ public class BuildChecksumMaker {
     private static Map<String,String> readDirectorySums(final File rootFile, final String relativePath)
             throws IOException
     {
-        final LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
+        final LinkedHashMap<String,String> results = new LinkedHashMap<>();
         for (final File loopFile : rootFile.listFiles()) {
             final String path = relativePath + loopFile.getName();
             if (loopFile.isDirectory()) {

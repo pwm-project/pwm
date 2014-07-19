@@ -35,6 +35,7 @@
 <body class="nihilo">
 <% if ("".equals(selectedLevel)) { %>
 <div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.showWaitDialog({loadFunction:function() {
@@ -43,6 +44,7 @@
         PWM_MAIN.TimestampHandler.toggleAllElements();
     });
 </script>
+</pwm:script>
 <% } else { %>
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
@@ -79,10 +81,12 @@
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
     });
 </script>
+</pwm:script>
 </body>
 </html>

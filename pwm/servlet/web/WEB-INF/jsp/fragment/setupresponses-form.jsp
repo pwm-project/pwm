@@ -1,8 +1,8 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.PwmSession" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -47,6 +47,7 @@
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
           class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parse","dijit/form/Select"],function(parser){
@@ -54,6 +55,7 @@
         });
     });
 </script>
+</pwm:script>
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
@@ -83,6 +85,7 @@
         <% } %>
         <% } %>
     </select>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_VAR['simpleRandomSelectElements']['PwmResponse_Q_Random_<%=index%>'] = 'PwmResponse_R_Random_<%=index%>'
@@ -91,6 +94,7 @@
             });
         });
     </script>
+    </pwm:script>
 </h2>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
@@ -99,6 +103,7 @@
            onkeyup="PWM_RESPONSES.validateResponses()"/>
 </p>
 <% } %>
+<pwm:script>
 <script type="text/javascript">
     <% // need to output all the random options for the javascript functions.
         for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
@@ -119,6 +124,7 @@
         });
     });
 </script>
+</pwm:script>
 <% } else { %>
 <%---------------------- display fields for RANDOM challenges using non-SIMPLE mode ----------------------------------------%>
 <% if (!setupData.getChallengeSet().getRandomChallenges().isEmpty()) { %>

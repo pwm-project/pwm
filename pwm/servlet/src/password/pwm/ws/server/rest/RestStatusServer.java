@@ -22,6 +22,7 @@
 
 package password.pwm.ws.server.rest;
 
+import password.pwm.PwmService;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -30,8 +31,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.tag.PasswordRequirementsTag;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.tag.PasswordRequirementsTag;
+import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -88,7 +91,7 @@ public class RestStatusServer {
                     || userInfoBean.getPasswordState().isWarnPeriod();
 
 
-            jsonStatusData.passwordPolicy = new HashMap<String,String>();
+            jsonStatusData.passwordPolicy = new HashMap<>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
                 jsonStatusData.passwordPolicy.put(rule.name(),userInfoBean.getPasswordPolicy().getValue(rule));
             }
@@ -138,7 +141,7 @@ public class RestStatusServer {
                 userInfoBean = new UserInfoBean();
                 final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
                 userStatusReader.populateUserInfoBean(
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
                         userInfoBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
@@ -154,6 +157,14 @@ public class RestStatusServer {
                     restRequestBean.getPwmApplication().getConfig(),
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()
             ));
+
+            final StatisticsManager statsMgr = restRequestBean.getPwmApplication().getStatisticsManager();
+            if (statsMgr != null && statsMgr.status() == PwmService.STATUS.OPEN) {
+                if (restRequestBean.isExternal()) {
+                    statsMgr.incrementValue(Statistic.REST_STATUS);
+                }
+            }
+
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {
             return RestResultBean.fromError(e.getErrorInformation(), restRequestBean).asJsonResponse();

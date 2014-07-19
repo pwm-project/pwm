@@ -258,6 +258,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['idle_suspendTimeout'] = true;
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -266,6 +267,7 @@
         });
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>

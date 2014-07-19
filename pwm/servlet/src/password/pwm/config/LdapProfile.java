@@ -34,7 +34,7 @@ public class LdapProfile extends AbstractProfile implements Profile {
     }
 
     static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<PwmSetting, StoredValue>();
+        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
         for (final PwmSetting setting : LDAP_SETTINGS) {
             final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);
@@ -55,4 +55,9 @@ public class LdapProfile extends AbstractProfile implements Profile {
         return PwmConstants.PROFILE_ID_DEFAULT.equals(returnDisplayName) ? "Default" : returnDisplayName;
     }
 
+    public String getUsernameAttribute() {
+        final String configUsernameAttr = this.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
+        final String ldapNamingAttribute = this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+    }
 }

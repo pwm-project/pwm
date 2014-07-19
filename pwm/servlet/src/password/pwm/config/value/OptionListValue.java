@@ -55,7 +55,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
     static OptionListValue fromXmlElement(Element settingElement) throws PwmOperationalException
     {
         final List valueElements = settingElement.getChildren("value");
-        final Set<String> values = new HashSet<String>();
+        final Set<String> values = new HashSet<>();
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
@@ -67,7 +67,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         for (final String value : values) {
             final Element valueElement = new Element(valueElementName);
             valueElement.addContent(value);

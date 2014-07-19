@@ -160,6 +160,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/Textarea ","dojo/domReady!"],function(dojoParser){
@@ -168,6 +169,7 @@
         });
     });
 </script>
+</pwm:script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

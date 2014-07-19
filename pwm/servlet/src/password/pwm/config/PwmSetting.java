@@ -166,8 +166,6 @@ public enum PwmSetting {
             "ldap.testuser.username", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
     AUTO_ADD_OBJECT_CLASSES(
             "ldap.addObjectClasses", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
-    LDAP_CHAI_SETTINGS(
-            "ldapChaiSettings", PwmSettingSyntax.STRING_ARRAY, Category.LDAP_PROFILE),
     LDAP_USERNAME_SEARCH_FILTER(
             "ldap.usernameSearchFilter", PwmSettingSyntax.STRING, Category.LDAP_PROFILE),
     LDAP_USERNAME_ATTRIBUTE(
@@ -438,6 +436,8 @@ public enum PwmSetting {
             "security.preventFraming", PwmSettingSyntax.BOOLEAN, Category.SECURITY),
     SECURITY_REDIRECT_WHITELIST(
             "security.redirectUrl.whiteList", PwmSettingSyntax.STRING_ARRAY, Category.SECURITY),
+    SECURITY_CSP_HEADER(
+            "security.cspHeader", PwmSettingSyntax.STRING, Category.SECURITY),
 
     // catpcha
     RECAPTCHA_KEY_PUBLIC(
@@ -833,6 +833,10 @@ public enum PwmSetting {
             "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_USE_PROXY(
             "helpdesk.useProxy",PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
+    HELPDESK_DETAIL_DISPLAY_NAME(
+            "helpdesk.displayName",PwmSettingSyntax.STRING, Category.HELPDESK),
+
+
 
     // helpdesk profile
     HELPDESK_PROFILE_LIST(
@@ -994,7 +998,7 @@ public enum PwmSetting {
     }
 
     public static List<PwmSetting> getSettings(Category category) {
-        final List<PwmSetting> returnList = new ArrayList<PwmSetting>();
+        final List<PwmSetting> returnList = new ArrayList<>();
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getCategory() == category) {
                 returnList.add(setting);
@@ -1004,7 +1008,7 @@ public enum PwmSetting {
     }
 
     public static List<PwmSetting> getSettings(Category category, int level) {
-        final List<PwmSetting> returnList = new ArrayList<PwmSetting>();
+        final List<PwmSetting> returnList = new ArrayList<>();
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.showSetting(category, level)) {
                 returnList.add(setting);
@@ -1039,7 +1043,7 @@ public enum PwmSetting {
     public Map<String,String> getOptions() {
         final Element settingElement = readSettingXml(this);
         final Element optionsElement = settingElement.getChild("options");
-        final Map<String,String> returnList = new LinkedHashMap<String, String>();
+        final Map<String,String> returnList = new LinkedHashMap<>();
         if (optionsElement != null) {
             final List<Element> optionElements = optionsElement.getChildren("option");
             if (optionElements != null) {
@@ -1231,7 +1235,7 @@ public enum PwmSetting {
 
     public static Map<PwmSetting.Category, List<PwmSetting>> valuesByFilter(final Template template, final Category.Type categoryType, final int level) {
         final long startTime = System.currentTimeMillis();
-        final List<PwmSetting> settingList = new ArrayList<PwmSetting>(Arrays.asList(PwmSetting.values()));
+        final List<PwmSetting> settingList = new ArrayList<>(Arrays.asList(PwmSetting.values()));
 
         for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
             final PwmSetting loopSetting = iter.next();
@@ -1246,7 +1250,7 @@ public enum PwmSetting {
             }
         }
 
-        final Map<PwmSetting.Category, List<PwmSetting>> returnMap = new TreeMap<PwmSetting.Category, List<PwmSetting>>();
+        final Map<PwmSetting.Category, List<PwmSetting>> returnMap = new TreeMap<>();
         for (final PwmSetting loopSetting : settingList) {
             if (!returnMap.containsKey(loopSetting.getCategory())) {
                 returnMap.put(loopSetting.getCategory(),new ArrayList<PwmSetting>());

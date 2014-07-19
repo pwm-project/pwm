@@ -106,7 +106,7 @@ PWM_HELPDESK.doPasswordChange = function(password, random) {
     } else {
         inputValues['password'] = password;
     }
-    var htmlBody = PWM_MAIN.showString('Field_NewPassword') + ': <b>' + password + '</b><br/><br/><br/><div id="WaitDialogBlank"/>';
+    var htmlBody = PWM_MAIN.showString('Field_NewPassword') + ': <b>' + password + '</b><br/><br/><br/><div class="WaitDialogBlank"/>';
     PWM_MAIN.showWaitDialog({text:htmlBody,loadFunction:function() {
         require(["dojo", "dijit/Dialog"], function (dojo, Dialog) {
             dojo.xhrPost({
@@ -303,4 +303,39 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
             PWM_HELPDESK.processHelpdeskSearch();
         });
     });
+};
+
+
+PWM_HELPDESK.deleteUser = function(userKey) {
+    PWM_MAIN.showConfirmDialog({
+        text:PWM_MAIN.showString('Confirm_DeleteUser'),
+        okAction:function(){
+            require(["dojo", "dijit/Dialog"], function (dojo) {
+                dojo.xhrPost({
+                    url: "Helpdesk?pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&processAction=deleteUser",
+                    preventCache: true,
+                    handleAs: "json",
+                    timeout: PWM_MAIN.ajaxTimeout,
+                    postData: 'userKey=' + userKey,
+                    load: function (data) {
+                        PWM_MAIN.closeWaitDialog();
+                        if (data['error'] == true) {
+                            PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail'],okAction: function(){
+                                PWM_MAIN.goto("/private/Helpdesk");
+                            } });
+                        } else {
+                            PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage'], okAction: function () {
+                                PWM_MAIN.goto("/private/Helpdesk");
+                            }});
+                        }
+                    },
+                    error: function (errorObj) {
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: 'error deleting user: ' + errorObj,okAction: function(){
+                            PWM_MAIN.goto("/private/Helpdesk");
+                        } });
+                    }
+                });
+            });
+        }
+    })
 };

@@ -2887,9 +2887,7 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
                                                 PWM_MAIN.showError(data['errorDetail']);
                                             } else {
                                                 if (waitForReload) {
-                                                    var currentTime = new Date().getTime();
-                                                    PWM_MAIN.showError('Waiting for server restart');
-                                                    PWM_CONFIG.waitForRestart(currentTime);
+                                                    PWM_CONFIG.waitForRestart();
                                                 } else {
                                                     window.location = "ConfigManager";
                                                 }
@@ -2937,15 +2935,20 @@ PWM_CFGEDIT.setConfigurationPassword = function(password) {
             url:"ConfigEditor?processAction=setConfigurationPassword&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             postData: password,
             contentType: "application/text;charset=utf-8",
-            dataType: "text",
-            handleAs: "text",
+            dataType: "json",
+            handleAs: "json",
             load: function(data){
-                PWM_MAIN.closeWaitDialog();
-                PWM_MAIN.showDialog({title:'Success',text:'Configuration password set successfully.'});
+                if (data['error']) {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: data['errorDetail']});
+                } else {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Success'), text: data['successMessage']});
+                }
             },
             error: function(errorObj) {
                 PWM_MAIN.closeWaitDialog();
-                PWM_MAIN.showDialog ({title:'Error',text:"error saving notes text: " + errorObj});
+                PWM_MAIN.showDialog ({title:PWM_MAIN.showString('Title_Error'),text:"error saving configuration password: " + errorObj});
             }
         });
         return;
@@ -3049,8 +3052,8 @@ function loadMainPageBody() {
 }
 
 function handleResetClick(settingKey) {
-    var label = PWM_SETTINGS['settings'][settingKey] ? PWM_SETTINGS['settings'][settingKey]['label'] : null;
-    var dialogText = PWM_CONFIG.showString('Warning_ResetSetting',{value1:PWM_SETTINGS['settings'][settingKey]['label']});
+    var label = PWM_SETTINGS['settings'][settingKey] ? PWM_SETTINGS['settings'][settingKey]['label'] : ' ';
+    var dialogText = PWM_CONFIG.showString('Warning_ResetSetting',{value1:label});
     var titleText = 'Reset ' + label ? label : '';
 
     PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okAction:function(){
@@ -3101,7 +3104,7 @@ function executeSettingFunction(setting, profile, name) {
                         }});
                     } else {
                         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
-                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: msgBody, okAction: function () {
+                        PWM_MAIN.showDialog({width:700,title: PWM_MAIN.showString("Title_Success"), text: msgBody, okAction: function () {
                             loadMainPageBody();
                         }});
                     }
@@ -3213,7 +3216,7 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
                 PWM_MAIN.showSuccess(resultCount + ' Results');
             }
         };
-        PWM_MAIN.getObject('settingSearchResults').innerHTML = '<div id="WaitDialogBlank" style="vertical-align: middle"/>';
+        PWM_MAIN.getObject('settingSearchResults').innerHTML = '<div class="WaitDialogBlank" style="vertical-align: middle"/>';
         PWM_MAIN.getObject('settingSearchResults').click();
         PWM_MAIN.pwmFormValidator(validationProps);
     } else {
@@ -3301,7 +3304,7 @@ PWM_CFGEDIT.cancelEditing = function() {
                         var bodyText = '<div class="changeLogViewBox">';
                         bodyText += data['data'];
                         bodyText += '</div><br/><div>';
-                        bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
+                        bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
                         bodyText += '</div>';
                         PWM_MAIN.showConfirmDialog({width:650,text:bodyText,okAction:
                             function () {
@@ -3346,4 +3349,35 @@ PWM_CFGEDIT.showDateTimeFormatHelp = function() {
         });
         theDialog.show();
     });
+};
+
+PWM_CFGEDIT.ldapHealthCheck = function() {
+    PWM_MAIN.showWaitDialog({loadFunction:function() {
+        require(["dojo", "dojo/json"], function (dojo, json) {
+            dojo.xhrPost({
+                url: "ConfigEditor?processAction=ldapHealthCheck&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                headers: {"Accept": "application/json"},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
+                handleAs: "json",
+                dataType: "json",
+                preventCache: true,
+                load: function (data) {
+                    PWM_MAIN.closeWaitDialog();
+                    if (data['error']) {
+                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+                    } else {
+                        var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                        var profileName = preferences['profile'] && preferences['profile'].length > 0 ? preferences['profile'] : "Default";
+                        var titleText = PWM_MAIN.showString('Field_LdapProfile') + ": " + profileName;
+                        PWM_MAIN.showDialog({width:550,text:bodyText,title:titleText});
+                    }
+                },
+                error: function (errorObj) {
+                    PWM_MAIN.closeWaitDialog();
+                    alert("error executing function: " + errorObj);
+                }
+            });
+        });
+    }});
 };

@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.servlet.SetupOtpBean" %>
+<%@ page import="password.pwm.http.bean.SetupOtpBean" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -74,6 +74,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="application/javascript">
     function checkCode() {
         PWM_MAIN.getObject('crossIcon').style.display = 'none';
@@ -111,6 +112,7 @@
         });
     }
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

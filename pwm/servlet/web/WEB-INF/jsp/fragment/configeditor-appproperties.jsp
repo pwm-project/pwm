@@ -21,16 +21,17 @@
   --%>
 
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
-    final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
+    final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+    final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
     final boolean showDesc = cookie.isShowDesc();
     final password.pwm.config.PwmSetting.Category category = cookie.getCategory();

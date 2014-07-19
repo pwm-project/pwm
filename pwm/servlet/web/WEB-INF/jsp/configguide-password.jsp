@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
-<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,7 +26,7 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -61,23 +61,25 @@
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" />
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
-                                        required: true,
-                                        type: "password",
-                                        style: "width: 200px",
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        },
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CONFIG_PASSWORD)%>'
-                                    }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>");
+                        <pwm:script>
+                            <script type="text/javascript">
+                                PWM_GLOBAL['startupFunctions'].push(function(){
+                                    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
+                                        new ValidationTextBox({
+                                            id: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
+                                            name: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>',
+                                            required: true,
+                                            type: "password",
+                                            style: "width: 200px",
+                                            onKeyUp: function() {
+                                                handleFormActivity();
+                                            },
+                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CONFIG_PASSWORD)%>'
+                                        }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>");
+                                    });
                                 });
-                            });
-                        </script>
+                            </script>
+                        </pwm:script>
                     </div>
                     <div class="setting_item">
                         <b>Verify Configuration Password</b>
@@ -90,6 +92,7 @@
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
                                  src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">
                         </div>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -106,6 +109,7 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                     </div>
                 </div>
             </div>
@@ -125,6 +129,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function handleFormActivity() {
         updateForm();
@@ -159,6 +164,7 @@
         }
     }
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

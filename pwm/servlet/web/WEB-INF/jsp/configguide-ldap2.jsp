@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
-<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,7 +27,7 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <% Map<String,String> DEFAULT_FORM = ConfigGuideServlet.defaultForm(configGuideBean.getStoredConfiguration().getTemplate()); %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -65,6 +65,7 @@
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>"/>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -79,6 +80,7 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                     </div>
                 </div>
             </div>
@@ -96,6 +98,7 @@
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>"/>
+                        <pwm:script>
                         <script type="text/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
                                 require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -110,6 +113,7 @@
                                 });
                             });
                         </script>
+                        </pwm:script>
                     </div>
                 </div>
             </div>
@@ -134,6 +138,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function handleFormActivity() {
         updateForm();
@@ -176,6 +181,7 @@
         PWM_ADMIN.showAppHealth('healthBody', options);
     }
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

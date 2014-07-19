@@ -64,6 +64,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function updateContinueButton() {
         var checkBox = PWM_MAIN.getObject("agreeCheckBox");
@@ -85,6 +86,7 @@
         });
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

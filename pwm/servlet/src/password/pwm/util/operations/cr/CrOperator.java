@@ -30,10 +30,12 @@ import com.novell.ldapchai.cr.bean.ChallengeBean;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
+import com.novell.ldapchai.impl.edir.NmasResponseSet;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PwmLogger;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,7 +43,7 @@ import java.util.Map;
 
 public interface CrOperator {
     /**
-    Read a response set suitable for use in forgotten password scenarios
+     Read a response set suitable for use in forgotten password scenarios
      */
     public ResponseSet readResponseSet(final ChaiUser theUser, final UserIdentity userIdentity, final String userGUID)
             throws PwmUnrecoverableException;
@@ -65,17 +67,25 @@ public interface CrOperator {
     public void close();
 
     static class CrOperators {
+        private static final PwmLogger LOGGER = PwmLogger.getLogger(CrOperator.class);
+
         static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet, final DataStorageMethod dataSource
         )
                 throws ChaiUnavailableException, ChaiOperationException, ChaiValidationException
         {
-            final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
+            final Map<Challenge,String> crMap = new LinkedHashMap<>();
             Answer.FormatType formatType = null;
-            {
-                final List<ChallengeBean> challengeBeans = responseSet.asChallengeBeans(true);
-                if (challengeBeans != null && !challengeBeans.isEmpty()) {
-                    formatType = challengeBeans.get(0).answer.getType();
+            try {
+                if (responseSet instanceof NmasResponseSet) {
+                    formatType = Answer.FormatType.NMAS;
+                } else {
+                    final List<ChallengeBean> challengeBeans = responseSet.asChallengeBeans(true);
+                    if (challengeBeans != null && !challengeBeans.isEmpty()) {
+                        formatType = challengeBeans.get(0).answer.getType();
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.error("unable to determine formatType of stored responses: " + e.getMessage());
             }
             for (final Challenge challenge : responseSet.getChallengeSet().getChallenges()) {
                 crMap.put(challenge,"");

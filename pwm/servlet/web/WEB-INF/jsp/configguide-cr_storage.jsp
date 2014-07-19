@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.bean.servlet.ConfigGuideBean" %>
-<%@ page import="password.pwm.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -26,7 +26,7 @@
 
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
-<% ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -36,12 +36,13 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
-        <div id="header-company-logo"></div>
-        <div id="header-page">
-            <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
-        </div>
-        <div id="header-title">
-            Response Storage Preference
+        <div id="header-center">
+            <div id="header-page">
+                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+            </div>
+            <div id="header-title">
+                <pwm:Display key="Title_ConfigGuide_crStorage" bundle="Config"/>
+            </div>
         </div>
     </div>
     <div id="centerbody">
@@ -93,6 +94,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function handleFormActivity() {
         //PWM_MAIN.getObject("value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>").value = PWM_MAIN.getObject("prefSelect").value;
@@ -107,6 +109,7 @@
         handleFormActivity();
     });
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

@@ -42,12 +42,12 @@
     <% } %>
 </select>
 <% } %>
-<% if (showContextSelector) { %>
-<h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:Display key="Field_Location"/></label></h2>
-<select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
-    <% for (final String key : selectedProfile.getLoginContexts().keySet()) { %>
-    <option value="<%=StringEscapeUtils.escapeHtml(key)%>"><%=StringEscapeUtils.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
-    <% } %>
-</select>
-<% } %>
+<div style="display: <%=showContextSelector?"inherit":"none"%>" id="contextSelectorWrapper">
+    <h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:Display key="Field_Location"/></label></h2>
+    <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
+        <% for (final String key : selectedProfile.getLoginContexts().keySet()) { %>
+        <option value="<%=StringEscapeUtils.escapeHtml(key)%>"><%=StringEscapeUtils.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
+        <% } %>
+    </select>
+</div>
 

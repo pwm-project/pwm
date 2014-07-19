@@ -125,7 +125,7 @@ public abstract class AlertHandler {
         }
 
         { // server info
-            final Map<String,String> metadata = new LinkedHashMap<String, String>();
+            final Map<String,String> metadata = new LinkedHashMap<>();
             metadata.put("Instance ID", pwmApplication.getInstanceID());
             metadata.put("Site URL", pwmApplication.getSiteURL());
             metadata.put("Timestamp",PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
@@ -218,7 +218,7 @@ public abstract class AlertHandler {
         if (dailyStatistics != null && !dailyStatistics.isEmpty()) { // statistics
             htmlBody.append("<h2>Daily Statistics</h2>");
             textBody.append("--Daily Statistics--\n");
-            final Map<String, String> sortedStats = new TreeMap<String, String>();
+            final Map<String, String> sortedStats = new TreeMap<>();
             sortedStats.putAll(dailyStatistics);
 
             htmlBody.append("<table border='1'>");

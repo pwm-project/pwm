@@ -34,7 +34,7 @@ public class OTPUserRecord implements Serializable {
     private Date timestamp = new Date();
     private String identifier;
     private String secret;
-    private List<RecoveryCode> recoveryCodes = new ArrayList<RecoveryCode>();
+    private List<RecoveryCode> recoveryCodes = new ArrayList<>();
     private RecoveryInfo recoveryInfo;
     private long attemptCount = 0;
     private Type type = Type.TOTP;

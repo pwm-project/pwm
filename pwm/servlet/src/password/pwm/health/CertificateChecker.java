@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ public class CertificateChecker implements HealthChecker {
     }
 
     private static List<HealthRecord> doHealthCheck(Configuration configuration) {
-        final List<HealthRecord> returnList = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnList = new ArrayList<>();
         for (final PwmSetting setting : PwmSetting.values()) {
             if (setting.getSyntax() == PwmSettingSyntax.X509CERT) {
                 if (setting != PwmSetting.LDAP_SERVER_CERTS) {
@@ -68,7 +68,7 @@ public class CertificateChecker implements HealthChecker {
         final long warnDurationMs = 1000 * Long.parseLong(configuration.readAppProperty(AppProperty.HEALTH_CERTIFICATE_WARN_SECONDS));
 
         if (certificates != null) {
-            final List<HealthRecord> returnList = new ArrayList<HealthRecord>();
+            final List<HealthRecord> returnList = new ArrayList<>();
             for (final X509Certificate certificate : certificates) {
                 returnList.addAll(doHealthCheck(certificate, warnDurationMs));
             }

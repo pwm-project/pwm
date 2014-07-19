@@ -24,6 +24,8 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.PwmService;
+import password.pwm.health.HealthRecord;
 import password.pwm.util.report.ReportService;
 
 import java.io.BufferedOutputStream;
@@ -31,6 +33,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 public class UserReportCommand extends AbstractCliCommand {
     protected static final String OUTPUT_FILE_OPTIONNAME = "outputFile";
@@ -53,6 +57,16 @@ public class UserReportCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final ReportService userReport = pwmApplication.getUserReportService();
+        if (userReport.status() != PwmService.STATUS.OPEN) {
+            out("report service is not open or enabled");
+            final List<HealthRecord> healthIssues = userReport.healthCheck();
+            if (healthIssues != null) {
+                for (final HealthRecord record : healthIssues) {
+                    out("report health status: " + record.toDebugString(Locale.getDefault(), pwmApplication.getConfig()));
+                }
+            }
+            return;
+        }
         userReport.outputToCsv(outputFileStream, true, PwmConstants.DEFAULT_LOCALE);
 
         try { outputFileStream.close(); } catch (Exception e) { /* nothing */ }

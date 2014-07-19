@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -231,7 +231,7 @@ public class LocalDBAdaptor implements LocalDB {
         private static final Integer CACHE_DIRTY = -1;
         private static final Integer CACHE_WORKING = -2;
 
-        private final ConcurrentMap<DB, Integer> sizeCache = new ConcurrentHashMap<DB, Integer>();
+        private final ConcurrentMap<DB, Integer> sizeCache = new ConcurrentHashMap<>();
 
         private SizeCacheManager() {
             for (final DB db : DB.values()) {

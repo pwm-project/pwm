@@ -65,7 +65,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
     }
 
     static X509CertificateValue fromXmlElement(final Element settingElement) {
-        final List<X509Certificate> certificates = new ArrayList<X509Certificate>();
+        final List<X509Certificate> certificates = new ArrayList<>();
         final List<Element> valueElements = settingElement.getChildren("value");
         for (final Element loopValueElement : valueElements) {
             final String b64encodedStr = loopValueElement.getText();
@@ -82,7 +82,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
 
     @Override
     public List<Element> toXmlValues(String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         for (final X509Certificate value : certificates) {
             final Element valueElement = new Element(valueElementName);
             try {
@@ -106,9 +106,9 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
     }
 
     public String toDebugString(boolean prettyFormat, Locale locale) {
-        final List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+        final List<Map<String,String>> list = new ArrayList<>();
         for (X509Certificate cert : certificates) {
-            final LinkedHashMap<String,String> map = new LinkedHashMap<String,String>();
+            final LinkedHashMap<String,String> map = new LinkedHashMap<>();
             map.put("subject",cert.getSubjectDN().toString());
             map.put("serial", X509Utils.hexSerial(cert));
             map.put("issuer",cert.getIssuerDN().toString());

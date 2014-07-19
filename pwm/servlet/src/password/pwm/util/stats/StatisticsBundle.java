@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ public class StatisticsBundle {
     }
 
 
-    private final Map<Statistic, String> valueMap = new HashMap<Statistic, String>();
+    private final Map<Statistic, String> valueMap = new HashMap<>();
 
     public StatisticsBundle() {
     }
@@ -56,7 +56,7 @@ public class StatisticsBundle {
     }
 
     public static StatisticsBundle input(final String inputString) {
-        final Map<Statistic, String> srcMap = new HashMap<Statistic,String>();
+        final Map<Statistic, String> srcMap = new HashMap<>();
         try {
             final Gson gson = Helper.getGson();
             final Map<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {

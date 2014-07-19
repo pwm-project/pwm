@@ -111,7 +111,7 @@ public class Configuration implements Serializable {
         }
 
         final List<String> profiles = storedConfiguration.profilesForSetting(PwmSetting.LDAP_PROFILE_LIST);
-        final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<String, LdapProfile>();
+        final LinkedHashMap<String,LdapProfile> returnList = new LinkedHashMap<>();
         for (String profileID : profiles) {
             if ("".equals(profileID)) {
                 profileID = PwmConstants.PROFILE_ID_DEFAULT;
@@ -132,7 +132,7 @@ public class Configuration implements Serializable {
         }
 
         final Map<String, EmailItemBean> storedValues = (Map<String, EmailItemBean>)readStoredValue(setting).toNativeObject();
-        final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<Locale, EmailItemBean>();
+        final Map<Locale, EmailItemBean> availableLocaleMap = new LinkedHashMap<>();
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }
@@ -208,7 +208,7 @@ public class Configuration implements Serializable {
                 throw new IllegalArgumentException("setting value is not readable as string array");
             }
 
-            final List<String> results = new ArrayList<String>((List<String>)value.toNativeObject());
+            final List<String> results = new ArrayList<>((List<String>)value.toNativeObject());
             for (final Iterator iter = results.iterator(); iter.hasNext();) {
                 final Object loopString = iter.next();
                 if (loopString == null || loopString.toString().length() < 1) {
@@ -232,7 +232,7 @@ public class Configuration implements Serializable {
             }
 
             final Map<String, String> availableValues = (Map<String, String>)value.toNativeObject();
-            final Map<Locale, String> availableLocaleMap = new LinkedHashMap<Locale, String>();
+            final Map<Locale, String> availableLocaleMap = new LinkedHashMap<>();
             for (final String localeStr : availableValues.keySet()) {
                 availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), availableValues.get(localeStr));
             }
@@ -246,7 +246,7 @@ public class Configuration implements Serializable {
                 throw new IllegalArgumentException("may not read LOCALIZED_STRING_ARRAY value");
             }
             final Map<String, List<String>> storedValues = (Map<String, List<String>>)value.toNativeObject();
-            final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<Locale, List<String>>();
+            final Map<Locale, List<String>> availableLocaleMap = new LinkedHashMap<>();
             for (final String localeStr : storedValues.keySet()) {
                 availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
             }
@@ -271,7 +271,7 @@ public class Configuration implements Serializable {
         }
 
         static <E extends Enum<E>> Set<E> valueToOptionList(final StoredValue value,  Class<E> enumClass) {
-            final Set<E> returnSet = new HashSet<E>();
+            final Set<E> returnSet = new HashSet<>();
             final Set<String> strValues = (Set<String>)value.toNativeObject();
             for (final String strValue : strValues) {
                 try {
@@ -302,9 +302,9 @@ public class Configuration implements Serializable {
             return null;
         }
 
-        final Map<Locale,String> localizedMap = new LinkedHashMap<Locale, String>();
+        final Map<Locale,String> localizedMap = new LinkedHashMap<>();
         for (final String localeKey : storedValue.keySet()) {
-            localizedMap.put(new Locale(localeKey),storedValue.get(localeKey));
+            localizedMap.put(LocaleHelper.parseLocaleString(localeKey),storedValue.get(localeKey));
         }
 
         dataCache.customText.put(key, localizedMap);
@@ -427,7 +427,7 @@ public class Configuration implements Serializable {
 
     protected PwmPasswordPolicy initPasswordPolicy(final String profile, final Locale locale)
     {
-        final Map<String, String> passwordPolicySettings = new LinkedHashMap<String, String>();
+        final Map<String, String> passwordPolicySettings = new LinkedHashMap<>();
         for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
             if (rule.getPwmSetting() != null) {
                 final String value;
@@ -488,7 +488,7 @@ public class Configuration implements Serializable {
             return Collections.emptyMap();
         }
 
-        final Map<String, String> returnMap = new LinkedHashMap<String, String>();
+        final Map<String, String> returnMap = new LinkedHashMap<>();
         for (final String loopStr : input) {
             if (loopStr != null && separator != null && loopStr.contains(separator)) {
                 final int seperatorLocation = loopStr.indexOf(separator);
@@ -508,7 +508,7 @@ public class Configuration implements Serializable {
     }
 
     public Collection<Locale> localesForSetting(final PwmSetting setting) {
-        final Collection<Locale> returnCollection = new ArrayList<Locale>();
+        final Collection<Locale> returnCollection = new ArrayList<>();
         switch (setting.getSyntax()) {
             case LOCALIZED_TEXT_AREA:
             case LOCALIZED_STRING:
@@ -572,7 +572,7 @@ public class Configuration implements Serializable {
         } catch (Exception e) {
             final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
-            LOGGER.error(errorInfo,e);
+            LOGGER.error(errorInfo.toDebugStr(),e);
             throw new PwmOperationalException(errorInfo);
         }
     }
@@ -588,7 +588,7 @@ public class Configuration implements Serializable {
 
     private List<DataStorageMethod> getGenericStorageLocations(final PwmSetting setting) {
         final String input = readSettingAsString(setting);
-        final List<DataStorageMethod> storageMethods = new ArrayList<DataStorageMethod>();
+        final List<DataStorageMethod> storageMethods = new ArrayList<>();
         for (final String rawValue : input.split("-")) {
             try {
                 storageMethods.add(DataStorageMethod.valueOf(rawValue));
@@ -646,7 +646,7 @@ public class Configuration implements Serializable {
         if (dataCache.localeFlagMap == null) {
             dataCache.localeFlagMap = figureLocaleFlagMap();
         }
-        return Collections.unmodifiableList(new ArrayList<Locale>(dataCache.localeFlagMap.keySet()));
+        return Collections.unmodifiableList(new ArrayList<>(dataCache.localeFlagMap.keySet()));
     }
 
     public Map<Locale,String> getKnownLocaleFlagMap() {
@@ -663,7 +663,7 @@ public class Configuration implements Serializable {
         final Map<String,String> inputMap = convertStringListToNameValuePair(inputList,"::");
 
         // Sort the map by display name
-        final Map<String,String> sortedMap = new TreeMap<String,String>();
+        final Map<String,String> sortedMap = new TreeMap<>();
         for (final String localeString : inputMap.keySet()) {
             final Locale theLocale = LocaleHelper.parseLocaleString(localeString);
             if (theLocale != null) {
@@ -671,7 +671,7 @@ public class Configuration implements Serializable {
             }
         }
 
-        final List<String> returnList = new ArrayList<String>();
+        final List<String> returnList = new ArrayList<>();
 
         //ensure default is first.
         returnList.add(defaultLocaleAsString);
@@ -682,7 +682,7 @@ public class Configuration implements Serializable {
             }
         }
 
-        final Map<Locale,String> localeFlagMap = new LinkedHashMap<Locale, String>();
+        final Map<Locale,String> localeFlagMap = new LinkedHashMap<>();
         for (final String localeString : returnList) {
             final Locale loopLocale = LocaleHelper.parseLocaleString(localeString);
             if (loopLocale != null) {
@@ -733,13 +733,6 @@ public class Configuration implements Serializable {
         }
 
         return true;
-    }
-
-    public String getUsernameAttribute(final String profileID) {
-        final LdapProfile ldapProfile = getLdapProfiles().get(profileID);
-        final String configUsernameAttr = ldapProfile.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
-        final String ldapNamingAttribute = ldapProfile.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
-        return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
     }
 
     public String readAppProperty(AppProperty property) {
@@ -826,18 +819,18 @@ public class Configuration implements Serializable {
     }
 
     private static class DataCache implements Serializable {
-        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<String,Map<Locale,PwmPasswordPolicy>>();
-        private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<String,Map<Locale,ChallengeProfile>>();
-        private final Map<String,HelpdeskProfile> helpdeskProfile = new HashMap<String,HelpdeskProfile>();
-        private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<Locale,PwmPasswordPolicy>();
+        private final Map<String,Map<Locale,PwmPasswordPolicy>> cachedPasswordPolicy = new HashMap<>();
+        private final Map<String,Map<Locale,ChallengeProfile>> challengeProfile = new HashMap<>();
+        private final Map<String,HelpdeskProfile> helpdeskProfile = new HashMap<>();
+        private final Map<Locale,PwmPasswordPolicy> newUserPasswordPolicy = new HashMap<>();
         private Map<Locale,String> localeFlagMap = null;
         private Map<String,LdapProfile> ldapProfiles;
-        private final Map<PwmSetting, StoredValue> settings = new EnumMap<PwmSetting, StoredValue>(PwmSetting.class);
-        private final Map<String,Map<Locale,String>> customText = new HashMap<String, Map<Locale, String>>();
+        private final Map<PwmSetting, StoredValue> settings = new EnumMap<>(PwmSetting.class);
+        private final Map<String,Map<Locale,String>> customText = new HashMap<>();
     }
 
     public Map<AppProperty,String> readAllNonDefaultAppProperties() {
-        final LinkedHashMap<AppProperty,String> nonDefaultProperties = new LinkedHashMap<AppProperty, String>();
+        final LinkedHashMap<AppProperty,String> nonDefaultProperties = new LinkedHashMap<>();
         for (final AppProperty loopProperty : AppProperty.values()) {
             final String configuredValue = readAppProperty(loopProperty);
             final String defaultValue = loopProperty.getDefaultValue();

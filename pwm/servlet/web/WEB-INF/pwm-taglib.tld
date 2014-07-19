@@ -30,19 +30,19 @@
     <short-name>pwm-taglib</short-name>
     <tag>
         <name>ErrorMessage</name>
-        <tag-class>password.pwm.tag.ErrorMessageTag</tag-class>
+        <tag-class>password.pwm.http.tag.ErrorMessageTag</tag-class>
         <body-content>empty</body-content>
         <description>Displays the current error message (if any)</description>
     </tag>
     <tag>
         <name>SuccessMessage</name>
-        <tag-class>password.pwm.tag.SuccessMessageTag</tag-class>
+        <tag-class>password.pwm.http.tag.SuccessMessageTag</tag-class>
         <body-content>empty</body-content>
         <description>Displays the current success message (if any)</description>
     </tag>
     <tag>
         <name>ParamValue</name>
-        <tag-class>password.pwm.tag.ParamValueTag</tag-class>
+        <tag-class>password.pwm.http.tag.ParamValueTag</tag-class>
         <body-content>empty</body-content>
         <description>Retreives the last user-supplied value</description>
         <attribute>
@@ -54,7 +54,7 @@
     <tag>
         <name>DisplayLocationOptions</name>
         <tag-class>
-            password.pwm.tag.DisplayLocationOptionsTag
+            password.pwm.http.tag.DisplayLocationOptionsTag
         </tag-class>
         <body-content>empty</body-content>
         <description>Shows the list of ldap contexts available during a
@@ -68,7 +68,7 @@
     </tag>
     <tag>
         <name>UserInfo</name>
-        <tag-class>password.pwm.tag.UserInfoTag</tag-class>
+        <tag-class>password.pwm.http.tag.UserInfoTag</tag-class>
         <body-content>empty</body-content>
         <description>Retreives attributes from the logged-in user's ldap
             entry
@@ -82,7 +82,7 @@
     <tag>
         <name>DisplayPasswordRequirements</name>
         <tag-class>
-            password.pwm.tag.PasswordRequirementsTag
+            password.pwm.http.tag.PasswordRequirementsTag
         </tag-class>
         <body-content>empty</body-content>
         <description>Displays (in english) selected currently configured
@@ -106,7 +106,7 @@
     </tag>
     <tag>
         <name>Display</name>
-        <tag-class>password.pwm.tag.DisplayTag</tag-class>
+        <tag-class>password.pwm.http.tag.DisplayTag</tag-class>
         <body-content>empty</body-content>
         <description>Display localized message</description>
         <attribute>
@@ -141,10 +141,10 @@
         </attribute>
     </tag>
     <tag>
-        <name>LdapValue</name>
-        <tag-class>password.pwm.tag.LdapValueTag</tag-class>
+        <name>value</name>
+        <tag-class>password.pwm.http.tag.PwmValueTag</tag-class>
         <body-content>empty</body-content>
-        <description>Retrieves the attribute value for the user from ldap</description>
+        <description>Output a named value</description>
         <attribute>
             <name>name</name>
             <required>true</required>
@@ -153,7 +153,7 @@
     </tag>
     <tag>
         <name>url</name>
-        <tag-class>password.pwm.tag.URLRewriter</tag-class>
+        <tag-class>password.pwm.http.tag.URLRewriter</tag-class>
         <body-content>empty</body-content>
         <description>Rewrite/Encode outbound URLs</description>
         <attribute>
@@ -169,19 +169,19 @@
     </tag>
     <tag>
         <name>FormID</name>
-        <tag-class>password.pwm.tag.PwmFormIDTag</tag-class>
+        <tag-class>password.pwm.http.tag.PwmFormIDTag</tag-class>
         <body-content>empty</body-content>
         <description>Displays the proper pwmFormID value for the session</description>
     </tag>
     <tag>
         <name>LocaleOrientation</name>
-        <tag-class>password.pwm.tag.LocaleOrientationTag</tag-class>
+        <tag-class>password.pwm.http.tag.LocaleOrientationTag</tag-class>
         <body-content>empty</body-content>
         <description>Output text "rtl" or "ltr" depending on session locale</description>
     </tag>
     <tag>
         <name>if</name>
-        <tag-class>password.pwm.tag.PwmIfTag</tag-class>
+        <tag-class>password.pwm.http.tag.PwmIfTag</tag-class>
         <body-content>JSP</body-content>
         <description>If test is true, output body.</description>
         <attribute>
@@ -194,6 +194,12 @@
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
+    </tag>
+    <tag>
+        <name>script</name>
+        <tag-class>password.pwm.http.tag.PwmScriptTag</tag-class>
+        <body-content>JSP</body-content>
+        <description>Offline script to callback js</description>
     </tag>
 </taglib>
 

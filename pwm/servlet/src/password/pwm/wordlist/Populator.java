@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ class Populator {
     private TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(600, 10, 50 * 1000);
     private int loopLines;
 
-    private final Map<String,String> bufferedWords = new TreeMap<String,String>();
+    private final Map<String,String> bufferedWords = new TreeMap<>();
 
     private final Sleeper sleeper;
 

@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@page import="password.pwm.bean.servlet.SetupOtpBean"%>
+<%@page import="password.pwm.http.bean.SetupOtpBean"%>
 <%@page import="password.pwm.util.otp.OTPUserRecord"%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -34,7 +34,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
@@ -86,6 +85,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
@@ -95,6 +95,8 @@
         });
     });
 </script>
+</pwm:script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -66,6 +66,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="application/javascript">
     function confirmContinue() {
         PWM_MAIN.showConfirmDialog({
@@ -76,6 +77,7 @@
         });
     }
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

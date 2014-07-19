@@ -42,6 +42,7 @@ import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -74,7 +75,7 @@ public class RestChallengesServer {
         public ResponseInfoBean toResponseInfoBean(final Locale locale, final String csIdentifier)
                 throws PwmOperationalException
         {
-            final Map<Challenge,String> crMap = new LinkedHashMap<Challenge,String>();
+            final Map<Challenge,String> crMap = new LinkedHashMap<>();
             if (challenges != null) {
                 for (final ChallengeBean challengeBean : challenges) {
                     final Challenge challenge = ChaiChallenge.fromChallengeBean(challengeBean);
@@ -86,7 +87,7 @@ public class RestChallengesServer {
                 }
             }
 
-            final Map<Challenge,String> helpdeskCrMap = new LinkedHashMap<Challenge,String>();
+            final Map<Challenge,String> helpdeskCrMap = new LinkedHashMap<>();
             if (helpdeskChallenges != null) {
                 for (final ChallengeBean challengeBean : helpdeskChallenges) {
                     final Challenge challenge = ChaiChallenge.fromChallengeBean(challengeBean);
@@ -163,7 +164,12 @@ public class RestChallengesServer {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
                 responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(), chaiUser);
-                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(),chaiUser,userLocale);
+                final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getUserIdentity(),
+                        chaiUser,userLocale
+                );
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                         restRequestBean.getUserIdentity(), chaiUser, passwordPolicy, userLocale);
                 challengeSet = challengeProfile.getChallengeSet();
@@ -197,7 +203,7 @@ public class RestChallengesServer {
 
             // update statistics
             if (!restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHALLENGES);
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
             }
 
             final RestResultBean resultBean = new RestResultBean();
@@ -259,8 +265,13 @@ public class RestChallengesServer {
             final ResponseInfoBean responseInfoBean = jsonInput.toResponseInfoBean(request.getLocale(), csIdentifer);
             crService.writeResponses(chaiUser,userGUID,responseInfoBean);
 
+            // update statistics
+            if (!restRequestBean.isExternal()) {
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
+            }
+
             final String successMsg = Message.SUCCESS_SETUP_RESPONSES.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
-            RestResultBean resultBean = new RestResultBean();
+            final RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
             resultBean.setSuccessMessage(successMsg);
             return resultBean.asJsonResponse();
@@ -292,8 +303,14 @@ public class RestChallengesServer {
         }
 
         try {
-            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+            if (restRequestBean.getUserIdentity() == null) {
+                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+                }
+            } else {
+                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.HELPDESK)) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
+                }
             }
 
             final ChaiUser chaiUser;
@@ -337,6 +354,12 @@ public class RestChallengesServer {
                     chaiUser,
                     userGUID
             );
+
+            // update statistics
+            if (!restRequestBean.isExternal()) {
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
+            }
+
             final String successMsg = Message.SUCCESS_CLEAR_RESPONSES.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
             RestResultBean resultBean = new RestResultBean();
             resultBean.setError(false);
@@ -352,7 +375,7 @@ public class RestChallengesServer {
     }
 
     private static List<ChallengeBean> challengesToBeans(final List<Challenge> challenges) {
-        final List<ChallengeBean> returnList = new ArrayList<ChallengeBean>();
+        final List<ChallengeBean> returnList = new ArrayList<>();
         for (final Challenge challenge : challenges) {
             returnList.add(challenge.asChallengeBean());
         }

@@ -55,7 +55,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
     }
 
     static EmailValue fromXmlElement(Element settingElement) throws PwmOperationalException {
-        final Map<String,EmailItemBean> values = new HashMap<String,EmailItemBean>();
+        final Map<String,EmailItemBean> values = new HashMap<>();
         final Gson gson = Helper.getGson();
         {
             final List valueElements = settingElement.getChildren("value");
@@ -70,10 +70,10 @@ public class EmailValue extends AbstractValue implements StoredValue {
         }
         // read old format values.  can be removed someday....      this code iterates through the entire settings xml document to find old format versions
         {
-            final Map<String,String> fromMap = new HashMap<String,String>();
-            final Map<String,String> subjectMap = new HashMap<String,String>();
-            final Map<String,String> bodyPlainMap = new HashMap<String,String>();
-            final Map<String,String> bodyHtmlMap = new HashMap<String,String>();
+            final Map<String,String> fromMap = new HashMap<>();
+            final Map<String,String> subjectMap = new HashMap<>();
+            final Map<String,String> bodyPlainMap = new HashMap<>();
+            final Map<String,String> bodyHtmlMap = new HashMap<>();
             for (final Object loopSettingObj : settingElement.getParentElement().getChildren()) {
                 Element loopSetting = (Element)loopSettingObj;
                 if (loopSetting.getAttribute("key") != null) {
@@ -123,7 +123,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                     }
                 }
             }
-            final Set<String> seenLocales = new HashSet<String>();
+            final Set<String> seenLocales = new HashSet<>();
             seenLocales.addAll(fromMap.keySet());
             seenLocales.addAll(subjectMap.keySet());
             seenLocales.addAll(bodyPlainMap.keySet());
@@ -147,7 +147,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         final Gson gson = Helper.getGson();
         for (final String localeValue : values.keySet()) {
             final EmailItemBean emailItemBean = values.get(localeValue);

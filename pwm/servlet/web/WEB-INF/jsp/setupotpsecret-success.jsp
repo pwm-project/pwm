@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@page import="password.pwm.bean.servlet.SetupOtpBean"%>
+<%@page import="password.pwm.http.bean.SetupOtpBean"%>
 <%@page import="password.pwm.util.otp.OTPUserRecord"%>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -79,12 +79,14 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
         });
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

@@ -178,7 +178,7 @@ public class PwmLogEvent implements Serializable, Comparable {
 
     public String toEncodedString()
             throws IOException {
-        final Map<String, String> tempMap = new HashMap<String, String>();
+        final Map<String, String> tempMap = new HashMap<>();
         tempMap.put(KEY_VERSION, VERSION);
         tempMap.put(KEY_TOPIC, topic);
         tempMap.put(KEY_MESSAGE, message);

@@ -23,7 +23,6 @@
 var PWM_ADMIN = PWM_ADMIN || {};
 var PWM_MAIN = PWM_MAIN || {};
 var PWM_GLOBAL = PWM_GLOBAL || {};
-PWM_GLOBAL['localeBundle'].push('Admin');
 
 PWM_ADMIN.initAdminOtherMenu=function() {
     require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
@@ -114,6 +113,7 @@ PWM_ADMIN.initReportDataGrid=function() {
         "responseSetTime":PWM_ADMIN.showString("Field_Report_ResponseSaveTime"),
         "lastLoginTime":PWM_ADMIN.showString("Field_Report_LastLogin"),
         "hasResponses":PWM_ADMIN.showString("Field_Report_HasResponses"),
+        "hasHelpdeskResponses":PWM_ADMIN.showString("Field_Report_HasHelpdeskResponses"),
         "responseStorageMethod":PWM_ADMIN.showString("Field_Report_ResponseStorageMethod"),
         "responseFormatType":PWM_ADMIN.showString("Field_Report_ResponseFormatType"),
         "requiresPasswordUpdate":PWM_ADMIN.showString("Field_Report_RequiresPasswordUpdate"),
@@ -141,6 +141,7 @@ PWM_ADMIN.initReportDataGrid=function() {
             PWM_MAIN.getObject('grid-hider-menu-check-responseStorageMethod').click();
             PWM_MAIN.getObject('grid-hider-menu-check-responseFormatType').click();
             PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
+            PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
             PWM_ADMIN.refreshReportDataGrid();
         });
 }
@@ -520,7 +521,7 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
             }
         });
     });
-}
+};
 
 PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
     var options = options || {};
@@ -658,15 +659,17 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
             return;
         }
 
-
         PWM_GLOBAL['healthCheckInProgress'] = "true";
 
         if (refreshNow) {
-            parentDiv.innerHTML = '<div id="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
+            parentDiv.innerHTML = '<div class="WaitDialogBlank" style="margin-top: 20px; margin-bottom: 20px"/>';
             refreshUrl += refreshUrl.indexOf('?') > 0 ? '&' : '?';
             refreshUrl += "&refreshImmediate=true";
         }
 
+        PWM_GLOBAL['healthRefreshFunction'] = function() {
+            PWM_ADMIN.showAppHealth(parentDivID, options, refreshNow);
+        };
         dojo.xhrGet({
             url: refreshUrl,
             handleAs: "json",
@@ -675,37 +678,10 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
             preventCache: true,
             load: function(data) {
                 if (data['error']) {
-
+                    throw data['error'];
                 } else {
                     PWM_GLOBAL['pwm-health'] = data['data']['overall'];
-                    var healthRecords = data['data']['records'];
-                    var htmlBody = '<table width="100%" style="width=100%; border=0">';
-                    for (var i = 0; i < healthRecords.length; i++) {
-                        var healthData = healthRecords[i];
-                        htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
-                        htmlBody += healthData['topic'];
-                        htmlBody += '</td><td class="health-' + healthData['status'] + '">';
-                        htmlBody += healthData['status'];
-                        htmlBody += "</td><td>";
-                        htmlBody += healthData['detail'];
-                        htmlBody += "</td></tr>";
-                    }
-                    if (showTimestamp || showRefresh) {
-                        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
-                        if (showTimestamp) {
-                            htmlBody += '<span id="healthCheckTimestamp" class="timestamp">';
-                            htmlBody += (data['data']['timestamp']);
-                            htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
-                        }
-                        if (showRefresh) {
-                            htmlBody += '<a title="refresh" href="#"; onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',PWM_GLOBAL[\'showPwmHealthOptions\'],true)">';
-                            htmlBody += '<span class="fa fa-refresh"></span>';
-                            htmlBody += '</a>';
-                        }
-                        htmlBody += "</td></tr>";
-                    }
-
-                    htmlBody += '</table>';
+                    var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
                     parentDiv.innerHTML = htmlBody;
                     PWM_GLOBAL['healthCheckInProgress'] = false;
                     if (refreshTime > 0) {
@@ -748,8 +724,48 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     });
 };
 
+PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
+    var healthRecords = healthData['records'];
+    var htmlBody = '<table width="100%" style="width=100%; border=0">';
+    for (var i = 0; i < healthRecords.length; i++) {
+        (function(iter){
+            var loopRecord = healthRecords[iter];
+            htmlBody += '<tr><td class="key" style="width:1px; white-space:nowrap;"">';
+            htmlBody += loopRecord['topic'];
+            htmlBody += '</td><td class="health-' + loopRecord['status'] + '">';
+            htmlBody += loopRecord['status'];
+            htmlBody += "</td><td>";
+            htmlBody += loopRecord['detail'];
+            htmlBody += "</td></tr>";
+        })(i)
+    }
+    if (showTimestamp || showRefresh) {
+        htmlBody += '<tr><td colspan="3" style="text-align:center;">';
+        if (showTimestamp) {
+            htmlBody += '<span id="healthCheckTimestamp" class="timestamp">';
+            htmlBody += (healthData['timestamp']);
+            htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
+        }
+        if (showRefresh) {
+            htmlBody += '<a title="refresh" href="#"; onclick="PWM_GLOBAL[\'healthRefreshFunction\']()">';
+            htmlBody += '<span class="fa fa-refresh"></span>';
+            htmlBody += '</a>';
+        }
+        htmlBody += "</td></tr>";
+    }
+
+    htmlBody += '</table>';
+    return htmlBody;
+};
+
 PWM_ADMIN.showString=function (key, options) {
     options = options || {};
     options['bundle'] = 'Admin';
     return PWM_MAIN.showString(key,options);
+};
+
+PWM_CONFIG.initAdminPage=function(nextFunction) {
+    PWM_MAIN.loadLocaleBundle('Admin',function(){
+        if (nextFunction) nextFunction();
+    });
 };

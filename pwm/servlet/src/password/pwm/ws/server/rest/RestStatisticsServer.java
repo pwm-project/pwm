@@ -23,13 +23,12 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.ContextManager;
-import password.pwm.Permission;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ContextManager;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsBundle;
@@ -47,7 +46,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -103,7 +101,7 @@ public class RestStatisticsServer {
             }
 
             if (restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_STATISTICS);
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_STATISTICS);
             }
 
             final RestResultBean resultBean = new RestResultBean();
@@ -119,42 +117,11 @@ public class RestStatisticsServer {
         }
     }
 
-    @GET
-    @Produces("text/csv")
-    @Path("/file")
-    public String doPwmStatisticFileGet() {
-        final ServicePermissions servicePermissions = figurePermissions();
-        final RestRequestBean restRequestBean;
-        try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
-        } catch (PwmUnrecoverableException e) {
-            RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
-            return null;
-        }
-
-        try {
-            if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.PWMADMIN)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-            }
-
-            final StatisticsManager statsManager = restRequestBean.getPwmApplication().getStatisticsManager();
-            final StringWriter stringWriter = new StringWriter();
-            statsManager.outputStatsToCsv(stringWriter, true);
-            response.setHeader("Content-Disposition","attachment; fileName=statistics.csv");
-            return stringWriter.toString();
-        } catch (Exception e) {
-            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            RestServerHelper.handleNonJsonErrorResult(errorInformation);
-            return null;
-        }
-    }
-
     private Map<String,Object> doNameStat(final StatisticsManager statisticsManager, final String statName, final String days) {
         final Statistic statistic = Statistic.valueOf(statName);
         final int historyDays = StringHelper.convertStrToInt(days, 30);
 
-        final Map<String,Object> results = new HashMap<String,Object>();
+        final Map<String,Object> results = new HashMap<>();
         results.putAll(statisticsManager.getStatHistory(statistic, historyDays));
         return results;
     }
@@ -165,7 +132,7 @@ public class RestStatisticsServer {
         }
 
         final StatisticsBundle statisticsBundle = statisticsManager.getStatBundleForKey(statKey);
-        final Map<String,Object> outputValueMap = new TreeMap<String,Object>();
+        final Map<String,Object> outputValueMap = new TreeMap<>();
         for (Statistic stat : Statistic.values()) {
             outputValueMap.put(stat.getKey(),statisticsBundle.getStatistic(stat));
         }
@@ -174,7 +141,7 @@ public class RestStatisticsServer {
     }
 
     private Map<String,String> addEpsStats(final StatisticsManager statisticsManager){
-        final Map<String,String> outputMap = new TreeMap<String,String>();
+        final Map<String,String> outputMap = new TreeMap<>();
         for (final Statistic.EpsType loopEps : Statistic.EpsType.values()) {
             for (final Statistic.EpsDuration loopDuration : Statistic.EpsDuration.values()) {
                 final BigDecimal loopValue = statisticsManager.readEps(loopEps,loopDuration);
@@ -197,5 +164,14 @@ public class RestStatisticsServer {
             LOGGER.error("unable to read service permissions, defaulting to non-public; error: " + e.getMessage());
         }
         return servicePermissions;
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response doPwmAppDashboardJsonGet(
+    )
+    {
+        final ServicePermissions servicePermissions = figurePermissions();
+        return null;
     }
 }

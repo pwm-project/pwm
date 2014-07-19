@@ -46,23 +46,24 @@ public class ReportSummaryData {
     private int totalUsers;
     private int hasResponses;
     private int hasResponseSetTime;
+    private int hasHelpdeskResponses;
     private int hasExpirationTime;
     private int hasLoginTime;
     private int hasChangePwTime;
     private int hasOtpSecret;
     private int hasOtpSecretSetTime;
-    private Map<DataStorageMethod, Integer> responseStorage = new HashMap<DataStorageMethod, Integer>();
-    private Map<Answer.FormatType, Integer> responseFormatType = new HashMap<Answer.FormatType, Integer>();
-    private Map<String, Integer> ldapProfile = new HashMap<String, Integer>();
+    private Map<DataStorageMethod, Integer> responseStorage = new HashMap<>();
+    private Map<Answer.FormatType, Integer> responseFormatType = new HashMap<>();
+    private Map<String, Integer> ldapProfile = new HashMap<>();
     private int pwExpired;
     private int pwPreExpired;
     private int pwWarnPeriod;
-    private Map<Integer,Integer> pwExpireNext = new TreeMap<Integer, Integer>();
-    private Map<Integer,Integer> pwExpirePrevious = new TreeMap<Integer, Integer>();
-    private Map<Integer,Integer> changePwPrevious = new TreeMap<Integer, Integer>();
-    private Map<Integer,Integer> responseSetPrevious = new TreeMap<Integer, Integer>();
-    private Map<Integer,Integer> otpSetPrevious = new TreeMap<Integer, Integer>();
-    private Map<Integer,Integer> loginPrevious = new TreeMap<Integer, Integer>();
+    private Map<Integer,Integer> pwExpireNext = new TreeMap<>();
+    private Map<Integer,Integer> pwExpirePrevious = new TreeMap<>();
+    private Map<Integer,Integer> changePwPrevious = new TreeMap<>();
+    private Map<Integer,Integer> responseSetPrevious = new TreeMap<>();
+    private Map<Integer,Integer> otpSetPrevious = new TreeMap<>();
+    private Map<Integer,Integer> loginPrevious = new TreeMap<>();
 
     private ReportSummaryData() {
     }
@@ -87,7 +88,7 @@ public class ReportSummaryData {
     }
 
     private static List<Integer> parseDayIntervalStr(final String dayIntervalStr) {
-        final List<Integer> returnValue = new ArrayList<Integer>();
+        final List<Integer> returnValue = new ArrayList<>();
         final String[] splitDays = dayIntervalStr.split(",");
         for (final String splitDay : splitDays) {
             final int dayValue = Integer.parseInt(splitDay);
@@ -135,28 +136,22 @@ public class ReportSummaryData {
     }
 
     private void update(UserCacheRecord userCacheRecord, boolean adding) {
-        if (adding) {
-            totalUsers++;
-        } else {
-            totalUsers--;
-        }
+        final int modifier = adding ? 1 : -1;
+
+        totalUsers += modifier;
 
         updateMeanTime(userCacheRecord.cacheTimestamp,adding);
 
         if (userCacheRecord.hasResponses) {
-            if (adding) {
-                hasResponses++;
-            } else {
-                hasResponses--;
-            }
+            hasResponses += modifier;
+        }
+
+        if (userCacheRecord.hasHelpdeskResponses) {
+            hasHelpdeskResponses += modifier;
         }
 
         if (userCacheRecord.responseSetTime != null) {
-            if (adding) {
-                hasResponseSetTime++;
-            } else {
-                hasResponseSetTime--;
-            }
+            hasResponseSetTime += modifier;
 
             for (final int days : trackedDays) {
                 if (!responseSetPrevious.containsKey(days)) {
@@ -167,11 +162,7 @@ public class ReportSummaryData {
         }
 
         if (userCacheRecord.passwordExpirationTime != null) {
-            if (adding) {
-                hasExpirationTime++;
-            } else {
-                hasExpirationTime--;
-            }
+            hasExpirationTime += modifier;
 
             for (final int days : trackedDays) {
                 if (!pwExpirePrevious.containsKey(days)) {
@@ -189,11 +180,7 @@ public class ReportSummaryData {
         }
 
         if (userCacheRecord.lastLoginTime != null) {
-            if (adding) {
-                hasLoginTime++;
-            } else {
-                hasLoginTime--;
-            }
+            hasLoginTime += modifier;
 
             for (final int days : trackedDays) {
                 if (!loginPrevious.containsKey(days)) {
@@ -204,11 +191,7 @@ public class ReportSummaryData {
         }
 
         if (userCacheRecord.passwordChangeTime != null) {
-            if (adding) {
-                hasChangePwTime++;
-            } else {
-                hasChangePwTime--;
-            }
+            hasChangePwTime += modifier;
 
             for (final int days : trackedDays) {
                 if (!changePwPrevious.containsKey(days)) {
@@ -279,19 +262,11 @@ public class ReportSummaryData {
         }
 
         if (userCacheRecord.isHasOtpSecret()) {
-            if (adding) {
-                hasOtpSecret++;
-            } else {
-                hasOtpSecret--;
-            }
+            hasOtpSecret += modifier;
         }
 
         if (userCacheRecord.getOtpSecretSetTime() != null) {
-            if (adding) {
-                hasOtpSecretSetTime++;
-            } else {
-                hasOtpSecretSetTime--;
-            }
+            hasOtpSecretSetTime += modifier;
 
             for (final int days : trackedDays) {
                 if (!otpSetPrevious.containsKey(days)) {
@@ -337,7 +312,7 @@ public class ReportSummaryData {
 
 
     public List<PresentationRow> asPresentableCollection(final Configuration config, final Locale locale) {
-        final ArrayList<PresentationRow> returnCollection = new ArrayList<PresentationRow>();
+        final ArrayList<PresentationRow> returnCollection = new ArrayList<>();
         final PresentationRowBuilder builder = new PresentationRowBuilder(config,this.totalUsers,locale);
 
         returnCollection.add(builder.makeNoPctRow("Field_Report_Sum_Total", this.totalUsers, null));
@@ -378,6 +353,7 @@ public class ReportSummaryData {
         }
 
         returnCollection.add(builder.makeRow("Field_Report_Sum_HaveResponses", this.hasResponses));
+        returnCollection.add(builder.makeRow("Field_Report_Sum_HaveHelpdeskResponses", this.hasHelpdeskResponses));
         for (final DataStorageMethod storageMethod : this.getResponseStorage().keySet()) {
             final int count = this.getResponseStorage().get(storageMethod);
             returnCollection.add(builder.makeRow("Field_Report_Sum_StorageMethod", count, storageMethod.toString()));

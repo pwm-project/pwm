@@ -113,7 +113,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
 
     public List<UserPermission> getUserPermissions()
     {
-        final StoredValue readValue = storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH);
+        final StoredValue readValue = storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH,profileID);
         return (List<UserPermission>)readValue.toNativeObject();
     }
 
@@ -154,7 +154,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
         final List<ChallengeItemBean> randomQuestions = valueToChallengeItemArray(
                 storedConfiguration.readSetting(randomChallenges, profileID), locale);
 
-        final List<Challenge> challenges = new ArrayList<Challenge>();
+        final List<Challenge> challenges = new ArrayList<>();
 
         if (requiredQuestions != null) {
             for (final ChallengeItemBean item : requiredQuestions) {
@@ -196,7 +196,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
             throw new IllegalArgumentException("may not read ChallengeValue value");
         }
         final Map<String, List<ChallengeItemBean>> storedValues = (Map<String, List<ChallengeItemBean>>)value.toNativeObject();
-        final Map<Locale, List<ChallengeItemBean>> availableLocaleMap = new LinkedHashMap<Locale, List<ChallengeItemBean>>();
+        final Map<Locale, List<ChallengeItemBean>> availableLocaleMap = new LinkedHashMap<>();
         for (final String localeStr : storedValues.keySet()) {
             availableLocaleMap.put(LocaleHelper.parseLocaleString(localeStr), storedValues.get(localeStr));
         }

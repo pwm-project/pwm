@@ -71,8 +71,8 @@ public class NMASUAWSOperator implements CrOperator {
             return null;
         }
 
-        final Map<Challenge, String> crMap = new LinkedHashMap<Challenge, String>();
-        final Map<Challenge, String> helpdeskCrMap = new LinkedHashMap<Challenge, String>();
+        final Map<Challenge, String> crMap = new LinkedHashMap<>();
+        final Map<Challenge, String> helpdeskCrMap = new LinkedHashMap<>();
         try {
             for (final Challenge loopChallenge : responseSet.getChallengeSet().getChallenges()) {
                 crMap.put(loopChallenge,"");
@@ -156,7 +156,7 @@ public class NMASUAWSOperator implements CrOperator {
             this.localIdentifer = "NovellWSResponseSet #" + String.valueOf(lastLocalIdentifer++);
             LOGGER.debug("initialized " + localIdentifer);
 
-            final List<Challenge> challenges = new ArrayList<Challenge>();
+            final List<Challenge> challenges = new ArrayList<>();
             for (final String loopQuestion : wsBean.getChallengeQuestions()) {
                 final Challenge loopChallenge = new ChaiChallenge(
                         true,

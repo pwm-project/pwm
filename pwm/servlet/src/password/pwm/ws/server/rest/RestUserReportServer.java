@@ -77,7 +77,7 @@ public class RestUserReportServer {
             return RestResultBean.fromError(errorInformation, restRequestBean).asJsonResponse();
         }
 
-        final ArrayList<UserCacheRecord> reportData = new ArrayList<UserCacheRecord>();
+        final ArrayList<UserCacheRecord> reportData = new ArrayList<>();
         ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
         try {
             cacheBeanIterator = restRequestBean.getPwmApplication().getUserReportService().iterator();
@@ -93,7 +93,7 @@ public class RestUserReportServer {
             }
         }
 
-        final HashMap<String,Object> returnData = new HashMap<String, Object>();
+        final HashMap<String,Object> returnData = new HashMap<>();
         returnData.put("users",reportData);
 
         final RestResultBean restResultBean = new RestResultBean();
@@ -167,11 +167,11 @@ public class RestUserReportServer {
             throws LocalDBException
     {
 
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<String, Object>();
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
         final ReportService.ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
         returnMap.put("raw",reportInfo);
 
-        final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<String, Object>();
+        final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<>();
         final NumberFormat numberFormat = NumberFormat.getInstance();
         presentableMap.put("Job Engine",reportInfo.isInprogress() ? "Running" : "Not Running");
         presentableMap.put("Users Processed",(reportInfo.isInprogress() && reportInfo.getTotal() == 0)

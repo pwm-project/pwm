@@ -344,6 +344,7 @@
 </div>
 <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
@@ -351,6 +352,7 @@
         });
     });
 </script>
+</pwm:script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>                   

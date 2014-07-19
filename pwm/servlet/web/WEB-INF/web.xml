@@ -139,27 +139,27 @@
     -->
     <filter>
         <filter-name>ApplicationModeFilter</filter-name>
-        <filter-class>password.pwm.ApplicationModeFilter</filter-class>
+        <filter-class>password.pwm.http.filter.ApplicationModeFilter</filter-class>
     </filter>
     <filter>
         <filter-name>GZIPFilter</filter-name>
-        <filter-class>password.pwm.GZIPFilter</filter-class>
+        <filter-class>password.pwm.http.filter.GZIPFilter</filter-class>
     </filter>
     <filter>
         <filter-name>SessionFilter</filter-name>
-        <filter-class>password.pwm.SessionFilter</filter-class>
+        <filter-class>password.pwm.http.filter.SessionFilter</filter-class>
     </filter>
     <filter>
         <filter-name>CaptchaFilter</filter-name>
-        <filter-class>password.pwm.CaptchaFilter</filter-class>
+        <filter-class>password.pwm.http.filter.CaptchaFilter</filter-class>
     </filter>
     <filter>
         <filter-name>AuthenticationFilter</filter-name>
-        <filter-class>password.pwm.AuthenticationFilter</filter-class>
+        <filter-class>password.pwm.http.filter.AuthenticationFilter</filter-class>
     </filter>
     <filter>
         <filter-name>AuthorizationFilter</filter-name>
-        <filter-class>password.pwm.AuthorizationFilter</filter-class>
+        <filter-class>password.pwm.http.filter.AuthorizationFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>ApplicationModeFilter</filter-name>
@@ -208,87 +208,87 @@
         <url-pattern>/private/admin/*</url-pattern>
     </filter-mapping>
     <listener>
-        <listener-class>password.pwm.HttpEventManager</listener-class>
+        <listener-class>password.pwm.http.HttpEventManager</listener-class>
     </listener>
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.LoginServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.LoginServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>OAuthConsumerServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.OAuthConsumerServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.OAuthConsumerServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>LogoutServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.LogoutServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.LogoutServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ChangePasswordServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ChangePasswordServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ChangePasswordServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>SetupResponsesServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.SetupResponsesServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.SetupResponsesServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>SetupOtpServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.SetupOtpServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.SetupOtpServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ForgottenPasswordServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ForgottenPasswordServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ForgottenPasswordServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>CommandServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.CommandServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.CommandServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>NewUserServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.NewUserServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.NewUserServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>GuestRegistrationServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.GuestRegistrationServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.GuestRegistrationServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ActivateUserServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ActivateUserServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ActivateUserServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>UpdateProfileServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.UpdateProfileServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.UpdateProfileServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ForgottenUsernameServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ForgottenUsernameServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ForgottenUsernameServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ShortcutServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ShortcutServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ShortcutServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>PeopleSearchServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.PeopleSearchServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.PeopleSearchServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>CaptchaServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.CaptchaServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.CaptchaServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ConfigEditorServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ConfigEditorServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ConfigEditorServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ConfigManagerServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ConfigManagerServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ConfigManagerServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ConfigGuideServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ConfigGuideServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ConfigGuideServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ResourceFileServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.ResourceFileServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.ResourceFileServlet</servlet-class>
         <init-param>
             <description>zip files to treat as resource paths, separated by semi-colons (;), must end in .zip</description>
             <param-name>zipFileResources</param-name>
@@ -298,7 +298,7 @@
     </servlet>
     <servlet>
         <servlet-name>HelpdeskServlet</servlet-name>
-        <servlet-class>password.pwm.servlet.HelpdeskServlet</servlet-class>
+        <servlet-class>password.pwm.http.servlet.HelpdeskServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>

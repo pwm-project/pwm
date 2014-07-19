@@ -26,7 +26,6 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -34,6 +33,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
@@ -153,7 +153,7 @@ public class RestCheckPasswordServer {
                 uiBean = new UserInfoBean();
                 final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
                 userStatusReader.populateUserInfoBean(
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
                         uiBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         userDN,
@@ -167,8 +167,10 @@ public class RestCheckPasswordServer {
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(userDN, jsonInput.password1, jsonInput.password2, uiBean);
 
-            if (!restRequestBean.isExternal()) {
+            if (restRequestBean.isExternal()) {
                 restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_CHECKPASSWORD);
+            } else {
+                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
             }
 
             final JsonData jsonData = doPasswordRuleCheck(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), checkRequest);
@@ -215,7 +217,11 @@ public class RestCheckPasswordServer {
     }
 
 
-    public JsonData doPasswordRuleCheck(PwmApplication pwmApplication, PwmSession pwmSession, PasswordCheckRequest checkRequest)
+    public JsonData doPasswordRuleCheck(
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession,
+            final PasswordCheckRequest checkRequest
+    )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         final long startTime = System.currentTimeMillis();
@@ -231,8 +237,7 @@ public class RestCheckPasswordServer {
                 user,
                 checkRequest.getUserInfoBean(),
                 checkRequest.getPassword1(),
-                checkRequest.getPassword2(),
-                pwmSession.getSessionManager()
+                checkRequest.getPassword2()
         );
 
         final JsonData result = JsonData.fromPasswordCheckInfo(passwordCheckInfo);
@@ -243,10 +248,9 @@ public class RestCheckPasswordServer {
             sb.append("  process time: ").append((int) (System.currentTimeMillis() - startTime)).append("ms");
             sb.append("\n");
             sb.append("  passwordCheckInfo string: ").append(Helper.getGson().toJson(result));
-            LOGGER.trace(pwmSession, sb.toString());
+            LOGGER.trace(pwmSession.getSessionLabel(), sb.toString());
         }
 
-        pwmApplication.getStatisticsManager().incrementValue(Statistic.PASSWORD_RULE_CHECKS);
         return result;
     }
 }

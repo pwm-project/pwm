@@ -25,6 +25,7 @@ package password.pwm.util.cache;
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
@@ -32,6 +33,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -86,76 +88,98 @@ public class CacheService implements PwmService {
         return memoryCache;
     }
 
-    public void put(String identifer, Date expiration, String payload) {
-        try {
-            if (identifer == null) {
-                return;
-            }
-            if (expiration == null || expiration.before(new Date())) {
-                return;
-            }
-            final String key = Helper.md5sum(identifer);
-            final MemoryValueWrapper wrapper = new MemoryValueWrapper(identifer, expiration, payload);
-            getMemoryCache().put(key,wrapper);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void put(CacheKey cacheKey, CachePolicy cachePolicy, String payload) {
+        if (cacheKey == null) {
+            return;
         }
+        if (cachePolicy == null || cachePolicy.getExpiration() == null) {
+            return;
+        }
+        final String key = cacheKey.getKey();
+        final MemoryValueWrapper wrapper = new MemoryValueWrapper(cacheKey, cachePolicy, payload);
+        getMemoryCache().put(key,wrapper);
     }
 
-    public String get(String identifer) {
-        if (identifer == null) {
+    public String get(CacheKey cacheKey) {
+        if (cacheKey == null) {
             return null;
         }
         Map<String, MemoryValueWrapper> memCache = getMemoryCache();
-        try {
-            final String key = Helper.md5sum(identifer);
-            final MemoryValueWrapper memoryValueWrapper = memCache.get(key);
-            if (memoryValueWrapper == null) {
-                return null;
-            }
-            if (!identifer.equals(memoryValueWrapper.getIdentifier())) {
-                memCache.remove(key);
-                return null;
-            }
-            if (memoryValueWrapper.getExpiration() == null) {
-                memCache.remove(key);
-                return null;
-            }
-            if (memoryValueWrapper.getExpiration().before(new Date())) {
-                memCache.remove(key);
-                return null;
-            }
-            return memoryValueWrapper.getPayload();
-        } catch (IOException e) {
-            e.printStackTrace();
+        final String key = cacheKey.getKey();
+        final MemoryValueWrapper memoryValueWrapper = memCache.get(key);
+        if (memoryValueWrapper == null) {
+            return null;
         }
-        return null;
+        if (!cacheKey.equals(memoryValueWrapper.getCacheKey())) {
+            memCache.remove(key);
+            return null;
+        }
+        if (memoryValueWrapper.getCachePolicy() == null) {
+            memCache.remove(key);
+            return null;
+        }
+        if (memoryValueWrapper.getCachePolicy().getExpiration() == null) {
+            memCache.remove(key);
+            return null;
+        }
+        if (memoryValueWrapper.getCachePolicy().getExpiration().before(new Date())) {
+            memCache.remove(key);
+            return null;
+        }
+        return memoryValueWrapper.getPayload();
     }
 
-    private static class MemoryValueWrapper {
-        final String identifier;
-        final Date expiration;
-        final String payload;
-
-        private MemoryValueWrapper(
-                String identifier,
-                Date expiration,
-                String payload
-        )
-        {
-            this.identifier = identifier;
-            this.expiration = expiration;
-            this.payload = payload;
-        }
-
-        public String getIdentifier()
-        {
-            return identifier;
-        }
+    public static class CachePolicy implements Serializable {
+        private Date expiration;
 
         public Date getExpiration()
         {
             return expiration;
+        }
+
+        public void setExpiration(Date expiration)
+        {
+            this.expiration = expiration;
+        }
+
+        public static CachePolicy makePolicy(final Date date) {
+            final CachePolicy policy = new CachePolicy();
+            policy.setExpiration(date);
+            return policy;
+        }
+
+        public static CachePolicy makePolicy(final long expirationMs) {
+            final CachePolicy policy = new CachePolicy();
+            final Date expirationDate = new Date(System.currentTimeMillis() + expirationMs);
+            policy.setExpiration(expirationDate);
+            return policy;
+        }
+    }
+
+    private static class MemoryValueWrapper implements Serializable {
+        final CacheKey cacheKey;
+        final CachePolicy cachePolicy;
+        final String payload;
+
+        private MemoryValueWrapper(
+                CacheKey cacheKey,
+                CachePolicy cachePolicy,
+                String payload
+        )
+        {
+            this.cacheKey = cacheKey;
+            this.cachePolicy = cachePolicy;
+            this.payload = payload;
+        }
+
+        public CacheKey getCacheKey()
+        {
+            return cacheKey;
+        }
+
+        public CachePolicy getCachePolicy()
+        {
+            return cachePolicy;
         }
 
         public String getPayload()
@@ -164,4 +188,40 @@ public class CacheService implements PwmService {
         }
     }
 
+    public static class CacheKey {
+        final String cacheKey;
+
+        public CacheKey(String cacheKey)
+        {
+            this.cacheKey = cacheKey;
+        }
+
+        private String getKey() {
+            try {
+                return Helper.md5sum(this.cacheKey);
+            } catch (IOException e) {
+                return cacheKey;
+            }
+        }
+
+        public static CacheKey makeCacheKey(
+                final Class callingClass,
+                final UserIdentity userIdentity,
+                final String valueID
+        ) {
+            final StringBuilder sb = new StringBuilder();
+            if (callingClass != null) {
+                sb.append(callingClass.getName());
+                sb.append(":");
+            }
+            if (userIdentity != null) {
+                sb.append(userIdentity.toDeliminatedKey());
+                sb.append(":");
+            }
+            if (valueID == null) {
+                sb.append(valueID);
+            }
+            return new CacheKey(sb.toString());
+        }
+    }
 }

@@ -31,10 +31,9 @@ import password.pwm.config.value.StringArrayValue;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthMessage;
-import password.pwm.health.HealthRecord;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
-import password.pwm.ws.server.rest.RestHealthServer;
+import password.pwm.ws.server.rest.bean.HealthRecord;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,18 +45,18 @@ public class CodeIntegrityChecker {
     final static private boolean debugFlag = false;
 
     static public class Stats {
-        Set<String> examinedResourceBundles = new TreeSet<String>();
+        Set<String> examinedResourceBundles = new TreeSet<>();
         int totalLocales;
         int totalLocaleKeys;
         int presentLocalizations;
         int missingLocalizations;
         int totalLocalizationSlots;
-        Map<String,String> perLocale_percentLocalizations = new TreeMap<String, String>();
-        Map<String,Integer> perLocale_presentLocalizations = new TreeMap<String, Integer>();
-        Map<String,Integer> perLocale_missingLocalizations = new TreeMap<String, Integer>();
+        Map<String,String> perLocale_percentLocalizations = new TreeMap<>();
+        Map<String,Integer> perLocale_presentLocalizations = new TreeMap<>();
+        Map<String,Integer> perLocale_missingLocalizations = new TreeMap<>();
     }
 
-    private static final List<Class> LOCALE_CHECK_CLASSES = new ArrayList<Class>(Arrays.asList(new Class[] {
+    private static final List<Class> LOCALE_CHECK_CLASSES = new ArrayList<>(Arrays.asList(new Class[] {
             //password.pwm.i18n.Admin.class,
             //password.pwm.i18n.Config.class,
             password.pwm.i18n.Display.class,
@@ -66,7 +65,7 @@ public class CodeIntegrityChecker {
             password.pwm.i18n.Message.class,
     }));
 
-    private static final Map<Method,Object[]> CHECK_ENUM_METHODS = new LinkedHashMap<Method, Object[]>();
+    private static final Map<Method,Object[]> CHECK_ENUM_METHODS = new LinkedHashMap<>();
     static {
         try {
             CHECK_ENUM_METHODS.put(PwmSetting.class.getMethod("getDescription", Locale.class), new Object[]{
@@ -97,9 +96,9 @@ public class CodeIntegrityChecker {
     public CodeIntegrityChecker() {
     }
 
-    public Set<HealthRecord> checkResources() {
+    public Set<password.pwm.health.HealthRecord> checkResources() {
         Stats stats = new Stats();
-        final Set<HealthRecord> returnSet = new TreeSet<HealthRecord>();
+        final Set<password.pwm.health.HealthRecord> returnSet = new TreeSet<>();
         returnSet.addAll(checkEnumMethods());
         returnSet.addAll(checkLocalesOnBundle(stats));
         return returnSet;
@@ -111,8 +110,8 @@ public class CodeIntegrityChecker {
         return stats;
     }
 
-    private Set<HealthRecord> checkEnumMethods() {
-        final Set<HealthRecord> returnSet = new LinkedHashSet<HealthRecord>();
+    private Set<password.pwm.health.HealthRecord> checkEnumMethods() {
+        final Set<password.pwm.health.HealthRecord> returnSet = new LinkedHashSet<>();
         for (final Method method : CHECK_ENUM_METHODS.keySet()) {
             final Object[] arguments = CHECK_ENUM_METHODS.get(method);
             returnSet.addAll(checkEnumMethods(method,arguments));
@@ -120,9 +119,9 @@ public class CodeIntegrityChecker {
         return returnSet;
     }
 
-    private Set<HealthRecord> checkEnumMethods(final Method enumMethod, final Object[] arguments)
+    private Set<password.pwm.health.HealthRecord> checkEnumMethods(final Method enumMethod, final Object[] arguments)
     {
-        final Set<HealthRecord> returnRecords = new LinkedHashSet<HealthRecord>();
+        final Set<password.pwm.health.HealthRecord> returnRecords = new LinkedHashSet<>();
         try {
             final Method enumValuesMethod = enumMethod.getDeclaringClass().getMethod("values");
             final Object[] enumValues = (Object[])enumValuesMethod.invoke(null);
@@ -141,7 +140,8 @@ public class CodeIntegrityChecker {
                         }
                     }
                     methodName.append(")");
-                    returnRecords.add(HealthRecord.forMessage(HealthMessage.BrokenMethod,methodName.toString(),errorMsg));
+                    returnRecords.add(password.pwm.health.HealthRecord.forMessage(HealthMessage.BrokenMethod,
+                            methodName.toString(), errorMsg));
                 }
             }
         } catch (Exception e) {
@@ -150,16 +150,16 @@ public class CodeIntegrityChecker {
         return returnRecords;
     }
 
-    private Set<HealthRecord> checkLocalesOnBundle(
+    private Set<password.pwm.health.HealthRecord> checkLocalesOnBundle(
             final Stats stats
     ) {
-        final Set<HealthRecord> returnSet = new LinkedHashSet<HealthRecord>();
+        final Set<password.pwm.health.HealthRecord> returnSet = new LinkedHashSet<>();
         stats.totalLocales = knownLocales().size();
         for (final Class loopClass : LOCALE_CHECK_CLASSES) {
             final Map<Locale,List<String>> missingKeys = checkLocalesOnBundle(loopClass,stats);
             for (final Locale locale : missingKeys.keySet()) {
                 for (final String key : missingKeys.get(locale)) {
-                    returnSet.add(HealthRecord.forMessage(
+                    returnSet.add(password.pwm.health.HealthRecord.forMessage(
                             HealthMessage.MissingResource,
                             loopClass.getName(),
                             locale.toString() + " " + locale.getDisplayName(),
@@ -185,7 +185,7 @@ public class CodeIntegrityChecker {
             throw new IllegalStateException("error reading default locale list",e);
         }
 
-        final Map<Locale,String> returnMap = new LinkedHashMap<Locale, String>();
+        final Map<Locale,String> returnMap = new LinkedHashMap<>();
 
         Collections.sort(knownLocales,new Comparator<Locale>() {
             public int compare(Locale o1, Locale o2) {
@@ -203,7 +203,7 @@ public class CodeIntegrityChecker {
             final Class checkClass,
             final Stats stats
     ) {
-        final Map<Locale,List<String>> returnMap = new LinkedHashMap<Locale,List<String>>();
+        final Map<Locale,List<String>> returnMap = new LinkedHashMap<>();
         final ResourceBundle defaultLocaleBundle = ResourceBundle.getBundle(checkClass.getName());
 
         stats.totalLocaleKeys += defaultLocaleBundle.keySet().size();
@@ -229,7 +229,7 @@ public class CodeIntegrityChecker {
                 } else {
                     LOGGER.trace("checking file " + bundleFilename);
                     checkProperties.load(stream);
-                    final List<String> returnList = new ArrayList<String>();
+                    final List<String> returnList = new ArrayList<>();
                     for (final String key : defaultLocaleBundle.keySet()) {
                         stats.totalLocalizationSlots++;
                         if (!checkProperties.containsKey(key)) {
@@ -267,22 +267,24 @@ public class CodeIntegrityChecker {
     }
 
     public String asPrettyJsonOutput() {
-        final Map<String,Object> outputMap = new LinkedHashMap<String, Object>();
+        final Map<String,Object> outputMap = new LinkedHashMap<>();
         outputMap.put("information",
                 PwmConstants.PWM_APP_NAME + " " + PwmConstants.SERVLET_VERSION + " IntegrityCheck " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                         new Date()));
         outputMap.put("localeInformation", this.getStats());
         {
-            final Set<RestHealthServer.HealthRecordBean> healthBeans = new LinkedHashSet<RestHealthServer.HealthRecordBean>();
-            for (final HealthRecord record : this.checkEnumMethods()) {
-                healthBeans.add(RestHealthServer.HealthRecordBean.fromHealthRecord(record,PwmConstants.DEFAULT_LOCALE,null));
+            final Set<HealthRecord> healthBeans = new LinkedHashSet<>();
+            for (final password.pwm.health.HealthRecord record : this.checkEnumMethods()) {
+                healthBeans.add(
+                        HealthRecord.fromHealthRecord(record, PwmConstants.DEFAULT_LOCALE, null));
             }
             outputMap.put("enumMethodHealthChecks", healthBeans);
         }
         {
-            final Set<RestHealthServer.HealthRecordBean> healthBeans = new LinkedHashSet<RestHealthServer.HealthRecordBean>();
-            for (final HealthRecord record : this.checkLocalesOnBundle(new Stats())) {
-                healthBeans.add(RestHealthServer.HealthRecordBean.fromHealthRecord(record,PwmConstants.DEFAULT_LOCALE,null));
+            final Set<HealthRecord> healthBeans = new LinkedHashSet<>();
+            for (final password.pwm.health.HealthRecord record : this.checkLocalesOnBundle(new Stats())) {
+                healthBeans.add(
+                        HealthRecord.fromHealthRecord(record, PwmConstants.DEFAULT_LOCALE, null));
             }
             outputMap.put("localeHealthChecks", healthBeans);
         }

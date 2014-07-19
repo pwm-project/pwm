@@ -37,6 +37,7 @@ import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -149,7 +150,13 @@ public class RestSetPasswordServer {
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 final String newPassword;
                 if (random) {
-                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser, restRequestBean.getPwmSession().getSessionStateBean().getLocale());
+                    final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
+                            restRequestBean.getPwmApplication(),
+                            restRequestBean.getPwmSession().getSessionLabel(),
+                            restRequestBean.getUserIdentity(),
+                            chaiUser,
+                            restRequestBean.getPwmSession().getSessionStateBean().getLocale()
+                    );
                     newPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), passwordPolicy, restRequestBean.getPwmApplication());
                 } else {
                     newPassword = password;
@@ -164,7 +171,7 @@ public class RestSetPasswordServer {
                 final UserInfoBean uiBean = new UserInfoBean();
                 final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
                 userStatusReader.populateUserInfoBean(
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
                         uiBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
@@ -186,7 +193,7 @@ public class RestSetPasswordServer {
                 jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDeliminatedKey();
             }
             if (restRequestBean.isExternal()) {
-                restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_SETPASSWORD);
+                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setError(false);

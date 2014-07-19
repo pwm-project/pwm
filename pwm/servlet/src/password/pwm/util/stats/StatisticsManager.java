@@ -40,6 +40,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -81,7 +82,7 @@ public class StatisticsManager implements PwmService {
     private final StatisticsBundle statsCurrent = new StatisticsBundle();
     private StatisticsBundle statsDaily = new StatisticsBundle();
     private StatisticsBundle statsCummulative = new StatisticsBundle();
-    private Map<String, EventRateMeter> epsMeterMap = new HashMap<String, EventRateMeter>();
+    private Map<String, EventRateMeter> epsMeterMap = new HashMap<>();
 
     private PwmApplication pwmApplication;
 
@@ -112,7 +113,7 @@ public class StatisticsManager implements PwmService {
     }
 
     public Map<String,String> getStatHistory(final Statistic statistic, final int days) {
-        final Map<String,String> returnMap = new LinkedHashMap<String,String>();
+        final Map<String,String> returnMap = new LinkedHashMap<>();
         DailyKey loopKey = currentDailyKey;
         int counter = days;
         while (counter > 0) {
@@ -172,7 +173,7 @@ public class StatisticsManager implements PwmService {
         }
 
         final DateFormat dateFormatter = SimpleDateFormat.getDateInstance(SimpleDateFormat.DEFAULT, locale);
-        final Map<DailyKey,String> returnMap = new LinkedHashMap<DailyKey,String>();
+        final Map<DailyKey,String> returnMap = new LinkedHashMap<>();
         DailyKey loopKey = currentDailyKey;
         int safetyCounter = 0;
         while (!loopKey.equals(initialDailyKey) && safetyCounter < 5000) {
@@ -263,7 +264,7 @@ public class StatisticsManager implements PwmService {
         try {
             localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_TEMP, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
         } catch (IllegalStateException e) {
-            LOGGER.error("unable to write to pwmDB, will remain closed, error: " + e.getMessage());
+            LOGGER.error("unable to write to localDB, will remain closed, error: " + e.getMessage());
             status = STATUS.CLOSED;
             return;
         }
@@ -271,7 +272,7 @@ public class StatisticsManager implements PwmService {
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_VERSION, DB_VALUE_VERSION);
         localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_INITIAL_DAILY_KEY, initialDailyKey.toString());
 
-        { // setup a timer to rull over at 0Zula and one to write current stats every 10 seconds
+        { // setup a timer to roll over at 0 Zula and one to write current stats every 10 seconds
             final String threadName = Helper.makeThreadName(pwmApplication, this.getClass()) + " timer";
             daemonTimer = new Timer(threadName, true);
             daemonTimer.schedule(new FlushTask(), 10 * 1000, DB_WRITE_FREQUENCY_MS);
@@ -321,7 +322,7 @@ public class StatisticsManager implements PwmService {
     }
 
     private void resetDailyStats() {
-        final Map<String,String> emailValues = new LinkedHashMap<String,String>();
+        final Map<String,String> emailValues = new LinkedHashMap<>();
         for (final Statistic statistic : Statistic.values()) {
             final String key = statistic.getLabel(PwmConstants.DEFAULT_LOCALE);
             final String value = statsDaily.getStatistic(statistic);
@@ -459,18 +460,18 @@ public class StatisticsManager implements PwmService {
         final StatsPublishBean statsPublishData;
         {
             final StatisticsBundle bundle = getStatBundleForKey(KEY_CUMULATIVE);
-            final Map<String,String> statData = new HashMap<String,String>();
+            final Map<String,String> statData = new HashMap<>();
             for (final Statistic loopStat : Statistic.values()) {
                 statData.put(loopStat.getKey(),bundle.getStatistic(loopStat));
             }
             final Configuration config = pwmApplication.getConfig();
-            final List<String> configuredSettings = new ArrayList<String>();
+            final List<String> configuredSettings = new ArrayList<>();
             for (final PwmSetting pwmSetting : PwmSetting.values()) {
                 if (!config.isDefaultValue(pwmSetting)) {
                     configuredSettings.add(pwmSetting.getKey());
                 }
             }
-            final Map<String,String> otherData = new HashMap<String, String>();
+            final Map<String,String> otherData = new HashMap<>();
             otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),pwmApplication.getSiteURL());
             otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
             otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
@@ -511,18 +512,22 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    public int outputStatsToCsv(final Writer writer, final boolean includeHeader)
+    public int outputStatsToCsv(final Writer writer, final Locale locale, final boolean includeHeader)
             throws IOException
     {
-        CsvWriter csvWriter = new CsvWriter(writer,',');
+        LOGGER.trace("beginning output stats to csv process");
+        final Date startTime = new Date();
+        final CsvWriter csvWriter = new CsvWriter(writer,',');
 
         StatisticsManager statsManger = pwmApplication.getStatisticsManager();
 
         if (includeHeader) {
-            final List<String> headers = new ArrayList<String>();
-            headers.add("DATE");
+            final List<String> headers = new ArrayList<>();
+            headers.add("KEY");
+            headers.add("YEAR");
+            headers.add("DAY");
             for (Statistic stat : Statistic.values()) {
-                headers.add(stat.getKey());
+                headers.add(stat.getLabel(locale));
             }
             csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
         }
@@ -532,23 +537,52 @@ public class StatisticsManager implements PwmService {
         for (final StatisticsManager.DailyKey loopKey : keys.keySet()) {
             counter++;
             final StatisticsBundle bundle = statsManger.getStatBundleForKey(loopKey.toString());
-            final List<String> lineOutput = new ArrayList<String>();
+            final List<String> lineOutput = new ArrayList<>();
             lineOutput.add(loopKey.toString());
+            lineOutput.add(String.valueOf(loopKey.year));
+            lineOutput.add(String.valueOf(loopKey.day));
             for (final Statistic stat : Statistic.values()) {
                 lineOutput.add(bundle.getStatistic(stat));
             }
             csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
         }
 
+        LOGGER.trace("completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
+                startTime).asCompactString());
         return counter;
     }
 
     public ServiceInfo serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
     }
+
+    public static void noErrorIncrementer(
+            final PwmApplication pwmApplication,
+            final Statistic statistic
+    ) {
+        if (pwmApplication == null) {
+            LOGGER.error("skipping requested statistic increment of " + statistic + " due to null pwmApplication");
+            return;
+        }
+
+        final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
+        if (statisticsManager == null) {
+            LOGGER.error("skipping requested statistic increment of " + statistic + " due to null statisticsManager");
+            return;
+        }
+
+        if (statisticsManager.status() != STATUS.OPEN) {
+            LOGGER.trace(
+                    "skipping requested statistic increment of " + statistic + " due to StatisticsManager being closed");
+            return;
+        }
+
+        statisticsManager.incrementValue(statistic);
+    }
+
 }

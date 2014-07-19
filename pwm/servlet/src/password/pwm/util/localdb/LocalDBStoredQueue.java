@@ -114,7 +114,7 @@ public class
     }
 
     public Object[] toArray() {
-        final List<Object> returnList = new ArrayList<Object>();
+        final List<Object> returnList = new ArrayList<>();
         for (final Iterator<String> innerIter = this.iterator(); innerIter.hasNext();) {
             returnList.add(innerIter.next());
         }
@@ -136,7 +136,7 @@ public class
 
     public boolean addAll(final Collection<? extends String> c) {
         try {
-            final Collection<String> stringCollection = new ArrayList<String>();
+            final Collection<String> stringCollection = new ArrayList<>();
             for (final Object loopObj : c) {
                 if (loopObj != null) {
                     stringCollection.add(loopObj.toString());
@@ -613,8 +613,8 @@ public class
                     Collections.emptyList();
                 }
 
-                final List<String> removalKeys = new ArrayList<String>();
-                final List<String> removedValues = new ArrayList<String>();
+                final List<String> removalKeys = new ArrayList<>();
+                final List<String> removedValues = new ArrayList<>();
                 Position previousHead = headPosition;
                 int removedPositions = 0;
                 while (removedPositions < removalCount) {
@@ -647,8 +647,8 @@ public class
                     Collections.emptyList();
                 }
 
-                final List<String> removalKeys = new ArrayList<String>();
-                final List<String> removedValues = new ArrayList<String>();
+                final List<String> removalKeys = new ArrayList<>();
+                final List<String> removedValues = new ArrayList<>();
                 Position nextTail = tailPosition;
                 int removedPositions = 0;
                 while (removedPositions < removalCount) {
@@ -688,7 +688,7 @@ public class
 
                 final Iterator<String> valueIterator = values.iterator();
 
-                final Map<String, String> keyValueMap = new HashMap<String, String>();
+                final Map<String, String> keyValueMap = new HashMap<>();
                 Position nextHead = headPosition;
 
                 if (internalSize() == 0) {
@@ -724,7 +724,7 @@ public class
 
                 final Iterator<String> valueIterator = values.iterator();
 
-                final Map<String, String> keyValueMap = new HashMap<String, String>();
+                final Map<String, String> keyValueMap = new HashMap<>();
                 Position nextTail = tailPosition;
 
                 if (internalSize() == 0) {
@@ -760,7 +760,7 @@ public class
                     getCount = internalSize();
                 }
 
-                final List<String> returnList = new ArrayList<String>();
+                final List<String> returnList = new ArrayList<>();
 
                 Position nextHead = headPosition;
                 while (returnList.size() < getCount) {
@@ -791,7 +791,7 @@ public class
                     getCount = internalSize();
                 }
 
-                final List<String> returnList = new ArrayList<String>();
+                final List<String> returnList = new ArrayList<>();
 
                 Position nextTail = tailPosition;
                 while (returnList.size() < getCount) {

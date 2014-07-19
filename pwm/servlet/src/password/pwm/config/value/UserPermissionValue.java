@@ -64,7 +64,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         final boolean newType = "2".equals(settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
         final Gson gson = Helper.getGson();
         final List valueElements = settingElement.getChildren("value");
-        final List<UserPermission> values = new ArrayList<UserPermission>();
+        final List<UserPermission> values = new ArrayList<>();
         for (final Object loopValue : valueElements) {
             final Element loopValueElement = (Element) loopValue;
             final String value = loopValueElement.getText();
@@ -83,7 +83,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
-        final List<Element> returnList = new ArrayList<Element>();
+        final List<Element> returnList = new ArrayList<>();
         final Gson gson = Helper.getGson();
         for (final UserPermission value : values) {
             final Element valueElement = new Element(valueElementName);
@@ -98,7 +98,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {
-        final List<String> returnObj = new ArrayList<String>();
+        final List<String> returnObj = new ArrayList<>();
         for (final UserPermission userPermission : values) {
             try {
                 validateLdapSearchFilter(userPermission.getLdapQuery());

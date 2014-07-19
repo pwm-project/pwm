@@ -69,16 +69,6 @@ public class PwmPasswordRuleValidator {
     public boolean testPassword(
             final String password,
             final String oldPassword,
-            final UserInfoBean userInfoBean
-    )
-            throws PwmUnrecoverableException, PwmDataValidationException, ChaiUnavailableException
-    {
-        return testPassword(password, oldPassword, userInfoBean);
-    }
-
-    public boolean testPassword(
-            final String password,
-            final String oldPassword,
             final UserInfoBean userInfoBean,
             final ChaiUser user
     )
@@ -130,7 +120,7 @@ public class PwmPasswordRuleValidator {
     )
             throws PwmUnrecoverableException
     {
-        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean);
+        final List<ErrorInformation> internalResults = internalPwmPolicyValidator(password, oldPassword, uiBean, false);
         if (pwmApplication != null) {
             final List<ErrorInformation> externalResults = invokeExternalRuleMethods(pwmApplication.getConfig(), policy, password, uiBean);
             internalResults.addAll(externalResults);
@@ -138,11 +128,11 @@ public class PwmPasswordRuleValidator {
         return internalResults;
     }
 
-
     public List<ErrorInformation> internalPwmPolicyValidator(
             final String password,
             final String oldPassword,
-            final UserInfoBean uiBean
+            final UserInfoBean uiBean,
+            final boolean failFast
     )
             throws PwmUnrecoverableException
     {
@@ -151,13 +141,12 @@ public class PwmPasswordRuleValidator {
             return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN, "empty (null) new password"));
         }
 
-        final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
+        final List<ErrorInformation> errorList = new ArrayList<>();
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
-        final PasswordCharCounter charCounter = new PasswordCharCounter(password);
 
         //check against old password
         if (oldPassword != null && oldPassword.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
-            if (oldPassword != null && oldPassword.length() > 0) {
+            if (oldPassword.length() > 0) {
                 if (oldPassword.equalsIgnoreCase(password)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASOLD));
                 }
@@ -166,9 +155,9 @@ public class PwmPasswordRuleValidator {
             //check chars from old password
             final int maxOldAllowed = ruleHelper.readIntValue(PwmPasswordRule.MaximumOldChars);
             if (maxOldAllowed > 0) {
-                if (oldPassword != null && oldPassword.length() > 0) {
+                if (oldPassword.length() > 0) {
                     final String lPassword = password.toLowerCase();
-                    final Set<Character> dupeChars = new HashSet<Character>();
+                    final Set<Character> dupeChars = new HashSet<>();
 
                     //add all dupes to the set.
                     for (final char loopChar : oldPassword.toLowerCase().toCharArray()) {
@@ -185,6 +174,349 @@ public class PwmPasswordRuleValidator {
             }
         }
 
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        errorList.addAll(basicSyntaxRuleChecks(password,policy,uiBean));
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check against disallowed values;
+        if (!ruleHelper.getDisallowedValues().isEmpty()) {
+            final String lcasePwd = password.toLowerCase();
+            final Set<String> paramValues = new HashSet<>(ruleHelper.getDisallowedValues());
+
+            for (final String loopValue : paramValues) {
+                if (loopValue != null && loopValue.length() > 0) {
+                    final String loweredLoop = loopValue.toLowerCase();
+                    if (lcasePwd.contains(loweredLoop)) {
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
+                    }
+                }
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check disallowed attributes.
+        if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
+            final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
+            if (uiBean != null) {
+                final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
+                final String lcasePwd = password.toLowerCase();
+                for (final Object paramConfig : paramConfigs) {
+                    final String attr = (String) paramConfig;
+                    final String userValue = userValues.get(attr) == null ? "" : userValues.get(attr).toLowerCase();
+
+                    // if the password is greater then 1 char and the value is contained within it then disallow
+                    if (userValue.length() > 1 && lcasePwd.contains(userValue)) {
+                        LOGGER.trace("password rejected, same as user attr " + attr);
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
+                    }
+
+                    // if the password is 1 char and the value is the same then disallow
+                    if (lcasePwd.equalsIgnoreCase(userValue)) {
+                        LOGGER.trace("password rejected, same as user attr " + attr);
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
+                    }
+                }
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        {   // check password strength
+            final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
+            if (requiredPasswordStrength > 0) {
+                if (pwmApplication != null) {
+                    final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password);
+                    if (passwordStrength < requiredPasswordStrength) {
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
+                        //LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
+                    }
+                }
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check regex matches.
+        for (final Pattern pattern : ruleHelper.getRegExMatch()) {
+            if (!pattern.matcher(password).matches()) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
+                //LOGGER.trace(pwmSession, "password rejected, does not match configured regex pattern: " + pattern.toString());
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check no-regex matches.
+        for (final Pattern pattern : ruleHelper.getRegExNoMatch()) {
+            if (pattern.matcher(password).matches()) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
+                //LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check char group matches
+        if (ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch) > 0) {
+            final List<Pattern> ruleGroups = ruleHelper.getCharGroupValues();
+            if (ruleGroups != null && !ruleGroups.isEmpty()) {
+                final int requiredMatches = ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch);
+                int matches = 0;
+                for (final Pattern pattern : ruleGroups) {
+                    if (pattern.matcher(password).find()) {
+                        matches++;
+                    }
+                }
+                if (matches < requiredMatches) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_GROUPS));
+                }
+            }
+            if (failFast && errorList.size() > 1) {
+                return errorList;
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check if the password is in the dictionary.
+        if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
+            if (pwmApplication != null) {
+                if (pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
+                    final boolean found = pwmApplication.getWordlistManager().containsWord(password);
+
+                    if (found) {
+                        //LOGGER.trace(pwmSession, "password rejected, in wordlist file");
+                        errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    }
+                } else {
+                    /* noop */
+                    //LOGGER.warn(pwmSession, "password wordlist checking enabled, but wordlist is not available, skipping wordlist check");
+                }
+            }
+            if (failFast && errorList.size() > 1) {
+                return errorList;
+            }
+        }
+
+        if (failFast && errorList.size() > 1) {
+            return errorList;
+        }
+
+        // check for shared (global) password history
+        if (pwmApplication != null) {
+            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
+                final boolean found = pwmApplication.getSharedHistoryManager().containsWord(password);
+
+                if (found) {
+                    //LOGGER.trace(pwmSession, "password rejected, in global shared history");
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                }
+            }
+            if (failFast && errorList.size() > 1) {
+                return errorList;
+            }
+        }
+
+        return errorList;
+    }
+
+
+
+    /**
+     * Check a supplied password for it's validity according to AD complexity rules.
+     * - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
+     * - Be at least six characters in length
+     * - Contain characters from three of the following five categories:
+     * - English uppercase characters (A through Z)
+     * - English lowercase characters (a through z)
+     * - Base 10 digits (0 through 9)
+     * - Non-alphabetic characters (for example, !, $, #, %)
+     * - Any character categorized as an alphabetic but is not uppercase or lowercase.
+     * <p/>
+     * See this article: http://technet.microsoft.com/en-us/library/cc786468%28WS.10%29.aspx
+     *
+     * @param userInfoBean userInfoBean
+     * @param password    password to test
+     * @param charCounter associated charCounter for the password.
+     * @return list of errors if the password does not meet requirements, or an empty list if the password complies
+     *         with AD requirements
+     */
+    private static List<ErrorInformation> checkPasswordForADComplexity(
+            final UserInfoBean userInfoBean,
+            final String password,
+            final PasswordCharCounter charCounter
+    ) {
+        final List<ErrorInformation> errorList = new ArrayList<>();
+
+        if (userInfoBean != null && userInfoBean.getCachedPasswordRuleAttributes() != null) {
+            final Map<String,String> userAttrs = userInfoBean.getCachedPasswordRuleAttributes();
+            final String samAccountName = userAttrs.get("sAMAccountName");
+            if (samAccountName != null
+                    && samAccountName.length() > 2
+                    && samAccountName.length() >= password.length()) {
+                if (password.toLowerCase().contains(samAccountName.toLowerCase())) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    LOGGER.trace("Password violation due to ADComplexity check: Password contains sAMAccountName");
+                }
+            }
+            final String displayName = userAttrs.get("displayName");
+            if (displayName != null && displayName.length() > 2) {
+                if (checkContainsTokens(password, displayName)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
+                    LOGGER.trace("Password violation due to ADComplexity check: Tokens from displayName used in password");
+                }
+            }
+        }
+
+        int complexityPoints = 0;
+        if (charCounter.getUpperChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getLowerChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getNumericChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getSpecialChars() > 0) {
+            complexityPoints++;
+        }
+        if (charCounter.getOtherLetter() > 0) {
+            complexityPoints++;
+        }
+
+        if (complexityPoints < 3) {
+            if (charCounter.getUpperChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
+            }
+            if (charCounter.getLowerChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
+            }
+            if (charCounter.getNumericChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
+            }
+            if (charCounter.getSpecialChars() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+            }
+            if (charCounter.getOtherLetter() < 1) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION));
+            }
+        }
+
+        return errorList;
+    }
+
+    private static boolean checkContainsTokens(final String baseValue, final String checkPattern) {
+        if (baseValue == null || baseValue.length() == 0)
+            return false;
+
+        if (checkPattern == null || checkPattern.length() == 0)
+            return false;
+
+        final String baseValueLower = baseValue.toLowerCase();
+        final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-\u2013\u2014_ \u00a3\\t]+");
+        if (tokens != null && tokens.length > 0) {
+            for (final String token : tokens) {
+                if (token.length() > 2) {
+                    if (baseValueLower.contains(token))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    final static private String REST_RESPONSE_KEY_ERROR = "error";
+    final static private String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
+
+    public List<ErrorInformation> invokeExternalRuleMethods(
+            final Configuration config,
+            final PwmPasswordPolicy pwmPasswordPolicy,
+            final String password,
+            final UserInfoBean uiBean
+    )
+            throws PwmUnrecoverableException
+    {
+        final List<ErrorInformation> returnedErrors = new ArrayList<>();
+        final String restURL = config.readSettingAsString(PwmSetting.EXTERNAL_PWCHECK_REST_URLS);
+        final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
+        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<>();
+
+        if (restURL == null || restURL.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        sendData.put("password",password);
+        if (pwmPasswordPolicy != null) {
+            final LinkedHashMap<String,Object> policyData = new LinkedHashMap<>();
+            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+                policyData.put(rule.name(),pwmPasswordPolicy.getValue(rule));
+            }
+            sendData.put("policy",policyData);
+        }
+        if (uiBean != null) {
+            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
+            sendData.put("userInfo", jsonStatusData);
+        }
+
+        final String jsonRequestBody = Helper.getGson().toJson(sendData);
+        try {
+            final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
+                    jsonRequestBody);
+            final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
+            if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
+                    REST_RESPONSE_KEY_ERROR).toString())) {
+                if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {
+                    final String errorMessage = responseMap.get(REST_RESPONSE_KEY_ERROR_MSG).toString();
+                    LOGGER.trace("external web service reported error: " + errorMessage);
+                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR,errorMessage,errorMessage,null));
+                } else {
+                    LOGGER.trace("external web service reported error without specifying an errorMessage");
+                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR));
+                }
+            } else {
+                LOGGER.trace("external web service did not report an error");
+            }
+
+        } catch (PwmOperationalException e) {
+            final String errorMsg = "error executing external rule REST call: " + e.getMessage();
+            LOGGER.error(errorMsg);
+            if (haltOnError) {
+                throw new PwmUnrecoverableException(e.getErrorInformation(),e);
+            }
+            throw new IllegalStateException("http response error code: " + e.getMessage());
+        }
+        return returnedErrors;
+    }
+
+    private static List<ErrorInformation> basicSyntaxRuleChecks(
+            final String password,
+            final PwmPasswordPolicy policy,
+            final UserInfoBean uiBean
+    ) {
+        final List<ErrorInformation> errorList = new ArrayList<>();
+        final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
+        final PasswordCharCounter charCounter = new PasswordCharCounter(password);
+
         final int passwordLength = password.length();
 
         //Check minimum length
@@ -198,11 +530,6 @@ public class PwmPasswordRuleValidator {
             if (passwordMaximumLength > 0 && passwordLength > passwordMaximumLength) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_LONG));
             }
-        }
-
-        // check ad-complexity
-        if (ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            errorList.addAll(checkPasswordForADComplexity(uiBean, password, charCounter));
         }
 
         //check number of numeric characters
@@ -334,290 +661,11 @@ public class PwmPasswordRuleValidator {
             }
         }
 
-        // check against disallowed values;
-        if (!ruleHelper.getDisallowedValues().isEmpty()) {
-            final String lcasePwd = password.toLowerCase();
-            final Set<String> paramValues = new HashSet<String>(ruleHelper.getDisallowedValues());
-
-            for (final String loopValue : paramValues) {
-                if (loopValue != null && loopValue.length() > 0) {
-                    final String loweredLoop = loopValue.toLowerCase();
-                    if (lcasePwd.contains(loweredLoop)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_USING_DISALLOWED_VALUE));
-                    }
-                }
-            }
-        }
-
-        // check disallowed attributes.
-        if (!policy.getRuleHelper().getDisallowedAttributes().isEmpty()) {
-            final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
-            if (uiBean != null) {
-                final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
-                final String lcasePwd = password.toLowerCase();
-                for (final Object paramConfig : paramConfigs) {
-                    final String attr = (String) paramConfig;
-                    final String userValue = userValues.get(attr) == null ? "" : userValues.get(attr).toLowerCase();
-
-                    // if the password is greater then 1 char and the value is contained within it then disallow
-                    if (userValue.length() > 1 && lcasePwd.contains(userValue)) {
-                        LOGGER.trace("password rejected, same as user attr " + attr);
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
-                    }
-
-                    // if the password is 1 char and the value is the same then disallow
-                    if (lcasePwd.equalsIgnoreCase(userValue)) {
-                        LOGGER.trace("password rejected, same as user attr " + attr);
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASATTR));
-                    }
-                }
-            }
-        }
-
-        {   // check password strength
-            final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
-            if (requiredPasswordStrength > 0) {
-                if (pwmApplication != null) {
-                    final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password);
-                    if (passwordStrength < requiredPasswordStrength) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
-                        //LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
-                    }
-                }
-            }
-        }
-
-        // check regex matches.
-        for (final Pattern pattern : ruleHelper.getRegExMatch()) {
-            if (!pattern.matcher(password).matches()) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
-                //LOGGER.trace(pwmSession, "password rejected, does not match configured regex pattern: " + pattern.toString());
-            }
-        }
-
-        // check no-regex matches.
-        for (final Pattern pattern : ruleHelper.getRegExNoMatch()) {
-            if (pattern.matcher(password).matches()) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
-                //LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
-            }
-        }
-
-        // check char group matches
-        if (ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch) > 0) {
-            final List<Pattern> ruleGroups = ruleHelper.getCharGroupValues();
-            if (ruleGroups != null && !ruleGroups.isEmpty()) {
-                final int requiredMatches = ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch);
-                int matches = 0;
-                for (final Pattern pattern : ruleGroups) {
-                    if (pattern.matcher(password).find()) {
-                        matches++;
-                    }
-                }
-                if (matches < requiredMatches) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_GROUPS));
-                }
-            }
-        }
-
-        // check if the password is in the dictionary.
-        if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
-            if (pwmApplication != null) {
-                if (pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
-                    final boolean found = pwmApplication.getWordlistManager().containsWord(password);
-
-                    if (found) {
-                        //LOGGER.trace(pwmSession, "password rejected, in wordlist file");
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
-                    }
-                } else {
-                    //LOGGER.warn(pwmSession, "password wordlist checking enabled, but wordlist is not available, skipping wordlist check");
-                }
-            }
-        }
-
-        // check for shared (global) password history
-        if (pwmApplication != null) {
-            if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
-                final boolean found = pwmApplication.getSharedHistoryManager().containsWord(password);
-
-                if (found) {
-                    //LOGGER.trace(pwmSession, "password rejected, in global shared history");
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
-                }
-            }
+        // check ad-complexity
+        if (ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
+            errorList.addAll(checkPasswordForADComplexity(uiBean, password, charCounter));
         }
 
         return errorList;
     }
-
-
-
-    /**
-     * Check a supplied password for it's validity according to AD compexity rules.
-     * - Not contain the user's account name or parts of the user's full name that exceed two consecutive characters
-     * - Be at least six characters in length
-     * - Contain characters from three of the following five categories:
-     * - English uppercase characters (A through Z)
-     * - English lowercase characters (a through z)
-     * - Base 10 digits (0 through 9)
-     * - Non-alphabetic characters (for example, !, $, #, %)
-     * - Any character categorized as an alphabetic but is not uppercase or lowercase.
-     * <p/>
-     * See this article: http://technet.microsoft.com/en-us/library/cc786468%28WS.10%29.aspx
-     *
-     * @param userInfoBean userInfoBean
-     * @param password    password to test
-     * @param charCounter associated charCounter for the password.
-     * @return list of errors if the password does not meet requirements, or an empty list if the password complies
-     *         with AD requirements
-     */
-    private static List<ErrorInformation> checkPasswordForADComplexity(
-            final UserInfoBean userInfoBean,
-            final String password,
-            final PasswordCharCounter charCounter
-    ) {
-        final List<ErrorInformation> errorList = new ArrayList<ErrorInformation>();
-
-        if (userInfoBean != null && userInfoBean.getCachedPasswordRuleAttributes() != null) {
-            final Map<String,String> userAttrs = userInfoBean.getCachedPasswordRuleAttributes();
-            final String samAccountName = userAttrs.get("sAMAccountName");
-            if (samAccountName != null
-                    && samAccountName.length() > 2
-                    && samAccountName.length() >= password.length()) {
-                if (password.toLowerCase().contains(samAccountName.toLowerCase())) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
-                    LOGGER.trace("Password violation due to ADComplexity check: Password contains sAMAccountName");
-                }
-            }
-            final String displayName = userAttrs.get("displayName");
-            if (displayName != null && displayName.length() > 2) {
-                if (checkContainsTokens(password, displayName)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_INWORDLIST));
-                    LOGGER.trace("Password violation due to ADComplexity check: Tokens from displayName used in password");
-                }
-            }
-        }
-
-        int complexityPoints = 0;
-        if (charCounter.getUpperChars() > 0) {
-            complexityPoints++;
-        }
-        if (charCounter.getLowerChars() > 0) {
-            complexityPoints++;
-        }
-        if (charCounter.getNumericChars() > 0) {
-            complexityPoints++;
-        }
-        if (charCounter.getSpecialChars() > 0) {
-            complexityPoints++;
-        }
-        if (charCounter.getOtherLetter() > 0) {
-            complexityPoints++;
-        }
-
-        if (complexityPoints < 3) {
-            if (charCounter.getUpperChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
-            }
-            if (charCounter.getLowerChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
-            }
-            if (charCounter.getNumericChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
-            }
-            if (charCounter.getSpecialChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
-            }
-            if (charCounter.getOtherLetter() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION));
-            }
-        }
-
-        return errorList;
-    }
-
-    private static boolean checkContainsTokens(final String baseValue, final String checkPattern) {
-        if (baseValue == null || baseValue.length() == 0)
-            return false;
-
-        if (checkPattern == null || checkPattern.length() == 0)
-            return false;
-
-        final String baseValueLower = baseValue.toLowerCase();
-        final String[] tokens = checkPattern.toLowerCase().split("[,\\.\\-\u2013\u2014_ \u00a3\\t]+");
-        if (tokens != null && tokens.length > 0) {
-            for (final String token : tokens) {
-                if (token.length() > 2) {
-                    if (baseValueLower.contains(token))
-                        return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    final static private String REST_RESPONSE_KEY_ERROR = "error";
-    final static private String REST_RESPONSE_KEY_ERROR_MSG = "errorMessage";
-
-    public List<ErrorInformation> invokeExternalRuleMethods(
-            final Configuration config,
-            final PwmPasswordPolicy pwmPasswordPolicy,
-            final String password,
-            final UserInfoBean uiBean
-    )
-            throws PwmUnrecoverableException
-    {
-        final List<ErrorInformation> returnedErrors = new ArrayList<ErrorInformation>();
-        final String restURL = config.readSettingAsString(PwmSetting.EXTERNAL_PWCHECK_REST_URLS);
-        final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
-        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<String, Object>();
-
-        if (restURL == null || restURL.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        sendData.put("password",password);
-        if (pwmPasswordPolicy != null) {
-            final LinkedHashMap<String,Object> policyData = new LinkedHashMap<String, Object>();
-            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-                policyData.put(rule.name(),pwmPasswordPolicy.getValue(rule));
-            }
-            sendData.put("policy",policyData);
-        }
-        if (uiBean != null) {
-            final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(uiBean, pwmApplication.getConfig(), locale);
-            sendData.put("userInfo", jsonStatusData);
-        }
-
-        final String jsonRequestBody = Helper.getGson().toJson(sendData);
-        try {
-            final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
-                    jsonRequestBody);
-            final Map<String,Object> responseMap = Helper.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
-            if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
-                    REST_RESPONSE_KEY_ERROR).toString())) {
-                if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {
-                    final String errorMessage = responseMap.get(REST_RESPONSE_KEY_ERROR_MSG).toString();
-                    LOGGER.trace("external web service reported error: " + errorMessage);
-                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR,errorMessage,errorMessage,null));
-                } else {
-                    LOGGER.trace("external web service reported error without specifying an errorMessage");
-                    returnedErrors.add(new ErrorInformation(PwmError.PASSWORD_CUSTOM_ERROR));
-                }
-            } else {
-                LOGGER.trace("external web service did not report an error");
-            }
-
-        } catch (PwmOperationalException e) {
-            final String errorMsg = "error executing external rule REST call: " + e.getMessage();
-            LOGGER.error(errorMsg);
-            if (haltOnError) {
-                throw new PwmUnrecoverableException(e.getErrorInformation(),e);
-            }
-            throw new IllegalStateException("http response error code: " + e.getMessage());
-        }
-        return returnedErrors;
-    }
-
 }

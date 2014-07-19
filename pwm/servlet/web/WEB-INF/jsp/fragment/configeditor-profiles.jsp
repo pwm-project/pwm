@@ -21,16 +21,17 @@
   --%>
 
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Locale" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
-    final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
+    final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+    final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
     final boolean showDesc = cookie.isShowDesc();
     final password.pwm.config.PwmSetting.Category category = cookie.getCategory();
@@ -70,40 +71,48 @@
         <pwm:if test="showIcons"><span class="btn-icon fa fa-tags"></span></pwm:if>
         Define Profiles
     </button>
+    <% if (cookie.getCategory() == PwmSetting.Category.LDAP_PROFILE) { %>
+    <button class="btn" onclick="PWM_CFGEDIT.ldapHealthCheck()">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
+        Test LDAP Profile
+    </button>
+    <% } %>
 </div>
-<script>
-    function selectProfile() {
-        var htmlBody = '<br/><div style="width:100%; text-align: center">';
-        htmlBody += '<a onclick="gotoProfile(\'\')">' + 'Default' + '</a>';
-        <% for (final String profile : profiles) { %>
-        htmlBody += '<a onclick="gotoProfile(\'<%=profile%>\')">' + '<%=profile%>' + '</a><br/>';
-        <% } %>
-        htmlBody += '</div><br/>';
-        PWM_MAIN.showDialog({
-            title:'Select Profile',
-            text:htmlBody,
-            showOk: false,
-            showCancel: true
-        });
-    }
+<pwm:script>
+    <script>
+        function selectProfile() {
+            var htmlBody = '<br/><div style="width:100%; text-align: center">';
+            htmlBody += '<a onclick="gotoProfile(\'\')">' + 'Default' + '</a>';
+            <% for (final String profile : profiles) { %>
+            htmlBody += '<a onclick="gotoProfile(\'<%=profile%>\')">' + '<%=profile%>' + '</a><br/>';
+            <% } %>
+            htmlBody += '</div><br/>';
+            PWM_MAIN.showDialog({
+                title:'Select Profile',
+                text:htmlBody,
+                showOk: false,
+                showCancel: true
+            });
+        }
 
-    function gotoProfile(profile) {
-        preferences['profile'] = profile;
+        function gotoProfile(profile) {
+            preferences['profile'] = profile;
 
-        PWM_MAIN.showWaitDialog({loadFunction:function(){
-            setConfigEditorCookie();
-            loadMainPageBody();
-        }});
-    }
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                setConfigEditorCookie();
+                loadMainPageBody();
+            }});
+        }
 
-    function editProfiles() {
-        preferences['editMode'] = 'PROFILE';
-        PWM_MAIN.showWaitDialog({loadFunction:function() {
-            setConfigEditorCookie();
-            loadMainPageBody();
-        }});
-    }
-</script>
+        function editProfiles() {
+            preferences['editMode'] = 'PROFILE';
+            PWM_MAIN.showWaitDialog({loadFunction:function() {
+                setConfigEditorCookie();
+                loadMainPageBody();
+            }});
+        }
+    </script>
+</pwm:script>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>
 <% if (!"true".equalsIgnoreCase(loopSetting.getOptions().get("HideForDefaultProfile")) || !"".equals(cookie.getProfile())) { %>
 <% request.setAttribute("setting",loopSetting); %>

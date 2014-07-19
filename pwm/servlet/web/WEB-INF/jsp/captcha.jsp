@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.util.stats.Statistic" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,6 +33,7 @@
 <% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
 <script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         Recaptcha.create("<%=reCaptchaPublicKey%>",
@@ -44,6 +46,7 @@
         );
     });
 </script>
+</pwm:script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
@@ -54,7 +57,7 @@
         <br/>
         <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
               name="verifyCaptcha" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
-            <div id="recaptcha_WaitDialogBlank">
+            <div class="recaptcha_WaitDialogBlank">
                 <div id="recaptcha_widget" style="display:none" class="recaptcha_widget">
                     <div id="recaptcha_image"></div>
                     <div class="recaptcha_input">
@@ -109,6 +112,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         try {
@@ -118,6 +122,8 @@
         }
     });
 </script>
+</pwm:script>
+<% try {pwmApplicationHeader.getStatisticsManager().incrementValue(Statistic.CAPTCHA_PRESENTATIONS);} catch (Exception e) {/*noop*/} %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

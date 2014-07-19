@@ -254,6 +254,7 @@ public abstract class AbstractQueueManager implements PwmService {
                         settings.getMaxQueueItemAge())) {
                     LOGGER.debug("discarding event due to maximum retry age: " + queueItemToDebugString(event));
                     sendQueue.pollFirst();
+                    noteDiscardedItem(event);
                 } else {
                     final String item = event.getItem();
 
@@ -334,4 +335,6 @@ public abstract class AbstractQueueManager implements PwmService {
     }
 
     protected abstract String queueItemToDebugString(QueueEvent queueEvent);
+
+    protected abstract void noteDiscardedItem(QueueEvent queueEvent);
 }

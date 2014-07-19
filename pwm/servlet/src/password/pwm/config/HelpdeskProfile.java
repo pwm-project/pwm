@@ -35,7 +35,7 @@ public class HelpdeskProfile extends AbstractProfile implements Profile{
 
 
     static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
-        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<PwmSetting, StoredValue>();
+        final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
         for (final PwmSetting setting : HELPDESK_PROFILE_SETTINGS) {
             final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);

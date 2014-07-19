@@ -56,12 +56,14 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.newUser.elements[0].focus();
         ShowHidePasswordHandler.initAllForms();
     });
 </script>
+</pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/newuser.js'/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>

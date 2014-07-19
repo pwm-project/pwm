@@ -35,24 +35,29 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
-import password.pwm.*;
-import password.pwm.bean.*;
+import password.pwm.ExternalChangeMethod;
+import password.pwm.ExternalJudgeMethod;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.ConfigurationChecker;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.intruder.RecordType;
 import password.pwm.util.macro.MacroMachine;
-import password.pwm.util.stats.Statistic;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -190,7 +195,7 @@ public class
             //final PwmSession pwmSession,
             final String password)  {
         final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_JUDGE_METHODS);
-        final List<Integer> returnList = new ArrayList<Integer>();
+        final List<Integer> returnList = new ArrayList<>();
 
         // process any configured external change password methods configured.
         for (final String classNameString : externalMethods) {
@@ -281,7 +286,7 @@ public class
     )
             throws ChaiUnavailableException, PwmOperationalException
     {
-        final Map<String,String> tempMap = new HashMap<String,String>();
+        final Map<String,String> tempMap = new HashMap<>();
 
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (!formItem.isReadonly()) {
@@ -541,7 +546,7 @@ public class
     }
 
     static public String buildPwmFormID(final SessionStateBean ssBean) {
-        return ssBean.getSessionVerificationKey() + Long.toString(ssBean.getRequestCounter(),36);
+        return ssBean.getSessionVerificationKey() + ssBean.getRequestVerificationKey();
     }
 
     public static String resolveStringKeyLocaleMap(Locale desiredLocale, final Map<String,String> inputMap) {
@@ -553,7 +558,7 @@ public class
             desiredLocale = PwmConstants.DEFAULT_LOCALE;
         }
 
-        final Map<Locale,String> localeMap = new LinkedHashMap<Locale, String>();
+        final Map<Locale,String> localeMap = new LinkedHashMap<>();
         for (final String localeStringKey : inputMap.keySet()) {
             localeMap.put(LocaleHelper.parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
         }
@@ -728,114 +733,6 @@ public class
         return result;
     }
 
-    public static class TokenSender {
-        public static void sendToken(
-                final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
-                final UserDataReader userDataReader,
-                final EmailItemBean configuredEmailSetting,
-                final MessageSendMethod tokenSendMethod,
-                final String emailAddress,
-                final String smsNumber,
-                final String smsMessage,
-                final String tokenKey
-        )
-                throws PwmUnrecoverableException, ChaiUnavailableException
-        {
-            final boolean success;
-            switch (tokenSendMethod) {
-                case NONE:
-                    // should never get here
-                    LOGGER.error("attempt to send token to destination type 'NONE'");
-                    throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
-                case BOTH:
-                    // Send both email and SMS, success if one of both succeeds
-                    final boolean suc1 = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
-                    final boolean suc2 = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
-                    success = suc1 || suc2;
-                    break;
-                case EMAILFIRST:
-                    // Send email first, try SMS if email is not available
-                    success = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey) ||
-                            sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
-                    break;
-                case SMSFIRST:
-                    // Send SMS first, try email if SMS is not available
-                    success = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey) ||
-                            sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
-                    break;
-                case SMSONLY:
-                    // Only try SMS
-                    success = sendSmsToken(pwmApplication, userInfoBean, userDataReader, smsNumber, smsMessage, tokenKey);
-                    break;
-                case EMAILONLY:
-                default:
-                    // Only try email
-                    success = sendEmailToken(pwmApplication, userInfoBean, userDataReader, configuredEmailSetting, emailAddress, tokenKey);
-                    break;
-            }
-            if (!success) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
-            }
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_TOKENS_SENT);
-        }
-
-        public static boolean sendEmailToken(
-                final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
-                final UserDataReader userDataReader,
-                final EmailItemBean configuredEmailSetting,
-                final String toAddress,
-                final String tokenKey
-        )
-                throws PwmUnrecoverableException, ChaiUnavailableException
-        {
-            if (toAddress == null || toAddress.length() < 1) {
-                return false;
-            }
-
-            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, toAddress, null);
-
-            pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
-                    toAddress,
-                    configuredEmailSetting.getFrom(),
-                    configuredEmailSetting.getSubject(),
-                    configuredEmailSetting.getBodyPlain().replace("%TOKEN%", tokenKey),
-                    configuredEmailSetting.getBodyHtml().replace("%TOKEN%", tokenKey)
-            ), userInfoBean, userDataReader);
-            LOGGER.debug("token email added to send queue for " + toAddress);
-            return true;
-        }
-
-        public static boolean sendSmsToken(
-                final PwmApplication pwmApplication,
-                final UserInfoBean userInfoBean,
-                final UserDataReader userDataReader,
-                final String smsNumber,
-                final String smsMessage,
-                final String tokenKey
-        )
-                throws PwmUnrecoverableException, ChaiUnavailableException
-        {
-            final Configuration config = pwmApplication.getConfig();
-            String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-            if (senderId == null) { senderId = ""; }
-
-            if (smsNumber == null || smsNumber.length() < 1) {
-                return false;
-            }
-
-            final String modifiedMessage = smsMessage.replaceAll("%TOKEN%", tokenKey);
-
-            pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, null);
-
-            final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-            pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, senderId, modifiedMessage, maxlen), userInfoBean, userDataReader);
-            LOGGER.debug("token SMS added to send queue for " + smsNumber);
-            return true;
-        }
-    }
-
     public static Gson getGson(GsonBuilder gsonBuilder) {
         if (gsonBuilder == null) {
             gsonBuilder = new GsonBuilder();
@@ -932,7 +829,7 @@ public class
 
     public static boolean testUserPermissions(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final List<UserPermission> userPermissions
     )
@@ -943,7 +840,7 @@ public class
         }
 
         for (final UserPermission userPermission : userPermissions) {
-            if (testUserPermission(pwmApplication, pwmSession, userIdentity, userPermission)) {
+            if (testUserPermission(pwmApplication, sessionLabel, userIdentity, userPermission)) {
                 return true;
             }
         }
@@ -952,7 +849,7 @@ public class
 
     private static boolean testUserPermission(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final UserPermission userPermission
     )
@@ -982,12 +879,12 @@ public class
             performTest = true;
         }
 
-        return performTest && testQueryMatch(pwmApplication, pwmSession, userIdentity, userPermission.getLdapQuery());
+        return performTest && testQueryMatch(pwmApplication, sessionLabel, userIdentity, userPermission.getLdapQuery());
     }
 
     public static boolean testQueryMatch(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel pwmSession,
             final UserIdentity userIdentity,
             final String filterString
     )

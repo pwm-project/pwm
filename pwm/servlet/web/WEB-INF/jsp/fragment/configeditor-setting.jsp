@@ -1,14 +1,15 @@
 <%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
-<%@ page import="password.pwm.ContextManager" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
-<%@ page import="password.pwm.bean.servlet.ConfigManagerBean" %>
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
-<%@ page import="password.pwm.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="java.util.Locale" %>
 
@@ -38,8 +39,8 @@
 <%
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
     final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
-    final Locale locale = password.pwm.PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
-    final ConfigManagerBean configManagerBean = password.pwm.PwmSession.getPwmSession(session).getConfigManagerBean();
+    final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+    final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
     final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
     final boolean showDescription = (Boolean)request.getAttribute("showDescription");
     final String profileID = (String)request.getAttribute("profileID");
@@ -65,13 +66,16 @@
     <div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
 <div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: none">
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
             PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{force:'<%=showDescription ? "show":"hide"%>'});
         });
     </script>
+    </pwm:script>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.showTooltip({
@@ -86,6 +90,7 @@
         <% } %>
     });
 </script>
+</pwm:script>
 <div id="titlePane_<%=loopSetting.getKey()%>" class="setting_body">
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
@@ -93,47 +98,56 @@
             <td style="border-width:0"><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             LocaleTableHandler.initLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>', '<%=loopSetting.getSyntax()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.STRING_ARRAY || loopSetting.getSyntax() == PwmSettingSyntax.PROFILE) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             MultiTableHandler.initMultiTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
             <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             MultiLocaleTableHandler.initMultiLocaleTable('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>', '<%=loopSetting.getRegExPattern()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.CHALLENGE) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
             <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             ChallengeTableHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
     <div style="width: 100%; text-align: center">
     <button id="<%=loopSetting.getKey()%>_ViewMatchesButton" data-dojo-type="dijit.form.Button">View Matches</button>
     </div>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             UserPermissionHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
@@ -144,52 +158,64 @@
             });
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             FormTableHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.OPTIONLIST) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             OptionListHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.ACTION) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             ActionHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.EMAIL) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
     </table>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             EmailTableHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.BOOLEAN) { %>
     <input type="hidden" id="value_<%=loopSetting.getKey()%>" value="false"/>
     <div id="button_<%=loopSetting.getKey()%>" type="button"></div>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             BooleanHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.SELECT) { %>
     <select id="setting_<%=loopSetting.getKey()%>" disabled="true">
         <% for (final String loopValue : loopSetting.getOptions().keySet()) { %>
         <option value="<%=loopValue%>"><%=loopSetting.getOptions().get(loopValue)%></option>
         <% } %>
     </select>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/Select"],function(Select){
@@ -212,6 +238,7 @@
             });
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.X509CERT) { %>
     <div style="padding-right:15px">
         <% request.setAttribute("certificate",configManagerBean.getConfiguration().readSetting(loopSetting,cookie.getProfile()).toNativeObject()); %>
@@ -221,6 +248,7 @@
     <% } else { %>
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
     <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/Textarea"],function(Textarea){
@@ -242,8 +270,10 @@
             });
         });
     </script>
+    </pwm:script>
     <% } if (loopSetting.getSyntax() == PwmSettingSyntax.STRING) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
@@ -263,8 +293,10 @@
             });
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.NUMERIC) { %>
     <input id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>"/>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dijit","dijit/form/NumberSpinner"],function(dijit,NumberSpinner){
@@ -284,11 +316,13 @@
             });
         });
     </script>
+    </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
         <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
         <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog({text:'Clear password for setting <%=loopSetting.getLabel(locale)%>?',okAction:function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')}})">Clear Password</button>
     </div>
+    <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dijit/form/Button"],function(parser){
@@ -296,6 +330,7 @@
             });
         });
     </script>
+    </pwm:script>
     <% } %>
     <% } %>
 </div>

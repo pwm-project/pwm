@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,15 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.util.CommonUtils;
 import org.jasig.cas.client.util.XmlUtils;
 import org.jasig.cas.client.validation.Assertion;
-import password.pwm.AuthenticationFilter;
-import password.pwm.ContextManager;
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
+import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.ldap.UserAuthenticator;
 
 import javax.servlet.http.HttpServletRequest;

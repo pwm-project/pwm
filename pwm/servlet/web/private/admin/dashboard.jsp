@@ -24,8 +24,8 @@
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
+<%@ page import="password.pwm.http.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
@@ -87,7 +87,7 @@
         <% if ((loopEpsType != Statistic.EpsType.DB_READS && loopEpsType != Statistic.EpsType.DB_WRITES) || pwmApplication.getConfig().hasDbConfigured()) { %>
         <tr>
             <td class="key">
-                <%= loopEpsType.getDescription(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
+                <%= loopEpsType.getLabel(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
                 <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
@@ -148,7 +148,7 @@
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Health">
     <div id="healthBody">
-        <div id="WaitDialogBlank"></div>
+        <div class="WaitDialogBlank"></div>
     </div>
     <br/>
     <div class="noticebar">
@@ -277,6 +277,7 @@
                 </td>
                 <td>
                     <span id="dojoVersionSpan"></span>
+                    <pwm:script>
                     <script type="text/javascript">
                         PWM_GLOBAL['startupFunctions'].push(function(){
                             require(["dojo"],function(dojo){
@@ -284,6 +285,7 @@
                             });
                         });
                     </script>
+                    </pwm:script>
                 </td>
             </tr>
             <tr>
@@ -689,11 +691,13 @@
                     threadTrace.append("\n");
                 }
             %>
+            <pwm:script>
             <script type="application/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     showTooltip('thread_<%=t.getId()%>','<%=StringEscapeUtils.escapeJavaScript(threadTrace.toString())%>');
                 });
             </script>
+            </pwm:script>
             <% } %>
             <% } catch (Exception e) { /* */ } %>
         </table>
@@ -703,6 +707,7 @@
 </div>
 <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
@@ -724,6 +729,7 @@
         });
     }
 </script>
+</pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

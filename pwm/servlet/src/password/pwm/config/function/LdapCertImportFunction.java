@@ -23,7 +23,6 @@
 package password.pwm.config.function;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmSession;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
@@ -33,6 +32,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.http.PwmSession;
 import password.pwm.util.X509Utils;
 
 import java.net.URI;
@@ -55,7 +55,7 @@ public class LdapCertImportFunction implements SettingUIFunction {
             throws PwmOperationalException
     {
         final StringArrayValue ldapUrlsValue = (StringArrayValue)storedConfiguration.readSetting(PwmSetting.LDAP_SERVER_URLS,profile);
-        final Set<X509Certificate> resultCertificates = new LinkedHashSet<X509Certificate>();
+        final Set<X509Certificate> resultCertificates = new LinkedHashSet<>();
         try {
             if (ldapUrlsValue != null && ldapUrlsValue.toNativeObject() != null) {
                 final List<String> ldapUrlStrings = ldapUrlsValue.toNativeObject();

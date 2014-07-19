@@ -81,6 +81,7 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     function skipWizard() {
         PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
@@ -92,6 +93,7 @@
     });
     PWM_GLOBAL['localeBundle'].push('Config');
 </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>

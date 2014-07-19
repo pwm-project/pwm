@@ -84,7 +84,7 @@ function gotoStep(step) {
                 load: function(result) {
                     if (result['data']) {
                         if (result['data']['serverRestart']) {
-                            PWM_CONFIG.waitForRestart(new Date().getTime(),"none");
+                            PWM_CONFIG.waitForRestart();
                             return;
                         }
                     }

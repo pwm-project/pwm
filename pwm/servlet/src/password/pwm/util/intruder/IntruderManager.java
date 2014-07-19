@@ -24,8 +24,12 @@ package password.pwm.util.intruder;
 
 import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -39,6 +43,7 @@ import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
 import password.pwm.util.db.DatabaseDataStore;
@@ -62,7 +67,7 @@ public class IntruderManager implements Serializable, PwmService {
     private ErrorInformation startupError;
     private Timer timer;
 
-    private final Map<RecordType, RecordManager> recordManagers = new HashMap<RecordType, password.pwm.util.intruder.RecordManager>();
+    private final Map<RecordType, RecordManager> recordManagers = new HashMap<>();
 
     private ServiceInfo serviceInfo = new ServiceInfo(Collections.<DataStorageMethod>emptyList());
 
@@ -294,7 +299,7 @@ public class IntruderManager implements Serializable, PwmService {
         manager.markSubject(subject);
 
         { // send intruder attempt audit event
-            final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
             messageObj.put("type", recordType);
             messageObj.put("subject", subject);
             final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
@@ -307,7 +312,7 @@ public class IntruderManager implements Serializable, PwmService {
         } catch (PwmUnrecoverableException e) {
             if (!manager.isAlerted(subject) ) {
                 { // send intruder attempt lock event
-                    final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<String, Object>();
+                    final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
                     messageObj.put("type", recordType);
                     messageObj.put("subject", subject);
                     final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
@@ -325,22 +330,23 @@ public class IntruderManager implements Serializable, PwmService {
                     pwmApplication.getAuditManager().submit(auditRecord);
                     sendAlert(manager.readIntruderRecord(subject));
                 }
-                manager.markAlerted(subject);
 
+                manager.markAlerted(subject);
                 final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
                 if (statisticsManager != null && statisticsManager.status() == STATUS.OPEN) {
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.INTRUDER_ATTEMPTS);
-                    pwmApplication.getStatisticsManager().updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
+                    statisticsManager.incrementValue(Statistic.INTRUDER_ATTEMPTS);
+                    statisticsManager.updateEps(Statistic.EpsType.INTRUDER_ATTEMPTS,1);
+                    statisticsManager.incrementValue(recordType.getLockStatistic());
                 }
             }
             throw e;
         }
 
-        delayPenalty(manager.readIntruderRecord(subject), pwmSession);
+        delayPenalty(manager.readIntruderRecord(subject), pwmSession.getSessionLabel());
     }
 
 
-    private void delayPenalty(final IntruderRecord intruderRecord, final PwmSession pwmSession) {
+    private void delayPenalty(final IntruderRecord intruderRecord, final SessionLabel sessionLabel) {
         int points = 0;
         if (intruderRecord != null) {
             points += intruderRecord.getAttemptCount();
@@ -348,7 +354,7 @@ public class IntruderManager implements Serializable, PwmService {
             delayPenalty += points * Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_PER_COUNT_MS));
             delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
             delayPenalty = delayPenalty > Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
-            LOGGER.trace(pwmSession, "delaying response " + delayPenalty + "ms due to intruder record: " + Helper.getGson().toJson(intruderRecord));
+            LOGGER.trace(sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + Helper.getGson().toJson(intruderRecord));
             Helper.pause(delayPenalty);
         }
     }
@@ -358,7 +364,7 @@ public class IntruderManager implements Serializable, PwmService {
             return;
         }
 
-        final Map<String,String> values = new LinkedHashMap<String, String>();
+        final Map<String,String> values = new LinkedHashMap<>();
         values.put("type", intruderRecord.getType().toString());
         values.put(intruderRecord.getType().toString(),intruderRecord.getSubject());
         values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
@@ -381,8 +387,7 @@ public class IntruderManager implements Serializable, PwmService {
             throws PwmOperationalException
     {
         final RecordManager manager = recordManagers.get(recordType);
-        final ArrayList<Map<String,Object>> returnList = new ArrayList<Map<String,Object>>();
-
+        final ArrayList<Map<String,Object>> returnList = new ArrayList<>();
 
         ClosableIterator<IntruderRecord> theIterator = null;
         try {
@@ -390,7 +395,7 @@ public class IntruderManager implements Serializable, PwmService {
             while (theIterator.hasNext() && returnList.size() < maximum) {
                 final IntruderRecord intruderRecord = theIterator.next();
                 if (intruderRecord != null && intruderRecord.getType() == recordType) {
-                    final Map<String, Object> rowData = new HashMap<String, Object>();
+                    final Map<String, Object> rowData = new HashMap<>();
                     rowData.put("subject", intruderRecord.getSubject());
                     rowData.put("timestamp", intruderRecord.getTimeStamp());
                     rowData.put("count", String.valueOf(intruderRecord.getAttemptCount()));
@@ -507,7 +512,7 @@ public class IntruderManager implements Serializable, PwmService {
         }
 
         private List<String> attributeFormToList(final Map<FormConfiguration, String> formValues) {
-            final List<String> returnList = new ArrayList<String>();
+            final List<String> returnList = new ArrayList<>();
             if (formValues != null) {
                 for (final FormConfiguration formConfiguration : formValues.keySet()) {
                     final String value = formValues.get(formConfiguration);

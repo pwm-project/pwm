@@ -20,7 +20,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.bean.servlet.SetupResponsesBean" %>
+<%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -29,7 +29,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>
@@ -41,7 +40,6 @@
               onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
-            <script type="text/javascript">PWM_GLOBAL['responseMode'] = "user";</script>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="setResponses"/>
@@ -57,13 +55,17 @@
     </div>
     <div class="push"></div>
 </div>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_RESPONSES.startupResponsesPage();
-        document.forms[0].elements[0].focus();
-        ShowHidePasswordHandler.initAllForms();
-    });
-</script>
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['responseMode'] = "user";
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_RESPONSES.startupResponsesPage();
+            document.forms[0].elements[0].focus();
+            ShowHidePasswordHandler.initAllForms();
+        });
+    </script>
+</pwm:script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

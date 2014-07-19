@@ -146,7 +146,7 @@ class RecordManagerImpl implements RecordManager {
 
     @Override
     public ClosableIterator<IntruderRecord> iterator() throws PwmOperationalException {
-        return new RecordIterator<IntruderRecord>(recordStore.iterator());
+        return new RecordIterator<>(recordStore.iterator());
     }
 
     public static class RecordIterator<IntruderRecord> implements ClosableIterator<IntruderRecord> {

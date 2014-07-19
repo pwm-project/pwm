@@ -204,7 +204,7 @@ public class VersionChecker implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
-        final ArrayList<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final ArrayList<HealthRecord> returnRecords = new ArrayList<>();
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { // version checking
             VersionCheckInfoCache checkInfoCache = getVersionCheckInfo();

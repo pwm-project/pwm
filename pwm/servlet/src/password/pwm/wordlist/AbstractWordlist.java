@@ -277,7 +277,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
         int checkSize = this.wordlistConfiguration.getCheckSize();
         checkSize = checkSize == 0 || checkSize > testWord.length() ? testWord.length() : checkSize;
-        final TreeSet<String> testWords = new TreeSet<String>();
+        final TreeSet<String> testWords = new TreeSet<>();
         while (checkSize <= testWord.length()) {
             for (int i = 0; i + checkSize <= testWord.length(); i++) {
                 final String loopWord = testWord.substring(i,i + checkSize);

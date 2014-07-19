@@ -30,7 +30,7 @@ import java.util.List;
 
 public class JavaChecker implements HealthChecker {
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication) {
-        final List<HealthRecord> records = new ArrayList<HealthRecord>();
+        final List<HealthRecord> records = new ArrayList<>();
 
         final int maxActiveThreads = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_JAVA_MAX_THREADS));
         if (Thread.activeCount() > maxActiveThreads) {

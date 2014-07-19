@@ -23,7 +23,10 @@
 package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.Permission;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
@@ -35,9 +38,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditRecord;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
+import password.pwm.http.ContextManager;
+import password.pwm.http.PwmSession;
+import password.pwm.http.filter.SessionFilter;
+import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.intruder.RecordType;
@@ -127,8 +133,8 @@ public class RestAppDataServer {
         }
 
 
-        final ArrayList<UserAuditRecord> userRecords = new ArrayList<UserAuditRecord>();
-        final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<SystemAuditRecord>();
+        final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
+        final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
         final Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readVault();
         while (iterator.hasNext() && userRecords.size() <= maximum) {
             final AuditRecord loopRecord = iterator.next();
@@ -141,7 +147,7 @@ public class RestAppDataServer {
                 break;
             }
         }
-        final HashMap<String,List> outputMap = new HashMap<String,List>();
+        final HashMap<String,List> outputMap = new HashMap<>();
         outputMap.put("user",userRecords);
         outputMap.put("system",systemRecords);
 
@@ -176,15 +182,15 @@ public class RestAppDataServer {
         }
 
         final ContextManager theManager = ContextManager.getContextManager(request.getSession().getServletContext());
-        final Set<PwmSession> activeSessions = new LinkedHashSet<PwmSession>(theManager.getPwmSessions());
-        final ArrayList<Map<String,Object>> gridData = new ArrayList<Map<String,Object>>();
+        final Set<PwmSession> activeSessions = new LinkedHashSet<>(theManager.getPwmSessions());
+        final ArrayList<Map<String,Object>> gridData = new ArrayList<>();
         for (Iterator<PwmSession> iterator = activeSessions.iterator(); iterator.hasNext() && gridData.size() <= maximum;) {
             final PwmSession loopSession = iterator.next();
             if (loopSession != null && loopSession.isValid()) {
                 try {
                     final SessionStateBean loopSsBean = loopSession.getSessionStateBean();
                     final UserInfoBean loopUiBean = loopSession.getUserInfoBean();
-                    final Map<String, Object> rowData = new HashMap<String, Object>();
+                    final Map<String, Object> rowData = new HashMap<>();
                     rowData.put("label", loopSession.getSessionStateBean().getSessionID());
                     rowData.put("createTime", loopSession.getSessionStateBean().getSessionCreationTime());
                     rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
@@ -230,7 +236,7 @@ public class RestAppDataServer {
             return RestResultBean.fromError(errorInfo, restRequestBean).asJsonResponse();
         }
 
-        final TreeMap<String,Object> returnData = new TreeMap<String,Object>();
+        final TreeMap<String,Object> returnData = new TreeMap<>();
         try {
             for (final RecordType recordType : RecordType.values()) {
                 returnData.put(recordType.toString(),restRequestBean.getPwmApplication().getIntruderManager().getRecords(recordType, maximum));
@@ -344,7 +350,7 @@ public class RestAppDataServer {
         response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
 
         try {
-            final LinkedHashMap<String,String> displayData = new LinkedHashMap<String,String>(makeDisplayData(restRequestBean.getPwmApplication(),
+            final LinkedHashMap<String,String> displayData = new LinkedHashMap<>(makeDisplayData(restRequestBean.getPwmApplication(),
                     restRequestBean.getPwmSession(), bundleName));
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(displayData);
@@ -380,7 +386,7 @@ public class RestAppDataServer {
 
         final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
         final Configuration config = pwmApplication.getConfig();
-        final TreeMap<String,String> displayStrings = new TreeMap<String, String>();
+        final TreeMap<String,String> displayStrings = new TreeMap<>();
         final ResourceBundle bundle = ResourceBundle.getBundle(displayClass.getName());
         try {
             final MacroMachine macroMachine = new MacroMachine(
@@ -388,7 +394,7 @@ public class RestAppDataServer {
                     pwmSession.getUserInfoBean(),
                     pwmSession.getSessionManager().getUserDataReader(pwmApplication)
             );
-            for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) {
+            for (final String key : new TreeSet<>(Collections.list(bundle.getKeys()))) {
                 String displayValue = LocaleHelper.getLocalizedMessage(userLocale, key, config, displayClass);
                 displayValue = macroMachine.expandMacros(displayValue);
                 displayStrings.put(key, displayValue);
@@ -408,7 +414,7 @@ public class RestAppDataServer {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        final TreeMap<String,Object> settingMap = new TreeMap<String, Object>();
+        final TreeMap<String,Object> settingMap = new TreeMap<>();
         settingMap.put("client.ajaxTypingTimeout", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_TIMEOUT)));
         settingMap.put("client.ajaxTypingWait", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_AJAX_TYPING_WAIT)));
         settingMap.put("client.activityMaxEpsRate", Integer.parseInt(config.readAppProperty(AppProperty.CLIENT_ACTIVITY_MAX_EPS_RATE)));
@@ -428,7 +434,8 @@ public class RestAppDataServer {
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());
 
         settingMap.put("url-context",request.getContextPath());
-        settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true", request, response));
+        settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true",
+                request, response));
         settingMap.put("url-command",request.getContextPath() + SessionFilter.rewriteURL("/public/CommandServlet", request, response));
         settingMap.put("url-resources",request.getContextPath() + SessionFilter.rewriteURL("/public/resources" + ResourceFileServlet.makeResourcePathNonce(pwmApplication), request, response));
         settingMap.put("url-restservice",request.getContextPath() + SessionFilter.rewriteURL("/public/rest", request, response));
@@ -447,7 +454,7 @@ public class RestAppDataServer {
 
 
         {
-            final List<String> formTypeOptions = new ArrayList<String>();
+            final List<String> formTypeOptions = new ArrayList<>();
             for (final FormConfiguration.Type type : FormConfiguration.Type.values()) {
                 formTypeOptions.add(type.toString());
             }
@@ -455,7 +462,7 @@ public class RestAppDataServer {
         }
 
         {
-            final List<String> actionTypeOptions = new ArrayList<String>();
+            final List<String> actionTypeOptions = new ArrayList<>();
             for (final ActionConfiguration.Type type : ActionConfiguration.Type.values()) {
                 actionTypeOptions.add(type.toString());
             }
@@ -463,7 +470,7 @@ public class RestAppDataServer {
         }
 
         {
-            final List<String> epsTypes = new ArrayList<String>();
+            final List<String> epsTypes = new ArrayList<>();
             for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                 epsTypes.add(loopEpsType.toString());
             }
@@ -471,7 +478,7 @@ public class RestAppDataServer {
         }
 
         {
-            final List<String> epsDurations = new ArrayList<String>();
+            final List<String> epsDurations = new ArrayList<>();
             for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
                 epsDurations.add(loopEpsDuration.toString());
             }
@@ -479,9 +486,9 @@ public class RestAppDataServer {
         }
 
         {
-            final Map<String,String> localeInfo = new TreeMap<String,String>();
-            final Map<String,String> localeDisplayNames = new TreeMap<String,String>();
-            final Map<String,String> localeFlags = new TreeMap<String,String>();
+            final Map<String,String> localeInfo = new TreeMap<>();
+            final Map<String,String> localeDisplayNames = new TreeMap<>();
+            final Map<String,String> localeFlags = new TreeMap<>();
 
             for (final Locale locale : pwmApplication.getConfig().getKnownLocales()) {
                 final String flagCode = pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale);
@@ -497,7 +504,7 @@ public class RestAppDataServer {
         }
 
         if (pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE, SelectableContextMode.class) != SelectableContextMode.NONE) {
-            final Map<String,Map<String,String>> ldapProfiles = new LinkedHashMap<String, Map<String, String>>();
+            final Map<String,Map<String,String>> ldapProfiles = new LinkedHashMap<>();
             for (final String ldapProfile : pwmApplication.getConfig().getLdapProfiles().keySet()) {
                 final Map<String,String> contexts = pwmApplication.getConfig().getLdapProfiles().get(ldapProfile).getLoginContexts();
                 ldapProfiles.put(ldapProfile,contexts);
@@ -509,10 +516,10 @@ public class RestAppDataServer {
     }
 
     private static LinkedHashMap<String,Object> makeClientConfigData(final RestRequestBean restRequestBean) {
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<String, Object>();
+        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
         final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
         {
-            final LinkedHashMap<String,Object> settingMap = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> settingMap = new LinkedHashMap<>();
             for (final PwmSetting setting : PwmSetting.values()) {
                 final SettingInfo settingInfo = new SettingInfo();
                 settingInfo.key = setting.getKey();
@@ -527,7 +534,7 @@ public class RestAppDataServer {
             returnMap.put("settings",settingMap);
         }
         {
-            final LinkedHashMap<String,Object> categoryMap = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> categoryMap = new LinkedHashMap<>();
             for (final PwmSetting.Category category : PwmSetting.Category.values()) {
                 final CategoryInfo categoryInfo = new CategoryInfo();
                 categoryInfo.key = category.getKey();
@@ -541,7 +548,7 @@ public class RestAppDataServer {
             returnMap.put("categories",categoryMap);
         }
         {
-            final LinkedHashMap<String,Object> labelMap = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> labelMap = new LinkedHashMap<>();
             for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) {
                 final LocaleInfo localeInfo = new LocaleInfo();
                 localeInfo.description = localeBundle.getTheClass().getSimpleName();
@@ -552,7 +559,7 @@ public class RestAppDataServer {
             returnMap.put("locales",labelMap);
         }
         {
-            final LinkedHashMap<String,Object> templateMap = new LinkedHashMap<String, Object>();
+            final LinkedHashMap<String,Object> templateMap = new LinkedHashMap<>();
             for (final PwmSetting.Template template : PwmSetting.Template.values()) {
                 final TemplateInfo templateInfo = new TemplateInfo();
                 templateInfo.description = template.getLabel(locale);

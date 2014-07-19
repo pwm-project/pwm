@@ -52,6 +52,7 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.PasswordUtility;
+import password.pwm.ws.server.rest.bean.HealthData;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -70,11 +71,11 @@ public class LDAPStatusChecker implements HealthChecker {
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         final Configuration config = pwmApplication.getConfig();
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
         final Map<String,LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles();
 
         for (final String profileID : ldapProfiles.keySet()) {
-            final List<HealthRecord> profileRecords = new ArrayList<HealthRecord>();
+            final List<HealthRecord> profileRecords = new ArrayList<>();
             profileRecords.addAll(
                     checkBasicLdapConnectivity(pwmApplication, config, ldapProfiles.get(profileID), true));
 
@@ -122,7 +123,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final String proxyUserDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
         final String proxyUserPW = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
 
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
 
         if (testUserDN == null || testUserDN.length() < 1) {
             return returnRecords;
@@ -255,7 +256,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
     public List<HealthRecord> checkLdapServerUrls(final Configuration config, final LdapProfile ldapProfile)
     {
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
         final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         for (final String loopURL : serverURLs) {
             final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
@@ -292,7 +293,7 @@ public class LDAPStatusChecker implements HealthChecker {
             final boolean testContextlessRoot
     ) {
 
-        final List<HealthRecord> returnRecords = new ArrayList<HealthRecord>();
+        final List<HealthRecord> returnRecords = new ArrayList<>();
         ChaiProvider chaiProvider = null;
         try{
             try {
@@ -368,7 +369,7 @@ public class LDAPStatusChecker implements HealthChecker {
     }
 
     private static List<HealthRecord> checkAd(final PwmApplication pwmApplication, final Configuration config, final LdapProfile ldapProfile) {
-        List<HealthRecord> returnList = new ArrayList<HealthRecord>();
+        List<HealthRecord> returnList = new ArrayList<>();
         final List<String> serverURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
         for (final String loopURL : serverURLs) {
             try {
@@ -448,7 +449,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         LOGGER.trace("beginning check for replica vendor sameness");
         boolean errorReachingServer = false;
-        final Map<String,ChaiProvider.DIRECTORY_VENDOR> replicaVendorMap = new HashMap<String,ChaiProvider.DIRECTORY_VENDOR>();
+        final Map<String,ChaiProvider.DIRECTORY_VENDOR> replicaVendorMap = new HashMap<>();
 
         for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
             final ChaiConfiguration profileChaiConfiguration = LdapOperationsHelper.createChaiConfiguration(
@@ -467,8 +468,8 @@ public class LDAPStatusChecker implements HealthChecker {
             }
         }
 
-        final ArrayList<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
-        final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<ChaiProvider.DIRECTORY_VENDOR>(replicaVendorMap.values());
+        final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
+        final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<>(replicaVendorMap.values());
 
         if (discoveredVendors.size() >= 2) {
             final String mapAsJson = Helper.getGson().toJson(replicaVendorMap);
@@ -502,7 +503,7 @@ public class LDAPStatusChecker implements HealthChecker {
 
         LOGGER.trace("beginning check for ad api password policy (asn " + PwmConstants.LDAP_AD_PASSWORD_POLICY_CONTROL_ASN + ") support");
         boolean errorReachingServer = false;
-        final ArrayList<HealthRecord> healthRecords = new ArrayList<HealthRecord>();
+        final ArrayList<HealthRecord> healthRecords = new ArrayList<>();
 
         for (final LdapProfile ldapProfile : pwmApplication.getConfig().getLdapProfiles().values()) {
             final ChaiConfiguration profileChaiConfiguration = LdapOperationsHelper.createChaiConfiguration(
@@ -538,5 +539,34 @@ public class LDAPStatusChecker implements HealthChecker {
         }
 
         return healthRecords;
+    }
+
+    public static HealthData healthForNewConfiguration(
+            final Configuration config,
+            final Locale locale,
+            final String profileID,
+            boolean testContextless,
+            boolean fullTest
+
+    ) {
+        final PwmApplication tempApplication = new PwmApplication(config, PwmApplication.MODE.NEW, null, false, null);
+        final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
+        final List<HealthRecord> profileRecords = new ArrayList<>();
+        final LdapProfile ldapProfile = config.getLdapProfiles().get(profileID == null || profileID.isEmpty() ? PwmConstants.PROFILE_ID_DEFAULT : profileID);
+        profileRecords.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, config, ldapProfile,
+                testContextless));
+        if (fullTest) {
+            profileRecords.addAll(ldapStatusChecker.checkLdapServerUrls(config, ldapProfile));
+        }
+
+        if (profileRecords.isEmpty()) {
+            profileRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_OK));
+        }
+
+        if (fullTest) {
+            profileRecords.addAll(ldapStatusChecker.doLdapTestUserCheck(config, ldapProfile, tempApplication));
+        }
+
+        return HealthRecord.asHealthDataBean(config, locale, profileRecords);
     }
 }

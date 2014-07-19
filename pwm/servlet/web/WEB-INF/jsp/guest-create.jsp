@@ -64,6 +64,7 @@
                 <input name="__expirationDate__" id="__expirationDate__"
                        type="date" required="true" value="<%=selectedDate%>"/>
             </p>
+            <pwm:script>
             <script type="text/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
                     require(["dijit/form/DateTextBox"],function(dojo){
@@ -78,6 +79,7 @@
                     });
                 });
             </script>
+            </pwm:script>
             <% } %>
 
             <div id="buttonbar">
@@ -93,11 +95,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.newGuest.elements[0].focus();
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

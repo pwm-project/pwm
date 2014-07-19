@@ -165,7 +165,6 @@ public class
 
     boolean sendItem(final String item) {
         final EmailItemBean emailItemBean = Helper.getGson().fromJson(item, EmailItemBean.class);
-        final StatisticsManager statsMgr = pwmApplication.getStatisticsManager();
 
         // create a new MimeMessage object (using the Session created above)
         try {
@@ -195,25 +194,22 @@ public class
             }
 
             LOGGER.debug("successfully sent " + logText + "email: " + emailItemBean.toString());
-            if (statsMgr != null) {
-                statsMgr.incrementValue(Statistic.EMAIL_SEND_SUCCESSES);
-            }
+            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
 
             lastSendFailure = null;
             return true;
         } catch (MessagingException e) {
-            if (statsMgr != null) {
-                statsMgr.incrementValue(Statistic.EMAIL_SEND_FAILURES);
-            }
-
             lastSendFailure = HealthRecord.forMessage(HealthMessage.Email_SendFailure, e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
                 LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", will retry");
+                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_FAILURES);
                 return false;
             } else {
-                LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
+                LOGGER.error(
+                        "error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
+                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
                 return true;
             }
         }
@@ -300,7 +296,7 @@ public class
     @Override
     protected String queueItemToDebugString(QueueEvent queueEvent)
     {
-        final Map<String,Object> debugOutputMap = new LinkedHashMap<String, Object>();
+        final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
         final EmailItemBean emailItemBean = Helper.getGson().fromJson(queueEvent.getItem(), EmailItemBean.class);
@@ -310,6 +306,12 @@ public class
         debugOutputMap.put("subject", emailItemBean.getSubject());
 
         return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
+    }
+
+    @Override
+    protected void noteDiscardedItem(QueueEvent queueEvent)
+    {
+        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
     }
 }
 

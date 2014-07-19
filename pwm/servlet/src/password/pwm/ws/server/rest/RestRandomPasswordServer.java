@@ -34,6 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
@@ -205,7 +206,7 @@ public class RestRandomPasswordServer {
             randomConfig.setMaximumLength(jsonInput.maxLength);
         }
         if (jsonInput.chars != null) {
-            final List<String> charValues = new ArrayList<String>();
+            final List<String> charValues = new ArrayList<>();
             for (int i = 0; i < jsonInput.chars.length(); i++) {
                 charValues.add(String.valueOf(jsonInput.chars.charAt(i)));
             }
@@ -223,7 +224,7 @@ public class RestRandomPasswordServer {
 
                 randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
                         restRequestBean.getUserIdentity(),
                         theUser,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
@@ -241,7 +242,7 @@ public class RestRandomPasswordServer {
         outputMap.password = randomPassword;
 
         if (restRequestBean.isExternal()) {
-            restRequestBean.getPwmApplication().getStatisticsManager().incrementValue(Statistic.REST_RANDOMPASSWORD);
+            StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
         }
 
         return outputMap;

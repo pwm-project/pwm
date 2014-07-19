@@ -3,7 +3,6 @@
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%@ page import="java.text.DateFormat" %>
-<%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -71,24 +70,28 @@
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                                 <pwm:Display key="Button_DownloadReportRecords" bundle="Admin"/>
                             </button>
-                            <script type="application/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    PWM_MAIN.showTooltip({
-                                        id: 'Button_DownloadReportRecords',
-                                        text: '<pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
-                                        width: 350
+                            <pwm:script>
+                                <script type="application/javascript">
+                                    PWM_GLOBAL['startupFunctions'].push(function(){
+                                        PWM_MAIN.showTooltip({
+                                            id: 'Button_DownloadReportRecords',
+                                            text: '<pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
+                                            width: 350
+                                        });
                                     });
-                                });
-                            </script>
+                                </script>
+                            </pwm:script>
                             <input type="hidden" name="processAction" value="outputUserReportCsv"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
                     </div>
-                    <script type="application/javascript">
-                        PWM_GLOBAL['startupFunctions'].push(function(){
-                            PWM_ADMIN.initReportDataGrid();
-                        });
-                    </script>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_ADMIN.initReportDataGrid();
+                            });
+                        </script>
+                    </pwm:script>
                 </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_ReportEngineStatus" bundle="Admin"/>">
                     <table style="width:400px" id="statusTable">
@@ -154,14 +157,13 @@
                                     </form>
                                 </td>
                             </tr>
-                            <% for (Iterator<Statistic> iter = Statistic.sortedValues(locale).iterator(); iter.hasNext();) { %>
-                            <% Statistic leftStat = iter.next(); %>
+                            <% for (Statistic loopStat : Statistic.sortedValues(locale)) { %>
                             <tr>
                                 <td >
-                                    <%= leftStat.getLabel(locale) %>
+                                    <span id="Statistic_Key_<%=loopStat.getKey()%>"><%= loopStat.getLabel(locale) %><span/>
                                 </td>
                                 <td>
-                                    <%= stats.getStatistic(leftStat) %><%= leftStat.getType() == Statistic.Type.AVERAGE && leftStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
+                                    <%= stats.getStatistic(loopStat) %><%= loopStat.getType() == Statistic.Type.AVERAGE && loopStat != Statistic.AVG_PASSWORD_STRENGTH ? " ms" : "" %>
                                 </td>
                             </tr>
                             <% } %>
@@ -199,33 +201,41 @@
         </div>
     </div>
 </div>
-<script type="text/javascript">
-    function refreshChart() {
-        require(["dijit/registry"],function(registry){
-            var keyName = registry.byId('statsChartSelect').get('value');
-            var days = PWM_MAIN.getObject('statsChartDays').value;
-            PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
-        });
-    }
+<pwm:script>
+    <script type="text/javascript">
+        function refreshChart() {
+            require(["dijit/registry"],function(registry){
+                var keyName = registry.byId('statsChartSelect').get('value');
+                var days = PWM_MAIN.getObject('statsChartDays').value;
+                PWM_ADMIN.showStatChart(keyName,days,'statsChart',{});
+            });
+        }
 
-    function downloadCsv() {
-        window.location.href='<%=request.getContextPath()%><pwm:url url="/public/rest/statistics/file"/>?pwmFormID=<pwm:FormID/>';
-    }
+        function downloadCsv() {
+            window.location.href='<pwm:url url="/private/CommandServlet" addContext="true"/>?processAction=outputStatisticsLogCsv&pwmFormID=<pwm:FormID/>';
+        }
 
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
-            dojoParser.parse('centerbody');
-            ready(function(){
-                registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
-                setTimeout(function(){
-                    refreshChart();
-                },5*1000);
-                PWM_ADMIN.refreshReportDataSummary(5 * 1000);
-                PWM_ADMIN.refreshReportDataStatus(5 * 1000);
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
+                dojoParser.parse('centerbody');
+                ready(function(){
+                    registry.byId('statsChartSelect').set('value','<%=Statistic.PASSWORD_CHANGES%>');
+                    setTimeout(function(){
+                        refreshChart();
+                    },5*1000);
+                    PWM_ADMIN.refreshReportDataSummary(5 * 1000);
+                    PWM_ADMIN.refreshReportDataStatus(5 * 1000);
+                });
+
+                <%
+                for (Statistic loopStat : Statistic.sortedValues(locale)) {
+                %>
+                PWM_MAIN.showTooltip({id:'Statistic_Key_<%=loopStat.getKey()%>',width:400,position:'above',text:PWM_ADMIN.showString("Statistic_Description.<%=loopStat.getKey()%>")});
+                <% } %>
             });
         });
-    });
-</script>
+    </script>
+</pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>

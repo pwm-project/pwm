@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.PasswordSyncCheckMode;
@@ -44,19 +45,22 @@ public class PasswordChangeProgressChecker {
 
     private final ProgressRecord completedReplicationRecord;
     private final PwmApplication pwmApplication;
-    private final PwmSession pwmSession;
+    private final UserIdentity userIdentity;
+    private final SessionLabel pwmSession;
     private final Locale locale;
 
     private final PasswordSyncCheckMode passwordSyncCheckMode;
 
     public PasswordChangeProgressChecker(
             PwmApplication pwmApplication,
-            PwmSession pwmSession,
+            UserIdentity userIdentity,
+            SessionLabel sessionLabel,
             Locale locale
     )
     {
         this.pwmApplication = pwmApplication;
-        this.pwmSession = pwmSession;
+        this.pwmSession = sessionLabel;
+        this.userIdentity = userIdentity;
         this.locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
 
         if (pwmApplication == null) {
@@ -124,7 +128,7 @@ public class PasswordChangeProgressChecker {
     public static class ProgressTracker implements Serializable {
         private Date beginTime = new Date();
         private Date lastReplicaCheckTime;
-        private final Map<String,ProgressRecord> itemCompletions = new HashMap<String, ProgressRecord>();
+        private final Map<String,ProgressRecord> itemCompletions = new HashMap<>();
 
         public Date getBeginTime()
         {
@@ -149,7 +153,7 @@ public class PasswordChangeProgressChecker {
             throw new IllegalArgumentException("tracker cannot be null");
         }
 
-        final Map<String,ProgressRecord> newItemProgress = new LinkedHashMap<String, ProgressRecord>();
+        final Map<String,ProgressRecord> newItemProgress = new LinkedHashMap<>();
         newItemProgress.putAll(tracker.itemCompletions);
 
         if (tracker.beginTime == null || new Date().after(maxCompletionTime(tracker))) {
@@ -182,7 +186,7 @@ public class PasswordChangeProgressChecker {
             final ProgressTracker tracker
     )
     {
-        final Map<String,ProgressRecord> returnValue = new LinkedHashMap<String, ProgressRecord>();
+        final Map<String,ProgressRecord> returnValue = new LinkedHashMap<>();
 
         { // figure replication progress
             final ProgressRecord replicationProgress = figureReplicationStatusCompletion(tracker);
@@ -300,8 +304,7 @@ public class PasswordChangeProgressChecker {
         }
 
         tracker.lastReplicaCheckTime = new Date();
-        final UserIdentity userIdentity = pwmSession.getUserInfoBean().getUserIdentity();
-        LOGGER.trace(pwmSession, "beginning password replication time check for " + userIdentity);
+        LOGGER.trace(pwmSession, "beginning password replication time check for " + userIdentity.toDeliminatedKey());
 
         try {
             final Map<String,Date> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes(pwmApplication,
@@ -310,7 +313,7 @@ public class PasswordChangeProgressChecker {
                 LOGGER.trace("only one replica returned data, marking as complete");
                 return completedReplicationRecord;
             } else {
-                final HashSet<Date> tempHashSet = new HashSet<Date>();
+                final HashSet<Date> tempHashSet = new HashSet<>();
                 int duplicateValues = 0;
                 for (final String replicaUrl : checkResults.keySet()) {
                     final Date date = checkResults.get(replicaUrl);

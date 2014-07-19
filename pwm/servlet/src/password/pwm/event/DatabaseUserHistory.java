@@ -54,7 +54,7 @@ class DatabaseUserHistory implements UserHistoryStore {
 
     @Override
     public void updateUserHistory(UserAuditRecord auditRecord) throws PwmUnrecoverableException {
-        final UserIdentity targetUserDN = UserIdentity.fromDelimitedKey(auditRecord.getTargetDN());
+        final UserIdentity targetUserDN = new UserIdentity(auditRecord.getTargetDN(),auditRecord.getTargetLdapProfile());
         final String guid;
         try {
             guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, targetUserDN, false);
@@ -100,7 +100,7 @@ class DatabaseUserHistory implements UserHistoryStore {
     }
 
     static class StoredHistory {
-        private List<UserAuditRecord> records = new ArrayList<UserAuditRecord>();
+        private List<UserAuditRecord> records = new ArrayList<>();
 
         List<UserAuditRecord> getRecords() {
             return records;

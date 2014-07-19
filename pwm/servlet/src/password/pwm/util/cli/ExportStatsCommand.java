@@ -30,6 +30,7 @@ import password.pwm.util.stats.StatisticsManager;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Collections;
+import java.util.Locale;
 
 public class ExportStatsCommand extends AbstractCliCommand {
 
@@ -45,7 +46,7 @@ public class ExportStatsCommand extends AbstractCliCommand {
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileWriter fileWriter = new FileWriter(outputFile,true);
-        final int counter = statsManger.outputStatsToCsv(fileWriter,false);
+        final int counter = statsManger.outputStatsToCsv(fileWriter, Locale.getDefault(),false);
         fileWriter.close();
         out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }

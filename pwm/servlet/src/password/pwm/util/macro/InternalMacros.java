@@ -39,7 +39,7 @@ public abstract class InternalMacros {
 
     public static final List<Class<? extends MacroImplementation>> INTERNAL_MACROS;
     static {
-        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<Class<? extends MacroImplementation>>();
+        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
         defaultMacros.add(OtpSetupTimeMacro.class);
         defaultMacros.add(ResponseSetupTimeMacro.class);
         INTERNAL_MACROS = Collections.unmodifiableList(defaultMacros);

@@ -54,8 +54,8 @@ public class Berkeley_LocalDB implements LocalDBProvider {
     private final static TupleBinding<String> STRING_TUPLE = TupleBinding.getPrimitiveBinding(String.class);
 
     private Environment environment;
-    private final Map<DB, StoredMap<String, String>> cachedMaps = new ConcurrentHashMap<DB, StoredMap<String, String>>();
-    private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<DB, Database>();
+    private final Map<DB, StoredMap<String, String>> cachedMaps = new ConcurrentHashMap<>();
+    private final Map<DB, Database> cachedDatabases = new ConcurrentHashMap<>();
 
     // cache of dbIterators
     private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(new ConcurrentHashMap<LocalDB.LocalDBIterator<String>,Boolean>());
@@ -78,7 +78,7 @@ public class Berkeley_LocalDB implements LocalDBProvider {
 
     private static StoredMap<String, String> openStoredMap(final Database database)
             throws DatabaseException {
-        final StoredMap<String, String> storedMap = new StoredMap<String, String>(database, STRING_TUPLE, STRING_TUPLE, true);
+        final StoredMap<String, String> storedMap = new StoredMap<>(database, STRING_TUPLE, STRING_TUPLE, true);
         storedMap.getClass();
         return storedMap;
     }

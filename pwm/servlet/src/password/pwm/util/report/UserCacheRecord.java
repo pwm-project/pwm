@@ -48,6 +48,7 @@ public class UserCacheRecord implements Serializable {
     public Date lastLoginTime;
 
     public boolean hasResponses;
+    public boolean hasHelpdeskResponses;
     public Date responseSetTime;
     public DataStorageMethod responseStorageMethod;
     public Answer.FormatType responseFormatType;
@@ -173,6 +174,16 @@ public class UserCacheRecord implements Serializable {
         this.hasResponses = hasResponses;
     }
 
+    public boolean isHasHelpdeskResponses()
+    {
+        return hasHelpdeskResponses;
+    }
+
+    public void setHasHelpdeskResponses(boolean hasHelpdeskResponses)
+    {
+        this.hasHelpdeskResponses = hasHelpdeskResponses;
+    }
+
     public boolean isRequiresPasswordUpdate() {
         return requiresPasswordUpdate;
     }
@@ -252,16 +263,16 @@ public class UserCacheRecord implements Serializable {
 
         this.setHasResponses(!userInfoBean.isRequiresResponseConfig());
         this.setResponseSetTime(userInfoBean.getResponseInfoBean() != null
-                ? userInfoBean.getResponseInfoBean().getTimestamp()
-                : null
+                        ? userInfoBean.getResponseInfoBean().getTimestamp()
+                        : null
         );
         this.setResponseStorageMethod(userInfoBean.getResponseInfoBean() != null
-                ? userInfoBean.getResponseInfoBean().getDataStorageMethod()
-                : null
+                        ? userInfoBean.getResponseInfoBean().getDataStorageMethod()
+                        : null
         );
         this.setResponseFormatType(userInfoBean.getResponseInfoBean() != null
-                ? userInfoBean.getResponseInfoBean().getFormatType()
-                : null
+                        ? userInfoBean.getResponseInfoBean().getFormatType()
+                        : null
         );
 
         this.setRequiresPasswordUpdate(userInfoBean.isRequiresNewPassword());
@@ -271,8 +282,13 @@ public class UserCacheRecord implements Serializable {
 
         this.setHasOtpSecret(userInfoBean.getOtpUserRecord() != null);
         this.setOtpSecretSetTime(userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null
-                ? userInfoBean.getOtpUserRecord().getTimestamp()
-                : null
+                        ? userInfoBean.getOtpUserRecord().getTimestamp()
+                        : null
+        );
+
+        this.setHasHelpdeskResponses(userInfoBean.getResponseInfoBean() != null
+                        && userInfoBean.getResponseInfoBean().getHelpdeskCrMap() != null
+                        && !userInfoBean.getResponseInfoBean().getHelpdeskCrMap().isEmpty()
         );
     }
 

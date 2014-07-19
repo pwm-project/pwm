@@ -1,4 +1,4 @@
-<%@ page import="password.pwm.bean.servlet.NewUserBean" %>
+<%@ page import="password.pwm.http.bean.NewUserBean" %>
 
 <%--
   ~ Password Management Servlets (PWM)
@@ -72,11 +72,13 @@
     </div>
     <div class="push"></div>
 </div>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
     });
 </script>
+</pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

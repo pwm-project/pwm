@@ -28,7 +28,7 @@ import org.apache.commons.codec.binary.Base32;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
-import password.pwm.PwmSession;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
@@ -36,6 +36,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -61,7 +62,7 @@ public class OtpService implements PwmService {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(OtpService.class);
 
-    private final Map<DataStorageMethod, OtpOperator> operatorMap = new EnumMap<DataStorageMethod, OtpOperator>(DataStorageMethod.class);
+    private final Map<DataStorageMethod, OtpOperator> operatorMap = new EnumMap<>(DataStorageMethod.class);
     private PwmApplication pwmApplication;
 
     public OtpService() {
@@ -115,7 +116,7 @@ public class OtpService implements PwmService {
     }
 
     public static List<String> createRawRecoveryCodes(int numRecoveryCodes) throws NoSuchAlgorithmException, InvalidKeyException {
-        final List<String> recoveryCodes = new ArrayList<String>();
+        final List<String> recoveryCodes = new ArrayList<>();
         int length = PwmConstants.OTP_RECOVERY_TOKEN_LENGTH;
         for (int n = 0; n < numRecoveryCodes; n++) {
             String code = PwmRandom.getInstance().alphaNumericString("0123456789", length);
@@ -150,7 +151,7 @@ public class OtpService implements PwmService {
         final List<String> rawRecoveryCodes;
         if (storageFormat.supportsRecoveryCodes()) {
             rawRecoveryCodes = createRawRecoveryCodes(recoveryCodeCount);
-            final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<OTPUserRecord.RecoveryCode>();
+            final List<OTPUserRecord.RecoveryCode> recoveryCodeList = new ArrayList<>();
             final OTPUserRecord.RecoveryInfo recoveryInfo = new OTPUserRecord.RecoveryInfo();
             if (storageFormat.supportsHashedRecoveryCodes()) {
                 LOGGER.debug("Hashing the recovery codes");
@@ -178,7 +179,7 @@ public class OtpService implements PwmService {
             }
             otpUserRecord.setRecoveryCodes(recoveryCodeList);
         } else {
-            rawRecoveryCodes = new ArrayList<String>();
+            rawRecoveryCodes = new ArrayList<>();
         }
         return rawRecoveryCodes;
     }
@@ -377,7 +378,7 @@ public class OtpService implements PwmService {
      * @throws PwmUnrecoverableException
      */
     public boolean checkIfOtpSetupNeeded(
-            final PwmSession pwmSession,
+            final SessionLabel pwmSession,
             final UserIdentity theUser,
             final OTPUserRecord otpConfig
     )

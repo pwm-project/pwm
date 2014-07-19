@@ -42,8 +42,8 @@ import java.util.*;
 public class LdapConnectionService implements PwmService {
     final private static PwmLogger LOGGER = PwmLogger.getLogger(LdapConnectionService.class);
 
-    private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<String, ChaiProvider>();
-    private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<LdapProfile, ErrorInformation>();
+    private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<>();
+    private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<>();
     private PwmApplication pwmApplication;
     private STATUS status = STATUS.NEW;
 
@@ -123,7 +123,7 @@ public class LdapConnectionService implements PwmService {
     public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
         lastLdapErrors.put(ldapProfile, errorInformation);
         final Gson gson = Helper.getGson();
-        final HashMap<String,ErrorInformation> jsonMap = new HashMap<String, ErrorInformation>();
+        final HashMap<String,ErrorInformation> jsonMap = new HashMap<>();
         for (final LdapProfile loopProfile : lastLdapErrors.keySet()) {
             jsonMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
         }
@@ -150,7 +150,7 @@ public class LdapConnectionService implements PwmService {
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
 
                 final Map<String, ErrorInformation> fromJson = Helper.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {}.getType());
-                final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<LdapProfile, ErrorInformation>();
+                final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();
                 for (final String id : fromJson.keySet()) {
                     final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(id);
                     if (ldapProfile != null) {

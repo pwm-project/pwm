@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,16 +23,17 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmService;
-import password.pwm.PwmSession;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmSession;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.SeedlistManager;
@@ -51,7 +52,7 @@ public class RandomPasswordGenerator {
      * Default seed phrases.  Most basic ASCII chars, except those that are visually ambiguous are
      * represented here.  No multi-character phrases are included.
      */
-    public static final Set<String> DEFAULT_SEED_PHRASES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+    public static final Set<String> DEFAULT_SEED_PHRASES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
             "a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
             "a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "m", "n", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -97,21 +98,21 @@ public class RandomPasswordGenerator {
     }
 
 
-        /**
-        * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
-        * reason the RANDOM algorithm can not generate a valid password, null will be returned.
-        * <p/>
-        * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
-        * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
-        *
-        * @param pwmSession A valid pwmSession
-        * @param randomGeneratorConfig Policy to be used during generation
-        * @param pwmApplication Used to get configuration, seedmanager and other services.
-        * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
-        * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
-        *          If there is no way to create a password using the configured rules and
-        *          default seed phrase
-        */
+    /**
+     * Creates a new password that satisfies the password rules.  All rules are checked for.  If for some
+     * reason the RANDOM algorithm can not generate a valid password, null will be returned.
+     * <p/>
+     * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
+     * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
+     *
+     * @param pwmSession A valid pwmSession
+     * @param randomGeneratorConfig Policy to be used during generation
+     * @param pwmApplication Used to get configuration, seedmanager and other services.
+     * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
+     * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
+     *          If there is no way to create a password using the configured rules and
+     *          default seed phrase
+     */
     public static String createRandomPassword(
             final PwmSession pwmSession,
             final RandomGeneratorConfig randomGeneratorConfig,
@@ -126,7 +127,7 @@ public class RandomPasswordGenerator {
 
             final SeedlistManager seedlistManager = pwmApplication.getSeedlistManager();
             if (seedlistManager != null && seedlistManager.status() == PwmService.STATUS.OPEN && seedlistManager.size() > 0) {
-                seeds = new HashSet<String>();
+                seeds = new HashSet<>();
                 int safetyCounter = 0;
                 while (seeds.size() < 10 && safetyCounter < 100) {
                     safetyCounter++;
@@ -148,7 +149,7 @@ public class RandomPasswordGenerator {
         // determine the password policy to use for random generation
         final PwmPasswordPolicy randomGenPolicy;
         {
-            final Map<String, String> newPolicyMap = new HashMap<String, String>();
+            final Map<String, String> newPolicyMap = new HashMap<>();
             newPolicyMap.putAll(randomGeneratorConfig.getPasswordPolicy().getPolicyMap());
             if (randomGeneratorConfig.getMinimumLength() > randomGeneratorConfig.getPasswordPolicy().getRuleHelper().readIntValue(PwmPasswordRule.MinimumLength)) {
                 newPolicyMap.put(PwmPasswordRule.MinimumLength.getKey(), String.valueOf(randomGeneratorConfig.getMinimumLength()));
@@ -169,21 +170,28 @@ public class RandomPasswordGenerator {
         final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, randomGenPolicy);
 
         // modify until it passes all the rules
+        final int MAX_TRY_COUNT = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.PASSWORD_RANDOMGEN_MAX_ATTEMPTS));
+        final int JITTER_COUNT = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.PASSWORD_RANDOMGEN_JITTER_COUNT));
         boolean validPassword = false;
-        while (!validPassword && tryCount < randomGeneratorConfig.getMaximumTryCount()) {
+        while (!validPassword && tryCount < MAX_TRY_COUNT) {
             tryCount++;
             validPassword = true;
 
-            final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null);
-            if (errors != null && !errors.isEmpty()) {
-                validPassword = false;
-                modifyPasswordBasedOnErrors(password, errors, seedMachine);
-            } else if (pwmApplication != null && checkPasswordAgainstDisallowedHttpValues(pwmApplication.getConfig(),password.toString())) {
-                validPassword = false;
+            if (tryCount % JITTER_COUNT == 0) {
                 password.delete(0,password.length());
                 password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
             }
 
+            final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(
+                    password.toString(), null, null, true);
+            if (errors != null && !errors.isEmpty()) {
+                validPassword = false;
+                modifyPasswordBasedOnErrors(password, errors, seedMachine);
+            } else if (checkPasswordAgainstDisallowedHttpValues(pwmApplication.getConfig(), password.toString())) {
+                validPassword = false;
+                password.delete(0, password.length());
+                password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
+            }
         }
 
         // report outcome
@@ -192,7 +200,7 @@ public class RandomPasswordGenerator {
             if (validPassword) {
                 LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
-                final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null);
+                final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null, false);
                 final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
@@ -219,7 +227,7 @@ public class RandomPasswordGenerator {
             return;
         }
 
-        final Set<PwmError> errorMessages = new HashSet<PwmError>();
+        final Set<PwmError> errorMessages = new HashSet<>();
         for (final ErrorInformation errorInfo : errors) {
             errorMessages.add(errorInfo.getError());
         }
@@ -298,7 +306,7 @@ public class RandomPasswordGenerator {
 
     private static void deleteRandChar(final StringBuilder password, final String charsToRemove)
             throws ImpossiblePasswordPolicyException {
-        final List<Integer> removePossibilities = new ArrayList<Integer>();
+        final List<Integer> removePossibilities = new ArrayList<>();
         for (int i = 0; i < password.length(); i++) {
             final char loopChar = password.charAt(i);
             final int index = charsToRemove.indexOf(loopChar);
@@ -449,7 +457,7 @@ public class RandomPasswordGenerator {
         }
 
         public String getRandomSeed() {
-            return new ArrayList<String>(seeds).get(RANDOM.nextInt(seeds.size()));
+            return new ArrayList<>(seeds).get(RANDOM.nextInt(seeds.size()));
         }
 
         public String getAllChars() {
@@ -497,7 +505,7 @@ public class RandomPasswordGenerator {
             return DEFAULT_SEED_PHRASES;
         }
 
-        final Collection<String> newSeeds = new HashSet<String>();
+        final Collection<String> newSeeds = new HashSet<>();
         newSeeds.addAll(inputSeeds);
 
         for (Iterator<String> iter = newSeeds.iterator(); iter.hasNext();) {
@@ -514,7 +522,6 @@ public class RandomPasswordGenerator {
         public static final int DEFAULT_MINIMUM_LENGTH = 6;
         public static final int DEFAULT_MAXIMUM_LENGTH = 16;
         public static final int DEFAULT_DESIRED_STRENGTH = 45;
-        public static final int DEFAULT_MAXIMUM_TRY_COUNT = 1000;
 
         public static final int MINIMUM_STRENGTH = 0;
         public static final int MAXIMUM_STRENGTH = 100;
@@ -523,7 +530,6 @@ public class RandomPasswordGenerator {
         private int minimumLength = DEFAULT_MINIMUM_LENGTH;
         private int maximumLength = DEFAULT_MAXIMUM_LENGTH;
         private int minimumStrength = DEFAULT_DESIRED_STRENGTH;
-        private int maximumTryCount = DEFAULT_MAXIMUM_TRY_COUNT;
         private PwmPasswordPolicy passwordPolicy = PwmPasswordPolicy.defaultPolicy();
 
         public Collection<String> getSeedlistPhrases() {
@@ -570,14 +576,6 @@ public class RandomPasswordGenerator {
             int desiredStrength = minimumStrength > MAXIMUM_STRENGTH ? MAXIMUM_STRENGTH : minimumStrength;
             desiredStrength = desiredStrength < MINIMUM_STRENGTH ? MINIMUM_STRENGTH : desiredStrength;
             this.minimumStrength = desiredStrength;
-        }
-
-        public int getMaximumTryCount() {
-            return maximumTryCount;
-        }
-
-        public void setMaximumTryCount(final int maximumTryCount) {
-            this.maximumTryCount = maximumTryCount;
         }
 
         public PwmPasswordPolicy getPasswordPolicy() {

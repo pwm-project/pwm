@@ -46,7 +46,7 @@ public abstract class StandardMacros {
 
     public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
     static {
-        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<Class<? extends MacroImplementation>>();
+        final List<Class<? extends MacroImplementation>> defaultMacros = new ArrayList<>();
         defaultMacros.add(LdapMacro.class);
         defaultMacros.add(UserPwExpirationTimeMacro.class);
         defaultMacros.add(UserPwExpirationTimeDefaultMacro.class);

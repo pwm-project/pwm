@@ -25,6 +25,7 @@
 </div>
 <br/>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<pwm:script>
 <script type="text/javascript">
     var PWM_ADMIN = PWM_ADMIN || {};
 
@@ -32,6 +33,7 @@
         PWM_ADMIN.initAdminOtherMenu();
     });
 </script>
+</pwm:script>
 <style type="text/css">
     .menubutton {
         cursor: pointer;
