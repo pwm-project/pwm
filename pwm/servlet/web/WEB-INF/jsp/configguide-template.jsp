@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
+<%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -24,14 +24,13 @@
 
 <!DOCTYPE html>
 
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <% ConfigGuideBean configGuideBean = (ConfigGuideBean) PwmSession.getPwmSession(session).getSessionBean(ConfigGuideBean.class);%>
+<% PwmSetting.Template selectedTemplate = configGuideBean.getSelectedTemplate(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -47,46 +46,79 @@
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <pwm:Display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
-        <select id="templateSelect" onchange="selectTemplate(this.value);">
-            <%
-                boolean noTemplateYet = false;
-                if (configGuideBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE) == null) {
-                    noTemplateYet = true;
-            %>
-            <option value="NOTSELECTED" selected="selected"><pwm:Display key="Display_SelectionIndicator"/></option>
-            <% } %>
-            <% for (final PwmSetting.Template template : PwmSetting.Template.values()) { %>
-            <option value="<%=template.toString()%>"<% if (!noTemplateYet && template == configGuideBean.getStoredConfiguration().getTemplate()) { %> selected="selected"<% } %>>
-                <%=template.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
-            </option>
-            <% } %>
-        </select>
-        <br/>
+        <form id="configForm" data-dojo-type="dijit/form/Form">
+            <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>"
+                    onchange="formHandler()" data-dojo-type="dijit/form/Select" style="width:300px">
+                <% if (selectedTemplate == null) { %>
+                <option value="NOTSELECTED" selected="selected">-- Please select a template --</option>
+                <% } %>
+                <% for (final PwmSetting.Template loopTemplate : PwmSetting.Template.values()) { %>
+                <% boolean selected = loopTemplate.equals(selectedTemplate); %>
+                <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>
+                    <%=loopTemplate.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
+                </option>
+                <% } %>
+            </select>
+        </form>
+            <br/>
 
-        <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('START');">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:Display key="Button_Previous" bundle="Config"/>
-            </button>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAP');">
-                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:Display key="Button_Next" bundle="Config"/>
-            </button>
-        </div>
+            <div id="buttonbar">
+                <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('START');">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:Display key="Button_Previous" bundle="Config"/>
+                </button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAP');">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                    <pwm:Display key="Button_Next" bundle="Config"/>
+                </button>
+            </div>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        <% if (noTemplateYet) { %>
-        PWM_MAIN.getObject('button_next').disabled = true;
-        <% } %>
-        selectTemplate(PWM_MAIN.getObject('templateSelect').value);
-    });
-</script>
+    <script type="text/javascript">
+        function formHandler() {
+            var startTemplate = '<%=selectedTemplate == null ? "" : selectedTemplate.toString()%>';
+
+            var configForm = dojo.formToObject('configForm');
+            var newTemplate = configForm['<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>'];
+            if (startTemplate && startTemplate.length > 0 && startTemplate != newTemplate) {
+                PWM_MAIN.showConfirmDialog({
+                    text:'Changing the template will cause existing guide settings to be cleared.  Are you sure you wish to continue?',
+                    okAction:function(){
+                        PWM_GUIDE.updateForm();
+                        updateNextButton();
+                    },
+                    cancelAction:function(){
+                        PWM_MAIN.goto('/private/config/ConfigGuide');
+                    }
+                });
+            } else {
+                PWM_GUIDE.updateForm();
+                updateNextButton();
+            }
+        }
+
+        function updateNextButton() {
+            require(["dojo"],function(dojo) {
+                var configForm = dojo.formToObject('configForm');
+                var notSelected = configForm['<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>'] == 'NOTSELECTED';
+                PWM_MAIN.getObject('button_next').disabled = notSelected;
+            });
+        }
+
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox","dijit/form/Select"],function(dojoParser){
+                dojoParser.parse();
+                updateNextButton();
+            });
+        });
+    </script>
 </pwm:script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

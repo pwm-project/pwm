@@ -205,6 +205,15 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
+    public void resetAllPasswordValues() {
+        for (final Iterator<SettingValueRecord> settingValueRecordIterator = new StoredValueIterator(false); settingValueRecordIterator.hasNext();) {
+            final SettingValueRecord settingValueRecord = settingValueRecordIterator.next();
+            if (settingValueRecord.getSetting().getSyntax() == PwmSettingSyntax.PASSWORD) {
+                this.resetSetting(settingValueRecord.getSetting(),settingValueRecord.getProfile(),null);
+            }
+        }
+    }
+
     public StoredConfiguration()
     {
         fixupMandatoryElements(document);
@@ -956,7 +965,7 @@ public class StoredConfiguration implements Serializable {
     }
 
 
-    public static class ConfigRecordID {
+    public static class ConfigRecordID implements Serializable {
         private RecordType recordType;
         private Object recordID;
         private String profileID;
@@ -1194,5 +1203,90 @@ public class StoredConfiguration implements Serializable {
         settingsElement.addContent(settingElement);
 
         return settingElement;
+    }
+
+    static class SettingValueRecord implements Serializable {
+        private PwmSetting setting;
+        private String profile;
+        private StoredValue storedValue;
+
+        public SettingValueRecord(
+                PwmSetting setting,
+                String profile,
+                StoredValue storedValue
+        )
+        {
+            this.setting = setting;
+            this.profile = profile;
+            this.storedValue = storedValue;
+        }
+
+        public PwmSetting getSetting()
+        {
+            return setting;
+        }
+
+        public String getProfile()
+        {
+            return profile;
+        }
+
+        public StoredValue getStoredValue()
+        {
+            return storedValue;
+        }
+    }
+
+    class StoredValueIterator implements Iterator<StoredConfiguration.SettingValueRecord> {
+
+        private Queue<SettingValueRecord> settingQueue = new LinkedList<>();
+
+        public StoredValueIterator(boolean includeDefaults) {
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                    if (includeDefaults || !isDefaultValue(setting)) {
+                        SettingValueRecord settingValueRecord = new SettingValueRecord(setting, null, null);
+                        settingQueue.add(settingValueRecord);
+                    }
+                }
+            }
+
+            for (final PwmSetting.Category category : PwmSetting.Category.values()) {
+                if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+                    for (final String profileID : profilesForSetting(category.getProfileSetting())) {
+                        for (final PwmSetting setting : PwmSetting.getSettings(category)) {
+                            if (includeDefaults || !isDefaultValue(setting,profileID)) {
+                                SettingValueRecord settingValueRecord = new SettingValueRecord(setting, profileID, null);
+                                settingQueue.add(settingValueRecord);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        @Override
+        public boolean hasNext()
+        {
+            return !settingQueue.isEmpty();
+        }
+
+        @Override
+        public SettingValueRecord next()
+        {
+            StoredConfiguration.SettingValueRecord settingValueRecord = settingQueue.poll();
+            return new SettingValueRecord(
+                    settingValueRecord.getSetting(),
+                    settingValueRecord.getProfile(),
+                    readSetting(settingValueRecord.getSetting(),settingValueRecord.getProfile())
+            );
+        }
+
+        @Override
+        public void remove()
+        {
+
+        }
     }
 }

@@ -44,7 +44,7 @@
     </setting>
     <setting key="pwm.publishStats.enable" level="0" required="true">
         <label>Enable Anonymous Statistics Publishing</label>
-        <description><![CDATA[If true, the statistics of this application are periodically published statics to the project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cummulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps developers know which features are used by administrators.]]></description>
+        <description><![CDATA[If true, the statistics of this application are periodically published statics to the project website.   The published statistics are:<ul><li>Instance Name</li><li>Version/Build Information</li><li>Cumulative Statistics</li><li>Which settings are non default (but not the actual setting values</li></ul>Leaving this feature enabled helps developers know which features are used by administrators.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -3784,7 +3784,7 @@
         <label>NetIQ eDirectory</label>
     </template>
     <template key="AD">
-        <label>Active Directory</label>
+        <label>Microsoft Active Directory</label>
     </template>
     <template key="ORACLE_DS">
         <label>Oracle Directory Server</label>

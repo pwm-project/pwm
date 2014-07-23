@@ -111,7 +111,7 @@
                                 showLabel: 'Enabled',
                                 checked: <%=configGuideBean.isUseConfiguredCerts()%>,
                                 onChange: function(){
-                                    setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
+                                    PWM_GUIDE.setUseConfiguredCerts(<%=!configGuideBean.isUseConfiguredCerts()%>);
                                 }
                             },'button_useConfig');
                         });
@@ -123,12 +123,12 @@
         <% } %>
         <br/>
         <div id="buttonbar">
-            <button class="btn" onclick="gotoStep('LDAP');">
+            <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:Display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" onclick="gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>>
+            <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>>
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:Display key="Button_Next" bundle="Config"/>
             </button>

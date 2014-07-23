@@ -366,6 +366,8 @@ public class ConfigManagerServlet extends TopServlet {
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(contextManager);
+            storedConfiguration.resetAllPasswordValues();
+
             final String output = storedConfiguration.toXml();
             zipOutput.write(output.getBytes("UTF8"));
             zipOutput.closeEntry();

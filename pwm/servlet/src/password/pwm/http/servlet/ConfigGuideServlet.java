@@ -58,6 +58,8 @@ public class ConfigGuideServlet extends TopServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigGuideServlet.class.getName());
 
+    public static final String PARAM_TEMPLATE_NAME = "template-name";
+
     public static final String PARAM_LDAP_HOST = "ldap-server-ip";
     public static final String PARAM_LDAP_PORT = "ldap-server-port";
     public static final String PARAM_LDAP_SECURE = "ldap-server-secure";
@@ -117,6 +119,12 @@ public class ConfigGuideServlet extends TopServlet {
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+
+        if (((ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class)).getStep() == STEP.START) {
+            pwmSession.clearSessionBeans();
+            pwmSession.getSessionStateBean().setTheme(null);
+        }
+
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
@@ -147,10 +155,7 @@ public class ConfigGuideServlet extends TopServlet {
 
         if (actionParam != null && actionParam.length() > 0) {
             Validator.validatePwmFormID(req);
-            if (actionParam.equalsIgnoreCase("selectTemplate")) {
-                restSelectTemplate(req, resp, pwmApplication, pwmSession);
-                return;
-            } else if (actionParam.equalsIgnoreCase("ldapHealth")) {
+            if (actionParam.equalsIgnoreCase("ldapHealth")) {
                 restLdapHealth(resp, pwmSession);
                 return;
             } else if (actionParam.equalsIgnoreCase("updateForm")) {
@@ -230,51 +235,6 @@ public class ConfigGuideServlet extends TopServlet {
         ServletHelper.outputJsonResult(resp,new RestResultBean());
     }
 
-    private void restSelectTemplate(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
-            throws PwmUnrecoverableException, IOException
-    {
-        final String requestedTemplate = Validator.readStringFromRequest(req, "template");
-        if ("NOTSELECTED".equals(requestedTemplate)) {
-            return;
-        }
-        PwmSetting.Template template;
-        if (requestedTemplate == null || requestedTemplate.length() <= 0) {
-            final String errorMsg = "missing template value in template set request";
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
-            LOGGER.error(pwmSession,errorInformation.toDebugStr());
-            ServletHelper.outputJsonResult(resp,restResultBean);
-            return;
-        }
-
-        try {
-            template = PwmSetting.Template.valueOf(requestedTemplate);
-        } catch (IllegalArgumentException e) {
-            final String errorMsg = "unknown template set request: " + requestedTemplate;
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
-            LOGGER.error(pwmSession,errorInformation.toDebugStr());
-            ServletHelper.outputJsonResult(resp,restResultBean);
-            return;
-        }
-
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
-        final StoredConfiguration newStoredConfig = configGuideBean.getStoredConfiguration();
-        LOGGER.trace("setting template to: " + requestedTemplate);
-        newStoredConfig.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_TEMPLATE, template.toString());
-
-        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE,new StringValue(""),null);
-        newStoredConfig.writeSetting(PwmSetting.FORGOTTEN_PASSWORD_READ_PREFERENCE,new StringValue(""),null);
-
-        configGuideBean.setFormData(new HashMap<>(defaultForm(template)));
-        updateLdapInfo(newStoredConfig, new HashMap<>(defaultForm(template)),Collections.<String,String>emptyMap());
-        ServletHelper.outputJsonResult(resp,new RestResultBean());
-    }
 
     private void restLdapHealth(
             final HttpServletResponse resp,
@@ -359,9 +319,30 @@ public class ConfigGuideServlet extends TopServlet {
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
         final Map<String,String> incomingFormData = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());        if (incomingFormData != null) {
-        configGuideBean.getFormData().putAll(incomingFormData);
-    }
+        }.getType());
+
+        if (incomingFormData != null) {
+            configGuideBean.getFormData().putAll(incomingFormData);
+        }
+
+        if (incomingFormData != null && incomingFormData.get(PARAM_TEMPLATE_NAME) != null && !incomingFormData.get(PARAM_TEMPLATE_NAME).isEmpty()) {
+            try {
+                final PwmSetting.Template template = PwmSetting.Template.valueOf(incomingFormData.get(PARAM_TEMPLATE_NAME));
+                if (configGuideBean.getSelectedTemplate() != template) {
+                    LOGGER.debug(pwmSession, "resetting form defaults using " + template.toString() + " template");
+                    final Map<String, String> defaultForm = defaultForm(template);
+                    configGuideBean.getFormData().putAll(defaultForm);
+                    configGuideBean.setSelectedTemplate(template);
+                    storedConfiguration.setTemplate(template);
+                    storedConfiguration.writeAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE, "true");
+                }
+            } catch (Exception e) {
+                LOGGER.error("unknown template set request: " + e.getMessage());
+            }
+        }
+
+
+
         final RestResultBean restResultBean = new RestResultBean();
         ServletHelper.outputJsonResult(resp, restResultBean);
         updateLdapInfo(storedConfiguration, configGuideBean.getFormData(), incomingFormData);

@@ -59,7 +59,7 @@
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
             <span id="idle_status">
-                <pwm:Display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval() * 1000).asLongString()%>
+                <pwm:Display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval() * 1000).asLongString(userLocaleFooter)%>
             </span>
             </span>
             <% segmentDisplayed = true; } %>

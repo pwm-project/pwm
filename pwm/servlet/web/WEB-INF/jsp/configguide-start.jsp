@@ -46,7 +46,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){gotoStep('TEMPLATE');}); } else {gotoStep('TEMPLATE');};">
+                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_GUIDE.gotoStep('TEMPLATE');}); } else {PWM_GUIDE.gotoStep('TEMPLATE');};">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-rocket"></span></pwm:if>
                         <pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
@@ -85,19 +85,15 @@
 <script type="text/javascript">
     function skipWizard() {
         PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-            gotoStep('FINISH');
+            PWM_GUIDE.gotoStep('FINISH');
         }});
     }
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.preloadResources();
-    });
-    PWM_GLOBAL['localeBundle'].push('Config');
 </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<div><%@ include file="fragment/footer.jsp" %></div>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
 

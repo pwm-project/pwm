@@ -58,11 +58,8 @@
 </div>
 <pwm:script>
 <script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
-            "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){ /*preload*/
-            PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
-        });
+    PWM_MAIN.preloadAll(function(){
+        PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
     });
 </script>
 </pwm:script>

@@ -30,6 +30,7 @@
 <%
     final SetupResponsesBean.SetupData setupData = (SetupResponsesBean.SetupData)request.getAttribute("setupData");
     final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean();
+    final String responseFieldType = "password";
 %>
 <%-------------------------------- display fields for REQUIRED challenges ----------------------------------------------%>
 <% if (!setupData.getChallengeSet().getRequiredChallenges().isEmpty()) { %>
@@ -59,7 +60,7 @@
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
+    <input type="<%=responseFieldType%>" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
            id="PwmResponse_R_<%=indexKey%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
@@ -98,7 +99,7 @@
 </h2>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="password" name="PwmResponse_R_Random_<%=index%>" class="inputfield" maxlength="255" type="text"
+    <input type="<%=responseFieldType%>" name="PwmResponse_R_Random_<%=index%>" class="inputfield" maxlength="255" type="text"
            id="PwmResponse_R_Random_<%=index%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses()"/>
 </p>
@@ -145,7 +146,7 @@
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="text" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
+    <input type="<%=responseFieldType%>" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
 <% } %>

@@ -224,9 +224,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
                     }
                 }
                 console.log('loaded client-config data');
-                PWM_MAIN.loadLocaleBundle('Config',function(){
-                    if (nextFunction) nextFunction();
-                });
+                if (nextFunction) nextFunction();
             },
             error: function(error) {
                 var errorMsg = 'unable to read config settings app-data: ' + error;

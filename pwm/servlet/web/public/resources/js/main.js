@@ -43,13 +43,17 @@ PWM_MAIN.pageLoadHandler = function() {
             promises.push(clientLoadDeferred.promise);
         }
         if (typeof PWM_CONFIG !== 'undefined') {
+            PWM_GLOBAL['localeBundle'].push('Config');
+
             var clientConfigLoadDeferred = new Deferred();
             PWM_CONFIG.initConfigPage(function(){clientConfigLoadDeferred.resolve()});
             promises.push(clientConfigLoadDeferred.promise);
         }
         if (typeof PWM_ADMIN !== 'undefined') {
+            PWM_GLOBAL['localeBundle'].push('Admin');
+
             var adminLoadDeferred = new Deferred();
-            PWM_CONFIG.initAdminPage(function(){adminLoadDeferred.resolve()});
+            PWM_ADMIN.initAdminPage(function(){adminLoadDeferred.resolve()});
             promises.push(adminLoadDeferred.promise);
         }
         {
@@ -213,7 +217,14 @@ PWM_MAIN.initPage = function() {
     console.log('initPage completed');
 };
 
-PWM_MAIN.preloadResources = function() {
+PWM_MAIN.preloadAll = function(nextFunction) {
+    require(["dijit/Dialog","dijit/ProgressBar","dijit/registry","dojo/_base/array","dojo/on","dojo/data/ObjectStore",
+        "dojo/store/Memory","dijit/Tooltip","dijit/Menu","dijit/MenuItem","dijit/MenuSeparator"],function(){
+        PWM_MAIN.preloadResources(nextFunction);
+    });
+};
+
+PWM_MAIN.preloadResources = function(nextFunction) {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
     var images = [
             prefix + 'a11y/indeterminate_progress.gif',
@@ -223,6 +234,9 @@ PWM_MAIN.preloadResources = function() {
             prefix + 'nihilo/images/titleBar.png'
     ];
     PWM_MAIN.preloadImages(images);
+    if (nextFunction) {
+        nextFunction();
+    }
 };
 
 PWM_MAIN.showString = function (key, options) {
@@ -457,7 +471,6 @@ PWM_MAIN.clearDijitWidget = function (widgetName) {
     require(["dijit/registry"],function(registry){
         var oldDijitNode = registry.byId(widgetName);
         if (oldDijitNode != null) {
-
             try {
                 oldDijitNode.destroyRecursive();
             } catch (error) {
@@ -560,10 +573,10 @@ PWM_MAIN.showWaitDialog = function(options) {
         options['showOk'] = false;
 
         /*
-        var overlayDiv = document.createElement('div');
-        overlayDiv.setAttribute("style","background-color: #000; opacity: .5; filter: alpha(opacity=50); position: absolute; top: 0; left: 0; width: 100%; height: 100%;z-index: 10;");
-        document.body.appendChild(overlayDiv);
-        */
+         var overlayDiv = document.createElement('div');
+         overlayDiv.setAttribute("style","background-color: #000; opacity: .5; filter: alpha(opacity=50); position: absolute; top: 0; left: 0; width: 100%; height: 100%;z-index: 10;");
+         document.body.appendChild(overlayDiv);
+         */
 
         PWM_MAIN.showDialog(options);
     });

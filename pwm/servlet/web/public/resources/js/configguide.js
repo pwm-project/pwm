@@ -22,7 +22,11 @@
 
 "use strict";
 
-function selectTemplate(template) {
+var PWM_GUIDE = PWM_GUIDE || {};
+var PWM_MAIN = PWM_MAIN || {};
+var PWM_GLOBAL = PWM_GLOBAL || {};
+
+PWM_GUIDE.selectTemplate = function(template) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
         require(["dojo"], function (dojo) {
             dojo.xhrGet({
@@ -42,9 +46,9 @@ function selectTemplate(template) {
             });
         });
     }});
-}
+};
 
-function updateForm() {
+PWM_GUIDE.updateForm = function() {
     require(["dojo","dijit/registry","dojo/dom-form"],function(dojo,registry,domForm){
         var formJson = dojo.formToJson('configForm');
         dojo.xhrPost({
@@ -64,39 +68,42 @@ function updateForm() {
             }
         });
     });
-}
+};
 
-function gotoStep(step) {
+PWM_GUIDE.gotoStep = function(step) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
-        require(["dojo"],function(dojo){
-            dojo.xhrGet({
-                url: "ConfigGuide?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
-                headers: {"Accept":"application/json"},
-                contentType: "application/json;charset=utf-8",
-                encoding: "utf-8",
-                handleAs: "json",
-                dataType: "json",
-                preventCache: true,
-                error: function(errorObj) {
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.showError("error while selecting step: " + errorObj);
-                },
-                load: function(result) {
-                    if (result['data']) {
-                        if (result['data']['serverRestart']) {
-                            PWM_CONFIG.waitForRestart();
-                            return;
+        //preload in case of server restart
+        PWM_MAIN.preloadAll(function(){
+            require(["dojo"],function(dojo){
+                dojo.xhrGet({
+                    url: "ConfigGuide?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
+                    headers: {"Accept":"application/json"},
+                    contentType: "application/json;charset=utf-8",
+                    encoding: "utf-8",
+                    handleAs: "json",
+                    dataType: "json",
+                    preventCache: true,
+                    error: function(errorObj) {
+                        PWM_MAIN.closeWaitDialog();
+                        PWM_MAIN.showError("error while selecting step: " + errorObj);
+                    },
+                    load: function(result) {
+                        if (result['data']) {
+                            if (result['data']['serverRestart']) {
+                                PWM_CONFIG.waitForRestart();
+                                return;
+                            }
                         }
+                        var redirectLocation = "ConfigGuide";
+                        window.location = redirectLocation;
                     }
-                    var redirectLocation = "ConfigGuide";
-                    window.location = redirectLocation;
-                }
+                });
             });
         });
     }});
-}
+};
 
-function setUseConfiguredCerts(value) {
+PWM_GUIDE.setUseConfiguredCerts = function(value) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
         require(["dojo"], function (dojo) {
             dojo.xhrGet({
@@ -115,4 +122,4 @@ function setUseConfiguredCerts(value) {
             });
         });
     }});
-}
+};

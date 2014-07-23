@@ -32,8 +32,6 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -51,7 +49,8 @@
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:Display key="Display_ConfigGuideSelectCrStorage" bundle="Config"/>
             <br/>
-            <select id="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" onchange="handleFormActivity()">
+            <select id="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>"
+                    onchange="handleFormActivity()" data-dojo-type="dijit/form/Select" style="width:300px">
                 <% final String current = configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF);%>
                 <option value="LDAP"<% if ("LDAP".equals(current)) { %> selected="selected"<% } %>>
                     LDAP
@@ -81,12 +80,12 @@
             environment and is provided only for testing purposes.  User challenge/response's stored in the LocalDB are server specific..
         </p>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP3');">
+            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('LDAP3');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:Display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('PASSWORD');">
+            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('PASSWORD');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:Display key="Button_Next" bundle="Config"/>
             </button>
@@ -98,11 +97,11 @@
 <script type="text/javascript">
     function handleFormActivity() {
         //PWM_MAIN.getObject("value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>").value = PWM_MAIN.getObject("prefSelect").value;
-        updateForm();
+        PWM_GUIDE.updateForm();
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
+        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox","dijit/form/Select"],function(dojoParser){
             dojoParser.parse();
         });
 
@@ -111,6 +110,8 @@
 </script>
 </pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

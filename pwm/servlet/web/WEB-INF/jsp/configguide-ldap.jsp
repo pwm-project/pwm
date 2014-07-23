@@ -34,9 +34,6 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -198,12 +195,12 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('TEMPLATE');">
+            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('TEMPLATE');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:Display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('LDAPCERT');">
+            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAPCERT');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:Display key="Button_Next" bundle="Config"/>
             </button>
@@ -227,7 +224,7 @@
             PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_SECURE%>').checked;
             PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_DN%>').get('value');
             PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').value = registry.byId('widget_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>').get('value');
-            updateForm();
+            PWM_GUIDE.updateForm();
             clearHealthDiv();
         });
     }
@@ -269,6 +266,9 @@
     }
 </script>
 </pwm:script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <%@ include file="fragment/footer.jsp" %>
 </body>

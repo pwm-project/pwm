@@ -2853,61 +2853,62 @@ function readInitialTextBasedValue(key) {
 }
 
 PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
-    PWM_MAIN.showWaitDialog({loadFunction:function() {
-        require(["dojo", "dojo/json"], function (dojo, json) {
-            dojo.xhrGet({
-                url: "ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                headers: {"Accept": "application/json"},
-                contentType: "application/json;charset=utf-8",
-                encoding: "utf-8",
-                handleAs: "json",
-                dataType: "json",
-                preventCache: true,
-                load: function (data) {
-                    PWM_MAIN.closeWaitDialog();
-                    if (data['error']) {
-                        PWM_MAIN.showDialog({title: "Error", text: data['errorMessage']})
-                    } else {
-                        var bodyText = '<div class="changeLogViewBox">';
-                        bodyText += data['data'];
-                        bodyText += '</div><br/><div>';
-                        bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
-                        bodyText += '</div>';
-                        PWM_MAIN.showConfirmDialog({text: bodyText, width: 650, okAction: function () {
-                            PWM_MAIN.showWaitDialog({title: 'Saving Configuration...', loadFunction: function () {
-                                require(["dojo"], function (dojo) {
-                                    dojo.xhrGet({
-                                        url: "ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                                        preventCache: true,
-                                        dataType: "json",
-                                        handleAs: "json",
-                                        load: function (data) {
-                                            if (data['error'] == true) {
-                                                PWM_MAIN.closeWaitDialog();
-                                                PWM_MAIN.showError(data['errorDetail']);
-                                            } else {
-                                                if (waitForReload) {
-                                                    PWM_CONFIG.waitForRestart();
+    PWM_MAIN.preloadAll(function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+            require(["dojo", "dojo/json"], function (dojo, json) {
+                dojo.xhrGet({
+                    url: "ConfigEditor?processAction=readChangeLog&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                    headers: {"Accept": "application/json"},
+                    contentType: "application/json;charset=utf-8",
+                    encoding: "utf-8",
+                    handleAs: "json",
+                    dataType: "json",
+                    preventCache: true,
+                    load: function (data) {
+                        PWM_MAIN.closeWaitDialog();
+                        if (data['error']) {
+                            PWM_MAIN.showDialog({title: "Error", text: data['errorMessage']})
+                        } else {
+                            var bodyText = '<div class="changeLogViewBox">';
+                            bodyText += data['data'];
+                            bodyText += '</div><br/><div>';
+                            bodyText += PWM_CONFIG.showString('MenuDisplay_SaveConfig');
+                            bodyText += '</div>';
+                            PWM_MAIN.showConfirmDialog({text: bodyText, width: 650, okAction: function () {
+                                PWM_MAIN.showWaitDialog({title: 'Saving Configuration...', loadFunction: function () {
+                                    require(["dojo"], function (dojo) {
+                                        dojo.xhrGet({
+                                            url: "ConfigEditor?processAction=finishEditing&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
+                                            preventCache: true,
+                                            dataType: "json",
+                                            handleAs: "json",
+                                            load: function (data) {
+                                                if (data['error'] == true) {
+                                                    PWM_MAIN.closeWaitDialog();
+                                                    PWM_MAIN.showError(data['errorDetail']);
                                                 } else {
-                                                    window.location = "ConfigManager";
+                                                    if (waitForReload) {
+                                                        PWM_CONFIG.waitForRestart();
+                                                    } else {
+                                                        window.location = "ConfigManager";
+                                                    }
                                                 }
                                             }
-                                        }
+                                        });
                                     });
-                                });
+                                }});
                             }});
-                        }});
+                        }
+                    },
+                    error: function (errorObj) {
+                        PWM_MAIN.closeWaitDialog();
+                        PWM_MAIN.showError("error executing function: " + errorObj);
                     }
-                },
-                error: function (errorObj) {
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.showError("error executing function: " + errorObj);
-                }
+                });
             });
-        });
-    }});
-
-}
+        }});
+    });
+};
 
 
 function readConfigEditorCookie() {

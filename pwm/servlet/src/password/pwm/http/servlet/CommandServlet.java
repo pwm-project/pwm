@@ -49,10 +49,7 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.Date;
 
 /**
@@ -506,7 +503,10 @@ public class CommandServlet extends TopServlet {
 
         try {
             final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
-            statsManager.outputStatsToCsv(new OutputStreamWriter(resp.getOutputStream()), pwmSession.getSessionStateBean().getLocale(), true);
+            final OutputStreamWriter writer = new OutputStreamWriter(resp.getOutputStream());
+            statsManager.outputStatsToCsv(writer, pwmSession.getSessionStateBean().getLocale(), true);
+            writer.flush();
+            writer.close();
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
@@ -519,7 +519,9 @@ public class CommandServlet extends TopServlet {
     {
         final StringBuilder sb = pwmSession.getSessionStateBean().getScriptContents();
         resp.setContentType("text/javascript;charset=utf-8");
-        resp.getWriter().print(sb.toString());
+        final PrintWriter writer = resp.getWriter();
+        writer.print(sb.toString());
+        writer.close();
     }
 }
 

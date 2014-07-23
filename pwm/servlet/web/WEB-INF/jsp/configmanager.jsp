@@ -38,8 +38,6 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
@@ -276,10 +274,10 @@
             width: 300
         });
     }
-
-    PWM_GLOBAL['localeBundle'].push('Config');
 </script>
 </pwm:script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

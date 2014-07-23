@@ -487,7 +487,7 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
                             if (key == 'timestamp') {
                                 text += '<span class="timestamp" id="dialog_timestamp">' + value + '</span>'
                             } else if (key == 'message') {
-                                    text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
+                                text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
                             } else {
                                 text += value;
                             }
@@ -508,13 +508,13 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
                 });
 
                 /*
-                require(["dojo/query","dojo/_base/array"], function(query,array){
-                    var timestampGrids = query(".field-timestamp");
-                    array.forEach(timestampGrids, function(entry, i){
-                        PWM_MAIN.TimestampHandler.initElement(entry);
-                    });
-                });
-                */
+                 require(["dojo/query","dojo/_base/array"], function(query,array){
+                 var timestampGrids = query(".field-timestamp");
+                 array.forEach(timestampGrids, function(entry, i){
+                 PWM_MAIN.TimestampHandler.initElement(entry);
+                 });
+                 });
+                 */
             },
             error: function(error) {
                 alert('unable to load data: ' + error);
@@ -764,8 +764,6 @@ PWM_ADMIN.showString=function (key, options) {
     return PWM_MAIN.showString(key,options);
 };
 
-PWM_CONFIG.initAdminPage=function(nextFunction) {
-    PWM_MAIN.loadLocaleBundle('Admin',function(){
-        if (nextFunction) nextFunction();
-    });
+PWM_ADMIN.initAdminPage=function(nextFunction) {
+    if (nextFunction) nextFunction();
 };

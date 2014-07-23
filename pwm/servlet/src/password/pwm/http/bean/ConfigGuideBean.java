@@ -22,12 +22,11 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.AppProperty;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.http.servlet.ConfigGuideServlet;
 
 import java.security.cert.X509Certificate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,15 +34,14 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     private ConfigGuideServlet.STEP step = ConfigGuideServlet.STEP.START;
     private StoredConfiguration storedConfiguration = StoredConfiguration.getDefaultConfiguration();
-    private Map<String,String> formData = ConfigGuideServlet.defaultForm(storedConfiguration.getTemplate());
+    private PwmSetting.Template selectedTemplate = null;
+    private Map<String,String> formData = new HashMap<>();
     private X509Certificate[] ldapCertificates;
     private boolean certsTrustedbyKeystore = false;
     private boolean useConfiguredCerts = false;
     private boolean needsDbConfiguration = false;
 
     public ConfigGuideBean() {
-        ConfigGuideServlet.updateLdapInfo(this.getStoredConfiguration(), new HashMap<>(ConfigGuideServlet.defaultForm(storedConfiguration.getTemplate())), Collections.<String,String>emptyMap());
-        this.getStoredConfiguration().writeAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE,"true");
     }
 
     public ConfigGuideServlet.STEP getStep() {
@@ -92,5 +90,15 @@ public class ConfigGuideBean implements PwmSessionBean {
 
     public void setUseConfiguredCerts(boolean useConfiguredCerts) {
         this.useConfiguredCerts = useConfiguredCerts;
+    }
+
+    public PwmSetting.Template getSelectedTemplate()
+    {
+        return selectedTemplate;
+    }
+
+    public void setSelectedTemplate(PwmSetting.Template selectedTemplate)
+    {
+        this.selectedTemplate = selectedTemplate;
     }
 }

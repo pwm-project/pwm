@@ -95,12 +95,12 @@
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="gotoStep('LDAP2');">
+            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('LDAP2');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:Display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="gotoStep('CR_STORAGE');">
+            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('CR_STORAGE');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:Display key="Button_Next"  bundle="Config"/>
             </button>
@@ -111,7 +111,7 @@
 <pwm:script>
 <script type="text/javascript">
     function handleFormActivity() {
-        updateForm();
+        PWM_GUIDE.updateForm();
         clearHealthDiv();
         checkIfNextEnabled();
     }

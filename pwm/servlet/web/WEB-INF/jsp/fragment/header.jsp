@@ -70,7 +70,7 @@
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:script>
         <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
-            var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = []; PWM_GLOBAL['localeBundle'] = [];
+            var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
         </script>
     </pwm:script>
 </head>

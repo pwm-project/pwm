@@ -168,12 +168,17 @@ public class StatisticsManager implements PwmService {
     }
 
     public Map<DailyKey,String> getAvailableKeys(final Locale locale) {
+        final DateFormat dateFormatter = SimpleDateFormat.getDateInstance(SimpleDateFormat.DEFAULT, locale);
+        final Map<DailyKey,String> returnMap = new LinkedHashMap<DailyKey,String>();
+
+        // add current time;
+        returnMap.put(currentDailyKey, dateFormatter.format(new Date()));
+
+        // if now historical data then we're done
         if (currentDailyKey.equals(initialDailyKey)) {
-            return Collections.emptyMap();
+            return returnMap;
         }
 
-        final DateFormat dateFormatter = SimpleDateFormat.getDateInstance(SimpleDateFormat.DEFAULT, locale);
-        final Map<DailyKey,String> returnMap = new LinkedHashMap<>();
         DailyKey loopKey = currentDailyKey;
         int safetyCounter = 0;
         while (!loopKey.equals(initialDailyKey) && safetyCounter < 5000) {
