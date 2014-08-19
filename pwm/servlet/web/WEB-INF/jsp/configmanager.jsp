@@ -82,7 +82,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" id="MenuItem_ConfigEditor">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
-                        <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
+                        <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -96,7 +96,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_CONFIG.openLogViewer(null)" id="MenuItem_ViewLog">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
-                        <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
+                        <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -111,7 +111,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="downloadSupportBundle()" id="MenuItem_DownloadBundle">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-suitcase"></span></pwm:if>
-                        <pwm:Display key="MenuItem_DownloadBundle" bundle="Config"/>
+                        <pwm:display key="MenuItem_DownloadBundle" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -124,7 +124,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="downloadConfig()" id="MenuItem_DownloadConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
-                        <pwm:Display key="MenuItem_DownloadConfig" bundle="Config"/>
+                        <pwm:display key="MenuItem_DownloadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -140,7 +140,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('MenuDisplay_UploadConfig'),okAction:function(){PWM_CONFIG.uploadConfigDialog()}})" id="MenuItem_UploadConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
-                        <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
+                        <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -153,7 +153,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_CONFIG.lockConfiguration()" id="MenuItem_LockConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-lock"></span></pwm:if>
-                        <pwm:Display key="MenuItem_LockConfig" bundle="Config"/>
+                        <pwm:display key="MenuItem_LockConfig" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -169,7 +169,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="downloadLocalDB()" id="MenuItem_ExportLocalDB">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
-                        <pwm:Display key="MenuItem_ExportLocalDB" bundle="Config"/>
+                        <pwm:display key="MenuItem_ExportLocalDB" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -182,7 +182,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_MAIN.goto('/')" id="MenuItem_MainMenu">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-arrow-circle-left"></span></pwm:if>
-                        <pwm:Display key="MenuItem_MainMenu" bundle="Config"/>
+                        <pwm:display key="MenuItem_MainMenu" bundle="Config"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -197,7 +197,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_MAIN.goto('/private/admin/dashboard.jsp')" id="MenuItem_Administration">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
-                        <pwm:Display key="Title_Admin"/>
+                        <pwm:display key="Title_Admin"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">
@@ -211,7 +211,7 @@
                 <td class="buttoncell">
                     <a class="menubutton" onclick="PWM_MAIN.goto('/public/Logout')" id="MenuItem_Logout">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
-                        <pwm:Display key="Title_Logout"/>
+                        <pwm:display key="Title_Logout"/>
                     </a>
                     <pwm:script>
                     <script type="application/javascript">

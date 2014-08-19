@@ -39,7 +39,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
                 Save Configuration
@@ -81,9 +81,9 @@
                         </td>
                         <td>
                             <%if (Boolean.parseBoolean(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_SECURE))) {%>
-                            <pwm:Display key="Value_True"/>
+                            <pwm:display key="Value_True"/>
                             <% } else { %>
-                            <pwm:Display key="Value_False"/>
+                            <pwm:display key="Value_False"/>
                             <% } %>
                         </td>
                     </tr>
@@ -137,7 +137,7 @@
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('PASSWORD');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:Display key="Button_Previous" bundle="Config"/>
+                <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('FINISH');">

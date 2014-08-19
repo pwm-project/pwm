@@ -235,7 +235,7 @@ public class TokenService implements PwmService {
                 Helper.getGson().toJson(tokenPayload)
         ));
 
-        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.TOKENS_PASSSED);
+        StatisticsManager.incrementStat(pwmApplication, Statistic.TOKENS_PASSSED);
     }
 
     public TokenPayload retrieveTokenData(final String tokenKey)

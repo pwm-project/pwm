@@ -43,6 +43,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     private static final String KEY_MESSAGE = "m";
     private static final String KEY_SOURCE = "s";
     private static final String KEY_ACTOR = "a";
+    private static final String KEY_LABEL = "b";
     private static final String KEY_THROWABLE = "e";
     private static final String KEY_DATE = "d";
 
@@ -53,6 +54,7 @@ public class PwmLogEvent implements Serializable, Comparable {
     private final String message;
     private final String source;
     private final String actor;
+    private final String label;
     private final Throwable throwable;
     private final Date date;
 
@@ -72,6 +74,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         final String message = srcMap.get(KEY_MESSAGE);
         final String source = srcMap.get(KEY_SOURCE);
         final String actor = srcMap.get(KEY_ACTOR);
+        final String label = srcMap.get(KEY_LABEL);
 
         Date date = null;
         if (srcMap.containsKey(KEY_DATE)) {
@@ -88,7 +91,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             level = PwmLogLevel.valueOf(srcMap.get(KEY_LEVEL));
         }
 
-        return new PwmLogEvent(date, topic, message, source, actor, throwable, level);
+        return new PwmLogEvent(date, topic, message, source, actor, label, throwable, level);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -99,6 +102,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             final String message,
             final String source,
             final String actor,
+            final String label,
             final Throwable throwable,
             final PwmLogLevel level
     ) {
@@ -115,6 +119,7 @@ public class PwmLogEvent implements Serializable, Comparable {
         this.message = message;
         this.source = source;
         this.actor = actor;
+        this.label = label;
         this.throwable = throwable;
         this.level = level;
     }
@@ -153,6 +158,11 @@ public class PwmLogEvent implements Serializable, Comparable {
         return topic;
     }
 
+    public String getLabel()
+    {
+        return label;
+    }
+
     public String getTopTopic() {
         if (topic == null) {
             return null;
@@ -185,6 +195,10 @@ public class PwmLogEvent implements Serializable, Comparable {
         tempMap.put(KEY_SOURCE, source);
         tempMap.put(KEY_ACTOR, actor);
 
+        if (label != null) {
+            tempMap.put(KEY_LABEL, label);
+        }
+
         if (level != null) {
             tempMap.put(KEY_LEVEL, level.toString());
         }
@@ -207,9 +221,18 @@ public class PwmLogEvent implements Serializable, Comparable {
         sb.append(", ");
         sb.append(shortenTopic(this.topic));
         sb.append(", ");
-        if (this.getActor() != null && this.getActor().length() > 0) {
+
+        if ((getActor() != null && !getActor().isEmpty()) || ((getLabel() != null && !getLabel().isEmpty()))) {
             sb.append("{");
-            sb.append(this.getActor());
+            if (getLabel() != null && !getLabel().isEmpty()) {
+                sb.append(this.getLabel());
+            }
+            if (getActor() != null && !getActor().isEmpty()) {
+                if (sb.length() > 0) {
+                    sb.append(",");
+                }
+                sb.append(this.getActor());
+            }
             sb.append("} ");
         }
         sb.append(htmlSafe ? this.getHtmlSafeMessage() : this.message);
@@ -223,15 +246,7 @@ public class PwmLogEvent implements Serializable, Comparable {
 
     @Override
     public String toString() {
-        return "PwmLogEvent{" +
-                "level=" + level +
-                ", topic='" + topic + '\'' +
-                ", message=" + message +
-                ", source='" + source + '\'' +
-                ", actor='" + actor + '\'' +
-                ", throwable=" + throwable +
-                ", date=" + date +
-                '}';
+        return "PwmLogEvent=" + Helper.getGson().toJson(this);
     }
 
     private static String shortenTopic(final String input) {

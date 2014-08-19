@@ -299,7 +299,6 @@ PWM_HELPDESK.initHelpdeskSearchPage = function() {
                 PWM_MAIN.getObject('username').select();
             }
 
-            console.log('yomama!');
             PWM_HELPDESK.processHelpdeskSearch();
         });
     });

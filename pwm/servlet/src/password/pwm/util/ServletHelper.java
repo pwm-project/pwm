@@ -339,15 +339,14 @@ public class ServletHelper {
         return null;
     }
 
-    public static void writeCookie(final HttpServletResponse resp, final String cookieName, final String cookieValue) {
-        Cookie theCookie = null;
+    public static void writeCookie(final HttpServletResponse resp, final String cookieName, final String cookieValue, final int seconds) {
         try {
-            theCookie = new Cookie(cookieName, URLEncoder.encode(cookieValue, "UTF8"));
+            final Cookie theCookie = new Cookie(cookieName, URLEncoder.encode(cookieValue, "UTF8"));
+            theCookie.setMaxAge(seconds);
+            resp.addCookie(theCookie);
         } catch (UnsupportedEncodingException e) {
             LOGGER.warn("error decoding cookie value for cookie '" + cookieName + "', error: " + e.getMessage());
         }
-        theCookie.setMaxAge(1024);
-        resp.addCookie(theCookie);
     }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {

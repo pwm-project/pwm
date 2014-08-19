@@ -40,10 +40,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.*;
 import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -402,7 +399,13 @@ public class NewUserServlet extends TopServlet {
         }
 
         // read the creation object classes from configuration
-        final Set<String> createObjectClasses = new HashSet<>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
+        final Set<String> createObjectClasses = new LinkedHashSet<>(pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES));
+
+        // add the auto-add object classes
+        {
+            final LdapProfile defaultLDAPProfile = pwmApplication.getConfig().getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
+            createObjectClasses.addAll(defaultLDAPProfile.readSettingAsStringArray(PwmSetting.AUTO_ADD_OBJECT_CLASSES));
+        }
 
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(PwmConstants.PROFILE_ID_DEFAULT);
         try { // create the ldap entry

@@ -37,6 +37,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
@@ -566,7 +567,15 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    public static void noErrorIncrementer(
+    public static void incrementStat(
+            final PwmRequest pwmRequest,
+            final Statistic statistic
+    )
+    {
+        incrementStat(pwmRequest.getPwmApplication(), statistic);
+    }
+
+    public static void incrementStat(
             final PwmApplication pwmApplication,
             final Statistic statistic
     ) {

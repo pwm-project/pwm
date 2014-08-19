@@ -159,7 +159,7 @@ public class LocalDBLoggerTest extends TestCase {
         return new PwmLogEvent(
                 new Date(System.currentTimeMillis()),
                 LocalDBLogger.class.getName(),
-                description.toString(), "", "", null, PwmLogLevel.TRACE);
+                description, "", "", null, null, PwmLogLevel.TRACE);
     }
 
     private class DebugOutputTimerTask extends TimerTask {

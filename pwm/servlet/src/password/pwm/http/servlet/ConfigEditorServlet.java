@@ -23,7 +23,6 @@
 package password.pwm.http.servlet;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
@@ -37,6 +36,7 @@ import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
 import password.pwm.health.LDAPStatusChecker;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.i18n.Message;
@@ -59,7 +59,7 @@ public class ConfigEditorServlet extends TopServlet {
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigEditorServlet.class);
     public static final String DEFAULT_PW = "DEFAULT-PW";
 
-    private static final String COOKIE_NAME_PREFERENCES = "preferences";
+    private static final String COOKIE_NAME_PREFERENCES = "ConfigEditor_preferences";
 
     public static ConfigEditorCookie readConfigEditorCookie(
             final HttpServletRequest request,
@@ -75,7 +75,7 @@ public class ConfigEditorServlet extends TopServlet {
         if (cookie == null) {
             cookie = new ConfigEditorCookie();
             final String jsonString = Helper.getGson().toJson(cookie);
-            ServletHelper.writeCookie(response, COOKIE_NAME_PREFERENCES, jsonString);
+            ServletHelper.writeCookie(response, COOKIE_NAME_PREFERENCES, jsonString, 60 * 60 * 24 * 3);
         }
 
         return cookie;
@@ -88,12 +88,14 @@ public class ConfigEditorServlet extends TopServlet {
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
-            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+            throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
+    {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
-        ConfigManagerServlet.checkAuthentication(pwmApplication,pwmSession,configManagerBean,req,resp);
+        ConfigManagerServlet.checkAuthentication(pwmRequest,configManagerBean);
 
         if (configManagerBean.getConfiguration() == null) {
             final StoredConfiguration loadedConfig = ConfigManagerServlet.readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
@@ -310,7 +312,7 @@ public class ConfigEditorServlet extends TopServlet {
             returnMap.put("syntax", setting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(setting));
         }
-        final String outputString = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(returnMap);
+        final String outputString = Helper.getGson().toJson(returnMap);
         resp.setContentType("application/json;charset=utf-8");
         resp.getWriter().print(outputString);
     }
@@ -506,7 +508,7 @@ public class ConfigEditorServlet extends TopServlet {
             }
         }
 
-        ServletHelper.writeCookie(resp,COOKIE_NAME_PREFERENCES,Helper.getGson().toJson(configEditorCookie));
+        ServletHelper.writeCookie(resp,COOKIE_NAME_PREFERENCES,Helper.getGson().toJson(configEditorCookie), 60 * 60 * 24 * 3);
     }
 
     void restReadChangeLog(

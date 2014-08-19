@@ -34,10 +34,9 @@
         <jsp:param name="pwm.PageName" value="Title_SetupResponses"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_SetupResponses"/></p>
+        <p><pwm:display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
-              enctype="application/x-www-form-urlencoded" onchange="" id="setupResponses"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+              enctype="application/x-www-form-urlencoded" onchange="" id="setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
@@ -45,7 +44,7 @@
                 <input type="hidden" name="processAction" value="setResponses"/>
                 <button type="submit" name="setResponses" class="btn" id="setresponses_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_SetResponses"/>
+                    <pwm:display key="Button_SetResponses"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
@@ -61,7 +60,6 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_RESPONSES.startupResponsesPage();
             document.forms[0].elements[0].focus();
-            ShowHidePasswordHandler.initAllForms();
         });
     </script>
 </pwm:script>

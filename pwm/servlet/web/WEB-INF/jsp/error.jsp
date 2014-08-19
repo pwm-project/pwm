@@ -57,7 +57,7 @@
                        value="continue"/>
                 <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
             </form>
         </div>

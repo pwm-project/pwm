@@ -26,9 +26,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
-import password.pwm.ChallengeItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.cr.ChallengeItemBean;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 

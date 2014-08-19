@@ -35,15 +35,14 @@
     </jsp:include>
     <div id="centerbody">
         <p id="registration-menu-bar" style="text-align:center;">
-            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestRegistration"/></a>
             &nbsp;&nbsp;&nbsp;
-            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestUpdate"/></a>
         </p>
         <br/>
-        <p><pwm:Display key="Display_GuestRegistration"/></p>
+        <p><pwm:display key="Display_GuestRegistration"/></p>
 
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+        <form action="<pwm:url url='GuestRegistration'/>" method="post" name="newGuest" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <% request.setAttribute("form",PwmSetting.GUEST_FORM); %>
@@ -60,7 +59,7 @@
                     }
             %>
             <p>
-                <label for="__expirationDate__"><pwm:Display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/> </label>
+                <label for="__expirationDate__"><pwm:display key="Display_ExpirationDate" value1="<%=String.valueOf(maxValidDays)%>"/> </label>
                 <input name="__expirationDate__" id="__expirationDate__"
                        type="date" required="true" value="<%=selectedDate%>"/>
             </p>
@@ -85,7 +84,7 @@
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="create"/>
                 <input type="submit" name="Create" class="btn"
-                       value="<pwm:Display key="Button_Create"/>"
+                       value="<pwm:display key="Button_Create"/>"
                        id="submitBtn"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

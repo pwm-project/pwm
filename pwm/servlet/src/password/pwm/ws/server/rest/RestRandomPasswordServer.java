@@ -242,7 +242,7 @@ public class RestRandomPasswordServer {
         outputMap.password = randomPassword;
 
         if (restRequestBean.isExternal()) {
-            StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
+            StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
         }
 
         return outputMap;

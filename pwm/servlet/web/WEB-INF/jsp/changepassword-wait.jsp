@@ -43,7 +43,7 @@
     </jsp:include>
     <div id="centerbody" >
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:Display key="Display_PleaseWaitPassword"/></p>
+        <p><pwm:display key="Display_PleaseWaitPassword"/></p>
         <div style="width:400px; margin-left: auto; margin-right: auto; padding-top: 70px">
             <div data-dojo-type="dijit/ProgressBar" style="width:400px" data-dojo-id="passwordProgressBar" id="passwordProgressBar" data-dojo-props="maximum:100"></div>
         </div>

@@ -32,16 +32,16 @@
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_LoginPasswordOnly"/></p>
+        <p><pwm:display key="Display_LoginPasswordOnly"/></p>
         <form action="<pwm:url url='Login'/>" method="post" name="login-password" enctype="application/x-www-form-urlencoded" id="login-password"
-              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
+              class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" class="inputfield" autofocus/>
+            <h2><label for="password"><pwm:display key="Field_Password"/></label></h2>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" class="inputfield passwordfield" autofocus/>
             <div id="buttonbar">
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
-                    <pwm:Display key="Button_Login"/>
+                    <pwm:display key="Button_Login"/>
                 </button>
                 <input type="hidden" name="processAction" value="login">
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

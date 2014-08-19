@@ -30,11 +30,10 @@
 <%
     final SetupResponsesBean.SetupData setupData = (SetupResponsesBean.SetupData)request.getAttribute("setupData");
     final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean();
-    final String responseFieldType = "password";
 %>
 <%-------------------------------- display fields for REQUIRED challenges ----------------------------------------------%>
 <% if (!setupData.getChallengeSet().getRequiredChallenges().isEmpty()) { %>
-<p><pwm:Display key="Display_SetupRequiredResponses"/></p>
+<p><pwm:display key="Display_SetupRequiredResponses"/></p>
 <%
     for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
         final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
@@ -45,7 +44,7 @@
     <label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
 </h2>
 <% } else { %>
-<label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
+<label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
           class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <pwm:script>
@@ -60,7 +59,7 @@
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="<%=responseFieldType%>" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255"
+    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255"
            id="PwmResponse_R_<%=indexKey%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
@@ -69,11 +68,11 @@
 <% } %>
 <%---------------------- display fields for RANDOM challenges using SIMPLE mode ----------------------------------------%>
 <% if (setupData.isSimpleMode()) {  %>
-<p><pwm:Display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
+<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
 <% for (int index = 0; index < setupData.getMinRandomSetup(); index++) { %>
 <h2>
     <select name="PwmResponse_Q_Random_<%=index%>" id="PwmResponse_Q_Random_<%=index%>" data-dojo-type="dijit/form/Select" style="width:70%">
-        <option value="UNSELECTED">&nbsp;&nbsp;--- <pwm:Display key="Display_SelectionIndicator"/> ---</option>
+        <option value="UNSELECTED">&nbsp;&nbsp;--- <pwm:display key="Display_SelectionIndicator"/> ---</option>
         <%
             for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
                 final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
@@ -99,7 +98,7 @@
 </h2>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="<%=responseFieldType%>" name="PwmResponse_R_Random_<%=index%>" class="inputfield" maxlength="255" type="text"
+    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_Random_<%=index%>" class="inputfield passwordfield" maxlength="255" type="text"
            id="PwmResponse_R_Random_<%=index%>" required="required"
            onkeyup="PWM_RESPONSES.validateResponses()"/>
 </p>
@@ -129,7 +128,7 @@
 <% } else { %>
 <%---------------------- display fields for RANDOM challenges using non-SIMPLE mode ----------------------------------------%>
 <% if (!setupData.getChallengeSet().getRandomChallenges().isEmpty()) { %>
-<p><pwm:Display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
+<p><pwm:display key="Display_SetupRandomResponses" value1="<%= String.valueOf(setupData.getChallengeSet().getMinRandomRequired()) %>"/></p>
 <%
     for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
         final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
@@ -137,16 +136,16 @@
 %>
 <% if (challenge.isAdminDefined()) { %>
 <h2>
-    <label for="PwmReseesponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
+    <label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
 </h2>
 <% } else { %>
-<label for="PwmResponse_Q_<%=indexKey%>"><pwm:Display key="Field_User_Supplied_Question"/>:</label>&nbsp;
+<label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 70%"
           class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="<%=responseFieldType%>" name="PwmResponse_R_<%=indexKey%>" class="inputfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
+    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
            onkeyup="PWM_RESPONSES.validateResponses();"/>
 </p>
 <% } %>

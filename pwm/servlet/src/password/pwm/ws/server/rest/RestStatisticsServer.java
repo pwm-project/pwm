@@ -101,7 +101,7 @@ public class RestStatisticsServer {
             }
 
             if (restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_STATISTICS);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_STATISTICS);
             }
 
             final RestResultBean resultBean = new RestResultBean();

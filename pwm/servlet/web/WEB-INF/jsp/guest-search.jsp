@@ -32,24 +32,22 @@
     </jsp:include>
     <div id="centerbody">
         <p id="registration-menu-bar" style="text-align:center;">
-            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestRegistration"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=create&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestRegistration"/></a>
             &nbsp;&nbsp;&nbsp;
-            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:Display key="Title_GuestUpdate"/></a>
+            <a class="menubutton" href="GuestRegistration?menuSelect=search&pwmFormID=<pwm:FormID/>"><pwm:display key="Title_GuestUpdate"/></a>
         </p>
         <br/>
-        <p><pwm:Display key="Display_GuestUpdate"/></p>
+        <p><pwm:display key="Display_GuestUpdate"/></p>
 
-        <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="searchForm"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false" id="searchForm">
+        <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
+            <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
             <input type="text" id="username" name="username" class="inputfield"
                    value="<pwm:ParamValue name='username'/>"/>
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>
-                <input type="submit" class="btn" name="search" value="<pwm:Display key="Button_Search"/>" id="submitBtn"/>
+                <input type="submit" class="btn" name="search" value="<pwm:display key="Button_Search"/>" id="submitBtn"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

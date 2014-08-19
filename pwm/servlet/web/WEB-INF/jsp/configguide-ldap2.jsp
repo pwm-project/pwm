@@ -41,10 +41,10 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
-                <pwm:Display key="Title_ConfigGuide_ldap" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide_ldap" bundle="Config"/>
             </div>
         </div>
     </div>
@@ -127,12 +127,12 @@
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('LDAPCERT');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:Display key="Button_Previous" bundle="Config"/>
+                <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAP3');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:Display key="Button_Next"  bundle="Config"/>
+                <pwm:display key="Button_Next"  bundle="Config"/>
             </button>
         </div>
     </div>

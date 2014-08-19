@@ -25,6 +25,6 @@
 <pwm:if test="showReset">
 <button type="reset" class="btn" name="reset" onclick="PWM_MAIN.handleFormClear();return false">
     <pwm:if test="showIcons"><span class="btn-icon fa fa-recycle"></span></pwm:if>
-    <pwm:Display key="Button_Reset"/>
+    <pwm:display key="Button_Reset"/>
 </button>
 </pwm:if>

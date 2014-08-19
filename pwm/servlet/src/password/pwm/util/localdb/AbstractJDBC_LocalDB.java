@@ -42,8 +42,8 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
     private static final String WIDTH_KEY = String.valueOf(LocalDB.MAX_KEY_LENGTH);
 
-    private Driver driver;
-    private File dbDirectory;
+    protected Driver driver;
+    protected File dbDirectory;
 
     // cache of dbIterators
     private final Set<LocalDB.LocalDBIterator<String>> dbIterators = Collections.newSetFromMap(
@@ -53,10 +53,10 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
     protected Connection dbConnection;
 
     // operation lock
-    private final ReadWriteLock LOCK = new ReentrantReadWriteLock();
+    protected final ReadWriteLock LOCK = new ReentrantReadWriteLock();
 
-    private LocalDB.Status status = LocalDB.Status.NEW;
-    private boolean readOnly = false;
+    protected LocalDB.Status status = LocalDB.Status.NEW;
+    protected boolean readOnly = false;
 
 
 // -------------------------- STATIC METHODS --------------------------

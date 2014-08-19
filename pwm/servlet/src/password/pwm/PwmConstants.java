@@ -154,8 +154,9 @@ public abstract class PwmConstants {
         PASSWORD_COMPLETE("changepassword-complete.jsp"),
         RECOVER_PASSWORD_SEARCH("forgottenpassword-search.jsp"),
         RECOVER_PASSWORD_RESPONSES("forgottenpassword-responses.jsp"),
-        RECOVER_PASSWORD_CHOICE("forgottenpassword-choice.jsp"),
-        RECOVER_PASSWORD_ENTER_CODE("forgottenpassword-entercode.jsp"),
+        RECOVER_PASSWORD_ACTION_CHOICE("forgottenpassword-actionchoice.jsp"),
+        RECOVER_PASSWORD_TOKEN_CHOICE("forgottenpassword-tokenchoice.jsp"),
+        RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
         RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),
         SETUP_RESPONSES("setupresponses.jsp"),
         SETUP_RESPONSES_CONFIRM("setupresponses-confirm.jsp"),
@@ -230,6 +231,8 @@ public abstract class PwmConstants {
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
+
+    public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
     public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");

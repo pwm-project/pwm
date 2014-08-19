@@ -35,26 +35,23 @@
     <div id="centerbody">
         <%
             final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-            OTPUserRecord otp = fpb.getOtpUserRecord();
+            OTPUserRecord otp = fpb.getUserInfo().getOtpUserRecord();
             String identifier = otp.getIdentifier();
 
             if (identifier != null && identifier.length() > 0 ) {
         %>
-        <p><pwm:Display key="Display_RecoverOTPIdentified" value1="<%=identifier%>"/></p>
+        <p><pwm:display key="Display_RecoverOTPIdentified" value1="<%=identifier%>"/></p>
         <% } else { %>
-        <p><pwm:Display key="Display_RecoverOTP" /></p>
+        <p><pwm:display key="Display_RecoverOTP" /></p>
         <% } %>
-        <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
-              enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);
-                              return false">
+        <form action="<pwm:url url='ForgottenPassword'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <input type="text" pattern="[0-9]*" id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="inputfield" required="required" autofocus/>
             <div id="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:Display key="Button_CheckCode"/>
+                    <pwm:display key="Button_CheckCode"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterOtp"/>
@@ -69,7 +66,6 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function() {
         PWM_MAIN.getObject('<%=PwmConstants.PARAM_TOKEN%>').focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

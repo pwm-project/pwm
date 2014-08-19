@@ -38,7 +38,7 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
                 Password
@@ -60,7 +60,7 @@
                         <b>Configuration Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" />
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>" class="passwordfield"/>
                         <pwm:script>
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
@@ -85,7 +85,7 @@
                         <b>Verify Configuration Password</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input type="password" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" />
+                        <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="passwordfield"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
                                  src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">
@@ -118,12 +118,12 @@
         <div id="buttonbar">
             <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('CR_STORAGE');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:Display key="Button_Previous" bundle="Config"/>
+                <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('END');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:Display key="Button_Next" bundle="Config"/>
+                <pwm:display key="Button_Next" bundle="Config"/>
             </button>
         </div>
     </div>

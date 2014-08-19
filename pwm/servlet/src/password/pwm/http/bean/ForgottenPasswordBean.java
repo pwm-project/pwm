@@ -24,11 +24,13 @@ package password.pwm.http.bean;
 
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.cr.ResponseSet;
-import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
-import password.pwm.util.otp.OTPUserRecord;
+import password.pwm.config.option.MessageSendMethod;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Jason D. Rivard
@@ -36,119 +38,217 @@ import java.util.List;
 public class ForgottenPasswordBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
-    private transient UserIdentity proxiedUser;
-    private transient ResponseSet responseSet;
-    private transient OTPUserRecord otpUserRecord;
-    private ChallengeSet challengeSet;
-    private String tokenSendAddress;
-
-    private boolean responsesSatisfied;
-    private boolean tokenSatisfied;
-    private boolean otpSatisfied;
-    private boolean allPassed;
-    
-    private boolean passwordEmailSent = false;
-    private boolean passwordSmsSent = false;
-
+    private UserInfoBean userInfo;
+    private ResponseSet responseSet;
+    private ChallengeSet presentableChallengeSet;
+    private Locale userLocale;
     private List<FormConfiguration> attributeForm;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    private Progress progress = new Progress();
+    private RecoveryFlags recoveryFlags = new RecoveryFlags();
 
+    public UserInfoBean getUserInfo()
+    {
+        return userInfo;
+    }
 
-    public ResponseSet getResponseSet() {
+    public void setUserInfo(UserInfoBean userInfo)
+    {
+        this.userInfo = userInfo;
+    }
+
+    public Locale getUserLocale()
+    {
+        return userLocale;
+    }
+
+    public void setUserLocale(Locale userLocale)
+    {
+        this.userLocale = userLocale;
+    }
+
+    public Progress getProgress()
+    {
+        return progress;
+    }
+
+    public ResponseSet getResponseSet()
+    {
         return responseSet;
     }
 
-    public void setResponseSet(ResponseSet responseSet) {
+    public void setResponseSet(ResponseSet responseSet)
+    {
         this.responseSet = responseSet;
     }
 
-    public ChallengeSet getChallengeSet() {
-        return challengeSet;
+    public ChallengeSet getPresentableChallengeSet()
+    {
+        return presentableChallengeSet;
     }
 
-    public void setChallengeSet(ChallengeSet challengeSet) {
-        this.challengeSet = challengeSet;
+    public void setPresentableChallengeSet(ChallengeSet presentableChallengeSet)
+    {
+        this.presentableChallengeSet = presentableChallengeSet;
     }
 
-    public UserIdentity getUserIdentity() {
-        return proxiedUser;
-    }
-
-    public OTPUserRecord getOtpUserRecord() {
-        return otpUserRecord;
-    }
-
-    public void setOtpUserRecord(OTPUserRecord otpUserRecord) {
-        this.otpUserRecord = otpUserRecord;
-    }
-
-    public boolean isOtpSatisfied() {
-        return otpSatisfied;
-    }
-
-    public void setOtpSatisfied(boolean otpSatisfied) {
-        this.otpSatisfied = otpSatisfied;
-    }
-
-    public void setUserIdentity(final UserIdentity proxiedUser) {
-        this.proxiedUser = proxiedUser;
-    }
-
-    public boolean isResponsesSatisfied() {
-        return responsesSatisfied;
-    }
-
-    public void setResponsesSatisfied(final boolean responsesSatisfied) {
-        this.responsesSatisfied = responsesSatisfied;
-    }
-
-    public boolean isTokenSatisfied() {
-        return tokenSatisfied;
-    }
-
-    public void setTokenSatisfied(final boolean passedToken) {
-        this.tokenSatisfied = passedToken;
-    }
-
-    public boolean isAllPassed() {
-        return allPassed;
-    }
-
-    public void setAllPassed(final boolean allPassed) {
-        this.allPassed = allPassed;
-    }
-
-    public String getTokenSendAddress() {
-        return tokenSendAddress;
-    }
-
-    public void setTokenSendAddress(final String tokenSendAddress) {
-        this.tokenSendAddress = tokenSendAddress;
-    }
-
-    public List<FormConfiguration> getAttributeForm() {
+    public List<FormConfiguration> getAttributeForm()
+    {
         return attributeForm;
     }
 
-    public void setAttributeForm(final List<FormConfiguration> attributeForm) {
+    public void setAttributeForm(List<FormConfiguration> attributeForm)
+    {
         this.attributeForm = attributeForm;
     }
 
-    public void setPasswordEmailSent(boolean passwordEmailSent) {
-        this.passwordEmailSent = passwordEmailSent;
+    public void setProgress(Progress progress)
+    {
+        this.progress = progress;
     }
 
-    public boolean getPasswordEmailSent() {
-        return passwordEmailSent;
+    public RecoveryFlags getRecoveryFlags()
+    {
+        return recoveryFlags;
     }
 
-    public void setPasswordSmsSent(boolean passwordSmsSent) {
-        this.passwordSmsSent = passwordSmsSent;
+    public void setRecoveryFlags(RecoveryFlags recoveryFlags)
+    {
+        this.recoveryFlags = recoveryFlags;
     }
 
-    public boolean getPasswordSmsSent() {
-        return passwordSmsSent;
+    public static class Progress implements Serializable {
+        private boolean responsesSatisfied;
+        private boolean tokenSatisfied;
+        private boolean tokenSent;
+        private boolean otpSatisfied;
+        private boolean allPassed;
+
+        private MessageSendMethod tokenSendChoice;
+        private String tokenSentAddress;
+
+        public boolean isResponsesSatisfied()
+        {
+            return responsesSatisfied;
+        }
+
+        public void setResponsesSatisfied(boolean responsesSatisfied)
+        {
+            this.responsesSatisfied = responsesSatisfied;
+        }
+
+        public boolean isTokenSatisfied()
+        {
+            return tokenSatisfied;
+        }
+
+        public void setTokenSatisfied(boolean tokenSatisfied)
+        {
+            this.tokenSatisfied = tokenSatisfied;
+        }
+
+        public boolean isTokenSent()
+        {
+            return tokenSent;
+        }
+
+        public void setTokenSent(boolean tokenSent)
+        {
+            this.tokenSent = tokenSent;
+        }
+
+        public boolean isOtpSatisfied()
+        {
+            return otpSatisfied;
+        }
+
+        public void setOtpSatisfied(boolean otpSatisfied)
+        {
+            this.otpSatisfied = otpSatisfied;
+        }
+
+        public boolean isAllPassed()
+        {
+            return allPassed;
+        }
+
+        public void setAllPassed(boolean allPassed)
+        {
+            this.allPassed = allPassed;
+        }
+
+        public MessageSendMethod getTokenSendChoice()
+        {
+            return tokenSendChoice;
+        }
+
+        public void setTokenSendChoice(MessageSendMethod tokenSendChoice)
+        {
+            this.tokenSendChoice = tokenSendChoice;
+        }
+
+        public String getTokenSentAddress()
+        {
+            return tokenSentAddress;
+        }
+
+        public void setTokenSentAddress(String tokenSentAddress)
+        {
+            this.tokenSentAddress = tokenSentAddress;
+        }
     }
+
+    public static class RecoveryFlags implements Serializable {
+        private boolean responsesRequired;
+        private boolean tokenRequired;
+        private boolean otpRequired;
+        private boolean attributesRequired;
+        private boolean allowWhenLdapIntruderLocked;
+
+        public RecoveryFlags()
+        {
+        }
+
+        public RecoveryFlags(
+                boolean responsesRequired,
+                boolean tokenRequired,
+                boolean otpRequired,
+                boolean attributesRequired,
+                boolean allowWhenLdapIntruderLocked
+        )
+        {
+            this.responsesRequired = responsesRequired;
+            this.tokenRequired = tokenRequired;
+            this.otpRequired = otpRequired;
+            this.attributesRequired = attributesRequired;
+            this.allowWhenLdapIntruderLocked = allowWhenLdapIntruderLocked;
+        }
+
+        public boolean isResponsesRequired()
+        {
+            return responsesRequired;
+        }
+
+        public boolean isTokenRequired()
+        {
+            return tokenRequired;
+        }
+
+        public boolean isOtpRequired()
+        {
+            return otpRequired;
+        }
+
+        public boolean isAttributesRequired()
+        {
+            return attributesRequired;
+        }
+
+        public boolean isAllowWhenLdapIntruderLocked()
+        {
+            return allowWhenLdapIntruderLocked;
+        }
+    }
+
 }
 

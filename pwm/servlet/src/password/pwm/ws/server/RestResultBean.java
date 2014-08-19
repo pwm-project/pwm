@@ -24,6 +24,7 @@ package password.pwm.ws.server;
 
 import com.google.gson.GsonBuilder;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.util.Helper;
 
@@ -102,7 +103,9 @@ public class RestResultBean implements Serializable {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        restResultBean.setErrorDetail(errorInformation.toDebugStr());
+        if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+            restResultBean.setErrorDetail(errorInformation.toDebugStr());
+        }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());
         return restResultBean;
     }
@@ -130,8 +133,6 @@ public class RestResultBean implements Serializable {
     public Response asJsonResponse() {
         final Response.ResponseBuilder responseBuilder = Response.ok();
         final String body = this.toJson();
-        final String bodyLength = String.valueOf(body.length());
-        //responseBuilder.header("Content-Length", bodyLength);
         responseBuilder.entity(body);
         return responseBuilder.build();
     }

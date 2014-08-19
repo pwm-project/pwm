@@ -38,20 +38,19 @@
     </jsp:include>
     <div id="centerbody">
         <% if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.EMAIL) { %>
-        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <% } else if (newUserBean.getVerificationPhase() == NewUserBean.NewUserVerificationPhase.SMS) { %>
-        <p><pwm:Display key="Display_RecoverEnterCodeSMS" value1="<%=destination%>"/></p>
+        <p><pwm:display key="Display_RecoverEnterCodeSMS" value1="<%=destination%>"/></p>
         <% } %>
         <form action="<pwm:url url='NewUser'/>" method="post"
-              enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+              enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
             <div id="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:Display key="Button_CheckCode"/>
+                    <pwm:display key="Button_CheckCode"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
@@ -64,7 +63,7 @@
                 <input type="hidden" name="processAction" value="reset"/>
                 <button type="submit" name="button" class="btn" id="button_reset">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:Display key="Button_Cancel"/>
+                    <pwm:display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>

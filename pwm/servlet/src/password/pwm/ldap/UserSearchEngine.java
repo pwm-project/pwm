@@ -252,11 +252,11 @@ public class UserSearchEngine {
                 if (!skipProfile) {
                     try {
                         returnMap.putAll(performMultiUserSearchImpl(
-                                pwmSession,
-                                ldapProfile,
-                                searchConfiguration,
-                                maxResults - returnMap.size(),
-                                returnAttributes)
+                                        pwmSession,
+                                        ldapProfile,
+                                        searchConfiguration,
+                                        maxResults - returnMap.size(),
+                                        returnAttributes)
                         );
                     } catch (PwmUnrecoverableException e) {
                         if (e.getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
@@ -299,10 +299,22 @@ public class UserSearchEngine {
 
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {
-            if (searchConfiguration.isEnableValueEscaping()) {
-                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, escapeLdapString(searchConfiguration.getUsername()));
+            final String inputQuery = searchConfiguration.isEnableValueEscaping()
+                    ? escapeLdapString(searchConfiguration.getUsername())
+                    : searchConfiguration.getUsername();
+
+            if (searchConfiguration.getUsername().split(" ").length > 1) {
+                final StringBuilder multiSearchFilter = new StringBuilder();
+                multiSearchFilter.append("(&");
+                for (final String queryPart : searchConfiguration.getUsername().split(" ")) {
+                    multiSearchFilter.append("(");
+                    multiSearchFilter.append(input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, queryPart));
+                    multiSearchFilter.append(")");
+                }
+                multiSearchFilter.append(")");
+                searchFilter = multiSearchFilter.toString();
             } else {
-                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, searchConfiguration.getUsername());
+                searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, inputQuery);
             }
         } else if (searchConfiguration.getFormValues() != null) {
             searchFilter = figureSearchFilterForParams(searchConfiguration.getFormValues(),input_searchFilter,searchConfiguration.isEnableValueEscaping());

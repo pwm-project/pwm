@@ -48,7 +48,7 @@
     <% if (!"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT))) { %>
     <div id="footer-content">
         <span class="infotext">
-            <pwm:Display key="Display_FooterInfoText"/>&nbsp;
+            <pwm:display key="Display_FooterInfoText"/>&nbsp;
         </span>
         <div>
             <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
@@ -59,7 +59,7 @@
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
             <span id="idle_status">
-                <pwm:Display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval() * 1000).asLongString(userLocaleFooter)%>
+                <pwm:display key="Display_IdleTimeout"/> <%=new TimeDuration(request.getSession().getMaxInactiveInterval() * 1000).asLongString(userLocaleFooter)%>
             </span>
             </span>
             <% segmentDisplayed = true; } %>
@@ -88,11 +88,6 @@
     <% } %>
     <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
-    <pwm:script>
-        <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
-            PWM_MAIN.pageLoadHandler();
-        </script>
-    </pwm:script>
     <pwm:if test="stripInlineJavascript">
         <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:url url='/public/CommandServlet?processAction=scriptContents' addContext="true"/>&time=<%=System.currentTimeMillis()%>"></script>
     </pwm:if>

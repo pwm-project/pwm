@@ -28,6 +28,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.SystemAuditRecord;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -204,6 +205,7 @@ public class PwmLogger {
                     message.toString(),
                     makeSrcString(sessionLabel),
                     makeActorString(sessionLabel),
+                    sessionLabel != null ? sessionLabel.getSessionID() : null,
                     e,
                     level
             );
@@ -248,6 +250,10 @@ public class PwmLogger {
         doPwmSessionLogEvent(PwmLogLevel.TRACE, pwmSession, message, null);
     }
 
+    public void trace(final PwmRequest pwmRequest, final CharSequence message) {
+        doLogEvent(PwmLogLevel.TRACE, pwmRequest.getSessionLabel(), message, null);
+    }
+
     public void trace(final SessionLabel sessionLabel, final CharSequence message) {
         doLogEvent(PwmLogLevel.TRACE, sessionLabel, message, null);
     }
@@ -266,6 +272,14 @@ public class PwmLogger {
 
     public void debug(final PwmSession pwmSession, final ErrorInformation errorInformation) {
         doPwmSessionLogEvent(PwmLogLevel.DEBUG, pwmSession, convertErrorInformation(errorInformation), null);
+    }
+
+    public void debug(final PwmRequest pwmRequest, final CharSequence message) {
+        doLogEvent(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel(), message, null);
+    }
+
+    public void debug(final PwmRequest pwmRequest, final ErrorInformation errorInformation) {
+        doLogEvent(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel(), convertErrorInformation(errorInformation), null);
     }
 
     public void debug(final SessionLabel sessionLabel, final CharSequence message) {
@@ -292,6 +306,10 @@ public class PwmLogger {
         doPwmSessionLogEvent(PwmLogLevel.INFO, pwmSession, message, null);
     }
 
+    public void info(final PwmRequest pwmRequest, final CharSequence message) {
+        doLogEvent(PwmLogLevel.INFO, pwmRequest.getSessionLabel(), message, null);
+    }
+
     public void info(final SessionLabel sessionLabel, final CharSequence message) {
         doLogEvent(PwmLogLevel.INFO, sessionLabel, message, null);
     }
@@ -310,6 +328,10 @@ public class PwmLogger {
 
     public void error(final PwmSession pwmSession, final ErrorInformation errorInformation) {
         doPwmSessionLogEvent(PwmLogLevel.ERROR, pwmSession, convertErrorInformation(errorInformation), null);
+    }
+
+    public void error(final PwmRequest pwmRequest, final CharSequence message) {
+        doLogEvent(PwmLogLevel.ERROR, pwmRequest.getSessionLabel(), message, null);
     }
 
     public void error(final SessionLabel sessionLabel, final CharSequence message) {

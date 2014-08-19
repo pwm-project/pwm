@@ -47,12 +47,7 @@
                 </tr>
                 <tr style="border: 0">
                     <td style="border:0">
-                        <form action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" name="search"
-                              id="searchForm" onkeyup="PWM_PS.processPeopleSearch();" onchange="PWM_PS.processPeopleSearch()"
-                              onsubmit="return false">
-                            <input type="search" id="username" name="username" class="inputfield" style="width: 400px" autofocus/>
-
-                        </form>
+                        <input type="search" id="username" name="username" class="inputfield" oninput="PWM_PS.processPeopleSearch()" style="width: 400px" autofocus/>
                     </td>
                     <td style="border:0;">
                         <div id="searchIndicator" style="visibility: hidden">
@@ -67,29 +62,16 @@
                 </tr>
             </table>
             <noscript>
-                <span>Javascript is required to view this page.  </span>
-                <a href="<%=request.getContextPath()%>"><pwm:Display key="Title_MainPage"/></a>
+                <span><pwm:display key="Display_JavascriptRequired"/></span>
+                <a href="<%=request.getContextPath()%>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
             <br/>
         </div>
         <div id="grid">
         </div>
-        <br/>
-        <div style="text-align: center;">
-            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                    onclick="window.location=PWM_GLOBAL['url-context']">
-                <span class="btn-icon fa fa-home"></span>
-                <pwm:Display key="Button_Home"/>
-            </button>
-        </div>
     </div>
     <div class="push"></div>
 </div>
-<form id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
-    <input type="hidden" name="processAction" value="detail"/>
-    <input type="hidden" name="userKey" id="userKey" value=""/>
-</form>
 <pwm:script>
 <script>
     <%

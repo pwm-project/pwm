@@ -32,7 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfileConfirm"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_UpdateProfileConfirm"/></p>
+        <p><pwm:display key="Display_UpdateProfileConfirm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
@@ -43,20 +43,19 @@
             <jsp:include page="fragment/form.jsp"/>
         </form>
         <div id="buttonbar">
-            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+            <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button id="confirmBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:Display key="Button_Confirm"/>
+                    <pwm:display key="Button_Confirm"/>
                 </button>
                 <input type="hidden" name="processAction" value="confirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form style="display: inline" action="<pwm:url url='UpdateProfile'/>" method="post" name="confirm" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+                  class="pwm-form">
                 <button id="gobackBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:Display key="Button_GoBack"/>
+                    <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="processAction" value="unConfirm"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

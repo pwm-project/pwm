@@ -36,9 +36,9 @@
     <div id="centerbody">
         <p>
             <% if (pwmSessionHeader.getUserInfoBean().getOtpUserRecord() != null && pwmSessionHeader.getUserInfoBean().getOtpUserRecord().getTimestamp() != null) { %>
-            <pwm:Display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>
+            <pwm:display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>
             <% } else { %>
-            <pwm:Display key="Display_WarnExistingOtpSecret"/>
+            <pwm:display key="Display_WarnExistingOtpSecret"/>
             <% } %>
         </p>
         <%@ include file="fragment/message.jsp" %>
@@ -65,7 +65,7 @@
                 <input type="hidden" name="processAction" value="clearOtp"/>
                 <button type="submit" name="Button_Continue" class="btn" id="continue_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>

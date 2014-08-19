@@ -149,7 +149,7 @@ public class UserCacheService implements PwmService {
 
     public ServiceInfo serviceInfo()
     {
-        return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+        return new ServiceInfo(Collections.singletonList(DataStorageMethod.LOCALDB));
     }
 
     public int size()

@@ -96,12 +96,12 @@
 <% if (!advancedSettings.isEmpty()) { %>
 <a id="showAdvancedSettingsButton" style="cursor:pointer" onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay()">
     <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-down"></span>
-    <pwm:Display key="Button_ShowAdvanced" bundle="Config" value1="<%=String.valueOf(advancedSettings.size())%>"/>
+    <pwm:display key="Button_ShowAdvanced" bundle="Config" value1="<%=String.valueOf(advancedSettings.size())%>"/>
 </a>
 <% if (!showAdvanced) { %>
 <a onclick="PWM_CFGEDIT.toggleAdvancedSettingsDisplay({})" style="cursor:pointer; display: none" id="hideAdvancedSettingsButton">
     <span style="margin-right: 5px; margin-left: 10px" class="fa fa-arrow-up"></span>
-    <pwm:Display key="Button_HideAdvanced" bundle="Config"/>
+    <pwm:display key="Button_HideAdvanced" bundle="Config"/>
 </a>
 <% } %>
 <br/>

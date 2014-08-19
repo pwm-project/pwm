@@ -23,6 +23,7 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
+<%@ page import="password.pwm.http.servlet.ForgottenPasswordServlet" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ include file="fragment/header.jsp" %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -34,22 +35,21 @@
     <div id="centerbody">
         <%
             final ForgottenPasswordBean fpb = PwmSession.getPwmSession(session).getForgottenPasswordBean();
-            String destination = fpb.getTokenSendAddress();
+            String destination = fpb.getProgress().getTokenSentAddress();
         %>
-        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <form action="<pwm:url url='../public/ForgottenPassword'/>" method="post"
-              enctype="application/x-www-form-urlencoded" name="search"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+              enctype="application/x-www-form-urlencoded" name="search" class="pwm-form">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+            <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
             <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput" required="required"></textarea>
             <div id="buttonbar">
                 <button type="submit" class="btn" name="search" id="submitBtn">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
-                    <pwm:Display key="Button_CheckCode"/>"
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:display key="Button_CheckCode"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
+                <input type="hidden" id="processAction" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.enterCode%>"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>

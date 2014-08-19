@@ -202,6 +202,15 @@ PWM_MAIN.initPage = function() {
         });
     }
 
+    require(["dojo/query","dojo/on"], function(query,on){
+        var results = query('.pwm-form');
+        for (var i = 0; i < results.length; i++) {
+            var element = results[i];
+            on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
+        }
+    });
+
+
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
         try {
             PWM_GLOBAL['startupFunctions'][i]();
@@ -211,6 +220,8 @@ PWM_MAIN.initPage = function() {
     }
 
     PWM_MAIN.TimestampHandler.initAllElements();
+
+    ShowHidePasswordHandler.initAllForms();
 
     PWM_MAIN.preloadResources();
 
@@ -310,7 +321,52 @@ PWM_MAIN.handleFormCancel = function() {
     }});
 };
 
-PWM_MAIN.handleFormSubmit = function (form) {
+PWM_MAIN.handleLoginFormSubmit = function(form, event) {
+    require(["dojo","dojo/dom-form"], function(dojo, domForm) {
+        event.preventDefault();
+        PWM_MAIN.showWaitDialog({loadFunction: function () {
+            var formData = domForm.toObject(form);
+            var formDataString = dojo.toJson(formData);
+            dojo.xhrPost({
+                url: 'Login?processAction=restLogin&pwmFormID=' + PWM_GLOBAL['pwmFormID'],
+                postData: formDataString,
+                headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
+                contentType: "application/json;charset=utf-8",
+                encoding: "utf-8",
+                handleAs: "json",
+                dataType: "json",
+                preventCache: true,
+                timeout: PWM_GLOBAL['client.ajaxTypingTimeout'] ? PWM_GLOBAL['client.ajaxTypingTimeout'] : 30 * 1000,
+                error: function (errorObj) {
+                    console.error('error logging in: ' + errorObj);
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.handleFormSubmit(loginFormElement, null);
+                },
+                load: function (data) {
+                    if (data['error'] == true) {
+                        PWM_MAIN.closeWaitDialog();
+                        PWM_MAIN.showError(data['errorMessage']);
+                        PWM_MAIN.getObject('password').value = '';
+                        PWM_MAIN.getObject('password').focus();
+                        return;
+                    }
+                    console.log('authentication success');
+                    var nextURL = data['data']['nextURL'];
+                    if (nextURL) {
+                        PWM_MAIN.goto(nextURL, {noContext: true});
+                    }
+                }
+            });
+        }});
+    });
+};
+
+
+PWM_MAIN.handleFormSubmit = function(form, event) {
+    if (event) {
+        event.preventDefault();
+    }
+
     PWM_GLOBAL['idle_suspendTimeout'] = true;
     var formElements = form.elements;
     for (var i = 0; i < formElements.length; i++) {
@@ -414,6 +470,14 @@ PWM_MAIN.checkForCapsLock = function(e) {
 };
 
 PWM_MAIN.getObject = function(name) {
+    if (name == null) {
+        return null;
+    }
+
+    if (name.tagName) {  // argument is already a dom element
+        return name;
+    }
+
     var ns4 = document.layers;
     var w3c = document.getElementById;
     var ie4 = document.all;
@@ -563,9 +627,11 @@ PWM_MAIN.showWaitDialog = function(options) {
                 style: '',
                 indeterminate:true
             },"progressBar");
-            if (requestedLoadFunction) {
-                requestedLoadFunction();
-            }
+            PWM_MAIN.preloadResources(function(){
+                if (requestedLoadFunction) {
+                    requestedLoadFunction();
+                }
+            });
         };
         options['title'] = options['title'] || PWM_MAIN.showString('Display_PleaseWait');
         options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>'
@@ -593,7 +659,8 @@ PWM_MAIN.showDialog = function(options) {
     var showOk = 'showOk' in options ? options['showOk'] : true;
     var showCancel = 'showCancel' in options ? options['showCancel'] : false;
     var showClose = 'showClose' in options ? options['showClose'] : false;
-    var allowMove = 'allowMove' in options ? ['allowMove'] : false;
+    var allowMove = 'allowMove' in options ? options['allowMove'] : false;
+    var idName = 'id' in options ? options['id'] : 'dialogPopup';
 
     PWM_VAR['dialog_okAction'] = okAction;
     PWM_VAR['dialog_cancelAction'] = cancelAction;
@@ -605,12 +672,12 @@ PWM_MAIN.showDialog = function(options) {
         bodyText += '<br/><br/>';
     }
     if (showOk) {
-        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
+        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog(\'' + idName + '\');PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
             + '<span class="btn-icon fa fa-forward"></span>'
             + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
     if (showCancel) {
-        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog();PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
+        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog(\'' + idName + '\');PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
             + '<span class="btn-icon fa fa-backward"></span>'
             + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
     }
@@ -619,7 +686,6 @@ PWM_MAIN.showDialog = function(options) {
         bodyText = '<div style="max-width: ' + width + 'px; width: ' + width + 'px">' + bodyText + '</div>';
     }
     require(["dojo","dijit/Dialog"],function(dojo,Dialog){
-        var idName = 'dialogPopup';
         PWM_MAIN.clearDijitWidget(idName);
         var theDialog = new Dialog({
             id: idName,
@@ -671,9 +737,10 @@ PWM_MAIN.showConfirmDialog = function(options) {
     PWM_MAIN.showDialog(options);
 };
 
-PWM_MAIN.closeWaitDialog = function() {
+PWM_MAIN.closeWaitDialog = function(idName) {
+    idName = idName || 'dialogPopup';
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
-        PWM_MAIN.clearDijitWidget('dialogPopup');
+        PWM_MAIN.clearDijitWidget(idName);
     });
 };
 
@@ -709,7 +776,7 @@ PWM_MAIN.doShow = function(destClass, message, fromFloatHandler) {
             fx.fadeOut(fadeArgs).play();
         });
         return;
-    };
+    }
     messageElement.firstChild.nodeValue = message;
 
     try {
@@ -1106,7 +1173,7 @@ var ShowHidePasswordHandler = {};
 
 ShowHidePasswordHandler.idSuffix = '-eye-icon';
 ShowHidePasswordHandler.state = {};
-ShowHidePasswordHandler.toggleRevertTimeout = 30 * 1000;
+ShowHidePasswordHandler.toggleRevertTimeout = 30 * 1000; //default value, overriden by settings.
 ShowHidePasswordHandler.debugOutput = false;
 
 ShowHidePasswordHandler.initAllForms = function() {
@@ -1115,7 +1182,7 @@ ShowHidePasswordHandler.initAllForms = function() {
     }
 
     require(["dojo/query"], function(query){
-        var inputFields = query('input[type="password"]');
+        var inputFields = query('.passwordfield');
         for (var i = 0; i < inputFields.length; i++) {
             var field = inputFields[i];
             if (field.id) {
@@ -1131,14 +1198,21 @@ ShowHidePasswordHandler.init = function(nodeName) {
         return;
     }
 
+    var node = PWM_MAIN.getObject(nodeName);
+    if (!node) {
+        return;
+    }
+
     ShowHidePasswordHandler.toggleRevertTimeout = PWM_GLOBAL['client.pwShowRevertTimeout'] || ShowHidePasswordHandler.toggleRevertTimeout;
     var eyeId = nodeName + ShowHidePasswordHandler.idSuffix;
     if (PWM_MAIN.getObject(eyeId)) {
         return;
     }
 
-    require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
-        var node = PWM_MAIN.getObject(nodeName);
+    require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr){
+        var defaultType = attr.get(node, "type");
+        attr.set(node, "data-originalType", defaultType);
+
         var divElement = document.createElement('div');
         divElement.id = eyeId;
         divElement.onclick = function(){ShowHidePasswordHandler.toggle(nodeName)};
@@ -1146,7 +1220,7 @@ ShowHidePasswordHandler.init = function(nodeName) {
         divElement.style.visibility = 'hidden';
         domConstruct.place(divElement,node,'after');
 
-        ShowHidePasswordHandler.state[nodeName] = true;
+        ShowHidePasswordHandler.state[nodeName] = (defaultType == "password");
         ShowHidePasswordHandler.setupTooltip(nodeName, false);
 
         on(node, "keyup, input", function(){
@@ -1154,7 +1228,6 @@ ShowHidePasswordHandler.init = function(nodeName) {
             ShowHidePasswordHandler.renderIcon(nodeName);
             ShowHidePasswordHandler.setupTooltip(nodeName);
         });
-
     });
 };
 
@@ -1169,7 +1242,7 @@ ShowHidePasswordHandler.renderIcon = function(nodeName) {
         eyeNode.style.visibility = 'hidden';
     }
     eyeNode.className = eyeNode.className; //ie8 force-rendering hack
-}
+};
 
 ShowHidePasswordHandler.toggle = function(nodeName) {
     if (ShowHidePasswordHandler.state[nodeName]) {
@@ -1189,13 +1262,20 @@ ShowHidePasswordHandler.hide = function(nodeName) {
 ShowHidePasswordHandler.show = function(nodeName) {
     ShowHidePasswordHandler.state[nodeName] = false;
     ShowHidePasswordHandler.changeInputTypeField(PWM_MAIN.getObject(nodeName),'text');
-    setTimeout(function(){
-        if (!ShowHidePasswordHandler.state[nodeName]) {
-            ShowHidePasswordHandler.toggle(nodeName);
-        }
-    },ShowHidePasswordHandler.toggleRevertTimeout);
     ShowHidePasswordHandler.setupTooltip(nodeName);
     ShowHidePasswordHandler.renderIcon(nodeName);
+
+    var node = PWM_MAIN.getObject(nodeName);
+    require(["dojo/dom-construct", "dojo/on", "dojo/dom-attr"], function(domConstruct, on, attr) {
+        var defaultType = attr.set(node, "data-originalType");
+        if (defaultType == 'password') {
+            setTimeout(function () {
+                if (!ShowHidePasswordHandler.state[nodeName]) {
+                    ShowHidePasswordHandler.toggle(nodeName);
+                }
+            }, ShowHidePasswordHandler.toggleRevertTimeout);
+        }
+    });
 };
 
 ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
@@ -1216,6 +1296,7 @@ ShowHidePasswordHandler.changeInputTypeField = function(object, type) {
             if (object.onchange) newObject.onchange = object.onchange;
             if (object.disabled) newObject.disabled = object.disabled;
             if (object.readonly) newObject.readonly = object.readonly;
+            if (object.data) newObject.data = object.data;
         } else {
             newObject = lang.clone(object);
             attr.set(newObject, "type", type);
@@ -1536,3 +1617,5 @@ PWM_MAIN.addPwmFormIDtoURL = function(url) {
     url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     return url;
 };
+
+PWM_MAIN.pageLoadHandler();

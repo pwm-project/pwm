@@ -41,15 +41,17 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <form action="<pwm:url url='ConfigManager'/>" method="post" name="configLogin" enctype="application/x-www-form-urlencoded"
-              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
+              class="pwm-form">
 
             <h1>Configuration Password</h1>
             <br class="clear"/>
-            <input type="password" class="inputfield" name="password" id="password" autofocus/>
+            <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" autofocus/>
             <div id="buttonbar">
+                <input type="checkbox" id="remember" name="remember">Remember Login</input>
+                <br>
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
-                    <pwm:Display key="Button_Login"/>
+                    <pwm:display key="Button_Login"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>" autofocus="autofocus"/>
@@ -62,7 +64,6 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('password').focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

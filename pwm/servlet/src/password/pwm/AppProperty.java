@@ -42,6 +42,7 @@ public enum AppProperty {
     CLIENT_JSP_SHOW_ICONS                           ("client.jsp.showIcons"),
     CONFIG_EDITOR_QUERY_FILTER_TEST_LIMIT           ("configEditor.queryFilter.testLimit"),
     CONFIG_RELOAD_ON_CHANGE                         ("config.reloadOnChange"),
+    CONFIG_MAX_PERSISTENT_LOGIN_SECONDS             ("config.maxPersistentLoginSeconds"),
     CONFIG_FILE_SCAN_FREQUENCY                      ("config.fileScanFrequencyMS"),
     CONFIG_NEWUSER_PASSWORD_POLICY_CACHE_MS         ("config.newuser.passwordPolicyCacheMS"),
     CONFIG_GUIDE_IDLE_TIMEOUT                       ("config.guide.idleTimeoutSeconds"),

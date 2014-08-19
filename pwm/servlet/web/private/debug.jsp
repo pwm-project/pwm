@@ -77,7 +77,7 @@
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "/>
+                       value="    <pwm:display key="Button_Continue"/>    "/>
                 <input type="hidden"
                        name="processAction"
                        value="continue"/>

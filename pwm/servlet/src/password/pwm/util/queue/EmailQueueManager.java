@@ -22,7 +22,6 @@
 
 package password.pwm.util.queue;
 
-import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.bean.EmailItemBean;
@@ -194,7 +193,7 @@ public class
             }
 
             LOGGER.debug("successfully sent " + logText + "email: " + emailItemBean.toString());
-            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
+            StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
 
             lastSendFailure = null;
             return true;
@@ -204,12 +203,12 @@ public class
 
             if (sendIsRetryable(e)) {
                 LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", will retry");
-                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_FAILURES);
+                StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_FAILURES);
                 return false;
             } else {
                 LOGGER.error(
                         "error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
-                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
+                StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
                 return true;
             }
         }
@@ -305,13 +304,13 @@ public class
         debugOutputMap.put("from", emailItemBean.getFrom());
         debugOutputMap.put("subject", emailItemBean.getSubject());
 
-        return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
+        return Helper.getGson().toJson(debugOutputMap);
     }
 
     @Override
     protected void noteDiscardedItem(QueueEvent queueEvent)
     {
-        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
+        StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
     }
 }
 

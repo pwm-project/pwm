@@ -40,19 +40,19 @@
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:Display key="Title_DirectoryReporting" bundle="Admin"/>">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
                     <div style="max-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto" id="summaryTableWarpper">
                         <table id="summaryTable">
-                            <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
+                            <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                         </table>
                         <div class="noticebar">
-                            <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/>
+                            <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
                         </div>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_DataViewer" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>">
                     <div id="grid">
                     </div>
                     <div style="text-align: center">
@@ -61,21 +61,21 @@
                         Rows
                         <button class="btn" type="button" onclick="PWM_ADMIN.refreshReportDataGrid()">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                            <pwm:Display key="Button_Refresh" bundle="Admin"/>
+                            <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
                     </div>
                     <div style="text-align: center">
                         <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                             <button type="submit" class="btn" id="Button_DownloadReportRecords">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                                <pwm:Display key="Button_DownloadReportRecords" bundle="Admin"/>
+                                <pwm:display key="Button_DownloadReportRecords" bundle="Admin"/>
                             </button>
                             <pwm:script>
                                 <script type="application/javascript">
                                     PWM_GLOBAL['startupFunctions'].push(function(){
                                         PWM_MAIN.showTooltip({
                                             id: 'Button_DownloadReportRecords',
-                                            text: '<pwm:Display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
+                                            text: '<pwm:display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
                                             width: 350
                                         });
                                     });
@@ -93,25 +93,25 @@
                         </script>
                     </pwm:script>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_ReportEngineStatus" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>">
                     <table style="width:400px" id="statusTable">
-                        <tr><td><pwm:Display key="Display_PleaseWait"/></td></tr>
+                        <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                     </table>
                     <table style="width:400px;">
                         <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
                             <button id="reportStartButton" class="btn" onclick="PWM_ADMIN.reportAction('start')">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
-                                <pwm:Display key="Button_Report_Start" bundle="Admin"/>
+                                <pwm:display key="Button_Report_Start" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportStopButton" class="btn" onclick="PWM_ADMIN.reportAction('stop')">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-stop">&nbsp;</span></pwm:if>
-                                <pwm:Display key="Button_Report_Stop" bundle="Admin"/>
+                                <pwm:display key="Button_Report_Stop" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
                             <button id="reportClearButton" class="btn" onclick="PWM_ADMIN.reportAction('clear')">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-trash-o">&nbsp;</span></pwm:if>
-                                <pwm:Display key="Button_Report_Clear" bundle="Admin"/>
+                                <pwm:display key="Button_Report_Clear" bundle="Admin"/>
                             </button>
                         </td></tr>
                     </table>
@@ -122,8 +122,8 @@
                 </div>
                 <% } %>
             </div>
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:Display key="Title_EventStatistics" bundle="Admin"/>">
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_RawStatistics" bundle="Admin"/>">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>">
                     <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
                     <% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
                     <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect"); %>
@@ -177,7 +177,7 @@
                         </button>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_StatisticsCharts" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>">
                     <div style="height:100%; width: 100%">
                         <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
                             <label for="statsChartSelect">Statistic</label>

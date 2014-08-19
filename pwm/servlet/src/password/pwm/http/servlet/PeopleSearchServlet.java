@@ -29,7 +29,6 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.*;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -184,17 +183,13 @@ public class PeopleSearchServlet extends PwmServlet {
     )
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-
         if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
-            pwmRequest.forwardToErrorPage();
+            pwmRequest.forwardToErrorPage(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             return;
         }
 
         if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH)) {
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
-            pwmRequest.forwardToErrorPage();
+            pwmRequest.forwardToErrorPage(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             return;
         }
 

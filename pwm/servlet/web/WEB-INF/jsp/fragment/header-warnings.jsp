@@ -40,44 +40,44 @@
     <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
         <a class="btn">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
-            <pwm:Display key="MenuItem_ConfigManager" bundle="Admin"/>
+            <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
     <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer; white-space: nowrap">
         <a class="btn">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
-            <pwm:Display key="MenuItem_ConfigEditor" bundle="Admin"/>
+            <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
     <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer; white-space: nowrap">
         <a class="btn">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
-            <pwm:Display key="MenuItem_ViewLog" bundle="Config"/>
+            <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
         </a>
     </span>
     <br/>
     <br/>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:Display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
-    <pwm:Display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 <pwm:script>
     <script nonce="<pwm:value name="cspNonce"/>" type="application/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.showTooltip({
                 id: ['header-warning-message'],
                 position: ['below','above'],
-                text: '<pwm:Display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
+                text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
                 width: 500
             });
         });
     </script>
 </pwm:script>
     <% } else if (adminUser) { %>
-    <pwm:Display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
     <% } %>
     </span>
     <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">

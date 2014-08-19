@@ -34,19 +34,17 @@
     </jsp:include>
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
-        <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
+        <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
-        <p><pwm:Display key="Display_ChangePasswordForm"/></p>
+        <p><pwm:display key="Display_ChangePasswordForm"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false"
-              onreset="PWM_CHANGEPW.setInputFocus()" name="changePasswordForm" id="changePasswordForm">
+        <form action="<pwm:url url='ChangePassword'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" onreset="PWM_CHANGEPW.setInputFocus()" name="changePasswordForm" id="changePasswordForm">
             <% if (PwmSession.getPwmSession(session).getChangePasswordBean().isCurrentPasswordRequired()) { %>
             <h1>
-                <label for="currentPassword"><pwm:Display key="Field_CurrentPassword"/></label>
+                <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>
-            <input id="currentPassword" type="password" class="inputfield" name="currentPassword"/>
+            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword passwordfield"/>
             <br/>
             <% } %>
             <% request.setAttribute("form",PwmSetting.PASSWORD_REQUIRE_FORM); %>
@@ -55,11 +53,11 @@
                 <input type="hidden" name="processAction" value="form"/>
                 <button type="submit" name="change" class="btn" id="continue_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="hideButton" class="btn"
-                       value="<pwm:Display key="Button_Show"/>"
+                       value="<pwm:display key="Button_Show"/>"
                        onclick="toggleMaskPasswords()" id="hide_button"/>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

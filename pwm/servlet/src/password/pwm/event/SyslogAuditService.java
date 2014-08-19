@@ -23,7 +23,6 @@
 package password.pwm.event;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.productivity.java.syslog4j.Syslog;
 import org.productivity.java.syslog4j.SyslogConfigIF;
 import org.productivity.java.syslog4j.SyslogIF;
@@ -195,7 +194,7 @@ class SyslogAuditService {
     }
 
     private boolean processEvent(final AuditRecord auditRecord) {
-        final Gson gs = Helper.getGson(new GsonBuilder().disableHtmlEscaping());
+        final Gson gs = Helper.getGson();
         final StringBuilder sb = new StringBuilder();
         sb.append(PwmConstants.PWM_APP_NAME);
         sb.append(" ");

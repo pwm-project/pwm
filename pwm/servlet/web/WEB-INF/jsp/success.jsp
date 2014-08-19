@@ -33,14 +33,14 @@
     </jsp:include>
     <div id="centerbody">
         <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+              enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>
             <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="continue"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
             </div>
         </form>

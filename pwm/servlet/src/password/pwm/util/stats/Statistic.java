@@ -77,6 +77,7 @@ public enum Statistic {
     TOKENS_PASSSED                      (Type.INCREMENTOR, "TokensPassed",null),
     RECOVERY_TOKENS_SENT                (Type.INCREMENTOR, "RecoveryTokensSent", null),
     RECOVERY_TOKENS_PASSED              (Type.INCREMENTOR, "RecoveryTokensPassed", null),
+    RECOVERY_TOKENS_FAILED              (Type.INCREMENTOR, "RecoveryTokensFailed", null),
     RECOVERY_OTP_PASSED                 (Type.INCREMENTOR, "RecoveryOTPPassed", new ConfigSettingDetail(PwmSetting.OTP_ENABLED)),
     RECOVERY_OTP_FAILED                 (Type.INCREMENTOR, "RecoveryOTPFailed", new ConfigSettingDetail(PwmSetting.OTP_ENABLED)),
     PEOPLESEARCH_SEARCHES               (Type.INCREMENTOR, "PeopleSearchSearches", new ConfigSettingDetail(PwmSetting.PEOPLE_SEARCH_ENABLE)),

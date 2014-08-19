@@ -334,7 +334,7 @@ public class CrService implements PwmService {
 
 
     public ResponseSet readUserResponseSet(
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser
     )
@@ -342,12 +342,12 @@ public class CrService implements PwmService {
     {
         final Configuration config = pwmApplication.getConfig();
 
-        LOGGER.trace(pwmSession, "beginning read of user response sequence");
+        LOGGER.trace(sessionLabel, "beginning read of user response sequence");
 
         final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
 
         final String debugMsg = "will attempt to read the following storage methods: " + Helper.getGson().toJson(readPreferences) + " for user " + theUser.getEntryDN();
-        LOGGER.debug(pwmSession, debugMsg);
+        LOGGER.debug(sessionLabel, debugMsg);
 
         final String userGUID;
         if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
@@ -359,17 +359,17 @@ public class CrService implements PwmService {
         for (final DataStorageMethod storageMethod : readPreferences) {
             final ResponseSet readResponses;
 
-            LOGGER.trace(pwmSession, "attempting read of responses via storage method: " + storageMethod);
+            LOGGER.trace(sessionLabel, "attempting read of responses via storage method: " + storageMethod);
             readResponses = operatorMap.get(storageMethod).readResponseSet(theUser, userIdentity, userGUID);
 
             if (readResponses != null) {
-                LOGGER.debug(pwmSession,"returning responses read via method " + storageMethod + " for user " + theUser.getEntryDN());
+                LOGGER.debug(sessionLabel,"returning responses read via method " + storageMethod + " for user " + theUser.getEntryDN());
                 return readResponses;
             } else {
-                LOGGER.trace(pwmSession, "no responses read using method " + storageMethod);
+                LOGGER.trace(sessionLabel, "no responses read using method " + storageMethod);
             }
         }
-        LOGGER.debug(pwmSession,"no responses found for user " + theUser.getEntryDN());
+        LOGGER.debug(sessionLabel,"no responses found for user " + theUser.getEntryDN());
         return null;
     }
 

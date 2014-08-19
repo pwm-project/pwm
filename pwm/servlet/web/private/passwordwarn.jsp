@@ -40,11 +40,11 @@
     <div id="centerbody">
         <p>
             <% if (uiBean.getPasswordExpirationTime() != null) { %>
-            <pwm:Display key="Display_PasswordWarn"
+            <pwm:display key="Display_PasswordWarn"
                          value1="<%= dateFormatter.format(uiBean.getPasswordExpirationTime()) %>"
                          value2="<%= timeFormatter.format(uiBean.getPasswordExpirationTime()) %>"/>
             <% } else { %>
-            <pwm:Display key="Display_PasswordNoExpire"/>
+            <pwm:display key="Display_PasswordNoExpire"/>
             <% } %>
         </p>
 
@@ -52,12 +52,12 @@
             <form action="<%=request.getContextPath()%>/private/<pwm:url url='ChangePassword'/>" method="post"
                   enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input tabindex="1" type="submit" name="change_btn" class="btn"
-                       value="    <pwm:Display key="Button_ChangePassword"/>    "/>
+                       value="    <pwm:display key="Button_ChangePassword"/>    "/>
             </form>
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "/>
+                       value="    <pwm:display key="Button_Continue"/>    "/>
                 <input type="hidden"
                        name="processAction"
                        value="continue"/>

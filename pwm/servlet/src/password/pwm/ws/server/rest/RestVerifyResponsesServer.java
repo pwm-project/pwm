@@ -119,11 +119,11 @@ public class RestVerifyResponsesServer {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
             }
 
-            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession(), restRequestBean.getUserIdentity(), chaiUser);
+            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(), restRequestBean.getUserIdentity(), chaiUser);
             final boolean verified = responseSet.test(jsonInput.toCrMap());
 
             if (restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
             }
 
             final String successMsg = Message.SUCCESS_UNKNOWN.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());

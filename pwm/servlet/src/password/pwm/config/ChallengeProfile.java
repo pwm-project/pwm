@@ -27,9 +27,9 @@ import com.novell.ldapchai.cr.ChaiChallengeSet;
 import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
-import password.pwm.ChallengeItemBean;
 import password.pwm.PwmConstants;
 import password.pwm.config.value.ChallengeValue;
+import password.pwm.cr.ChallengeItemBean;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.PwmLogger;
 

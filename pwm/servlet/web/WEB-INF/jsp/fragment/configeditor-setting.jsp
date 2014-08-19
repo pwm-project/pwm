@@ -95,7 +95,7 @@
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING || loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_TEXT_AREA) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0" width="500">
         <tr style="border-width:0">
-            <td style="border-width:0"><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
+            <td style="border-width:0"><input type="text" disabled="disabled" value="[<pwm:display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
     <pwm:script>
@@ -118,7 +118,7 @@
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.LOCALIZED_STRING_ARRAY) { %>
     <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
         <tr>
-            <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
+            <td><input type="text" disabled="disabled" value="[<pwm:display key="Display_PleaseWait"/>]"/></td>
         </tr>
     </table>
     <pwm:script>
@@ -129,15 +129,13 @@
     </script>
     </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.CHALLENGE) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border-width:0">
-        <tr>
-            <td><input type="text" disabled="disabled" value="[<pwm:Display key="Display_PleaseWait"/>]"/></td>
-        </tr>
-    </table>
+    <div id="table_setting_<%=loopSetting.getKey()%>" style="max-height: 450px; overflow-y: auto">
+        <pwm:display key="Display_PleaseWait"/>
+    </div>
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            ChallengeTableHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
+            ChallengeSettingHandler.init('<%=loopSetting.getKey()%>');
         });
     </script>
     </pwm:script>
@@ -247,7 +245,7 @@
     </div>
     <% } else { %>
     <% if (loopSetting.getSyntax() == PwmSettingSyntax.TEXT_AREA) { %>
-    <textarea id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
+    <textarea style="max-height:400px; overflow-y: auto" id="value_<%=loopSetting.getKey()%>" name="setting_<%=loopSetting.getKey()%>">&nbsp;</textarea>
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -263,7 +261,7 @@
                     onKeyPress: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
+                    value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 readInitialTextBasedValue('<%=loopSetting.getKey()%>');
@@ -286,7 +284,7 @@
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
                     placeholder: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getPlaceholder(locale))%>',
-                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
+                    value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 readInitialTextBasedValue('<%=loopSetting.getKey()%>');
@@ -308,7 +306,7 @@
                     onChange: function() {
                         writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    value: "[<pwm:Display key="Display_PleaseWait"/>]",
+                    value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
                 dijit.byId("value_<%=loopSetting.getKey()%>")._mouseWheeled = function() {};

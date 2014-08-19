@@ -192,4 +192,24 @@ public class LocaleHelper {
         }
     }
 
+    public static Map<Locale,String> getUniqueLocalizations(
+            PwmApplication pwmApplication,
+            final Class<? extends DisplayBundleMarker> bundleClass,
+            final String key,
+            final Locale defaultLocale
+    )
+    {
+        final Map<Locale, String> returnObj = new LinkedHashMap<>();
+        final String defaultValue = getLocalizedMessage(defaultLocale, key, pwmApplication.getConfig(), bundleClass);
+        returnObj.put(defaultLocale, defaultValue);
+
+        for (final Locale loopLocale : pwmApplication.getConfig().getKnownLocales()) {
+            final String localizedValue = ResourceBundle.getBundle(bundleClass.getName(), loopLocale).getString(key);
+            if (!defaultValue.equals(localizedValue)) {
+                returnObj.put(loopLocale, localizedValue);
+            }
+        }
+
+        return Collections.unmodifiableMap(returnObj);
+    }
 }

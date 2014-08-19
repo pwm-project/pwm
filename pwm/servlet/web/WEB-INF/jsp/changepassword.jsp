@@ -34,9 +34,9 @@
     </jsp:include>
     <div id="centerbody">
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
-        <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
+        <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
-        <pwm:Display key="Display_ChangePassword"/>
+        <pwm:display key="Display_ChangePassword"/>
         <div id="PasswordRequirements">
             <ul>
                 <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
@@ -54,7 +54,7 @@
                     <td style="border:0;">
                         <div style="width: 100%">
                             <h2 style="display: inline">
-                                <label style="" for="password1"><pwm:Display key="Field_NewPassword"/></label>
+                                <label style="" for="password1"><pwm:display key="Field_NewPassword"/></label>
                             </h2>
                             &nbsp;&nbsp;
                             <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.showPasswordGuide()" ></div>
@@ -63,13 +63,13 @@
                             <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.doRandomGeneration();" ></div>
                             </pwm:if>
                         </div>
-                        <input type="password" name="password1" id="password1" class="changepasswordfield" autofocus/>
+                        <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" autofocus/>
                     </td>
                     <td style="border:0; width:15%">
                         <pwm:if test="showStrengthMeter">
                         <div id="strengthBox" style="visibility:hidden;">
                             <div id="strengthLabel" style="padding-top:40px;">
-                                <pwm:Display key="Display_StrengthMeter"/>
+                                <pwm:display key="Display_StrengthMeter"/>
                             </div>
                             <div class="progress-container" style="margin-bottom:10px">
                                 <div id="strengthBar" style="width: 0">&nbsp;</div>
@@ -81,8 +81,8 @@
                 </tr>
                 <tr>
                     <td style="border:0; width:75%">
-                        <h2 style="display: inline"><label for="password2"><pwm:Display key="Field_ConfirmPassword"/></label></h2>
-                        <input type="password" name="password2" id="password2" class="changepasswordfield"/>
+                        <h2 style="display: inline"><label for="password2"><pwm:display key="Field_ConfirmPassword"/></label></h2>
+                        <input type="<pwm:value name="passwordFieldType"/>" name="password2" id="password2" class="changepasswordfield passwordfield"/>
                     </td>
                     <td style="border:0; width:15%">
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
@@ -100,7 +100,7 @@
                 <input type="hidden" name="processAction" value="change"/>
                 <button type="submit" name="change" class="btn" id="password_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_ChangePassword"/>
+                    <pwm:display key="Button_ChangePassword"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
@@ -116,7 +116,6 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_CHANGEPW.startupChangePasswordPage();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

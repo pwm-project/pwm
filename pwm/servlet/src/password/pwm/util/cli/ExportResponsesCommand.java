@@ -23,7 +23,6 @@
 package password.pwm.util.cli;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.PwmApplication;
@@ -57,7 +56,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setUsername("*");
 
-        final Gson gson = Helper.getGson(new GsonBuilder().disableHtmlEscaping());
+        final Gson gson = Helper.getGson();
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile,"UTF-8"));
         final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());

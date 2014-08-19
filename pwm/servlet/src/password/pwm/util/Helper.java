@@ -736,7 +736,9 @@ public class
     public static Gson getGson(GsonBuilder gsonBuilder) {
         if (gsonBuilder == null) {
             gsonBuilder = new GsonBuilder();
+            gsonBuilder.disableHtmlEscaping();
         }
+
         return gsonBuilder
                 .registerTypeAdapter(Date.class, new DateTypeAdapter())
                 .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
@@ -949,7 +951,6 @@ public class
             sb.append(inputURI.getPort());
         }
         if (inputURI.getPath() != null) {
-            sb.append("/");
             sb.append(inputURI.getPath());
         }
 

@@ -143,6 +143,14 @@ table td.key {
     text-align: center;
 }
 
+.noborder {
+    border: 0;
+    border-collapse: collapse;
+} .noborder td {
+    border: 0;
+    border-collapse: collapse;
+}
+
 /* disable ie password reveal */
 input[type=password]::-ms-reveal{display: none;}
 

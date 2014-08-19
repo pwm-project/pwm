@@ -215,6 +215,10 @@
         <servlet-class>password.pwm.http.servlet.LoginServlet</servlet-class>
     </servlet>
     <servlet>
+        <servlet-name>LoginActionServlet</servlet-name>
+        <servlet-class>password.pwm.http.servlet.LoginActionServlet</servlet-class>
+    </servlet>
+    <servlet>
         <servlet-name>OAuthConsumerServlet</servlet-name>
         <servlet-class>password.pwm.http.servlet.OAuthConsumerServlet</servlet-class>
     </servlet>
@@ -303,6 +307,11 @@
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/private/Login</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LoginActionServlet</servlet-name>
+        <url-pattern>/private/LoginAction</url-pattern>
+        <url-pattern>/private/LoginAction/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>OAuthConsumerServlet</servlet-name>

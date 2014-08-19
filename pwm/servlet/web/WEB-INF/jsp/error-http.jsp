@@ -66,7 +66,7 @@
                        name="processAction"
                        value="continue"/>
                 <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "
+                       value="    <pwm:display key="Button_Continue"/>    "
                        id="button_continue"/>
             </form>
         </div>

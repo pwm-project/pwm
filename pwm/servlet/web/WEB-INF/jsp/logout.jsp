@@ -33,7 +33,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
-        <p><pwm:Display key="Display_Logout"/></p>
+        <p><pwm:display key="Display_Logout"/></p>
     </div>
     <div class="push"></div>
 </div>

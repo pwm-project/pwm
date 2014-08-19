@@ -74,7 +74,7 @@
         }
         var randomConfig = {};
         randomConfig['fetchList'] = fetchList;
-        fetchRandoms(randomConfig);
+        PWM_CHANGEPW.fetchRandoms(randomConfig);
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.cr;
 
 import java.io.Serializable;
 
@@ -29,6 +29,12 @@ public class ChallengeItemBean implements Serializable {
     private int minLength;
     private int maxLength;
     private boolean adminDefined;
+
+    private boolean enforceWordlist;
+    private int maxQuestionCharsInAnswer;
+    private int points;
+    private String setupGuide;
+    private String regex;
 
     public ChallengeItemBean(
             String challengeText,

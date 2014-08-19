@@ -120,12 +120,12 @@ PWM_PS.showUserDetail = function(userKey) {
                     dataType: "json",
                     postData: bodyString,
                     error: function (errorObj) {
-                        PWM_MAIN.showError("error loading " + userKey + ", reason: " + errorObj)
+                        PWM_MAIN.showError("error loading " + userKey + ", reason: " + errorObj);
                         PWM_MAIN.closeWaitDialog();
                     },
                     load: function (data) {
                         if (data['error'] == true) {
-                            console.error('unable to load people detail , error: ' + data['errorDetail']);
+                            console.error('unable to load people detail, error: ' + data['errorDetail']);
                             PWM_MAIN.showError(data['errorDetail']);
                             PWM_MAIN.closeWaitDialog();
                             return;

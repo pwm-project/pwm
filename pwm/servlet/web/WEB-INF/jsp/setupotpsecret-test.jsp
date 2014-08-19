@@ -41,11 +41,10 @@ TODO: support HOTP
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_PleaseVerifyOtp"/></p>
+        <p><pwm:display key="Display_PleaseVerifyOtp"/></p>
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
-              enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-              onsubmit="PWM_MAIN.handleFormSubmit(this); return false;">
+              enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
             <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
                    id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
                    onkeyup="validateResponses();" autofocus/>
@@ -53,12 +52,12 @@ TODO: support HOTP
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
                 <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
-                    <pwm:Display key="Button_CheckCode"/>
+                    <pwm:display key="Button_CheckCode"/>
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="goback_button"
                         onclick="PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
-                    <pwm:Display key="Button_GoBack"/>
+                    <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
@@ -76,7 +75,6 @@ TODO: support HOTP
     PWM_GLOBAL['responseMode'] = "user";
     PWM_GLOBAL['startupFunctions'].push(function() {
         document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

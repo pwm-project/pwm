@@ -40,16 +40,15 @@
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
-            <form action="<pwm:url url='NewUser'/>" method="post" enctype="application/x-www-form-urlencoded"
-                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+            <form action="<pwm:url url='NewUser'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
-                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
+                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:display
                     key="Button_Agree"/></label>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
@@ -59,7 +58,7 @@
                   enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_reset">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:Display key="Button_Cancel"/>
+                    <pwm:display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>

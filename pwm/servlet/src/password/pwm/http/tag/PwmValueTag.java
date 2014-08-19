@@ -22,8 +22,13 @@
 
 package password.pwm.http.tag;
 
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.apache.commons.lang.StringEscapeUtils;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -79,6 +84,32 @@ public class PwmValueTag extends TagSupport {
         switch (value) {
             case cspNonce:
                 return pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
+
+            case homeURL: {
+                String outputURL = pwmRequest.getConfig().readSettingAsString(PwmSetting.URL_HOME);
+                if (outputURL == null || outputURL.isEmpty()) {
+                    outputURL = pwmRequest.getHttpServletRequest().getContextPath();
+                } else {
+                    try {
+                        MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
+                                pwmRequest.getPwmApplication());
+                        outputURL = macroMachine.expandMacros(outputURL);
+                    } catch (ChaiUnavailableException | PwmUnrecoverableException e) {
+                        LOGGER.error(pwmRequest, "error expanding macros in homeURL: " + e.getMessage());
+                    }
+                }
+                return StringEscapeUtils.escapeHtml(outputURL);
+            }
+
+            case passwordFieldType: {
+                final boolean maskPasswordFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_PASSWORD_FIELDS);
+                return maskPasswordFields ? "password" : "text";
+            }
+
+            case responseFieldType: {
+                final boolean maskResponseFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS);
+                return maskResponseFields ? "password" : "text";
+            }
         }
 
         return "";
@@ -86,7 +117,9 @@ public class PwmValueTag extends TagSupport {
 
     enum VALUE {
         cspNonce,
-
+        homeURL,
+        passwordFieldType,
+        responseFieldType,
     }
 }
 

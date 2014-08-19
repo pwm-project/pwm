@@ -46,7 +46,7 @@
         <table id="form">
             <tr>
                 <td class="title" colspan="10">
-                    <pwm:Display key="Title_Application"/> Health
+                    <pwm:display key="Title_Application"/> Health
                 </td>
             </tr>
             <tr>

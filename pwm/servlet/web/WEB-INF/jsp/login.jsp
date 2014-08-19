@@ -32,23 +32,21 @@
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_Login"/></p>
+        <p><pwm:display key="Display_Login"/></p>
 
-        <form action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login"
-              onsubmit="return PWM_MAIN.handleFormSubmit(this)">
+        <form class="" action="<pwm:url url='Login'/>" method="post" name="login" enctype="application/x-www-form-urlencoded" id="login">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
-            <h2><label for="username"><pwm:Display key="Field_Username"/></label></h2>
-            <input type="text" name="username" id="username" class="inputfield" required="required"
-                   value="<pwm:ParamValue name='username'/>" autofocus/>
+            <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
+            <input type="text" name="username" id="username" class="inputfield" required="required" autofocus/>
 
-            <h2><label for="password"><pwm:Display key="Field_Password"/></label></h2>
-            <input type="password" name="password" id="password" required="required" class="inputfield"/>
+            <h2><label for="password"><pwm:display key="Field_Password"/></label></h2>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password" id="password" required="required" class="inputfield passwordfield"/>
 
             <div id="buttonbar">
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
-                    <pwm:Display key="Button_Login"/>
+                    <pwm:display key="Button_Login"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="login">
@@ -64,11 +62,11 @@
                     <td style="border:0" class="menubutton_key">
                         <a class="menubutton" id="Title_ForgottenPassword" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenPassword'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:Display key="Title_ForgottenPassword"/>
+                            <pwm:display key="Title_ForgottenPassword"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:Display key="Long_Title_ForgottenPassword"/></p>
+                        <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
                     </td>
                 </tr>
                 <% } %>
@@ -77,11 +75,11 @@
                     <td style="border:0" class="menubutton_key">
                         <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ForgottenUsername'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:Display key="Title_ForgottenUsername"/>
+                            <pwm:display key="Title_ForgottenUsername"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:Display key="Long_Title_ForgottenUsername"/></p>
+                        <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
                     </td>
                 </tr>
                 <% } %>
@@ -90,11 +88,11 @@
                     <td style="border:0" class="menubutton_key">
                         <a class="menubutton" id="Title_ActivateUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/ActivateUser'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
-                            <pwm:Display key="Title_ActivateUser"/>
+                            <pwm:display key="Title_ActivateUser"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:Display key="Long_Title_ActivateUser"/></p>
+                        <p><pwm:display key="Long_Title_ActivateUser"/></p>
                     </td>
                 </tr>
                 <% } %>
@@ -103,11 +101,11 @@
                     <td style="border:0" class="menubutton_key">
                         <a class="menubutton" id="Title_NewUser" onclick="PWM_MAIN.showWaitDialog()" href="<%=request.getContextPath()%><pwm:url url='/public/NewUser'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
-                            <pwm:Display key="Title_NewUser"/>
+                            <pwm:display key="Title_NewUser"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:Display key="Long_Title_NewUser"/></p>
+                        <p><pwm:display key="Long_Title_NewUser"/></p>
                     </td>
                 </tr>
                 <% } %>
@@ -119,13 +117,22 @@
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        ShowHidePasswordHandler.initAllForms();
         if (PWM_MAIN.getObject('username').value.length < 1) {
             PWM_MAIN.getObject('username').focus();
         } else {
             PWM_MAIN.getObject('password').focus();
         }
+
+        require(["dojo/on"], function(on){
+            var loginFormElement = PWM_MAIN.getObject('login');
+            on(loginFormElement, "submit", function(event){
+                PWM_MAIN.handleLoginFormSubmit(loginFormElement,event)
+            });
+        });
     });
+
+
+
 </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>

@@ -50,7 +50,7 @@
 </div>
 <div id="localeEditor_body" style="display:none">
 <div>
-    <pwm:Display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
+    <pwm:display key="Display_ConfigEditorLocales" bundle="Config" value1="<%=PwmConstants.PWM_URL_HOME%>"/>
 </div>
 <% for (final String key : new TreeSet<String>(Collections.list(bundle.getKeys()))) { %>
 <% final boolean isDefault = PwmSession.getPwmSession(session).getConfigManagerBean().getConfiguration().readLocaleBundleMap(bundleName.getTheClass().getName(),key).isEmpty();%>
@@ -114,7 +114,7 @@
             <% } else { %>
             <tr style="border-width:0">
                 <td style="border-width:0">
-                    <pwm:Display key="Display_PleaseWait"/>
+                    <pwm:display key="Display_PleaseWait"/>
                 </td>
             </tr>
             <% } %>

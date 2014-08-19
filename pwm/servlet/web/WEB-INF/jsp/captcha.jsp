@@ -52,38 +52,37 @@
         <jsp:param name="pwm.PageName" value="Title_Captcha"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_Captcha"/></p>
+        <p><pwm:display key="Display_Captcha"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="verifyCaptcha" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+        <form action="<pwm:url url='Captcha'/>" method="post" enctype="application/x-www-form-urlencoded" name="verifyCaptcha" class="pwm-form">
             <div class="recaptcha_WaitDialogBlank">
                 <div id="recaptcha_widget" style="display:none" class="recaptcha_widget">
                     <div id="recaptcha_image"></div>
                     <div class="recaptcha_input">
-                        <label class="recaptcha_only_if_image" for="recaptcha_response_field"><pwm:Display key="Display_CaptchaInputWords"/></label>
-                        <label class="recaptcha_only_if_audio" for="recaptcha_response_field"><pwm:Display key="Display_CaptchaInputNumbers"/></label>
+                        <label class="recaptcha_only_if_image" for="recaptcha_response_field"><pwm:display key="Display_CaptchaInputWords"/></label>
+                        <label class="recaptcha_only_if_audio" for="recaptcha_response_field"><pwm:display key="Display_CaptchaInputNumbers"/></label>
                         <input type="text" id="recaptcha_response_field" name="recaptcha_response_field">
                     </div>
                     <ul class="recaptcha_options">
                         <li>
                             <a href="javascript:Recaptcha.reload()">
-                                <span class="fa fa-refresh" title="<pwm:Display key="Display_CaptchaRefresh"/>"></span>
+                                <span class="fa fa-refresh" title="<pwm:display key="Display_CaptchaRefresh"/>"></span>
                             </a>
                         </li>
                         <li class="recaptcha_only_if_image">
                             <a href="javascript:Recaptcha.switch_type('audio')">
-                                <span class="fa fa-volume-up" title="<pwm:Display key="Display_CaptchaGetAudio"/>"></span>
+                                <span class="fa fa-volume-up" title="<pwm:display key="Display_CaptchaGetAudio"/>"></span>
                             </a>
                         </li>
                         <li class="recaptcha_only_if_audio">
                             <a href="javascript:Recaptcha.switch_type('image')">
-                                <span class="fa fa-picture" title="<pwm:Display key="Display_CaptchaGetImage"/>"></span>
+                                <span class="fa fa-picture" title="<pwm:display key="Display_CaptchaGetImage"/>"></span>
                             </a>
                         </li>
                         <li>
                             <a href="javascript:Recaptcha.showhelp()">
-                                <span class="fa fa-question-sign" title="<pwm:Display key="Display_CaptchaHelp"/>"></span>
+                                <span class="fa fa-question-sign" title="<pwm:display key="Display_CaptchaHelp"/>"></span>
                             </a>
                         </li>
                     </ul>
@@ -102,7 +101,7 @@
                 <input type="hidden" name="processAction" value="doVerify"/>
                 <button type="submit" name="verify" class="btn" id="verify_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:Display key="Button_Verify"/>
+                    <pwm:display key="Button_Verify"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

@@ -45,7 +45,7 @@
     </jsp:include>
     <div id="centerbody">
         <% final String timeZone = (java.text.DateFormat.getDateTimeInstance()).getTimeZone().getDisplayName(); %>
-        <p><pwm:Display key="Display_UserEventHistory" value1="<%= timeZone %>"/></p>
+        <p><pwm:display key="Display_UserEventHistory" value1="<%= timeZone %>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
 
         <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
@@ -69,7 +69,7 @@
                        name="processAction"
                        value="continue"/>
                 <input type="submit" name="button" class="btn"
-                       value="    <pwm:Display key="Button_Continue"/>    "
+                       value="    <pwm:display key="Button_Continue"/>    "
                        id="button_logout"/>
             </form>
         </div>

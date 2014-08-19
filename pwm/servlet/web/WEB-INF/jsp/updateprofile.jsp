@@ -32,12 +32,11 @@
         <jsp:param name="pwm.PageName" value="Title_UpdateProfile"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_UpdateProfile"/></p>
+        <p><pwm:display key="Display_UpdateProfile"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false"
-              onchange="validateForm()" onkeyup="validateForm()">
+              class="pwm-form" onchange="validateForm()" onkeyup="validateForm()">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
             <% request.setAttribute("formData",pwmSessionHeader.getUpdateProfileBean().getFormData()); %>
@@ -46,7 +45,7 @@
             <div id="buttonbar">
                 <button id="submitBtn" type="submit" class="btn" name="button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Update"/>
+                    <pwm:display key="Button_Update"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="updateProfile"/>
@@ -87,7 +86,6 @@
 
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.updateProfile.elements[0].focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

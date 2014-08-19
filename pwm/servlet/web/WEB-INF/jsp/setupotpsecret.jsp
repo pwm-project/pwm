@@ -39,31 +39,31 @@
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_SetupOtpSecret"/></p>
+        <p><pwm:display key="Display_SetupOtpSecret"/></p>
         <%@ include file="fragment/message.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Android_Title"/>">
-                <pwm:Display key="Display_SetupOtp_Android_Steps"/>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Android_Title"/>">
+                <pwm:display key="Display_SetupOtp_Android_Steps"/>
                 <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR Code" width="150" height="150"/>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_iPhone_Title"/>">
-                <pwm:Display key="Display_SetupOtp_iPhone_Steps"/>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_iPhone_Title"/>">
+                <pwm:display key="Display_SetupOtp_iPhone_Steps"/>
                 <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
             </div>
-            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Display_SetupOtp_Other_Title"/>">
-                <pwm:Display key="Display_SetupOtp_Other_Steps"/>
+            <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Display_SetupOtp_Other_Title"/>">
+                <pwm:display key="Display_SetupOtp_Other_Steps"/>
                 <img class="qrcodeimage" src="SetupOtp?processAction=showQrImage&width=150&height=150&pwmFormID=<pwm:FormID/>" alt="QR code" width="150" height="150"/>
                 <table border="0" style="width: 300px; margin-right: auto; margin-left: auto">
                     <tr valign="top">
-                        <td><b><pwm:Display key="Field_OTP_Identifier"/></b></td>
+                        <td><b><pwm:display key="Field_OTP_Identifier"/></b></td>
                         <td><%=otpUserRecord.getIdentifier()%></td>
                     </tr>
                     <tr valign="top">
-                        <td><b><pwm:Display key="Field_OTP_Secret"/></b></td>
+                        <td><b><pwm:display key="Field_OTP_Secret"/></b></td>
                         <td><%=otpUserRecord.getSecret()%></td>
                     </tr>
                     <tr valign="top">
-                        <td><b><pwm:Display key="Field_OTP_Type"/></b></td>
+                        <td><b><pwm:display key="Field_OTP_Type"/></b></td>
                         <td><%=otpUserRecord.getType().toString()%></td>
                     </tr>
                 </table>
@@ -71,12 +71,11 @@
         </div>
         <div id="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
-                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret"
-                  onsubmit="PWM_MAIN.handleFormSubmit(this); return false;">
+                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret" class="pwm-form">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

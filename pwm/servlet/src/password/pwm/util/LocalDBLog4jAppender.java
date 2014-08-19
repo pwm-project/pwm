@@ -53,6 +53,7 @@ public class LocalDBLog4jAppender extends AppenderSkeleton {
                     message.toString(),
                     null,
                     null,
+                    null,
                     throwableInformation == null ? null : throwableInformation.getThrowable(),
                     PwmLogLevel.fromLog4jLevel(level)
             );

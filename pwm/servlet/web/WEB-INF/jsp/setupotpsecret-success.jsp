@@ -40,7 +40,7 @@
         <jsp:param name="pwm.PageName" value="Title_SetupOtpSecret"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Success_Unknown" bundle="Message"/></p>
+        <p><pwm:display key="Success_Unknown" bundle="Message"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <% if (otpBean.getRecoveryCodes() != null && !otpBean.getRecoveryCodes().isEmpty()) %>
@@ -63,14 +63,13 @@
             </tr>
         </table>
         <div id="buttonbar">
-            <form action="<pwm:url url='SetupOtp'/>" method="post"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+            <form action="<pwm:url url='SetupOtp'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>
                 <div id="buttonbar">
                     <input type="hidden" name="processAction" value="complete"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                        <pwm:Display key="Button_Continue"/>
+                        <pwm:display key="Button_Continue"/>
                     </button>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 </div>

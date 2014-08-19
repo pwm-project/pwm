@@ -34,7 +34,7 @@
 <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "");%>
 <body class="nihilo">
 <% if ("".equals(selectedLevel)) { %>
-<div style="text-align: center;"><pwm:Display key="Display_PleaseWait"/></div>
+<div style="text-align: center;"><pwm:display key="Display_PleaseWait"/></div>
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){

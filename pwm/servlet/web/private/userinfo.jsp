@@ -56,12 +56,12 @@
 </jsp:include>
 <div id="centerbody">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserInformation"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserInformation"/>">
     <table>
         <% if (viewStatusFields.contains(ViewStatusFields.Username)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_Username"/>
+                <pwm:display key="Field_Username"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(uiBean.getUsername()) %>
@@ -71,7 +71,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.UserDN)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_UserDN"/>
+                <pwm:display key="Field_UserDN"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
@@ -80,7 +80,7 @@
         <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_LdapProfile"/>
+                <pwm:display key="Field_LdapProfile"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
@@ -91,7 +91,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.UserEmail)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_UserEmail"/>
+                <pwm:display key="Field_UserEmail"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(uiBean.getUserEmailAddress()) %>
@@ -101,7 +101,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.GUID)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_UserGUID"/>
+                <pwm:display key="Field_UserGUID"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(uiBean.getUserGuid()) %>
@@ -111,51 +111,51 @@
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordExpired)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordExpired"/>
+                <pwm:display key="Field_PasswordExpired"/>
             </td>
             <td>
-                <%if (uiBean.getPasswordState().isExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                <%if (uiBean.getPasswordState().isExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordPreExpired)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordPreExpired"/>
+                <pwm:display key="Field_PasswordPreExpired"/>
             </td>
             <td>
-                <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                <%if (uiBean.getPasswordState().isPreExpired()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordWarnPeriod)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordWithinWarningPeriod"/>
+                <pwm:display key="Field_PasswordWithinWarningPeriod"/>
             </td>
             <td>
-                <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                <%if (uiBean.getPasswordState().isWarnPeriod()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordViolatesPolicy)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordViolatesPolicy"/>
+                <pwm:display key="Field_PasswordViolatesPolicy"/>
             </td>
             <td>
-                <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                <% if (uiBean.getPasswordState().isViolatesPolicy()) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordSetTime)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordSetTime"/>
+                <pwm:display key="Field_PasswordSetTime"/>
             </td>
             <% if (uiBean.getPasswordLastModifiedTime() == null) { %>
             <td>
-                <pwm:Display key="Value_NotApplicable"/>
+                <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp">
@@ -167,7 +167,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.PasswordSetTimeDelta)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordSetTimeDelta"/>
+                <pwm:display key="Field_PasswordSetTimeDelta"/>
             </td>
             <td>
                 <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
@@ -175,11 +175,11 @@
         </tr>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_PasswordExpirationTime"/>
+                <pwm:display key="Field_PasswordExpirationTime"/>
             </td>
             <% if (uiBean.getPasswordExpirationTime() == null) { %>
             <td>
-                <pwm:Display key="Value_NotApplicable"/>
+                <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp">
@@ -192,21 +192,21 @@
         <% if (viewStatusFields.contains(ViewStatusFields.ResponsesStored)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_ResponsesStored"/>
+                <pwm:display key="Field_ResponsesStored"/>
             </td>
             <td>
-                <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                <%if (!uiBean.isRequiresResponseConfig()) { %><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
             </td>
         </tr>
         <% } %>
         <% if (viewStatusFields.contains(ViewStatusFields.ResponsesTimestamp)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_ResponsesTimestamp"/>
+                <pwm:display key="Field_ResponsesTimestamp"/>
             </td>
             <% if (responseInfoBean == null || responseInfoBean.getTimestamp() == null ) { %>
             <td>
-                <pwm:Display key="Value_NotApplicable"/>
+                <pwm:display key="Value_NotApplicable"/>
             </td>
             <% } else { %>
             <td class="timestamp">
@@ -219,21 +219,21 @@
             <% if (viewStatusFields.contains(ViewStatusFields.OTPStored)) { %>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_OTP_Stored"/>
+                    <pwm:display key="Field_OTP_Stored"/>
                 </td>
                 <td>
-                    <%if (uiBean.getOtpUserRecord() != null) {%><pwm:Display key="Value_True"/><% } else { %><pwm:Display key="Value_False"/><% } %>
+                    <%if (uiBean.getOtpUserRecord() != null) {%><pwm:display key="Value_True"/><% } else { %><pwm:display key="Value_False"/><% } %>
                 </td>
             </tr>
             <% } %>
             <% if (viewStatusFields.contains(ViewStatusFields.OTPTimestamp)) { %>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_OTP_Timestamp"/>
+                    <pwm:display key="Field_OTP_Timestamp"/>
                 </td>
                 <% if (uiBean.getOtpUserRecord() == null || uiBean.getOtpUserRecord().getTimestamp() == null) { %>
                 <td>
-                    <pwm:Display key="Value_NotApplicable"/>
+                    <pwm:display key="Value_NotApplicable"/>
                 </td>
                 <% } else { %>
                 <td class="timestamp">
@@ -246,7 +246,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.NetworkAddress)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_NetworkAddress"/>
+                <pwm:display key="Field_NetworkAddress"/>
             </td>
             <td>
                 <%= ssBean.getSrcAddress() %>
@@ -256,7 +256,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.NetworkHost)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_NetworkHost"/>
+                <pwm:display key="Field_NetworkHost"/>
             </td>
             <td>
                 <%= ssBean.getSrcHostname() %>
@@ -266,7 +266,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.LogoutURL)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_LogoutURL"/>
+                <pwm:display key="Field_LogoutURL"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
@@ -276,7 +276,7 @@
         <% if (viewStatusFields.contains(ViewStatusFields.ForwardURL)) { %>
         <tr>
             <td class="key">
-                <pwm:Display key="Field_ForwardURL"/>
+                <pwm:display key="Field_ForwardURL"/>
             </td>
             <td>
                 <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
@@ -285,12 +285,12 @@
         <% } %>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_PasswordPolicy"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Title_PasswordPolicy"/>
+                    <pwm:display key="Title_PasswordPolicy"/>
                 </td>
                 <td>
                     <ul>
@@ -308,7 +308,7 @@
     final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
 %>
 <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_UserEventHistory"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
             <% for (final UserAuditRecord record : auditRecords) { %>
@@ -330,14 +330,11 @@
 <% } %>
 </div>
 <div id="buttonbar">
-    <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
-          enctype="application/x-www-form-urlencoded">
-        <input type="hidden"
-               name="processAction"
-               value="continue"/>
+    <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post" enctype="application/x-www-form-urlencoded">
+        <input type="hidden" name="processAction" value="continue"/>
         <button type="submit" name="button" class="btn" id="button_continue">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-            <pwm:Display key="Button_Continue"/>
+            <pwm:display key="Button_Continue"/>
         </button>
     </form>
 </div>

@@ -65,6 +65,8 @@ public enum PwmSetting {
             "pwm.forwardURL", PwmSettingSyntax.STRING, Category.GENERAL),
     URL_LOGOUT(
             "pwm.logoutURL", PwmSettingSyntax.STRING, Category.GENERAL),
+    URL_HOME(
+            "pwm.homeURL", PwmSettingSyntax.STRING, Category.GENERAL),
     PWM_INSTANCE_NAME(
             "pwmInstanceName", PwmSettingSyntax.STRING, Category.GENERAL),
     IDLE_TIMEOUT_SECONDS(
@@ -82,6 +84,10 @@ public enum PwmSetting {
             "interface.theme", PwmSettingSyntax.SELECT, Category.USER_INTERFACE),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
             "display.showHidePasswordFields", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
+    DISPLAY_MASK_PASSWORD_FIELDS(
+            "display.maskPasswordFields", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
+    DISPLAY_MASK_RESPONSE_FIELDS(
+            "display.maskResponseFields", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_CANCEL_BUTTON(
             "display.showCancelButton", PwmSettingSyntax.BOOLEAN, Category.USER_INTERFACE),
     DISPLAY_RESET_BUTTON(
@@ -626,6 +632,8 @@ public enum PwmSetting {
             "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, Category.RECOVERY),
     FORGOTTEN_USER_POST_ACTIONS(
             "recovery.postActions", PwmSettingSyntax.ACTION, Category.RECOVERY),
+    FORGOTTEN_PASSWORD_ALLOW_WHEN_LOCKED(
+            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, Category.RECOVERY),
 
 
     // forgotten username
@@ -835,7 +843,8 @@ public enum PwmSetting {
             "helpdesk.useProxy",PwmSettingSyntax.BOOLEAN, Category.HELPDESK),
     HELPDESK_DETAIL_DISPLAY_NAME(
             "helpdesk.displayName",PwmSettingSyntax.STRING, Category.HELPDESK),
-
+    HELPDESK_TOKEN_SEND_METHOD(
+            "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, Category.HELPDESK),
 
 
     // helpdesk profile

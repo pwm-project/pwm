@@ -53,7 +53,7 @@
     final String jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
 %>
 <head>
-    <title><pwm:Display key="Title_TitleBar"/></title>
+    <title><pwm:display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>" data-jsp-name="<%=jspFileName%>"
           data-url-context="<%=request.getContextPath()%>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationHeader,pwmSessionHeader)%>" data-restClientKey="<%=pwmSessionHeader.getRestClientKey()%>"/>

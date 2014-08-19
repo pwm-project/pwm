@@ -156,14 +156,14 @@ public class RestChallengesServer {
             if (restRequestBean.getUserIdentity() == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(null, restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(), restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
                 challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
                 helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession(),restRequestBean.getUserIdentity(), chaiUser);
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(),restRequestBean.getUserIdentity(), chaiUser);
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
                         restRequestBean.getPwmSession().getSessionLabel(),
@@ -203,7 +203,7 @@ public class RestChallengesServer {
 
             // update statistics
             if (!restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
             }
 
             final RestResultBean resultBean = new RestResultBean();
@@ -267,7 +267,7 @@ public class RestChallengesServer {
 
             // update statistics
             if (!restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
             }
 
             final String successMsg = Message.SUCCESS_SETUP_RESPONSES.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());
@@ -357,7 +357,7 @@ public class RestChallengesServer {
 
             // update statistics
             if (!restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_CHALLENGES);
             }
 
             final String successMsg = Message.SUCCESS_CLEAR_RESPONSES.getLocalizedMessage(request.getLocale(),restRequestBean.getPwmApplication().getConfig());

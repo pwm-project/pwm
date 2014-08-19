@@ -39,14 +39,14 @@
     <div id="centerbody">
         <p>
             <% if (responseInfoBean.getTimestamp() != null) { %>
-            <pwm:Display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>
+            <pwm:display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>
             <% } else { %>
-            <pwm:Display key="Display_WarnExistingResponse"/>
+            <pwm:display key="Display_WarnExistingResponse"/>
             <% } %>
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <h2><pwm:Display key="Title_AnsweredQuestions"/></h2>
+        <h2><pwm:display key="Title_AnsweredQuestions"/></h2>
         <% for (final Challenge loopChallenge : responseInfoBean.getCrMap().keySet()) { %>
                 <p><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %></p>
         <% } %>
@@ -56,7 +56,7 @@
                   enctype="application/x-www-form-urlencoded" onsubmit="confirmContinue();return false">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn" value="">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
-                    <pwm:Display key="Button_ClearResponses"/>
+                    <pwm:display key="Button_ClearResponses"/>
                 </button>
                 <input type="hidden" name="processAction" value="clearExisting"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

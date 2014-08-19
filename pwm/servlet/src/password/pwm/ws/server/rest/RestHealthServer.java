@@ -88,7 +88,7 @@ public class RestHealthServer {
             processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
             final String resultString = restRequestBean.getPwmApplication().getHealthMonitor().getMostSevereHealthStatus().toString() + "\n";
             if (restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
             return resultString;
         } catch (Exception e) {
@@ -116,7 +116,7 @@ public class RestHealthServer {
             processCheckImeddiateFlag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession(), requestImmediateParam);
             final HealthData jsonOutput = processGetHealthCheckData(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getSessionStateBean().getLocale());
             if (restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_HEALTH);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(jsonOutput);

@@ -26,8 +26,6 @@
 
 "use strict";
 
-var passwordsMasked = true;
-
 var COLOR_BAR_TOP       = 0x8ced3f;
 var COLOR_BAR_BOTTOM    = 0xcc0e3e;
 
@@ -343,9 +341,9 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
         on(changePasswordForm,"keyup, change",function(){
             PWM_CHANGEPW.validatePasswords(null);
         });
-        on(changePasswordForm,"submit",function(){
+        on(changePasswordForm,"submit",function(event){
             PWM_CHANGEPW.handleChangePasswordSubmit();
-            PWM_MAIN.handleFormSubmit(this);
+            PWM_MAIN.handleFormSubmit(changePasswordForm, event);
             return false;
         });
         on(changePasswordForm,"reset",function(){

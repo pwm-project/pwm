@@ -37,7 +37,7 @@
     <div id="centerbody" class="wide">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:Display key="Title_Sessions" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>">
                 <div id="activeSessionGrid">
                 </div>
                 <div style="text-align: center">
@@ -46,7 +46,7 @@
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
+                        <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                 </div>
             </div>
@@ -64,13 +64,13 @@
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
+                        <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                 </div>
             </div>
             <% } %>
 
-            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditUsers" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>">
                 <div id="auditUserGrid">
                 </div>
                 <div style="text-align: center">
@@ -79,7 +79,7 @@
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value)">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
+                        <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">
@@ -91,7 +91,7 @@
                     </form>
                 </div>
             </div>
-            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:Display key="Title_AuditSystem" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>">
                 <div id="auditSystemGrid">
                 </div>
                 <div style="text-align: center">
@@ -100,7 +100,7 @@
                     Rows
                     <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value)">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                        <pwm:Display key="Button_Refresh" bundle="Admin"/>
+                        <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
                     <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">

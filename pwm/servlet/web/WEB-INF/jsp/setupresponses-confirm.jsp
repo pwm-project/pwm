@@ -37,7 +37,7 @@
         <jsp:param name="pwm.PageName" value="Title_ConfirmResponses"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ConfirmResponses"/></p>
+        <p><pwm:display key="Display_ConfirmResponses"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <%
@@ -68,19 +68,19 @@
         <br/>
         <div id="buttonbar">
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="changeResponses"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+                  enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="confirm_btn" class="btn" id="confirm_btn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
-                    <pwm:Display key="Button_ConfirmResponses"/>
+                    <pwm:display key="Button_ConfirmResponses"/>
                 </button>
                 <input type="hidden" name="processAction" value="confirmResponses"/>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form style="display: inline" action="<pwm:url url='SetupResponses'/>" method="post" name="confirmResponses"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+                  enctype="application/x-www-form-urlencoded" class="pwm-form">
                 <button type="submit" name="change_btn" class="btn" id="change_btn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:Display key="Button_GoBack"/>
+                    <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" name="processAction" value="changeResponses"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

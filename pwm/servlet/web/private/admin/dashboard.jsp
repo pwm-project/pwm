@@ -55,13 +55,13 @@
     <table>
         <tr>
             <td class="key">
-                <pwm:Display key="Title_Sessions" bundle="Admin"/>
+                <pwm:display key="Title_Sessions" bundle="Admin"/>
             </td>
             <td>
                 <%= ContextManager.getContextManager(session).getPwmSessions().size() %>
             </td>
             <td class="key">
-                <pwm:Display key="Title_LDAPConnections" bundle="Admin"/>
+                <pwm:display key="Title_LDAPConnections" bundle="Admin"/>
 
             </td>
             <td>
@@ -74,13 +74,13 @@
             <td>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                <pwm:Display key="Title_LastMinute" bundle="Admin"/>
+                <pwm:display key="Title_LastMinute" bundle="Admin"/>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                <pwm:Display key="Title_LastHour" bundle="Admin"/>
+                <pwm:display key="Title_LastHour" bundle="Admin"/>
             </td>
             <td style="text-align: center; font-weight: bold;">
-                <pwm:Display key="Title_LastDay" bundle="Admin"/>
+                <pwm:display key="Title_LastDay" bundle="Admin"/>
             </td>
         </tr>
         <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
@@ -90,13 +90,13 @@
                 <%= loopEpsType.getLabel(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
-                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
+                <span style="font-size: smaller; font-style: italic"><pwm:display key="Display_PleaseWait"/></span>
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_HOUR">
-                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
+                <span style="font-size: smaller; font-style: italic"><pwm:display key="Display_PleaseWait"/></span>
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_DAY">
-                <span style="font-size: smaller; font-style: italic"><pwm:Display key="Display_PleaseWait"/></span>
+                <span style="font-size: smaller; font-style: italic"><pwm:display key="Display_PleaseWait"/></span>
             </td>
         </tr>
         <% } %>
@@ -143,7 +143,7 @@
                 </tr>
             </table>
         </div>
-        <div class="noticebar">Events rates are per minute.  <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/></div>
+        <div class="noticebar">Events rates are per minute.  <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/></div>
     </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="Health">
@@ -152,11 +152,11 @@
     </div>
     <br/>
     <div class="noticebar">
-        <pwm:Display key="Notice_DynamicRefresh" bundle="Admin"/>  A public health page at
+        <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>  A public health page at
         <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:Display key="Title_About" bundle="Admin"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>">
     <div style="max-height: 400px; overflow: auto;">
         <table>
             <tr>
@@ -191,7 +191,7 @@
             <% } %>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_CurrentTime" bundle="Admin"/>
+                    <pwm:display key="Field_CurrentTime" bundle="Admin"/>
                 </td>
                 <td class="timestamp">
                     <%= dateFormat.format(new java.util.Date()) %>
@@ -199,7 +199,7 @@
             </tr>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_StartTime" bundle="Admin"/>
+                    <pwm:display key="Field_StartTime" bundle="Admin"/>
                 </td>
                 <td class="timestamp">
                     <%= dateFormat.format(pwmApplication.getStartupTime()) %>
@@ -215,7 +215,7 @@
             </tr>
             <tr>
                 <td class="key">
-                    <pwm:Display key="Field_InstallTime" bundle="Admin"/>
+                    <pwm:display key="Field_InstallTime" bundle="Admin"/>
                 </td>
                 <td class="timestamp">
                     <%= dateFormat.format(pwmApplication.getInstallTime()) %>

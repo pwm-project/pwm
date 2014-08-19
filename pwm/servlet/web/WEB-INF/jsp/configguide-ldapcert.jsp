@@ -39,17 +39,17 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
-                <pwm:Display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide_ldapcert" bundle="Config"/>
             </div>
         </div>
     </div>
     <div id="centerbody">
         <% if (configGuideBean.getLdapCertificates() == null) { %>
         <div>
-            <pwm:Display key="Display_ConfigGuideNotSecureLDAP" bundle="Config"/>
+            <pwm:display key="Display_ConfigGuideNotSecureLDAP" bundle="Config"/>
         </div>
         <% } else { %>
         <form id="formData" data-dojo-type="dijit/form/Form">
@@ -125,12 +125,12 @@
         <div id="buttonbar">
             <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP');">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                <pwm:Display key="Button_Previous" bundle="Config"/>
+                <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>>
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                <pwm:Display key="Button_Next" bundle="Config"/>
+                <pwm:display key="Button_Next" bundle="Config"/>
             </button>
         </div>
     </div>

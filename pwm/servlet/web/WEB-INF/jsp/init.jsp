@@ -34,7 +34,7 @@
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <p style="width: 100%; text-align: center">
-            <pwm:Display key="Display_PleaseWait"/>
+            <pwm:display key="Display_PleaseWait"/>
             <br/>
             <br/>
         <div class="WaitDialogBlank"></div>
@@ -46,22 +46,24 @@
             <a href="<%=StringEscapeUtils.escapeHtml(nextURL)%>">Click here to continue...</a>
         </p>
         <pwm:script>
-        <script type="text/javascript">
-            var div = document.getElementById('failsafeAnchor');
-            while(div.firstChild){
-                div.removeChild(div.firstChild);
-            }
-        </script>
+            <script type="text/javascript">
+                var div = document.getElementById('failsafeAnchor');
+                while(div.firstChild){
+                    div.removeChild(div.firstChild);
+                }
+            </script>
         </pwm:script>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_MAIN.preloadAll(function(){
-        PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.preloadAll(function(){
+                PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
+            });
+        });
+    </script>
 </pwm:script>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
 <% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>

@@ -35,7 +35,7 @@
     <div id="centerbody">
         <% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
         <% if (passwordStatus.isExpired() || passwordStatus.isPreExpired() || passwordStatus.isViolatesPolicy()) { %>
-        <h1><pwm:Display key="Display_PasswordExpired"/></h1><br/>
+        <h1><pwm:display key="Display_PasswordExpired"/></h1><br/>
         <% } %>
         <%@ include file="fragment/message.jsp" %>
         <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), pwmSessionHeader.getSessionManager().getUserDataReader(pwmApplicationHeader)); %>
@@ -48,12 +48,12 @@
                   enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
                 <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
-                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:Display
+                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:display
                     key="Button_Agree"/></label>&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="button_continue">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
@@ -61,7 +61,7 @@
             <form action="<pwm:url url='/public/Logout' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_logout">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
-                    <pwm:Display key="Button_Logout"/>
+                    <pwm:display key="Button_Logout"/>
                 </button>
             </form>
         </div>

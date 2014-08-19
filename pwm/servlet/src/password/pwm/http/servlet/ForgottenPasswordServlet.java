@@ -31,15 +31,17 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.Validator;
 import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
 import password.pwm.http.filter.SessionFilter;
@@ -59,8 +61,6 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -69,99 +69,163 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ForgottenPasswordServlet extends TopServlet {
+public class ForgottenPasswordServlet extends PwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ForgottenPasswordServlet.class);
 
     private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
 
+
+    public enum ForgottenPasswordAction implements PwmServlet.ProcessAction {
+        search,
+        checkResponses,
+        enterCode,
+        enterOtp,
+        reset,
+        actionChoice,
+        tokenChoice,
+        ;
+
+        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        {
+            return PwmServlet.GET_AND_POST_METHODS;
+        }
+    }
+
+    protected ForgottenPasswordAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return ForgottenPasswordAction.valueOf(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+
 // -------------------------- OTHER METHODS --------------------------
 
     @Override
-    public void processRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    public void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
         final Configuration config = pwmApplication.getConfig();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
         if (!config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.forwardToErrorPage(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
             return;
         }
 
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.forwardToErrorPage(PwmError.ERROR_USERAUTHENTICATED.toInfo());
             return;
         }
 
-        if (forgottenPasswordBean.getUserIdentity() != null) {
-            pwmApplication.getIntruderManager().convenience().checkUserIdentity(forgottenPasswordBean.getUserIdentity());
+        if (forgottenPasswordBean.getUserInfo() != null && forgottenPasswordBean.getUserInfo().getUserIdentity() != null) {
+            pwmApplication.getIntruderManager().convenience().checkUserIdentity(forgottenPasswordBean.getUserInfo().getUserIdentity());
         }
 
-        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        checkForLocaleSwitch(pwmRequest, forgottenPasswordBean);
+
+        final ForgottenPasswordAction processAction = readProcessAction(pwmRequest);
 
         // convert a url command like /pwm/public/ForgottenPassword/12321321 to redirect with a process action.
-        if (processAction == null || processAction.length() < 1) {
-            if (convertURLtokenCommand(req, resp, pwmApplication, pwmSession)) {
+        if (processAction == null) {
+            if (convertURLtokenCommand(pwmRequest.getHttpServletRequest(), pwmRequest.getHttpServletResponse(), pwmApplication, pwmSession)) {
                 return;
             }
         }
 
-        if (processAction != null && processAction.length() > 0) {
-            Validator.validatePwmFormID(req);
+        if (processAction != null) {
+            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
 
-            final boolean tokenEnabled = MessageSendMethod.NONE != MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
-            final boolean tokenNeeded = tokenEnabled && !forgottenPasswordBean.isTokenSatisfied();
-            final boolean responsesEnabled = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES) || !config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES).isEmpty();
-            final boolean responsesNeeded = responsesEnabled && !forgottenPasswordBean.isResponsesSatisfied();
+            switch (processAction) {
+                case search:
+                    this.processSearch(pwmRequest);
+                    break;
 
-            if (processAction.equalsIgnoreCase("search")) {
-                this.processSearch(req, resp);
-                return;
-            } else if (processAction.equalsIgnoreCase("checkResponses")) {
-                this.processCheckResponses(pwmApplication, pwmSession, req, resp);
-                return;
-            } else if (processAction.equalsIgnoreCase("enterCode")) {
-                this.processEnterForgottenCode(req, resp, pwmApplication, pwmSession);
-                return;
-            } else if (processAction.equalsIgnoreCase("enterOtp")) {
-                this.processEnterForgottenOtpToken(req, resp, pwmApplication, pwmSession);
-                return;
-            } else if (processAction.equalsIgnoreCase("reset")) {
-                pwmSession.clearSessionBean(ForgottenPasswordBean.class);
-                return;
-            } else if (!tokenNeeded && !responsesNeeded && processAction.equalsIgnoreCase("selectUnlock")) {
-                this.processUnlock(pwmApplication, pwmSession, req, resp);
-                return;
-            } else if (!tokenNeeded && !responsesNeeded && processAction.equalsIgnoreCase("selectResetPassword")) {
-                this.processResetPassword(pwmApplication, pwmSession, req, resp);
-                return;
+                case checkResponses:
+                    this.processCheckResponses(pwmRequest);
+                    break;
+
+                case enterCode:
+                    this.processEnterToken(pwmRequest);
+                    break;
+
+                case enterOtp:
+                    this.processEnterOtpToken(pwmRequest);
+                    break;
+
+                case reset:
+                    pwmSession.clearSessionBean(ForgottenPasswordBean.class);
+                    break;
+
+                case actionChoice:
+                    this.processActionChoice(pwmRequest);
+                    break;
+
+                case tokenChoice:
+                    this.processTokenChoice(pwmRequest);
+                    break;
             }
+        } else {
+            pwmRequest.getPwmSession().clearForgottenPasswordBean();
         }
 
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+            this.advancedToNextStage(pwmRequest);
+        }
     }
 
-    private void processSearch(final HttpServletRequest req, final HttpServletResponse resp)
-            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+    private void processActionChoice(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+        if (forgottenPasswordBean.getProgress().isAllPassed()) {
+            final String choice = pwmRequest.readStringParameter("choice");
+            if (choice != null) {
+                if ("unlock".equals(choice)) {
+                    this.executeUnlock(pwmRequest);
+                } else if ("resetPassword".equalsIgnoreCase(choice)) {
+                    this.executeResetPassword(pwmRequest);
+                }
+            }
+        }
+    }
 
-        final String contextParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT);
-        final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE);
+    private void processTokenChoice(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
+    {
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+        if (forgottenPasswordBean.getProgress().getTokenSendChoice() == MessageSendMethod.CHOICE_SMS_EMAIL) {
+            final String choice = pwmRequest.readStringParameter("choice");
+            if (choice != null) {
+                if ("email".equals(choice)) {
+                    forgottenPasswordBean.getProgress().setTokenSendChoice(MessageSendMethod.EMAILONLY);
+                } else if ("sms".equalsIgnoreCase(choice)) {
+                    forgottenPasswordBean.getProgress().setTokenSendChoice(MessageSendMethod.SMSONLY);
+                }
+            }
+        }
+    }
+
+    private void processSearch(final PwmRequest pwmRequest)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final Locale userLocale = pwmRequest.getLocale();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+
+        final String contextParam = pwmRequest.readStringParameter(PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = pwmRequest.readStringParameter(PwmConstants.PARAM_LDAP_PROFILE);
 
         // clear the bean
         pwmSession.clearForgottenPasswordBean();
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
         final List<FormConfiguration> forgottenPasswordForm = pwmApplication.getConfig().readSettingAsForm(
                 PwmSetting.FORGOTTEN_PASSWORD_SEARCH_FORM);
@@ -170,7 +234,7 @@ public class ForgottenPasswordServlet extends TopServlet {
 
         try {
             //read the values from the request
-            formValues = Validator.readFormValuesFromRequest(req, forgottenPasswordForm, userLocale);
+            formValues = Validator.readFormValuesFromRequest(pwmRequest.getHttpServletRequest(), forgottenPasswordForm, userLocale);
 
             // check for intruder search values
             pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
@@ -179,7 +243,7 @@ public class ForgottenPasswordServlet extends TopServlet {
             Validator.validateParmValuesMeetRequirements(formValues, userLocale);
 
             // convert the username field to an identity
-            final UserIdentity theUser;
+            final UserIdentity userIdentity;
             {
                 final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
@@ -187,18 +251,19 @@ public class ForgottenPasswordServlet extends TopServlet {
                 searchConfiguration.setFormValues(formValues);
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
                 searchConfiguration.setLdapProfile(ldapProfile);
-                theUser = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+                userIdentity = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
             }
 
-            if (theUser == null) {
+            if (userIdentity == null) {
                 pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
                 pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
                 pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
                 return;
             }
 
-            forgottenPasswordBean.setUserIdentity(theUser);
+            final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+            initForgottenPasswordBean(pwmApplication, pwmRequest.getLocale(), pwmRequest.getSessionLabel(),userIdentity, forgottenPasswordBean);
             pwmSession.getSessionStateBean().setLastParameterValues(new FormMap());
 
             // clear intruder search values
@@ -210,470 +275,286 @@ public class ForgottenPasswordServlet extends TopServlet {
 
             pwmSession.getSessionStateBean().setSessionError(errorInfo);
             LOGGER.debug(pwmSession,errorInfo.toDebugStr());
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
-            return;
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
         }
-
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
-    private void processEnterForgottenCode(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    private void processEnterToken(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+        final String userEnteredCode = pwmRequest.readStringParameter(PwmConstants.PARAM_TOKEN);
 
         ErrorInformation errorInformation = null;
         try {
-            final TokenPayload tokenPayload = pwmApplication.getTokenService().processUserEnteredCode(
-                    pwmSession,
-                    forgottenPasswordBean.getUserIdentity(),
+            final TokenPayload tokenPayload = pwmRequest.getPwmApplication().getTokenService().processUserEnteredCode(
+                    pwmRequest.getPwmSession(),
+                    forgottenPasswordBean.getUserInfo().getUserIdentity(),
                     TOKEN_NAME,
                     userEnteredCode
             );
             if (tokenPayload != null) {
-                forgottenPasswordBean.setUserIdentity(tokenPayload.getUserIdentity());
-                forgottenPasswordBean.setTokenSatisfied(true);
-                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.RECOVERY_TOKENS_PASSED);
+                // token correct
+                if (forgottenPasswordBean.getUserInfo() == null) {
+                    // clean session, user supplied token (clicked email, etc) and this is first request
+                    initForgottenPasswordBean(
+                            pwmRequest.getPwmApplication(),
+                            pwmRequest.getLocale(),
+                            pwmRequest.getSessionLabel(),
+                            tokenPayload.getUserIdentity(),
+                            forgottenPasswordBean
+                    );
+                }
+                forgottenPasswordBean.getProgress().setTokenSatisfied(true);
+                StatisticsManager.incrementStat(pwmRequest.getPwmApplication(), Statistic.RECOVERY_TOKENS_PASSED);
             }
         } catch (PwmOperationalException e) {
             final String errorMsg = "token incorrect: " + e.getMessage();
             errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
         }
 
-        if (!forgottenPasswordBean.isTokenSatisfied()) {
+        if (!forgottenPasswordBean.getProgress().isTokenSatisfied()) {
             if (errorInformation == null) {
                 errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
             }
-            LOGGER.debug(pwmSession, errorInformation.toDebugStr());
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
         }
-
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
-    private void processEnterForgottenOtpToken(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    private void processEnterOtpToken(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        LOGGER.trace(pwmSession, String.format("Enter: processEnterForgottenOtpToken(%s, %s, %s, %s)", req, resp, pwmApplication, pwmSession));
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
-        LOGGER.debug(pwmSession, String.format("entered OTP: %s", userEnteredCode));
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
+        final String userEnteredCode = pwmRequest.readStringParameter(PwmConstants.PARAM_TOKEN);
+        LOGGER.debug(pwmRequest, String.format("entered OTP: %s", userEnteredCode));
 
-        final OTPUserRecord otpUserRecord = forgottenPasswordBean.getOtpUserRecord();
-        final OtpService otpService = pwmApplication.getOtpService();
+        final OTPUserRecord otpUserRecord = forgottenPasswordBean.getUserInfo().getOtpUserRecord();
+        final OtpService otpService = pwmRequest.getPwmApplication().getOtpService();
         boolean otpPassed;
         if (otpUserRecord != null) {
-            LOGGER.info(pwmSession, "checking entered OTP");
+            LOGGER.info(pwmRequest, "checking entered OTP");
             try {
                 otpPassed = otpService.validateToken(
                         null, // forces service to use proxy account to update (write) updated otp record if neccessary.
-                        forgottenPasswordBean.getUserIdentity(),
+                        forgottenPasswordBean.getUserInfo().getUserIdentity(),
                         otpUserRecord,
                         userEnteredCode,
                         true
                 );
 
                 if (otpPassed) {
-                    StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.RECOVERY_OTP_PASSED);
-                    LOGGER.debug(pwmSession, "one time password validation has been passed");
-                    forgottenPasswordBean.setOtpSatisfied(true);
+                    StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_OTP_PASSED);
+                    LOGGER.debug(pwmRequest, "one time password validation has been passed");
+                    forgottenPasswordBean.getProgress().setOtpSatisfied(true);
                 } else {
-                    StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.RECOVERY_OTP_FAILED);
-                    LOGGER.debug(pwmSession, "one time password validation has failed");
-                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
-                    final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
-                    UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
-                    pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
-                    pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+                    StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_OTP_FAILED);
+                    handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN));
                 }
             } catch (PwmOperationalException e) {
-                LOGGER.debug(pwmSession, "one time password validation has failed: " + e.getMessage());
-                pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN,e.getErrorInformation().toDebugStr()));
-                final UserIdentity userDN = forgottenPasswordBean.getUserIdentity();
-                UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
-                pwmApplication.getIntruderManager().convenience().markUserIdentity(userDN, pwmSession);
-                pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
+                handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, new ErrorInformation(PwmError.ERROR_INCORRECT_OTP_TOKEN,e.getErrorInformation().toDebugStr()));
             }
         }
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
-    }
-
-    private static void loadResponsesIntoBean(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final ForgottenPasswordBean forgottenPasswordBean
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
-    {
-        // retrieve the responses for the user from ldap
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-        final ResponseSet responseSet = pwmApplication.getCrService().readUserResponseSet(pwmSession, forgottenPasswordBean.getUserIdentity(), theUser);
-        final ChallengeSet presentableChallengeSet;
-
-        if (responseSet != null) {
-            try {
-                if (responseSet.getPresentableChallengeSet() != null) {
-                    presentableChallengeSet = responseSet.getPresentableChallengeSet();
-                } else {
-                    presentableChallengeSet = responseSet.getChallengeSet();
-                }
-            } catch (ChaiValidationException e) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage()));
-            }
-
-            LOGGER.trace("loaded responseSet from user: " + responseSet.toString());
-
-            Locale responseSetLocale = pwmSession.getSessionStateBean().getLocale();
-            try {
-                responseSetLocale = responseSet.getLocale();
-            } catch (ChaiOperationException e) {
-                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
-            } catch (ChaiUnavailableException e) {
-                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
-            } catch (IllegalStateException e) {
-                LOGGER.error("error retrieving locale from stored responseSet, will use browser locale instead: " + e.getMessage());
-            }
-
-            // read the user's assigned response set.
-            final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
-                    forgottenPasswordBean.getUserIdentity(), theUser, null, responseSetLocale);
-            final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-
-            try {
-                if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
-                    if (!challengeSet.getRequiredChallenges().isEmpty() || (challengeSet.getMinRandomRequired() > 0)) {
-                        forgottenPasswordBean.setResponseSet(responseSet);
-                        forgottenPasswordBean.setChallengeSet(presentableChallengeSet);
-                        return;
-                    } else {
-                        final String errorMsg = "configured challenge set policy for " + theUser.getEntryDN() + " is empty, user not qualified to recover password";
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
-                        throw new PwmOperationalException(errorInformation);
-                    }
-                }
-            } catch (ChaiValidationException e) {
-                final String errorMsg = "stored response set for user '" + theUser.getEntryDN() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg);
-                throw new PwmOperationalException(errorInformation);
-            }
-        }
-
-        forgottenPasswordBean.setResponseSet(null);
-        forgottenPasswordBean.setChallengeSet(null);
-        forgottenPasswordBean.setUserIdentity(null);
-
-        final String errorMsg = "could not find a response set for " + theUser.getEntryDN();
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg);
-        throw new PwmOperationalException(errorInformation);
-    }
-
-    /**
-     * Load the OTP configuration for the user into the forgotten password bean.
-     *
-     * @param pwmApplication
-     * @param forgottenPasswordBean
-     * @throws PwmUnrecoverableException
-     * @throws ChaiUnavailableException
-     * @throws PwmOperationalException
-     */
-    private static void loadOtpConfigIntoBean(
-            final PwmApplication pwmApplication,
-            final ForgottenPasswordBean forgottenPasswordBean
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
-    {
-        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final OTPUserRecord otpConfig = pwmApplication.getOtpService().readOTPUserConfiguration(userIdentity);
-
-        LOGGER.trace("loaded one time password configuration for user");
-        if (otpConfig != null) {
-            forgottenPasswordBean.setOtpUserRecord(otpConfig);
-            return;
-        }
-
-        forgottenPasswordBean.setOtpUserRecord(null);
-
-        final String errorMsg = "could not find a one time password configuration for " + userIdentity;
-        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
-        throw new PwmOperationalException(errorInformation);
     }
 
 
-    private void processCheckResponses(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void processCheckResponses(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final Configuration config = pwmApplication.getConfig();
+        //final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
 
-        if (forgottenPasswordBean.getUserIdentity() == null) {
-            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        if (forgottenPasswordBean.getUserInfo() == null) {
             return;
         }
+        final UserIdentity userIdentity =forgottenPasswordBean.getUserInfo().getUserIdentity();
 
-        try { // check attributes
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-            validateRequiredAttributes(theUser, req, pwmSession);
-        } catch (PwmDataValidationException e) {
-            ssBean.setSessionError(e.getErrorInformation());
-            LOGGER.debug(pwmSession,
-                    "incorrect attribute value during check for " + forgottenPasswordBean.getUserIdentity());
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-            pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(),
-                    pwmSession);
-            pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(), pwmApplication, pwmSession);
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
-            return;
+        if (forgottenPasswordBean.getRecoveryFlags().isAttributesRequired()) {
+            try { // check attributes
+                final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
+                validateRequiredAttributes(pwmRequest, theUser, forgottenPasswordBean);
+            } catch (PwmDataValidationException e) {
+                handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE,e.getErrorInformation().toDebugStr()));
+                return;
+            }
         }
 
-        if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
+        if (forgottenPasswordBean.getRecoveryFlags().isResponsesRequired()) {
             if (forgottenPasswordBean.getResponseSet() == null) {
                 final String errorMsg = "attempt to check responses, but responses are not loaded into session bean";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                ssBean.setSessionError(errorInformation);
-                LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-                return;
+                throw new PwmUnrecoverableException(errorInformation);
             }
 
             try {
                 // read the supplied responses from the user
-                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(req, forgottenPasswordBean.getChallengeSet());
-
+                final Map<Challenge, String> crMap = readResponsesFromHttpRequest(pwmRequest, forgottenPasswordBean.getPresentableChallengeSet());
                 final ResponseSet responseSet = forgottenPasswordBean.getResponseSet();
 
-                final boolean responsesSatisfied;
+                final boolean responsesPassed;
                 try {
-                    responsesSatisfied = responseSet.test(crMap);
+                    responsesPassed = responseSet.test(crMap);
                 } catch (ChaiUnavailableException e) {
                     if (e.getCause() instanceof PwmUnrecoverableException) {
                         throw (PwmUnrecoverableException)e.getCause();
                     }
                     throw e;
                 }
-                forgottenPasswordBean.setResponsesSatisfied(responsesSatisfied);
 
                 // special case for nmas, clear out existing challenges and input fields.
-                if (!responsesSatisfied && responseSet instanceof NMASCrOperator.NMASCRResponseSet) {
-                    forgottenPasswordBean.setChallengeSet(responseSet.getPresentableChallengeSet());
-                    pwmSession.getSessionStateBean().setLastParameterValues(Collections.<String,String>emptyMap());
+                if (!responsesPassed && responseSet instanceof NMASCrOperator.NMASCRResponseSet) {
+                    forgottenPasswordBean.setPresentableChallengeSet(responseSet.getPresentableChallengeSet());
+                    pwmRequest.getPwmSession().getSessionStateBean().setLastParameterValues(Collections.<String,String>emptyMap());
                 }
 
-                if (responsesSatisfied) {
-                    LOGGER.debug(pwmSession, "user '" + forgottenPasswordBean.getUserIdentity() + "' has supplied correct responses");
+                if (responsesPassed) {
+                    LOGGER.debug(pwmRequest, "user '" + userIdentity + "' has supplied correct responses");
                 } else {
                     final String errorMsg = "incorrect response to one or more challenges";
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, errorMsg);
-                    ssBean.setSessionError(errorInformation);
-                    LOGGER.debug(pwmSession,errorInformation.toDebugStr());
-                    pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_FAILURES);
-                    UserAuthenticator.simulateBadPassword(forgottenPasswordBean.getUserIdentity(),pwmApplication,pwmSession);
-                    pwmApplication.getIntruderManager().convenience().markUserIdentity(forgottenPasswordBean.getUserIdentity(), pwmSession);
-                    pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+                    handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
                     return;
                 }
             } catch (ChaiValidationException e) {
-                LOGGER.debug(pwmSession, "chai validation error checking user responses: " + e.getMessage());
-                ssBean.setSessionError(new ErrorInformation(PwmError.forChaiError(e.getErrorCode())));
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+                LOGGER.debug(pwmRequest, "chai validation error checking user responses: " + e.getMessage());
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.forChaiError(e.getErrorCode()));
+                handleUserVerificationBadAttempt(pwmRequest, forgottenPasswordBean, errorInformation);
                 return;
             }
         }
 
-        forgottenPasswordBean.setResponsesSatisfied(true);
-
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        forgottenPasswordBean.getProgress().setResponsesSatisfied(true);
     }
 
-    private void advancedToNextStage(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void advancedToNextStage(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final Configuration config = pwmApplication.getConfig();
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration config = pwmRequest.getConfig();
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
 
-        // check for proxied user;
-        if (forgottenPasswordBean.getUserIdentity() == null) {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
+        final ForgottenPasswordBean.RecoveryFlags recoveryFlags = forgottenPasswordBean.getRecoveryFlags();
+        final ForgottenPasswordBean.Progress progress = forgottenPasswordBean.getProgress();
+
+        LOGGER.trace(pwmRequest, "entering forgotten password progress engine:"
+                + " flags=" + Helper.getGson().toJson(recoveryFlags)
+                + ", progress=" + Helper.getGson().toJson(progress));
+
+
+        // check for identified user;
+        if (forgottenPasswordBean.getUserInfo() == null) {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
             return;
         }
 
-        // check for attribute form in bean.
-        if (forgottenPasswordBean.getAttributeForm() == null) {
-            try {
-                final List<FormConfiguration> form = figureAttributeForm(pwmApplication, pwmSession, forgottenPasswordBean.getUserIdentity());
-                forgottenPasswordBean.setAttributeForm(form);
-            } catch (PwmOperationalException e) {
-                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
-                return;
-            }
-        }
-
         // if responses are required, and user has responses, then send to response screen.
-        if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-            if (forgottenPasswordBean.getResponseSet() == null) {
-                try {
-                    loadResponsesIntoBean(pwmApplication, pwmSession, forgottenPasswordBean);
-                } catch (PwmOperationalException e) {
-                    pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                    LOGGER.debug(pwmSession, e.getErrorInformation().toDebugStr());
-                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
-                    return;
-                }
+        if (recoveryFlags.isResponsesRequired() && !progress.isResponsesSatisfied()) {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+            return;
+        }
+
+        if (recoveryFlags.isAttributesRequired() && !progress.isResponsesSatisfied()) {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+            return;
+        }
+
+        if (recoveryFlags.isTokenRequired()) {
+            if (progress.getTokenSendChoice() == null) {
+                progress.setTokenSendChoice(figureTokenSendPreference(pwmApplication, pwmRequest.getSessionLabel(), forgottenPasswordBean.getUserInfo()));
             }
 
-            if (!forgottenPasswordBean.isResponsesSatisfied()) {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+            if (progress.getTokenSendChoice() == MessageSendMethod.CHOICE_SMS_EMAIL) {
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_TOKEN_CHOICE);
+                return;
+            }
+
+            if (!progress.isTokenSent()) {
+                final String destAddress = initializeAndSendToken(pwmRequest, forgottenPasswordBean.getUserInfo(), progress.getTokenSendChoice());
+                progress.setTokenSentAddress(destAddress);
+                progress.setTokenSent(true);
+            }
+
+            if (!progress.isTokenSatisfied()) {
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_TOKEN);
                 return;
             }
         }
 
-        // if responses aren't required, but attributes are, send to response screen anyway
-        {
-            final List<FormConfiguration> requiredAttributesForm = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
-
-            if (!requiredAttributesForm.isEmpty() && !forgottenPasswordBean.isResponsesSatisfied()) {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_RESPONSES);
+        if (recoveryFlags.isOtpRequired()) {
+            if (!progress.isOtpSatisfied()) {
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_OTP);
                 return;
             }
         }
 
-        // process for OTP-enabled recovery
-        final boolean otpEnabled = config.readSettingAsBoolean(PwmSetting.OTP_ENABLED) && config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP);
-        if (otpEnabled) {
-            if (forgottenPasswordBean.getOtpUserRecord() == null) {
-                try {
-                    loadOtpConfigIntoBean(pwmApplication, forgottenPasswordBean);
-                } catch (PwmOperationalException e) {
-                    pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                    LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
-                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
-                    return;
-                }
-            }
-            if (!forgottenPasswordBean.isOtpSatisfied()) {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_OTP);
-                return;
-            }
-        }
 
-        // process for token-enabled recovery
-        final boolean tokenEnabled = MessageSendMethod.NONE != MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
-        if (tokenEnabled) {
-            if (!forgottenPasswordBean.isTokenSatisfied()) {
-                this.initializeToken(pwmSession, pwmApplication, forgottenPasswordBean.getUserIdentity());
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_ENTER_CODE);
-                return;
-            }
+        if (!forgottenPasswordBean.getProgress().isAllPassed()) {
+            forgottenPasswordBean.getProgress().setAllPassed(true);
+            StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_SUCCESSES);
         }
-
-        // sanity check, shouldn't be possible to get here unless.....
-        if (!forgottenPasswordBean.isTokenSatisfied() && !forgottenPasswordBean.isResponsesSatisfied() && !forgottenPasswordBean.isOtpSatisfied()) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "trying to advance through forgotten password, but responses and tokens are unsatisfied, perhaps both are disabled?"));
-        }
-
-        if (!forgottenPasswordBean.isAllPassed()) {
-            forgottenPasswordBean.setAllPassed(true);
-            pwmApplication.getStatisticsManager().incrementValue(Statistic.RECOVERY_SUCCESSES);
-        }
-        LOGGER.trace(pwmSession, "all recovery checks passed, proceeding to configured recovery action");
+        LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
 
         if (config.getRecoveryAction() == RecoveryAction.SENDNEWPW || config.getRecoveryAction() == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
-            this.processSendNewPassword(pwmApplication,pwmSession,req,resp);
+            processSendNewPassword(pwmRequest);
             return;
         }
 
         if (config.readSettingAsBoolean(PwmSetting.CHALLENGE_ALLOW_UNLOCK)) {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
-            final Locale locale = pwmSession.getSessionStateBean().getLocale();
-            final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(pwmApplication,
-                    pwmSession.getSessionLabel(), forgottenPasswordBean.getUserIdentity(), theUser, locale);
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-            final PasswordStatus passwordStatus = userStatusReader.readPasswordStatus(pwmSession.getSessionLabel(), null, theUser, passwordPolicy, null);
+            final PasswordStatus passwordStatus = forgottenPasswordBean.getUserInfo().getPasswordState();
 
             if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                 try {
+                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserInfo().getUserIdentity());
                     if (theUser.isLocked()) {
-                        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.RECOVER_PASSWORD_CHOICE);
+                        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_ACTION_CHOICE);
                         return;
                     }
                 } catch (ChaiOperationException e) {
-                    LOGGER.error(pwmSession, "chai operation error checking user lock status: " + e.getMessage());
+                    LOGGER.error(pwmRequest, "chai operation error checking user lock status: " + e.getMessage());
                 }
             }
         }
 
-        this.processResetPassword(pwmApplication, pwmSession, req, resp);
+        this.executeResetPassword(pwmRequest);
     }
 
 
-    private void processUnlock(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void executeUnlock(final PwmRequest pwmRequest)
             throws IOException, ServletException, ChaiUnavailableException, PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserInfo().getUserIdentity();
 
         try {
-            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(forgottenPasswordBean.getUserIdentity());
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
             theUser.unlock();
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_UNLOCK_ACCOUNT, null);
-            ServletHelper.forwardToSuccessPage(req, resp);
-            return;
+            pwmRequest.forwardToSuccessPage();
         } catch (ChaiOperationException e) {
-            final String errorMsg = "unable to unlock user " + forgottenPasswordBean.getUserIdentity() + " error: " + e.getMessage();
+            final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
             pwmSession.getSessionStateBean().setSessionError(errorInformation);
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
+            pwmRequest.forwardToErrorPage(errorInformation, true);
+        } finally {
+            pwmSession.clearForgottenPasswordBean();
         }
-
-        this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
     }
 
 
-    private void processResetPassword(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void executeResetPassword(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
 
-        if (!forgottenPasswordBean.isAllPassed()) {
-            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        if (!forgottenPasswordBean.getProgress().isAllPassed()) {
             return;
         }
 
-        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserInfo().getUserIdentity();
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
 
         try { // try unlocking user
@@ -682,14 +563,17 @@ public class ForgottenPasswordServlet extends TopServlet {
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
-            return;
         }
 
         try {
-            UserAuthenticator.authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, req.isSecure(), UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            UserAuthenticator.authUserWithUnknownPassword(
+                    userIdentity,
+                    pwmSession,
+                    pwmApplication,
+                    pwmRequest.getHttpServletRequest().isSecure(),
+                    UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN
+            );
 
             LOGGER.info(pwmSession, "user successfully supplied password recovery responses, forward to change password page: " + theUser.getEntryDN());
 
@@ -698,65 +582,71 @@ public class ForgottenPasswordServlet extends TopServlet {
                     pwmSession);
 
             // add the post-forgotten password actions
-            addPostChangeAction(pwmApplication, pwmSession, userIdentity);
+            addPostChangeAction(pwmRequest, userIdentity);
 
             // mark user as requiring a new password.
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // redirect user to change password screen.
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD, req, resp));
+            pwmRequest.getHttpServletResponse().sendRedirect(
+                    SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD,
+                            pwmRequest.getHttpServletRequest(),
+                            pwmRequest.getHttpServletResponse()
+                    ));
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn(pwmSession,"unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.forwardToErrorPage(e.getErrorInformation());
+        } finally {
+            pwmSession.clearForgottenPasswordBean();
         }
     }
 
-    private void processSendNewPassword(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void processSendNewPassword(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
 
-        LOGGER.trace(pwmSession,"beginning process to send new password to user");
+        LOGGER.trace(pwmRequest,"beginning process to send new password to user");
 
-        if (!forgottenPasswordBean.isAllPassed()) {
-            this.advancedToNextStage(pwmApplication, pwmSession, req, resp);
+        if (!forgottenPasswordBean.getProgress().isAllPassed()) {
             return;
         }
 
-        final UserIdentity userIdentity = forgottenPasswordBean.getUserIdentity();
-        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserInfo().getUserIdentity();
+        final ChaiUser theUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
 
         try { // try unlocking user
             theUser.unlock();
-            LOGGER.trace(pwmSession, "unlock account succeeded");
+            LOGGER.trace(pwmRequest, "unlock account succeeded");
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + theUser.getEntryDN() + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            LOGGER.error(pwmSession, errorInformation.toDebugStr());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
+            pwmRequest.forwardToErrorPage(errorInformation);
             return;
         }
 
         try {
-            UserAuthenticator.authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, req.isSecure(), UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            UserAuthenticator.authUserWithUnknownPassword(
+                    userIdentity,
+                    pwmSession,
+                    pwmApplication,
+                    pwmRequest.getHttpServletRequest().isSecure(),
+                    UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN
+            );
 
-            LOGGER.info(pwmSession, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
+            LOGGER.info(pwmRequest, "user successfully supplied password recovery responses, emailing new password to: " + theUser.getEntryDN());
 
             // add post change actions
-            addPostChangeAction(pwmApplication, pwmSession, userIdentity);
+            addPostChangeAction(pwmRequest, userIdentity);
 
             // create newpassword
             final String newPassword = RandomPasswordGenerator.createRandomPassword(pwmSession, pwmApplication);
 
             // set the password
-            LOGGER.trace(pwmSession, "setting user password to system generated random value");
+            LOGGER.trace(pwmRequest.getPwmSession(), "setting user password to system generated random value");
             PasswordUtility.setUserPassword(pwmSession, pwmApplication, newPassword);
 
             if (pwmApplication.getConfig().getRecoveryAction() == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
@@ -772,31 +662,32 @@ public class ForgottenPasswordServlet extends TopServlet {
                     pwmApplication, userIdentity), newPassword, pwmSession.getSessionStateBean().getLocale());
 
             pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_PASSWORDSEND, toAddress);
-            ServletHelper.forwardToSuccessPage(req, resp);
+            pwmRequest.forwardToSuccessPage();
         } catch (PwmException e) {
             LOGGER.warn(pwmSession,"unexpected error setting new password during recovery process for user: " + e.getMessage());
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.forwardToErrorPage(e.getErrorInformation());
         } catch (ChaiOperationException e) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected ldap error while processing recovery action " + pwmApplication.getConfig().getRecoveryAction() + ", error: " + e.getMessage());
             LOGGER.warn(pwmSession,errorInformation.toDebugStr());
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.forwardToErrorPage(errorInformation);
         } finally {
+            pwmSession.clearForgottenPasswordBean();
             pwmSession.unauthenticateUser();
         }
     }
 
     public static Map<Challenge, String> readResponsesFromHttpRequest(
-            final HttpServletRequest req,
-            final ChallengeSet challengeSet)
-            throws ChaiValidationException, ChaiUnavailableException, PwmUnrecoverableException {
+            final PwmRequest req,
+            final ChallengeSet challengeSet
+    )
+            throws ChaiValidationException, ChaiUnavailableException, PwmUnrecoverableException
+    {
         final Map<Challenge, String> responses = new LinkedHashMap<>();
 
         int counter = 0;
         for (final Challenge loopChallenge : challengeSet.getChallenges()) {
             counter++;
-            final String answer = Validator.readStringFromRequest(req, PwmConstants.PARAM_RESPONSE_PREFIX + counter);
+            final String answer = req.readStringParameter(PwmConstants.PARAM_RESPONSE_PREFIX + counter);
 
             responses.put(loopChallenge, answer.length() > 0 ? answer : "");
         }
@@ -804,11 +695,10 @@ public class ForgottenPasswordServlet extends TopServlet {
         return responses;
     }
 
-    private void validateRequiredAttributes(final ChaiUser theUser, final HttpServletRequest req, final PwmSession pwmSession)
+    private void validateRequiredAttributes(final PwmRequest pwmRequest, final ChaiUser theUser, final ForgottenPasswordBean forgottenPasswordBean)
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final Locale userLocale = pwmSession.getSessionStateBean().getLocale();
+        final Locale userLocale = pwmRequest.getLocale();
 
         final List<FormConfiguration> requiredAttributesForm = forgottenPasswordBean.getAttributeForm();
 
@@ -816,83 +706,63 @@ public class ForgottenPasswordServlet extends TopServlet {
             return;
         }
 
-        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(req, requiredAttributesForm, userLocale);
+        final Map<FormConfiguration,String> formValues = Validator.readFormValuesFromRequest(pwmRequest.getHttpServletRequest(), requiredAttributesForm, userLocale);
         for (final FormConfiguration paramConfig : formValues.keySet()) {
             final String attrName = paramConfig.getName();
 
             try {
                 if (theUser.compareStringAttribute(attrName, formValues.get(paramConfig))) {
-                    LOGGER.trace(pwmSession, "successful validation of ldap attribute value for '" + attrName + "'");
+                    LOGGER.trace(pwmRequest, "successful validation of ldap attribute value for '" + attrName + "'");
                 } else {
                     throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "incorrect value for '" + attrName + "'", new String[]{attrName}));
                 }
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error during param validation of '" + attrName + "', error: " + e.getMessage());
+                LOGGER.error(pwmRequest, "error during param validation of '" + attrName + "', error: " + e.getMessage());
                 throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
             }
         }
     }
 
-    public void initializeToken(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final UserIdentity userIdentity
+    private static String initializeAndSendToken(
+            final PwmRequest pwmRequest,
+            final UserInfoBean userInfoBean,
+            final MessageSendMethod tokenSendMethod
+
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final ForgottenPasswordBean forgottenPasswordBean = pwmSession.getForgottenPasswordBean();
-        final Configuration config = pwmApplication.getConfig();
-
+        final Configuration config = pwmRequest.getConfig();
+        final UserIdentity userIdentity = userInfoBean.getUserIdentity();
         final Map<String,String> tokenMapData = new HashMap<>();
 
         try {
-            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession.getSessionLabel(), userIdentity);
+            final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getSessionLabel(),
+                    userIdentity
+            );
             if (userLastPasswordChange != null) {
                 final String userChangeString = PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange);
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, userChangeString);
             }
         } catch (ChaiUnavailableException e) {
-            LOGGER.error(pwmSession, "unexpected error reading user's last password change time");
+            LOGGER.error(pwmRequest, "unexpected error reading user's last password change time");
         }
 
-        final RestTokenDataClient.TokenDestinationData inputDestinationData;
-        {
-            String toEmailAddr = null;
+        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
+                userInfoBean.getUserEmailAddress(),
+                userInfoBean.getUserSmsNumber(),
+                null
+        );
 
-            try {
-                LOGGER.trace("Reading setting " + PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE);
-                final UserDataReader dataStoreReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-                toEmailAddr = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.EMAIL_USER_MAIL_ATTRIBUTE));
-                if (toEmailAddr != null && toEmailAddr.length() > 0) {
-                    LOGGER.trace("Email address: " + toEmailAddr);
-                }
-            } catch (ChaiOperationException | ChaiUnavailableException | PwmUnrecoverableException e) {
-                LOGGER.debug("error reading mail attribute from user '" + userIdentity + "': " + e.getMessage());
-            }
-
-            String toSmsNumber = null;
-            try {
-                LOGGER.trace("reading setting " + PwmSetting.SMS_USER_PHONE_ATTRIBUTE);
-                final UserDataReader dataStoreReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-                toSmsNumber = dataStoreReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
-                if (toSmsNumber !=null && toSmsNumber.length() > 0) {
-                    LOGGER.trace("SMS number: " + toSmsNumber);
-                }
-            } catch (ChaiOperationException | ChaiUnavailableException | PwmUnrecoverableException e) {
-                LOGGER.debug("error reading SMS attribute from user '" + userIdentity + "': " + e.getMessage());
-            }
-
-            inputDestinationData = new RestTokenDataClient.TokenDestinationData(toEmailAddr,toSmsNumber,null);
-        }
-
-        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
+        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmRequest.getPwmApplication());
         final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
-                pwmSession.getSessionLabel(),
+                pwmRequest.getSessionLabel(),
                 inputDestinationData,
-                forgottenPasswordBean.getUserIdentity(),
-                pwmSession.getSessionStateBean().getLocale());
+                userIdentity,
+                pwmRequest.getLocale());
 
-        forgottenPasswordBean.setTokenSendAddress(outputDestrestTokenDataClient.getDisplayValue());
+        final String tokenDestinationAddress = outputDestrestTokenDataClient.getDisplayValue();
         final Set<String> destinationValues = new HashSet<>();
         if (outputDestrestTokenDataClient.getEmail() != null) {
             destinationValues.add(outputDestrestTokenDataClient.getEmail());
@@ -904,52 +774,37 @@ public class ForgottenPasswordServlet extends TopServlet {
         final String tokenKey;
         TokenPayload tokenPayload;
         try {
-            tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
-            tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
+            tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getPwmSession());
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-        LOGGER.debug(pwmSession, "generated token code for session");
+        LOGGER.debug(pwmRequest, "generated token code for session");
 
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
-        sendToken(pwmApplication, userIdentity, locale, outputDestrestTokenDataClient.getEmail(), outputDestrestTokenDataClient.getSms(), tokenKey);
-    }
-
-    private static void sendToken(
-            final PwmApplication pwmApplication,
-            final UserIdentity userIdentity,
-            final Locale userLocale,
-            final String toAddress,
-            final String toSmsNumber,
-            final String tokenKey
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
-        final Configuration config = pwmApplication.getConfig();
-        final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD));
-        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, userLocale);
-        final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, userLocale);
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
+        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_CHALLENGE_TOKEN, pwmRequest.getLocale());
+        final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_TOKEN_TEXT, pwmRequest.getLocale());
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity);
 
         TokenService.TokenSender.sendToken(
-                pwmApplication,
-                null,
+                pwmRequest.getPwmApplication(),
+                userInfoBean,
                 userDataReader,
                 emailItemBean,
-                pref,
-                toAddress,
-                toSmsNumber,
+                tokenSendMethod,
+                outputDestrestTokenDataClient.getEmail(),
+                outputDestrestTokenDataClient.getSms(),
                 smsMessage,
                 tokenKey
         );
 
-        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.RECOVERY_TOKENS_SENT);
+        StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_TOKENS_SENT);
+        return tokenDestinationAddress;
     }
 
-    private List<FormConfiguration> figureAttributeForm(
+    private static List<FormConfiguration> figureAttributeForm(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
@@ -970,7 +825,7 @@ public class ForgottenPasswordServlet extends TopServlet {
                     if (currentValue != null && currentValue.length() > 0) {
                         returnList.add(formItem);
                     } else {
-                        LOGGER.trace(pwmSession, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
+                        LOGGER.trace(sessionLabel, "excluding optional required attribute(" + formItem.getName() + "), user has no value");
                     }
                 } catch (ChaiOperationException e) {
                     throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, "unexpected error reading value for attribute " + formItem.getName()));
@@ -986,8 +841,7 @@ public class ForgottenPasswordServlet extends TopServlet {
     }
 
     private void addPostChangeAction(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
     {
@@ -1002,13 +856,13 @@ public class ForgottenPasswordServlet extends TopServlet {
                     throws PwmUnrecoverableException {
                 try {
                     {  // execute configured actions
-                        final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
+                        final ChaiUser proxiedUser = pwmRequest.getPwmApplication().getProxiedChaiUser(userIdentity);
                         LOGGER.debug(pwmSession, "executing post-forgotten password configured actions to user " + proxiedUser.getEntryDN());
-                        final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.FORGOTTEN_USER_POST_ACTIONS);
+                        final List<ActionConfiguration> configValues = pwmRequest.getConfig().readSettingAsAction(PwmSetting.FORGOTTEN_USER_POST_ACTIONS);
                         final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                         settings.setExpandPwmMacros(true);
                         settings.setUserInfoBean(pwmSession.getUserInfoBean());
-                        final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
+                        final ActionExecutor actionExecutor = new ActionExecutor(pwmRequest.getPwmApplication());
                         actionExecutor.executeActions(configValues, settings, pwmSession);
                     }
                 } catch (PwmOperationalException e) {
@@ -1027,9 +881,237 @@ public class ForgottenPasswordServlet extends TopServlet {
             }
         };
 
-        pwmSession.getUserInfoBean().addPostChangePasswordActions("forgottenPasswordPostActions", postAction);
+        pwmRequest.getPwmSession().getUserInfoBean().addPostChangePasswordActions("forgottenPasswordPostActions", postAction);
 
     }
 
+    private static void verifyUserEligibility(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserInfoBean userInfoBean,
+            final ResponseSet responseSet,
+            final ForgottenPasswordBean.RecoveryFlags recoveryFlags
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException
+    {
+        if (!recoveryFlags.isAllowWhenLdapIntruderLocked()) {
+            final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
+            try {
+                if (chaiUser.isLocked()) {
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP));
+                }
+            } catch (ChaiOperationException e) {
+                LOGGER.error(sessionLabel, "error checking user '" + userInfoBean.getUserIdentity() + "' ldap intruder lock status: " + e.getMessage());
+            }
+        }
+
+        if (!recoveryFlags.isOtpRequired() && !recoveryFlags.isTokenRequired() && !recoveryFlags.isAttributesRequired() && !recoveryFlags.isResponsesRequired()) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, "trying to advance through forgotten password but no recovery verification steps are enabled"));
+        }
+
+        if (recoveryFlags.isResponsesRequired()) {
+            if (responseSet == null) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+
+            final ChallengeSet challengeSet = userInfoBean.getChallengeProfile().getChallengeSet();
+
+            try {
+                if (responseSet.meetsChallengeSetRequirements(challengeSet)) {
+                    if (challengeSet.getRequiredChallenges().isEmpty() && (challengeSet.getMinRandomRequired() <= 0)) {
+                        final String errorMsg = "configured challenge set policy for " + userInfoBean.getUserIdentity().toString() + " is empty, user not qualified to recover password";
+                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
+                        throw new PwmUnrecoverableException(errorInformation);
+                    }
+                }
+            } catch (ChaiValidationException e) {
+                final String errorMsg = "stored response set for user '" + userInfoBean.getUserIdentity() + "' do not meet current challenge set requirements: " + e.getLocalizedMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_RESPONSES_NORESPONSES, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+        if (recoveryFlags.isOtpRequired()) {
+            if (userInfoBean.getOtpUserRecord() == null) {
+                final String errorMsg = "could not find a one time password configuration for " + userInfoBean.getUserIdentity();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_OTP_CONFIGURATION, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        }
+
+    }
+
+    private static void initForgottenPasswordBean(
+            final PwmApplication pwmApplication,
+            final Locale locale,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity,
+            final ForgottenPasswordBean forgottenPasswordBean
+    )
+            throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
+    {
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+        final UserInfoBean userInfoBean = new UserInfoBean();
+        userStatusReader.populateUserInfoBean(
+                sessionLabel,
+                userInfoBean,
+                locale,
+                userIdentity,
+                null
+        );
+
+        final ForgottenPasswordBean.RecoveryFlags recoveryFlags = calculateRecoveryFlags(
+                pwmApplication
+        );
+
+        final ResponseSet responseSet;
+        final ChallengeSet challengeSet;
+        if (recoveryFlags.isResponsesRequired()) {
+            final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userInfoBean.getUserIdentity());
+            responseSet = pwmApplication.getCrService().readUserResponseSet(
+                    sessionLabel,
+                    userInfoBean.getUserIdentity(),
+                    theUser
+            );
+            try {
+                challengeSet = responseSet == null ? null : responseSet.getChallengeSet();
+            } catch (ChaiValidationException e) {
+                final String errorMsg = "unable to determine presentable challengeSet for stored responses: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_NO_CHALLENGES, errorMsg);
+                throw new PwmUnrecoverableException(errorInformation);
+            }
+        } else {
+            responseSet = null;
+            challengeSet = null;
+        }
+
+        final List<FormConfiguration> attributeForm = figureAttributeForm(pwmApplication, sessionLabel, userIdentity);
+
+        verifyUserEligibility(pwmApplication, sessionLabel, userInfoBean, responseSet, recoveryFlags);
+
+        forgottenPasswordBean.setUserInfo(userInfoBean);
+        forgottenPasswordBean.setUserLocale(locale);
+        forgottenPasswordBean.setResponseSet(responseSet);
+        forgottenPasswordBean.setPresentableChallengeSet(challengeSet);
+        forgottenPasswordBean.setAttributeForm(attributeForm);
+
+        forgottenPasswordBean.setRecoveryFlags(recoveryFlags);
+        forgottenPasswordBean.setProgress(new ForgottenPasswordBean.Progress());
+    }
+
+    private static ForgottenPasswordBean.RecoveryFlags calculateRecoveryFlags(
+            final PwmApplication pwmApplication
+    ) {
+        final Configuration config = pwmApplication.getConfig();
+
+        final MessageSendMethod tokenSendMethod = config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD);
+        final List<FormConfiguration> formConfiguration = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
+
+        final boolean requiresResponses = config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES);
+        final boolean otpRequired = config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_REQUIRE_OTP);
+        final boolean tokenRequired = tokenSendMethod != null && !tokenSendMethod.equals(MessageSendMethod.NONE);
+        final boolean attributesRequired = formConfiguration != null && !formConfiguration.isEmpty();
+        final boolean allowWhenLdapIntruderLocked = config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ALLOW_WHEN_LOCKED);
+
+        return new ForgottenPasswordBean.RecoveryFlags(
+                requiresResponses,
+                tokenRequired,
+                otpRequired,
+                attributesRequired,
+                allowWhenLdapIntruderLocked
+        );
+    }
+
+    private void handleUserVerificationBadAttempt(
+            final PwmRequest pwmRequest,
+            final ForgottenPasswordBean forgottenPasswordBean,
+            final ErrorInformation errorInformation
+    )
+            throws PwmUnrecoverableException
+    {
+        LOGGER.debug(pwmRequest, errorInformation);
+        pwmRequest.getPwmSession().getSessionStateBean().setSessionError(errorInformation);
+
+        final UserIdentity userIdentity = forgottenPasswordBean.getUserInfo().getUserIdentity();
+        StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_FAILURES);
+        if (userIdentity != null) {
+            UserAuthenticator.simulateBadPassword(userIdentity,
+                    pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+            pwmRequest.getPwmApplication().getIntruderManager().convenience().markUserIdentity(userIdentity,
+                    pwmRequest.getPwmSession());
+            pwmRequest.getPwmApplication().getIntruderManager().convenience().markAddressAndSession(
+                    pwmRequest.getPwmSession());
+        }
+    }
+
+    private void checkForLocaleSwitch(final PwmRequest pwmRequest, final ForgottenPasswordBean forgottenPasswordBean)
+            throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
+    {
+        if (forgottenPasswordBean.getUserInfo() == null || forgottenPasswordBean.getUserLocale() == null) {
+            return;
+        }
+
+        if (forgottenPasswordBean.getUserLocale().equals(pwmRequest.getLocale())) {
+            return;
+        }
+
+        LOGGER.debug(pwmRequest, "user initiated forgotten password recovery using '" + forgottenPasswordBean.getUserLocale() + "' locale, but current request locale is now '"
+                + pwmRequest.getLocale() + "', thus, the user progress will be restart and user data will be re-read using current locale");
+
+        try {
+            initForgottenPasswordBean(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getLocale(),
+                    pwmRequest.getSessionLabel(),
+                    forgottenPasswordBean.getUserInfo().getUserIdentity(),
+                    forgottenPasswordBean
+            );
+        } catch (PwmOperationalException e) {
+            pwmRequest.getPwmSession().clearForgottenPasswordBean();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected error while re-loading user data due to locale change: " + e.getErrorInformation().toDebugStr());
+            LOGGER.error(pwmRequest, errorInformation.toDebugStr());
+            pwmRequest.getPwmSession().getSessionStateBean().setSessionError(errorInformation);
+        }
+    }
+
+    private static MessageSendMethod figureTokenSendPreference(
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
+            final UserInfoBean userInfoBean
+    )
+            throws PwmUnrecoverableException
+    {
+        final MessageSendMethod tokenSendMethod = pwmApplication.getConfig().readSettingAsTokenSendMethod(
+                PwmSetting.CHALLENGE_TOKEN_SEND_METHOD);
+        if (tokenSendMethod == null || tokenSendMethod.equals(MessageSendMethod.NONE)) {
+            return MessageSendMethod.NONE;
+        }
+
+        if (!tokenSendMethod.equals(MessageSendMethod.CHOICE_SMS_EMAIL)) {
+            return tokenSendMethod;
+        }
+
+        final String emailAddress = userInfoBean.getUserEmailAddress();
+        final String smsAddress = userInfoBean.getUserSmsNumber();
+
+        final boolean hasEmail = emailAddress != null && emailAddress.length() > 1;
+        final boolean hasSms = smsAddress != null && smsAddress.length() > 1;
+
+        if (hasEmail && hasSms) {
+            return MessageSendMethod.CHOICE_SMS_EMAIL;
+        } else if (hasEmail) {
+            LOGGER.debug(sessionLabel, "though token send method is " + MessageSendMethod.CHOICE_SMS_EMAIL + ", no sms address is available for user so defaulting to email method");
+            return MessageSendMethod.EMAILONLY;
+        } else if (hasSms) {
+            LOGGER.debug(sessionLabel, "though token send method is " + MessageSendMethod.CHOICE_SMS_EMAIL + ", no email address is available for user so defaulting to sms method");
+            return MessageSendMethod.SMSONLY;
+        }
+
+
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
+    }
 }
+
+
 

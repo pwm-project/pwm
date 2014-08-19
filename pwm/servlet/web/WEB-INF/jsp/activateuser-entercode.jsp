@@ -37,18 +37,15 @@
             final ActivateUserBean aub = PwmSession.getPwmSession(session).getActivateUserBean();
             String destination = aub.getTokenDisplayText();
         %>
-        <p><pwm:Display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
+        <p><pwm:display key="Display_RecoverEnterCode" value1="<%=destination%>"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:Display key="Field_Code"/></label></h2>
+        <h2><label for="<%=PwmConstants.PARAM_TOKEN%>"><pwm:display key="Field_Code"/></label></h2>
         <div id="buttonbar">
-            <form action="<pwm:url url='ActivateUser'/>" method="post"
-                  enctype="application/x-www-form-urlencoded" name="search"
-                  onsubmit="PWM_MAIN.handleFormSubmit(this);return false"
-                  style="display: inline;">
+            <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded" name="search" class="pwm-form" style="display: inline;">
                 <textarea id="<%=PwmConstants.PARAM_TOKEN%>" name="<%=PwmConstants.PARAM_TOKEN%>" class="tokenInput"></textarea>
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
-                    <pwm:Display key="Button_CheckCode"/>
+                    <pwm:display key="Button_CheckCode"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" id="processAction" name="processAction" value="enterCode"/>
@@ -61,7 +58,7 @@
                     <input type="hidden" name="processAction" value="reset"/>
                     <button type="submit" name="button" class="btn" id="buttonCancel">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
-                        <pwm:Display key="Button_Cancel"/>
+                        <pwm:display key="Button_Cancel"/>
                     </button>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                 </form>

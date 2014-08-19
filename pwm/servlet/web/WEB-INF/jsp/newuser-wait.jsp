@@ -37,7 +37,7 @@
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_PleaseWaitNewUser"/></p>
+        <p><pwm:display key="Display_PleaseWaitNewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
 
         <div style="width:400px; margin-left: auto; margin-right: auto; padding-top: 70px">

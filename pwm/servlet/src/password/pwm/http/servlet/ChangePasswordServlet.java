@@ -333,9 +333,15 @@ public class ChangePasswordServlet extends TopServlet {
             return false;
         }
 
+        if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN) {
+            LOGGER.debug(pwmSession, "skipping user current password requirement, authentication type is " + UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            return false;
+        }
+
         {
             final String currentPassword = pwmSession.getUserInfoBean().getUserCurrentPassword();
             if (currentPassword == null || currentPassword.length() < 1) {
+                LOGGER.debug(pwmSession, "skipping user current password requirement, current password is not known to application");
                 return false;
             }
         }

@@ -56,19 +56,19 @@
     </div>
     <div id="header-center">
         <div id="header-center-left">
-            <div id="header-page"><pwm:Display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
-            <div id="header-title"><pwm:Display key="Title_Application"/></div>
+            <div id="header-page"><pwm:display key="${param['pwm.PageName']}" displayIfMissing="true"/></div>
+            <div id="header-title"><pwm:display key="Title_Application"/></div>
         </div>
         <div id="header-center-right">
             <%-- this section handles the home button link (if user is logged in) --%>
-            <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/'/>" style="visibility: <%=showHome ? "inline" : "hidden"%>" id="HomeButton">
+            <a class="header-button" href="<pwm:value name="homeURL"/>" style="visibility: <%=showHome ? "inline" : "hidden"%>" id="HomeButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-home"></span></pwm:if>
-                <pwm:Display key="Button_Home"/>
+                <pwm:display key="Button_Home"/>
             </a>
             <%-- this section handles the logout link (if user is logged in) --%>
             <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
-                <pwm:Display key="Button_Logout"/>
+                <pwm:display key="Button_Logout"/>
             </a>
         </div>
     </div>

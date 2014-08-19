@@ -32,15 +32,15 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
-                <pwm:Display key="Title_ConfigGuide_start" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide_start" bundle="Config"/>
             </div>
         </div>
     </div>
     <div id="centerbody">
-        <pwm:Display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+        <pwm:display key="Display_ConfigManagerNew" bundle="Config" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <table style="border:0">
@@ -48,33 +48,33 @@
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_GUIDE.gotoStep('TEMPLATE');}); } else {PWM_GUIDE.gotoStep('TEMPLATE');};">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-rocket"></span></pwm:if>
-                        <pwm:Display key="MenuItem_StartConfigGuide" bundle="Config"/>
+                        <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
                 </td>
                 <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
+                    <p><pwm:display key="MenuDisplay_StartConfigGuide" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){skipWizard();}); } else {skipWizard();}">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-cogs"></span></pwm:if>
-                        <pwm:Display key="MenuItem_ManualConfig" bundle="Config"/>
+                        <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
                     </a>
                 </td>
                 <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
+                    <p><pwm:display key="MenuDisplay_ManualConfig" bundle="Config"/></p>
                 </td>
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
                     <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_CONFIG.uploadConfigDialog();}); } else {PWM_CONFIG.uploadConfigDialog();};">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
-                        <pwm:Display key="MenuItem_UploadConfig" bundle="Config"/>
+                        <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
                 </td>
                 <td style="border:0">
-                    <p><pwm:Display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
+                    <p><pwm:display key="MenuDisplay_UploadConfig" bundle="Config"/></p>
                 </td>
             </tr>
         </table>
@@ -84,7 +84,7 @@
 <pwm:script>
 <script type="text/javascript">
     function skipWizard() {
-        PWM_MAIN.showConfirmDialog({text:'<pwm:Display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
+        PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
             PWM_GUIDE.gotoStep('FINISH');
         }});
     }

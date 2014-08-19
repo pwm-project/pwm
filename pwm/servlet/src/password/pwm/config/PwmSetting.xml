@@ -71,6 +71,13 @@
             <value />
         </default>
     </setting>
+    <setting key="pwm.homeURL" level="0">
+        <label>Home URL</label>
+        <description><![CDATA[The URL to redirect user to upon clicking the home button.  If blank, the home button will return the user to the application context URL.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
     <setting key="pwmInstanceName" level="1">
         <label>Instance Name</label>
         <description><![CDATA[Name of this application instance.  If blank a persistent, randomly generated value will be used.  Recommended value is blank.]]></description>
@@ -159,6 +166,20 @@
     <setting key="display.showHidePasswordFields" level="0" required="true">
         <label>Enable Showing Masked Fields</label>
         <description><![CDATA[Where available, allow the user to toggle the show/hide masked (hidden) data input fields.  This setting applies to all HTML masked password fields, regardless of the actual data type.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.maskPasswordFields" level="1" required="true">
+        <label>Mask Password Fields</label>
+        <description><![CDATA[Mask sensitive input fields with standard "password" masking.  If set to false, sensitive fields will be shown as normal text input fields.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+    <setting key="display.maskResponseFields" level="1" required="true">
+        <label>Mask Response Fields</label>
+        <description><![CDATA[Mask challenge/response answer input fields with standard "password" masking.  If set to false, response fields will be shown as normal text input fields.  This setting applies to both setup responses and forgotten password response entry screens.]]></description>
         <default>
             <value>true</value>
         </default>
@@ -1625,7 +1646,8 @@
         <label>HTTP Content Security Policy Header</label>
         <description><![CDATA[Set the HTTP Content-Security-Policy header.  This header instructs the browser to limit the locations from which it will load fonts, scripts and css files.]]></description>
         <default>
-            <value><![CDATA[default-src 'self';style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' www.google.com/recaptcha]]></value>
+            <value><![CDATA[]]></value>
+            <!--<value><![CDATA[default-src 'self';style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' www.google.com/recaptcha]]></value>-->
         </default>
     </setting>
     <setting key="email.adminAlert.toAddress" level="0">
@@ -2051,7 +2073,7 @@
     </setting>
     <setting key="challenge.requiredChallenges" level="0">
         <label>Required Questions</label>
-        <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be suppled during forgotten password.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
+        <description><![CDATA[Required Questions for Challenge/Response.  The user must supply answers for all of these questions when setting up their responses.  Additionally, answers to these questions must be supplied during forgotten password.]]></description>
         <default>
             <value />
         </default>
@@ -2107,14 +2129,14 @@
     </setting>
     <setting key="challenge.helpdesk.randomChallenges" level="0">
         <label>Helpdesk Random Questions</label>
-        <description><![CDATA[The user may be required to supply answers to all or some of these questions when setting up their responses, as controlled by the "Minimum Helpdesk Random Challenges Required During Setup" setting.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your maiden name?::5::200</li><li>What is your fathers middle name?::5::200</li></ul>]]></description>
+        <description><![CDATA[The user may be required to supply answers to all or some of these questions when setting up their responses, as controlled by the "Minimum Helpdesk Random Challenges Required During Setup" setting.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.]]></description>
         <default>
             <value />
         </default>
     </setting>
     <setting key="challenge.helpdesk.requiredChallenges" level="0">
         <label>Helpdesk Required Questions</label>
-        <description><![CDATA[The user must supply answers for all of these questions when setting up their responses.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.  Use <i>%user%</i> as the question text to indicate a user-supplied question.<br/><br/>Format: <b>question::minimumLength::maximumLength</b><table style="width: 400px"><tr><td>question</td><td>The text of the challenge question</td></tr><tr><td>minimumLength</td><td>Minimum Field Length</td></tr><tr><td>maximumLength</td><td>Maximum Field Length</td></tr></table>Examples:<ul><li>%user%::5::200</li><li>What is your favorite cartoon?</li><li>What is your favorite food?::5::200</li></ul>]]></description>
+        <description><![CDATA[The user must supply answers for all of these questions when setting up their responses.  The questions and answers will be visible to helpdesk users, but are not used for forgotten password recovery.]]></description>
         <default>
             <value />
         </default>
@@ -2290,6 +2312,9 @@
             <option value="BOTH">Both - Send token to both email and SMS</option>
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="CHOICE_SMS_EMAIL">User Choice - User decides if both SMS and email address is available, or auto send if only one is available.</option>
+
+
         </options>
     </setting>
     <setting key="recovery.require.otp" level="0" required="true" hidden="false">
@@ -2330,6 +2355,13 @@
         <description><![CDATA[Actions to execute after a user has successfully completed the forgotten password sequence and the user's password has been modified.  Macros may be used.]]></description>
         <default>
             <value/>
+        </default>
+    </setting>
+    <setting key="recovery.allowWhenLocked" level="1">
+        <label>Allow Forgotten Password when Locked</label>
+        <description><![CDATA[Allow user to use the forgotten password feature when the account is intruder locked in LDAP.]]></description>
+        <default>
+            <value>false</value>
         </default>
     </setting>
     <setting key="forgottenUsername.enable" level="0" required="true">
@@ -3190,6 +3222,21 @@
         <default syntaxVersion="2" template="ORACLE_DS">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
+    </setting>
+    <setting key="helpdesk.token.sendMethod" level="0">
+        <label>Token Send Method</label>
+        <description><![CDATA[Set the method(s) used for sending the token code to the user.]]></description>
+        <default>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None - Token verification will not be performed</option>
+            <option value="EMAILONLY">Email Only - Send to email address</option>
+            <option value="SMSONLY">SMS Only - Send via SMS</option>
+            <option value="BOTH">Both - Send token to both email and SMS</option>
+            <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
+            <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+        </options>
     </setting>
     <setting key="pwmDb.location" level="1" required="true">
         <label>LocalDB Location</label>

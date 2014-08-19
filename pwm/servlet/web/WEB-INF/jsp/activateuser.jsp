@@ -32,9 +32,8 @@
         <jsp:param name="pwm.PageName" value="Title_ActivateUser"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ActivateUser"/></p>
-        <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser"
-              enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+        <p><pwm:display key="Display_ActivateUser"/></p>
+        <form action="<pwm:url url='ActivateUser'/>" method="post" name="activateUser" enctype="application/x-www-form-urlencoded" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <% request.setAttribute("form",PwmSetting.ACTIVATE_USER_FORM); %>
@@ -42,7 +41,7 @@
             <div id="buttonbar">
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Activate"/>
+                    <pwm:display key="Button_Activate"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="activate"/>
@@ -57,7 +56,6 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.activateUser.elements[0].focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

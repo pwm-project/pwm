@@ -39,12 +39,11 @@
         <br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
-            <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="post"
-                  enctype="application/x-www-form-urlencoded" onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+            <form action="<pwm:url url='/public/CommandServlet' addContext="true"/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
                     <input type="hidden" name="processAction" value="continue"/>
                     <button type="submit" name="button" class="btn" id="submitBtn">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                        <pwm:Display key="Button_Continue"/>
+                        <pwm:display key="Button_Continue"/>
                     </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>

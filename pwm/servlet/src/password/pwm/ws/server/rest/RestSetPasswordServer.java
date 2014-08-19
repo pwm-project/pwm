@@ -193,7 +193,7 @@ public class RestSetPasswordServer {
                 jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDeliminatedKey();
             }
             if (restRequestBean.isExternal()) {
-                StatisticsManager.noErrorIncrementer(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
+                StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);
             }
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setError(false);

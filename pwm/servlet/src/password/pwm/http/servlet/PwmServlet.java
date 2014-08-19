@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public abstract class PwmServlet extends HttpServlet {
@@ -108,7 +110,8 @@ public abstract class PwmServlet extends HttpServlet {
             final ProcessAction processAction = readProcessAction(pwmRequest);
             if (processAction != null) {
                 if (!processAction.permittedMethods().contains(method)) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "incorrect request method " + method.toString());
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,
+                            "incorrect request method " + method.toString());
                     pwmRequest.getPwmSession().getSessionStateBean().setSessionError(errorInformation);
                     LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
                     ServletHelper.forwardToErrorPage(req, resp, false);
@@ -288,8 +291,27 @@ public abstract class PwmServlet extends HttpServlet {
 
     public enum HttpMethod {
         POST,
-        GET
+        GET,
+
     }
 
+    public static final Collection<HttpMethod> GET_AND_POST_METHODS;
 
+    static {
+        final HashSet<HttpMethod> methods = new HashSet<>();
+        methods.add(HttpMethod.GET);
+        methods.add(HttpMethod.POST);
+        GET_AND_POST_METHODS = Collections.unmodifiableSet(methods);
+    }
+
+    static boolean convertURLtokenCommand(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
+            throws IOException
+    {
+        return TopServlet.convertURLtokenCommand(req, resp, pwmApplication, pwmSession);
+    }
 }

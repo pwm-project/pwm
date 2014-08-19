@@ -227,7 +227,8 @@ function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
         var localeMenu = [];
         for (var localeIter in availableLocales) {
             if (localeIter != PWM_GLOBAL['defaultLocale']) {
-                localeMenu.push({label: availableLocales[localeIter], value: localeIter})
+                var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
+                localeMenu.push({label: labelText, value: localeIter})
             }
         }
 
@@ -2171,187 +2172,215 @@ BooleanHandler.toggle = function(keyName,widget) {
 
 // -------------------------- challenge handler ------------------------------------
 
-var ChallengeTableHandler = {};
-ChallengeTableHandler.defaultItem = {text:'Question',minLength:4,maxLength:200,adminDefined:true};
+var ChallengeSettingHandler = {};
+ChallengeSettingHandler.defaultItem = {text:'Question',minLength:4,maxLength:200,adminDefined:true};
 
-ChallengeTableHandler.init = function(parentDiv, keyName) {
-    console.log('ChallengeTableHandler init for ' + keyName);
+ChallengeSettingHandler.init = function(keyName) {
+    var parentDiv = "table_setting_" + keyName;
+    console.log('ChallengeSettingHandler init for ' + keyName);
     clearDivElements(parentDiv, true);
     readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
-        ChallengeTableHandler.draw(parentDiv, keyName);
+        ChallengeSettingHandler.draw(keyName);
     });
 };
 
-ChallengeTableHandler.draw = function(parentDiv, keyName) {
+ChallengeSettingHandler.draw = function(keyName) {
+    var parentDiv = "table_setting_" + keyName;
     var resultValue = clientSettingCache[keyName];
-    require(["dojo","dijit/registry","dojo/parser","dojo/json","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/form/NumberSpinner","dijit/form/ToggleButton"],
-        function(dojo,registry,dojoParser,json){
-            clearDivElements(parentDiv, false);
-            for (var localeName in resultValue) {
-                (function(localeKey) {
-                    var localeTableRow = document.createElement("tr");
-                    localeTableRow.setAttribute("style", "border-width: 0;");
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+    var bodyText = '';
+    bodyText += '<table style="border:1px grey solid; cursor: pointer">';
+    clearDivElements(parentDiv, false);
+    for (var localeName in resultValue) {
+        (function(localeKey) {
+            var isDefaultLocale = localeKey == "";
+            var multiValues = resultValue[localeKey];
+            var rowCount = PWM_MAIN.itemCount(multiValues);
+            var editJsText = 'ChallengeSettingHandler.editLocale(\'' + keyName + '\',\'' + localeKey + '\')';
 
-                    var localeTdName = document.createElement("td");
-                    localeTdName.setAttribute("style", "border-width: 0; width:15px");
-                    localeTdName.innerHTML = localeName;
-                    localeTableRow.appendChild(localeTdName);
+            bodyText += '<tr><td rowspan="' + (rowCount+1) + '" style="border:1px grey solid" onclick="' + editJsText + '">';
+            bodyText += isDefaultLocale ? "Default" : localeKey;
+            bodyText += '</td>';
 
-                    var localeTdContent = document.createElement("td");
-                    localeTdContent.setAttribute("style", "border-width: 0; width: 525px");
-                    localeTableRow.appendChild(localeTdContent);
+            if (rowCount > 0) {
+                bodyText += '</tr>';
 
-                    var localeTableElement = document.createElement("table");
-                    localeTableElement.setAttribute("style", "border-width: 2px; width:525px; margin:0");
-                    localeTdContent.appendChild(localeTableElement);
+                for (var iteration in multiValues) {
+                    (function (rowKey) {
+                        var questionText = multiValues[rowKey]['text'];
+                        var adminDefined = multiValues[rowKey]['adminDefined'];
 
-                    var multiValues = resultValue[localeName];
-
-                    for (var iteration in multiValues) {
-                        (function(rowKey) {
-
-                            var valueTableRow = document.createElement("tr");
-
-                            var valueTd1 = document.createElement("td");
-                            valueTd1.setAttribute("colspan", "200");
-                            valueTd1.setAttribute("style", "border-width: 0;");
-
-                            // clear the old dijit node (if it exists)
-                            var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
-                            var oldDijitNode = registry.byId(inputID);
-                            if (oldDijitNode != null) {
-                                try {
-                                    oldDijitNode.destroy();
-                                } catch (error) {
-                                }
-                            }
-
-                            var inputElement = document.createElement("textarea");
-                            inputElement.setAttribute("id", inputID);
-                            inputElement.setAttribute("value", multiValues[rowKey]['text']);
-                            inputElement.setAttribute("onchange", "clientSettingCache['" + keyName + "']['" + localeKey + "']['" + rowKey + "']['text'] = this.value;ChallengeTableHandler.write('" + keyName + "')");
-                            inputElement.setAttribute("style", "width: 490px");
-                            inputElement.setAttribute("required","true");
-                            inputElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
-                            inputElement.setAttribute("disabled", !multiValues[rowKey]['adminDefined']);
-                            valueTd1.appendChild(inputElement);
-                            valueTableRow.appendChild(valueTd1);
-
-                            // add remove button
-                            var imgElement = document.createElement("div");
-                            imgElement.setAttribute("style", "width: 10px; height: 10px;");
-                            imgElement.setAttribute("class", "fa fa-times icon_button");
-                            imgElement.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + localeKey + "']['" + rowKey + "'];ChallengeTableHandler.write('" + keyName + "',true)");
-                            valueTd1.appendChild(imgElement);
-
-                            localeTableElement.appendChild(valueTableRow);
-
-                            // options row
-                            var optionRow = document.createElement("tr");
-                            optionRow.setAttribute("style","padding-bottom: 5px; border-bottom: 1px solid #d3d3d3");
-                            var optionRowHtml = '<td style="border-width:0px">&nbsp;&nbsp;&nbsp;';
-                            var currentLabel = (multiValues[rowKey]['adminDefined']) ? 'Admin Defined' : 'User Defined';
-                            optionRowHtml += 'Text: <button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="checked:true,showLabel:true,label:\'' + currentLabel + '\',checked:' + multiValues[rowKey]['adminDefined'] + '"';
-                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'adminDefined\']=this.checked;';
-                            optionRowHtml += 'ChallengeTableHandler.write(\'' + keyName + '\');';
-                            optionRowHtml += 'ChallengeTableHandler.handleAdminToggled(this,\'' + inputID + '\')"></button>';
-                            optionRowHtml += '</td><td style="border-width:0px">';
-                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['minLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
-                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'minLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Minimum Length';
-                            optionRowHtml += '</td><td style="border-width:0px">';
-                            optionRowHtml += '<input style="width: 50px" data-dojo-type="dijit.form.NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
-                            optionRowHtml += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxLength\'] = this.value;ChallengeTableHandler.write(\'' + keyName + '\')"/> Maximum Length';
-                            optionRowHtml += '</td>';
-                            optionRow.innerHTML = optionRowHtml;
-                            localeTableElement.appendChild(optionRow);
-
-                        }(iteration));
-                    }
-
-                    { // add row button for this locale group
-                        var newTableRow = document.createElement("tr");
-                        newTableRow.setAttribute("style", "border-width: 0");
-                        newTableRow.setAttribute("colspan", "5");
-
-                        var newTableData = document.createElement("td");
-                        newTableData.setAttribute("style", "border-width: 0;");
-
-                        var addItemButton = document.createElement("button");
-                        addItemButton.setAttribute("type", "[button");
-                        addItemButton.setAttribute("onclick", "clientSettingCache['" + keyName + "']['" + localeName + "'].push(" + json.stringify(ChallengeTableHandler.defaultItem) + ");ChallengeTableHandler.write('" + keyName + "',true)");
-                        addItemButton.setAttribute("data-dojo-type", "dijit.form.Button");
-                        addItemButton.innerHTML = "Add Value";
-                        newTableData.appendChild(addItemButton);
-
-                        newTableRow.appendChild(newTableData);
-                        localeTableElement.appendChild(newTableRow);
-                    }
-
-
-                    if (localeName != '') { // add remove locale x
-                        var imgElement2 = document.createElement("div");
-                        imgElement2.setAttribute("style", "width: 12px; height: 12px;");
-                        imgElement2.setAttribute("class", "fa fa-times icon_button");
-                        imgElement2.setAttribute("onclick", "delete clientSettingCache['" + keyName + "']['" + localeName + "'];ChallengeTableHandler.write('" + keyName + "',true)");
-                        var tdElement = document.createElement("td");
-                        tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top;width 10px");
-
-                        localeTableRow.appendChild(tdElement);
-                        tdElement.appendChild(imgElement2);
-                    }
-
-                    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-                    parentDivElement.appendChild(localeTableRow);
-
-                    { // add a spacer row
-                        var spacerTableRow = document.createElement("tr");
-                        spacerTableRow.setAttribute("style", "border-width: 0");
-                        parentDivElement.appendChild(spacerTableRow);
-
-                        var spacerTableData = document.createElement("td");
-                        spacerTableData.setAttribute("style", "border-width: 0");
-                        spacerTableData.innerHTML = "&nbsp;";
-                        spacerTableRow.appendChild(spacerTableData);
-                    }
-                }(localeName));
+                        bodyText += '<tr><td style="border:1px grey solid" onclick="' + editJsText + '">';
+                        bodyText += adminDefined ? questionText : '[User Defined]';
+                        bodyText += '</td></tr>';
+                    }(iteration));
+                }
+            } else {
+                bodyText += '<td style="border:1px grey solid" onclick="' + editJsText + '">';
+                bodyText += '[No Questions]';
+                bodyText += '</td>';
+                bodyText += '</tr>';
             }
+            parentDivElement.innerHTML = bodyText;
+        }(localeName));
+    }
+    bodyText += '</table>';
 
-            var addLocaleFunction = function() {
-                require(["dijit/registry"],function(registry){
-                    var localeValue = registry.byId(keyName + "-addLocaleValue").value;
-                    clientSettingCache[keyName][localeValue] = [];
-                    clientSettingCache[keyName][localeValue][0] = ChallengeTableHandler.defaultItem;
-                    ChallengeTableHandler.write(keyName, true);
-                });
-            };
-
-            addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
-            dojoParser.parse(parentDiv);
+    var addLocaleFunction = function() {
+        require(["dijit/registry"],function(registry){
+            var localeValue = registry.byId(keyName + "-addLocaleValue").value;
+            if (localeValue in clientSettingCache[keyName]) {
+                PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Error'),text:'Locale <i>' + localeValue + '</i> is already present.'});
+            } else {
+                clientSettingCache[keyName][localeValue] = [];
+                clientSettingCache[keyName][localeValue][0] = ChallengeSettingHandler.defaultItem;
+                ChallengeSettingHandler.write(keyName);
+                ChallengeSettingHandler.editLocale(keyName,localeValue);
+            }
         });
+    };
+    var tableElement = document.createElement("table");
+    parentDivElement.appendChild(tableElement);
+    addAddLocaleButtonRow(tableElement, keyName, addLocaleFunction);
 };
 
-ChallengeTableHandler.handleAdminToggled = function(toggleElement,inputID) {
+ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
+    var localeDisplay = localeKey == "" ? "Default" : localeKey;
+    var dialogBody = '<div id="challengeLocaleDialogDiv" style="overflow-y: auto; max-height: 500px">';
+
+    var localeName = localeKey;
+
+    var resultValue = clientSettingCache[keyName];
+    require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/form/NumberSpinner","dijit/form/ToggleButton"],
+        function(dojo,registry,dojoParser){
+            var multiValues = resultValue[localeName];
+
+            dialogBody += '<table style="border-width: 0; margin:0; max-width:525px;">';
+
+            for (var iteration in multiValues) {
+                (function(rowKey) {
+                    var isAdminDefined = multiValues[rowKey]['adminDefined'];
+                    var questionText = multiValues[rowKey]['text'];
+
+                    dialogBody += '<tr>';
+                    dialogBody += '<td colspan="200" style="border-width: 0;">';
+
+                    var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
+                    PWM_MAIN.clearDijitWidget(inputID);
+
+                    dialogBody += '<textarea id="' + inputID + '" style="width: 490px" required="required"';
+                    dialogBody += ' data-dojo-type="dijit/form/Textarea' + '"';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'text\'] = this.value"';
+                    if (!isAdminDefined) {
+                        dialogBody += ' disabled="disabled"';
+                        dialogBody += ' value="[User Defined]"';
+                    } else {
+                        dialogBody += ' value="' + questionText + '"';
+                    }
+                    dialogBody += '></textarea>';
+
+                    dialogBody += '<div style="width:10px; height:10px; color: #880000" class="fa fa-times icon_button"';
+                    dialogBody += ' onclick="ChallengeSettingHandler.deleteRow(\'' + keyName + '\',\'' + localeKey + '\',\'' + rowKey + '\')");';
+                    dialogBody += '/>';
+
+                    dialogBody += '</td>';
+                    dialogBody += '</tr>';
+
+                    dialogBody += '<tr style="padding-bottom: 15px; border:0"><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:\'dijitCheckBoxIcon\',showLabel:true,label:\'Admin Defined\',checked:' + isAdminDefined + '"';
+                    dialogBody += ' onchange="ChallengeSettingHandler.toggleAdminDefinedRow(this,\'' + inputID + '\',\'' + keyName + '\',\'' + localeKey + '\',\'' + rowKey + '\')"';
+                    dialogBody += '></button>';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['minLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'minLength\'] = this.value"/><br/>Min Length';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxLength\'] = this.value"/><br/>Max Length';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['maxQuestionCharsInAnswer'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxQuestionCharsInAnswer\'] = this.value"/><br/> Max Question Chars';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    var applyWordlist = multiValues[rowKey]['applyWordlist'];
+                    dialogBody += '<button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:\'dijitCheckBoxIcon\',showLabel:true,label:\'Apply Wordlist\',checked:' + applyWordlist + '"';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'applyWordlist\'] = this.checked"';
+                    dialogBody += '></button>';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['points'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
+                    dialogBody += ' onchange="clientSettingCache[\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'points\'] = this.value"/><br/>Points';
+
+                    dialogBody += '</td></tr>';
+                }(iteration));
+            }
+
+            dialogBody += '</table></div>';
+            dialogBody += '<br/><br/><button type="button" data-dojo-type="dijit/form/Button"';
+            dialogBody += ' onclick="ChallengeSettingHandler.addRow(\'' + keyName + '\',\'' + localeKey + '\')"';
+            dialogBody += '>Add Value</button>';
+
+            if (localeKey != "") {
+                dialogBody += '<button type="button" data-dojo-type="dijit/form/Button"';
+                dialogBody += ' onclick="ChallengeSettingHandler.deleteLocale(\'' + keyName + '\',\'' + localeKey + '\')"';
+                dialogBody += '>Delete Locale ' + localeDisplay + '</button>';
+            }
+
+            var dialogTitle = PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + localeDisplay;
+            PWM_MAIN.showDialog({title:dialogTitle,text:dialogBody,width:550,loadFunction:function(){
+                dojoParser.parse(PWM_MAIN.getObject('challengeLocaleDialogDiv'));
+            },okAction:function(){
+                ChallengeSettingHandler.write(keyName );
+                ChallengeSettingHandler.draw(keyName);
+            }});
+        }
+    );
+
+};
+
+ChallengeSettingHandler.deleteLocale = function(keyName,localeKey) {
+    PWM_MAIN.showConfirmDialog({
+        id: 'confirmDeleteLocaleDialog',
+        text: 'Are you sure you want to remove all the questions for the <i>' + localeKey + '</i> locale?',
+        okAction:function(){
+            delete clientSettingCache[keyName][localeKey];
+            PWM_MAIN.closeWaitDialog();
+            ChallengeSettingHandler.draw(keyName);
+        }
+    });
+};
+
+ChallengeSettingHandler.toggleAdminDefinedRow = function(toggleElement,inputID,keyName,localeKey,rowKey) {
     require(["dojo","dijit/registry"],function(dojo,registry){
+        var currentSetting = toggleElement.checked;
+        clientSettingCache[keyName][localeKey][rowKey]['adminDefined'] = currentSetting;
         var inputElement = registry.byId(inputID);
-        if (toggleElement.checked) {
-            toggleElement.set('label','Admin Defined');
+        if (currentSetting) {
             inputElement.set('disabled',false);
             inputElement.set('value','Question');
         } else {
-            toggleElement.set('label','User Defined');
             inputElement.set('disabled',true);
-            inputElement.set('value','');
+            inputElement.set('value','[User Defined]');
+            clientSettingCache[keyName][localeKey][rowKey]['text'] = '';
         }
     });
-}
+};
 
-ChallengeTableHandler.write = function(settingKey,redraw) {
+ChallengeSettingHandler.deleteRow = function(keyName, localeKey, rowName) {
+    delete clientSettingCache[keyName][localeKey][rowName];
+    ChallengeSettingHandler.editLocale(keyName, localeKey);
+};
+
+ChallengeSettingHandler.addRow = function(keyName, localeKey) {
+    clientSettingCache[keyName][localeKey].push(ChallengeSettingHandler.defaultItem);
+    ChallengeSettingHandler.editLocale(keyName, localeKey);
+};
+
+ChallengeSettingHandler.write = function(settingKey) {
     writeSetting(settingKey, clientSettingCache[settingKey]);
-    if (redraw) {
-        var parentDiv = 'table_setting_' + settingKey;
-        ChallengeTableHandler.draw(parentDiv, settingKey);
-    }
 };
 
 // -------------------------- user permission handler ------------------------------------
@@ -2884,8 +2913,10 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
                                             handleAs: "json",
                                             load: function (data) {
                                                 if (data['error'] == true) {
-                                                    PWM_MAIN.closeWaitDialog();
-                                                    PWM_MAIN.showError(data['errorDetail']);
+                                                    PWM_MAIN.showDialog({
+                                                        title:PWM_MAIN.showString('Title_Error'),
+                                                        text:data['errorDetail']
+                                                    })
                                                 } else {
                                                     if (waitForReload) {
                                                         PWM_CONFIG.waitForRestart();
@@ -2914,7 +2945,7 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
 function readConfigEditorCookie() {
     require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
         try {
-            preferences = json.parse(dojoCookie("preferences"));
+            preferences = json.parse(dojoCookie("ConfigEditor_preferences"));
         } catch (e) {
             console.log("error reading preferences cookie: " + e);
         }
@@ -2924,7 +2955,7 @@ function readConfigEditorCookie() {
 function setConfigEditorCookie() {
     require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
         var cookieString = json.stringify(preferences);
-        dojoCookie("preferences", cookieString, {expires: 5}); // 5 days
+        dojoCookie("ConfigEditor_preferences", cookieString, {expires: 5}); // 5 days
     });
 }
 

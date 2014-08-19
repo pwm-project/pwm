@@ -44,7 +44,7 @@
 <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
 <%@ include file="admin-nav.jsp" %>
 <form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
-      name="searchForm" id="searchForm" onsubmit="PWM_MAIN.handleFormSubmit(this)">
+      name="searchForm" id="searchForm" class="pwm-form">
     <table style="">
         <tr style="width:0">
             <td class="key" style="border:0">
@@ -244,6 +244,7 @@
     .dgrid-column-user {width: 70px;}
     .dgrid-column-component {width: 100px;}
 </style>
+<pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dijit/form/NumberSpinner","dojo/domReady!"],function(dojoParser){
@@ -252,6 +253,7 @@
         });
     });
 </script>
+</pwm:script>
 <% } %>
 <p style="text-align:center;">Matched <%= numberFormat.format(searchResults.getReturnedEvents()) %> entries after
     searching <%= numberFormat.format(searchResults.getReturnedEvents()) %> log entries

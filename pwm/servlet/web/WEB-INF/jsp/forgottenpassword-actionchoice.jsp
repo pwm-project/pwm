@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.servlet.ForgottenPasswordServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -32,60 +33,62 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p><pwm:Display key="Display_RecoverPasswordChoices"/></p>
-        <table style="border: 0">
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
+        <p><pwm:display key="Display_RecoverPasswordChoices"/></p>
+        <table class="noborder">
+            <tr>
+                <td>
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:Display key="Button_UnlockPassword"/>
+                            <pwm:display key="Button_UnlockPassword"/>
                         </button>
-                        <input type="hidden" name="processAction" value="selectUnlock"/>
+                        <input type="hidden" name="choice" value="unlock"/>
+                        <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.actionChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
-                <td style="border: 0">
-                    <pwm:Display key="Display_RecoverChoiceUnlock"/>
+                <td>
+                    <pwm:display key="Display_RecoverChoiceUnlock"/>
                 </td>
             </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
+            <tr>
+                <td>
                     &nbsp;
                 </td>
             </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
+            <tr>
+                <td>
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
                         <button class="btn" type="submit" name="submitBtn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
-                            <pwm:Display key="Button_ChangePassword"/>
+                            <pwm:display key="Button_ChangePassword"/>
                         </button>
-                        <input type="hidden" name="processAction" value="selectResetPassword"/>
+                        <input type="hidden" name="choice" value="resetPassword"/>
+                        <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.actionChoice%>"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
-                <td style="border: 0">
-                    <pwm:Display key="Display_RecoverChoiceReset"/>
+                <td>
+                    <pwm:display key="Display_RecoverChoiceReset"/>
                 </td>
             </tr>
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                            onclick="window.location='<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                        <pwm:Display key="Button_Cancel"/>
-                    </button>
-                </td>
-                <td style="border: 0">
+            <tr>
+                <td>
                     &nbsp;
                 </td>
             </tr>
-            <% } %>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
+            <tr>
+                <td>
+                    <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
                     &nbsp;
                 </td>
             </tr>

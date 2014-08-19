@@ -99,7 +99,7 @@
        maxlength="<%=loopConfiguration.getMaximumLength()%>"<% if (!focusSet) { %> autofocus<% }; focusSet = true; %>/>
 <% if (loopConfiguration.isConfirmationRequired() && !forceReadOnly && !loopConfiguration.isReadonly() && loopConfiguration.getType() != FormConfiguration.Type.hidden && loopConfiguration.getType() != FormConfiguration.Type.select) { %>
 <h2>
-    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:Display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
+    <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
 </h2>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
        name="<%=loopConfiguration.getName()%>_confirm" value="<%= ssBean.getLastParameterValues().get(loopConfiguration.getName() + "confirm","")%>"
@@ -125,7 +125,7 @@
 
 <% if (showPasswordFields) { %>
 <h2>
-    <label for="password1"><pwm:Display key="Field_NewPassword"/>
+    <label for="password1"><pwm:display key="Field_NewPassword"/>
         <span style="font-style: italic;font-size:smaller" id="label_required_password">*&nbsp;</span>
         <pwm:script>
         <script type="text/javascript">
@@ -148,13 +148,13 @@
 <table style="border:0; margin: 0; padding: 0">
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0; width:60%">
-            <input type="password" name="password1" id="password1" class="changepasswordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" onkeypress="PWM_MAIN.getObject('password2').value=''" style="margin-left:5px"/>
         </td>
         <td style="border:0;">
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)) { %>
             <div id="strengthBox" style="visibility:hidden;">
                 <div id="strengthLabel">
-                    <pwm:Display key="Display_StrengthMeter"/>
+                    <pwm:display key="Display_StrengthMeter"/>
                 </div>
                 <div class="progress-container">
                     <div id="strengthBar" style="width: 0">&nbsp;</div>
@@ -177,7 +177,7 @@
     </tr>
     <tr style="border:0; margin: 0; padding: 0">
         <td style="border:0; margin: 0; padding: 0">
-            <input type="password" name="password2" id="password2" class="changepasswordfield" style="margin-left:5px"/>
+            <input type="<pwm:value name="passwordFieldType"/>" name="password2" id="password2" class="changepasswordfield passwordfield" style="margin-left:5px"/>
         </td>
         <td style="border:0">
             <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>

@@ -30,14 +30,12 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.value.PasswordValue;
 import password.pwm.util.Helper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBFactory;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.OutputStreamWriter;
 import java.util.*;
 
@@ -252,48 +250,37 @@ public class MainClass {
     }
 
     static Configuration loadConfiguration(final File configurationFile) throws Exception {
-        return (new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME))).getConfiguration();
+        final ConfigurationReader reader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
+
+        if (reader.getConfigMode() == PwmApplication.MODE.ERROR) {
+            final String errorMsg = reader.getConfigFileError() == null ? "error" : reader.getConfigFileError().toDebugStr();
+            out("unable to load configuration: " + errorMsg);
+            System.exit(-1);
+        }
+
+        return reader.getConfiguration();
     }
 
     static PwmApplication loadPwmApplication(final File applicationPath, final Configuration config, final File configurationFile, final boolean readonly)
             throws LocalDBException
     {
         final PwmApplication.MODE mode = readonly ? PwmApplication.MODE.READ_ONLY : PwmApplication.MODE.RUNNING;
-        return new PwmApplication(config, mode, applicationPath, false, configurationFile);
+        final PwmApplication pwmApplication = new PwmApplication(config, mode, applicationPath, false, configurationFile);
+        final PwmApplication.MODE runningMode = pwmApplication.getApplicationMode();
+
+        if (runningMode != mode) {
+            out("unable to start application in required state '" + mode + "', current state: " + runningMode);
+            System.exit(-1);
+        }
+
+        return pwmApplication;
     }
 
     static File locateConfigurationFile(File applicationPath) {
         return new File(applicationPath + File.separator + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
     }
 
-    static void handleEncryptConfigPassword(final String[] args) throws Exception {
-        if (args.length < 2) {
-            out("must specify a password value");
-            System.exit(-1);
-        }
-
-        if (args.length < 3) {
-            out("must specify file to write password value to");
-            System.exit(-1);
-        }
-
-        final File outputFile = new File(args[2]);
-        if (outputFile.exists()) {
-            out("outputFile '" + outputFile.getAbsolutePath() + "' already exists");
-            System.exit(-1);
-        }
-
-        final String input = args[1];
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-        final String key = configurationReader.getStoredConfiguration().getKey();
-        final String output = PasswordValue.encryptValue(key,input);
-        final FileWriter writer = new FileWriter(outputFile,true);
-        writer.write(output);
-        writer.close();
-    }
-
     private static void out(CharSequence txt) {
         System.out.println(txt + "\n");
     }
-
 }

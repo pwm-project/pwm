@@ -205,11 +205,18 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public void resetAllPasswordValues() {
+    public void resetAllPasswordValues(final String comment) {
         for (final Iterator<SettingValueRecord> settingValueRecordIterator = new StoredValueIterator(false); settingValueRecordIterator.hasNext();) {
             final SettingValueRecord settingValueRecord = settingValueRecordIterator.next();
             if (settingValueRecord.getSetting().getSyntax() == PwmSettingSyntax.PASSWORD) {
                 this.resetSetting(settingValueRecord.getSetting(),settingValueRecord.getProfile(),null);
+                if (comment != null && !comment.isEmpty()) {
+                    final XPathExpression xp = XPathBuilder.xpathForSetting(settingValueRecord.getSetting(), settingValueRecord.getProfile());
+                    final Element settingElement = (Element)xp.evaluateFirst(document);
+                    if (settingElement != null) {
+                        settingElement.addContent(new Comment(comment));
+                    }
+                }
             }
         }
     }

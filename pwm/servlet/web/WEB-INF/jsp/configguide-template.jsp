@@ -35,16 +35,16 @@
     <div id="header">
         <div id="header-center">
             <div id="header-page">
-                <pwm:Display key="Title_ConfigGuide" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide" bundle="Config"/>
             </div>
             <div id="header-title">
-                <pwm:Display key="Title_ConfigGuide_template" bundle="Config"/>
+                <pwm:display key="Title_ConfigGuide_template" bundle="Config"/>
             </div>
         </div>
     </div>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <pwm:Display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
+        <pwm:display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
         <form id="configForm" data-dojo-type="dijit/form/Form">
             <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>"
@@ -65,12 +65,12 @@
             <div id="buttonbar">
                 <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('START');">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:Display key="Button_Previous" bundle="Config"/>
+                    <pwm:display key="Button_Previous" bundle="Config"/>
                 </button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAP');">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Next" bundle="Config"/>
+                    <pwm:display key="Button_Next" bundle="Config"/>
                 </button>
             </div>
     </div>

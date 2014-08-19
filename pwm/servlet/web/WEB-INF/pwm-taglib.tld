@@ -105,7 +105,7 @@
         </attribute>
     </tag>
     <tag>
-        <name>Display</name>
+        <name>display</name>
         <tag-class>password.pwm.http.tag.DisplayTag</tag-class>
         <body-content>empty</body-content>
         <description>Display localized message</description>

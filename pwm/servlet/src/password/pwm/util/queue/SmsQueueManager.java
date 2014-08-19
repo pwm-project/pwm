@@ -22,7 +22,6 @@
 
 package password.pwm.util.queue;
 
-import com.google.gson.GsonBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -247,16 +246,16 @@ public class SmsQueueManager extends AbstractQueueManager {
             final List<String> okMessages = config.readSettingAsStringArray(PwmSetting.SMS_RESPONSE_OK_REGEX);
             if (okMessages == null || okMessages.size() == 0 || matchExpressions(responseBody, okMessages)) {
                 LOGGER.debug("SMS send successful, HTTP status: " + httpResponse.getStatusLine()  + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
-                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
+                StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
                 return true;
             }
 
             LOGGER.error("SMS send failure, HTTP status: " + httpResponse.getStatusLine() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")\n body: " + responseBody);
-            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_FAILURES);
+            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
             return false;
         } catch (IOException e) {
-            LOGGER.error("IO error while sending SMS: " + e.getMessage(), e);
-            StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_FAILURES);
+            LOGGER.error("IO error while sending SMS: " + e.getMessage());
+            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
             return false;
         }
     }
@@ -384,13 +383,13 @@ public class SmsQueueManager extends AbstractQueueManager {
         debugOutputMap.put("to", smsItemBean.getTo());
         debugOutputMap.put("from", smsItemBean.getFrom());
 
-        return Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugOutputMap);
+        return Helper.getGson().toJson(debugOutputMap);
     }
 
     @Override
     protected void noteDiscardedItem(QueueEvent queueEvent)
     {
-        StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.SMS_SEND_DISCARDS);
+        StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_DISCARDS);
     }
 
 }

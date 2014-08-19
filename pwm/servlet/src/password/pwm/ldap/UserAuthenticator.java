@@ -237,6 +237,9 @@ public class UserAuthenticator {
             if (currentPass != null && currentPass.length() > 0) {
                 try {
                     authenticateUser(userIdentity.getUserDN(), currentPass, null, null, pwmSession, pwmApplication, secure);
+                    if (authenticationType == UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN) {
+                        pwmSession.getUserInfoBean().setAuthenticationType(authenticationType);
+                    }
                     return;
                 } catch (PwmOperationalException e) {
                     final String errorStr = "unable to authenticate with admin retrieved password, check proxy rights, ldap logs; error: " + e.getMessage();

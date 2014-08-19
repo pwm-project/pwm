@@ -31,12 +31,11 @@
         <jsp:param name="pwm.PageName" value="Title_ForgottenUsername"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_ForgottenUsername"/></p>
+        <p><pwm:display key="Display_ForgottenUsername"/></p>
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='ForgottenUsername'/>" method="post" enctype="application/x-www-form-urlencoded"
-              name="searchForm"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false" id="searchForm">
+              name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="/WEB-INF/jsp/fragment/ldap-selector.jsp" %>
             <% request.setAttribute("form",PwmSetting.FORGOTTEN_USERNAME_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -44,7 +43,7 @@
                 <input type="hidden" name="processAction" value="search"/>
                 <button type="submit" class="btn" name="search" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
-                    <pwm:Display key="Button_Search"/>
+                    <pwm:display key="Button_Search"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

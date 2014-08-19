@@ -302,7 +302,7 @@ public class IntruderManager implements Serializable, PwmService {
             final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
             messageObj.put("type", recordType);
             messageObj.put("subject", subject);
-            final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
+            final String message = Helper.getGson().toJson(messageObj);
             final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
             pwmApplication.getAuditManager().submit(auditRecord);
         }
@@ -315,7 +315,7 @@ public class IntruderManager implements Serializable, PwmService {
                     final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
                     messageObj.put("type", recordType);
                     messageObj.put("subject", subject);
-                    final String message = Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(messageObj);
+                    final String message = Helper.getGson().toJson(messageObj);
                     final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_LOCK,message);
                     pwmApplication.getAuditManager().submit(auditRecord);
                 }
@@ -342,7 +342,7 @@ public class IntruderManager implements Serializable, PwmService {
             throw e;
         }
 
-        delayPenalty(manager.readIntruderRecord(subject), pwmSession.getSessionLabel());
+        delayPenalty(manager.readIntruderRecord(subject), pwmSession == null ? null : pwmSession.getSessionLabel());
     }
 
 

@@ -22,7 +22,6 @@
 
 package password.pwm.http;
 
-import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -338,7 +337,7 @@ public class PwmSession implements Serializable {
             return "exception generating PwmSession.toString(): " + e.getMessage();
         }
 
-        return "PwmSession instance: " + Helper.getGson(new GsonBuilder().disableHtmlEscaping()).toJson(debugData);
+        return "PwmSession instance: " + Helper.getGson().toJson(debugData);
     }
 
     public boolean setLocale(final PwmApplication pwmApplication, final String localeString)

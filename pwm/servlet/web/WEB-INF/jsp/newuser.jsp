@@ -33,12 +33,11 @@
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
-        <p><pwm:Display key="Display_NewUser"/></p>
+        <p><pwm:display key="Display_NewUser"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
         <form action="<pwm:url url='NewUser'/>" method="post" name="newUser" enctype="application/x-www-form-urlencoded"
-              id="newUserForm" onkeyup="PWM_NEWUSER.validateNewUserForm()"
-              onsubmit="PWM_MAIN.handleFormSubmit(this);return false">
+              id="newUserForm" onkeyup="PWM_NEWUSER.validateNewUserForm()" class="pwm-form">
             <% request.setAttribute("form",PwmSetting.NEWUSER_FORM); %>
             <% request.setAttribute("form_showPasswordFields","true"); %>
             <jsp:include page="fragment/form.jsp"/>
@@ -46,7 +45,7 @@
                 <input type="hidden" name="processAction" value="create"/>
                 <button type="submit" name="Create" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:Display key="Button_Continue"/>
+                    <pwm:display key="Button_Continue"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
@@ -60,7 +59,6 @@
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
         document.forms.newUser.elements[0].focus();
-        ShowHidePasswordHandler.initAllForms();
     });
 </script>
 </pwm:script>

@@ -229,7 +229,7 @@ public class ResourceFileServlet extends HttpServlet {
                     LOGGER.trace(ServletHelper.debugHttpRequest(pwmApplication,request,"(not cached)"));
                 }
 
-                StatisticsManager.noErrorIncrementer(pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS);
+                StatisticsManager.incrementStat(pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS);
             } catch (UncacheableResourceException e) {
                 handleUncachedResponse(response, file, acceptsGzip);
                 final StringBuilder debugText = new StringBuilder();

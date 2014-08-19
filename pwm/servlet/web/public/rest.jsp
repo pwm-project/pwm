@@ -1526,6 +1526,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     "requiresNewPassword": false,
     "requiresResponseConfig": false,
     "requiresUpdateProfile": false,
+    "requiresInteraction": true,
     "passwordStatus": {
       "expired": false,
       "preExpired": false,

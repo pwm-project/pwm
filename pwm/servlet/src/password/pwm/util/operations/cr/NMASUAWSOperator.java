@@ -142,9 +142,9 @@ public class NMASUAWSOperator implements CrOperator {
         private final String userDN;
         private final ChallengeSet challengeSet;
         private final Locale locale;
-        private final String localIdentifer;
+        private final String localIdentifier;
 
-        private static int lastLocalIdentifer;
+        private static int lastLocalIdentifier;
 
         public NovellWSResponseSet(
                 final PasswordManagement service,
@@ -153,8 +153,8 @@ public class NMASUAWSOperator implements CrOperator {
                 throws ChaiValidationException {
             this.userDN = wsBean.getUserDN();
             this.service = service;
-            this.localIdentifer = "NovellWSResponseSet #" + String.valueOf(lastLocalIdentifer++);
-            LOGGER.debug("initialized " + localIdentifer);
+            this.localIdentifier = "NovellWSResponseSet #" + String.valueOf(lastLocalIdentifier++);
+            LOGGER.debug("initialized " + localIdentifier);
 
             final List<Challenge> challenges = new ArrayList<>();
             for (final String loopQuestion : wsBean.getChallengeQuestions()) {
@@ -181,14 +181,14 @@ public class NMASUAWSOperator implements CrOperator {
 
         public boolean meetsChallengeSetRequirements(final ChallengeSet challengeSet) {
             if (challengeSet.getRequiredChallenges().size() > this.getChallengeSet().getRequiredChallenges().size()) {
-                LOGGER.debug(localIdentifer + "failed meetsChallengeSetRequirements, not enough required challenge");
+                LOGGER.debug(localIdentifier + "failed meetsChallengeSetRequirements, not enough required challenge");
                 return false;
             }
 
             for (final Challenge loopChallenge : challengeSet.getRequiredChallenges()) {
                 if (loopChallenge.isAdminDefined()) {
                     if (!this.getChallengeSet().getChallengeTexts().contains(loopChallenge.getChallengeText())) {
-                        LOGGER.debug(localIdentifer + "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'");
+                        LOGGER.debug(localIdentifier + "failed meetsChallengeSetRequirements, missing required challenge text: '" + loopChallenge.getChallengeText() + "'");
                         return false;
                     }
                 }
@@ -196,7 +196,7 @@ public class NMASUAWSOperator implements CrOperator {
 
             if (challengeSet.getMinRandomRequired() > 0) {
                 if (this.getChallengeSet().getChallenges().size() < challengeSet.getMinRandomRequired()) {
-                    LOGGER.debug(localIdentifer + "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
+                    LOGGER.debug(localIdentifier + "failed meetsChallengeSetRequirements, not enough questions to meet minrandom; minRandomRequired=" + challengeSet.getMinRandomRequired() + ", ChallengesInSet=" + this.getChallengeSet().getChallenges().size());
                     return false;
                 }
             }
@@ -210,10 +210,10 @@ public class NMASUAWSOperator implements CrOperator {
 
         public boolean test(final Map<Challenge, String> responseTest) throws ChaiUnavailableException {
             if (service == null) {
-                LOGGER.error(localIdentifer + "beginning web service 'processChaRes' response test, however service bean is not in session memory, aborting response test...");
+                LOGGER.error(localIdentifier + "beginning web service 'processChaRes' response test, however service bean is not in session memory, aborting response test...");
                 return false;
             }
-            LOGGER.trace(localIdentifer + "beginning web service 'processChaRes' response test ");
+            LOGGER.trace(localIdentifier + "beginning web service 'processChaRes' response test ");
             final String[] responseArray = new String[challengeSet.getAdminDefinedChallenges().size()];
             {
                 int i = 0;
@@ -230,20 +230,20 @@ public class NMASUAWSOperator implements CrOperator {
             try {
                 final ForgotPasswordWSBean response = service.processChaRes(request);
                 if (response.isTimeout()) {
-                    LOGGER.error(localIdentifer + "web service reports timeout: " + response.getMessage());
+                    LOGGER.error(localIdentifier + "web service reports timeout: " + response.getMessage());
                     return false;
                 }
                 if (response.isError()) {
                     if ("Account restrictions prevent you from logging in. See your administrator for more details.".equals(response.getMessage())) {
                         //throw PwmUnrecoverableException.createPwmException(PwmError.ERROR_INTRUDER_USER);
                     }
-                    LOGGER.error(localIdentifer + "web service reports error: " + response.getMessage());
+                    LOGGER.error(localIdentifier + "web service reports error: " + response.getMessage());
                     return false;
                 }
-                LOGGER.debug(localIdentifer + "web service has validated the users responses");
+                LOGGER.debug(localIdentifier + "web service has validated the users responses");
                 return true;
             } catch (RemoteException e) {
-                LOGGER.error(localIdentifer + "error processing web service response: " + e.getMessage());
+                LOGGER.error(localIdentifier + "error processing web service response: " + e.getMessage());
             }
 
             return false;  //To change body of implemented methods use File | Settings | File Templates.
