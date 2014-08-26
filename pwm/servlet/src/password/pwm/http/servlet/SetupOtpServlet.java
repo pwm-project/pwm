@@ -34,11 +34,12 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.*;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
 import password.pwm.http.filter.SessionFilter;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.OtpService;
@@ -70,8 +71,9 @@ public class SetupOtpServlet extends TopServlet {
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
         // fetch the required beans / managers
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
@@ -124,7 +126,7 @@ public class SetupOtpServlet extends TopServlet {
                 otpBean.setCodeSeen(!otpBean.isCodeSeen());
                     /* TODO: handle case to HOTP */
             } else if ("restValidateCode".equalsIgnoreCase(actionParam)) {
-                handleRestValidatecode(pwmSession, pwmApplication, req, resp, otpBean);
+                handleRestValidateCode(pwmRequest, otpBean);
                 return;
             } else if ("complete".equalsIgnoreCase(actionParam)) {
                 handleComplete(pwmSession, pwmApplication, req, resp, otpBean);
@@ -210,20 +212,20 @@ public class SetupOtpServlet extends TopServlet {
 
 
 
-    private void handleRestValidatecode(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+    private void handleRestValidateCode(
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         final OTPUserRecord otpUserRecord = pwmSession.getUserInfoBean().getOtpUserRecord();
         final OtpService otpService = pwmApplication.getOtpService();
 
-        final String bodyString = ServletHelper.readRequestBody(req);
-        final Map<String, String> clientValues = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        final String bodyString = pwmRequest.readRequestBody();
+        final Map<String, String> clientValues = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
         final String code = Validator.sanatizeInputValue(pwmApplication.getConfig(), clientValues.get("code"),1024);
 
@@ -238,13 +240,13 @@ public class SetupOtpServlet extends TopServlet {
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(passed);
 
-            LOGGER.trace(pwmSession,"returning result for restValidateCode: " + Helper.getGson().toJson(restResultBean));
-            ServletHelper.outputJsonResult(resp,restResultBean);
+            LOGGER.trace(pwmSession,"returning result for restValidateCode: " + JsonUtil.getGson().toJson(restResultBean));
+            pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
 
             final String errorMsg = "error during otp code validation: " + e.getMessage();
             LOGGER.error(pwmSession, errorMsg);
-            ServletHelper.outputJsonResult(resp, RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg)));
+            pwmRequest.outputJsonResult(RestResultBean.fromError(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg),pwmRequest));
         }
     }
 

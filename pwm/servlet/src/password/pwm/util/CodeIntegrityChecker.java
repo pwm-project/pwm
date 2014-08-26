@@ -288,6 +288,6 @@ public class CodeIntegrityChecker {
             }
             outputMap.put("localeHealthChecks", healthBeans);
         }
-        return Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
+        return JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
     }
 }

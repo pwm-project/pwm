@@ -25,10 +25,7 @@ package password.pwm.util.intruder;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.ClosableIterator;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 
 import java.io.IOException;
 
@@ -76,7 +73,7 @@ class RecordManagerImpl implements RecordManager {
 
         final TimeDuration age = TimeDuration.fromCurrent(record.getTimeStamp());
         if (age.isLongerThan(settings.getCheckDuration())) {
-            LOGGER.debug("re-setting existing outdated record=" + Helper.getGson().toJson(record) + " (" + age.asCompactString() + ")");
+            LOGGER.debug("re-setting existing outdated record=" + JsonUtil.getGson().toJson(record) + " (" + age.asCompactString() + ")");
             record = new IntruderRecord(recordType, subject);
         }
 
@@ -128,7 +125,7 @@ class RecordManagerImpl implements RecordManager {
         try {
             recordStore.write(makeKey(intruderRecord.getSubject()),intruderRecord);
         } catch (PwmOperationalException e) {
-            LOGGER.warn("unexpected error attempting to write intruder record " + Helper.getGson().toJson(intruderRecord) + ", error: " + e.getMessage());
+            LOGGER.warn("unexpected error attempting to write intruder record " + JsonUtil.getGson().toJson(intruderRecord) + ", error: " + e.getMessage());
         }
     }
 

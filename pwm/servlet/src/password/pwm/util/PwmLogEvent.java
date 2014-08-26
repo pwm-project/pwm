@@ -62,7 +62,7 @@ public class PwmLogEvent implements Serializable, Comparable {
 
     public static PwmLogEvent fromEncodedString(final String encodedString)
             throws ClassNotFoundException, IOException {
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final Map<String, String> srcMap = gson.fromJson(encodedString, new TypeToken<Map<String, String>>() {
         }.getType());
 
@@ -209,7 +209,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             tempMap.put(KEY_DATE, String.valueOf(date.getTime()));
         }
 
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         return gson.toJson(tempMap);
     }
 
@@ -246,7 +246,7 @@ public class PwmLogEvent implements Serializable, Comparable {
 
     @Override
     public String toString() {
-        return "PwmLogEvent=" + Helper.getGson().toJson(this);
+        return "PwmLogEvent=" + JsonUtil.getGson().toJson(this);
     }
 
     private static String shortenTopic(final String input) {

@@ -28,11 +28,12 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class PwmIfTag extends BodyTagSupport {
 
     private String test;
     private String arg1;
+    private boolean negate;
 
     public void setTest(String test)
     {
@@ -54,6 +56,11 @@ public class PwmIfTag extends BodyTagSupport {
         this.arg1 = arg1;
     }
 
+    public void setNegate(boolean negate)
+    {
+        this.negate = negate;
+    }
+
     @Override
     public int doStartTag()
             throws JspException
@@ -61,35 +68,41 @@ public class PwmIfTag extends BodyTagSupport {
         boolean showBody = false;
         if (test != null) {
             try {
-                final HttpServletRequest req = (HttpServletRequest)pageContext.getRequest();
-                final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-                final PwmSession pwmSession = PwmSession.getPwmSession(req);
+
+                final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(),
+                        (HttpServletResponse) pageContext.getResponse());
+                final PwmSession pwmSession = pwmRequest.getPwmSession();
 
                 boolean validTestName = false;
                 for (TESTS testEnum : TESTS.values()) {
                     validTestName = true;
                     if (testEnum.toString().equals(test)) {
                         try {
-                            showBody = testEnum.getTest().test(pwmApplication,pwmSession, this.readArgs());
+                            showBody = testEnum.getTest().test(pwmRequest, this.readArgs());
                         } catch (ChaiUnavailableException e) {
-                            LOGGER.error("error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
+                            LOGGER.error(
+                                    "error testing jsp if '" + testEnum.toString() + "', error: " + e.getMessage());
                         }
                     }
                 }
                 if (!validTestName) {
                     final String errorMsg = "unknown test name '" + test + "' in pwm:If jsp tag!";
-                    LOGGER.warn(pwmSession,errorMsg);
+                    LOGGER.warn(pwmSession, errorMsg);
                 }
             } catch (PwmUnrecoverableException e) {
                 e.printStackTrace();
             }
+        }
 
+        if (negate) {
+            showBody = !showBody;
         }
 
         return showBody ? EVAL_BODY_INCLUDE : SKIP_BODY;
     }
 
-    private String[] readArgs() {
+    private String[] readArgs()
+    {
         final List<String> argsList = new ArrayList<>();
         if (arg1 != null) {
             argsList.add(arg1);
@@ -99,6 +112,8 @@ public class PwmIfTag extends BodyTagSupport {
     }
 
     enum TESTS {
+        authenticated(new AuthenticatedTest()),
+        configurationOpen(new ConfigurationOpen()),
         showIcons(new BooleanAppPropertyTest(AppProperty.CLIENT_JSP_SHOW_ICONS)),
         showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
         showReset(new BooleanPwmSettingTest(PwmSetting.DISPLAY_RESET_BUTTON)),
@@ -109,9 +124,8 @@ public class PwmIfTag extends BodyTagSupport {
         permission(new BooleanPermissionTest()),
         otpEnabled(new BooleanPwmSettingTest(PwmSetting.OTP_ENABLED)),
         booleanSetting(new BooleanPwmSettingTest(null)),
-        stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
+        stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),;
 
-        ;
         private Test test;
 
         TESTS(Test test)
@@ -127,8 +141,7 @@ public class PwmIfTag extends BodyTagSupport {
 
     interface Test {
         boolean test(
-                final PwmApplication pwmApplication,
-                final PwmSession pwmSession,
+                final PwmRequest pwmRequest,
                 final String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException;
@@ -143,13 +156,12 @@ public class PwmIfTag extends BodyTagSupport {
         }
 
         public boolean test(
-                PwmApplication pwmApplication,
-                PwmSession pwmSession,
+                PwmRequest pwmRequest,
                 String... args
         )
         {
-            if (pwmApplication != null && pwmApplication.getConfig() != null) {
-                final String strValue = pwmApplication.getConfig().readAppProperty(appProperty);
+            if (pwmRequest.getPwmApplication() != null && pwmRequest.getConfig() != null) {
+                final String strValue = pwmRequest.getConfig().readAppProperty(appProperty);
                 return Boolean.parseBoolean(strValue);
             }
             return false;
@@ -165,20 +177,18 @@ public class PwmIfTag extends BodyTagSupport {
         }
 
         public boolean test(
-                PwmApplication pwmApplication,
-                PwmSession pwmSession,
+                PwmRequest pwmRequest,
                 String... args
         )
         {
-            return pwmApplication != null && pwmApplication.getConfig() != null &&
-                    pwmApplication.getConfig().readSettingAsBoolean(pwmSetting);
+            return pwmRequest != null && pwmRequest.getConfig() != null &&
+                    pwmRequest.getConfig().readSettingAsBoolean(pwmSetting);
         }
     }
 
     private static class BooleanPermissionTest implements Test {
         public boolean test(
-                PwmApplication pwmApplication,
-                PwmSession pwmSession,
+                PwmRequest pwmRequest,
                 String... args
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
@@ -195,8 +205,32 @@ public class PwmIfTag extends BodyTagSupport {
                 }
             }
 
-            return permission != null && pwmSession != null &&
-                    pwmSession.getSessionManager().checkPermission(pwmApplication, permission);
+            return permission != null && pwmRequest != null &&
+                    pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(),
+                            permission);
+        }
+    }
+
+    private static class AuthenticatedTest implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmSession() != null && pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated();
+        }
+    }
+
+    private static class ConfigurationOpen implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION;
         }
     }
 }
+

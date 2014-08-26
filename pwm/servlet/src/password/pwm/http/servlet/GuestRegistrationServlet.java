@@ -239,11 +239,11 @@ public class GuestRegistrationServlet extends TopServlet {
         searchConfiguration.setContexts(Collections.singletonList(config.readSettingAsString(PwmSetting.GUEST_CONTEXT)));
         searchConfiguration.setEnableContextValidation(false);
         searchConfiguration.setUsername(usernameParam);
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
 
         try {
-            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
-            final FormMap formProps = pwmSession.getSessionStateBean().getLastParameterValues();
+            final UserIdentity theGuest = userSearchEngine.performSingleUserSearch(searchConfiguration);
+            final FormMap formProps = guBean.getFormValues();
             try {
                 final List<FormConfiguration> guestUpdateForm = config.readSettingAsForm(PwmSetting.GUEST_UPDATE_FORM);
                 final Set<String> involvedAttrs = new HashSet<>();

@@ -21,8 +21,8 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -44,12 +44,12 @@
             for (final Challenge loopChallenge : responseBean.getResponseData().getResponseMap().keySet()) {
                 final String responseText = responseBean.getResponseData().getResponseMap().get(loopChallenge);
         %>
-        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
+        <h2><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %>
         </h2>
 
         <p>
             <span class="fa fa-chevron-circle-right"></span>
-            <%= StringEscapeUtils.escapeHtml(responseText) %>
+            <%= StringUtil.escapeHtml(responseText) %>
         </p>
         <% } %>
         <br/>
@@ -57,12 +57,12 @@
             for (final Challenge loopChallenge : responseBean.getHelpdeskResponseData().getResponseMap().keySet()) {
                 final String responseText = responseBean.getHelpdeskResponseData().getResponseMap().get(loopChallenge);
         %>
-        <h2><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %>
+        <h2><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %>
         </h2>
 
         <p>
             <span class="fa fa-chevron-circle-right"></span>
-            <%= StringEscapeUtils.escapeHtml(responseText) %>
+            <%= StringUtil.escapeHtml(responseText) %>
         </p>
         <% } %>
         <br/>

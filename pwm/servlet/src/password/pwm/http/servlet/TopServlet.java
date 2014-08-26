@@ -29,8 +29,8 @@ import password.pwm.Validator;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.error.*;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.FormMap;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URLEncoder;
-import java.util.Set;
 
 /**
  * An abstract parent of all PWM servlets.  This is the parent class of most, if not all, PWM
@@ -83,14 +82,6 @@ public abstract class TopServlet extends HttpServlet {
             throws ServletException, IOException
     {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            setLastParameters(req,pwmSession.getSessionStateBean());
-        } catch (Exception e2) {
-            //noop
-        }
-
-
-        try {
             // check for duplicate form submit.
             try {
                 Validator.validatePwmRequestCounter(req);
@@ -108,6 +99,20 @@ public abstract class TopServlet extends HttpServlet {
 
             this.processRequest(req, resp);
         } catch (Exception e) {
+            final PwmRequest pwmRequest;
+            try {
+                pwmRequest = PwmRequest.forRequest(req, resp);
+            } catch (Exception e2) {
+                try {
+                    LOGGER.fatal(
+                            "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
+                            e);
+                } catch (Exception e3) {
+                    e3.printStackTrace();
+                }
+                throw new ServletException(e);
+            }
+
             final PwmApplication pwmApplication;
             try {
                 pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
@@ -138,7 +143,7 @@ public abstract class TopServlet extends HttpServlet {
                 return;
             }
 
-            outputUnrecoverableException(req,resp,pwmApplication,pwmSession,pue);
+            outputUnrecoverableException(pwmRequest, pue);
         }
     }
 
@@ -227,37 +232,21 @@ public abstract class TopServlet extends HttpServlet {
     }
 
     private void outputUnrecoverableException(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmUnrecoverableException e
     )
             throws IOException, ServletException
     {
 
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         ssBean.setSessionError(e.getErrorInformation());
-        final String acceptHeader = req.getHeader("Accept");
+        final String acceptHeader = pwmRequest.getHttpServletRequest().getHeader("Accept");
         if (acceptHeader.contains("application/json")) {
-            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation());
-            ServletHelper.outputJsonResult(resp,restResultBean);
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
+            pwmRequest.outputJsonResult(restResultBean);
         } else {
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.respondWithError(e.getErrorInformation());
         }
-    }
-
-
-    private void setLastParameters(final HttpServletRequest req, final SessionStateBean ssBean) throws PwmUnrecoverableException {
-        final Set keyNames = req.getParameterMap().keySet();
-        final FormMap newParamProperty = new FormMap();
-
-        for (final Object name : keyNames) {
-            final String value = Validator.readStringFromRequest(req, (String) name);
-            newParamProperty.put((String) name, value);
-        }
-
-        ssBean.setLastParameterValues(newParamProperty);
     }
 
     protected abstract void processRequest(

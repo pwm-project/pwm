@@ -23,7 +23,6 @@
 package password.pwm.ws.client.rest;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.apache.commons.lang.NullArgumentException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
@@ -35,7 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.ws.server.rest.RestStatusServer;
 
@@ -96,7 +95,7 @@ public class RestTokenDataClient implements RestClient {
             throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
     {
         if (tokenDestinationData == null) {
-            throw new NullArgumentException("tokenDestinationData can not be null");
+            throw new NullPointerException("tokenDestinationData can not be null");
         }
 
         final LinkedHashMap<String,Object> sendData = new LinkedHashMap<>();
@@ -117,9 +116,9 @@ public class RestTokenDataClient implements RestClient {
         }
 
 
-        final String jsonRequestData = Helper.getGson().toJson(sendData);
+        final String jsonRequestData = JsonUtil.getGson().toJson(sendData);
         final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, url, jsonRequestData);
-        return Helper.getGson().fromJson(responseBody,TokenDestinationData.class);
+        return JsonUtil.getGson().fromJson(responseBody,TokenDestinationData.class);
     }
 
     public TokenDestinationData figureDestTokenDisplayString(

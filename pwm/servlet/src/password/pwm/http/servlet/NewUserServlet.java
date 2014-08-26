@@ -48,6 +48,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.NewUserBean;
 import password.pwm.i18n.Message;
@@ -89,8 +90,9 @@ public class NewUserServlet extends TopServlet {
     )
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
@@ -137,7 +139,7 @@ public class NewUserServlet extends TopServlet {
                 handleCreateRequest(req,resp);
                 return;
             } else if ("validate".equalsIgnoreCase(processAction)) {
-                restValidateForm(req, resp);
+                restValidateForm(pwmRequest, req, resp);
                 return;
             } else if ("enterCode".equalsIgnoreCase(processAction)) {
                 handleEnterCodeRequest(req, resp, pwmApplication, pwmSession);
@@ -243,6 +245,7 @@ public class NewUserServlet extends TopServlet {
      * @throws ChaiUnavailableException if the ldap directory becomes unavailable
      */
     protected static void restValidateForm(
+            final PwmRequest pwmRequest,
             final HttpServletRequest req,
             final HttpServletResponse resp
     )
@@ -260,7 +263,7 @@ public class NewUserServlet extends TopServlet {
             restResultBean.setData(jsonData);
             ServletHelper.outputJsonResult(resp,restResultBean);
         } catch (PwmOperationalException e) {
-            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
             ServletHelper.outputJsonResult(resp,restResultBean);
         }
     }
@@ -608,7 +611,7 @@ public class NewUserServlet extends TopServlet {
             LOGGER.debug(pwmSession, "generated entry name for new user is not unique, will try again");
             attemptCount++;
         }
-        LOGGER.error(pwmSession, "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + Helper.getGson().toJson(failedValues));
+        LOGGER.error(pwmSession, "failed to generate new user DN after " + attemptCount + " attempts, failed values: " + JsonUtil.getGson().toJson(failedValues));
         throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
                 "unable to generate a unique DN value"));
     }
@@ -620,11 +623,11 @@ public class NewUserServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setUsername(rdnValue);
         try {
-            Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfiguration, 2, Collections.<String>emptyList());
+            Map<UserIdentity, Map<String, String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, 2, Collections.<String>emptyList());
             return results != null && !results.isEmpty();
         } catch (PwmOperationalException e) {
             final String msg = "ldap error while searching for duplicate entry names: " + e.getMessage();
@@ -663,7 +666,7 @@ public class NewUserServlet extends TopServlet {
 
         final String bodyString = ServletHelper.readRequestBody(req);
 
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 
@@ -823,7 +826,7 @@ public class NewUserServlet extends TopServlet {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(outputMap);
 
-        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + Helper.getGson().toJson(restResultBean));
+        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + JsonUtil.getGson().toJson(restResultBean));
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 

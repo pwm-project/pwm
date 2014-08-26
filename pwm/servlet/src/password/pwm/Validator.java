@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.util.SearchHelper;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
@@ -35,7 +36,7 @@ import password.pwm.error.*;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.cache.CacheService;
 
@@ -409,7 +410,7 @@ public class Validator {
                 if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
                     return;
                 } else {
-                    final ErrorInformation errorInformation = Helper.getGson().fromJson(cacheValue,ErrorInformation.class);
+                    final ErrorInformation errorInformation = JsonUtil.getGson().fromJson(cacheValue,ErrorInformation.class);
                     throw new PwmDataValidationException(errorInformation);
                 }
             }
@@ -425,8 +426,8 @@ public class Validator {
         final CacheService.CachePolicy cachePolicy = CacheService.CachePolicy.makePolicy(30 * 1000);
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(null,searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
+            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
 
             if (excludeDN != null && !excludeDN.isEmpty()) {
                 for (final UserIdentity loopIgnoreIdentity : excludeDN) {
@@ -466,7 +467,7 @@ public class Validator {
             }
         } catch (PwmOperationalException e) {
             if (cacheService != null) {
-                final String jsonPayload = Helper.getGson().toJson(e.getErrorInformation());
+                final String jsonPayload = JsonUtil.getGson().toJson(e.getErrorInformation());
                 cacheService.put(cacheKey, cachePolicy, jsonPayload);
             }
             throw new PwmDataValidationException(e.getErrorInformation());

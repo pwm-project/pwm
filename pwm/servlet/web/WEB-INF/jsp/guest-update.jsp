@@ -21,6 +21,8 @@
   --%>
 
 <!DOCTYPE html>
+<%@ page import="password.pwm.http.PwmRequest" %>
+<%@ page import="password.pwm.http.bean.GuestRegistrationBean" %>
 <%@ page import="java.util.Date" %>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -46,12 +48,14 @@
             <% request.setAttribute("form",PwmSetting.GUEST_UPDATE_FORM); %>
             <jsp:include page="fragment/form.jsp"/>
             <%
-                long maxValidDays = ContextManager.getPwmApplication(session).getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
+                final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+                final long maxValidDays = pwmRequest.getConfig().readSettingAsLong(PwmSetting.GUEST_MAX_VALID_DAYS);
+                final GuestRegistrationBean guestRegistrationBean = pwmRequest.getPwmSession().getGuestRegistrationBean();
                 if (maxValidDays > 0) {
                     long futureMS = maxValidDays * 24 * 60 * 60 * 1000;
                     Date maxValidDate = new Date(new Date().getTime() + (futureMS));
                     String maxValidDateString = new SimpleDateFormat("yyyy-MM-dd").format(maxValidDate);
-                    String selectedDate = PwmSession.getPwmSession(session).getSessionStateBean().getLastParameterValues().get("__expirationDate__");
+                    String selectedDate = guestRegistrationBean.getFormValues().get("__expirationDate__");
                     if (selectedDate == null || selectedDate.length() <= 0) {
                         Date currentDate = PwmSession.getPwmSession(session).getGuestRegistrationBean().getUpdateUserExpirationDate();
                         if (currentDate == null) {

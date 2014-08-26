@@ -77,6 +77,8 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, Category.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, Category.GENERAL),
+    EVENTS_HEALTH_CHECK_MIN_INTERVAL(
+            "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, Category.GENERAL),
 
 
     // user interface
@@ -210,6 +212,8 @@ public enum PwmSetting {
             "ldap.selectableContextMode", PwmSettingSyntax.SELECT, Category.LDAP_GLOBAL),
     LDAP_IGNORE_UNREACHABLE_PROFILES(
             "ldap.ignoreUnreachableProfiles", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
+    LDAP_ENABLE_WIRE_TRACE(
+            "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, Category.LDAP_GLOBAL),
 
 
     // email settings
@@ -520,43 +524,41 @@ public enum PwmSetting {
             "otp.secret.identifier", PwmSettingSyntax.STRING, Category.OTP),
 
     // logger settings
-    EVENTS_HEALTH_CHECK_MIN_INTERVAL(
-            "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     EVENTS_JAVA_STDOUT_LEVEL(
             "events.java.stdoutLevel", PwmSettingSyntax.SELECT, Category.LOGGING),
-    EVENTS_JAVA_LOG4JCONFIG_FILE(
-            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, Category.LOGGING),
-    EVENTS_PWMDB_MAX_EVENTS(
-            "events.pwmDB.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
-    EVENTS_PWMDB_MAX_AGE(
-            "events.pwmDB.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     EVENTS_LOCALDB_LOG_LEVEL(
             "events.pwmDB.logLevel", PwmSettingSyntax.SELECT, Category.LOGGING),
     EVENTS_FILE_LEVEL(
             "events.fileAppender.level", PwmSettingSyntax.SELECT, Category.LOGGING),
-    EVENTS_USER_STORAGE_METHOD(
-            "events.user.storageMethod", PwmSettingSyntax.SELECT, Category.LOGGING),
-    EVENTS_LDAP_ATTRIBUTE(
-            "events.ldap.attribute", PwmSettingSyntax.STRING, Category.LOGGING),
-    EVENTS_LDAP_MAX_EVENTS(
-            "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
-    LDAP_ENABLE_WIRE_TRACE(
-            "ldap.wireTrace.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
+    EVENTS_PWMDB_MAX_EVENTS(
+            "events.pwmDB.maxEvents", PwmSettingSyntax.NUMERIC, Category.LOGGING),
+    EVENTS_PWMDB_MAX_AGE(
+            "events.pwmDB.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, Category.LOGGING),
-    EVENTS_AUDIT_MAX_AGE(
-            "events.audit.maxAge", PwmSettingSyntax.NUMERIC, Category.LOGGING),
-    AUDIT_EMAIL_SYSTEM_TO(
-            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
-    AUDIT_SYSTEM_EVENTS(
-            "audit.system.eventList", PwmSettingSyntax.OPTIONLIST, Category.LOGGING),
-    AUDIT_EMAIL_USER_TO(
-            "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.LOGGING),
-    AUDIT_USER_EVENTS(
-            "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, Category.LOGGING),
-    AUDIT_SYSLOG_SERVERS(
-            "audit.syslog.servers", PwmSettingSyntax.STRING, Category.LOGGING),
+    EVENTS_JAVA_LOG4JCONFIG_FILE(
+            "events.java.log4jconfigFile", PwmSettingSyntax.STRING, Category.LOGGING),
 
+
+    // auditingsettings
+    EVENTS_AUDIT_MAX_AGE(
+            "events.audit.maxAge", PwmSettingSyntax.NUMERIC, Category.AUDITING),
+    AUDIT_EMAIL_SYSTEM_TO(
+            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.AUDITING),
+    AUDIT_SYSTEM_EVENTS(
+            "audit.system.eventList", PwmSettingSyntax.OPTIONLIST, Category.AUDITING),
+    AUDIT_EMAIL_USER_TO(
+            "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, Category.AUDITING),
+    AUDIT_USER_EVENTS(
+            "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, Category.AUDITING),
+    AUDIT_SYSLOG_SERVERS(
+            "audit.syslog.servers", PwmSettingSyntax.STRING, Category.AUDITING),
+    EVENTS_USER_STORAGE_METHOD(
+            "events.user.storageMethod", PwmSettingSyntax.SELECT, Category.AUDITING),
+    EVENTS_LDAP_ATTRIBUTE(
+            "events.ldap.attribute", PwmSettingSyntax.STRING, Category.AUDITING),
+    EVENTS_LDAP_MAX_EVENTS(
+            "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, Category.AUDITING),
 
     // challenge settings
     CHALLENGE_ENABLE(
@@ -863,6 +865,8 @@ public enum PwmSetting {
             "db.username", PwmSettingSyntax.STRING, Category.DATABASE),
     DATABASE_PASSWORD(
             "db.password", PwmSettingSyntax.PASSWORD, Category.DATABASE),
+    DATABASE_JDBC_DRIVER(
+            "db.jdbc.driver", PwmSettingSyntax.FILE, Category.DATABASE),
     DATABASE_COLUMN_TYPE_KEY(
             "db.columnType.key", PwmSettingSyntax.STRING, Category.DATABASE),
     DATABASE_COLUMN_TYPE_VALUE(
@@ -883,7 +887,7 @@ public enum PwmSetting {
             "reporting.reportRestTimeMS", PwmSettingSyntax.NUMERIC, Category.REPORTING),
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, Category.REPORTING),
-    REPORTONG_JOB_TIME_OFFSET(
+    REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.NUMERIC, Category.REPORTING),
 
     // developer
@@ -1136,6 +1140,7 @@ public enum PwmSetting {
         TOKEN               (Type.SETTING),
         OTP                 (Type.SETTING),
         LOGGING             (Type.SETTING),
+        AUDITING            (Type.SETTING),
         EDIRECTORY          (Type.SETTING),
         ACTIVE_DIRECTORY    (Type.SETTING),
         ORACLE_DS           (Type.SETTING),

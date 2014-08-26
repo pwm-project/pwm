@@ -23,10 +23,13 @@
 package password.pwm.ws.server;
 
 import com.google.gson.GsonBuilder;
+import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
-import password.pwm.util.Helper;
+import password.pwm.http.PwmRequest;
+import password.pwm.i18n.Message;
+import password.pwm.util.JsonUtil;
 
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -97,13 +100,17 @@ public class RestResultBean implements Serializable {
 
     public static RestResultBean fromError(
             final ErrorInformation errorInformation,
+            final PwmApplication pwmApplication,
             final Locale locale,
             final Configuration config
     ) {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        if (config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+        if (
+                config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)
+                || (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION)
+                ) {
             restResultBean.setErrorDetail(errorInformation.toDebugStr());
         }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());
@@ -114,20 +121,47 @@ public class RestResultBean implements Serializable {
             final ErrorInformation errorInformation,
             final RestRequestBean restRequestBean
     ) {
+        final PwmApplication pwmApplication = restRequestBean.getPwmApplication();
         final Configuration config = restRequestBean.getPwmApplication().getConfig();
         final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
-        return fromError(errorInformation, locale, config);
+        return fromError(errorInformation, pwmApplication, locale, config);
     }
 
+    @Deprecated
     public static RestResultBean fromError(
             final ErrorInformation errorInformation
     ) {
-        return fromError(errorInformation, null, null);
+        return fromError(errorInformation, null,null,null);
+    }
+
+    public static RestResultBean fromError(
+            final ErrorInformation errorInformation,
+            final PwmRequest pwmRequest
+    ) {
+        return fromError(errorInformation, pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getConfig());
+    }
+
+    public static RestResultBean forSuccessMessage(
+            final Locale locale,
+            final Configuration config,
+            final Message message
+    ) {
+        final RestResultBean restResultBean = new RestResultBean();
+        final String msgText = Message.getLocalizedMessage(locale, message, config);
+        restResultBean.setSuccessMessage(msgText);
+        return restResultBean;
+    }
+
+    public static RestResultBean forSuccessMessage(
+            final PwmRequest pwmRequest,
+            final Message message
+    ) {
+        return forSuccessMessage(pwmRequest.getLocale(), pwmRequest.getConfig(), message);
     }
 
     public String toJson() {
         final GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping();
-        return Helper.getGson(gsonBuilder).toJson(this);
+        return JsonUtil.getGson(gsonBuilder).toJson(this);
     }
 
     public Response asJsonResponse() {

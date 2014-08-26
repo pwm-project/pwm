@@ -27,7 +27,6 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.Message;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.FormMap;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 
@@ -67,7 +66,6 @@ public class SessionStateBean implements PwmSessionBean {
     private String theme;
     private String lastRequestURL;
 
-    private FormMap lastParameterValues = new FormMap();
     private Map<String, ShortcutItem> visibleShortcutItems;
     private BasicAuthInfo originalBasicAuthInfo;
 
@@ -124,10 +122,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setForwardURL(final String forwardURL) {
         this.forwardURL = forwardURL;
-    }
-
-    public FormMap getLastParameterValues() {
-        return lastParameterValues;
     }
 
     public Locale getLocale() {
@@ -232,12 +226,6 @@ public class SessionStateBean implements PwmSessionBean {
     }
 
     // -------------------------- OTHER METHODS --------------------------
-
-    public void setLastParameterValues(final Map<String,String> props) {
-        final FormMap newProps = new FormMap();
-        newProps.putAll(props);
-        this.lastParameterValues = newProps;
-    }
 
     public String getSessionVerificationKey() {
         return sessionVerificationKey;

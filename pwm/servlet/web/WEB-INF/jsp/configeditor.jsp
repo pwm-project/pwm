@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Collection" %>
 <%@ page import="java.util.List" %>
@@ -47,11 +47,11 @@
 <pwm:script>
 <script type="text/javascript">
     var PWM_VAR = PWM_VAR || {};
-    PWM_VAR['configurationNotes'] = '<%=StringEscapeUtils.escapeJavaScript(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
+    PWM_VAR['configurationNotes'] = '<%=StringUtil.escapeJS(configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES))%>';
     PWM_VAR['selectedTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate().toString()%>';
     PWM_VAR['ldapProfileIds'] = [];
     <% for (final String id : (List<String>)configManagerBean.getConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject()) { %>
-    PWM_VAR['ldapProfileIds'].push('<%=StringEscapeUtils.escapeJavaScript(id)%>');
+    PWM_VAR['ldapProfileIds'].push('<%=StringUtil.escapeJS(id)%>');
     <% } %>
 </script>
 </pwm:script>

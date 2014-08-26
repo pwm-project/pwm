@@ -638,6 +638,7 @@ PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
 };
 
 PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
+
     var inputOpts = options || PWM_GLOBAL['showPwmHealthOptions'] || {};
     PWM_GLOBAL['showPwmHealthOptions'] = options;
     var refreshUrl = inputOpts['sourceUrl'] || PWM_GLOBAL['url-restservice'] + "/health";
@@ -652,8 +653,12 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
     }
 
     console.log('starting showPwmHealth: refreshTime=' + refreshTime);
-    require(["dojo","dojo/date/stamp"],function(dojo,stamp){
+    require(["dojo"],function(dojo){
         var parentDiv = dojo.byId(parentDivID);
+        if (PWM_GLOBAL['inhibitHealthUpdate'] == true) {
+            parentDiv.innerHTML = '';
+            return;
+        }
 
         if (PWM_GLOBAL['healthCheckInProgress']) {
             return;

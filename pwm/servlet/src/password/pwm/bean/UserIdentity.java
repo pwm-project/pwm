@@ -29,6 +29,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
@@ -69,14 +70,14 @@ public class UserIdentity implements Serializable {
     }
 
     public String toString() {
-        return "UserIdentity: " + Helper.getGson().toJson(this);
+        return "UserIdentity: " + JsonUtil.getGson().toJson(this);
     }
 
     public String toObfuscatedKey(final Configuration configuration)
             throws PwmUnrecoverableException {
         try {
             final SecretKey secretKey = configuration.getSecurityKey();
-            final String jsonValue = Helper.getGson().toJson(this);
+            final String jsonValue = JsonUtil.getGson().toJson(this);
             return CRYPO_HEADER + Helper.SimpleTextCrypto.encryptValue(jsonValue, secretKey, true);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error making obfuscated user key: " + e.getMessage()));
@@ -103,7 +104,7 @@ public class UserIdentity implements Serializable {
             final String input = key.substring(CRYPO_HEADER.length(),key.length());
             final SecretKey secretKey = configuration.getSecurityKey();
             final String jsonValue = Helper.SimpleTextCrypto.decryptValue(input, secretKey, true);
-            return Helper.getGson().fromJson(jsonValue,UserIdentity.class);
+            return JsonUtil.getGson().fromJson(jsonValue,UserIdentity.class);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error reversing obfuscated user key: " + e.getMessage()));
         }

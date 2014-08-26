@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
@@ -29,6 +28,7 @@
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.Collections" %>
@@ -64,7 +64,7 @@
                 <pwm:display key="Field_Username"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUsername()) %>
+                <%= StringUtil.escapeHtml(uiBean.getUsername()) %>
             </td>
         </tr>
         <% } %>
@@ -74,7 +74,7 @@
                 <pwm:display key="Field_UserDN"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
+                <%= StringUtil.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
             </td>
         </tr>
         <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
@@ -83,7 +83,9 @@
                 <pwm:display key="Field_LdapProfile"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
+                <%= StringUtil.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(
+                        uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(
+                        pwmSession.getSessionStateBean().getLocale())) %>
             </td>
         </tr>
         <% } %>
@@ -94,7 +96,7 @@
                 <pwm:display key="Field_UserEmail"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUserEmailAddress()) %>
+                <%= StringUtil.escapeHtml(uiBean.getUserEmailAddress()) %>
             </td>
         </tr>
         <% } %>
@@ -104,7 +106,7 @@
                 <pwm:display key="Field_UserGUID"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(uiBean.getUserGuid()) %>
+                <%= StringUtil.escapeHtml(uiBean.getUserGuid()) %>
             </td>
         </tr>
         <% } %>
@@ -269,7 +271,7 @@
                 <pwm:display key="Field_LogoutURL"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
+                <%= StringUtil.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
             </td>
         </tr>
         <% } %>
@@ -279,7 +281,7 @@
                 <pwm:display key="Field_ForwardURL"/>
             </td>
             <td>
-                <%= StringEscapeUtils.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
+                <%= StringUtil.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
             </td>
         </tr>
         <% } %>

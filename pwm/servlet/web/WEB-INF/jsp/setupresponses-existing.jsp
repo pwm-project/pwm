@@ -21,8 +21,8 @@
   --%>
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
@@ -48,7 +48,7 @@
         <br/>
         <h2><pwm:display key="Title_AnsweredQuestions"/></h2>
         <% for (final Challenge loopChallenge : responseInfoBean.getCrMap().keySet()) { %>
-                <p><%= StringEscapeUtils.escapeHtml(loopChallenge.getChallengeText()) %></p>
+                <p><%= StringUtil.escapeHtml(loopChallenge.getChallengeText()) %></p>
         <% } %>
         <br/>
         <div id="buttonbar">

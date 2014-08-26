@@ -1,4 +1,4 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,7 +28,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<meta id="meta-redirect" http-equiv="refresh" content="30;url='<%=StringEscapeUtils.escapeHtml(nextURL)%>'"><%-- failsafe... --%>
+<meta id="meta-redirect" http-equiv="refresh" content="30;url='<%=StringUtil.escapeHtml(nextURL)%>'"><%-- failsafe... --%>
 <div id="wrapper">
     <div style="height:100px">&nbsp;</div>
     <div id="centerbody">
@@ -43,7 +43,7 @@
 
         <div id="buttonbar"></div>
         <p id="failsafeAnchor">
-            <a href="<%=StringEscapeUtils.escapeHtml(nextURL)%>">Click here to continue...</a>
+            <a href="<%=StringUtil.escapeHtml(nextURL)%>">Click here to continue...</a>
         </p>
         <pwm:script>
             <script type="text/javascript">
@@ -60,7 +60,7 @@
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.preloadAll(function(){
-                PWM_MAIN.goto('<%=StringEscapeUtils.escapeJavaScript(nextURL)%>');
+                PWM_MAIN.goto('<%=StringUtil.escapeJS(nextURL)%>');
             });
         });
     </script>

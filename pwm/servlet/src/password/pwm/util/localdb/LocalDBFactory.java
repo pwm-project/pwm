@@ -72,29 +72,36 @@ public class LocalDBFactory {
         final LocalDBProvider dbProvider = createInstance(className);
         LOGGER.debug("initializing " + className + " localDBProvider instance");
 
-        LocalDB db = new LocalDBAdaptor(dbProvider, pwmApplication);
+        LocalDB localDB = new LocalDBAdaptor(dbProvider, pwmApplication);
 
         initInstance(dbProvider, dbDirectory, initParameters, className, readonly);
         final TimeDuration openTime = new TimeDuration(System.currentTimeMillis() - startTime);
 
-        db = wrapWithCompressor(db,config);
+        localDB = wrapWithCompressor(localDB,config);
 
-        LOGGER.trace("clearing TEMP db");
         if (!readonly) {
-            db.truncate(LocalDB.DB.TEMP);
+            LOGGER.trace("clearing TEMP db");
+            localDB.truncate(LocalDB.DB.TEMP);
+
+            final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
+            if (localDBUtility.readImportInprogressFlag()) {
+                LOGGER.error("previous database import process did not complete successfully, clearing all data");
+                localDBUtility.prepareForImport();
+                localDBUtility.markImportComplete();
+            }
         }
 
         final StringBuilder debugText = new StringBuilder();
         debugText.append("LocalDB open in ").append(openTime.asCompactString());
-        debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(db.getFileLocation())));
+        debugText.append(", db size: ").append(Helper.formatDiskSize(Helper.getFileDirectorySize(localDB.getFileLocation())));
         debugText.append(" at ").append(dbDirectory.toString());
-        final long freeSpace = Helper.diskSpaceRemaining(db.getFileLocation());
+        final long freeSpace = Helper.diskSpaceRemaining(localDB.getFileLocation());
         if (freeSpace >= 0) {
             debugText.append(", ").append(Helper.formatDiskSize(freeSpace)).append(" free");
         }
         LOGGER.info(debugText);
 
-        return db;
+        return localDB;
     }
 
     private static LocalDBProvider createInstance(final String className)

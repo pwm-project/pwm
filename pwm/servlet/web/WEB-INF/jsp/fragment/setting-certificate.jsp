@@ -1,7 +1,7 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.X509Utils" %>
 <%@ page import="java.io.ByteArrayInputStream" %>
 <%@ page import="java.security.cert.X509Certificate" %>
@@ -53,7 +53,7 @@
         var body = '<pre style="white-space: pre-wrap; word-wrap: break-word; max-width: 640px">';
         body += 'md5sum: <%=md5sum%>\n';
         body += 'sha1sum: <%=sha1sum%>\n';
-        body += '<%=StringEscapeUtils.escapeJavaScript(certificate.toString())%>';
+        body += '<%=StringUtil.escapeJS(certificate.toString())%>';
         body += '</pre>'
         PWM_MAIN.showDialog({
             title: "Certificate Detail",

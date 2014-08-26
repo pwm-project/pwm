@@ -25,7 +25,9 @@ package password.pwm.config;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.error.*;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -150,15 +152,15 @@ public class FormConfiguration implements Serializable {
     }
 
     public String getLabel(final Locale locale) {
-        return Helper.resolveStringKeyLocaleMap(locale, labels);
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
     }
 
     public String getRegexError(final Locale locale) {
-        return Helper.resolveStringKeyLocaleMap(locale, regexErrors);
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
     }
 
     public String getDescription(final Locale locale) {
-        return Helper.resolveStringKeyLocaleMap(locale, description);
+        return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
     }
 
     public int getMaximumLength() {
@@ -228,7 +230,7 @@ public class FormConfiguration implements Serializable {
         final StringBuilder sb = new StringBuilder();
 
         sb.append("FormItem: ");
-        sb.append(Helper.getGson().toJson(this));
+        sb.append(JsonUtil.getGson().toJson(this));
 
         return sb.toString();
     }

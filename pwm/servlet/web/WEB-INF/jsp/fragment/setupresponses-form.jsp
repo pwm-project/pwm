@@ -1,8 +1,8 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -41,12 +41,12 @@
 %>
 <% if (challenge.isAdminDefined()) { %>
 <h2>
-    <label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
+    <label for="PwmResponse_R_<%=indexKey%>"><%= StringUtil.escapeHtml(challenge.getChallengeText()) %></label>
 </h2>
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
-          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"></textarea>
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -77,10 +77,9 @@
             for (final String indexKey : setupData.getIndexedChallenges().keySet()) {
                 final Challenge challenge = setupData.getIndexedChallenges().get(indexKey);
                 if (!challenge.isRequired()) {
-                    final boolean selected = challenge.getChallengeText().equals(ssBean.getLastParameterValues().get("PwmResponse_Q_Random_" + index, ""));
+
         %>
-        <option <%=selected ? "selected=\"selected\"" : ""%>
-                value="<%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>"><%=StringEscapeUtils.escapeHtml(challenge.getChallengeText())%>
+        <option value="<%=StringUtil.escapeHtml(challenge.getChallengeText())%>"><%=StringUtil.escapeHtml(challenge.getChallengeText())%>
         </option>
         <% } %>
         <% } %>
@@ -111,7 +110,7 @@
         if (!challenge.isRequired()) {
     %>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['simpleRandomOptions'].push('<%=StringEscapeUtils.escapeJavaScript(challenge.getChallengeText())%>')
+        PWM_VAR['simpleRandomOptions'].push('<%=StringUtil.escapeJS(challenge.getChallengeText())%>')
     });
     <% } %>
     <% } %>
@@ -136,12 +135,12 @@
 %>
 <% if (challenge.isAdminDefined()) { %>
 <h2>
-    <label for="PwmResponse_R_<%=indexKey%>"><%= StringEscapeUtils.escapeHtml(challenge.getChallengeText()) %></label>
+    <label for="PwmResponse_R_<%=indexKey%>"><%= StringUtil.escapeHtml(challenge.getChallengeText()) %></label>
 </h2>
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 70%"
-          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"><%= StringEscapeUtils.escapeHtml(ssBean.getLastParameterValues().get("PwmResponse_Q_" + indexKey, ""))%></textarea>
+          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"></textarea>
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>

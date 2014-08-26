@@ -33,6 +33,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -225,7 +226,7 @@ public class PwmLogger {
                     messageInfo.put("topic",logEvent.getTopic());
                     messageInfo.put("errorMessage",logEvent.getMessage());
 
-                    final String messageInfoStr = Helper.getGson().toJson(messageInfo);
+                    final String messageInfoStr = JsonUtil.getGson().toJson(messageInfo);
                     pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
                             AuditEvent.FATAL_EVENT,
                             messageInfoStr,
@@ -394,7 +395,65 @@ public class PwmLogger {
         doLogEvent(PwmLogLevel.FATAL, null, message, exception);
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    public Appendable asAppendable(final PwmLogLevel pwmLogLevel, final SessionLabel sessionLabel) {
+        return new PwmLoggerAppendable(pwmLogLevel, sessionLabel);
+    }
 
+    private class PwmLoggerAppendable implements Appendable {
+        private final PwmLogLevel logLevel;
+        private final SessionLabel sessionLabel;
+
+        private StringBuilder buffer = new StringBuilder();
+
+        private PwmLoggerAppendable(
+                PwmLogLevel logLevel,
+                SessionLabel sessionLabel
+        )
+        {
+            this.logLevel = logLevel;
+            this.sessionLabel = sessionLabel;
+        }
+
+        @Override
+        public Appendable append(CharSequence csq)
+                throws IOException
+        {
+
+            doAppend(csq);
+            return this;
+        }
+
+        @Override
+        public Appendable append(
+                CharSequence csq,
+                int start,
+                int end
+        )
+                throws IOException
+        {
+            doAppend(csq.subSequence(start,end));
+            return this;
+        }
+
+        @Override
+        public Appendable append(char c)
+                throws IOException
+        {
+            doAppend(String.valueOf(c));
+            return this;
+        }
+
+        private synchronized void doAppend(CharSequence charSequence) {
+            buffer.append(charSequence);
+
+            int length = buffer.indexOf("\n");
+            while (length > 0) {
+                final String line = buffer.substring(0,length);
+                buffer.delete(0, + length + 1);
+                doLogEvent(logLevel, sessionLabel, line, null);
+                length = buffer.indexOf("\n");
+            }
+        }
+    }
 }
 

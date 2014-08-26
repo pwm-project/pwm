@@ -1,4 +1,3 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
@@ -10,7 +9,8 @@
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.JsonUtil" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Locale" %>
 
 <%--
@@ -163,7 +163,7 @@
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
+            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
     </pwm:script>
@@ -173,7 +173,7 @@
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            OptionListHandler.init('<%=loopSetting.getKey()%>',<%=Helper.getGson().toJson(loopSetting.getOptions())%>);
+            OptionListHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.getGson().toJson(loopSetting.getOptions())%>);
         });
     </script>
     </pwm:script>
@@ -221,14 +221,14 @@
                     id: 'setting_<%=loopSetting.getKey()%>',
                     style: 'width: 350px'
                 }, 'setting_<%=loopSetting.getKey()%>');
-                readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
+                PWM_CFGEDIT.readSetting('<%=loopSetting.getKey()%>', function(dataValue) {
                     require(["dijit/registry","dojo/on"],function(registry,on){
                         var dijitElement = registry.byId('setting_<%=loopSetting.getKey()%>');
                         dijitElement.set('value',dataValue);
                         dijitElement.setDisabled(false);
                         setTimeout(function(){
                             on(selectWidget,"change",function(){
-                                writeSetting('<%=loopSetting.getKey()%>',selectWidget.value)
+                                PWM_CFGEDIT.writeSetting('<%=loopSetting.getKey()%>',selectWidget.value)
                             });
                         },100);
                     });
@@ -241,6 +241,12 @@
     <div style="padding-right:15px">
         <% request.setAttribute("certificate",configManagerBean.getConfiguration().readSetting(loopSetting,cookie.getProfile()).toNativeObject()); %>
         <jsp:include page="setting-certificate.jsp"/>
+        <br/>
+    </div>
+    <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FILE) { %>
+    <div style="padding-right:15px">
+        <% request.setAttribute("file",configManagerBean.getConfiguration().readSetting(loopSetting,cookie.getProfile()).toNativeObject()); %>
+        <jsp:include page="setting-file.jsp"/>
         <br/>
     </div>
     <% } else { %>
@@ -256,10 +262,10 @@
                     invalidMessage: "The value does not have the correct format.",
                     style: "width: 500px",
                     onChange: function() {
-                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        PWM_CFGEDIT.writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
                     onKeyPress: function() {
-                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        PWM_CFGEDIT.writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
                     value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true
@@ -281,9 +287,9 @@
                     invalidMessage: PWM_CONFIG.showString('Warning_InvalidFormat'),
                     style: "width: 550px",
                     onChange: function() {
-                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        PWM_CFGEDIT.writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
-                    placeholder: '<%=StringEscapeUtils.escapeJavaScript(loopSetting.getPlaceholder(locale))%>',
+                    placeholder: '<%=StringUtil.escapeJS(loopSetting.getPlaceholder(locale))%>',
                     value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true
                 }, "value_<%=loopSetting.getKey()%>");
@@ -304,7 +310,7 @@
                     invalidMessage: "The value does not have the correct format.",
                     style: "width: 100px",
                     onChange: function() {
-                        writeSetting('<%=loopSetting.getKey()%>', this.value);
+                        PWM_CFGEDIT.writeSetting('<%=loopSetting.getKey()%>', this.value);
                     },
                     value: "[<pwm:display key="Display_PleaseWait"/>]",
                     disabled: true

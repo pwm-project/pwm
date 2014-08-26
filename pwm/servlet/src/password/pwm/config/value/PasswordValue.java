@@ -29,6 +29,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import javax.crypto.SecretKey;
 import java.io.UnsupportedEncodingException;
@@ -48,7 +49,7 @@ public class PasswordValue extends StringValue {
     }
 
     static PasswordValue fromJson(final String value) {
-        return new PasswordValue(Helper.getGson().fromJson(value, String.class));
+        return new PasswordValue(JsonUtil.getGson().fromJson(value, String.class));
     }
 
     static PasswordValue fromXmlValue(final Element settingElement, final String key) throws PwmOperationalException {

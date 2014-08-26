@@ -29,43 +29,27 @@ var PWM_GLOBAL = PWM_GLOBAL || {};
 PWM_CONFIG.lockConfiguration=function() {
     PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_LockConfig'),okAction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function() {
-            require(["dojo"], function (dojo) {
-                dojo.xhrGet({
-                    url: "ConfigManager?processAction=lockConfiguration&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    sync: true,
-                    dataType: "json",
-                    handleAs: "json",
-                    preventCache: true,
-                    load: function (data) {
-                        if (data['error'] == true) {
-                            PWM_MAIN.closeWaitDialog();
-                            PWM_MAIN.showDialog({
-                                title: PWM_MAIN.showString('Title_Error'),
-                                text: data['errorDetail']
-                            });
-                        } else {
-                            PWM_CONFIG.waitForRestart();
-                        }
-                    },
-                    error: function(error) {
-                        alert('error:' + error);
-                    }
-                });
-            });
+            var url = 'ConfigManager?processAction=lockConfiguration';
+            var loadFunction = function(data) {
+                if (data['error'] == true) {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showDialog({
+                        title: PWM_MAIN.showString('Title_Error'),
+                        text: data['errorDetail']
+                    });
+                } else {
+                    PWM_CONFIG.waitForRestart();
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
         }});
     }});
 };
 
 PWM_CONFIG.waitForRestart=function(startTime) {
     if (!startTime) {
-        var oldMessage = PWM_MAIN.getObject('message');
-        if (oldMessage) {
-            oldMessage.setAttribute('id','message_original');
-        }
-        var bodyText = '<span id="message" class="message message-success">&nbsp;</span>';
-        bodyText += '<br/><div id="progressBar" style="margin: 8px; width: 100%"/>';
         PWM_MAIN.showWaitDialog({
-            text: bodyText
+            title: 'Waiting for application restart...'
         });
         PWM_CONFIG.waitForRestart(new Date().getTime());
         return;
@@ -92,12 +76,11 @@ PWM_CONFIG.waitForRestart=function(startTime) {
                     return;
                 }
                 var diff = currentTime - startTime;
-                //console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
+                console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
                 if (diff > 4 * 60 * 1000) { // timeout
-                    alert('Unable to restart, please restart the java application server.');
-                    PWM_MAIN.showError('Server has not restarted (timeout)');
+                    alert('Unable to restart, please restart application server manually.');
                 } else {
-                    PWM_MAIN.showError('Waiting for server restart, server has not yet restarted (' + (diff) + ' ms)');
+                    //PWM_MAIN.getObject('restartMessage').innerHTML = 'Waiting for server restart - ' + (diff) + ' ms';
                     setTimeout(function() {
                         PWM_CONFIG.waitForRestart(startTime)
                     }, Math.random() * 1000);
@@ -181,6 +164,7 @@ PWM_CONFIG.uploadConfigDialog=function() {
                 label: 'Select File',
                 required: true,
                 fileMask: fileMask,
+                preventCache: true,
                 url: uploadUrl,
                 isDebug: true,
                 devMode: true
@@ -205,6 +189,91 @@ PWM_CONFIG.uploadConfigDialog=function() {
             });
         }});
     });
+};
+
+PWM_CONFIG.uploadLocalDB=function() {
+    var body = '<div id="uploadFormWrapper"><form action="ConfigGuide" enctype="multipart/form-data">';
+    body += '<div id="fileList"></div>';
+    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
+    body += '<input type="submit" id="uploadButton" name="Upload"/>';
+    body += '</form></div><br/>';
+
+    var uploadUrl = window.location.pathname + '?processAction=importLocalDB&pwmFormID=' + PWM_GLOBAL['pwmFormID'];
+
+    PWM_MAIN.showConfirmDialog({text:PWM_CONFIG.showString('Confirm_UploadLocalDB'),okAction:function(){
+        PWM_MAIN.preloadAll(function(){
+            require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button","dojox/form/uploader/plugins/HTML5"],function(
+                dojo,Dialog,Uploader,FileList,Button){
+
+                if(dojo.isIE <= 9){ // IE9 and below no workie
+                    PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
+                    return;
+                }
+
+                PWM_MAIN.showWaitDialog({loadFunction:function() {
+                    console.log('uploading localdb file to url ' + uploadUrl);
+
+                    PWM_MAIN.closeWaitDialog();
+                    var idName = 'dialogPopup';
+                    PWM_MAIN.clearDijitWidget(idName);
+                    var theDialog = new Dialog({
+                        id: idName,
+                        title: 'Upload LocalDB Archive',
+                        style: "width: 300px",
+                        content: body
+                    });
+                    theDialog.show();
+                    var uploader = new dojox.form.Uploader({
+                        multiple: false,
+                        name: "uploadFile",
+                        label: 'Select File',
+                        required: true,
+                        url: uploadUrl,
+                        isDebug: true,
+                        devMode: true,
+                        preventCache: true
+                    }, 'uploadFile');
+                    uploader.startup();
+                    var uploadButton = new Button({
+                        label: 'Upload',
+                        type: 'submit'
+                    }, "uploadButton");
+                    uploadButton.startup();
+                    new FileList({
+                        uploaderId: 'uploadFile'
+                    }, "fileList");
+                    dojo.connect(uploader, "onComplete", function (data) {
+                        if (data['error'] == true) {
+                            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage'] + '  '  + data['errorDetail'],okAction:function(){
+                                PWM_MAIN.goto('/private/config/ConfigManager');
+                            }});
+                        } else {
+                            PWM_MAIN.closeWaitDialog();
+                            PWM_MAIN.clearDijitWidget(idName);
+                            PWM_CONFIG.waitForRestart();
+                        }
+                    });
+                    dojo.connect(uploader, "onBegin", function () {
+                        PWM_GLOBAL['inhibitHealthUpdate'] = true;
+                        PWM_GLOBAL['idle_suspendTimeout'] = true;
+                        PWM_MAIN.getObject('centerbody').style.display = 'none';
+
+                        PWM_MAIN.showWaitDialog({title:"Importing LocalDB Archive File..."});
+                    });
+                    dojo.connect(uploader, "onProgress", function (data) {
+                        var decimal = data['decimal'];
+                        require(["dijit/registry"],function(registry){
+                            var progressBar = registry.byId('progressBar');
+                            progressBar.set("maximum",100);
+                            progressBar.set("indeterminate",false);
+                            progressBar.set("value", decimal * 100);
+                        });
+                    });
+                }});
+            });
+        });
+    }});
+
 };
 
 PWM_CONFIG.initConfigPage=function(nextFunction) {
@@ -237,7 +306,7 @@ PWM_CONFIG.initConfigPage=function(nextFunction) {
 };
 
 PWM_CONFIG.showString=function (key, options) {
-    options = options || {};
+    options = options === undefined ? {} : options;
     options['bundle'] = 'Config';
     return PWM_MAIN.showString(key,options);
 };
@@ -286,5 +355,108 @@ PWM_CONFIG.showHeaderHealth = function() {
                 }
             });
         }
+    });
+};
+
+PWM_CONFIG.downloadLocalDB = function () {
+    PWM_MAIN.showDialog({title:PWM_MAIN.showString("Display_PleaseWait"),text:PWM_CONFIG.showString("Warning_DownloadLocalDBInProgress"),
+        loadFunction:function(){
+            PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+        }
+    });
+};
+
+PWM_CONFIG.uploadFile = function(options) {
+    options = options === undefined ? {} : options;
+
+    var body = '<div id="uploadFormWrapper"><form action="UploadForm" enctype="multipart/form-data">';
+    body += '<div id="fileList"></div>';
+    body += '<input name="uploadFile" type="file" label="Select File" id="uploadFile"/>';
+    body += '<input type="submit" id="uploadButton" name="Upload"/>';
+    body += '<br/></form></div><br/>';
+
+    var currentUrl = window.location.pathname;
+    var uploadUrl = 'url' in options ? options['url'] : currentUrl;
+    uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
+
+    var title = 'title' in options ? options['title'] : 'Upload File';
+
+    var completeFunction = function(data){
+        if (data['error'] == true) {
+            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage'],okAction:function(){
+                PWM_MAIN.goto(currentUrl);
+            }});
+        } else {
+            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
+                PWM_MAIN.goto(currentUrl);
+            }});
+        }
+    };
+
+    var errorFunction = function(data) {
+        var errorMsg = 'The file upload has failed.  Please try again or check the server logs for error information.'
+        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: errorMsg,okAction:function(){
+            PWM_MAIN.goto(currentUrl);
+        }});
+    };
+
+    completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;
+
+
+    require(["dojo","dijit/Dialog","dojox/form/Uploader","dojox/form/uploader/FileList","dijit/form/Button"],function(
+        dojo,Dialog,Uploader,FileList,Button){
+
+        if(dojo.isIE <= 9){ // IE9 and below no workie
+            PWM_MAIN.showDialog({title:PWM_MAIN.showString("Title_Error"),text:PWM_CONFIG.showString("Warning_UploadIE9")});
+            return;
+        }
+
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+            console.log('uploading file to url ' + uploadUrl);
+
+            PWM_MAIN.closeWaitDialog();
+            var idName = 'dialogPopup';
+            PWM_MAIN.clearDijitWidget(idName);
+            var theDialog = new Dialog({
+                id: idName,
+                title: title,
+                style: "width: 500px",
+                content: body
+            });
+            theDialog.show();
+            var uploader = new dojox.form.Uploader({
+                multiple: false,
+                name: "uploadFile",
+                label: 'Select File',
+                required: true,
+                url: uploadUrl,
+                isDebug: true,
+                devMode: true,
+                preventCache: true
+            }, 'uploadFile');
+            uploader.startup();
+            var uploadButton = new Button({
+                label: 'Upload',
+                type: 'submit'
+            }, "uploadButton");
+            uploadButton.startup();
+            new FileList({
+                uploaderId: 'uploadFile'
+            }, "fileList");
+            dojo.connect(uploader, "onComplete", completeFunction);
+            dojo.connect(uploader, "onError", errorFunction);
+            dojo.connect(uploader, "onBegin", function () {
+                PWM_MAIN.showWaitDialog({title:"Uploading..."});
+            });
+            dojo.connect(uploader, "onProgress", function (data) {
+                var decimal = data['decimal'];
+                require(["dijit/registry"],function(registry){
+                    var progressBar = registry.byId('progressBar');
+                    progressBar.set("maximum",100);
+                    progressBar.set("indeterminate",false);
+                    progressBar.set("value", decimal * 100);
+                });
+            });
+        }});
     });
 };

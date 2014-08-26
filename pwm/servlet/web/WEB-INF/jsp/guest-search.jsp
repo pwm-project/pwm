@@ -38,12 +38,11 @@
         </p>
         <br/>
         <p><pwm:display key="Display_GuestUpdate"/></p>
-
+                                                                                      co
         <form action="<pwm:url url='GuestRegistration'/>" method="post" enctype="application/x-www-form-urlencoded" name="searchForm" class="pwm-form" id="searchForm">
             <%@ include file="fragment/message.jsp" %>
             <h2><label for="username"><pwm:display key="Field_Username"/></label></h2>
-            <input type="text" id="username" name="username" class="inputfield"
-                   value="<pwm:ParamValue name='username'/>"/>
+            <input type="text" id="username" name="username" class="inputfield"/>
 
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="search"/>

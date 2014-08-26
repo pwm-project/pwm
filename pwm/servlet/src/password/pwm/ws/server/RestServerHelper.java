@@ -190,8 +190,8 @@ public abstract class RestServerHelper {
 
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            return userSearchEngine.resolveUsername(pwmSession, username, null, null);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
+            return userSearchEngine.resolveUsername(username, null, null);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         } catch (ChaiUnavailableException e) {

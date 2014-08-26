@@ -29,7 +29,7 @@ import java.io.Serializable;
 
 public class ConfigEditorCookie implements Serializable {
     private int level = 1;
-    private boolean showDesc = false;
+    private boolean showDesc = true;
     private EDIT_MODE editMode = EDIT_MODE.SETTINGS;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
     private PwmSetting.Category category = PwmSetting.Category.LDAP_PROFILE;

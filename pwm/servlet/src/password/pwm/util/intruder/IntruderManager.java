@@ -302,7 +302,7 @@ public class IntruderManager implements Serializable, PwmService {
             final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
             messageObj.put("type", recordType);
             messageObj.put("subject", subject);
-            final String message = Helper.getGson().toJson(messageObj);
+            final String message = JsonUtil.getGson().toJson(messageObj);
             final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_ATTEMPT,message);
             pwmApplication.getAuditManager().submit(auditRecord);
         }
@@ -315,7 +315,7 @@ public class IntruderManager implements Serializable, PwmService {
                     final LinkedHashMap<String,Object> messageObj = new LinkedHashMap<>();
                     messageObj.put("type", recordType);
                     messageObj.put("subject", subject);
-                    final String message = Helper.getGson().toJson(messageObj);
+                    final String message = JsonUtil.getGson().toJson(messageObj);
                     final SystemAuditRecord auditRecord = pwmApplication.getAuditManager().createSystemAuditRecord(AuditEvent.INTRUDER_LOCK,message);
                     pwmApplication.getAuditManager().submit(auditRecord);
                 }
@@ -354,7 +354,7 @@ public class IntruderManager implements Serializable, PwmService {
             delayPenalty += points * Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_PER_COUNT_MS));
             delayPenalty += PwmRandom.getInstance().nextInt((int)Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_DELAY_MAX_JITTER_MS))); // add some randomness;
             delayPenalty = delayPenalty > Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) ? Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.INTRUDER_MAX_DELAY_PENALTY_MS)) : delayPenalty;
-            LOGGER.trace(sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + Helper.getGson().toJson(intruderRecord));
+            LOGGER.trace(sessionLabel, "delaying response " + delayPenalty + "ms due to intruder record: " + JsonUtil.getGson().toJson(intruderRecord));
             Helper.pause(delayPenalty);
         }
     }
@@ -370,7 +370,7 @@ public class IntruderManager implements Serializable, PwmService {
         values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
         values.put("age", TimeDuration.fromCurrent(intruderRecord.getTimeStamp()).asCompactString());
 
-        final String bodyText = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(values);
+        final String bodyText = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(values);
 
 
         if (intruderRecord.getType() == RecordType.USER_ID) {

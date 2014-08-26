@@ -28,7 +28,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +47,7 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
         if (input == null) {
             return new StringArrayValue(Collections.<String>emptyList());
         } else {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
             }.getType());
             srcList = srcList == null ? Collections.<String>emptyList() : srcList;

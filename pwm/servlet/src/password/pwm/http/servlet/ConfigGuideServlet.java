@@ -36,6 +36,7 @@ import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.i18n.Display;
@@ -50,6 +51,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -115,8 +117,9 @@ public class ConfigGuideServlet extends TopServlet {
     protected void processRequest(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
@@ -162,13 +165,13 @@ public class ConfigGuideServlet extends TopServlet {
                 restUpdateLdapForm(req, resp, pwmSession);
                 return;
             } else if (actionParam.equalsIgnoreCase("gotoStep")) {
-                restGotoStep(req, resp, pwmApplication, pwmSession);
+                restGotoStep(pwmRequest);
                 return;
             } else if (actionParam.equalsIgnoreCase("useConfiguredCerts")) {
                 restUseConfiguredCerts(req, resp);
                 return;
             } else if (actionParam.equalsIgnoreCase("uploadConfig")) {
-                restUploadConfig(req, resp, pwmApplication, pwmSession);
+                restUploadConfig(pwmRequest);
                 return;
             }
         }
@@ -176,17 +179,24 @@ public class ConfigGuideServlet extends TopServlet {
         forwardToJSP(req,resp);
     }
 
-    public static void restUploadConfig(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    public static void restUploadConfig(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+            final String errorMsg = "config upload is not permitted when in running mode";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
+            pwmRequest.respondWithError(errorInformation, true);
+            return;
+        }
+
         if (ServletFileUpload.isMultipartContent(req)) {
-            final String uploadedFile = ServletHelper.readFileUpload(req,"uploadFile",PwmConstants.MAX_CONFIG_FILE_CHARS);
-            if (uploadedFile != null && uploadedFile.length() > 0) {
+            final InputStream uploadedFile = ServletHelper.readFileUpload(req,"uploadFile");
+            if (uploadedFile != null) {
                 try {
                     final StoredConfiguration storedConfig = StoredConfiguration.fromXml(uploadedFile);
                     final List<String> configErrors = storedConfig.validateValues();
@@ -200,13 +210,13 @@ public class ConfigGuideServlet extends TopServlet {
                     ServletHelper.outputJsonResult(resp, restResultBean);
                     req.getSession().invalidate();
                 } catch (PwmException e) {
-                    final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+                    final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
                     ServletHelper.outputJsonResult(resp, restResultBean);
                     LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 }
             } else {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload");
-                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
                 ServletHelper.outputJsonResult(resp, restResultBean);
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
             }
@@ -263,11 +273,11 @@ public class ConfigGuideServlet extends TopServlet {
                 }
                 if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
                     final int maxSearchSize = 500;
-                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
+                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, pwmSession.getSessionLabel());
                     final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
                     searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
                     try {
-                        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(pwmSession, searchConfig, maxSearchSize, Collections.<String>emptyList());
+                        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfig, maxSearchSize, Collections.<String>emptyList());
                         if (results == null || results.isEmpty()) {
                             records.add(new HealthRecord(HealthStatus.WARN,"Admin Users","No admin users are defined with the current Administration Search Filter"));
                         } else {
@@ -318,7 +328,7 @@ public class ConfigGuideServlet extends TopServlet {
         final String bodyString = ServletHelper.readRequestBody(req);
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
-        final Map<String,String> incomingFormData = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        final Map<String,String> incomingFormData = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 
         if (incomingFormData != null) {
@@ -349,14 +359,9 @@ public class ConfigGuideServlet extends TopServlet {
         //LOGGER.info("config: " + storedConfiguration.toString());
     }
 
-    private void restGotoStep(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    private void restGotoStep(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException {
-        final String requestedStep = Validator.readStringFromRequest(req, "step");
+        final String requestedStep = pwmRequest.readStringParameter("step");
         STEP step = null;
         if (requestedStep != null && requestedStep.length() > 0) {
             try {
@@ -364,31 +369,31 @@ public class ConfigGuideServlet extends TopServlet {
             } catch (IllegalArgumentException e) {
                 final String errorMsg = "unknown goto step request: " + requestedStep;
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
-                LOGGER.error(pwmSession,errorInformation.toDebugStr());
-                ServletHelper.outputJsonResult(resp,restResultBean);
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
+                LOGGER.error(pwmRequest,errorInformation.toDebugStr());
+                pwmRequest.outputJsonResult(restResultBean);
                 return;
             }
         }
 
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmRequest.getPwmSession().getSessionBean(ConfigGuideBean.class);
         if (step == STEP.FINISH) {
-            final ContextManager contextManager = ContextManager.getContextManager(req.getSession());
+            final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
             try {
                 writeConfig(contextManager, configGuideBean);
             } catch (PwmOperationalException e) {
-                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
-                ServletHelper.outputJsonResult(resp, restResultBean);
+                pwmRequest.getPwmSession().getSessionStateBean().setSessionError(e.getErrorInformation());
+                final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
+                pwmRequest.outputJsonResult(restResultBean);
                 return;
             }
             final HashMap<String,String> resultData = new HashMap<>();
             resultData.put("serverRestart","true");
-            ServletHelper.outputJsonResult(resp, new RestResultBean(resultData));
-            pwmSession.invalidate();
+            pwmRequest.outputJsonResult(new RestResultBean(resultData));
+            pwmRequest.getPwmSession().invalidate();
         } else {
             configGuideBean.setStep(step);
-            ServletHelper.outputJsonResult(resp, new RestResultBean());
+            pwmRequest.outputJsonResult(new RestResultBean());
             LOGGER.trace("setting current step to: " + step);
         }
     }
@@ -481,7 +486,7 @@ public class ConfigGuideServlet extends TopServlet {
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication);
 
-            contextManager.reinitialize();
+            contextManager.reinitializePwmApplication();
         } catch (PwmException e) {
             throw new PwmOperationalException(e.getErrorInformation());
         } catch (Exception e) {

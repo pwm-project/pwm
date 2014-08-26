@@ -29,7 +29,10 @@ import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Map;
 
 /**
@@ -78,8 +81,7 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
         final String connectionURL = baseConnectionURL + ";create=true";
 
         try {
-            final Driver driver = (Driver)Class.forName(driverClasspath).newInstance();
-            DriverManager.registerDriver(driver);
+            Class.forName(driverClasspath).newInstance(); //load driver.
             final Connection connection = DriverManager.getConnection(connectionURL);
             connection.setAutoCommit(false);
 
@@ -111,6 +113,13 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
         );
     }
 
+    public void truncate(final LocalDB.DB db)
+            throws LocalDBException
+    {
+        super.truncate(db);
+        reclaimSpace(this.dbConnection, db);
+    }
+
     private void reclaimSpace(final Connection dbConnection, final LocalDB.DB db)
     {
         if (getStatus() != LocalDB.Status.OPEN || readOnly) {
@@ -129,14 +138,13 @@ public class Derby_LocalDB extends AbstractJDBC_LocalDB {
             statement.setShort(4, (short) 1);
             statement.setShort(5, (short) 1);
             statement.execute();
-            LOGGER.debug("completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
         } catch (SQLException ex) {
             LOGGER.error("error reclaiming space in table " + db.toString() + ": " + ex.getMessage());
         } finally {
             close(statement);
             LOCK.writeLock().unlock();
         }
-
+        LOGGER.debug("completed reclaimed space in table " + db.toString() + " (" + TimeDuration.fromCurrent(startTime).asCompactString() + ")");
     }
 }
 

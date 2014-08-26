@@ -23,7 +23,7 @@
 package password.pwm.event;
 
 import password.pwm.PwmApplication;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -91,7 +91,7 @@ public class LocalDbAuditVault implements AuditVault {
     }
 
     private static AuditRecord deSerializeRecord(final String input) {
-        final Map<String,String> tempMap = Helper.getGson(). fromJson(input, HashMap.class);
+        final Map<String,String> tempMap = JsonUtil.getGson(). fromJson(input, HashMap.class);
         String errorMsg = "";
         try {
             if (tempMap != null) {
@@ -101,9 +101,9 @@ public class LocalDbAuditVault implements AuditVault {
                     if (event != null) {
                         switch (event.getType()) {
                             case USER:
-                                return Helper.getGson().fromJson(input, UserAuditRecord.class);
+                                return JsonUtil.getGson().fromJson(input, UserAuditRecord.class);
                             case SYSTEM:
-                                return Helper.getGson().fromJson(input, SystemAuditRecord.class);
+                                return JsonUtil.getGson().fromJson(input, SystemAuditRecord.class);
                         }
                     }
                 }
@@ -120,7 +120,7 @@ public class LocalDbAuditVault implements AuditVault {
             return;
         }
 
-        final String gsonRecord = Helper.getGson().toJson(record);
+        final String gsonRecord = JsonUtil.getGson().toJson(record);
         auditDB.addLast(gsonRecord);
         trim();
     }
@@ -137,7 +137,7 @@ public class LocalDbAuditVault implements AuditVault {
         int workActions = 0;
         while (workActions < MAX_REMOVALS_PER_ADD && !auditDB.isEmpty()) {
             final String stringFirstRecord = auditDB.getFirst();
-            final UserAuditRecord firstRecord = Helper.getGson().fromJson(stringFirstRecord, UserAuditRecord.class);
+            final UserAuditRecord firstRecord = JsonUtil.getGson().fromJson(stringFirstRecord, UserAuditRecord.class);
             oldestRecord = firstRecord.getTimestamp();
             if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(settings.getMaxRecordAge())) {
                 auditDB.removeFirst();

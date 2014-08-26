@@ -252,7 +252,10 @@ public class RestChallengesServer {
             } else {
                 final UserIdentity userIdentity = restRequestBean.getUserIdentity();
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
-                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(),userIdentity,
+                userGUID = LdapOperationsHelper.readLdapGuidValue(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
+                        userIdentity,
                         false);
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
                         userIdentity,
@@ -333,7 +336,10 @@ public class RestChallengesServer {
                 chaiUser = useProxy
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
-                userGUID = LdapOperationsHelper.readLdapGuidValue(restRequestBean.getPwmApplication(), restRequestBean.getUserIdentity(),
+                userGUID = LdapOperationsHelper.readLdapGuidValue(
+                        restRequestBean.getPwmApplication(),
+                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getUserIdentity(),
                         false);
 
                 // mark the event log

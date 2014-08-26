@@ -33,6 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -75,7 +76,7 @@ public abstract class AbstractQueueManager implements PwmService {
     protected void add(final Serializable input)
             throws PwmUnrecoverableException
     {
-        final String gsonInput = Helper.getGson().toJson(input);
+        final String gsonInput = JsonUtil.getGson().toJson(input);
         final int nextItemID = getNextItemCount();
         final QueueEvent event = new QueueEvent(gsonInput, new Date(), nextItemID);
 
@@ -88,7 +89,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        final String jsonEvent = Helper.getGson().toJson(event);
+        final String jsonEvent = JsonUtil.getGson().toJson(event);
         sendQueue.addLast(jsonEvent);
         LOGGER.trace("submitted item to queue: " + queueItemToDebugString(event) + ", queue size: " + sendQueue.size());
 
@@ -246,7 +247,7 @@ public abstract class AbstractQueueManager implements PwmService {
         while (sendQueue.peekFirst() != null && lastSendFailureTime == null) {
             final String jsonEvent = sendQueue.peekFirst();
             if (jsonEvent != null) {
-                final QueueEvent event = Helper.getGson().fromJson(jsonEvent, QueueEvent.class);
+                final QueueEvent event = JsonUtil.getGson().fromJson(jsonEvent, QueueEvent.class);
 
                 if (event == null || event.getTimestamp() == null) {
                     sendQueue.pollFirst();

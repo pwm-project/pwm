@@ -152,7 +152,7 @@
         <br/>
         <% } %>
         <form id="tokenForm" action="tokenlookup.jsp" method="post">
-            <textarea name="token" id="token" value="<%=pwmSessionHeader.getSessionStateBean().getLastParameterValues().get("token","")%>" data-dojo-type="dijit/form/Textarea" style="width: 580px; height: 150px"></textarea>
+            <textarea name="token" id="token" data-dojo-type="dijit/form/Textarea" style="width: 580px; height: 150px"></textarea>
             <div id="buttonbar">
                 <input name="submitBtn" class="btn" type="submit" value="Lookup Token"/>
             </div>

@@ -25,6 +25,8 @@ package password.pwm.bean;
 import java.io.Serializable;
 
 public class SessionLabel implements Serializable {
+    public static final SessionLabel SYSTEM_LABEL = null;
+
     private final String sessionID;
     private final UserIdentity userIdentity;
     private final String username;

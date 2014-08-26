@@ -355,6 +355,8 @@ public class PasswordUtility {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
+        final SessionLabel sessionLabel = pwmSession.getSessionLabel();
+
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user is not authenticated";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
@@ -382,7 +384,7 @@ public class PasswordUtility {
         }
 
         // at this point the password has been changed, so log it.
-        LOGGER.info(pwmSession, "user '" + pwmSession.getUserInfoBean().getUserIdentity() + "' successfully changed password for " + chaiUser.getEntryDN());
+        LOGGER.info(sessionLabel, "user '" + pwmSession.getUserInfoBean().getUserIdentity() + "' successfully changed password for " + chaiUser.getEntryDN());
 
         // create a proxy user object for pwm to update/read the user.
         final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
@@ -417,7 +419,7 @@ public class PasswordUtility {
         );
 
         {  // execute configured actions
-            LOGGER.debug(pwmSession, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity);
+            LOGGER.debug(sessionLabel, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity);
             final List<ActionConfiguration> actions = new ArrayList<>();
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
@@ -433,7 +435,7 @@ public class PasswordUtility {
         final HelpdeskClearResponseMode settingClearResponses = HelpdeskClearResponseMode.valueOf(
                 pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskClearResponseMode.yes) {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log
@@ -486,7 +488,7 @@ public class PasswordUtility {
                 final Date lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, loopUser);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {
-                LOGGER.error("unreachable server during replica password sync check");
+                LOGGER.error(sessionLabel, "unreachable server during replica password sync check");
                 e.printStackTrace();
             } finally {
                 if (loopProvider != null) {
@@ -494,7 +496,7 @@ public class PasswordUtility {
                         loopProvider.close();
                     } catch (Exception e) {
                         final String errorMsg = "error closing loopProvider to " + loopReplicaUrl + " while checking individual password sync status";
-                        LOGGER.error(sessionLabel,errorMsg);
+                        LOGGER.error(sessionLabel, errorMsg);
                     }
                 }
             }
@@ -760,7 +762,7 @@ public class PasswordUtility {
                             pass = true;
                         } else {
                             LOGGER.trace("cache hit!");
-                            final ErrorInformation errorInformation = Helper.getGson().fromJson(cachedValue, ErrorInformation.class);
+                            final ErrorInformation errorInformation = JsonUtil.getGson().fromJson(cachedValue, ErrorInformation.class);
                             throw new PwmDataValidationException(errorInformation);
                         }
                     }
@@ -779,7 +781,7 @@ public class PasswordUtility {
                 userMessage = e.getErrorInformation().toUserStr(locale, pwmApplication.getConfig());
                 pass = false;
                 if (cacheService != null) {
-                    final String jsonPayload = Helper.getGson().toJson(e.getErrorInformation());
+                    final String jsonPayload = JsonUtil.getGson().toJson(e.getErrorInformation());
                     cacheService.put(cacheKey, cachePolicy, jsonPayload);
                 }
             }

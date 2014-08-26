@@ -22,10 +22,12 @@
 
 package password.pwm.util.localdb;
 
+import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.ProgressInfo;
+import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.csv.CsvReader;
@@ -38,6 +40,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class LocalDBUtility {
+
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBUtility.class);
 
     final static List<LocalDB.DB> BACKUP_IGNORE_DBs;
     private final LocalDB localDB;
@@ -58,10 +62,10 @@ public class LocalDBUtility {
         this.localDB = localDB;
     }
 
-    public void exportLocalDB(final OutputStream outputFileStream, final PrintStream debugOutput, final boolean showLineCount)
+    public void exportLocalDB(final OutputStream outputStream, final Appendable debugOutput, final boolean showLineCount)
             throws PwmOperationalException, IOException
     {
-        if (outputFileStream == null) {
+        if (outputStream == null) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"outputFileStream for exportLocalDB cannot be null");
         }
 
@@ -102,14 +106,19 @@ public class LocalDBUtility {
 
         CsvWriter csvWriter = null;
         try {
-            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(outputFileStream)),',');
+            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(outputStream)),',');
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
-                    for (final Iterator<String> iter = localDB.iterator(loopDB); iter.hasNext();) {
-                        final String key = iter.next();
-                        final String value = localDB.get(loopDB, key);
-                        csvWriter.writeRecord(new String[] {loopDB.toString(),key,value});
-                        exportLineCounter++;
+                    final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
+                    try {
+                        while (localDBIterator.hasNext()) {
+                            final String key = localDBIterator.next();
+                            final String value = localDB.get(loopDB, key);
+                            csvWriter.writeRecord(new String[]{loopDB.toString(), key, value});
+                            exportLineCounter++;
+                        }
+                    } finally {
+                        localDBIterator.close();
                     }
                 }
             }
@@ -123,12 +132,18 @@ public class LocalDBUtility {
         statTimer.cancel();
     }
 
-    private static void writeStringToOut(final PrintStream out, final String string) {
+    private static void writeStringToOut(final Appendable out, final String string) {
         if (out == null) {
             return;
         }
 
-        out.println(PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + string);
+        final String msg = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()) + " " + string + "\n";
+
+        try {
+            out.append(msg);
+        } catch (IOException e) {
+            LOGGER.error("error writing to output appender while performing operation: " + e.getMessage() + ", message:" + msg);
+        }
     }
 
     public void importLocalDB(final File inputFile, final PrintStream out)
@@ -159,36 +174,52 @@ public class LocalDBUtility {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"inputFile for importLocalDB is empty");
         }
 
-        writeStringToOut(out, "clearing LocalDB...");
-        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
-            writeStringToOut(out, " truncating " + loopDB.toString());
-            localDB.truncate(loopDB);
-        }
-        writeStringToOut(out, "LocalDB cleared");
+        final InputStream inputStream = new FileInputStream(inputFile);
+        importLocalDB(inputStream, out, totalLines);
+    }
+
+    public void importLocalDB(final InputStream inputStream, final Appendable out)
+            throws PwmOperationalException, IOException
+    {
+        importLocalDB(inputStream, out, 0);
+    }
+
+    private void importLocalDB(final InputStream inputStream, final Appendable out, final int totalLines)
+            throws PwmOperationalException, IOException
+    {
+        this.prepareForImport();
 
         importLineCounter = 0;
-        writeStringToOut(out, " total lines: " + totalLines);
+        if (totalLines > 0) writeStringToOut(out, " total lines: " + totalLines);
 
         writeStringToOut(out, "beginning restore...");
 
         final Date startTime = new Date();
-        final Timer statTimer = new Timer(true);
         final TransactionSizeCalculator transactionCalculator = new TransactionSizeCalculator(900, 50, 50 * 1000);
-        statTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                final ProgressInfo progressInfo = new ProgressInfo(startTime, totalLines, importLineCounter);
-                writeStringToOut(out, " " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
-            }
-        },0, 30 * 1000);
 
         final Map<LocalDB.DB,Map<String,String>> transactionMap = new HashMap<>();
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             transactionMap.put(loopDB,new TreeMap<String, String>());
         }
 
+        final Timer statTimer = new Timer(true);
+        statTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run()
+            {
+                if (totalLines > 0) {
+                    final ProgressInfo progressInfo = new ProgressInfo(startTime, totalLines, importLineCounter);
+                    writeStringToOut(out,
+                            " " + progressInfo.debugOutput() + ", transactionSize=" + transactionCalculator.getTransactionSize());
+                } else {
+                    writeStringToOut(out, " linesImported=" + importLineCounter);
+                }
+            }
+        }, 0, 30 * 1000);
+
+        CsvReader csvReader = null;
         try {
-            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
+            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(inputStream)),',');
             while (csvReader.readRecord()) {
                 final LocalDB.DB db = LocalDB.DB.valueOf(csvReader.get(0));
                 final String key = csvReader.get(1);
@@ -210,12 +241,15 @@ public class LocalDBUtility {
             }
         } finally {
             if (csvReader != null) {csvReader.close();}
+            statTimer.cancel();
         }
 
         for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
             localDB.putAll(loopDB, transactionMap.get(loopDB));
             transactionMap.get(loopDB).clear();
         }
+
+        this.markImportComplete();
 
         writeStringToOut(out, "restore complete, restored " + importLineCounter + " records in " + TimeDuration.fromCurrent(startTime).asLongString());
         statTimer.cancel();
@@ -288,4 +322,31 @@ public class LocalDBUtility {
         AVG_VALUE_LENGTH,
     }
 
+    public void prepareForImport()
+            throws LocalDBException
+    {
+        LOGGER.info("preparing LocalDB for import procedure");
+        localDB.put(LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(),"inprogress");
+        for (final LocalDB.DB loopDB : LocalDB.DB.values()) {
+            if (loopDB != LocalDB.DB.PWM_META) {
+                localDB.truncate(loopDB);
+            }
+        }
+        localDB.truncate(LocalDB.DB.PWM_META); // save meta for last so flag is cleared last.
+        localDB.put(LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey(),"inprogress");
+    }
+
+    public void markImportComplete()
+            throws LocalDBException
+    {
+        LOGGER.info("marking LocalDB import procedure completed");
+        localDB.remove(LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey());
+    }
+
+    public boolean readImportInprogressFlag()
+            throws LocalDBException
+    {
+        return "inprogress".equals(
+                localDB.get(LocalDB.DB.PWM_META, PwmApplication.AppAttribute.LOCALDB_IMPORT_STATUS.getKey()));
+    }
 }

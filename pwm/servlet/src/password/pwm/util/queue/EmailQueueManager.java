@@ -33,7 +33,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -163,7 +163,7 @@ public class
     }
 
     boolean sendItem(final String item) {
-        final EmailItemBean emailItemBean = Helper.getGson().fromJson(item, EmailItemBean.class);
+        final EmailItemBean emailItemBean = JsonUtil.getGson().fromJson(item, EmailItemBean.class);
 
         // create a new MimeMessage object (using the Session created above)
         try {
@@ -298,13 +298,13 @@ public class
         final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
-        final EmailItemBean emailItemBean = Helper.getGson().fromJson(queueEvent.getItem(), EmailItemBean.class);
+        final EmailItemBean emailItemBean = JsonUtil.getGson().fromJson(queueEvent.getItem(), EmailItemBean.class);
 
         debugOutputMap.put("to", emailItemBean.getTo());
         debugOutputMap.put("from", emailItemBean.getFrom());
         debugOutputMap.put("subject", emailItemBean.getSubject());
 
-        return Helper.getGson().toJson(debugOutputMap);
+        return JsonUtil.getGson().toJson(debugOutputMap);
     }
 
     @Override

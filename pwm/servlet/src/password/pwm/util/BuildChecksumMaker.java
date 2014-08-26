@@ -72,7 +72,7 @@ public class BuildChecksumMaker {
         results.putAll(readDirectorySums(rootDirectory));
 
         final Writer outputWriter = new BufferedWriter(new FileWriter(outputFile));
-        outputWriter.write(Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(results));
+        outputWriter.write(JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(results));
         outputWriter.close();
         output("build Build Checksum Maker completed successfully");
     }

@@ -34,6 +34,7 @@ import com.novell.ldapchai.provider.ChaiProviderFactory;
 import com.novell.ldapchai.provider.ChaiSetting;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.LdapProfile;
@@ -127,6 +128,7 @@ public class LdapOperationsHelper {
 
     public static String readLdapGuidValue(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final boolean throwExceptionOnError
     )
@@ -140,7 +142,7 @@ public class LdapOperationsHelper {
             if (!"DN".equalsIgnoreCase(guidAttributeName) && !"VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
                 if (ldapProfile.readSettingAsBoolean(PwmSetting.LDAP_GUID_AUTO_ADD)) {
                     LOGGER.trace("assigning new GUID to user " + userIdentity);
-                    return GUIDHelper.assignGuidToUser(pwmApplication, userIdentity, guidAttributeName);
+                    return GUIDHelper.assignGuidToUser(pwmApplication, sessionLabel, userIdentity, guidAttributeName);
                 }
             }
             final String errorMsg = "unable to resolve GUID value for user " + userIdentity.toString();
@@ -201,6 +203,7 @@ public class LdapOperationsHelper {
 
         private static boolean searchForExistingGuidValue(
                 final PwmApplication pwmApplication,
+                final SessionLabel sessionLabel,
                 final String guidValue
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
@@ -213,12 +216,12 @@ public class LdapOperationsHelper {
                         // check if it is unique
                         UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                         searchConfiguration.setFilter("(" + guidAttributeName + "=" + guidValue + ")");
-                        UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-                        final UserIdentity result = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
+                        UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
+                        final UserIdentity result = userSearchEngine.performSingleUserSearch(searchConfiguration);
                         exists = result != null;
                     } catch (PwmOperationalException e) {
                         if (e.getError() != PwmError.ERROR_CANT_MATCH_USER) {
-                            LOGGER.warn("error while searching to verify new unique GUID value: " + e.getError());
+                            LOGGER.warn(sessionLabel, "error while searching to verify new unique GUID value: " + e.getError());
                         }
                     }
                 }
@@ -228,6 +231,7 @@ public class LdapOperationsHelper {
 
         private static String assignGuidToUser(
                 final PwmApplication pwmApplication,
+                final SessionLabel sessionLabel,
                 final UserIdentity userIdentity,
                 final String guidAttributeName
         )
@@ -239,7 +243,7 @@ public class LdapOperationsHelper {
             while (attempts < 10 && newGuid == null) {
                 attempts++;
                 newGuid = generateGuidValue();
-                if (searchForExistingGuidValue(pwmApplication, newGuid)) {
+                if (searchForExistingGuidValue(pwmApplication, sessionLabel, newGuid)) {
                     newGuid = null;
                 }
             }
@@ -253,7 +257,7 @@ public class LdapOperationsHelper {
                 // write it to the directory
                 final ChaiUser chaiUser = pwmApplication.getProxiedChaiUser(userIdentity);
                 chaiUser.writeStringAttribute(guidAttributeName, newGuid);
-                LOGGER.info("added GUID value '" + newGuid + "' to user " + userIdentity);
+                LOGGER.info(sessionLabel, "added GUID value '" + newGuid + "' to user " + userIdentity);
                 return newGuid;
             } catch (ChaiOperationException e) {
                 final String errorMsg = "unable to write GUID value to user attribute " + guidAttributeName + " : " + e.getMessage() + ", cannot write GUID value to user " + userIdentity;

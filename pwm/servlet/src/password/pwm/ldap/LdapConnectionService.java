@@ -34,7 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 
 import java.util.*;
@@ -122,7 +122,7 @@ public class LdapConnectionService implements PwmService {
 
     public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
         lastLdapErrors.put(ldapProfile, errorInformation);
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final HashMap<String,ErrorInformation> jsonMap = new HashMap<>();
         for (final LdapProfile loopProfile : lastLdapErrors.keySet()) {
             jsonMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
@@ -149,7 +149,7 @@ public class LdapConnectionService implements PwmService {
             lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
 
-                final Map<String, ErrorInformation> fromJson = Helper.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {}.getType());
+                final Map<String, ErrorInformation> fromJson = JsonUtil.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {}.getType());
                 final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();
                 for (final String id : fromJson.keySet()) {
                     final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(id);

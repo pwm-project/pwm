@@ -25,38 +25,38 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
+import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseTable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class DatabaseStatusChecker implements HealthChecker {
+    private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseStatusChecker.class);
+
     @Override
     public List<HealthRecord> doHealthCheck(PwmApplication pwmApplication)
     {
-        return null;
+        return Collections.emptyList();
     }
 
     public static List<HealthRecord> checkNewDatabaseStatus(Configuration config) {
-        try {
-            final PwmApplication pwmApplication = new PwmApplication(config, PwmApplication.MODE.NEW, null, false, null);
-            checkDatabaseStatus(pwmApplication,config);
-        } catch (Exception e) {
-
-        }
-
-        return null;
+        return checkDatabaseStatus(config);
     }
 
-    private static List<HealthRecord> checkDatabaseStatus(final PwmApplication pwmApplication, Configuration config)
+    private static List<HealthRecord> checkDatabaseStatus(Configuration config)
     {
+        final DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
         try {
-            DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
-            impl.init(pwmApplication);
+            impl.init(config);
             impl.get(DatabaseTable.PWM_META, "test");
+            return impl.healthCheck();
         } catch (PwmException e) {
-
+            LOGGER.error("error during healthcheck: " + e.getMessage());
+            return impl.healthCheck();
+        } finally {
+            impl.close();
         }
-        return null;
     }
 }

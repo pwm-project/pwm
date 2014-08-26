@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="com.google.gson.Gson" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.LocalDBLogger" %>
 <%@ page import="password.pwm.util.PwmLogEvent" %>
 <%@ page import="password.pwm.util.PwmLogLevel" %>
@@ -183,7 +183,7 @@
     <script type="text/javascript">
         var data = [];
         <%
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             while (searchResults.hasNext()) {
                 final PwmLogEvent event = searchResults.next();
                 try {

@@ -26,10 +26,7 @@ import com.google.gson.GsonBuilder;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.Base64Util;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.X509Utils;
+import password.pwm.util.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -124,7 +121,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
             list.add(map);
         }
         return prettyFormat
-                ? Helper.getGson(new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()).toJson(list)
-                : Helper.getGson().toJson(list);
+                ? JsonUtil.getGson(new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()).toJson(list)
+                : JsonUtil.getGson().toJson(list);
     }
 }

@@ -21,7 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.JsonUtil" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
@@ -83,7 +83,7 @@
 <pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['helpdesk_search_columns'] = <%=Helper.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
+        PWM_VAR['helpdesk_search_columns'] = <%=JsonUtil.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
         PWM_HELPDESK.initHelpdeskSearchPage();
         PWM_MAIN.getObject('username').focus()
     });

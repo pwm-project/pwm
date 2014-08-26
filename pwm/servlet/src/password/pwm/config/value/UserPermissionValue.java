@@ -24,14 +24,14 @@ package password.pwm.config.value;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +50,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         if (input == null) {
             return new UserPermissionValue(Collections.<UserPermission>emptyList());
         } else {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             List<UserPermission> srcList = gson.fromJson(input, new TypeToken<List<UserPermission>>() {
             }.getType());
             srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
@@ -62,7 +62,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
     static UserPermissionValue fromXmlElement(Element settingElement) throws PwmOperationalException
     {
         final boolean newType = "2".equals(settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final List valueElements = settingElement.getChildren("value");
         final List<UserPermission> values = new ArrayList<>();
         for (final Object loopValue : valueElements) {
@@ -84,7 +84,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         for (final UserPermission value : values) {
             final Element valueElement = new Element(valueElementName);
             valueElement.addContent(gson.toJson(value));
@@ -119,7 +119,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             return;
         }
 
-        int leftParens = StringUtils.countMatches(filter,"(");
+        int leftParens = StringUtils.countMatches(filter, "(");
         int rightParens = StringUtils.countMatches(filter,")");
 
         if (leftParens != rightParens) {

@@ -25,7 +25,7 @@ package password.pwm.config.value;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +38,7 @@ public class NumericValue extends AbstractValue implements StoredValue {
     }
 
     static NumericValue fromJson(String value) {
-        return new NumericValue(Helper.getGson().fromJson(value, Long.class));
+        return new NumericValue(JsonUtil.getGson().fromJson(value, Long.class));
     }
 
     static NumericValue fromXmlElement(final Element settingElement) {

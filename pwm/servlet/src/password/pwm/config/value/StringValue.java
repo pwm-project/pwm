@@ -26,7 +26,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +44,7 @@ public class StringValue extends AbstractValue implements StoredValue {
     }
 
     static StringValue fromJson(final String input) {
-        final String newValue = Helper.getGson().fromJson(input, String.class);
+        final String newValue = JsonUtil.getGson().fromJson(input, String.class);
         return new StringValue(newValue);
     }
 

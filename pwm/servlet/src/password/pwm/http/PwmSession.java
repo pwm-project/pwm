@@ -37,7 +37,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.bean.*;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
@@ -337,7 +337,7 @@ public class PwmSession implements Serializable {
             return "exception generating PwmSession.toString(): " + e.getMessage();
         }
 
-        return "PwmSession instance: " + Helper.getGson().toJson(debugData);
+        return "PwmSession instance: " + JsonUtil.getGson().toJson(debugData);
     }
 
     public boolean setLocale(final PwmApplication pwmApplication, final String localeString)
@@ -408,6 +408,6 @@ public class PwmSession implements Serializable {
     }
 
     public int size() {
-        return Helper.getGson().toJson(this).length();
+        return JsonUtil.getGson().toJson(this).length();
     }
 }

@@ -22,7 +22,6 @@
 
 <%@ page import="com.novell.ldapchai.ChaiPasswordRule" %>
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
@@ -36,6 +35,7 @@
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
 <%@ page import="java.util.List" %>
@@ -79,7 +79,7 @@
                 </td>
                 <td id="value_<%=formItem.getName()%>">
                     <% final String loopValue = helpdeskBean.getAdditionalUserInfo().getSearchDetails().get(formItem); %>
-                    <%= loopValue == null ? "" : StringEscapeUtils.escapeHtml(loopValue) %>
+                    <%= loopValue == null ? "" : StringUtil.escapeHtml(loopValue) %>
                 </td>
             </tr>
             <%  } %>
@@ -95,7 +95,7 @@
     </td>
     <td>
         <span style="word-wrap: break-word; word-break: break-all">
-        <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
+        <%= StringUtil.escapeHtml(searchedUserInfo.getUserIdentity().getUserDN()) %>
         </span>
     </td>
 </tr>
@@ -105,7 +105,7 @@
         <pwm:display key="Field_LdapProfile"/>
     </td>
     <td>
-        <%= StringEscapeUtils.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(searchedUserInfo.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
+        <%= StringUtil.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(searchedUserInfo.getUserIdentity().getLdapProfileID()).getDisplayName(pwmSession.getSessionStateBean().getLocale())) %>
     </td>
 </tr>
 <% } %>
@@ -116,7 +116,7 @@
         <pwm:display key="Field_Username"/>
     </td>
     <td>
-        <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUsername()) %>
+        <%= StringUtil.escapeHtml(searchedUserInfo.getUsername()) %>
     </td>
 </tr>
 <% } %>
@@ -126,7 +126,7 @@
         <pwm:display key="Field_UserEmail"/>
     </td>
     <td>
-        <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserEmailAddress()) %>
+        <%= StringUtil.escapeHtml(searchedUserInfo.getUserEmailAddress()) %>
     </td>
 </tr>
 <% } %>
@@ -344,7 +344,7 @@
         <pwm:display key="Field_UserGUID"/>
     </td>
     <td>
-        <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getUserGuid()) %>
+        <%= StringUtil.escapeHtml(searchedUserInfo.getUserGuid()) %>
     </td>
 </tr>
 <% } %>
@@ -435,7 +435,7 @@
                     <pwm:display key="Value_False"/>
                     <% } %>
                     <% } else { %>
-                    <%= StringEscapeUtils.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
+                    <%= StringUtil.escapeHtml(searchedUserInfo.getPasswordPolicy().getValue(rule)) %>
                     <% } %>
                     <% } %>
                 </td>
@@ -516,7 +516,7 @@
     </pwm:script>
     <% } %>
     <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_DELETE_USER_BUTTON)) { %>
-    <button class="btn" onclick="PWM_HELPDESK.deleteUser('<%=StringEscapeUtils.escapeHtml(obfuscatedDN)%>')">
+    <button class="btn" onclick="PWM_HELPDESK.deleteUser('<%=StringUtil.escapeHtml(obfuscatedDN)%>')">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
         Delete User
     </button>
@@ -529,14 +529,14 @@
     <br/>
     <% final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_ACTIONS); %>
     <% for (final ActionConfiguration loopAction : actions) { %>
-    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="PWM_HELPDESK.executeAction('<%=StringEscapeUtils.escapeJavaScript(loopAction.getName())%>')"><%=StringEscapeUtils.escapeHtml(loopAction.getName())%></button>
+    <button class="btn" name="action-<%=loopAction.getName()%>" id="action-<%=loopAction.getName()%>" onclick="PWM_HELPDESK.executeAction('<%=StringUtil.escapeJS(loopAction.getName())%>')"><%=StringUtil.escapeHtml(loopAction.getName())%></button>
     <pwm:script>
         <script type="text/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
                     id: "action-<%=loopAction.getName()%>",
                     position: 'above',
-                    text: '<%=StringEscapeUtils.escapeJavaScript(loopAction.getDescription())%>'
+                    text: '<%=StringUtil.escapeJS(loopAction.getDescription())%>'
                 });
             });
         </script>
@@ -544,7 +544,7 @@
     <% } %>
     <form name="continueForm" id="continueForm" method="post" action="Helpdesk" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="detail"/>
-        <input type="hidden" name="userKey" value="<%=StringEscapeUtils.escapeHtml(obfuscatedDN)%>"/>
+        <input type="hidden" name="userKey" value="<%=StringUtil.escapeHtml(obfuscatedDN)%>"/>
         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>
     <form name="ldapUnlockForm" action="<pwm:url url='Helpdesk'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form">
@@ -574,8 +574,8 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dojo/domReady!","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser){
                 dojoParser.parse();
-                PWM_VAR['helpdesk_obfuscatedDN'] = '<%=StringEscapeUtils.escapeJavaScript(obfuscatedDN)%>';
-                PWM_VAR['helpdesk_username'] = '<%=StringEscapeUtils.escapeJavaScript(helpdeskBean.getUserInfoBean().getUsername())%>';
+                PWM_VAR['helpdesk_obfuscatedDN'] = '<%=StringUtil.escapeJS(obfuscatedDN)%>';
+                PWM_VAR['helpdesk_username'] = '<%=StringUtil.escapeJS(helpdeskBean.getUserInfoBean().getUsername())%>';
                 PWM_VAR['helpdesk_setting_clearResponses'] = '<%=pwmApplication.getConfig().readSettingAsEnum(PwmSetting.HELPDESK_CLEAR_RESPONSES,HelpdeskClearResponseMode.class)%>';
                 PWM_VAR['helpdesk_setting_PwUiMode'] = '<%=pwmApplication.getConfig().readSettingAsEnum(PwmSetting.HELPDESK_SET_PASSWORD_MODE,HelpdeskUIMode.class) %>';
             });

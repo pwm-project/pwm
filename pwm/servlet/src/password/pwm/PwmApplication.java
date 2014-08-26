@@ -94,10 +94,10 @@ public class PwmApplication {
         LAST_LDAP_ERROR("lastLdapError"),
         TOKEN_COUNTER("tokenCounter"),
         REPORT_STATUS("reporting.status"),
-        REPORT_SUMMARY("reporting.summary"),
         REPORT_CLEAN_FLAG("reporting.cleanFlag"),
         SMS_ITEM_COUNTER("smsQueue.itemCount"),
         EMAIL_ITEM_COUNTER("itemQueue.itemCount"),
+        LOCALDB_IMPORT_STATUS("localDB.import.status"),
 
         ;
 
@@ -404,7 +404,7 @@ public class PwmApplication {
                 for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
                     tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
                 }
-                LOGGER.trace("non-default app properties read from configuration: " + Helper.getGson().toJson(tempMap));
+                LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.getGson().toJson(tempMap));
             } else {
                 LOGGER.trace("no non-default app properties in configuration");
             }
@@ -419,7 +419,7 @@ public class PwmApplication {
         try {
             getAuditManager().submit(auditRecord);
         } catch (PwmException e) {
-            LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
+            LOGGER.warn("unable to submit alert event " + JsonUtil.getGson().toJson(auditRecord));
         }
     }
 
@@ -477,7 +477,7 @@ public class PwmApplication {
         envStats.put("threads",Thread.activeCount());
         envStats.put("chaiApi",ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
 
-        return "environment info: " + Helper.getGson().toJson(envStats);
+        return "environment info: " + JsonUtil.getGson().toJson(envStats);
     }
 
     private static String logDebugInfo() {
@@ -486,7 +486,7 @@ public class PwmApplication {
         debugStats.put("memallocd",Runtime.getRuntime().totalMemory());
         debugStats.put("memmax",Runtime.getRuntime().maxMemory());
         debugStats.put("threads",Thread.activeCount());
-        return "debug info:" + Helper.getGson().toJson(debugStats);
+        return "debug info:" + JsonUtil.getGson().toJson(debugStats);
     }
 
     public StatisticsManager getStatisticsManager() {
@@ -539,7 +539,7 @@ public class PwmApplication {
             try {
                 getAuditManager().submit(auditRecord);
             } catch (PwmException e) {
-                LOGGER.warn("unable to submit alert event " + Helper.getGson().toJson(auditRecord));
+                LOGGER.warn("unable to submit alert event " + JsonUtil.getGson().toJson(auditRecord));
             }
         }
 

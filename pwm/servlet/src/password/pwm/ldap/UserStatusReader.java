@@ -35,10 +35,7 @@ import password.pwm.config.*;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmPasswordRuleValidator;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
@@ -181,7 +178,7 @@ public class UserStatusReader {
     }
 
     public void populateUserInfoBean(
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final UserInfoBean uiBean,
             final Locale userLocale,
             final UserIdentity userIdentity,
@@ -207,18 +204,18 @@ public class UserStatusReader {
         try {
             uiBean.setUserIdentity(new UserIdentity(theUser.readCanonicalDN(),userIdentity.getLdapProfileID()));
         } catch (ChaiOperationException e) {
-            LOGGER.warn("error reading canonical DN: " + e.getMessage());
+            LOGGER.warn(sessionLabel, "error reading canonical DN: " + e.getMessage());
             uiBean.setUserIdentity(userIdentity);
         }
 
-        populateLocaleSpecificUserInfoBean(pwmSession, uiBean, userLocale);
+        populateLocaleSpecificUserInfoBean(sessionLabel, uiBean, userLocale);
 
         //populate OTP data
         if (config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)){
             final OtpService otpService = pwmApplication.getOtpService();
             final OTPUserRecord otpConfig = otpService.readOTPUserConfiguration(userIdentity);
             uiBean.setOtpUserRecord(otpConfig);
-            uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(pwmSession, userIdentity, otpConfig));
+            uiBean.setRequiresOtpConfig(otpService.checkIfOtpSetupNeeded(sessionLabel, userIdentity, otpConfig));
         }
 
         //populate cached password rule attributes
@@ -227,7 +224,7 @@ public class UserStatusReader {
             final Map<String, String> allUserAttrs = userDataReader.readStringAttributes(interestingUserAttributes);
             uiBean.setCachedPasswordRuleAttributes(allUserAttrs);
         } catch (ChaiOperationException e) {
-            LOGGER.warn("error retrieving user cached password rule attributes " + e);
+            LOGGER.warn(sessionLabel, "error retrieving user cached password rule attributes " + e);
         }
 
         //populate cached attributes.
@@ -238,7 +235,7 @@ public class UserStatusReader {
                     final Map<String,String> attributeValues = userDataReader.readStringAttributes(cachedAttributeNames);
                     uiBean.setCachedAttributeValues(Collections.unmodifiableMap(attributeValues));
                 } catch (ChaiOperationException e) {
-                    LOGGER.warn("error retrieving user cache attributes: " + e);
+                    LOGGER.warn(sessionLabel, "error retrieving user cache attributes: " + e);
                 }
             }
 
@@ -251,12 +248,12 @@ public class UserStatusReader {
             try {
                 uiBean.setUsername(userDataReader.readStringAttribute(uIDattr));
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error reading userID attribute: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error reading userID attribute: " + e.getMessage());
             }
         }
 
         { // set guid
-            final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+            final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
             uiBean.setUserGuid(userGuid);
         }
 
@@ -265,7 +262,7 @@ public class UserStatusReader {
             try {
                 uiBean.setUserEmailAddress(userDataReader.readStringAttribute(ldapEmailAttribute));
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error reading email address attribute: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error reading email address attribute: " + e.getMessage());
             }
         }
 
@@ -274,7 +271,7 @@ public class UserStatusReader {
             try {
                 uiBean.setUserSmsNumber(userDataReader.readStringAttribute(ldapSmsAttribute));
             } catch (ChaiOperationException e) {
-                LOGGER.error(pwmSession, "error reading sms number attribute: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error reading sms number attribute: " + e.getMessage());
             }
         }
 
@@ -288,11 +285,11 @@ public class UserStatusReader {
             }
             uiBean.setPasswordExpirationTime(ldapPasswordExpirationTime);
         } catch (Exception e) {
-            LOGGER.warn(pwmSession, "error reading password expiration time: " + e.getMessage());
+            LOGGER.warn(sessionLabel, "error reading password expiration time: " + e.getMessage());
         }
 
         // read password state
-        uiBean.setPasswordState(readPasswordStatus(pwmSession, userCurrentPassword, theUser, uiBean.getPasswordPolicy(), uiBean));
+        uiBean.setPasswordState(readPasswordStatus(sessionLabel, userCurrentPassword, theUser, uiBean.getPasswordPolicy(), uiBean));
 
         // mark if new pw required
         if (uiBean.getPasswordState().isExpired() || uiBean.getPasswordState().isPreExpired()) {
@@ -300,17 +297,17 @@ public class UserStatusReader {
         }
 
         // check if responses need to be updated
-        uiBean.setRequiresUpdateProfile(checkIfProfileUpdateNeeded(pwmSession, uiBean, userDataReader, userLocale));
+        uiBean.setRequiresUpdateProfile(checkIfProfileUpdateNeeded(sessionLabel, uiBean, userDataReader, userLocale));
 
         // fetch last password modification time;
-        final Date pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, pwmSession, userIdentity);
+        final Date pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
         uiBean.setPasswordLastModifiedTime(pwdLastModifedDate);
 
         // read user last login time:
         try {
             uiBean.setLastLdapLoginTime(theUser.readLastLoginTime());
         } catch (ChaiOperationException e) {
-            LOGGER.warn(pwmSession, "error reading user's last ldap login time: " + e.getMessage());
+            LOGGER.warn(sessionLabel, "error reading user's last ldap login time: " + e.getMessage());
         }
 
         // update report engine.
@@ -318,11 +315,11 @@ public class UserStatusReader {
             try {
                 pwmApplication.getUserReportService().updateCache(uiBean);
             } catch (LocalDBException e) {
-                LOGGER.error(pwmSession, "error updating report cache data ldap login time: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error updating report cache data ldap login time: " + e.getMessage());
             }
         }
 
-        LOGGER.trace(pwmSession, "populateUserInfoBean for " + userIdentity + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+        LOGGER.trace(sessionLabel, "populateUserInfoBean for " + userIdentity + " completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
     }
 
     public void populateLocaleSpecificUserInfoBean(
@@ -413,7 +410,7 @@ public class UserStatusReader {
         }
 
         private Settings copy() {
-            return Helper.getGson().fromJson(Helper.getGson().toJson(this),this.getClass());
+            return JsonUtil.getGson().fromJson(JsonUtil.getGson().toJson(this),this.getClass());
         }
     }
 

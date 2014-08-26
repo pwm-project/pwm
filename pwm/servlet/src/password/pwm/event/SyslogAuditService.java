@@ -40,6 +40,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -136,7 +137,7 @@ class SyslogAuditService {
         }
 
         final String prefix = event.getClass().getCanonicalName();
-        final String jsonValue = prefix + QUEUE_STORAGE_DELIMINATOR + Helper.getGson().toJson(event);
+        final String jsonValue = prefix + QUEUE_STORAGE_DELIMINATOR + JsonUtil.getGson().toJson(event);
         syslogQueue.offerLast(jsonValue);
         timer.schedule(new WriterTask(),1);
     }
@@ -168,7 +169,7 @@ class SyslogAuditService {
                     final String[] splitString = storedString.split(QUEUE_STORAGE_DELIMINATOR,2);
                     final String className = splitString[0];
                     final String jsonString = splitString[1];
-                    record = (AuditRecord)Helper.getGson().fromJson(jsonString,Class.forName(className));
+                    record = (AuditRecord) JsonUtil.getGson().fromJson(jsonString,Class.forName(className));
                 } catch (Exception e) {
                     LOGGER.error("error decoding stored syslog event, discarding; error: " + e.getMessage());
                     syslogQueue.removeFirst();
@@ -176,7 +177,7 @@ class SyslogAuditService {
                 if (record != null) {
                     final TimeDuration recordAge = TimeDuration.fromCurrent(record.getTimestamp());
                     if (recordAge.isLongerThan(MAX_AGE_MS)) {
-                        LOGGER.info("discarding syslog audit event, maximum queued age exceeded: " + Helper.getGson().toJson(record));
+                        LOGGER.info("discarding syslog audit event, maximum queued age exceeded: " + JsonUtil.getGson().toJson(record));
                         syslogQueue.removeFirst();
                     } else {
                         boolean sendSuccess = processEvent(record);
@@ -194,7 +195,7 @@ class SyslogAuditService {
     }
 
     private boolean processEvent(final AuditRecord auditRecord) {
-        final Gson gs = Helper.getGson();
+        final Gson gs = JsonUtil.getGson();
         final StringBuilder sb = new StringBuilder();
         sb.append(PwmConstants.PWM_APP_NAME);
         sb.append(" ");
@@ -279,7 +280,7 @@ class SyslogAuditService {
         }
 
         public String toString() {
-            return Helper.getGson().toJson(this);
+            return JsonUtil.getGson().toJson(this);
         }
     }
 

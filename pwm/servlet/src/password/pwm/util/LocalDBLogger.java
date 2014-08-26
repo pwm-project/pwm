@@ -652,7 +652,7 @@ public class LocalDBLogger implements PwmService {
         }
 
         private Settings copy() {
-            return Helper.getGson().fromJson(Helper.getGson().toJson(this),this.getClass());
+            return JsonUtil.getGson().fromJson(JsonUtil.getGson().toJson(this),this.getClass());
         }
     }
 }

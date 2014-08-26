@@ -84,12 +84,11 @@ public class RestVerifyOtpServer {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication());
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getSessionLabel());
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
                 ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
-                userIdentity = userSearchEngine.resolveUsername(restRequestBean.getPwmSession(), chaiUser.readUsername(), null,
-                        null);
+                userIdentity = userSearchEngine.resolveUsername(chaiUser.readUsername(), null, null);
             }
 
             final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();

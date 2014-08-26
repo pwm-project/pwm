@@ -38,12 +38,13 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.BCrypt;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -132,22 +133,23 @@ public class StoredConfiguration implements Serializable {
     {
         try {
             final String inputAsXML = input.toXml();
-            return fromXml(inputAsXML);
+            final InputStream inputStream = new ByteArrayInputStream(inputAsXML.getBytes(StandardCharsets.UTF_8));
+            return fromXml(inputStream);
         } catch (IOException e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected io error during configuration memory copy: " + e.getMessage()));
         }
     }
 
-    public static StoredConfiguration fromXml(final String xmlData)
+    public static StoredConfiguration fromXml(final InputStream xmlData)
             throws PwmUnrecoverableException
     {
         final Date startTime = new Date();
-        validateXmlSchema(xmlData);
+        //validateXmlSchema(xmlData);
 
         final SAXBuilder builder = new SAXBuilder();
         final Document inputDocument;
         try {
-            inputDocument = builder.build(new StringReader(xmlData));
+            inputDocument = builder.build(xmlData);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error parsing xml data: " + e.getMessage()));
         }
@@ -381,8 +383,8 @@ public class StoredConfiguration implements Serializable {
         try {
             final StoredValue currentValue = readSetting(setting, profileID);
             final StoredValue defaultValue = defaultValue(setting, this.getTemplate());
-            final String currentJsonValue = Helper.getGson().toJson(currentValue.toNativeObject());
-            final String defaultJsonValue = Helper.getGson().toJson(defaultValue.toNativeObject());
+            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue.toNativeObject());
+            final String defaultJsonValue = JsonUtil.getGson().toJson(defaultValue.toNativeObject());
             return defaultJsonValue.equalsIgnoreCase(currentJsonValue);
         } finally {
             domModifyLock.readLock().unlock();
@@ -461,7 +463,7 @@ public class StoredConfiguration implements Serializable {
             if (linebreaks) {
                 gsonBuilder.setPrettyPrinting();
             }
-            return Helper.getGson(gsonBuilder).toJson(outputObject);
+            return JsonUtil.getGson(gsonBuilder).toJson(outputObject);
         } finally {
             domModifyLock.readLock().unlock();
         }
@@ -786,7 +788,7 @@ public class StoredConfiguration implements Serializable {
             if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
                 if (!isDefaultValue(setting,null)) {
                     final StoredValue value = readSetting(setting);
-                    sb.append(setting.getKey()).append(Helper.getGson().toJson(value));
+                    sb.append(setting.getKey()).append(JsonUtil.getGson().toJson(value));
                 }
             }
         }
@@ -797,7 +799,7 @@ public class StoredConfiguration implements Serializable {
                     for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                         if (!isDefaultValue(profileSetting, profileID)) {
                             final StoredValue value = readSetting(profileSetting, profileID);
-                            sb.append(profileSetting.getKey()).append(profileID).append(Helper.getGson().toJson(value));
+                            sb.append(profileSetting.getKey()).append(profileID).append(JsonUtil.getGson().toJson(value));
                         }
                     }
                 }
@@ -1079,7 +1081,7 @@ public class StoredConfiguration implements Serializable {
                         final String bundleName = key.split("!")[0];
                         final String keys = key.split("!")[1];
                         final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
-                        final String debugValue = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(currentValue);
+                        final String debugValue = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(currentValue);
                         outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
                     }
                     break;
@@ -1125,16 +1127,16 @@ public class StoredConfiguration implements Serializable {
         public void updateChangeLog(final String bundleName, final String keyName, final Map<String,String> localeValueMap) {
             final String key = bundleName + "!" + keyName;
             final Map<String,String> currentValue = readLocaleBundleMap(bundleName, keyName);
-            final String currentJsonValue = Helper.getGson().toJson(currentValue);
-            final String newJsonValue = Helper.getGson().toJson(localeValueMap);
+            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue);
+            final String newJsonValue = JsonUtil.getGson().toJson(localeValueMap);
             final ConfigRecordID configRecordID = new ConfigRecordID(ConfigRecordID.RecordType.LOCALE_BUNDLE, key, null);
             updateChangeLog(configRecordID,currentJsonValue,newJsonValue);
         }
 
         public void updateChangeLog(final PwmSetting setting, final String profileID, final StoredValue newValue) {
             final StoredValue currentValue = readSetting(setting, profileID);
-            final String currentJsonValue = Helper.getGson().toJson(currentValue);
-            final String newJsonValue = Helper.getGson().toJson(newValue);
+            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue);
+            final String newJsonValue = JsonUtil.getGson().toJson(newValue);
             final ConfigRecordID configRecordID = new ConfigRecordID(ConfigRecordID.RecordType.SETTING, setting, profileID);
             updateChangeLog(configRecordID,currentJsonValue,newJsonValue);
         }

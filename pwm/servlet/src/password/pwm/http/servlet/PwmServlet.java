@@ -31,7 +31,6 @@ import password.pwm.error.*;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.FormMap;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
@@ -47,7 +46,6 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 public abstract class PwmServlet extends HttpServlet {
 // ------------------------------ FIELDS ------------------------------
@@ -81,14 +79,8 @@ public abstract class PwmServlet extends HttpServlet {
             throws ServletException, IOException
     {
         try {
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            setLastParameters(req, pwmSession.getSessionStateBean());
-        } catch (Exception e2) {
-            //noop
-        }
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
 
-
-        try {
             // check for duplicate form submit.
             try {
                 Validator.validatePwmRequestCounter(req);
@@ -96,25 +88,22 @@ public abstract class PwmServlet extends HttpServlet {
                 if (e.getError() == PwmError.ERROR_INCORRECT_REQUEST_SEQUENCE) {
                     final ErrorInformation errorInformation = e.getErrorInformation();
                     final PwmSession pwmSession = PwmSession.getPwmSession(req);
-                    pwmSession.getSessionStateBean().setSessionError(errorInformation);
                     LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                    ServletHelper.forwardToErrorPage(req, resp, false);
+                    pwmRequest.respondWithError(errorInformation);
                     return;
                 }
                 throw e;
             }
 
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
 
             // check for incorrect method type.
             final ProcessAction processAction = readProcessAction(pwmRequest);
             if (processAction != null) {
                 if (!processAction.permittedMethods().contains(method)) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
                             "incorrect request method " + method.toString());
-                    pwmRequest.getPwmSession().getSessionStateBean().setSessionError(errorInformation);
                     LOGGER.error(pwmRequest.getPwmSession(), errorInformation.toDebugStr());
-                    ServletHelper.forwardToErrorPage(req, resp, false);
+                    pwmRequest.respondWithError(errorInformation, false);
                     return;
                 }
             }
@@ -125,6 +114,20 @@ public abstract class PwmServlet extends HttpServlet {
 
             this.processAction(pwmRequest);
         } catch (Exception e) {
+            final PwmRequest pwmRequest;
+            try {
+                pwmRequest = PwmRequest.forRequest(req, resp);
+            } catch (Exception e2) {
+                try {
+                    LOGGER.fatal(
+                            "exception occurred, but exception handler unable to load request instance; error=" + e.getMessage(),
+                            e);
+                } catch (Exception e3) {
+                    e3.printStackTrace();
+                }
+                throw new ServletException(e);
+            }
+
             final PwmApplication pwmApplication;
             try {
                 pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
@@ -159,7 +162,7 @@ public abstract class PwmServlet extends HttpServlet {
                 return;
             }
 
-            outputUnrecoverableException(req, resp, pwmApplication, pwmSession, pue);
+            outputUnrecoverableException(pwmRequest, pue);
         }
     }
 
@@ -241,43 +244,24 @@ public abstract class PwmServlet extends HttpServlet {
     }
 
     private void outputUnrecoverableException(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final PwmUnrecoverableException e
     )
             throws IOException, ServletException
     {
 
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         ssBean.setSessionError(e.getErrorInformation());
-        final String acceptHeader = req.getHeader("Accept");
+        final String acceptHeader = pwmRequest.getHttpServletRequest().getHeader("Accept");
         if (acceptHeader.contains("application/json")) {
-            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation());
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
+            pwmRequest.outputJsonResult(restResultBean);
         } else {
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.respondWithError(e.getErrorInformation());
         }
     }
 
 
-    private void setLastParameters(
-            final HttpServletRequest req,
-            final SessionStateBean ssBean
-    )
-            throws PwmUnrecoverableException
-    {
-        final Set keyNames = req.getParameterMap().keySet();
-        final FormMap newParamProperty = new FormMap();
-
-        for (final Object name : keyNames) {
-            final String value = Validator.readStringFromRequest(req, (String) name);
-            newParamProperty.put((String) name, value);
-        }
-
-        ssBean.setLastParameterValues(newParamProperty);
-    }
 
     protected abstract void processAction(PwmRequest request)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException;

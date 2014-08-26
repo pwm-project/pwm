@@ -39,7 +39,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.csv.CsvWriter;
@@ -190,7 +190,7 @@ public class AuditManager implements PwmService {
             }
         }
         {
-            final UserEventStorageMethod userEventStorageMethod = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.INTRUDER_STORAGE_METHOD, UserEventStorageMethod.class);
+            final UserEventStorageMethod userEventStorageMethod = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.EVENTS_USER_STORAGE_METHOD, UserEventStorageMethod.class);
             final String debugMsg;
             final DataStorageMethod storageMethodUsed;
             switch (userEventStorageMethod) {
@@ -318,8 +318,8 @@ public class AuditManager implements PwmService {
         final String subject = PwmConstants.PWM_APP_NAME + " - Audit Event - " + record.getEventCode().toString();
 
         final StringBuilder body = new StringBuilder();
-        final String jsonRecord = Helper.getGson().toJson(record);
-        final Map<String,Object> mapRecord = Helper.getGson().fromJson(jsonRecord, new TypeToken <Map<String, Object>>() {
+        final String jsonRecord = JsonUtil.getGson().toJson(record);
+        final Map<String,Object> mapRecord = JsonUtil.getGson().fromJson(jsonRecord, new TypeToken <Map<String, Object>>() {
         }.getType());
 
         for (final String key : mapRecord.keySet()) {
@@ -352,7 +352,7 @@ public class AuditManager implements PwmService {
             throws PwmUnrecoverableException
     {
 
-        final String gsonRecord = Helper.getGson().toJson(auditRecord);
+        final String gsonRecord = JsonUtil.getGson().toJson(auditRecord);
 
         if (status != STATUS.OPEN) {
             LOGGER.warn("discarding audit event (AuditManager is not open); event=" + gsonRecord);

@@ -33,7 +33,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -58,7 +58,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
 
         int counter = 0;
         String line;
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final long startTime = System.currentTimeMillis();
         while ((line = reader.readLine()) != null) {
             counter++;
@@ -78,7 +78,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
                     final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
                             userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
                     final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
-                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+                    final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());
                     pwmApplication.getCrService().writeResponses(user, userGuid, responseInfoBean );
                 } catch (Exception e) {

@@ -49,6 +49,7 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.operations.ActionExecutor;
@@ -154,7 +155,7 @@ public class UpdateProfileServlet extends TopServlet {
         outputMap.put("message", userMessage);
         outputMap.put("success", String.valueOf(success));
 
-        final String output = Helper.getGson().toJson(outputMap);
+        final String output = JsonUtil.getGson().toJson(outputMap);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);
@@ -303,7 +304,7 @@ public class UpdateProfileServlet extends TopServlet {
         final Map<FormConfiguration,String> existingForm = updateProfileBean.getFormData();
 
         final String bodyString = ServletHelper.readRequestBody(req);
-        final Map<String, String> clientValues = Helper.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
+        final Map<String, String> clientValues = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 
         if (clientValues != null) {

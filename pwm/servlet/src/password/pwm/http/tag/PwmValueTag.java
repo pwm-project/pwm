@@ -23,11 +23,11 @@
 package password.pwm.http.tag;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.StringUtil;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -98,7 +98,7 @@ public class PwmValueTag extends TagSupport {
                         LOGGER.error(pwmRequest, "error expanding macros in homeURL: " + e.getMessage());
                     }
                 }
-                return StringEscapeUtils.escapeHtml(outputURL);
+                return StringUtil.escapeHtml(outputURL);
             }
 
             case passwordFieldType: {

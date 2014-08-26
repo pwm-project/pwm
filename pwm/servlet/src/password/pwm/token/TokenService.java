@@ -44,10 +44,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserAuthenticator;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmRandom;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.operations.PasswordUtility;
@@ -208,7 +205,7 @@ public class TokenService implements PwmService {
                 AuditEvent.TOKEN_ISSUED,
                 tokenPayload.getUserIdentity(),
                 pwmSession,
-                Helper.getGson().toJson(tokenPayload)
+                JsonUtil.getGson().toJson(tokenPayload)
         ));
 
         return tokenKey;
@@ -232,7 +229,7 @@ public class TokenService implements PwmService {
                 AuditEvent.TOKEN_CLAIMED,
                 tokenPayload.getUserIdentity(),
                 pwmSession,
-                Helper.getGson().toJson(tokenPayload)
+                JsonUtil.getGson().toJson(tokenPayload)
         ));
 
         StatisticsManager.incrementStat(pwmApplication, Statistic.TOKENS_PASSSED);
@@ -306,7 +303,7 @@ public class TokenService implements PwmService {
         }
         final Date issueDate = theToken.getDate();
         if (issueDate == null) {
-            LOGGER.error("retrieved token has no issueDate, marking as expired: " + Helper.getGson().toJson(theToken));
+            LOGGER.error("retrieved token has no issueDate, marking as expired: " + JsonUtil.getGson().toJson(theToken));
             return true;
         }
         final TimeDuration duration = new TimeDuration(issueDate,new Date());
@@ -319,7 +316,7 @@ public class TokenService implements PwmService {
         }
         final Date issueDate = theToken.getDate();
         if (issueDate == null) {
-            LOGGER.error("retrieved token has no issueDate, marking as purgable: " + Helper.getGson().toJson(theToken));
+            LOGGER.error("retrieved token has no issueDate, marking as purgable: " + JsonUtil.getGson().toJson(theToken));
             return true;
         }
         final TimeDuration duration = new TimeDuration(issueDate,new Date());
@@ -469,7 +466,7 @@ public class TokenService implements PwmService {
     String toEncryptedString(final TokenPayload tokenPayload)
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final String jsonPayload = gson.toJson(tokenPayload);
         return Helper.SimpleTextCrypto.encryptValue(jsonPayload, secretKey, true);
     }
@@ -480,7 +477,7 @@ public class TokenService implements PwmService {
         final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
         try {
             final String decryptedString = Helper.SimpleTextCrypto.decryptValue(deWhiteSpacedToken, secretKey, true);
-            return Helper.getGson().fromJson(decryptedString,TokenPayload.class);
+            return JsonUtil.getGson().fromJson(decryptedString,TokenPayload.class);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unable to decrypt user supplied token value: " + e.getErrorInformation().toDebugStr();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
@@ -561,7 +558,7 @@ public class TokenService implements PwmService {
             throw new PwmOperationalException(errorInformation);
         }
 
-        LOGGER.trace(pwmSession, "retrieved tokenPayload: " + Helper.getGson().toJson(tokenPayload));
+        LOGGER.trace(pwmSession, "retrieved tokenPayload: " + JsonUtil.getGson().toJson(tokenPayload));
 
         if (tokenName != null && pwmApplication.getTokenService().supportsName()) {
             if (!tokenName.equals(tokenPayload.getName()) ) {

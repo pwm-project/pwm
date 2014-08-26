@@ -43,6 +43,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogLevel;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -82,7 +83,7 @@ public class Configuration implements Serializable {
     }
 
     public String toString(final PwmSetting pwmSetting) {
-        return Helper.getGson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
+        return JsonUtil.getGson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -533,6 +534,11 @@ public class Configuration implements Serializable {
 
     public boolean readSettingAsBoolean(final PwmSetting setting) {
         return JavaTypeConverter.valueToBoolean(readStoredValue(setting));
+    }
+
+    public Map<FileValue.FileInformation,FileValue.FileContent> readSettingAsFile(final PwmSetting setting) {
+        FileValue fileValue = (FileValue)storedConfiguration.readSetting(setting);
+        return (Map)fileValue.toNativeObject();
     }
 
     public X509Certificate[] readSettingAsCertificate(final PwmSetting setting) {

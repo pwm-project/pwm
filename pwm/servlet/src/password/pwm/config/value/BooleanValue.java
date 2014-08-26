@@ -27,7 +27,7 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.i18n.Display;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +41,7 @@ public class BooleanValue implements StoredValue {
     }
 
     static BooleanValue fromJson(String value) {
-        return new BooleanValue(Helper.getGson().fromJson(value, Boolean.class));
+        return new BooleanValue(JsonUtil.getGson().fromJson(value, Boolean.class));
     }
 
     static BooleanValue fromXmlElement(final Element settingElement) {

@@ -135,7 +135,7 @@ public class ReportSummaryData {
         update(userCacheRecord,false);
     }
 
-    private void update(UserCacheRecord userCacheRecord, boolean adding) {
+    private synchronized void update(UserCacheRecord userCacheRecord, boolean adding) {
         final int modifier = adding ? 1 : -1;
 
         totalUsers += modifier;

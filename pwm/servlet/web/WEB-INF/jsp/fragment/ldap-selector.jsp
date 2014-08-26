@@ -1,8 +1,8 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.Validator" %>
 <%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.SelectableContextMode" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -38,7 +38,8 @@
 <select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield" onclick="PWM_MAIN.updateLoginContexts()">
     <% for (final String profileID : ldapProfiles.keySet()) { %>
     <% final String displayName = ldapProfiles.get(profileID).getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale()); %>
-    <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringEscapeUtils.escapeHtml(displayName)%></option>
+    <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
+            displayName)%></option>
     <% } %>
 </select>
 <% } %>
@@ -46,7 +47,7 @@
     <h2><label for="<%=PwmConstants.PARAM_CONTEXT%>"><pwm:display key="Field_Location"/></label></h2>
     <select name="<%=PwmConstants.PARAM_CONTEXT%>" id="<%=PwmConstants.PARAM_CONTEXT%>" class="selectfield">
         <% for (final String key : selectedProfile.getLoginContexts().keySet()) { %>
-        <option value="<%=StringEscapeUtils.escapeHtml(key)%>"><%=StringEscapeUtils.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
+        <option value="<%=StringUtil.escapeHtml(key)%>"><%=StringUtil.escapeHtml(selectedProfile.getLoginContexts().get(key))%></option>
         <% } %>
     </select>
 </div>

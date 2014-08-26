@@ -22,7 +22,6 @@
 
 package password.pwm.http.tag;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
@@ -32,6 +31,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.StringUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -178,7 +178,7 @@ public class PasswordRequirementsTag extends TagSupport {
             final StringBuilder fieldValue = new StringBuilder();
             for (final String loopValue : setValue) {
                 fieldValue.append(" ");
-                fieldValue.append(StringEscapeUtils.escapeHtml(loopValue));
+                fieldValue.append(StringUtil.escapeHtml(loopValue));
             }
             returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale, config));
         }

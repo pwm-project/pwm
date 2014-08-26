@@ -41,6 +41,14 @@
     <%= category.getDescription(locale)%>
 </div>
 <% } %>
+<% if (cookie.getCategory() == PwmSetting.Category.DATABASE) { %>
+<div style="width: 100%; text-align: center">
+<button class="btn" onclick="PWM_CFGEDIT.databaseHealthCheck()">
+    <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
+    Test Database Settings
+</button>
+    </div>
+<% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>
 <% request.setAttribute("setting",loopSetting); %>

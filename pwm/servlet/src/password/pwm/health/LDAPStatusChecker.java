@@ -47,7 +47,7 @@ import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.TimeDuration;
@@ -472,7 +472,7 @@ public class LDAPStatusChecker implements HealthChecker {
         final Set<ChaiProvider.DIRECTORY_VENDOR> discoveredVendors = new HashSet<>(replicaVendorMap.values());
 
         if (discoveredVendors.size() >= 2) {
-            final String mapAsJson = Helper.getGson().toJson(replicaVendorMap);
+            final String mapAsJson = JsonUtil.getGson().toJson(replicaVendorMap);
             healthRecords.add(HealthRecord.forMessage(HealthMessage.LDAP_VendorsNotSame, mapAsJson));
             // cache the error
             healthProperties.put(HealthMonitor.HealthProperty.LdapVendorSameCheck, healthRecords);

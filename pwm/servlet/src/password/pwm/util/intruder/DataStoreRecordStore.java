@@ -67,7 +67,7 @@ class DataStoreRecordStore implements RecordStore {
         }
 
         try {
-            return Helper.getGson().fromJson(value,IntruderRecord.class);
+            return JsonUtil.getGson().fromJson(value,IntruderRecord.class);
         } catch (Exception e) {
             LOGGER.error("error decoding IntruderRecord:" + e.getMessage());
         }
@@ -79,7 +79,7 @@ class DataStoreRecordStore implements RecordStore {
 
     @Override
     public void write(final String key, final IntruderRecord record) throws PwmOperationalException {
-        final String jsonRecord = Helper.getGson().toJson(record);
+        final String jsonRecord = JsonUtil.getGson().toJson(record);
         try {
             dataStore.put(key, jsonRecord);
         } catch (PwmDataStoreException e) {

@@ -1,7 +1,7 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -59,21 +59,21 @@
                         <td><b>Template</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getStoredConfiguration().getTemplate().getLabel(pwmRequest.getLocale()))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getStoredConfiguration().getTemplate().getLabel(pwmRequest.getLocale()))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Server Hostname</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_HOST))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Port</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_PORT))%>
                         </td>
                     </tr>
                     <tr>
@@ -91,28 +91,29 @@
                         <td><b>Proxy/Admin LDAP DN</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP_ADMIN_DN))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Contextless Login Root</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT))%>
+                            <%=StringUtil.escapeHtml(
+                                    configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>Administrator Search Filter</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS))%>
                         </td>
                     </tr>
                     <tr>
                         <td><b>LDAP Test User DN</b>
                         </td>
                         <td>
-                            <%=StringEscapeUtils.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER))%>
                         </td>
                     </tr>
                     <tr>

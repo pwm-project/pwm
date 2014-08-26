@@ -26,9 +26,11 @@ import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.ws.server.rest.RestChallengesServer;
 
@@ -51,15 +53,15 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         Helper.pause(2000);
 
         final long startTime = System.currentTimeMillis();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setUsername("*");
 
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile,"UTF-8"));
-        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(null,searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;
         for (final UserIdentity identity : results.keySet()) {

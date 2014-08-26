@@ -108,13 +108,13 @@ public class ForgottenUsernameServlet extends TopServlet {
             // see if the values meet the configured form requirements.
             Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
 
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
             searchConfiguration.setFilter(pwmApplication.getConfig().readSettingAsString(PwmSetting.FORGOTTEN_USERNAME_SEARCH_FILTER));
             searchConfiguration.setFormValues(formValues);
             searchConfiguration.setLdapProfile(ldapProfile);
             searchConfiguration.setContexts(Collections.singletonList(contextParam));
-            final UserIdentity userIdentity = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+            final UserIdentity userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
 
             if (userIdentity == null) {
                 ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));

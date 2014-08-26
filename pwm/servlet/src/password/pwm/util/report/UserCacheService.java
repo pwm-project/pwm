@@ -35,6 +35,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -182,7 +183,7 @@ public class UserCacheService implements PwmService {
         public static StorageKey fromUserIdentity(final PwmApplication pwmApplication, final UserIdentity userIdentity)
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, true);
+            final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, true);
             return fromUserGUID(userGUID);
         }
 
@@ -208,7 +209,7 @@ public class UserCacheService implements PwmService {
         private void write(StorageKey key, UserCacheRecord cacheBean)
                 throws LocalDBException
         {
-            final String jsonValue = Helper.getGson().toJson(cacheBean);
+            final String jsonValue = JsonUtil.getGson().toJson(cacheBean);
             localDB.put(DB,key.getKey(),jsonValue);
         }
 
@@ -218,7 +219,7 @@ public class UserCacheService implements PwmService {
             final String jsonValue = localDB.get(DB,key.getKey());
             if (jsonValue != null && !jsonValue.isEmpty()) {
                 try {
-                    return Helper.getGson().fromJson(jsonValue,UserCacheRecord.class);
+                    return JsonUtil.getGson().fromJson(jsonValue,UserCacheRecord.class);
                 } catch (JsonSyntaxException e) {
                     LOGGER.error("error reading record from cache store for key=" + key.getKey() + ", error: " + e.getMessage());
                     localDB.remove(DB,key.getKey());

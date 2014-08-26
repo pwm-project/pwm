@@ -1,5 +1,5 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -51,9 +51,9 @@
         <br/>
         <% if (500 == statusCode) { %>
         <textarea rows="10" style="width: 90%; font-size:small;" readonly="true">
-            <%=StringEscapeUtils.escapeHtml(pageContext.getErrorData().getThrowable().toString())%>
+            <%=StringUtil.escapeHtml(pageContext.getErrorData().getThrowable().toString())%>
             <% for (final StackTraceElement stElement : pageContext.getErrorData().getThrowable().getStackTrace()) { %>
-            <%=StringEscapeUtils.escapeHtml(stElement.toString())%>
+            <%=StringUtil.escapeHtml(stElement.toString())%>
             <% } %>
         </textarea>
         <% } %>

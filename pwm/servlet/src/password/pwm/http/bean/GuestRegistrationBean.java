@@ -23,6 +23,7 @@
 package password.pwm.http.bean;
 
 import password.pwm.bean.UserIdentity;
+import password.pwm.util.FormMap;
 
 import java.util.Date;
 
@@ -34,6 +35,7 @@ public class GuestRegistrationBean implements PwmSessionBean {
 
     private UserIdentity updateUserIdentity;
     private Date updateUserExpirationDate;
+    private FormMap formValues = new FormMap();
     private String menumode;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -60,6 +62,16 @@ public class GuestRegistrationBean implements PwmSessionBean {
 
     public void setMenumode(String menumode) {
         this.menumode = menumode;
+    }
+
+    public FormMap getFormValues()
+    {
+        return formValues;
+    }
+
+    public void setFormValues(FormMap formValues)
+    {
+        this.formValues = formValues;
     }
 }
 

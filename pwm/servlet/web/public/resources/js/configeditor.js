@@ -27,10 +27,10 @@ var PWM_MAIN = PWM_MAIN || {};
 var PWM_VAR = PWM_VAR || {};
 var outstandingOperations = 0;
 
-function readSetting(keyName, valueWriter) {
+PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
     require(["dojo"],function(dojo){
         outstandingOperations++;
-        handleWorkingIcon();
+        PWM_CFGEDIT.handleWorkingIcon();
         dojo.xhrGet({
             url:"ConfigEditor?processAction=readSetting&key=" + keyName + "&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
             contentType: "application/json;charset=utf-8",
@@ -39,28 +39,28 @@ function readSetting(keyName, valueWriter) {
             handleAs: "json",
             error: function(errorObj) {
                 outstandingOperations--;
-                handleWorkingIcon();
+                PWM_CFGEDIT.handleWorkingIcon();
                 PWM_MAIN.showError("Unable to communicate with server.  Please refresh page.");
                 console.log("error loading " + keyName + ", reason: " + errorObj);
             },
             load: function(data) {
                 outstandingOperations--;
-                handleWorkingIcon();
+                PWM_CFGEDIT.handleWorkingIcon();
                 console.log('read data for setting ' + keyName);
                 var resultValue = data.value;
                 valueWriter(resultValue);
                 var isDefault = data['isDefault'];
-                updateSettingDisplay(keyName, isDefault)
+                PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault)
             }
         });
     });
-}
+};
 
-function writeSetting(keyName, valueData) {
+PWM_CFGEDIT.writeSetting = function(keyName, valueData) {
     require(["dojo"],function(dojo){
         var jsonString = dojo.toJson(valueData);
         outstandingOperations++;
-        handleWorkingIcon();
+        PWM_CFGEDIT.handleWorkingIcon();
         dojo.xhrPost({
             url: "ConfigEditor?processAction=writeSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&key=" + keyName,
             postData: jsonString,
@@ -71,16 +71,16 @@ function writeSetting(keyName, valueData) {
             preventCache: true,
             error: function(errorObj) {
                 outstandingOperations--;
-                handleWorkingIcon();
+                PWM_CFGEDIT.handleWorkingIcon();
                 PWM_MAIN.showError("Unable to communicate with server.  Please refresh page.");
                 console.log("error writing setting " + keyName + ", reason: " + errorObj)
             },
             load: function(data) {
                 outstandingOperations--;
-                handleWorkingIcon();
+                PWM_CFGEDIT.handleWorkingIcon();
                 console.log('wrote data for setting ' + keyName);
                 var isDefault = data['isDefault'];
-                updateSettingDisplay(keyName, isDefault)
+                PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault)
                 if (data['errorMessage']) {
                     PWM_MAIN.showError(data['errorMessage']);
                 } else {
@@ -89,7 +89,7 @@ function writeSetting(keyName, valueData) {
             }
         });
     });
-}
+};
 
 PWM_CFGEDIT.resetSetting=function(keyName) {
     require(["dojo"],function(dojo){
@@ -113,17 +113,17 @@ PWM_CFGEDIT.resetSetting=function(keyName) {
 };
 
 
-function handleWorkingIcon() {
+PWM_CFGEDIT.handleWorkingIcon = function() {
     var iconElement = PWM_MAIN.getObject('working_icon');
     if (outstandingOperations > 0) {
         iconElement.style.visibility = 'visible';
     } else {
         iconElement.style.visibility = 'hidden';
     }
-}
+};
 
 
-function updateSettingDisplay(keyName, isDefault) {
+PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
     require(["dojo"],function(dojo){
         var resetImageButton = PWM_MAIN.getObject('resetButton-' + keyName);
         var settingSyntax = '';
@@ -131,7 +131,7 @@ function updateSettingDisplay(keyName, isDefault) {
             settingSyntax = PWM_SETTINGS['settings'][keyName]['syntax'];
         } catch (e) { /* noop */ }  //setting keys may not be loaded
 
-        if (!isDefault && (settingSyntax != 'X509CERT' && settingSyntax != 'PASSWORD')) {
+        if (!isDefault && (settingSyntax != 'X509CERT')) {
             resetImageButton.style.visibility = 'visible';
             try {
                 dojo.addClass('title_' + keyName,"modified");
@@ -145,9 +145,9 @@ function updateSettingDisplay(keyName, isDefault) {
             } catch (e) { /* noop */ }
         }
     });
-}
+};
 
-function clearDivElements(parentDiv, showLoading) {
+PWM_CFGEDIT.clearDivElements = function(parentDiv, showLoading) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     if (parentDivElement != null) {
         if (parentDivElement.hasChildNodes()) {
@@ -168,10 +168,9 @@ function clearDivElements(parentDiv, showLoading) {
             newTableRow.appendChild(newTableData);
         }
     }
-}
+};
 
-function addValueButtonRow(parentDiv, keyName, addFunction) {
-
+PWM_CFGEDIT.addValueButtonRow = function(parentDiv, keyName, addFunction) {
     var buttonId = keyName + '-addValueButton';
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
@@ -197,9 +196,9 @@ function addValueButtonRow(parentDiv, keyName, addFunction) {
             onClick: addFunction
         }, buttonId);
     });
-}
+};
 
-function addAddLocaleButtonRow(parentDiv, keyName, addFunction) {
+PWM_CFGEDIT.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction) {
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
 
@@ -257,8 +256,8 @@ LocaleTableHandler.initLocaleTable = function(parentDiv, keyName, regExPattern, 
     clientSettingCache[keyName + "_regExPattern"] = regExPattern;
     clientSettingCache[keyName + "_syntax"] = syntax;
     clientSettingCache[keyName + "_parentDiv"] = parentDiv;
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         LocaleTableHandler.draw(keyName);
     });
@@ -271,11 +270,11 @@ LocaleTableHandler.draw = function(keyName) {
 
     require(["dojo/parser","dijit/form/Button","dijit/form/Textarea","dijit/form/ValidationTextBox"],function(dojoParser){
         var resultValue = clientSettingCache[keyName];
-        clearDivElements(parentDiv, false);
+        PWM_CFGEDIT.clearDivElements(parentDiv, false);
         for (var i in resultValue) {
             LocaleTableHandler.addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
         }
-        addAddLocaleButtonRow(parentDiv, keyName, function() {
+        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, function() {
             LocaleTableHandler.addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
         });
 
@@ -353,7 +352,7 @@ LocaleTableHandler.writeLocaleSetting = function(settingKey, locale, value) {
     } else {
         currentValues[locale] = value;
     }
-    writeSetting(settingKey, currentValues);
+    PWM_CFGEDIT.writeSetting(settingKey, currentValues);
     clientSettingCache[settingKey] = currentValues;
 };
 
@@ -385,8 +384,8 @@ MultiTableHandler.initMultiTable = function(parentDiv, keyName, regExPattern) {
     clientSettingCache[keyName + "_options"] = clientSettingCache[keyName + "_options"] || {};
     clientSettingCache[keyName + "_options"]['parentDiv'] = parentDiv;
     clientSettingCache[keyName + "_options"]['regExPattern'] = regExPattern;
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         MultiTableHandler.draw(keyName);
     });
@@ -395,7 +394,7 @@ MultiTableHandler.initMultiTable = function(parentDiv, keyName, regExPattern) {
 
 MultiTableHandler.draw = function(settingKey) {
     var parentDiv = clientSettingCache[settingKey + "_options"]['parentDiv'];
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var resultValue = clientSettingCache[settingKey];
     var counter = 0;
     var itemCount = PWM_MAIN.itemCount(clientSettingCache[settingKey]);
@@ -465,7 +464,7 @@ MultiTableHandler.valueHandler = function(settingKey, iteration) {
         } else {
             clientSettingCache[settingKey].push(value);
         }
-        writeSetting(settingKey, clientSettingCache[settingKey]);
+        PWM_CFGEDIT.writeSetting(settingKey, clientSettingCache[settingKey]);
         MultiTableHandler.draw(settingKey);
     };
 
@@ -549,7 +548,7 @@ MultiTableHandler.move = function(settingKey, moveUp, iteration) {
     } else {
         MultiTableHandler.arrayMoveUtil(currentValues, iteration, iteration + 1);
     }
-    writeSetting(settingKey, currentValues);
+    PWM_CFGEDIT.writeSetting(settingKey, currentValues);
     MultiTableHandler.draw(settingKey);
 };
 
@@ -562,7 +561,7 @@ MultiTableHandler.arrayMoveUtil = function(arr, fromIndex, toIndex) {
 MultiTableHandler.removeValue = function(settingKey, iteration) {
     var currentValues = clientSettingCache[settingKey];
     delete currentValues[iteration];
-    writeSetting(settingKey, currentValues);
+    PWM_CFGEDIT.writeSetting(settingKey, currentValues);
     MultiTableHandler.draw(settingKey);
 };
 
@@ -572,8 +571,8 @@ var MultiLocaleTableHandler = {};
 
 MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regExPattern) {
     console.log('MultiLocaleTableHandler init for ' + keyName);
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         MultiLocaleTableHandler.draw(parentDiv, keyName, regExPattern);
     });
@@ -582,7 +581,7 @@ MultiLocaleTableHandler.initMultiLocaleTable = function(parentDiv, keyName, regE
 MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
     var resultValue = clientSettingCache[keyName];
     require(["dojo","dijit/registry","dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox","dijit/form/Textarea","dijit/registry"],function(dojo,registry,dojoParser){
-        clearDivElements(parentDiv, false);
+        PWM_CFGEDIT.clearDivElements(parentDiv, false);
         for (var localeName in resultValue) {
             var localeTableRow = document.createElement("tr");
             localeTableRow.setAttribute("style", "border-width: 0;");
@@ -692,7 +691,7 @@ MultiLocaleTableHandler.draw = function(parentDiv, keyName, regExPattern) {
             });
         };
 
-        addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
         clientSettingCache[keyName] = resultValue;
         dojoParser.parse(parentDiv);
     });
@@ -715,7 +714,7 @@ MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, i
         }
     }
 
-    writeSetting(settingKey, clientSettingCache[settingKey]);
+    PWM_CFGEDIT.writeSetting(settingKey, clientSettingCache[settingKey]);
     var parentDiv = 'table_setting_' + settingKey;
     MultiLocaleTableHandler.draw(parentDiv, settingKey, regExPattern);
 };
@@ -728,8 +727,8 @@ FormTableHandler.init = function(keyName,options) {
     console.log('FormTableHandler init for ' + keyName);
     var parentDiv = 'table_setting_' + keyName;
     clientSettingCache[keyName + '_options'] = options;
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         FormTableHandler.redraw(keyName);
     });
@@ -738,7 +737,7 @@ FormTableHandler.init = function(keyName,options) {
 FormTableHandler.redraw = function(keyName) {
     var resultValue = clientSettingCache[keyName];
     var parentDiv = 'table_setting_' + keyName;
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
@@ -883,7 +882,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
 
 FormTableHandler.writeFormSetting = function(settingKey) {
     var cachedSetting = clientSettingCache[settingKey];
-    writeSetting(settingKey, cachedSetting);
+    PWM_CFGEDIT.writeSetting(settingKey, cachedSetting);
 };
 
 FormTableHandler.removeMultiSetting = function(keyName, iteration) {
@@ -1095,7 +1094,7 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
             });
         };
 
-        addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
+        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
     });
 };
 
@@ -1164,7 +1163,7 @@ FormTableHandler.showRegexErrorsDialog = function(keyName, iteration) {
             });
         };
 
-        addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
+        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
     });
 };
 
@@ -1331,7 +1330,7 @@ FormTableHandler.showDescriptionDialog = function(keyName, iteration) {
             });
         };
 
-        addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
+        PWM_CFGEDIT.addAddLocaleButtonRow(inputID + 'table', inputID, addLocaleFunction);
     });
 };
 
@@ -1352,6 +1351,7 @@ FormTableHandler.removeDescriptionLocale = function(keyName, iteration, localeNa
 var ChangePasswordHandler = {};
 
 ChangePasswordHandler.init = function(settingKey,settingName,writeFunction) {
+    alert('cph');
     if (!clientSettingCache[settingKey]) {
         clientSettingCache[settingKey] = {};
     }
@@ -1412,7 +1412,7 @@ ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
 ChangePasswordHandler.doChange = function(settingKey) {
     var password1 = clientSettingCache[settingKey]['settings']['p1'];
     PWM_MAIN.clearDijitWidget('dialogPopup');
-    writeSetting(settingKey,password1);
+    PWM_CFGEDIT.writeSetting(settingKey,password1);
     PWM_MAIN.showInfo(clientSettingCache[settingKey]['settings']['name'] + ' password recorded ');
     clear(settingKey);
 };
@@ -1559,8 +1559,8 @@ var ActionHandler = {};
 ActionHandler.init = function(keyName) {
     console.log('ActionHandler init for ' + keyName);
     var parentDiv = 'table_setting_' + keyName;
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         ActionHandler.redraw(keyName);
     });
@@ -1570,7 +1570,7 @@ ActionHandler.redraw = function(keyName) {
     console.log('ActionHandler redraw for ' + keyName)
     var resultValue = clientSettingCache[keyName];
     var parentDiv = 'table_setting_' + keyName;
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     if (!PWM_MAIN.isEmpty(resultValue)) {
@@ -1706,7 +1706,7 @@ ActionHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
 
 ActionHandler.writeFormSetting = function(settingKey) {
     var cachedSetting = clientSettingCache[settingKey];
-    writeSetting(settingKey, cachedSetting);
+    PWM_CFGEDIT.writeSetting(settingKey, cachedSetting);
 };
 
 ActionHandler.removeMultiSetting = function(keyName, iteration) {
@@ -1943,7 +1943,7 @@ var EmailTableHandler = {};
 
 EmailTableHandler.init = function(keyName) {
     console.log('EmailTableHandler init for ' + keyName);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         EmailTableHandler.draw(keyName);
     });
@@ -1952,10 +1952,10 @@ EmailTableHandler.init = function(keyName) {
 EmailTableHandler.draw = function(keyName) {
     var resultValue = clientSettingCache[keyName];
     var parentDiv = 'table_setting_' + keyName;
-    clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
     require(["dojo/parser","dojo/html","dijit/form/ValidationTextBox","dijit/form/Textarea"],
         function(dojoParser,dojoHtml,ValidationTextBox,Textarea){
-            clearDivElements(parentDiv, false);
+            PWM_CFGEDIT.clearDivElements(parentDiv, false);
             for (var localeName in resultValue) {
                 EmailTableHandler.drawRow(keyName,localeName,parentDiv)
             }
@@ -1988,7 +1988,7 @@ EmailTableHandler.draw = function(keyName) {
                         }
                     });
                 };
-                addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
+                PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
             }
             dojoParser.parse(parentDiv);
         });
@@ -2129,7 +2129,7 @@ EmailTableHandler.popupEditor = function(keyName, localeName) {
 
 EmailTableHandler.writeSetting = function(settingKey, redraw) {
     var currentValues = clientSettingCache[settingKey];
-    writeSetting(settingKey, currentValues);
+    PWM_CFGEDIT.writeSetting(settingKey, currentValues);
     if (redraw) {
         EmailTableHandler.draw(settingKey);
     }
@@ -2142,7 +2142,7 @@ var BooleanHandler = {};
 BooleanHandler.init = function(keyName) {
     console.log('BooleanHandler init for ' + keyName);
     var parentDiv = 'button_' + keyName;
-    clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
     require(["dijit/form/ToggleButton"],function(ToggleButton){
         var toggleButton = new ToggleButton({
             id: parentDiv,
@@ -2150,7 +2150,7 @@ BooleanHandler.init = function(keyName) {
             disabled: true,
             showLabel: PWM_MAIN.showString('Display_PleaseWait')
         },parentDiv);
-        readSetting(keyName, function(resultValue) {
+        PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
             require(["dijit/registry","dojo/on"],function(registry,on){
                 var toggleButtonWidget = registry.byId(parentDiv);
                 toggleButtonWidget.set('checked',resultValue);
@@ -2167,7 +2167,7 @@ BooleanHandler.init = function(keyName) {
 };
 
 BooleanHandler.toggle = function(keyName,widget) {
-    writeSetting(keyName,widget.checked);
+    PWM_CFGEDIT.writeSetting(keyName,widget.checked);
 };
 
 // -------------------------- challenge handler ------------------------------------
@@ -2178,8 +2178,8 @@ ChallengeSettingHandler.defaultItem = {text:'Question',minLength:4,maxLength:200
 ChallengeSettingHandler.init = function(keyName) {
     var parentDiv = "table_setting_" + keyName;
     console.log('ChallengeSettingHandler init for ' + keyName);
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         ChallengeSettingHandler.draw(keyName);
     });
@@ -2191,7 +2191,7 @@ ChallengeSettingHandler.draw = function(keyName) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     var bodyText = '';
     bodyText += '<table style="border:1px grey solid; cursor: pointer">';
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     for (var localeName in resultValue) {
         (function(localeKey) {
             var isDefaultLocale = localeKey == "";
@@ -2242,7 +2242,7 @@ ChallengeSettingHandler.draw = function(keyName) {
     };
     var tableElement = document.createElement("table");
     parentDivElement.appendChild(tableElement);
-    addAddLocaleButtonRow(tableElement, keyName, addLocaleFunction);
+    PWM_CFGEDIT.addAddLocaleButtonRow(tableElement, keyName, addLocaleFunction);
 };
 
 ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
@@ -2380,7 +2380,7 @@ ChallengeSettingHandler.addRow = function(keyName, localeKey) {
 };
 
 ChallengeSettingHandler.write = function(settingKey) {
-    writeSetting(settingKey, clientSettingCache[settingKey]);
+    PWM_CFGEDIT.writeSetting(settingKey, clientSettingCache[settingKey]);
 };
 
 // -------------------------- user permission handler ------------------------------------
@@ -2390,8 +2390,8 @@ UserPermissionHandler.defaultItem = {ldapQuery:"(objectClass=*)",ldapBase:""};
 
 UserPermissionHandler.init = function(parentDiv, keyName) {
     console.log('UserPermissionHandler init for ' + keyName);
-    clearDivElements(parentDiv, true);
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.clearDivElements(parentDiv, true);
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         UserPermissionHandler.draw(parentDiv, keyName);
     });
@@ -2401,7 +2401,7 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
     var resultValue = clientSettingCache[keyName];
 
     // clear the old dijit node (if it exists)
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     // header row
@@ -2486,7 +2486,7 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
                 UserPermissionHandler.write(keyName, true);
             };
 
-            addValueButtonRow(parentDiv, keyName, addRowFunction)
+            PWM_CFGEDIT.addValueButtonRow(parentDiv, keyName, addRowFunction)
             dojoParser.parse(parentDiv);
 
             PWM_MAIN.showTooltip({
@@ -2505,7 +2505,7 @@ UserPermissionHandler.draw = function(parentDiv, keyName) {
 };
 
 UserPermissionHandler.write = function(settingKey,redraw) {
-    writeSetting(settingKey, clientSettingCache[settingKey]);
+    PWM_CFGEDIT.writeSetting(settingKey, clientSettingCache[settingKey]);
     if (redraw) {
         var parentDiv = 'table_setting_' + settingKey;
         UserPermissionHandler.draw(parentDiv, settingKey);
@@ -2520,7 +2520,7 @@ OptionListHandler.defaultItem = [];
 OptionListHandler.init = function(keyName, options) {
     console.log('OptionListHandler init for ' + keyName);
     clientSettingCache[keyName + '_options'] = options;
-    readSetting(keyName, function(resultValue) {
+    PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         clientSettingCache[keyName] = resultValue;
         OptionListHandler.draw(keyName);
     });
@@ -2529,7 +2529,7 @@ OptionListHandler.init = function(keyName, options) {
 OptionListHandler.draw = function(keyName) {
     // clear the old dijit node (if it exists)
     var parentDiv = 'table_setting_' + keyName;
-    clearDivElements(parentDiv, false);
+    PWM_CFGEDIT.clearDivElements(parentDiv, false);
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     require(["dijit/form/ToggleButton","dojo/_base/array","dojo/on"],function(ToggleButton,array,on){
@@ -2582,10 +2582,23 @@ OptionListHandler.toggle = function(keyName,optionKey) {
 
 
 OptionListHandler.write = function(settingKey,redraw) {
-    writeSetting(settingKey, clientSettingCache[settingKey]);
+    PWM_CFGEDIT.writeSetting(settingKey, clientSettingCache[settingKey]);
     if (redraw) {
         OptionListHandler.draw(settingKey);
     }
+};
+
+// -------------------------- file setting handler ------------------------------------
+
+var FileSettingHandler = {};
+
+FileSettingHandler.init = function(keyName) {
+};
+
+FileSettingHandler.uploadFile = function(keyName) {
+    var options = {};
+    options['url'] = "ConfigEditor?processAction=uploadFile&key=" + keyName;
+    PWM_CONFIG.uploadFile(options);
 };
 
 // ---------------------- menu bar section ---------------------------------------------------
@@ -2870,7 +2883,7 @@ function buildMenuBar() {
 
 function readInitialTextBasedValue(key) {
     require(["dijit/registry"],function(registry){
-        readSetting(key, function(dataValue) {
+        PWM_CFGEDIT.readSetting(key, function(dataValue) {
             PWM_MAIN.getObject('value_' + key).value = dataValue;
             PWM_MAIN.getObject('value_' + key).disabled = false;
             registry.byId('value_' + key).set('disabled', false);
@@ -2942,7 +2955,7 @@ PWM_CFGEDIT.saveConfiguration = function(waitForReload) {
 };
 
 
-function readConfigEditorCookie() {
+PWM_CFGEDIT.readConfigEditorCookie = function() {
     require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
         try {
             preferences = json.parse(dojoCookie("ConfigEditor_preferences"));
@@ -3095,7 +3108,7 @@ function handleResetClick(settingKey) {
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
-    readConfigEditorCookie();
+    PWM_CFGEDIT.readConfigEditorCookie();
     buildMenuBar();
 
     var hasNotes = PWM_VAR['configurationNotes'] && PWM_VAR['configurationNotes'].length > 0;
@@ -3108,7 +3121,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     if (nextFunction) {
         nextFunction();
     }
-}
+};
 
 function executeSettingFunction(setting, profile, name) {
     var jsonSendData = {};
@@ -3267,7 +3280,7 @@ PWM_CFGEDIT.searchDialog = function(reentrant) {
             showClose: true
         });
     }
-}
+};
 
 function gotoSetting(category,settingKey,profile) {
     console.log('going to setting...');
@@ -3315,7 +3328,7 @@ PWM_CFGEDIT.toggleAdvancedSettingsDisplay = function(options) {
         }
         PWM_VAR['advancedSettingsAreVisible'] = !PWM_VAR['advancedSettingsAreVisible'];
     });
-}
+};
 
 PWM_CFGEDIT.cancelEditing = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
@@ -3343,7 +3356,8 @@ PWM_CFGEDIT.cancelEditing = function() {
                                 PWM_MAIN.showWaitDialog({loadFunction: function () {
                                     PWM_MAIN.goto('ConfigEditor?processAction=cancelEditing', {addFormID: true});
                                 }});
-                            }});
+                            }
+                        });
                     }
                 },
                 error: function (errorObj) {
@@ -3412,4 +3426,22 @@ PWM_CFGEDIT.ldapHealthCheck = function() {
             });
         });
     }});
+};
+
+PWM_CFGEDIT.databaseHealthCheck = function() {
+
+    PWM_MAIN.showWaitDialog({title:'Checking database connection...'});
+    var url =  "ConfigEditor?processAction=databaseHealthCheck";
+    var loadFunction = function(data) {
+        PWM_MAIN.closeWaitDialog();
+        if (data['error']) {
+            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+        } else {
+            var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+            var profileName = preferences['profile'] && preferences['profile'].length > 0 ? preferences['profile'] : "Default";
+            var titleText = 'Database Connection Status';
+            PWM_MAIN.showDialog({width:550,text:bodyText,title:titleText});
+        }
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction);
 };

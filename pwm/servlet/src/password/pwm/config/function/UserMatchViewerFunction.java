@@ -29,6 +29,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
@@ -75,7 +76,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final Configuration config = new Configuration(storedConfiguration);
         final PwmApplication tempApplication = new PwmApplication(config, PwmApplication.MODE.CONFIGURATION, null, false, null);
         final List<UserPermission> queryMatchString = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, SessionLabel.SYSTEM_LABEL);
 
         final Map<UserIdentity, Map<String, String>> results = new HashMap<>();
         for (final UserPermission userPermission : queryMatchString) {
@@ -93,7 +94,6 @@ public class UserMatchViewerFunction implements SettingUIFunction {
 
                 try {
                     results.putAll(userSearchEngine.performMultiUserSearch(
-                                    null,
                                     searchConfiguration,
                                     (maxResultSize + 1) - results.size(),
                                     Collections.<String>emptyList())

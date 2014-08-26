@@ -31,6 +31,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmPasswordPolicy;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -73,8 +74,8 @@ public class UserAuthenticator {
         pwmApplication.getIntruderManager().check(RecordType.USERNAME, username);
         final UserIdentity userIdentity;
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-            userIdentity = userSearchEngine.resolveUsername(pwmSession, username, context, profile);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
+            userIdentity = userSearchEngine.resolveUsername(username, context, profile);
         } catch (PwmOperationalException e) {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.AUTHENTICATION_FAILURES);
             pwmApplication.getIntruderManager().mark(RecordType.USERNAME, username, pwmSession);
@@ -94,6 +95,7 @@ public class UserAuthenticator {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
+        final SessionLabel sessionLabel = pwmSession.getSessionLabel();
         final long methodStartTime = System.currentTimeMillis();
         final StatisticsManager statisticsManager = pwmApplication.getStatisticsManager();
         final IntruderManager intruderManager = pwmApplication.getIntruderManager();
@@ -109,14 +111,14 @@ public class UserAuthenticator {
             if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError()) {
                 if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
                     if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                        LOGGER.info(
+                        LOGGER.info(sessionLabel,
                                 "auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
                         allowBindAsUser = false;
                         permitAuthDespiteError = true;
                     }
                 } else if (vendor == ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS) {
                     if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                        LOGGER.info(
+                        LOGGER.info(sessionLabel,
                                 "auth bind failed, but will allow login due to 'pwdReset' user attribute, error: " + e.getErrorInformation().toDebugStr());
                         allowBindAsUser = false;
                         permitAuthDespiteError = true;
@@ -128,7 +130,7 @@ public class UserAuthenticator {
                         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
                             throw e;
                         }
-                        LOGGER.info(
+                        LOGGER.info(sessionLabel,
                                 "auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
                         allowBindAsUser = false;
                         permitAuthDespiteError = true;
@@ -177,8 +179,8 @@ public class UserAuthenticator {
     )
             throws ChaiUnavailableException, ImpossiblePasswordPolicyException, PwmUnrecoverableException, PwmOperationalException
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
-        final UserIdentity userIdentity = userSearchEngine.resolveUsername(pwmSession, username, null, null);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
+        final UserIdentity userIdentity = userSearchEngine.resolveUsername(username, null, null);
         authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, secure, authenticationType);
     }
 

@@ -23,6 +23,9 @@
 package password.pwm.http;
 
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -30,9 +33,11 @@ import password.pwm.Validator;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.filter.SessionFilter;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.ws.server.RestResultBean;
@@ -40,13 +45,8 @@ import password.pwm.ws.server.RestResultBean;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 public class PwmRequest implements Serializable {
 // ------------------------------ FIELDS ------------------------------
@@ -125,18 +125,22 @@ public class PwmRequest implements Serializable {
         ServletHelper.forwardToJsp(this.getHttpServletRequest(), this.getHttpServletResponse(), jspURL);
     }
 
-    public void forwardToErrorPage(final ErrorInformation errorInformation)
+    public void respondWithError(final ErrorInformation errorInformation)
             throws IOException, ServletException
     {
-        forwardToErrorPage(errorInformation, true);
+        respondWithError(errorInformation, true);
     }
 
-    public void forwardToErrorPage(
+    public void respondWithError(
             final ErrorInformation errorInformation,
             final boolean forceLogout
     )
             throws IOException, ServletException
     {
+        if (isJsonRequest()) {
+            outputJsonResult(RestResultBean.fromError(errorInformation, this));
+            return;
+        }
 
         pwmSession.getSessionStateBean().setSessionError(errorInformation);
 
@@ -182,7 +186,7 @@ public class PwmRequest implements Serializable {
         Map<String,String> preferences = new HashMap<>();
         try {
             final String jsonString = ServletHelper.readCookie(this.getHttpServletRequest(), "preferences");
-            preferences = Helper.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {
+            preferences = JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {
             }.getType());
         } catch (Exception e) {
             LOGGER.warn("error parsing cookie preferences: " + e.getMessage());
@@ -216,4 +220,85 @@ public class PwmRequest implements Serializable {
         ServletHelper.outputJsonResult(this.httpServletResponse, restResultBean);
     }
 
+    public boolean isJsonRequest() {
+        final String acceptHeader = httpServletRequest.getHeader("Accept");
+        return acceptHeader.contains("application/json");
+    }
+
+    public ContextManager getContextManager()
+            throws PwmUnrecoverableException
+    {
+        return ContextManager.getContextManager(this);
+    }
+
+    public Map<String,FileUploadItem> readFileUploads(
+            final int maxFileSize,
+            final int maxItems
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final Map<String,FileUploadItem> returnObj = new LinkedHashMap<>();
+        try {
+            if (ServletFileUpload.isMultipartContent(this.getHttpServletRequest())) {
+                final byte[] buffer = new byte[1024];
+
+                final ServletFileUpload upload = new ServletFileUpload();
+                final FileItemIterator iter = upload.getItemIterator(this.getHttpServletRequest());
+                while (iter.hasNext() && returnObj.size() < maxItems) {
+                    final FileItemStream item = iter.next();
+                    final InputStream inputStream = item.openStream();
+                    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    int length;
+                    while ((length = inputStream.read(buffer)) > 0) {
+                        baos.write(buffer, 0, length);
+                        if (baos.size() > maxFileSize) {
+                            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"upload file size limit exceeded"));
+                        }
+                    }
+                    final byte[] outputFile = baos.toByteArray();
+                    final FileUploadItem fileUploadItem = new FileUploadItem(
+                            item.getName(),
+                            item.getContentType(),
+                            outputFile
+                    );
+                    returnObj.put(item.getFieldName(),fileUploadItem);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("error reading file upload: " + e.getMessage());
+        }
+        return Collections.unmodifiableMap(returnObj);
+    }
+
+    public static class FileUploadItem {
+        private final String name;
+        private final String type;
+        private final byte[] content;
+
+        public FileUploadItem(
+                String name,
+                String type,
+                byte[] content
+        )
+        {
+            this.name = name;
+            this.type = type;
+            this.content = content;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public String getType()
+        {
+            return type;
+        }
+
+        public byte[] getContent()
+        {
+            return content;
+        }
+    }
 }

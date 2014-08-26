@@ -22,7 +22,6 @@
 
 package password.pwm.util;
 
-import com.google.gson.*;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
@@ -54,7 +53,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.ConfigurationChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
-import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.util.macro.MacroMachine;
@@ -65,17 +63,10 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -229,40 +220,6 @@ public class
         final Matcher matcher = pattern.matcher(address);
         return matcher.matches();
     }
-
-    /**
-     * Strips specified characters of the beginning and end of a string.  Similar to
-     * {@link String#trim()}, except the caller can specify an arbitrary character instead
-     * of just whitespace chars.
-     *
-     * @param str   String to operate on
-     * @param chars A String containing characters to remove from beginning/end
-     * @return the (possibly) modifed str value
-     */
-    public static String trimString(
-            final String str,
-            final String chars
-    ) {
-        if (chars == null || chars.length() < 1) {
-            return str;
-        }
-
-        final StringBuilder sb = new StringBuilder(str);
-
-        for (int i = 0; i < chars.length(); i++) {
-            if (sb.charAt(0) == chars.charAt(i)) {
-                sb.delete(0, 1);
-            }
-
-            if (sb.charAt(sb.length() - 1) == chars.charAt(i)) {
-                sb.delete(sb.length() - 2, sb.length() - 1);
-            }
-        }
-
-        return sb.toString();
-    }
-
-
 
 
     /**
@@ -445,22 +402,6 @@ public class
         return new File(suggestedPath + File.separator + filename);
     }
 
-    public static Boolean fileExists(final String filename) {
-        if (filename != null) {
-            File file = new File(filename);
-            return file.exists() && file.isFile();
-        }
-        return false;
-    }
-
-    public static Boolean directoryExists(final String dirname) {
-        if (dirname != null) {
-            File directory = new File(dirname);
-            return directory.exists() && directory.isDirectory();
-        }
-        return false;
-    }
-
     public static String readFileAsString(final File filePath, final long maxLength, final String charset)
             throws IOException {
         final StringBuilder fileData = new StringBuilder();
@@ -493,18 +434,6 @@ public class
         osw.write(output);
         osw.flush();
         osw.close();
-    }
-
-    public static String replaceAllPatterns(final String input, final Properties fields) {
-        String output = input;
-        Enumeration names = fields.propertyNames();
-        while (names.hasMoreElements()) {
-            final String key = (String) names.nextElement();
-            final String fieldName = "%"+key+"%";
-            final String fieldValue = fields.getProperty(key);
-            output = output.replaceAll(fieldName, fieldValue);
-        }
-        return output;
     }
 
     public static long diskSpaceRemaining(final File file) {
@@ -547,24 +476,6 @@ public class
 
     static public String buildPwmFormID(final SessionStateBean ssBean) {
         return ssBean.getSessionVerificationKey() + ssBean.getRequestVerificationKey();
-    }
-
-    public static String resolveStringKeyLocaleMap(Locale desiredLocale, final Map<String,String> inputMap) {
-        if (inputMap == null || inputMap.isEmpty()) {
-            return null;
-        }
-
-        if (desiredLocale == null) {
-            desiredLocale = PwmConstants.DEFAULT_LOCALE;
-        }
-
-        final Map<Locale,String> localeMap = new LinkedHashMap<>();
-        for (final String localeStringKey : inputMap.keySet()) {
-            localeMap.put(LocaleHelper.parseLocaleString(localeStringKey),inputMap.get(localeStringKey));
-        }
-
-        final Locale selectedLocale = LocaleHelper.localeResolver(desiredLocale, localeMap.keySet());
-        return localeMap.get(selectedLocale);
     }
 
     public static void rotateBackups(final File inputFile, final int maxRotate) {
@@ -713,112 +624,6 @@ public class
         return counter;
     }
 
-    public static HashMap splitStringToMap(final String input) {
-        HashMap result = new HashMap();
-        if (input != null) {
-            final List<String> items = Arrays.asList(input.split(";"));
-            for (final Iterator<String> it = items.iterator(); it.hasNext(); ) {
-                String item = it.next();
-                String[] parts = item.split(":", 2);
-                if (parts.length > 0) {
-                    String left = parts[0];
-                    String right = null;
-                    if (parts.length == 2) {
-                        right = parts[1];
-                    }
-                    result.put(left, right);
-                }
-            }
-        }
-        return result;
-    }
-
-    public static Gson getGson(GsonBuilder gsonBuilder) {
-        if (gsonBuilder == null) {
-            gsonBuilder = new GsonBuilder();
-            gsonBuilder.disableHtmlEscaping();
-        }
-
-        return gsonBuilder
-                .registerTypeAdapter(Date.class, new DateTypeAdapter())
-                .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
-                .create();
-    }
-
-    public static Gson getGson() {
-        return GSON_SINGLETON;
-    }
-
-    private static Gson GSON_SINGLETON = new GsonBuilder()
-            .registerTypeAdapter(Date.class, new DateTypeAdapter())
-            .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
-            .create();
-
-    /**
-     * Gson Serializer for {@link X509Certificate}.  Neccessary because sometimes X509Certs have circular refecences
-     * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
-     * the cert is used as the json format.
-     */
-    private static class X509CertificateAdapter implements JsonSerializer<X509Certificate>, JsonDeserializer<X509Certificate> {
-        private X509CertificateAdapter() {
-        }
-
-        public synchronized JsonElement serialize(X509Certificate cert, Type type, JsonSerializationContext jsonSerializationContext) {
-            try {
-                return new JsonPrimitive(Base64Util.encodeBytes(cert.getEncoded()));
-            } catch (CertificateEncodingException e) {
-                throw new IllegalStateException("unable to json-encode certificate: " + e.getMessage());
-            }
-        }
-
-        public X509Certificate deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
-                throws JsonParseException
-        {
-            try {
-                final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                return (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(Base64Util.decode(jsonElement.getAsString())));
-            } catch (Exception e) {
-                throw new JsonParseException("unable to parse x509certificate: " + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * GsonSerializer that stores dates in ISO 8601 format, with a deserialier that also reads local-platform format reading.
-     */
-    private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
-        private static final DateFormat isoDateFormat;
-        private static final DateFormat gsonDateFormat;
-
-        static {
-            isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            isoDateFormat.setTimeZone(TimeZone.getTimeZone("Zulu"));
-
-            gsonDateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT);
-            gsonDateFormat.setTimeZone(TimeZone.getDefault());
-        }
-
-        private DateTypeAdapter() {
-        }
-
-        public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
-            return new JsonPrimitive(isoDateFormat.format(date));
-        }
-
-        public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
-            try {
-                return isoDateFormat.parse(jsonElement.getAsString());
-            } catch (ParseException e) { /* noop */ }
-
-            // for backwards compatibility
-            try {
-                return gsonDateFormat.parse(jsonElement.getAsString());
-            } catch (ParseException e) {
-                LOGGER.error("unable to parse stored json timestamp '" + jsonElement.getAsString() + "' error: " + e.getMessage());
-                throw new JsonParseException(e);
-            }
-        }
-    }
 
     public static String makeThreadName(final PwmApplication pwmApplication, final Class theClass) {
         String instanceName = "-";

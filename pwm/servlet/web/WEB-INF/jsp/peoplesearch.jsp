@@ -20,9 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.JsonUtil" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
@@ -86,8 +86,8 @@
         }
     %>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['peoplesearch_search_columns'] = <%=Helper.getGson().toJson(searchColumns)%>;
-        PWM_VAR['photo_style_attribute'] = '<%=StringEscapeUtils.escapeJavaScript(pwmApplicationHeader.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR))%>';
+        PWM_VAR['peoplesearch_search_columns'] = <%=JsonUtil.getGson().toJson(searchColumns)%>;
+        PWM_VAR['photo_style_attribute'] = '<%=StringUtil.escapeJS(pwmApplicationHeader.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR))%>';
         PWM_PS.initPeopleSearchPage();
         PWM_MAIN.getObject('username').focus()
     });

@@ -44,17 +44,13 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
@@ -184,12 +180,12 @@ public class PeopleSearchServlet extends PwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) {
-            pwmRequest.forwardToErrorPage(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE));
             return;
         }
 
         if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PEOPLE_SEARCH)) {
-            pwmRequest.forwardToErrorPage(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
+            pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
             return;
         }
 
@@ -205,12 +201,7 @@ public class PeopleSearchServlet extends PwmServlet {
                     return;
 
                 case photo:
-                    processUserPhotoImageRequest(
-                            pwmRequest.getHttpServletRequest(),
-                            pwmRequest.getHttpServletResponse(),
-                            pwmRequest.getPwmApplication(),
-                            pwmRequest.getPwmSession()
-                    );
+                    processUserPhotoImageRequest(pwmRequest);
                     return;
             }
         }
@@ -225,7 +216,7 @@ public class PeopleSearchServlet extends PwmServlet {
     {
         final Date startTime = new Date();
         final String bodyString = pwmRequest.readRequestBody();
-        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyString,
+        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                 new TypeToken<Map<String, String>>() {
                 }.getType()
         );
@@ -240,7 +231,7 @@ public class PeopleSearchServlet extends PwmServlet {
         {
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
-                final HashMap<String, Object> resultOutput = Helper.getGson().fromJson(cachedOutput,
+                final HashMap<String, Object> resultOutput = JsonUtil.getGson().fromJson(cachedOutput,
                         new TypeToken<HashMap<String, Object>>() {
                         }.getType());
                 final RestResultBean restResultBean = new RestResultBean();
@@ -272,7 +263,7 @@ public class PeopleSearchServlet extends PwmServlet {
             return;
         }
 
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest.getPwmApplication());
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmRequest);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setContexts(
                 pwmRequest.getConfig().readSettingAsStringArray(PwmSetting.PEOPLE_SEARCH_SEARCH_BASE));
@@ -290,8 +281,8 @@ public class PeopleSearchServlet extends PwmServlet {
         final UserSearchEngine.UserSearchResults results;
         final boolean sizeExceeded;
         try {
-            results = userSearchEngine.performMultiUserSearchFromForm(pwmRequest.getPwmSession(), searchConfiguration, maxResults,
-                    searchForm);
+            final Locale locale = pwmRequest.getLocale();
+            results = userSearchEngine.performMultiUserSearchFromForm(locale, searchConfiguration, maxResults, searchForm);
             sizeExceeded = results.isSizeExceeded();
         } catch (PwmOperationalException e) {
             final ErrorInformation errorInformation = e.getErrorInformation();
@@ -313,7 +304,7 @@ public class PeopleSearchServlet extends PwmServlet {
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
-            pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration), Helper.getGson().toJson(outputData));
+            pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration), JsonUtil.getGson().toJson(outputData));
         }
 
         if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
@@ -356,7 +347,7 @@ public class PeopleSearchServlet extends PwmServlet {
     {
         final Date startTime = new Date();
         final String bodyString = pwmRequest.readRequestBody();
-        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyString,
+        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                 new TypeToken<Map<String, String>>() {
                 }.getType()
         );
@@ -381,14 +372,14 @@ public class PeopleSearchServlet extends PwmServlet {
         {
             final String cachedOutput = pwmRequest.getPwmApplication().getCacheService().get(cacheKey);
             if (cachedOutput != null) {
-                final HashMap<String, Object> resultOutput = Helper.getGson().fromJson(cachedOutput,
+                final HashMap<String, Object> resultOutput = JsonUtil.getGson().fromJson(cachedOutput,
                         new TypeToken<HashMap<String, Object>>() {
                         }.getType());
                 final RestResultBean restResultBean = new RestResultBean();
                 restResultBean.setData(resultOutput);
                 ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
                 LOGGER.trace(pwmRequest.getPwmSession(), "finished rest detail request in " + TimeDuration.fromCurrent(
-                        startTime).asCompactString() + "using CACHED details, results=" + Helper.getGson(
+                        startTime).asCompactString() + "using CACHED details, results=" + JsonUtil.getGson(
                         new GsonBuilder().disableHtmlEscaping()).toJson(restResultBean));
 
                 if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
@@ -402,7 +393,7 @@ public class PeopleSearchServlet extends PwmServlet {
             checkIfUserIdentityPermitted(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getPwmSession(), "error during detail results request while checking if requested userIdentity is within search scope: " + e.getMessage());
-            ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), RestResultBean.fromError(e.getErrorInformation()));
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
             return;
         }
 
@@ -430,14 +421,14 @@ public class PeopleSearchServlet extends PwmServlet {
         restResultBean.setData(resultOutput);
         ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
         LOGGER.trace(pwmRequest.getPwmSession(), "finished rest detail request in " + TimeDuration.fromCurrent(
-                startTime).asCompactString() + ", results=" + Helper.getGson(
+                startTime).asCompactString() + ", results=" + JsonUtil.getGson(
                 new GsonBuilder().disableHtmlEscaping()).toJson(restResultBean));
 
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
             pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration),
-                    Helper.getGson().toJson(resultOutput));
+                    JsonUtil.getGson().toJson(resultOutput));
         }
 
         if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
@@ -481,41 +472,36 @@ public class PeopleSearchServlet extends PwmServlet {
     }
 
 
-    private void processUserPhotoImageRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    private void processUserPhotoImageRequest(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String userKey = Validator.readStringFromRequest(req, "userKey");
+        final String userKey = pwmRequest.readStringParameter("userKey");
         if (userKey.length() < 1) {
-            pwmSession.getSessionStateBean().setSessionError(
-                    new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing"));
-            ServletHelper.forwardToErrorPage(req, resp, false);
+            pwmRequest.respondWithError(
+                    new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing"), false);
             return;
         }
 
-        final String attribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
+        final String attribute = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_ATTRIBUTE);
         if (attribute == null || attribute.isEmpty()) {
             return;
         }
 
-        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmApplication.getConfig());
+        final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
         try {
-            checkIfUserIdentityPermitted(pwmApplication, pwmSession, userIdentity);
+            checkIfUserIdentityPermitted(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
         } catch (PwmOperationalException e) {
-            LOGGER.error(pwmSession, "error during photo request while checking if requested userIdentity is within search scope: " + e.getMessage());
-            ServletHelper.outputJsonResult(resp,RestResultBean.fromError(e.getErrorInformation()));
+            LOGGER.error(pwmRequest, "error during photo request while checking if requested userIdentity is within search scope: " + e.getMessage());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
             return;
         }
 
-        LOGGER.info(pwmSession,
-                "received user photo request by " + pwmSession.getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
+        LOGGER.info(pwmRequest,
+                "received user photo request by " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
 
         try {
-            final ChaiUser chaiUser = getChaiUser(pwmApplication, pwmSession, userIdentity);
+            final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+            final ChaiUser chaiUser = getChaiUser(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
             byte[][] photoData = chaiUser.readMultiByteAttribute("photo");
             if (photoData != null && photoData.length > 0) {
                 resp.getOutputStream().write(photoData[0]);

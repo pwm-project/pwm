@@ -48,6 +48,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.operations.cr.*;
@@ -292,7 +293,7 @@ public class CrService implements PwmService {
     }
 
     public ResponseInfoBean readUserResponseInfo(
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final UserIdentity userIdentity,
             final ChaiUser theUser
     )
@@ -300,16 +301,16 @@ public class CrService implements PwmService {
     {
         final Configuration config = pwmApplication.getConfig();
 
-        LOGGER.trace(pwmSession, "beginning read of user response sequence");
+        LOGGER.trace(sessionLabel, "beginning read of user response sequence");
 
         final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
 
-        final String debugMsg = "will attempt to read the following storage methods: " + Helper.getGson().toJson(readPreferences) + " for response info for user " + theUser.getEntryDN();
-        LOGGER.debug(pwmSession, debugMsg);
+        final String debugMsg = "will attempt to read the following storage methods: " + JsonUtil.getGson().toJson(readPreferences) + " for response info for user " + theUser.getEntryDN();
+        LOGGER.debug(sessionLabel, debugMsg);
 
         final String userGUID;
         if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
         } else {
             userGUID = null;
         }
@@ -317,17 +318,17 @@ public class CrService implements PwmService {
         for (final DataStorageMethod storageMethod : readPreferences) {
             final ResponseInfoBean readResponses;
 
-            LOGGER.trace(pwmSession, "attempting read of response info via storage method: " + storageMethod);
+            LOGGER.trace(sessionLabel, "attempting read of response info via storage method: " + storageMethod);
             readResponses = operatorMap.get(storageMethod).readResponseInfo(theUser, userIdentity, userGUID);
 
             if (readResponses != null) {
-                LOGGER.debug(pwmSession,"returning response info read via method " + storageMethod + " for user " + theUser.getEntryDN());
+                LOGGER.debug(sessionLabel,"returning response info read via method " + storageMethod + " for user " + theUser.getEntryDN());
                 return readResponses;
             } else {
-                LOGGER.trace(pwmSession, "no responses info read using method " + storageMethod);
+                LOGGER.trace(sessionLabel, "no responses info read using method " + storageMethod);
             }
         }
-        LOGGER.debug(pwmSession,"no response info found for user " + theUser.getEntryDN());
+        LOGGER.debug(sessionLabel,"no response info found for user " + theUser.getEntryDN());
         return null;
     }
 
@@ -346,12 +347,12 @@ public class CrService implements PwmService {
 
         final List<DataStorageMethod> readPreferences = config.helper().getCrReadPreference();
 
-        final String debugMsg = "will attempt to read the following storage methods: " + Helper.getGson().toJson(readPreferences) + " for user " + theUser.getEntryDN();
+        final String debugMsg = "will attempt to read the following storage methods: " + JsonUtil.getGson().toJson(readPreferences) + " for user " + theUser.getEntryDN();
         LOGGER.debug(sessionLabel, debugMsg);
 
         final String userGUID;
         if (readPreferences.contains(DataStorageMethod.DB) || readPreferences.contains(DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
         } else {
             userGUID = null;
         }
@@ -411,7 +412,7 @@ public class CrService implements PwmService {
 
         if (attempts != successes) {
             final String errorMsg = "response storage only partially successful; attempts=" + attempts + ", successes=" + successes
-                    + ", detail=" + Helper.getGson().toJson(errorMessages);
+                    + ", detail=" + JsonUtil.getGson().toJson(errorMessages);
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
             throw new PwmOperationalException(errorInfo);
         }

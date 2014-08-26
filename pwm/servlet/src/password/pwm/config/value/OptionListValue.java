@@ -28,7 +28,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 
 import java.util.*;
 
@@ -43,7 +43,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
         if (input == null) {
             return new OptionListValue(Collections.<String>emptySet());
         } else {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             Set<String> srcList = gson.fromJson(input, new TypeToken<Set<String>>() {
             }.getType());
             srcList = srcList == null ? Collections.<String>emptySet() : srcList;

@@ -97,6 +97,7 @@ public enum Statistic {
     AVG_PASSWORD_SYNC_TIME              (Type.AVERAGE, "AvgPasswordSyncTime", null),
     AVG_AUTHENTICATION_TIME             (Type.AVERAGE, "AvgAuthenticationTime", null),
     AVG_PASSWORD_STRENGTH               (Type.AVERAGE, "AvgPasswordStrength", null),
+    AVG_LDAP_SEARCH_TIME                (Type.AVERAGE, "AvgLdapSearchTime", null),
 
     ;
 

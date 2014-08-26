@@ -22,11 +22,7 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.PwmApplication;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmSession;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -42,9 +38,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    private static String buildOptionListHTML(final HttpServletRequest request, final String selectedValue) throws PwmUnrecoverableException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-
+    private static String buildOptionListHTML(final HttpServletRequest request) throws PwmUnrecoverableException {
         final Map<String,String> locationsMap = null;
 
         if (locationsMap == null || locationsMap.isEmpty()) {
@@ -56,9 +50,6 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
             final String displayName = locationsMap.get(contextDN);
 
             sb.append("<option value=\"").append(contextDN).append("\"");
-            if (contextDN.equals(selectedValue)) {
-                sb.append("selected=\"selected\"");
-            }
             sb.append(">");
             sb.append(displayName);
             sb.append("</option>");
@@ -84,10 +75,7 @@ public class DisplayLocationOptionsTag extends PwmAbstractTag {
     {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-            final String selectedValue = ssBean.getLastParameterValues().get(name);
-            final String optionListHtml = buildOptionListHTML(req, selectedValue);
+            final String optionListHtml = buildOptionListHTML(req);
             pageContext.getOut().write(optionListHtml);
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());

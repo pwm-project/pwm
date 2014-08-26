@@ -158,13 +158,13 @@ public class ActivateUserServlet extends TopServlet {
             // get an ldap user object based on the params
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
                 searchConfiguration.setFilter(config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER));
                 searchConfiguration.setFormValues(formValues);
                 searchConfiguration.setLdapProfile(ldapProfile);
-                userIdentity = userSearchEngine.performSingleUserSearch(pwmSession, searchConfiguration);
+                userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
             }
 
             validateParamsAgainstLDAP(formValues, pwmApplication, pwmSession, userIdentity, config);

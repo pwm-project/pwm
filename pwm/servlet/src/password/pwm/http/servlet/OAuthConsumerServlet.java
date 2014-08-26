@@ -116,14 +116,14 @@ public class OAuthConsumerServlet extends TopServlet {
 
         final String resolveResponseBodyStr = makeOAuthResolveRequest(pwmApplication, pwmSession, settings, req, requestCodeStr);
 
-        final Map<String, String> resolveResultValues = Helper.getGson().fromJson(resolveResponseBodyStr,
+        final Map<String, String> resolveResultValues = JsonUtil.getGson().fromJson(resolveResponseBodyStr,
                 new TypeToken<Map<String, String>>() {
                 }.getType());
 
         final String accessToken = resolveResultValues.get(config.readAppProperty(AppProperty.HTTP_PARAM_OAUTH_ACCESS_TOKEN));
         final String getAttributeResponseBodyStr = makeOAuthGetAttribute(pwmApplication, pwmSession, accessToken, settings);
 
-        final Map<String, String> getAttributeResultValues = Helper.getGson().fromJson(getAttributeResponseBodyStr,
+        final Map<String, String> getAttributeResultValues = JsonUtil.getGson().fromJson(getAttributeResponseBodyStr,
                 new TypeToken<Map<String, String>>() {
                 }.getType());
 

@@ -505,7 +505,7 @@ public class ChangePasswordServlet extends TopServlet {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(passwordChangeProgress);
 
-        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + Helper.getGson().toJson(restResultBean));
+        LOGGER.trace(pwmSession,"returning result for restCheckProgress: " + JsonUtil.getGson().toJson(restResultBean));
         ServletHelper.outputJsonResult(resp,restResultBean);
     }
 

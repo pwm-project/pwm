@@ -42,6 +42,7 @@ public enum PwmSettingSyntax {
     X509CERT(X509CertificateValue.class),
     CHALLENGE(ChallengeValue.class),
     OPTIONLIST(OptionListValue.class),
+    FILE(FileValue.class),
 
     PROFILE(StringArrayValue.class),
 

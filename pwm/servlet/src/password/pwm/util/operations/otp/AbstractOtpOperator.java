@@ -31,6 +31,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPPamUtil;
 import password.pwm.util.otp.OTPUrlUtil;
@@ -60,7 +61,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
             final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
             switch (format) {
                 case PWM:
-                    value = Helper.getGson().toJson(otpUserRecord);
+                    value = JsonUtil.getGson().toJson(otpUserRecord);
                     break;
                 case OTPURL:
                     value = OTPUrlUtil.composeOtpUrl(otpUserRecord);
@@ -120,7 +121,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         LOGGER.trace(String.format("Detecting format from value: \n%s", value));
         /* - PWM JSON */
         try {
-            otpconfig = Helper.getGson().fromJson(value, OTPUserRecord.class);
+            otpconfig = JsonUtil.getGson().fromJson(value, OTPUserRecord.class);
             LOGGER.debug("Detected JSON format - returning");
             return otpconfig;
         } catch (JsonSyntaxException ex) {

@@ -38,10 +38,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.ClosableIterator;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
@@ -129,16 +126,17 @@ public class ReportService implements PwmService {
         }
 
         settings = Settings.readSettingsFromConfig(pwmApplication.getConfig());
+        summaryData = ReportSummaryData.newSummaryData(pwmApplication.getConfig());
         initTempData();
 
         reportStatus.inprogress = false;
 
         timer = new Timer();
 
+        final long nextZuluZeroTime = Helper.nextZuluZeroTime().getTime();
         if (settings.jobOffsetSeconds >= 0) {
-            final long nextZuluZeroTime = Helper.nextZuluZeroTime().getTime();
             final long nextScheduleTime = nextZuluZeroTime + (settings.jobOffsetSeconds * 1000);
-            timer.schedule(new DredgeTask(),new Date(nextScheduleTime), TimeDuration.DAY.getTotalMilliseconds());
+            timer.scheduleAtFixedRate(new DredgeTask(),new Date(nextScheduleTime), TimeDuration.DAY.getTotalMilliseconds());
         }
 
         String startupMsg = "report service started with " + this.userCacheService.size() + " cached records";
@@ -146,7 +144,9 @@ public class ReportService implements PwmService {
             startupMsg += ", mean record timestamp " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.summaryData.getMeanCacheTime());
         }
         LOGGER.debug(startupMsg);
-        timer.schedule(new RecordPurger(), 1);
+        timer.schedule(new RolloverTask(), 1);
+        timer.scheduleAtFixedRate(new RolloverTask(),new Date(nextZuluZeroTime), TimeDuration.DAY.getTotalMilliseconds());
+
         status = STATUS.OPEN;
     }
 
@@ -163,15 +163,8 @@ public class ReportService implements PwmService {
 
     private void saveTempData() {
         try {
-            final String jsonInfo = Helper.getGson().toJson(reportStatus);
+            final String jsonInfo = JsonUtil.getGson().toJson(reportStatus);
             pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS,jsonInfo);
-        } catch (Exception e) {
-            LOGGER.error("error loading cached report dredge info into memory: " + e.getMessage());
-        }
-
-        try {
-            final String jsonInfo = Helper.getGson().toJson(summaryData);
-            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_SUMMARY,jsonInfo);
         } catch (Exception e) {
             LOGGER.error("error loading cached report dredge info into memory: " + e.getMessage());
         }
@@ -190,28 +183,17 @@ public class ReportService implements PwmService {
         try {
             final String jsonInfo = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS);
             if (jsonInfo != null && !jsonInfo.isEmpty()) {
-                reportStatus = Helper.getGson().fromJson(jsonInfo,ReportStatusInfo.class);
+                reportStatus = JsonUtil.getGson().fromJson(jsonInfo,ReportStatusInfo.class);
             }
         } catch (Exception e) {
             LOGGER.error("error loading cached report status info into memory: " + e.getMessage());
         }
         reportStatus = reportStatus == null ? new ReportStatusInfo() : reportStatus; //safety
 
-        try {
-            final String jsonInfo = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_SUMMARY);
-            if (jsonInfo != null && !jsonInfo.isEmpty()) {
-                summaryData = Helper.getGson().fromJson(jsonInfo,ReportSummaryData.class);
-            }
-        } catch (Exception e) {
-            LOGGER.error("error loading cached report dredge info into memory: " + e.getMessage());
-        }
-
         if (summaryData != null && !summaryData.isCurrentVersion()) {
             LOGGER.error("stored summary report is using outdated version, discarding");
             summaryData = null;
         }
-
-        summaryData = summaryData == null ? ReportSummaryData.newSummaryData(pwmApplication.getConfig()) : summaryData; //safety
 
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.REPORT_CLEAN_FLAG, "false");
     }
@@ -238,9 +220,10 @@ public class ReportService implements PwmService {
         cancelFlag = true;
     }
 
-    private void updateAllCache()
+    private void updateCacheFromLdap()
             throws ChaiUnavailableException, ChaiOperationException, PwmOperationalException, PwmUnrecoverableException
     {
+        LOGGER.debug("beginning process to updating user cache records from ldap");
         if (status != STATUS.OPEN) {
             return;
         }
@@ -284,7 +267,27 @@ public class ReportService implements PwmService {
             reportStatus.finishDate = new Date();
             reportStatus.inprogress = false;
         }
-        LOGGER.info("updateCacheCompleted: " + Helper.getGson().toJson(reportStatus));
+        LOGGER.debug("update user cache process completed: " + JsonUtil.getGson().toJson(reportStatus));
+    }
+
+    private void updateRestingCacheData() {
+        final long startTime = System.currentTimeMillis();
+        LOGGER.debug("beginning cache review process");
+        final ClosableIterator<UserCacheRecord> iterator = iterator();
+        int examinedRecords = 0;
+        while (iterator.hasNext() && status == STATUS.OPEN) {
+            final UserCacheRecord record = iterator.next(); // (purge routine is embedded in next();
+
+            if (summaryData != null && record != null) {
+                summaryData.update(record);
+            }
+
+            examinedRecords++;
+        }
+        iterator.close();
+        final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
+        LOGGER.debug(
+                "completed cache review process of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
     }
 
     public boolean updateCache(final UserInfoBean uiBean)
@@ -381,7 +384,7 @@ public class ReportService implements PwmService {
     private List<UserIdentity> generateListOfUsers()
             throws ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
-        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication,null);
         final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setSearchTimeout(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.REPORTING_LDAP_SEARCH_TIMEOUT)));
@@ -391,9 +394,9 @@ public class ReportService implements PwmService {
             searchConfiguration.setFilter(settings.searchFilter);
         }
 
-        LOGGER.debug("beginning UserReportService user search using parameters: " + (Helper.getGson()).toJson(searchConfiguration));
+        LOGGER.debug("beginning UserReportService user search using parameters: " + (JsonUtil.getGson()).toJson(searchConfiguration));
 
-        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(null, searchConfiguration, settings.maxSearchSize, Collections.<String>emptyList());
+        final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, settings.maxSearchSize, Collections.<String>emptyList());
         LOGGER.debug("UserReportService user search found " + searchResults.size() + " users for reporting");
         final List<UserIdentity> returnList = new ArrayList<>(searchResults.keySet());
         Collections.shuffle(returnList);
@@ -425,10 +428,10 @@ public class ReportService implements PwmService {
                     returnBean = userCacheService.readStorageKey(key);
                     if (returnBean != null) {
                         if (returnBean.getCacheTimestamp() == null) {
-                            LOGGER.debug("purging record due to missing cache timestamp: " + Helper.getGson().toJson(returnBean));
+                            LOGGER.debug("purging record due to missing cache timestamp: " + JsonUtil.getGson().toJson(returnBean));
                             userCacheService.removeStorageKey(key);
                         } else if (TimeDuration.fromCurrent(returnBean.getCacheTimestamp()).isLongerThan(settings.maxCacheAge)) {
-                            LOGGER.debug("purging record due to old age timestamp: " + Helper.getGson().toJson(returnBean));
+                            LOGGER.debug("purging record due to old age timestamp: " + JsonUtil.getGson().toJson(returnBean));
                             userCacheService.removeStorageKey(key);
                         } else {
                             return returnBean;
@@ -548,7 +551,7 @@ public class ReportService implements PwmService {
         public void run()
         {
             try {
-                updateAllCache();
+                updateCacheFromLdap();
             } catch (Exception e) {
                 if (e instanceof PwmException) {
                     if (((PwmException) e).getErrorInformation().getError() == PwmError.ERROR_DIRECTORY_UNAVAILABLE) {
@@ -653,21 +656,13 @@ public class ReportService implements PwmService {
         }
     }
 
-    private class RecordPurger extends TimerTask {
+
+
+    private class RolloverTask extends TimerTask {
         public void run()
         {
-            final long startTime = System.currentTimeMillis();
-            LOGGER.debug("beginning check for outdated cached report records");
-            final ClosableIterator<UserCacheRecord> iterator = iterator();
-            int examinedRecords = 0;
-            while (iterator.hasNext() && status == STATUS.OPEN) {
-                iterator.next(); // (purge routine is embedded in next();
-                examinedRecords++;
-            }
-            iterator.close();
-            final TimeDuration totalTime = TimeDuration.fromCurrent(startTime);
-            LOGGER.debug("completed internal examination of " + examinedRecords + " cached report records in " + totalTime.asCompactString());
-            timer.schedule(new RecordPurger(),Helper.nextZuluZeroTime());
+            summaryData = ReportSummaryData.newSummaryData(pwmApplication.getConfig());
+            updateRestingCacheData();
         }
     }
 
@@ -697,7 +692,7 @@ public class ReportService implements PwmService {
                 settings.restTime = new TimeDuration(configuredRestTimeMs);
             }
 
-            settings.jobOffsetSeconds = (int)config.readSettingAsLong(PwmSetting.REPORTONG_JOB_TIME_OFFSET);
+            settings.jobOffsetSeconds = (int)config.readSettingAsLong(PwmSetting.REPORTING_JOB_TIME_OFFSET);
             if (settings.jobOffsetSeconds > 60 * 60 * 24) {
                 settings.jobOffsetSeconds = 0;
             }

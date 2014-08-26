@@ -29,7 +29,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.cr.ChallengeItemBean;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 
 import java.util.*;
@@ -46,7 +46,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         if (input == null) {
             return new ChallengeValue(Collections.<String,List<ChallengeItemBean>>emptyMap());
         } else {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<ChallengeItemBean>>>() {
             }.getType());
             srcMap = srcMap == null ? Collections.<String,List<ChallengeItemBean>>emptyMap() : new TreeMap<>(srcMap);
@@ -69,7 +69,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
             if (oldStyle) {
                 challengeItemBean = parseOldVersionString(value);
             } else {
-                challengeItemBean = Helper.getGson().fromJson(value,ChallengeItemBean.class);
+                challengeItemBean = JsonUtil.getGson().fromJson(value,ChallengeItemBean.class);
             }
             if (challengeItemBean != null) {
                 values.get(localeString).add(challengeItemBean);
@@ -84,7 +84,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
             for (final ChallengeItemBean value : values.get(locale)) {
                 if (value != null) {
                     final Element valueElement = new Element(valueElementName);
-                    valueElement.addContent(new CDATA(Helper.getGson().toJson(value)));
+                    valueElement.addContent(new CDATA(JsonUtil.getGson().toJson(value)));
                     if (locale != null && locale.length() > 0) {
                         valueElement.setAttribute("locale", locale);
                     }

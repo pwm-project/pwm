@@ -60,6 +60,7 @@ public class MainClass {
         commandList.add(new TokenInfoCommand());
         commandList.add(new IntegrityReportCommand());
         commandList.add(new ConfigNewCommand());
+        commandList.add(new VersionCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {

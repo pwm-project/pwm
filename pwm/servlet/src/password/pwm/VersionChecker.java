@@ -37,6 +37,7 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Display;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
@@ -69,7 +70,7 @@ public class VersionChecker implements PwmService {
                 final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,
                         PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
-                    versionCheckInfoCache = Helper.getGson().fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
+                    versionCheckInfoCache = JsonUtil.getGson().fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
             } catch (JsonParseException e) {
                 LOGGER.error("unable to parse stored version check info in LocalDB: " + e.getMessage());
@@ -170,7 +171,7 @@ public class VersionChecker implements PwmService {
 
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
-                final Gson gson = Helper.getGson();
+                final Gson gson = JsonUtil.getGson();
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
                 pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
             } catch (LocalDBException e) {
@@ -192,7 +193,7 @@ public class VersionChecker implements PwmService {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }
         final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-        Gson gson = Helper.getGson();
+        Gson gson = JsonUtil.getGson();
         return gson.fromJson(responseBody, new TypeToken<Map<String, String>>() {}.getType());
     }
 

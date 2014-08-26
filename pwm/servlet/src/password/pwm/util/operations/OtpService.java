@@ -415,7 +415,7 @@ public class OtpService implements PwmService {
         final String userGUID;
         if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
                 DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, userIdentity, false);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
         } else {
             userGUID = null;
         }

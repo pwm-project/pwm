@@ -251,8 +251,8 @@ PWM_MAIN.preloadResources = function(nextFunction) {
 };
 
 PWM_MAIN.showString = function (key, options) {
-    options = options || {};
-    var bundle = (options['bundle']) ? options['bundle'] : 'Display';
+    options = options === undefined ? {} : options;
+    var bundle = ('bundle' in options) ? options['bundle'] : 'Display';
     PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
     if (!PWM_GLOBAL['localeStrings'][bundle]) {
         return "UNDEFINED BUNDLE: " + bundle;
@@ -279,8 +279,8 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 
 
 PWM_MAIN.goto = function(url,options) {
-    options = options || {};
-    if (!options['noContext']) {
+    options = options === undefined ? {} : options;
+    if (!options['noContext'] && url.indexOf(PWM_GLOBAL['url-context']) != 0) {
         if (url.substring(0,1) == '/') {
             url = PWM_GLOBAL['url-context'] + url;
         }
@@ -1613,9 +1613,34 @@ PWM_MAIN.addPwmFormIDtoURL = function(url) {
     if (!url || url.length < 1) {
         return '';
     }
+
+    if (url.indexOf('pwmFormID') > 0) {
+        return url;
+    }
+
     url += url.indexOf('?') > 0 ? '&' : '?';
     url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
     return url;
+};
+
+
+PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
+    require(["dojo"], function (dojo) {
+        url = PWM_MAIN.addPwmFormIDtoURL(url);
+        loadFunction = loadFunction || function(data){alert('missing load function, return results:' + dojo.toJson(data))};
+
+        dojo.xhrPost({
+            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+            url: url,
+            dataType: "json",
+            handleAs: "json",
+            preventCache: true,
+            load: loadFunction,
+            error: function(error) {
+                alert('error:' + error);
+            }
+        });
+    });
 };
 
 PWM_MAIN.pageLoadHandler();

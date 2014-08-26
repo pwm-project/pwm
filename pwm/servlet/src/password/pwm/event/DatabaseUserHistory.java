@@ -30,7 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
@@ -57,7 +57,7 @@ class DatabaseUserHistory implements UserHistoryStore {
         final UserIdentity targetUserDN = new UserIdentity(auditRecord.getTargetDN(),auditRecord.getTargetLdapProfile());
         final String guid;
         try {
-            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, targetUserDN, false);
+            guid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, targetUserDN, false);
         } catch (ChaiUnavailableException e) {
             LOGGER.error("unable to read guid for user '" + targetUserDN + "', cannot update user history, error: " + e.getMessage());
             return;
@@ -88,14 +88,14 @@ class DatabaseUserHistory implements UserHistoryStore {
         if (str == null || str.length() < 1) {
             return new StoredHistory();
         }
-        return Helper.getGson().fromJson(str,StoredHistory.class);
+        return JsonUtil.getGson().fromJson(str,StoredHistory.class);
     }
 
     private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException {
         if (storedHistory == null) {
             return;
         }
-        final String str = Helper.getGson().toJson(storedHistory);
+        final String str = JsonUtil.getGson().toJson(storedHistory);
         databaseAccessor.put(TABLE,guid,str);
     }
 

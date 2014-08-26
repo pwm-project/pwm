@@ -20,13 +20,13 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.http.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.Helper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.localdb.LocalDB" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="java.text.DateFormat" %>
@@ -596,32 +596,6 @@
         </tr>
         <tr>
             <td class="key">
-                ResourceFileServlet Cache
-            </td>
-            <td>
-                <%= numberFormat.format(ResourceFileServlet.itemsInCache(session.getServletContext())) %>
-                (<%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %>)
-            </td>
-        </tr>
-        <% Map<ContextManager.DebugKey,String> debugInfoMap = ContextManager.getContextManager(session).getDebugData(); %>
-        <tr>
-            <td class="key">
-                Session Total Size
-            </td>
-            <td>
-                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionTotalSize))) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
-                Session Average Size
-            </td>
-            <td>
-                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionAvgSize))) %>
-            </td>
-        </tr>
-        <tr>
-            <td class="key">
                 Memory Limit
             </td>
             <td>
@@ -634,6 +608,42 @@
             </td>
             <td>
                 <%= threads.size() %>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td class="key">
+                ResourceFileServlet Cache
+            </td>
+            <td>
+                <%= numberFormat.format(ResourceFileServlet.itemsInCache(session.getServletContext())) %> items
+                (<%= numberFormat.format(ResourceFileServlet.bytesInCache(session.getServletContext())) %> bytes)
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                ResourceFileServlet Cache Hit Ratio
+            </td>
+            <td>
+                <%= ResourceFileServlet.cacheHitRatio(session.getServletContext()).pretty(2) %>
+            </td>
+        </tr>
+        <% Map<ContextManager.DebugKey,String> debugInfoMap = ContextManager.getContextManager(session).getDebugData(); %>
+        <tr>
+            <td class="key">
+                Session Total Size
+            </td>
+            <td>
+                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionTotalSize))) %> bytes
+            </td>
+        </tr>
+        <tr>
+            <td class="key">
+                Session Average Size
+            </td>
+            <td>
+                <%= numberFormat.format(Integer.valueOf(debugInfoMap.get(ContextManager.DebugKey.HttpSessionAvgSize))) %> bytes
             </td>
         </tr>
     </table>
@@ -694,7 +704,7 @@
             <pwm:script>
             <script type="application/javascript">
                 PWM_GLOBAL['startupFunctions'].push(function(){
-                    showTooltip('thread_<%=t.getId()%>','<%=StringEscapeUtils.escapeJavaScript(threadTrace.toString())%>');
+                    showTooltip('thread_<%=t.getId()%>','<%=StringUtil.escapeJS(threadTrace.toString())%>');
                 });
             </script>
             </pwm:script>

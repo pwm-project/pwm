@@ -22,7 +22,6 @@
 
 package password.pwm.util.queue;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -160,7 +159,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     }
 
     protected boolean sendItem(final String item) {
-        final SmsItemBean smsItemBean = (Helper.getGson()).fromJson(item, SmsItemBean.class);
+        final SmsItemBean smsItemBean = (JsonUtil.getGson()).fromJson(item, SmsItemBean.class);
         boolean success = true;
         while (success && smsItemBean.hasNextPart()) {
             success = sendSmsPart(smsItemBean);
@@ -267,19 +266,19 @@ public class SmsQueueManager extends AbstractQueueManager {
                 returnData = data;
                 break;
             case CSV:
-                returnData = StringEscapeUtils.escapeCsv(data);
+                returnData = StringUtil.escapeCsv(data);
                 break;
             case HTML:
-                returnData = StringEscapeUtils.escapeHtml(data);
+                returnData = StringUtil.escapeHtml(data);
                 break;
             case JAVA:
-                returnData = StringEscapeUtils.escapeJava(data);
+                returnData = StringUtil.escapeJava(data);
                 break;
             case JAVASCRIPT:
-                returnData = StringEscapeUtils.escapeJavaScript(data);
+                returnData = StringUtil.escapeJS(data);
                 break;
             case XML:
-                returnData = StringEscapeUtils.escapeXml(data);
+                returnData = StringUtil.escapeXml(data);
                 break;
             default:
                 try {
@@ -378,12 +377,12 @@ public class SmsQueueManager extends AbstractQueueManager {
         final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
-        final SmsItemBean smsItemBean = Helper.getGson().fromJson(queueEvent.getItem(), SmsItemBean.class);
+        final SmsItemBean smsItemBean = JsonUtil.getGson().fromJson(queueEvent.getItem(), SmsItemBean.class);
 
         debugOutputMap.put("to", smsItemBean.getTo());
         debugOutputMap.put("from", smsItemBean.getFrom());
 
-        return Helper.getGson().toJson(debugOutputMap);
+        return JsonUtil.getGson().toJson(debugOutputMap);
     }
 
     @Override

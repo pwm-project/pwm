@@ -25,7 +25,7 @@ package password.pwm.util.stats;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 
 import java.math.BigInteger;
@@ -51,14 +51,14 @@ public class StatisticsBundle {
     }
 
     public String output() {
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         return gson.toJson(valueMap);
     }
 
     public static StatisticsBundle input(final String inputString) {
         final Map<Statistic, String> srcMap = new HashMap<>();
         try {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             final Map<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {
             }.getType());
             for (final String key : loadedMap.keySet()) {
@@ -109,7 +109,7 @@ public class StatisticsBundle {
             return;
         }
 
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final String avgStrValue = valueMap.get(statistic);
 
         AverageBean avgBean = new AverageBean();
@@ -131,7 +131,7 @@ public class StatisticsBundle {
                 return valueMap.containsKey(statistic) ? valueMap.get(statistic) : "0";
 
             case AVERAGE:
-                final Gson gson = Helper.getGson();
+                final Gson gson = JsonUtil.getGson();
                 final String avgStrValue = valueMap.get(statistic);
 
                 AverageBean avgBean = new AverageBean();

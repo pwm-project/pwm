@@ -24,6 +24,7 @@ package password.pwm.util.cli;
 
 import com.google.gson.GsonBuilder;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBUtility;
@@ -43,7 +44,7 @@ public class LocalDBInfoCommand extends AbstractCliCommand {
         for (final LocalDB.DB db : LocalDB.DB.values()) {
             out("---" + db.toString() + "---");
             final Map<LocalDBUtility.STATS_KEY,Object> stats = LocalDBUtility.dbStats(localDB, db);
-            out(Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(stats));
+            out(JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(stats));
         }
         out("completed LocalDBInfo in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }

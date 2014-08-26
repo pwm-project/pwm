@@ -20,12 +20,12 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Locale" %>
 <%@ page import="java.util.ResourceBundle" %>
@@ -84,7 +84,7 @@
                 <td style="border-width:0">
                 </td>
                 <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
-                    <%= StringEscapeUtils.escapeHtml(defaultValue) %>
+                    <%= StringUtil.escapeHtml(defaultValue) %>
                 </td>
             </tr>
             <%
@@ -97,7 +97,7 @@
                     <%= loopLocale.toString() %>
                 </td>
                 <td style="border-width:0; width: 100%; color: #808080; margin: 2px">
-                    <%= StringEscapeUtils.escapeHtml(localizedValue) %>
+                    <%= StringUtil.escapeHtml(localizedValue) %>
                 </td>
             </tr>
             <pwm:script>

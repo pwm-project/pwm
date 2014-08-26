@@ -24,8 +24,10 @@ package password.pwm.http.servlet;
 
 import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.error.*;
@@ -35,35 +37,72 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.filter.SessionFilter;
+import password.pwm.i18n.Message;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
+import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBUtility;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.crypto.SecretKey;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class ConfigManagerServlet extends TopServlet {
+public class ConfigManagerServlet extends PwmServlet {
     final static private PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
 
     private static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
-    protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
+    public enum ConfigManagerAction implements ProcessAction {
+        lockConfiguration(HttpMethod.POST),
+        startEditing(HttpMethod.POST),
+        generateXml(HttpMethod.POST),
+        exportLocalDB(HttpMethod.GET),
+        generateSupportZip(HttpMethod.GET),
+        uploadConfig(HttpMethod.POST),
+        importLocalDB(HttpMethod.POST),
+
+        ;
+
+        private final HttpMethod method;
+
+        ConfigManagerAction(HttpMethod method)
+        {
+            this.method = method;
+        }
+
+        public Collection<HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(method);
+        }
+    }
+
+    protected ConfigManagerAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return ConfigManagerAction.valueOf(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+
+
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
@@ -74,36 +113,98 @@ public class ConfigManagerServlet extends TopServlet {
 
         configManagerBean.setConfigLocked(pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION);
 
-        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        final ConfigManagerAction processAction = readProcessAction(pwmRequest);
+        if (processAction != null) {
+            switch (processAction) {
+                case lockConfiguration:
+                    restLockConfiguration(pwmRequest);
+                    break;
 
-        if ("lockConfiguration".equalsIgnoreCase(processActionParam)) {
-            restLockConfiguration(req, resp);
-            return;
-        } else if ("startEditing".equalsIgnoreCase(processActionParam)) {
-            doStartEditing(req, resp);
-            return;
-        } else if ("generateXml".equalsIgnoreCase(processActionParam)) {
-            doGenerateXml(req, resp, pwmSession);
-            return;
-        } else if ("exportLocalDB".equalsIgnoreCase(processActionParam)) {
-            doExportLocalDB(resp, pwmApplication);
-            return;
-        } else if ("generateSupportZip".equalsIgnoreCase(processActionParam)) {
-            doGenerateSupportZip(req, resp, pwmApplication, pwmSession);
-            return;
-        } else if ("uploadConfig".equalsIgnoreCase(processActionParam)) {
-            if (pwmApplication.getApplicationMode() != PwmApplication.MODE.CONFIGURATION) {
-                final String errorMsg = "config upload is only permitted when in configuration mode";
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
-                pwmSession.getSessionStateBean().setSessionError(errorInformation);
-                ServletHelper.forwardToErrorPage(req,resp,true);
-                return;
+                case startEditing:
+                    doStartEditing(pwmRequest);
+                    break;
+
+                case generateXml:
+                    doGenerateXml(pwmRequest);
+                    break;
+
+                case exportLocalDB:
+                    doExportLocalDB(pwmRequest);
+                    break;
+
+                case generateSupportZip:
+                    doGenerateSupportZip(pwmRequest);
+                    break;
+
+                case uploadConfig:
+                    ConfigGuideServlet.restUploadConfig(pwmRequest);
+                    return;
+
+                case importLocalDB:
+                    restUploadLocalDB(pwmRequest);
+                    return;
             }
-            ConfigGuideServlet.restUploadConfig(req, resp, pwmApplication, pwmSession);
             return;
         }
 
-        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CONFIG_MANAGER_MODE_CONFIGURATION);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_MODE_CONFIGURATION);
+    }
+
+    void restUploadLocalDB(final PwmRequest pwmRequest)
+            throws IOException, ServletException, PwmUnrecoverableException
+
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
+            final String errorMsg = "database upload is not permitted when in running mode";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE,errorMsg,new String[]{errorMsg});
+            pwmRequest.respondWithError(errorInformation, true);
+            return;
+        }
+
+        if (!ServletFileUpload.isMultipartContent(req)) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"no file found in upload");
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
+            LOGGER.error(pwmRequest, "error during database import: " + errorInformation.toDebugStr());
+            return;
+        }
+
+        final InputStream inputStream = ServletHelper.readFileUpload(pwmRequest.getHttpServletRequest(),"uploadFile");
+
+        final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
+        LocalDB localDB = null;
+        try {
+            final File localDBLocation = pwmApplication.getLocalDB().getFileLocation();
+            final Configuration configuration = pwmApplication.getConfig();
+            contextManager.shutdown();
+
+            localDB = LocalDBFactory.getInstance(localDBLocation, false, null, configuration);
+            final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
+            LOGGER.info(pwmRequest, "beginning LocalDB import");
+            localDBUtility.importLocalDB(inputStream,
+                    LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()));
+            LOGGER.info(pwmRequest, "completed LocalDB import");
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = e instanceof PwmException
+                    ? ((PwmException) e).getErrorInformation()
+                    : new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
+            LOGGER.error(pwmRequest, "error during LocalDB import: " + errorInformation.toDebugStr());
+            return;
+        } finally {
+            if (localDB != null) {
+                try {
+                    localDB.close();
+                } catch (Exception e) {
+                    LOGGER.error(pwmRequest, "error closing LocalDB after import process: " + e.getMessage());
+                }
+            }
+            contextManager.initialize();
+        }
+
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.SUCCESS_UNKNOWN));
     }
 
     static boolean checkAuthentication(
@@ -144,7 +245,7 @@ public class ConfigManagerServlet extends TopServlet {
         if (!storedConfig.hasPassword()) {
             final String errorMsg = "config file does not have a configuration password";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg,new String[]{errorMsg});
-            pwmRequest.forwardToErrorPage(errorInformation,true);
+            pwmRequest.respondWithError(errorInformation, true);
             return true;
         }
 
@@ -168,7 +269,7 @@ public class ConfigManagerServlet extends TopServlet {
             if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
                 try {
                     final String jsonStr = Helper.SimpleTextCrypto.decryptValue(cookieStr, securityKey);
-                    final PersistentLoginInfo persistentLoginInfo = Helper.getGson().fromJson(jsonStr,
+                    final PersistentLoginInfo persistentLoginInfo = JsonUtil.getGson().fromJson(jsonStr,
                             PersistentLoginInfo.class);
                     if (persistentLoginInfo != null) {
                         if (persistentLoginInfo.getExpireDate().after(new Date())) {
@@ -217,7 +318,7 @@ public class ConfigManagerServlet extends TopServlet {
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
                     final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, password);
-                    final String jsonPersistentLoginInfo = Helper.getGson().toJson(persistentLoginInfo);
+                    final String jsonPersistentLoginInfo = JsonUtil.getGson().toJson(persistentLoginInfo);
                     final String cookieValue = Helper.SimpleTextCrypto.encryptValue(jsonPersistentLoginInfo,
                             securityKey);
                     ServletHelper.writeCookie(
@@ -254,84 +355,76 @@ public class ConfigManagerServlet extends TopServlet {
         return true;
     }
 
-    private void doStartEditing(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    private void doStartEditing(final PwmRequest pwmRequest)
             throws IOException, PwmUnrecoverableException, ServletException
     {
-        forwardToEditor(req, resp);
+        forwardToEditor(pwmRequest);
     }
 
 
-    private void restLockConfiguration(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-
-    )
+    private void restLockConfiguration(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if (PwmConstants.TRIAL_MODE) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_TRIAL_VIOLATION,"configuration lock not available in trial");
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo);
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
 
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,"You must be authenticated before locking the configuration");
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo);
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
 
         if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"You must be authenticated with admin privileges before locking the configuration");
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo);
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
 
         try {
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(ContextManager.getContextManager(req.getSession()));
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             if (!storedConfiguration.hasPassword()) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"Please set a configuration password before locking the configuration");
-                final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+                final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
                 LOGGER.debug(pwmSession, errorInfo);
-                ServletHelper.outputJsonResult(resp, restResultBean);
+                pwmRequest.outputJsonResult(restResultBean);
                 return;
             }
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "false");
-            saveConfiguration(pwmSession, req.getSession().getServletContext(), storedConfiguration);
+            saveConfiguration(pwmRequest, storedConfiguration);
             final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
             configManagerBean.setConfiguration(null);
         } catch (PwmException e) {
             final ErrorInformation errorInfo = e.getErrorInformation();
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo.toDebugStr());
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         } catch (Exception e) {
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmSession.getSessionStateBean().getLocale(), pwmApplication.getConfig());
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
             LOGGER.debug(pwmSession, errorInfo.toDebugStr());
-            ServletHelper.outputJsonResult(resp, restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
         final HashMap<String,String> resultData = new HashMap<>();
         LOGGER.info(pwmSession, "Configuration Locked");
-        ServletHelper.outputJsonResult(resp, new RestResultBean(resultData));
+        pwmRequest.outputJsonResult(new RestResultBean(resultData));
     }
 
     static void saveConfiguration(
-            final PwmSession pwmSession,
-            final ServletContext servletContext,
+            final PwmRequest pwmRequest,
             final StoredConfiguration storedConfiguration
     )
             throws PwmUnrecoverableException
@@ -345,37 +438,33 @@ public class ConfigManagerServlet extends TopServlet {
         }
 
         try {
-            ContextManager contextManager = ContextManager.getContextManager(servletContext);
+            ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
             contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication());
-            contextManager.reinitialize();
+            contextManager.reinitializePwmApplication();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();
-            LOGGER.error(pwmSession, errorString);
+            LOGGER.error(pwmRequest, errorString);
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorString));
         }
 
     }
 
-    static void forwardToEditor(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    static void forwardToEditor(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final String url = req.getContextPath() + "/private/config/ConfigEditor";
-        resp.sendRedirect(url);
+        final String url = pwmRequest.getHttpServletRequest().getContextPath() + "/private/config/ConfigEditor";
+        pwmRequest.sendRedirect(url);
     }
 
-    private void doGenerateXml(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmSession pwmSession
-    )
+    private void doGenerateXml(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+
         try {
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(
-                    ContextManager.getContextManager(req.getSession()));
+
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             final String output = storedConfiguration.toXml();
             resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
             resp.setContentType("text/xml;charset=utf-8");
@@ -385,14 +474,10 @@ public class ConfigManagerServlet extends TopServlet {
         }
     }
 
-    private void doGenerateSupportZip(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
+    private void doGenerateSupportZip(final PwmRequest pwmRequest)
             throws IOException, ServletException
     {
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
         resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
         resp.setContentType("application/zip");
         resp.setContentLength(0);
@@ -402,16 +487,15 @@ public class ConfigManagerServlet extends TopServlet {
         ZipOutputStream zipOutput = null;
         try {
             zipOutput = new ZipOutputStream(resp.getOutputStream(), Charset.forName("UTF8"));
-            final ContextManager contextManager = ContextManager.getContextManager(req.getSession());
-            outputZipDebugFile(pwmApplication,pwmSession,contextManager,zipOutput,pathPrefix);
+            outputZipDebugFile(pwmRequest, zipOutput, pathPrefix);
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "error during zip debug building: " + e.getMessage());
+            LOGGER.error(pwmRequest, "error during zip debug building: " + e.getMessage());
         } finally {
             if (zipOutput != null) {
                 try {
                     zipOutput.close();
                 } catch (Exception e) {
-                    LOGGER.error(pwmSession, "error during zip debug closing: " + e.getMessage());
+                    LOGGER.error(pwmRequest, "error during zip debug closing: " + e.getMessage());
                 }
             }
         }
@@ -419,14 +503,15 @@ public class ConfigManagerServlet extends TopServlet {
     }
 
     private void outputZipDebugFile(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final ContextManager contextManager,
+            final PwmRequest pwmRequest,
             final ZipOutputStream zipOutput,
             final String pathPrefix
     )
             throws IOException, PwmUnrecoverableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
         { // kick off health check so that it might be faster later..
             Thread healthThread = new Thread() {
                 public void run() {
@@ -439,7 +524,7 @@ public class ConfigManagerServlet extends TopServlet {
         }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(contextManager);
+            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
 
             final String output = storedConfiguration.toXml();
@@ -467,7 +552,7 @@ public class ConfigManagerServlet extends TopServlet {
             // java threads
             outputMap.put("threads",Thread.getAllStackTraces());
 
-            final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
+            final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();
             zipOutput.flush();
@@ -476,7 +561,7 @@ public class ConfigManagerServlet extends TopServlet {
             try {
                 zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
                 final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getApplicationPath());
-                final String json = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
+                final String json = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
                 zipOutput.write(json.getBytes("UTF8"));
                 zipOutput.closeEntry();
                 zipOutput.flush();
@@ -514,35 +599,36 @@ public class ConfigManagerServlet extends TopServlet {
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
-            final String recordJson = Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
+            final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
             zipOutput.write(recordJson.getBytes("UTF8"));
             zipOutput.closeEntry();
             zipOutput.flush();
         }
     }
 
-    static StoredConfiguration readCurrentConfiguration(final ContextManager contextManager)
+    static StoredConfiguration readCurrentConfiguration(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
+        final ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession());
         final ConfigurationReader runningConfigReader = contextManager.getConfigReader();
         final StoredConfiguration runningConfig = runningConfigReader.getStoredConfiguration();
         return StoredConfiguration.copy(runningConfig);
     }
 
-    private void doExportLocalDB(
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication
-    )
+    private void doExportLocalDB(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        final Date startTime = new Date();
         resp.setHeader("Content-Disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
         resp.setContentType("application/octet-stream");
         resp.setHeader("Content-Transfer-Encoding", "binary");
-        final LocalDBUtility localDBUtility = new LocalDBUtility(pwmApplication.getLocalDB());
+        final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
         try {
-            localDBUtility.exportLocalDB(resp.getOutputStream(),new PrintStream(new ByteArrayOutputStream()),false);
+            localDBUtility.exportLocalDB(resp.getOutputStream(), LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()), false);
+            LOGGER.debug(pwmRequest, "completed localDBExport process in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } catch (Exception e) {
-            LOGGER.error("error downloading export localdb: " + e.getMessage());
+            LOGGER.error(pwmRequest, "error downloading export localdb: " + e.getMessage());
         }
     }
 

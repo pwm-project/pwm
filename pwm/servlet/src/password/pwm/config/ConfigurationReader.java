@@ -35,7 +35,9 @@ import password.pwm.util.Helper;
 import password.pwm.util.PwmLogger;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -110,9 +112,9 @@ public class ConfigurationReader {
             return null;
         }
 
-        final String theFileData;
+        final InputStream theFileData;
         try {
-            theFileData = Helper.readFileAsString(configFile, PwmConstants.MAX_CONFIG_FILE_CHARS, CONFIG_FILE_CHARSET);
+            theFileData = new FileInputStream(configFile);
         } catch (Exception e) {
             final String errorMsg = "unable to read configuration file: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);

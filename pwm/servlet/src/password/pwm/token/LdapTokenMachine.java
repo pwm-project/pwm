@@ -76,10 +76,10 @@ class LdapTokenMachine implements TokenMachine {
         }
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication);
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, null);
             final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
             searchConfiguration.setFilter(searchFilter);
-            final UserIdentity user = userSearchEngine.performSingleUserSearch(null, searchConfiguration);
+            final UserIdentity user = userSearchEngine.performSingleUserSearch(searchConfiguration);
             if (user == null) {
                 return null;
             }

@@ -35,7 +35,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserAuthenticator;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmServletURLHelper;
 import password.pwm.ws.server.RestResultBean;
@@ -87,7 +87,6 @@ public class LoginServlet extends PwmServlet {
             return null;
         }
     }
-
 
 
 // -------------------------- OTHER METHODS --------------------------
@@ -145,14 +144,14 @@ public class LoginServlet extends PwmServlet {
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
         final String bodyString = pwmRequest.readRequestBody();
-        final Map<String, String> valueMap = Helper.getGson().fromJson(bodyString,
+        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                 new TypeToken<Map<String, String>>() {
                 }.getType()
         );
 
         if (valueMap == null || valueMap.isEmpty()) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing json request body");
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation,pwmRequest.getLocale(),pwmRequest.getConfig()));
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
             return;
         }
 
@@ -166,8 +165,7 @@ public class LoginServlet extends PwmServlet {
         try {
             handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);
         } catch (PwmOperationalException e) {
-            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest.getLocale(),
-                    pwmRequest.getConfig()));
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
             return;
         }
 

@@ -325,7 +325,7 @@ public class PasswordChangeProgressChecker {
                 }
                 final Percent pctComplete = new Percent(duplicateValues + 1, checkResults.size());
                 final ProgressRecord progressRecord = makeReplicaProgressRecord(pctComplete);
-                LOGGER.trace("read password replication sync status as: " + Helper.getGson().toJson(progressRecord));
+                LOGGER.trace("read password replication sync status as: " + JsonUtil.getGson().toJson(progressRecord));
                 return progressRecord;
             }
         } catch (PwmUnrecoverableException e) {

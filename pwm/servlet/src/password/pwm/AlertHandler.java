@@ -22,6 +22,7 @@
 
 package password.pwm;
 
+import org.apache.commons.lang3.text.WordUtils;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
@@ -266,7 +267,7 @@ public abstract class AlertHandler {
     }
 
     private static String wrapText(final String input, final int length) {
-        String output = org.apache.commons.lang.WordUtils.wrap(input,length);
+        String output = WordUtils.wrap(input, length);
         output = output.replace("\n","\n   ");
         return output;
     }

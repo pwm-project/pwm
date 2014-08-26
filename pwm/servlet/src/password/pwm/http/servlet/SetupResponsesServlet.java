@@ -49,7 +49,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.stats.Statistic;
@@ -258,7 +258,7 @@ public class SetupResponsesServlet extends TopServlet {
         }
 
         final AjaxValidationBean ajaxValidationBean = new AjaxValidationBean(userMessage,success);
-        final String output = Helper.getGson().toJson(ajaxValidationBean);
+        final String output = JsonUtil.getGson().toJson(ajaxValidationBean);
 
         resp.setContentType("text/plain;charset=utf-8");
         resp.getWriter().print(output);
@@ -347,7 +347,7 @@ public class SetupResponsesServlet extends TopServlet {
 
         final String bodyString = ServletHelper.readRequestBody(req);
 
-        final Gson gson = Helper.getGson();
+        final Gson gson = JsonUtil.getGson();
         final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
 

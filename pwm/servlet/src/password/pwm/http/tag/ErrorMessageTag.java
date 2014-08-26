@@ -22,7 +22,6 @@
 
 package password.pwm.http.tag;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
@@ -31,6 +30,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.util.PwmLogger;
+import password.pwm.util.StringUtil;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,7 +81,7 @@ public class ErrorMessageTag extends PwmAbstractTag {
 
                 final boolean allowHtml = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
                 if (!allowHtml) {
-                    errorMsg = StringEscapeUtils.escapeHtml(errorMsg);
+                    errorMsg = StringUtil.escapeHtml(errorMsg);
                 }
 
                 final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);

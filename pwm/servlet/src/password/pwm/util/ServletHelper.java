@@ -444,6 +444,33 @@ public class ServletHelper {
         return null;
     }
 
+    public static InputStream readFileUpload(
+            final HttpServletRequest req,
+            final String filePartName
+    )
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        try {
+            if (ServletFileUpload.isMultipartContent(req)) {
+
+                // Create a new file upload handler
+                final ServletFileUpload upload = new ServletFileUpload();
+
+                // Parse the request
+                for (final FileItemIterator iter = upload.getItemIterator(req); iter.hasNext();) {
+                    final FileItemStream item = iter.next();
+
+                    if (filePartName.equals(item.getFieldName())) {
+                        return item.openStream();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("error reading file upload: " + e.getMessage());
+        }
+        return null;
+    }
+
     private static String streamToString(final InputStream stream, final int maxFileChars)
             throws IOException, PwmUnrecoverableException {
         final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,"UTF-8"));

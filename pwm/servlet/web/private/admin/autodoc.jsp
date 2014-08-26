@@ -43,11 +43,30 @@
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
     <jsp:param name="pwm.PageName" value="AutoDoc"/>
 </jsp:include>
-<div id="centerbody" class="wide">
+<div id="centerbody" style="width: 650px">
 <%@ include file="admin-nav.jsp" %>
+<ol>
+    <li><a href="#settings">Settings</a></li>
+    <ol>
+        <% for (final PwmSetting.Category category : PwmSetting.Category.values()) { %>
+        <li><a href="#settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></li>
+        <% } %>
+    </ol>
+    <li><a href="#eventStatistics">Event Statistics</a></li>
+    <li><a href="#auditEvents">Audit Events</a></li>
+    <li><a href="#errors">Errors</a></li>
+    <li><a href="#localizations">Localizations</a></li>
+    <li><a href="#displayStrings">Display Strings</a></li>
+    <ol>
+        <% for (PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
+        <li><a href="#displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a></li>
+        <% } %>
+    </ol>
+</ol>
+<br/>
 <h1>Configuration Settings</h1>
 <% for (final PwmSetting.Category category : PwmSetting.Category.values()) { %>
-<h2><%=category.getLabel(userLocale)%></h2>
+<h2><a id="settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></h2>
 <p>
     <%=category.getDescription(userLocale)%>
 </p>
@@ -140,7 +159,7 @@
 <% } %>
 <% } %>
 <% } %>
-<h1>Event Statistics</h1>
+<h1><a id="eventStatistics">Event Statistics</a></h1>
 <table>
     <tr>
         <td>
@@ -167,7 +186,7 @@
     </tr>
     <% } %>
 </table>
-<h1>Audit Events</h1>
+<h1><a id="auditEvents">Audit Events</a></h1>
 <table>
     <tr>
         <td>
@@ -178,6 +197,9 @@
         </td>
         <td>
             <h3>Stored In User History</h3>
+        </td>
+        <td>
+            <h3>Resource Key</h3>
         </td>
         <td>
             <h3>Label</h3>
@@ -192,7 +214,10 @@
             <%= auditEvent.getType() %>
         </td>
         <td>
-            <%= auditEvent.isStoreOnUser()%>
+            <%= auditEvent.isStoreOnUser() %>
+        </td>
+        <td>
+            <%= auditEvent.getMessage().getResourceKey() %>
         </td>
         <td>
             <%= auditEvent.getMessage().getLocalizedMessage(userLocale, pwmApplicationHeader.getConfig()) %>
@@ -200,7 +225,7 @@
     </tr>
     <% } %>
 </table>
-<h1>Errors</h1>
+<h1><a id="errors">Errors</a></h1>
 <table class="tablemain">
     <tr>
         <td>
@@ -233,12 +258,12 @@
     </tr>
     <% } %>
 </table>
-<h1>Display Strings</h1>
+<h1><a id="displayStrings">Display Strings</a></h1>
 <% for (PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
 <h2>
-    <%=bundle.getTheClass().getSimpleName()%>
+    <a id="displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a>
+    <% if (bundle.isAdminOnly()) { %> (admin-only) <% } %>
 </h2>
-<% if (bundle.isAdminOnly()) { %> (Admin Only, not seen by end user) <% } %>
 <table>
     <% final ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getTheClass().getName()); %>
     <% for (final String key : new TreeSet<String>(Collections.list(resourceBundle.getKeys()))) { %>

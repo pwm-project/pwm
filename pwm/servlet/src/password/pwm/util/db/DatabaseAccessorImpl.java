@@ -30,23 +30,25 @@ import password.pwm.PwmService;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.ClosableIterator;
-import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 /**
  * @author Jason D. Rivard
@@ -75,7 +77,6 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public DatabaseAccessorImpl()
-            throws DatabaseException
     {
     }
 
@@ -88,20 +89,36 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         return status;
     }
 
-    public void init(PwmApplication pwmApplication) throws PwmException {
+    public void init(final PwmApplication pwmApplication) throws PwmException {
+        this.pwmApplication = pwmApplication;
         final Configuration config = pwmApplication.getConfig();
+        init(config);
+    }
+
+    public void init(final Configuration config) throws PwmException {
+        final Map<FileValue.FileInformation, FileValue.FileContent> fileValue = config.readSettingAsFile(
+                PwmSetting.DATABASE_JDBC_DRIVER);
+        final byte[] jdbcDriverBytes;
+        if (fileValue != null && !fileValue.isEmpty()) {
+            final FileValue.FileInformation fileInformation1 = fileValue.keySet().iterator().next();
+            final FileValue.FileContent fileContent = fileValue.get(fileInformation1);
+            jdbcDriverBytes = fileContent.getContents();
+        } else {
+            jdbcDriverBytes = null;
+        }
+
         this.dbConfiguration = new DBConfiguration(
                 config.readSettingAsString(PwmSetting.DATABASE_CLASS),
                 config.readSettingAsString(PwmSetting.DATABASE_URL),
                 config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
                 config.readSettingAsString(PwmSetting.DATABASE_PASSWORD),
                 config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
-                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE)
-                );
+                config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE),
+                jdbcDriverBytes
+        );
 
-        this.instanceID = pwmApplication.getInstanceID();
-        this.traceLogging = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
-        this.pwmApplication = pwmApplication;
+        this.instanceID = pwmApplication == null ? null : pwmApplication.getInstanceID();
+        this.traceLogging = config.readSettingAsBoolean(PwmSetting.DATABASE_DEBUG_TRACE);
 
         if (this.dbConfiguration.isEmpty()) {
             status = PwmService.STATUS.CLOSED;
@@ -121,7 +138,6 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         try {
-            DriverManager.deregisterDriver(driver);
             driver = null;
         } catch (Exception e) {
             LOGGER.debug("error while de-registering driver: " + e.getMessage());
@@ -146,7 +162,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         try {
-            final Gson gson = Helper.getGson();
+            final Gson gson = JsonUtil.getGson();
             final Map<String,String> tempMap = new HashMap<>();
             tempMap.put("instance",instanceID);
             tempMap.put("date",(new java.util.Date()).toString());
@@ -187,7 +203,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         status = PwmService.STATUS.OPEN;
 
         try {
-            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, (new java.util.Date()).toString());
+            put(DatabaseTable.PWM_META, KEY_ENGINE_START_PREFIX + instanceID, PwmConstants.DEFAULT_DATETIME_FORMAT.format(new java.util.Date()));
         } catch (DatabaseException e) {
             final String errorMsg = "error writing engine start time value: " + e.getMessage();
             throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg));
@@ -196,17 +212,51 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 
     private Connection openDB(final DBConfiguration dbConfiguration) throws DatabaseException {
         final String connectionURL = dbConfiguration.getConnectionString();
-        final String jdbcClass = dbConfiguration.getDriverClassname();
+        final String jdbcClassName = dbConfiguration.getDriverClassname();
 
         try {
-            driver = (Driver)Class.forName(jdbcClass).newInstance();
-            DriverManager.registerDriver(driver);
-            final Connection connection = DriverManager.getConnection(connectionURL,dbConfiguration.getUsername(),dbConfiguration.getPassword());
+            final byte[] jdbcDriverBytes = dbConfiguration.getJdbcDriver();
+            if (jdbcDriverBytes != null) {
+                LOGGER.debug("loading JDBC database driver stored in configuration");
+                final JdbcDriverClassLoader jdbcDriverClassLoader = new JdbcDriverClassLoader(jdbcDriverBytes);
+                driver = (Driver) Class.forName(jdbcClassName, true, jdbcDriverClassLoader).newInstance();
+                LOGGER.debug("successfully loaded JDBC database driver '" + jdbcClassName + "' stored in configuration");
+            }
+        } catch (Exception e) {
+            final String errorMsg = "error registering JDBC database driver stored in configuration: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
+            throw new DatabaseException(errorInformation);
+        }
+
+        if (driver == null) {
+            try {
+                LOGGER.debug("loading JDBC database driver from classpath: " + jdbcClassName);
+                driver = (Driver) Class.forName(jdbcClassName).newInstance(); //load from normal classpath
+                LOGGER.debug("successfully loaded JDBC database driver from classpath: " + jdbcClassName);
+            } catch (Throwable e) {
+                final String errorMsg = e.getClass().getName() + " error loading JDBC database driver from classpath: " + e.getMessage();
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
+                throw new DatabaseException(errorInformation);
+            }
+        }
+
+        try {
+            LOGGER.debug("opening connection to database " + connectionURL);
+            final Properties connectionProperties = new Properties();
+            if (dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty()) {
+                connectionProperties.setProperty("user", dbConfiguration.getUsername());
+            }
+            if (dbConfiguration.getPassword() != null && !dbConfiguration.getPassword().isEmpty()) {
+                connectionProperties.setProperty("password", dbConfiguration.getPassword());
+            }
+            final Connection connection = driver.connect(connectionURL, connectionProperties);
+            LOGGER.debug("successfully opened connection to database " + connectionURL);
             connection.setAutoCommit(true);
             return connection;
-        } catch (Throwable e) {
-            LOGGER.error("error opening DB: " + e.getMessage());
-            throw new DatabaseException(new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,"get operation failed: " + e.getMessage()));
+        } catch (SQLException e) {
+            final String errorMsg = "error connecting to database: " + e.getMessage();
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
+            throw new DatabaseException(errorInformation);
         }
     }
 
@@ -218,8 +268,9 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             {
                 final StringBuilder sqlString = new StringBuilder();
                 sqlString.append("CREATE table ").append(table.toString()).append(" (").append("\n");
-                sqlString.append("  " + KEY_COLUMN + " " + dbConfiguration.getColumnTypeKey() + "(").append(KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
-                sqlString.append("  " + VALUE_COLUMN + " " + dbConfiguration.getColumnTypeValue() + " ");
+                sqlString.append("  " + KEY_COLUMN + " ").append(dbConfiguration.getColumnTypeKey()).append("(").append(
+                        KEY_COLUMN_LENGTH).append(") NOT NULL PRIMARY KEY,").append("\n");
+                sqlString.append("  " + VALUE_COLUMN + " ").append(dbConfiguration.getColumnTypeValue()).append(" ");
                 sqlString.append("\n");
                 sqlString.append(")").append("\n");
 
@@ -326,7 +377,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("value",value);
-            LOGGER.trace("put operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("put operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
         updateStats(false,true);
@@ -423,7 +474,8 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);
-            LOGGER.trace("contains operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("contains operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(
+                    debugOutput));
         }
         updateStats(true,false);
         return result;
@@ -469,7 +521,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",returnValue);
-            LOGGER.trace("get operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("get operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
         updateStats(true,false);
@@ -520,10 +572,10 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);
-            LOGGER.trace("remove operation result: " + Helper.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("remove operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
         }
 
-        updateStats(true,false);
+        updateStats(true, false);
         return result;
     }
 
@@ -638,6 +690,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         private final String password;
         private final String columnTypeKey;
         private final String columnTypeValue;
+        private final byte[] jdbcDriver;
 
         public DBConfiguration(
                 final String driverClassname,
@@ -645,7 +698,8 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                 final String username,
                 final String password,
                 final String columnTypeKey,
-                final String columnTypeValue
+                final String columnTypeValue,
+                final byte[] jdbcDriver
         ) {
             this.driverClassname = driverClassname;
             this.connectionString = connectionString;
@@ -653,6 +707,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             this.password = password;
             this.columnTypeKey = columnTypeKey;
             this.columnTypeValue = columnTypeValue;
+            this.jdbcDriver = jdbcDriver;
         }
 
         public String getDriverClassname() {
@@ -679,6 +734,12 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             return columnTypeValue;
         }
 
+
+        public byte[] getJdbcDriver()
+        {
+            return jdbcDriver;
+        }
+
         public boolean isEmpty() {
             if (driverClassname == null || driverClassname.length() < 1) {
                 if (connectionString == null || connectionString.length() < 1) {
@@ -696,7 +757,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     public ServiceInfo serviceInfo()
     {
         if (status() == STATUS.OPEN) {
-            return new ServiceInfo(Collections.<DataStorageMethod>singletonList(DataStorageMethod.LOCALDB));
+            return new ServiceInfo(Collections.singletonList(DataStorageMethod.DB));
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
@@ -713,6 +774,56 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                     statisticsManager.updateEps(Statistic.EpsType.DB_WRITES,1);
                 }
             }
+        }
+    }
+
+    public static class JdbcDriverClassLoader extends ClassLoader {
+
+        private final byte[] jdbcDriverJar;
+
+        public JdbcDriverClassLoader(byte[] jdbcDriverJar) {
+            this.jdbcDriverJar = jdbcDriverJar;
+        }
+
+        public Class findClass(String name)
+                throws ClassNotFoundException
+        {
+            try {
+                byte[] b = loadClassData(name);
+                if (b == null) {
+                    throw new ClassNotFoundException("unable to discover file from in-memory jar classloader: " + name);
+                }
+                return defineClass(name, b, 0, b.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new ClassNotFoundException("IOException reading from in-memory jar classloader: " + e.getMessage());
+            }
+        }
+
+        private byte[] loadClassData(String name)
+                throws IOException
+        {
+            final String literalFileName = name.replace(".",File.separator) + ".class";
+            final JarInputStream jarInputStream = new JarInputStream(new ByteArrayInputStream(jdbcDriverJar));
+            JarEntry jarEntry;
+            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+                if (!jarEntry.isDirectory()) {
+                    if (literalFileName.equals(jarEntry.getName())) {
+                        final int fileLength = (int) jarEntry.getSize();
+                        final byte[] buffer = new byte[1024];
+                        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        int length;
+                        while ((length = jarInputStream.read(buffer)) > 0) {
+                            baos.write(buffer, 0, length);
+                        }
+                        final byte[] outputFile = baos.toByteArray();
+                        LOGGER.trace("loaded class file name=" + name + ", found=" + jarEntry.getName()
+                                + ", fileLength=" + fileLength + " returnLength=" + outputFile.length);
+                        return outputFile;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

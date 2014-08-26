@@ -1445,10 +1445,10 @@
         <label>Intruder Record Storage Location</label>
         <description><![CDATA[Data store used for Intruder Records.  If <i>Database</i> is used, all application instances will share a common view of intruder status.  If <i>LocalDB</i> is used, each instance has it's own intruder state.  LocalDB is likely to have less performance overhead and having a consistent intruder state across all application instances may not be important.  Auto Configure will use a database if configured, if not the LocalDB will be used.]]></description>
         <default>
-            <value><![CDATA[AUTO]]></value>
+            <value><![CDATA[LOCALDB]]></value>
         </default>
         <options>
-            <option value="AUTO">Auto Configure - Database if configured, LocalDB otherwise</option>
+            <!--<option value="AUTO">Auto Configure - Database if configured, LocalDB otherwise</option>-->
             <option value="DATABASE">Remote Database</option>
             <option value="LOCALDB">LocalDB</option>
         </options>
@@ -1879,14 +1879,14 @@
             <value><![CDATA[@User:Email@]]></value>
         </default>
     </setting>
-    <setting key="events.healthCheck.minInterval" level="1">
+    <setting key="events.healthCheck.minInterval" level="0">
         <label>Health Check Frequency</label>
         <description><![CDATA[Frequency (in seconds) at which a self-health check is performed.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
         <default>
             <value>120</value>
         </default>
     </setting>
-    <setting key="events.java.stdoutLevel" level="1">
+    <setting key="events.java.stdoutLevel" level="0">
         <label>Java StdOut Log Level</label>
         <description><![CDATA[Default Log level for stdout.  Most servlet containers will redirect stdout to a log file.  For example, tomcat logs stdout output to the <i>tomcat/logs/catalina.out</i> file by default.]]></description>
         <default>
@@ -1909,14 +1909,14 @@
             <value />
         </default>
     </setting>
-    <setting key="events.pwmDB.maxEvents" level="1" required="true">
+    <setting key="events.pwmDB.maxEvents" level="0" required="true">
         <label>Maximum LocalDB Events</label>
         <description><![CDATA[Maximum log events stored in LocalDB.  This number of events will be retained in the LocalDB database and use these to display in the admin event log screen.<br/><br/>This setting does not effect the normal log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Approximately 100MB of disk space will be consumed for each 100,000 log events.]]></description>
         <default>
             <value>1000000</value>
         </default>
     </setting>
-    <setting key="events.pwmDB.maxAge" level="1" required="true">
+    <setting key="events.pwmDB.maxAge" level="0" required="true">
         <label>Maximum Age LocalDB Events</label>
         <description><![CDATA[Maximum age of events stored in LocalDB. <br/><br/>This setting does not effect log files configured in log4jconfig.xml or tomcat's log file settings.<br/><br/>Events older than the configured value here will be periodically purged.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200).  A value of zero will cause events not to be removed due to age.]]></description>
         <default>
@@ -1957,7 +1957,7 @@
     </setting>
     <setting key="events.user.storageMethod" level="1" required="true">
         <label>User History Storage Location</label>
-        <description><![CDATA[Data store used for user-specific audit history.]]></description>
+        <description><![CDATA[Data store used for user-specific audit history.  If using LDAP, this number should be kept small to avoid an unreasonably lengthy LDAP attribute value size.]]></description>
         <default>
             <value><![CDATA[AUTO]]></value>
         </default>
@@ -1968,7 +1968,7 @@
         </options>
     </setting>
     <setting key="events.ldap.attribute" level="1">
-        <label>User History Attribute</label>
+        <label>User History LDAP Attribute</label>
         <description><![CDATA[Attribute used to write a user event attribute in ldap.  The user event log attribute will hold an XML document with the users Event history.  Leave blank to disable logging event history to ldap.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
@@ -1997,7 +1997,7 @@
         </default>
     </setting>
     <setting key="events.audit.maxAge" level="1" required="true">
-        <label>Local Alerts Storage Max Age</label>
+        <label>LocalDB Audit Events Storage Max Age</label>
         <description><![CDATA[Maximum age (in seconds) of the local audit event log.  Default is 30 days.]]></description>
         <default>
             <value>2592000</value>
@@ -3247,7 +3247,7 @@
     </setting>
     <setting key="db.classname" level="0">
         <label>Database Class</label>
-        <description><![CDATA[Database JDBC driver class name.  Consult the database vendor to determine the correct class name for your database.<p>The corresponding JDBC driver JAR or ZIP file must be included in the classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.</p><table><tr><td class="key">Database Type</td><td class="key">Example Class Name</td></tr><tr><td>MS-SQL</td><td>com.microsoft.sqlserver.jdbc.SQLServerDriver</td></tr><tr><td>MS-SQL using jTDS</td><td>net.sourceforge.jtds.jdbc.Driver</td></tr><tr><td>MySQL</td><td>com.mysql.jdbc.Driver</td></tr></table>]]></description>
+        <description><![CDATA[Database JDBC driver class name.  Consult the database vendor to determine the correct class name for your database.<table><tr><td class="key">Database Type</td><td class="key">Example Class Name</td></tr><tr><td>MS-SQL</td><td>com.microsoft.sqlserver.jdbc.SQLServerDriver</td></tr><tr><td>MS-SQL using jTDS</td><td>net.sourceforge.jtds.jdbc.Driver</td></tr><tr><td>MySQL</td><td>com.mysql.jdbc.Driver</td></tr></table>]]></description>
         <default>
             <value />
         </default>
@@ -3269,6 +3269,13 @@
     <setting key="db.password" level="0">
         <label>Database Password</label>
         <description><![CDATA[Database connection password]]></description>
+    </setting>
+    <setting key="db.jdbc.driver" level="0">
+        <label>Database Driver</label>
+        <description><![CDATA[Database JDBC Driver JAR or ZIP file supplied by the database vendor.  The file must be under 10MB in size to upload.  The file contents will be stored as part of the standard application configuration file.  If the file is not supplied as part of this setting then the file must be available in the Java classpath, typically in the <i>WEB-INF/lib</i> directory or the application server's lib directory.</p>]]></description>
+        <default>
+            <value />
+        </default>
     </setting>
     <setting key="db.columnType.key" level="1" required="true">
         <label>Database Key Column Type</label>
@@ -3747,9 +3754,14 @@
         <label>One Time Password</label>
         <description><![CDATA[Options for time based one time passwords.]]></description>
     </category>
+
     <category key="LOGGING">
-        <label>Logging &amp; Auditing</label>
-        <description><![CDATA[Alert and Logging settings.  Setting high debug levels can cause undesired overhead and the application may suffer as a result.  Conversely, retaining high-level logs can help aid troubleshooting as well as security forensics.]]></description>
+        <label>Logging</label>
+        <description><![CDATA[Setting high debug levels can cause undesired overhead and the application may suffer as a result.  Conversely, retaining high-level logs can help aid troubleshooting as well as security forensics.]]></description>
+    </category>
+    <category key="AUDITING">
+        <label>Auditing</label>
+        <description><![CDATA[Auditing]]></description>
     </category>
     <category key="EDIRECTORY">
         <label>NetIQ eDirectory</label>

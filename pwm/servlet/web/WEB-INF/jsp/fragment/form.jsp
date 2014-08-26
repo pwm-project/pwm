@@ -1,4 +1,3 @@
-<%@ page import="org.apache.commons.lang.StringEscapeUtils" %>
 <%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
@@ -7,6 +6,7 @@
 <%@ page import="password.pwm.http.ContextManager" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 
@@ -46,9 +46,9 @@
     final SessionStateBean ssBean = pwmSession.getSessionStateBean();
     final List<FormConfiguration> formConfigurationList = pwmApplication.getConfig().readSettingAsForm(formSetting);
     for (FormConfiguration loopConfiguration : formConfigurationList) {
-        String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : ssBean.getLastParameterValues().get(loopConfiguration.getName(),"");
+        String currentValue = formDataMap != null ? formDataMap.get(loopConfiguration) : "";
         currentValue = currentValue == null ? "" : currentValue;
-        currentValue = StringEscapeUtils.escapeHtml(currentValue);
+        currentValue = StringUtil.escapeHtml(currentValue);
 
 %>
 <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
@@ -102,7 +102,7 @@
     <label for="<%=loopConfiguration.getName()%>_confirm"><pwm:display key="Field_Confirm_Prefix"/>&nbsp;<%=loopConfiguration.getLabel(ssBean.getLocale()) %><%if(loopConfiguration.isRequired()){%>*<%}%></label>
 </h2>
 <input style="" id="<%=loopConfiguration.getName()%>_confirm" type="<%=loopConfiguration.getType()%>" class="inputfield"
-       name="<%=loopConfiguration.getName()%>_confirm" value="<%= ssBean.getLastParameterValues().get(loopConfiguration.getName() + "confirm","")%>"
+       name="<%=loopConfiguration.getName()%>_confirm"
         <%if(loopConfiguration.getPlaceholder()!=null){%> placeholder="<%=loopConfiguration.getPlaceholder()%>"<%}%>
         <%if(loopConfiguration.isRequired()){%> required="required"<%}%>
         <%if(loopConfiguration.isReadonly()){%> readonly="readonly"<%}%>

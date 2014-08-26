@@ -89,6 +89,10 @@ public class ContextManager implements Serializable {
         return getContextManager(session.getServletContext());
     }
 
+    public static ContextManager getContextManager(final PwmRequest pwmRequest) throws PwmUnrecoverableException {
+        return getContextManager(pwmRequest.getHttpServletRequest().getSession());
+    }
+
     public static ContextManager getContextManager(final ServletContext theContext) throws PwmUnrecoverableException {
         // context manager is initialized at servlet context startup.
         final Object theManager = theContext.getAttribute(PwmConstants.CONTEXT_ATTR_CONTEXT_MANAGER);
@@ -120,7 +124,7 @@ public class ContextManager implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    void initialize() {
+    public void initialize() {
 
         try {
             Locale.setDefault(PwmConstants.DEFAULT_LOCALE);
@@ -236,39 +240,37 @@ public class ContextManager implements Serializable {
         throwable.printStackTrace();
     }
 
-    void shutdown() {
+    public void shutdown() {
         startupErrorInformation = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "shutting down");
-        try {
-            final PwmApplication methodLocalPwmApp = this.getPwmApplication();
-            methodLocalPwmApp.shutdown();
-            taskMaster.cancel();
 
+        if (pwmApplication != null) {
             try {
-                for (final PwmSession pwmSession : this.getPwmSessions()) {
-                    pwmSession.getSessionManager().closeConnections();
-                }
+                pwmApplication.shutdown();
             } catch (Exception e) {
-                LOGGER.error("unexpected error attempting to close ldap connections: " + e.getMessage());
+                LOGGER.error("unexpected error attempting to close application: " + e.getMessage());
             }
-
-
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.fatal("unexpected error during pwm shutdown: " + e.getMessage(),e);
         }
+        taskMaster.cancel();
+
+        try {
+            for (final PwmSession pwmSession : this.getPwmSessions()) {
+                pwmSession.getSessionManager().closeConnections();
+            }
+        } catch (Exception e) {
+            LOGGER.error("unexpected error attempting to close ldap connections: " + e.getMessage());
+        }
+
+
         this.pwmApplication = null;
         startupErrorInformation = null;
     }
 
-    public void reinitialize() {
-        if ("true".equalsIgnoreCase(servletContext.getInitParameter("configChange-reload"))) {
-            restartRequestedFlag = true;
-            try {
-                taskMaster.schedule(new ConfigFileWatcher(),0);
-            } catch (IllegalStateException e) {
-                LOGGER.debug("could not schedule config file watcher, timer is in illegal state: " + e.getMessage());
-            }
-        } else {
-            LOGGER.info("skipping application restart due to web.xml configChange-reload=false");
+    public void reinitializePwmApplication() {
+        restartRequestedFlag = true;
+        try {
+            taskMaster.schedule(new ConfigFileWatcher(),0);
+        } catch (IllegalStateException e) {
+            LOGGER.debug("could not schedule config file watcher, timer is in illegal state: " + e.getMessage());
         }
     }
 

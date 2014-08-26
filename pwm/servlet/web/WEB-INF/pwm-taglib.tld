@@ -41,17 +41,6 @@
         <description>Displays the current success message (if any)</description>
     </tag>
     <tag>
-        <name>ParamValue</name>
-        <tag-class>password.pwm.http.tag.ParamValueTag</tag-class>
-        <body-content>empty</body-content>
-        <description>Retreives the last user-supplied value</description>
-        <attribute>
-            <name>name</name>
-            <required>true</required>
-            <rtexprvalue>false</rtexprvalue>
-        </attribute>
-    </tag>
-    <tag>
         <name>DisplayLocationOptions</name>
         <tag-class>
             password.pwm.http.tag.DisplayLocationOptionsTag
@@ -191,6 +180,11 @@
         </attribute>
         <attribute>
             <name>arg1</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>negate</name>
             <required>false</required>
             <rtexprvalue>true</rtexprvalue>
         </attribute>
