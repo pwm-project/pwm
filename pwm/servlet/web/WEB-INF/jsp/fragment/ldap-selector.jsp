@@ -1,8 +1,10 @@
-<%@ page import="password.pwm.Validator" %>
-<%@ page import="password.pwm.config.Configuration" %>
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.SelectableContextMode" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,17 +29,30 @@
   --%>
 
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final Configuration selectorConfig = ContextManager.getPwmApplication(session).getConfig(); %>
-<% final SelectableContextMode selectableContextMode = selectorConfig.readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class); %>
-<% final Map<String,LdapProfile> ldapProfiles = selectorConfig.getLdapProfiles(); %>
-<% final String selectedProfileParam = Validator.readStringFromRequest(request,PwmConstants.PARAM_LDAP_PROFILE);%>
-<% final LdapProfile selectedProfile = selectorConfig.getLdapProfiles().containsKey(selectedProfileParam) ? selectorConfig.getLdapProfiles().get(selectedProfileParam) : selectorConfig.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT); %>
-<% final boolean showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0; %>
+<%
+    SelectableContextMode selectableContextMode = SelectableContextMode.NONE;
+    Map<String,LdapProfile> ldapProfiles = Collections.emptyMap();
+    String selectedProfileParam = "";
+    LdapProfile selectedProfile = null;
+    boolean showContextSelector = false;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        selectableContextMode = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.LDAP_SELECTABLE_CONTEXT_MODE,SelectableContextMode.class);
+        ldapProfiles = pwmRequest.getConfig().getLdapProfiles();
+        selectedProfileParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
+        selectedProfile = pwmRequest.getConfig().getLdapProfiles().containsKey(selectedProfileParam)
+                ? pwmRequest.getConfig().getLdapProfiles().get(selectedProfileParam)
+                : pwmRequest.getConfig().getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
+        showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0;
+    } catch (PwmException e) {
+        /* noop */
+    }
+%>
 <% if (selectableContextMode != SelectableContextMode.NONE && ldapProfiles.size() > 1) { %>
 <h2><label for="<%=PwmConstants.PARAM_LDAP_PROFILE%>"><pwm:display key="Field_LdapProfile"/></label></h2>
 <select name="<%=PwmConstants.PARAM_LDAP_PROFILE%>" id="<%=PwmConstants.PARAM_LDAP_PROFILE%>" class="selectfield" onclick="PWM_MAIN.updateLoginContexts()">
     <% for (final String profileID : ldapProfiles.keySet()) { %>
-    <% final String displayName = ldapProfiles.get(profileID).getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale()); %>
+    <% final String displayName = ldapProfiles.get(profileID).getDisplayName(JspUtility.locale(request)); %>
     <option value="<%=profileID%>"<%=(profileID.equals(selectedProfileParam))?" selected=\"selected\"":""%>><%=StringUtil.escapeHtml(
             displayName)%></option>
     <% } %>

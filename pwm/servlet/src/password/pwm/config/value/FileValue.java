@@ -28,17 +28,18 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.Base64Util;
-import password.pwm.util.Helper;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
 
 public class FileValue extends AbstractValue implements StoredValue {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(FileValue.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(FileValue.class);
 
     private Map<FileInformation, FileContent> values = new LinkedHashMap<>();
 
@@ -82,20 +83,20 @@ public class FileValue extends AbstractValue implements StoredValue {
         public static FileContent fromEncodedString(String input)
                 throws IOException
         {
-            byte[] convertedBytes = Base64Util.decode(input);
+            byte[] convertedBytes = StringUtil.base64Decode(input);
             return new FileContent(convertedBytes);
         }
 
         public String toEncodedString()
                 throws IOException
         {
-            return Base64Util.encodeBytes(contents, Base64Util.GZIP);
+            return StringUtil.base64Encode(contents, StringUtil.Base64Options.GZIP);
         }
 
         public String md5sum()
-                throws IOException
+                throws PwmUnrecoverableException
         {
-            return Helper.md5sum(new ByteArrayInputStream(contents));
+            return SecureHelper.md5sum(new ByteArrayInputStream(contents));
         }
 
         public int size()
@@ -202,7 +203,7 @@ public class FileValue extends AbstractValue implements StoredValue {
             details.put("size", fileContent.size());
             try {
                 details.put("md5sum", fileContent.md5sum());
-            } catch (IOException e) { /* noop */ }
+            } catch (PwmUnrecoverableException e) { /* noop */ }
             output.add(details);
         }
         return output;

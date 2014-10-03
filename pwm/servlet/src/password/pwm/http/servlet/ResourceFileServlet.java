@@ -26,15 +26,18 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.Percent;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.EventRateMeter;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -46,7 +49,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.math.BigDecimal;
-import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +63,7 @@ public class ResourceFileServlet extends HttpServlet {
 
     private static final int BUFFER_SIZE = 10 * 1024; // 10k
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ResourceFileServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ResourceFileServlet.class);
 
     // settings with default values, values are set by app properties.
     private long setting_expireSeconds = 60 * 60;
@@ -72,35 +74,11 @@ public class ResourceFileServlet extends HttpServlet {
     private final Map<String,ZipFile> zipResources = new HashMap<>();
     private Pattern noncePattern;
     private String nonceValue;
+    private boolean pwmApplicationInitialized = false;
 
     public void init()
             throws ServletException
     {
-        final PwmApplication pwmApplication;
-        try {
-            pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
-        } catch (PwmUnrecoverableException e) {
-            throw new ServletException(e);
-        }
-
-        final int setting_maxCacheItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
-        {
-            setting_expireSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS));
-            setting_enableGzip = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_GZIP));
-            setting_enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
-            setting_maxCacheBytes = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES));
-
-            final String noncePrefix =  pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
-            noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
-            nonceValue = pwmApplication.getInstanceNonce();
-        }
-
-
-        final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
-                .maximumWeightedCapacity(setting_maxCacheItems)
-                .build();
-        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
-
         this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG,new EventRateMeter.MovingAverage(60 * 60 * 1000));
 
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
@@ -119,6 +97,31 @@ public class ResourceFileServlet extends HttpServlet {
                 }
             }
         }
+
+        try {
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(this.getServletContext());
+            init(pwmApplication);
+        } catch (PwmUnrecoverableException e) {
+            /* noop - app is not running */
+        }
+    }
+
+    void init(final PwmApplication pwmApplication) {
+        final int setting_maxCacheItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_ITEMS));
+        setting_expireSeconds = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_EXPIRATION_SECONDS));
+        setting_enableGzip = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_GZIP));
+        setting_enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
+        setting_maxCacheBytes = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES));
+
+        final String noncePrefix =  pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
+        noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
+        nonceValue = pwmApplication.getInstanceNonce();
+
+        final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
+                .maximumWeightedCapacity(setting_maxCacheItems)
+                .build();
+        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
+        pwmApplicationInitialized = true;
     }
 
 
@@ -133,7 +136,8 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
-        return (Map<CacheKey,CacheEntry>)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+        Map<CacheKey,CacheEntry> cacheMap = (Map)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+        return cacheMap == null ? new HashMap() : cacheMap;
     }
 
     private static EventRateMeter.MovingAverage getCacheHitRatio(final ServletContext servletContext)  {
@@ -159,25 +163,28 @@ public class ResourceFileServlet extends HttpServlet {
     )
             throws IOException {
 
-        final PwmRequest pwmRequest;
-        final PwmApplication pwmApplication;
+        SessionLabel sessionLabel = null;
+        PwmRequest pwmRequest = null;
+        PwmApplication pwmApplication = null;
         try {
             pwmRequest = PwmRequest.forRequest(request, response);
+            sessionLabel = pwmRequest.getSessionLabel();
             pwmApplication = pwmRequest.getPwmApplication();
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.warn("error reading application: " + e.getMessage());
-            response.sendError(500,"error reading application: " + e.getMessage());
-            return;
+            if (!pwmApplicationInitialized) {
+                init(pwmApplication);
+            }
+        } catch (PwmException e) {
+            /* noop */
         }
 
         final String requestURI = stripNonceFromURI(request.getRequestURI());
 
         try {
-            if (handleSpecialURIs(pwmApplication, requestURI, request, response)) {
+            if (pwmApplication != null && handleSpecialURIs(pwmApplication, requestURI, request, response)) {
                 return;
             }
         } catch (Exception e) {
-            LOGGER.error(pwmRequest, "unexpected error detecting/handling special request uri: " + e.getMessage());
+            LOGGER.error(sessionLabel, "unexpected error detecting/handling special request uri: " + e.getMessage());
         }
 
         final FileResource file;
@@ -185,12 +192,17 @@ public class ResourceFileServlet extends HttpServlet {
             file = resolveRequestedFile(this.getServletContext(), requestURI, request, zipResources);
         } catch (PwmUnrecoverableException e) {
             response.sendError(500,e.getMessage());
+            if (pwmRequest != null) {
+                try { pwmRequest.debugHttpRequestToLog("returning HTTP 500 status"); } catch (PwmUnrecoverableException e2) { /* noop */ }
+            }
             return;
         }
 
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            LOGGER.trace(pwmRequest, ServletHelper.debugHttpRequest(pwmApplication,request));
+            if (pwmRequest != null) {
+                try { pwmRequest.debugHttpRequestToLog("returning HTTP 404 status"); } catch (PwmUnrecoverableException e) { /* noop */ }
+            }
             return;
         }
 
@@ -223,7 +235,9 @@ public class ResourceFileServlet extends HttpServlet {
                 response.reset();
                 response.setStatus(304);
                 ServletHelper.addPwmResponseHeaders(pwmApplication, null, response, false);
-                LOGGER.trace(pwmRequest, ServletHelper.debugHttpRequest(pwmApplication,request,"returning 304 not modified"));
+                if (pwmRequest != null) {
+                    try { pwmRequest.debugHttpRequestToLog("returning HTTP 304 status"); } catch (PwmUnrecoverableException e2) { /* noop */ }
+                }
                 return;
             }
         }
@@ -241,33 +255,39 @@ public class ResourceFileServlet extends HttpServlet {
 
         try {
             boolean fromCache = false;
+            StringBuilder debugText = new StringBuilder();
             try {
                 fromCache = handleCacheableResponse(response, file, acceptsGzip);
                 if (fromCache || acceptsGzip) {
-                    final StringBuilder debugText = new StringBuilder();
                     debugText.append("(");
                     if (fromCache) debugText.append("cached");
                     if (fromCache && acceptsGzip) debugText.append(", ");
                     if (acceptsGzip) debugText.append("gzip");
                     debugText.append(")");
-                    LOGGER.trace(pwmRequest, ServletHelper.debugHttpRequest(pwmApplication,request,debugText.toString()));
                 } else {
-                    LOGGER.trace(pwmRequest, ServletHelper.debugHttpRequest(pwmApplication,request,"(not cached)"));
+                    debugText = new StringBuilder("(not cached)");
                 }
-
-                StatisticsManager.incrementStat(pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS);
+                if (pwmApplication != null) {
+                    StatisticsManager.incrementStat(pwmApplication, Statistic.HTTP_RESOURCE_REQUESTS);
+                }
             } catch (UncacheableResourceException e) {
                 handleUncachedResponse(response, file, acceptsGzip);
-                final StringBuilder debugText = new StringBuilder();
+                debugText = new StringBuilder();
                 debugText.append("(uncacheable");
                 if (acceptsGzip) debugText.append(", gzip");
                 debugText.append(")");
-                LOGGER.trace(pwmRequest, ServletHelper.debugHttpRequest(pwmApplication,request,debugText.toString()));
+            }
+            if (pwmRequest != null) {
+                try {
+                    pwmRequest.debugHttpRequestToLog(debugText.toString());
+                } catch (PwmUnrecoverableException e) {
+                        /* noop */
+                }
             }
             EventRateMeter.MovingAverage cacheHitRatio = getCacheHitRatio(this.getServletContext());
             cacheHitRatio.update(fromCache ? 1 : 0);
         } catch (Exception e) {
-            LOGGER.error(pwmRequest, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
+            LOGGER.error(sessionLabel, "error fulfilling response for url '" + requestURI + "', error: " + e.getMessage());
         }
     }
 
@@ -450,7 +470,7 @@ public class ResourceFileServlet extends HttpServlet {
         final String requestFileURI = requestURI.substring(request.getContextPath().length(), requestURI.length());
 
         // URL-decode the file name (might contain spaces and on) and prepare file object.
-        String filename = URLDecoder.decode(requestFileURI, "UTF-8");
+        String filename = StringUtil.urlDecode(requestFileURI);
 
         // parse out the session key...
         if (filename.contains(";")) {

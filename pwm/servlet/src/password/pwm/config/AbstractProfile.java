@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import password.pwm.PwmConstants;
+import password.pwm.util.PasswordData;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -74,6 +75,10 @@ public abstract class AbstractProfile implements Profile {
 
     public String readSettingAsLocalizedString(final PwmSetting setting, final Locale locale) {
         return Configuration.JavaTypeConverter.valueToLocalizedString(storedValueMap.get(setting), locale);
+    }
+
+    public PasswordData readSettingAsPassword(final PwmSetting setting) {
+        return Configuration.JavaTypeConverter.valueToPassword(storedValueMap.get(setting));
     }
 
 }

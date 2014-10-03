@@ -1,4 +1,6 @@
+<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
+<%@ page import="password.pwm.util.stats.StatisticsManager" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -29,23 +31,35 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <%-- begin reCaptcha section (http://code.google.com/apis/recaptcha/docs/display.html) --%>
-<% final String reCaptchaPublicKey = ContextManager.getPwmApplication(session).getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC); %>
-<% final String reCaptchaProtocol = request.isSecure() ? "https" : "http"; %>
-<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
+<%
+    String reCaptchaPublicKey = "";
+    String reCaptchaProtocol = "";
+    Locale locale = PwmConstants.DEFAULT_LOCALE;
+    try {
+        reCaptchaProtocol = request.isSecure() ? "https" : "http";
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+        reCaptchaPublicKey = pwmRequest.getConfig().readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
+        locale = pwmRequest.getLocale();
+        StatisticsManager.incrementStat(pwmRequest,Statistic.CAPTCHA_PRESENTATIONS);
+    } catch (PwmException e) {
+        /* noop */
+    }
+%>
+
 <script type="text/javascript" src="<%=reCaptchaProtocol%>://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        Recaptcha.create("<%=reCaptchaPublicKey%>",
-                "recaptcha_widget",
-                {
-                    theme: "custom",
-                    lang: '<%=locale%>',
-                    callback: Recaptcha.focus_response_field
-                }
-        );
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            Recaptcha.create("<%=reCaptchaPublicKey%>",
+                    "recaptcha_widget",
+                    {
+                        theme: "custom",
+                        lang: '<%=locale%>',
+                        callback: Recaptcha.focus_response_field
+                    }
+            );
+        });
+    </script>
 </pwm:script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -112,17 +126,16 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        try {
-            document.forms.verifyCaptcha.recaptcha_response_field.focus()
-        } catch (e) {
-            /* noop */
-        }
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            try {
+                document.forms.verifyCaptcha.recaptcha_response_field.focus()
+            } catch (e) {
+                /* noop */
+            }
+        });
+    </script>
 </pwm:script>
-<% try {pwmApplicationHeader.getStatisticsManager().incrementValue(Statistic.CAPTCHA_PRESENTATIONS);} catch (Exception e) {/*noop*/} %>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

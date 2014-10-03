@@ -22,9 +22,9 @@
 
 package password.pwm.util.cli;
 
-import password.pwm.util.PwmLogEvent;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.logging.PwmLogEvent;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,7 +58,7 @@ public class ExportLogsCommand extends AbstractCliCommand {
                 final String loopString = iter.next();
                 final PwmLogEvent logEvent = PwmLogEvent.fromEncodedString(loopString);
                 if (logEvent != null) {
-                    outputWriter.write(logEvent.toLogString(false));
+                    outputWriter.write(logEvent.toLogString());
                     outputWriter.write("\n");
                 }
             }

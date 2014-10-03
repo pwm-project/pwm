@@ -24,26 +24,25 @@
   ~ This file is imported by most JSPs, it shows the main 'header' in the html
   - which by default is a blue-gray gradieted and rounded block.
   --%>
-<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.http.ContextManager" %>
-<%@ page import="password.pwm.http.PwmSession" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    PwmSession pwmSessionHeaderBody = null;
-    PwmApplication pwmApplicationHeaderBody = null;
+    boolean showLogout = false;
+    boolean showHome = false;
     try {
-        pwmApplicationHeaderBody = ContextManager.getPwmApplication(session);
-        pwmSessionHeaderBody = PwmSession.getPwmSession(session);
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        final boolean showButtons = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_BUTTONS) && !pwmRequest.isForcedPageView();
+        final boolean loggedIn = pwmRequest.isAuthenticated();
+        if (showButtons && loggedIn) {
+            showLogout = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
+            showHome = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON);
+        }
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
 
-    final boolean hideButtons = "true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS));
-    final boolean loggedIn = pwmSessionHeaderBody != null && pwmSessionHeaderBody.getSessionStateBean().isAuthenticated();
-    final boolean showLogout = !hideButtons && loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON);
-    final boolean showHome = !hideButtons && loggedIn && pwmApplicationHeaderBody != null && pwmApplicationHeaderBody.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_HOME_BUTTON);
 %>
 <%@ include file="header-warnings.jsp" %>
 <div id="header">

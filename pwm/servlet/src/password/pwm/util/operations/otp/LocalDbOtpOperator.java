@@ -35,9 +35,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
 /**
@@ -46,7 +46,7 @@ import password.pwm.util.otp.OTPUserRecord;
  */
 public class LocalDbOtpOperator extends AbstractOtpOperator {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDbOtpOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbOtpOperator.class);
     private final LocalDB localDB;
 
     public LocalDbOtpOperator(LocalDB localDB, Configuration config) {
@@ -58,11 +58,11 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     public OTPUserRecord readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
         LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a GUID"));
         }
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
-            final String errorMsg = "LocalDB is not available, unable to write user responses";
+            final String errorMsg = "LocalDB is not available, unable to write user otp";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -83,11 +83,11 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
                 }
             }
         } catch (LocalDBException e) {
-            final String errorMsg = "unexpected LocalDB error reading responses: " + e.getMessage();
+            final String errorMsg = "unexpected LocalDB error reading otp: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         } catch (PwmOperationalException e) {
-            final String errorMsg = "unexpected error reading responses: " + e.getMessage();
+            final String errorMsg = "unexpected error reading otp: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -105,11 +105,11 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     {
         LOGGER.trace(String.format("Enter: writeOtpUserConfiguration(%s, %s, %s)", theUser, userGUID, otpConfig));
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID"));
         }
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
-            final String errorMsg = "LocalDB is not available, unable to write user responses";
+            final String errorMsg = "LocalDB is not available, unable to write user otp";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -125,12 +125,12 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
             localDB.put(LocalDB.DB.OTP_SECRET, userGUID, value);
             LOGGER.info("saved OTP secret for user in LocalDB");
         } catch (LocalDBException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected LocalDB error saving responses to pwmDB: " + ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected LocalDB error saving otp to localDB: " + ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;
         } catch (PwmOperationalException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving responses to pwmDB: " + ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;
@@ -147,11 +147,11 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
     {
         LOGGER.trace(String.format("Enter: clearOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to localDB, user does not have a pwmGUID"));
         }
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
-            final String errorMsg = "LocalDB is not available, unable to write user responses";
+            final String errorMsg = "LocalDB is not available, unable to write user OTP";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE, errorMsg);
             throw new PwmUnrecoverableException(errorInformation);
         }
@@ -160,7 +160,7 @@ public class LocalDbOtpOperator extends AbstractOtpOperator {
             localDB.remove(LocalDB.DB.OTP_SECRET, userGUID);
             LOGGER.info("cleared OTP secret for user in LocalDB");
         } catch (LocalDBException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to pwmDB: " + ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to localDB: " + ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;

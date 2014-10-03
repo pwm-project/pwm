@@ -24,16 +24,19 @@ package password.pwm.util.macro;
 
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.UserDataReader;
 
 import java.util.regex.Pattern;
 
 public interface MacroImplementation {
     public Pattern getRegExPattern();
-    public String replaceValue(final String matchValue);
-    public void init(
-            PwmApplication pwmApplication,
-            final UserInfoBean userInfoBean,
-            final UserDataReader userDataReader
-    );
+    public String replaceValue(final String matchValue, final MacroRequestInfo macroRequestInfo);
+
+    public interface MacroRequestInfo {
+        PwmApplication getPwmApplication();
+        UserInfoBean getUserInfoBean();
+        LoginInfoBean getLoginInfoBean();
+        UserDataReader getUserDataReader();
+    }
 }

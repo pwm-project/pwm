@@ -24,11 +24,11 @@ package password.pwm.event;
 
 import password.pwm.PwmApplication;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class LocalDbAuditVault implements AuditVault {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDbAuditVault.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbAuditVault.class);
 
     private static final int MAX_REMOVALS_PER_ADD = 100;
 
@@ -120,7 +120,7 @@ public class LocalDbAuditVault implements AuditVault {
             return;
         }
 
-        final String gsonRecord = JsonUtil.getGson().toJson(record);
+        final String gsonRecord = JsonUtil.serialize(record);
         auditDB.addLast(gsonRecord);
         trim();
     }

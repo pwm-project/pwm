@@ -141,8 +141,19 @@
         </attribute>
     </tag>
     <tag>
+        <name>macro</name>
+        <tag-class>password.pwm.http.tag.PwmMacroTag</tag-class>
+        <body-content>empty</body-content>
+        <description>Output a PWM Macro</description>
+        <attribute>
+            <name>value</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+    </tag>
+    <tag>
         <name>url</name>
-        <tag-class>password.pwm.http.tag.URLRewriter</tag-class>
+        <tag-class>password.pwm.http.tag.PwmUrlTag</tag-class>
         <body-content>empty</body-content>
         <description>Rewrite/Encode outbound URLs</description>
         <attribute>

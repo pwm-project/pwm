@@ -25,10 +25,10 @@ package password.pwm.ws.server;
 import com.google.gson.GsonBuilder;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.http.PwmRequest;
 import password.pwm.i18n.Message;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 
 import javax.ws.rs.core.Response;
@@ -107,10 +107,7 @@ public class RestResultBean implements Serializable {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setError(true);
         restResultBean.setErrorMessage(errorInformation.toUserStr(locale, config));
-        if (
-                config != null && config.readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)
-                || (pwmApplication != null && pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION)
-                ) {
+        if (Helper.determineIfDetailErrorMsgShown(pwmApplication)) {
             restResultBean.setErrorDetail(errorInformation.toDebugStr());
         }
         restResultBean.setErrorCode(errorInformation.getError().getErrorCode());
@@ -127,7 +124,6 @@ public class RestResultBean implements Serializable {
         return fromError(errorInformation, pwmApplication, locale, config);
     }
 
-    @Deprecated
     public static RestResultBean fromError(
             final ErrorInformation errorInformation
     ) {

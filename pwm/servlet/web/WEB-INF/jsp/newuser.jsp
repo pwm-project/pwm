@@ -42,7 +42,7 @@
             <% request.setAttribute("form_showPasswordFields","true"); %>
             <jsp:include page="fragment/form.jsp"/>
             <div id="buttonbar">
-                <input type="hidden" name="processAction" value="create"/>
+                <input type="hidden" name="processAction" value="processForm"/>
                 <button type="submit" name="Create" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>

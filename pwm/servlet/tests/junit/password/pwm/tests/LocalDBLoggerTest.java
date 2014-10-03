@@ -29,9 +29,15 @@ import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.PwmSetting;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.Percent;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
 import password.pwm.util.stats.EventRateMeter;
 
 import java.io.File;
@@ -123,7 +129,7 @@ public class LocalDBLoggerTest extends TestCase {
         public void run() {
             int loopCount = 3;
             while (eventsRemaining > 0) {
-                while (localDBLogger.getPendingEventCount() >= PwmConstants.PWMDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) {
+                while (localDBLogger.getPendingEventCount() >= PwmConstants.LOCALDB_LOGGER_MAX_QUEUE_SIZE - (loopCount + 1)) {
                     Helper.pause(11);
                 }
                 final Collection<PwmLogEvent> events = makeEvents(loopCount);
@@ -156,7 +162,7 @@ public class LocalDBLoggerTest extends TestCase {
         final int endPos = startPos + random.nextInt(randomValue.length() - startPos);
 
         final String description = randomValue.substring(startPos,endPos);
-        return new PwmLogEvent(
+        return PwmLogEvent.createPwmLogEvent(
                 new Date(System.currentTimeMillis()),
                 LocalDBLogger.class.getName(),
                 description, "", "", null, null, PwmLogLevel.TRACE);

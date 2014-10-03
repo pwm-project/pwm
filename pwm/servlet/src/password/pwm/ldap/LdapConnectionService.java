@@ -35,12 +35,12 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
 
 public class LdapConnectionService implements PwmService {
-    final private static PwmLogger LOGGER = PwmLogger.getLogger(LdapConnectionService.class);
+    final private static PwmLogger LOGGER = PwmLogger.forClass(LdapConnectionService.class);
 
     private final Map<String,ChaiProvider> proxyChaiProviders = new HashMap<>();
     private final Map<LdapProfile,ErrorInformation> lastLdapErrors = new HashMap<>();
@@ -111,7 +111,12 @@ public class LdapConnectionService implements PwmService {
         }
 
         try {
-            final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(ldapProfile, pwmApplication.getConfig(), pwmApplication.getStatisticsManager());
+            final ChaiProvider newProvider = LdapOperationsHelper.openProxyChaiProvider(
+                    null,
+                    ldapProfile,
+                    pwmApplication.getConfig(),
+                    pwmApplication.getStatisticsManager()
+            );
             proxyChaiProviders.put(identifier, newProvider);
             return newProvider;
         } catch (PwmUnrecoverableException e) {

@@ -31,6 +31,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -40,9 +41,7 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -50,10 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Path("/randompassword")
-public class RestRandomPasswordServer {
-    @Context
-    HttpServletRequest request;
-
+public class RestRandomPasswordServer extends AbstractRestServer {
     private static final ServicePermissions servicePermissions = new ServicePermissions();
 
     static {
@@ -81,7 +77,7 @@ public class RestRandomPasswordServer {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPostRandomPasswordForm(
             final @FormParam("username") String username,
             final @FormParam("strength") int strength,
@@ -94,7 +90,7 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -136,7 +132,7 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -161,7 +157,7 @@ public class RestRandomPasswordServer {
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doPostRandomPasswordJson(
             final JsonInput jsonInput
@@ -170,7 +166,7 @@ public class RestRandomPasswordServer {
     {
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -224,7 +220,7 @@ public class RestRandomPasswordServer {
 
                 randomConfig.setPasswordPolicy(PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getUserIdentity(),
                         theUser,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
@@ -237,9 +233,9 @@ public class RestRandomPasswordServer {
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale()));
         }
 
-        final String randomPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), randomConfig, restRequestBean.getPwmApplication());
+        final PasswordData randomPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession().getLabel(), randomConfig, restRequestBean.getPwmApplication());
         final JsonOutput outputMap = new JsonOutput();
-        outputMap.password = randomPassword;
+        outputMap.password = randomPassword.getStringValue();
 
         if (restRequestBean.isExternal()) {
             StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);

@@ -24,8 +24,10 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 
 <pwm:if test="showCancel">
+<pwm:if test="forcedPageView" negate="true">
 <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="PWM_MAIN.handleFormCancel();return false">
     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
     <pwm:display key="Button_Cancel"/>
 </button>
+</pwm:if>
 </pwm:if>

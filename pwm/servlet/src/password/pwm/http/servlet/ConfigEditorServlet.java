@@ -1,4 +1,4 @@
-/*
+    /*
  * Password Management Servlets (PWM)
  * http://code.google.com/p/pwm/
  *
@@ -22,87 +22,88 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.AppProperty;
-import password.pwm.PwmConstants;
-import password.pwm.Validator;
-import password.pwm.bean.ConfigEditorCookie;
-import password.pwm.bean.UserIdentity;
-import password.pwm.config.*;
-import password.pwm.config.value.FileValue;
-import password.pwm.config.value.ValueFactory;
-import password.pwm.error.*;
-import password.pwm.health.DatabaseStatusChecker;
-import password.pwm.health.HealthRecord;
-import password.pwm.health.LDAPStatusChecker;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
-import password.pwm.http.bean.ConfigManagerBean;
-import password.pwm.i18n.Message;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
-import password.pwm.util.TimeDuration;
-import password.pwm.ws.server.RestResultBean;
-import password.pwm.ws.server.rest.bean.HealthData;
+    import com.google.gson.reflect.TypeToken;
+    import com.novell.ldapchai.exception.ChaiUnavailableException;
+    import password.pwm.AppProperty;
+    import password.pwm.PwmConstants;
+    import password.pwm.Validator;
+    import password.pwm.bean.ConfigEditorCookie;
+    import password.pwm.bean.UserIdentity;
+    import password.pwm.config.*;
+    import password.pwm.config.value.FileValue;
+    import password.pwm.config.value.ValueFactory;
+    import password.pwm.error.*;
+    import password.pwm.health.DatabaseStatusChecker;
+    import password.pwm.health.HealthRecord;
+    import password.pwm.health.LDAPStatusChecker;
+    import password.pwm.http.PwmRequest;
+    import password.pwm.http.PwmSession;
+    import password.pwm.http.bean.ConfigManagerBean;
+    import password.pwm.i18n.Message;
+    import password.pwm.util.JsonUtil;
+    import password.pwm.util.ServletHelper;
+    import password.pwm.util.TimeDuration;
+    import password.pwm.util.logging.PwmLogger;
+    import password.pwm.ws.server.RestResultBean;
+    import password.pwm.ws.server.rest.bean.HealthData;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.*;
+    import javax.servlet.ServletException;
+    import java.io.IOException;
+    import java.util.*;
 
-public class ConfigEditorServlet extends TopServlet {
+public class ConfigEditorServlet extends PwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigEditorServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigEditorServlet.class);
     public static final String DEFAULT_PW = "DEFAULT-PW";
 
     private static final String COOKIE_NAME_PREFERENCES = "ConfigEditor_preferences";
 
     public enum ConfigEditorAction implements PwmServlet.ProcessAction {
-        lockConfiguration(PwmServlet.HttpMethod.POST),
-        startEditing(PwmServlet.HttpMethod.POST),
-        generateXml(PwmServlet.HttpMethod.POST),
-        exportLocalDB(PwmServlet.HttpMethod.GET),
-        generateSupportZip(PwmServlet.HttpMethod.GET),
-        uploadConfig(PwmServlet.HttpMethod.POST),
-        importLocalDB(PwmServlet.HttpMethod.POST),
-
+        readSetting,
+        writeSetting,
+        resetSetting,
+        ldapHealthCheck,
+        databaseHealthCheck,
+        finishEditing,
+        executeSettingFunction,
+        setConfigurationPassword,
+        readChangeLog,
+        search,
+        cancelEditing,
+        uploadFile,
+        setOption,
         ;
-
-        private final PwmServlet.HttpMethod method;
-
-        ConfigEditorAction(PwmServlet.HttpMethod method)
-        {
-            this.method = method;
-        }
 
         public Collection<PwmServlet.HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(method);
+            return Collections.singletonList(HttpMethod.POST);
         }
     }
 
+    protected ConfigEditorAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return ConfigEditorAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 
-    public static ConfigEditorCookie readConfigEditorCookie(
-            final HttpServletRequest request,
-            final HttpServletResponse response
-    ) {
+    public static ConfigEditorCookie readConfigEditorCookie(final PwmRequest pwmRequest)
+    {
         ConfigEditorCookie cookie = null;
         try {
-            final String jsonString = ServletHelper.readCookie(request, COOKIE_NAME_PREFERENCES);
+            final String jsonString = ServletHelper.readCookie(pwmRequest.getHttpServletRequest(), COOKIE_NAME_PREFERENCES);
             cookie = JsonUtil.getGson().fromJson(jsonString, ConfigEditorCookie.class);
         } catch (Exception e) {
             LOGGER.warn("error parsing cookie preferences: " + e.getMessage());
         }
         if (cookie == null) {
             cookie = new ConfigEditorCookie();
-            final String jsonString = JsonUtil.getGson().toJson(cookie);
-            ServletHelper.writeCookie(response, COOKIE_NAME_PREFERENCES, jsonString, 60 * 60 * 24 * 3);
+            final String jsonString = JsonUtil.serialize(cookie);
+            ServletHelper.writeCookie(pwmRequest.getHttpServletResponse(), COOKIE_NAME_PREFERENCES, jsonString, 60 * 60 * 24 * 3);
         }
 
         return cookie;
@@ -111,13 +112,9 @@ public class ConfigEditorServlet extends TopServlet {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    protected void processRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ConfigManagerBean configManagerBean = pwmSession.getConfigManagerBean();
 
@@ -128,56 +125,71 @@ public class ConfigEditorServlet extends TopServlet {
             configManagerBean.setConfiguration(loadedConfig);
         }
 
-        validateCookieProfile(readConfigEditorCookie(req, resp), configManagerBean.getConfiguration(), resp);
+        validateCookieProfile(readConfigEditorCookie(pwmRequest), configManagerBean.getConfiguration(), pwmRequest);
 
-        final String processActionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        final ConfigEditorAction action = readProcessAction(pwmRequest);
 
-        if (processActionParam != null && processActionParam.length() > 0) {
-            Validator.validatePwmFormID(req);
+        if (action != null) {
+            Validator.validatePwmFormID(pwmRequest.getHttpServletRequest());
+
+            switch (action) {
+                case readSetting:
+                    restReadSetting(pwmRequest, configManagerBean);
+                    return;
+
+                case writeSetting:
+                    restWriteSetting(pwmRequest, configManagerBean);
+                    return;
+
+                case resetSetting:
+                    restResetSetting(pwmRequest, configManagerBean);
+                    return;
+
+                case ldapHealthCheck:
+                    restLdapHealthCheck(pwmRequest, configManagerBean);
+                    return;
+
+                case databaseHealthCheck:
+                    restDatabaseHealthCheck(pwmRequest, configManagerBean);
+                    return;
+
+                case finishEditing:
+                    restFinishEditing(pwmRequest, configManagerBean);
+                    return;
+
+                case executeSettingFunction:
+                    restExecuteSettingFunction(pwmRequest, configManagerBean);
+                    return;
+
+                case setConfigurationPassword:
+                    restSetConfigurationPassword(pwmRequest, configManagerBean);
+                    return;
+
+                case readChangeLog:
+                    restReadChangeLog(pwmRequest, configManagerBean);
+                    return;
+
+                case search:
+                    restSearchSettings(pwmRequest, configManagerBean);
+                    return;
+
+                case cancelEditing:
+                    restCancelEditing(pwmRequest, configManagerBean);
+                    return;
+
+                case uploadFile:
+                    doUploadFile(pwmRequest, configManagerBean);
+                    return;
+
+                case setOption:
+                    setOptions(pwmRequest, configManagerBean);
+                    return;
+            }
+
         }
 
-        if ("readSetting".equalsIgnoreCase(processActionParam)) {
-            this.restReadSetting(configManagerBean, req, resp);
-            return;
-        } else if ("writeSetting".equalsIgnoreCase(processActionParam)) {
-            this.restWriteSetting(pwmSession, configManagerBean, req, resp);
-            return;
-        } else if ("resetSetting".equalsIgnoreCase(processActionParam)) {
-            this.restResetSetting(pwmSession, configManagerBean, req, resp);
-            return;
-        } else if ("ldapHealthCheck".equalsIgnoreCase(processActionParam)) {
-            restLdapHealthCheck(pwmSession, configManagerBean, req, resp);
-            return;
-        } else if ("databaseHealthCheck".equalsIgnoreCase(processActionParam)) {
-            restDatabaseHealthCheck(pwmRequest, configManagerBean);
-            return;
-        } else if ("finishEditing".equalsIgnoreCase(processActionParam)) {
-            restFinishEditing(pwmRequest, configManagerBean);
-            return;
-        } else if ("executeSettingFunction".equalsIgnoreCase(processActionParam)) {
-            restExecuteSettingFunction(pwmRequest, configManagerBean);
-            return;
-        } else if ("setConfigurationPassword".equalsIgnoreCase(processActionParam)) {
-            restSetConfigurationPassword(pwmRequest, configManagerBean);
-            return;
-        } else if ("readChangeLog".equalsIgnoreCase(processActionParam)) {
-            restReadChangeLog(resp, pwmSession, configManagerBean);
-            return;
-        } else if ("search".equalsIgnoreCase(processActionParam)) {
-            restSearchSettings(req, resp, pwmSession, configManagerBean);
-            return;
-        } else if ("cancelEditing".equalsIgnoreCase(processActionParam)) {
-            doCancelEditing(req, resp, configManagerBean);
-            return;
-        } else if ("uploadFile".equalsIgnoreCase(processActionParam)) {
-            doUploadFile(pwmRequest, configManagerBean);
-            return;
-        } else if ("setOption".equalsIgnoreCase(processActionParam)) {
-            setOptions(req);
-        }
-
-        if (!resp.isCommitted()) {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR);
+        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR);
         }
     }
 
@@ -187,13 +199,11 @@ public class ConfigEditorServlet extends TopServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final String bodyString = pwmRequest.readRequestBody();
-        final Map<String, String> requestMap = JsonUtil.getGson().fromJson(bodyString,
-                new TypeToken<Map<String, String>>() {
-                }.getType());
+        final String bodyString = pwmRequest.readRequestBodyAsString();
+        final Map<String, String> requestMap = JsonUtil.deserializeStringMap(bodyString);
         final PwmSetting pwmSetting = PwmSetting.forKey(requestMap.get("setting"));
         final String functionName = requestMap.get("function");
-        final String profileID = requestMap.get("profile");
+        final String profileID = readConfigEditorCookie(pwmRequest).getProfile();
 
         try {
             Class implementingClass = Class.forName(functionName);
@@ -205,7 +215,7 @@ public class ConfigEditorServlet extends TopServlet {
         } catch (Exception e) {
             final RestResultBean restResultBean;
             if (e instanceof PwmException) {
-                final String errorMsg = "error while searching for users: " + ((PwmException) e).getErrorInformation().getDetailedErrorMsg();
+                final String errorMsg = "error while loading data: " + ((PwmException) e).getErrorInformation().getDetailedErrorMsg();
                 final ErrorInformation errorInformation = new ErrorInformation(((PwmException) e).getError(),errorMsg);
                 restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
             } else {
@@ -219,16 +229,15 @@ public class ConfigEditorServlet extends TopServlet {
     }
 
     private void restReadSetting(
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
 
-        final String key = Validator.readStringFromRequest(req, "key");
+        final String key = pwmRequest.readParameterAsString("key");
         final Object returnValue;
-        final Map<String, Object> returnMap = new LinkedHashMap<>();
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
         final PwmSetting theSetting = PwmSetting.forKey(key);
 
         if (key.startsWith("localeBundle")) {
@@ -240,7 +249,7 @@ public class ConfigEditorServlet extends TopServlet {
             if (bundleMap == null || bundleMap.isEmpty()) {
                 final Map<String,String> defaultValueMap = new LinkedHashMap<>();
                 final String defaultLocaleValue = ResourceBundle.getBundle(bundleName.getTheClass().getName(),PwmConstants.DEFAULT_LOCALE).getString(keyName);
-                for (final Locale locale : ContextManager.getPwmApplication(req).getConfig().getKnownLocales()) {
+                for (final Locale locale : pwmRequest.getConfig().getKnownLocales()) {
                     final ResourceBundle localeBundle = ResourceBundle.getBundle(bundleName.getTheClass().getName(),locale);
                     if (locale.toString().equalsIgnoreCase(PwmConstants.DEFAULT_LOCALE.toString())) {
                         defaultValueMap.put("", defaultLocaleValue);
@@ -268,8 +277,8 @@ public class ConfigEditorServlet extends TopServlet {
             if (theSetting.getSyntax() == PwmSettingSyntax.PASSWORD) {
                 returnValue = DEFAULT_PW;
             } else {
-                if (theSetting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
-                    final String profile = readConfigEditorCookie(req, resp).getProfile();
+                if (theSetting.getCategory().hasProfiles()) {
+                    final String profile = readConfigEditorCookie(pwmRequest).getProfile();
                     returnValue = storedConfig.readSetting(theSetting,profile).toNativeObject();
                 } else {
                     returnValue = storedConfig.readSetting(theSetting).toNativeObject();
@@ -285,26 +294,24 @@ public class ConfigEditorServlet extends TopServlet {
             returnMap.put("isDefault", storedConfig.isDefaultValue(theSetting));
         }
         returnMap.put("value", returnValue);
-        final Gson gson = JsonUtil.getGson();
-        final String outputString = gson.toJson(returnMap);
-        resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().print(outputString);
+        pwmRequest.outputJsonResult(new RestResultBean(returnMap));
     }
 
     private void restWriteSetting(
-            final PwmSession pwmSession,
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
-            throws IOException, PwmUnrecoverableException {
-        final ConfigEditorCookie cookie = readConfigEditorCookie(req, resp);
+            throws IOException, PwmUnrecoverableException
+    {
+        final ConfigEditorCookie cookie = readConfigEditorCookie(pwmRequest);
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
-        final String key = Validator.readStringFromRequest(req, "key");
-        final String bodyString = ServletHelper.readRequestBody(req);
+        final String key = pwmRequest.readParameterAsString("key");
+        final String bodyString = pwmRequest.readRequestBodyAsString();
         final PwmSetting setting = PwmSetting.forKey(key);
-        final Map<String, Object> returnMap = new LinkedHashMap<>();
-        final UserIdentity loggedInUser = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final LinkedHashMap<String, Object> returnMap = new LinkedHashMap<>();
+        final UserIdentity loggedInUser = pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated()
+                ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                : null;
 
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key,"-");
@@ -324,9 +331,9 @@ public class ConfigEditorServlet extends TopServlet {
                 final StoredValue storedValue = ValueFactory.fromJson(setting, bodyString);
                 final List<String> errorMsgs = storedValue.validateValue(setting);
                 if (errorMsgs != null && !errorMsgs.isEmpty()) {
-                    returnMap.put("errorMessage",setting.getLabel(pwmSession.getSessionStateBean().getLocale()) + ": " + errorMsgs.get(0));
+                    returnMap.put("errorMessage",setting.getLabel(pwmRequest.getLocale()) + ": " + errorMsgs.get(0));
                 }
-                if (setting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
+                if (setting.getCategory().hasProfiles()) {
                     storedConfig.writeSetting(setting, cookie.getProfile(), storedValue, loggedInUser);
                 } else {
                     storedConfig.writeSetting(setting,storedValue, loggedInUser);
@@ -341,27 +348,21 @@ public class ConfigEditorServlet extends TopServlet {
             returnMap.put("syntax", setting.getSyntax().toString());
             returnMap.put("isDefault", storedConfig.isDefaultValue(setting));
         }
-        final String outputString = JsonUtil.getGson().toJson(returnMap);
-        resp.setContentType("application/json;charset=utf-8");
-        resp.getWriter().print(outputString);
+        pwmRequest.outputJsonResult(new RestResultBean(returnMap));
     }
 
     private void restResetSetting(
-            final PwmSession pwmSession,
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
     {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
-        final UserIdentity loggedInUser = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        final UserIdentity loggedInUser = pwmRequest.getUserInfoIfLoggedIn();
 
-        final String bodyString = ServletHelper.readRequestBody(req);
+        final String bodyString = pwmRequest.readRequestBodyAsString();
 
-        final Gson gson = JsonUtil.getGson();
-        final Map<String, String> srcMap = gson.fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());
+        final Map<String, String> srcMap = JsonUtil.deserializeStringMap(bodyString);
 
         if (srcMap != null) {
             final String key = srcMap.get("key");
@@ -374,14 +375,16 @@ public class ConfigEditorServlet extends TopServlet {
                 final String keyName = st.nextToken();
                 storedConfig.resetLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
             } else {
-                if (setting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
-                    final String profile = readConfigEditorCookie(req, resp).getProfile();
+                if (setting.getCategory().hasProfiles()) {
+                    final String profile = readConfigEditorCookie(pwmRequest).getProfile();
                     storedConfig.resetSetting(setting, profile, loggedInUser);
                 } else {
                     storedConfig.resetSetting(setting, loggedInUser);
                 }
             }
         }
+
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest,Message.SUCCESS_UNKNOWN));
     }
 
 
@@ -392,7 +395,8 @@ public class ConfigEditorServlet extends TopServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         try {
-            final String password = pwmRequest.readRequestBody();
+            final Map<String,String> postData = pwmRequest.readBodyAsJsonStringMap();
+            final String password = postData.get("password");
             configManagerBean.getConfiguration().setPassword(password);
             configManagerBean.setPasswordVerified(true);
             LOGGER.debug(pwmRequest, "config password updated");
@@ -424,7 +428,6 @@ public class ConfigEditorServlet extends TopServlet {
                 restResultBean.setError(false);
             } catch (PwmUnrecoverableException e) {
                 final ErrorInformation errorInfo = e.getErrorInformation();
-                pwmSession.getSessionStateBean().setSessionError(errorInfo);
                 restResultBean = RestResultBean.fromError(errorInfo, pwmRequest);
                 LOGGER.warn(pwmSession, "unable to save configuration: " + e.getMessage());
             }
@@ -435,29 +438,28 @@ public class ConfigEditorServlet extends TopServlet {
         pwmRequest.outputJsonResult(restResultBean);
     }
 
-    private void doCancelEditing(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+    private void restCancelEditing(
+            final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         configManagerBean.setConfiguration(null);
-        forwardToManager(req,resp);
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest,Message.SUCCESS_UNKNOWN));
     }
 
     private void setOptions(
-            final HttpServletRequest req
-    ) throws IOException, PwmUnrecoverableException {
-        final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(req).getConfigManagerBean();
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
         {
-            final String updateDescriptionTextCmd = Validator.readStringFromRequest(req, "updateNotesText");
+            final String updateDescriptionTextCmd = pwmRequest.readParameterAsString("updateNotesText");
             if (updateDescriptionTextCmd != null && updateDescriptionTextCmd.equalsIgnoreCase("true")) {
                 try {
-                    final Gson gson = JsonUtil.getGson();
-                    final String bodyString = ServletHelper.readRequestBody(req);
-                    final String value = gson.fromJson(bodyString, new TypeToken<String>() {
-                    }.getType());
+                    final String bodyString = pwmRequest.readRequestBodyAsString();
+                    final String value = JsonUtil.deserialize(bodyString, String.class);
                     configManagerBean.getConfiguration().writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES,
                             value);
                     LOGGER.trace("updated notesText");
@@ -466,7 +468,7 @@ public class ConfigEditorServlet extends TopServlet {
                 }
             }
             {
-                final String requestedTemplate = Validator.readStringFromRequest(req, "template");
+                final String requestedTemplate = pwmRequest.readParameterAsString("template");
                 if (requestedTemplate != null && requestedTemplate.length() > 0) {
                     try {
                         final PwmSetting.Template template = PwmSetting.Template.valueOf(requestedTemplate);
@@ -483,20 +485,17 @@ public class ConfigEditorServlet extends TopServlet {
         }
     }
 
-    static void forwardToManager(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    static void forwardToManager(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final String url = req.getContextPath() + "/private/config/ConfigManager";
-        resp.sendRedirect(url);
+        final String url = pwmRequest.getHttpServletRequest().getContextPath() + "/private/config/ConfigManager";
+        pwmRequest.getHttpServletResponse().sendRedirect(url);
     }
 
     static void validateCookieProfile(
             final ConfigEditorCookie configEditorCookie,
             final StoredConfiguration storedConfiguration,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest
     ) {
         if (null == configEditorCookie.getProfile() || "".equals(configEditorCookie.getProfile())) {
             return;
@@ -504,16 +503,16 @@ public class ConfigEditorServlet extends TopServlet {
 
 
         if (configEditorCookie.getCategory() == null) {
-            configEditorCookie.setCategory(PwmSetting.Category.LDAP_PROFILE);
+            configEditorCookie.setCategory(PwmSettingCategory.LDAP_PROFILE);
         }
 
         if (configEditorCookie.getEditMode() == null) {
             configEditorCookie.setEditMode(ConfigEditorCookie.EDIT_MODE.SETTINGS);
         }
 
-        final PwmSetting.Category category = configEditorCookie.getCategory();
+        final PwmSettingCategory category = configEditorCookie.getCategory();
 
-        if (category.getType() != PwmSetting.Category.Type.PROFILE) {
+        if (category.hasProfiles()) {
             configEditorCookie.setProfile("");
         } else {
             final Collection<String> validProfiles = storedConfiguration.profilesForSetting(category.getProfileSetting());
@@ -522,36 +521,31 @@ public class ConfigEditorServlet extends TopServlet {
             }
         }
 
-        ServletHelper.writeCookie(resp,COOKIE_NAME_PREFERENCES, JsonUtil.getGson().toJson(configEditorCookie), 60 * 60 * 24 * 3);
+        ServletHelper.writeCookie(pwmRequest.getHttpServletResponse(), COOKIE_NAME_PREFERENCES, JsonUtil.serialize(configEditorCookie), 60 * 60 * 24 * 3);
     }
 
     void restReadChangeLog(
-            final HttpServletResponse resp,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
             throws IOException
     {
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final Locale locale = pwmRequest.getLocale();
         final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale,true));
-        ServletHelper.outputJsonResult(resp,restResultBean);
+        restResultBean.setData(configManagerBean.getConfiguration().changeLogAsDebugString(locale, true));
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     void restSearchSettings(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmSession pwmSession,
+            final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
     {
         final Date startTime = new Date();
-        final String bodyData = ServletHelper.readRequestBody(req);
-        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyData,
-                new TypeToken<Map<String, String>>() {
-                }.getType());
-        final Locale locale = pwmSession.getSessionStateBean().getLocale();
+        final String bodyData = pwmRequest.readRequestBodyAsString();
+        final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyData);
+        final Locale locale = pwmRequest.getLocale();
         final RestResultBean restResultBean = new RestResultBean();
         final String searchTerm = valueMap.get("search");
         if (searchTerm != null && !searchTerm.isEmpty()) {
@@ -582,18 +576,17 @@ public class ConfigEditorServlet extends TopServlet {
             }
 
             restResultBean.setData(returnData);
-            LOGGER.trace(pwmSession,"finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
+            LOGGER.trace(pwmRequest,"finished search operation with " + returnData.size() + " results in " + TimeDuration.fromCurrent(startTime).asCompactString());
         } else {
             restResultBean.setData(new ArrayList<StoredConfiguration.ConfigRecordID>());
         }
 
-        ServletHelper.outputJsonResult(resp, restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void restReadProperties(
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException {
         final StoredConfiguration storedConfig = configManagerBean.getConfiguration();
@@ -604,23 +597,17 @@ public class ConfigEditorServlet extends TopServlet {
                 returnMap.put(appProperty.getKey(),value);
             }
         }
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(returnMap);
-        ServletHelper.outputJsonResult(resp, restResultBean);
+        pwmRequest.outputJsonResult(new RestResultBean(returnMap));
     }
 
     private void restWriteProperties(
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
     {
-        final String bodyString = ServletHelper.readRequestBody(req);
-        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
-                new TypeToken<Map<String, String>>() {
-                }.getType());
-
+        final String bodyString = pwmRequest.readRequestBodyAsString();
+        final Map<String, String> valueMap = JsonUtil.deserializeStringMap(bodyString);
 
         final Set<AppProperty> storedProperties = new LinkedHashSet<>();
         for (final AppProperty appProperty : AppProperty.values()) {
@@ -647,28 +634,26 @@ public class ConfigEditorServlet extends TopServlet {
         }
 
         final RestResultBean restResultBean = new RestResultBean();
-        ServletHelper.outputJsonResult(resp,restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void restLdapHealthCheck(
-            final PwmSession pwmSession,
-            final ConfigManagerBean configManagerBean,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
     )
             throws IOException, PwmUnrecoverableException
     {
         final Date startTime = new Date();
-        LOGGER.debug(pwmSession, "beginning restLdapHealthCheck");
-        ConfigEditorCookie cookie = readConfigEditorCookie(req, resp);
+        LOGGER.debug(pwmRequest, "beginning restLdapHealthCheck");
+        ConfigEditorCookie cookie = readConfigEditorCookie(pwmRequest);
         final String profileID = cookie.getProfile();
         final Configuration config = new Configuration(configManagerBean.getConfiguration());
-        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(config, pwmSession.getSessionStateBean().getLocale(), profileID, true, true);
+        final HealthData healthData = LDAPStatusChecker.healthForNewConfiguration(config, pwmRequest.getLocale(), profileID, true, true);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(healthData);
 
-        ServletHelper.outputJsonResult(resp,restResultBean);
-        LOGGER.debug(pwmSession, "completed restLdapHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
+        pwmRequest.outputJsonResult(restResultBean);
+        LOGGER.debug(pwmRequest, "completed restLdapHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     private void restDatabaseHealthCheck(
@@ -695,9 +680,7 @@ public class ConfigEditorServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-
-        final String key = Validator.readStringFromRequest(req, "key");
+        final String key = pwmRequest.readParameterAsString("key");
         final PwmSetting setting = PwmSetting.forKey(key);
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;

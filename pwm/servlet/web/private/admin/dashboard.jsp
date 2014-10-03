@@ -22,7 +22,9 @@
 
 <%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
+<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.servlet.ResourceFileServlet" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.Helper" %>
@@ -36,11 +38,22 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
-<% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(locale); %>
-<% final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
-<% final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces(); %>
+<%
+    final Locale locale = JspUtility.locale(request);
+    final NumberFormat numberFormat = NumberFormat.getInstance(locale);
+    final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
+    final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces();
+
+    PwmApplication dashboard_pwmApplication = null;
+    PwmSession dashboard_pwmSession = null;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        dashboard_pwmApplication = pwmRequest.getPwmApplication();
+        dashboard_pwmSession = pwmRequest.getPwmSession();
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -65,7 +78,7 @@
 
             </td>
             <td>
-                <%= Helper.figureLdapConnectionCount(pwmApplication, ContextManager.getContextManager(session)) %>
+                <%= Helper.figureLdapConnectionCount(dashboard_pwmApplication, ContextManager.getContextManager(session)) %>
             </td>
         </tr>
     </table>
@@ -84,10 +97,10 @@
             </td>
         </tr>
         <% for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) { %>
-        <% if ((loopEpsType != Statistic.EpsType.DB_READS && loopEpsType != Statistic.EpsType.DB_WRITES) || pwmApplication.getConfig().hasDbConfigured()) { %>
+        <% if ((loopEpsType != Statistic.EpsType.DB_READS && loopEpsType != Statistic.EpsType.DB_WRITES) || dashboard_pwmApplication.getConfig().hasDbConfigured()) { %>
         <tr>
             <td class="key">
-                <%= loopEpsType.getLabel(pwmSessionHeader.getSessionStateBean().getLocale()) %> / Minute
+                <%= loopEpsType.getLabel(dashboard_pwmSession.getSessionStateBean().getLocale()) %> / Minute
             </td>
             <td style="text-align: center" id="FIELD_<%=loopEpsType.toString()%>_MINUTE">
                 <span style="font-size: smaller; font-style: italic"><pwm:display key="Display_PleaseWait"/></span>
@@ -167,18 +180,18 @@
                     <%= PwmConstants.SERVLET_VERSION %>
                 </td>
             </tr>
-            <% if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { %>
+            <% if (dashboard_pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) { %>
             <tr>
                 <td class="key">
                     Current Published Version
                 </td>
                 <td>
                     <%
-                        String publishedVersion = Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig());
+                        String publishedVersion = Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig());
                         Date readDate = null;
-                        if (pwmApplication != null && pwmApplication.getVersionChecker() != null) {
-                            publishedVersion = pwmApplication.getVersionChecker().currentVersion();
-                            readDate = pwmApplication.getVersionChecker().lastReadTimestamp();
+                        if (dashboard_pwmApplication != null && dashboard_pwmApplication.getVersionChecker() != null) {
+                            publishedVersion = dashboard_pwmApplication.getVersionChecker().currentVersion();
+                            readDate = dashboard_pwmApplication.getVersionChecker().lastReadTimestamp();
 
                         }
                     %>
@@ -202,7 +215,7 @@
                     <pwm:display key="Field_StartTime" bundle="Admin"/>
                 </td>
                 <td class="timestamp">
-                    <%= dateFormat.format(pwmApplication.getStartupTime()) %>
+                    <%= dateFormat.format(dashboard_pwmApplication.getStartupTime()) %>
                 </td>
             </tr>
             <tr>
@@ -210,7 +223,7 @@
                     Up Time
                 </td>
                 <td>
-                    <%= TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString() %>
+                    <%= TimeDuration.fromCurrent(dashboard_pwmApplication.getStartupTime()).asLongString() %>
                 </td>
             </tr>
             <tr>
@@ -218,7 +231,7 @@
                     <pwm:display key="Field_InstallTime" bundle="Admin"/>
                 </td>
                 <td class="timestamp">
-                    <%= dateFormat.format(pwmApplication.getInstallTime()) %>
+                    <%= dateFormat.format(dashboard_pwmApplication.getInstallTime()) %>
                 </td>
             </tr>
             <tr>
@@ -226,7 +239,7 @@
                     Site URL
                 </td>
                 <td>
-                    <%= pwmApplication.getSiteURL() %>
+                    <%= dashboard_pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL) %>
                 </td>
             </tr>
             <tr>
@@ -234,28 +247,28 @@
                     Instance ID
                 </td>
                 <td>
-                    <%= pwmApplication.getInstanceID() %>
+                    <%= dashboard_pwmApplication.getInstanceID() %>
                 </td>
             </tr>
             <tr>
                 <td class="key">
                     Last LDAP Unavailable Time
                 </td>
-                <% final Collection<LdapProfile> ldapProfiles = pwmApplication.getConfig().getLdapProfiles().values(); %>
+                <% final Collection<LdapProfile> ldapProfiles = dashboard_pwmApplication.getConfig().getLdapProfiles().values(); %>
                 <td>
                     <% if (ldapProfiles.size() < 2) { %>
-                    <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
+                    <% Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfiles.iterator().next()); %>
                     <span class="timestamp">
-                    <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
+                    <%= lastError == null ? Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : dateFormat.format(lastError) %>
                         </span>
                     <% } else { %>
                     <table>
                         <% for (LdapProfile ldapProfile : ldapProfiles) { %>
                         <tr>
-                            <td><%=ldapProfile.getDisplayName(pwmSessionHeader.getSessionStateBean().getLocale())%></td>
+                            <td><%=ldapProfile.getDisplayName(dashboard_pwmSession.getSessionStateBean().getLocale())%></td>
                             <td class="timestamp">
-                                <% Date lastError = pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
-                                <%= lastError == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : dateFormat.format(lastError) %>
+                                <% Date lastError = dashboard_pwmApplication.getLdapConnectionService().getLastLdapFailureTime(ldapProfile); %>
+                                <%= lastError == null ? Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : dateFormat.format(lastError) %>
                             </td>
                         </tr>
                         <% } %>
@@ -302,7 +315,7 @@
 <div data-dojo-type="dijit.layout.ContentPane" title="Services">
     <table>
         <tr>
-            <td style="font-weight:bold;">
+            <th style="font-weight:bold;">
                 Service
             </td>
             <td style="font-weight:bold;">
@@ -315,7 +328,7 @@
                 Health
             </td>
         </tr>
-        <% for (final password.pwm.PwmService loopService : pwmApplication.getPwmServices()) { %>
+        <% for (final password.pwm.PwmService loopService : dashboard_pwmApplication.getPwmServices()) { %>
         <tr>
             <td>
                 <%= loopService.getClass().getSimpleName() %>
@@ -335,7 +348,8 @@
             <td>
                 <% if (healthRecords != null && !healthRecords.isEmpty()) { %>
                 <% for (HealthRecord loopRecord : healthRecords) { %>
-                <%= loopRecord.getTopic(locale,pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,pwmApplication.getConfig()) %>
+                <%= loopRecord.getTopic(locale, dashboard_pwmApplication.getConfig()) %> - <%= loopRecord.getStatus().toString() %> - <%= loopRecord.getDetail(locale,
+                    dashboard_pwmApplication.getConfig()) %>
                 <br/>
                 <% } %>
                 <% } else { %>
@@ -354,7 +368,7 @@
                     Wordlist Dictionary Size
                 </td>
                 <td>
-                    <%= numberFormat.format(pwmApplication.getWordlistManager().size()) %>
+                    <%= numberFormat.format(dashboard_pwmApplication.getWordlistManager().size()) %>
                 </td>
             </tr>
             <tr>
@@ -362,7 +376,7 @@
                     Seedlist Size
                 </td>
                 <td>
-                    <%= numberFormat.format(pwmApplication.getSeedlistManager().size()) %>
+                    <%= numberFormat.format(dashboard_pwmApplication.getSeedlistManager().size()) %>
                 </td>
             </tr>
             <tr>
@@ -370,7 +384,7 @@
                     Shared Password History Size
                 </td>
                 <td>
-                    <%= numberFormat.format(pwmApplication.getSharedHistoryManager().size()) %>
+                    <%= numberFormat.format(dashboard_pwmApplication.getSharedHistoryManager().size()) %>
                 </td>
             </tr>
             <tr>
@@ -378,7 +392,7 @@
                     Email Queue Size
                 </td>
                 <td>
-                    <%= pwmApplication.getEmailQueue().queueSize() %>
+                    <%= dashboard_pwmApplication.getEmailQueue().queueSize() %>
                 </td>
             </tr>
             <tr>
@@ -386,7 +400,7 @@
                     SMS Queue Size
                 </td>
                 <td>
-                    <%= pwmApplication.getSmsQueue().queueSize() %>
+                    <%= dashboard_pwmApplication.getSmsQueue().queueSize() %>
                 </td>
             </tr>
             <tr>
@@ -394,7 +408,7 @@
                     Syslog Queue Size
                 </td>
                 <td>
-                    <%= pwmApplication.getAuditManager().syslogQueueSize() %>
+                    <%= dashboard_pwmApplication.getAuditManager().syslogQueueSize() %>
                 </td>
             </tr>
             <tr>
@@ -402,7 +416,7 @@
                     Local Audit Records
                 </td>
                 <td>
-                    <%= numberFormat.format(pwmApplication.getAuditManager().vaultSize()) %>
+                    <%= numberFormat.format(dashboard_pwmApplication.getAuditManager().vaultSize()) %>
                 </td>
             </tr>
             <tr>
@@ -410,7 +424,9 @@
                     Log Events in Write Queue
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? numberFormat.format(pwmApplication.getLocalDBLogger().getPendingEventCount()) : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                    <%= dashboard_pwmApplication.getLocalDBLogger() != null ? numberFormat.format(
+                            dashboard_pwmApplication.getLocalDBLogger().getPendingEventCount()) : Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -421,7 +437,7 @@
                 </td>
                 <td>
                     <a href="<pwm:url url='eventlog.jsp'/>">
-                        <%= pwmApplication.getLocalDBLogger().sizeToDebugString() %>
+                        <%= dashboard_pwmApplication.getLocalDBLogger().sizeToDebugString() %>
                     </a>
                 </td>
             </tr>
@@ -430,7 +446,8 @@
                     Oldest Log Event in Write Queue
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                    <%= dashboard_pwmApplication.getLocalDBLogger() != null ? dashboard_pwmApplication.getLocalDBLogger().getDirtyQueueTime().asCompactString() : Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -438,7 +455,9 @@
                     Oldest Log Event in LocalDB
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                    <%= dashboard_pwmApplication.getLocalDBLogger() != null ? TimeDuration.fromCurrent(
+                            dashboard_pwmApplication.getLocalDBLogger().getTailDate()).asCompactString() : Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) %>
                 </td>
             </tr>
             <tr>
@@ -446,8 +465,8 @@
                     Oldest Shared Password Entry
                 </td>
                 <td>
-                    <% final long oldestEntryAge = pwmApplication.getSharedHistoryManager().getOldestEntryAge(); %>
-                    <%= oldestEntryAge == 0 ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : TimeDuration.asCompactString(oldestEntryAge) %>
+                    <% final long oldestEntryAge = dashboard_pwmApplication.getSharedHistoryManager().getOldestEntryAge(); %>
+                    <%= oldestEntryAge == 0 ? Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : TimeDuration.asCompactString(oldestEntryAge) %>
                 </td>
             </tr>
             <tr>
@@ -455,7 +474,10 @@
                     LocalDB Size On Disk
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(Helper.getFileDirectorySize(pwmApplication.getLocalDB().getFileLocation())) %>
+                    <%= dashboard_pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : dashboard_pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : Helper.formatDiskSize(Helper.getFileDirectorySize(
+                            dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
             <tr>
@@ -464,9 +486,9 @@
                 </td>
                 <td>
                     <%
-                        String responseCount = Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig());
+                        String responseCount = Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig());
                         try {
-                            responseCount = String.valueOf(pwmApplication.getLocalDB().size(LocalDB.DB.RESPONSE_STORAGE));
+                            responseCount = String.valueOf(dashboard_pwmApplication.getLocalDB().size(LocalDB.DB.RESPONSE_STORAGE));
                         } catch (Exception e) { /* na */ }
                     %>
                     <%= responseCount %>
@@ -477,8 +499,10 @@
                     LocalDB Free Space
                 </td>
                 <td>
-                    <%= pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) : Helper.formatDiskSize(
-                            Helper.diskSpaceRemaining(pwmApplication.getLocalDB().getFileLocation())) %>
+                    <%= dashboard_pwmApplication.getLocalDB() == null ? Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : dashboard_pwmApplication.getLocalDB().getFileLocation() == null ? Display.getLocalizedMessage(
+                            dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : Helper.formatDiskSize(
+                            Helper.diskSpaceRemaining(dashboard_pwmApplication.getLocalDB().getFileLocation())) %>
                 </td>
             </tr>
             <tr>
@@ -493,7 +517,7 @@
     </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes">
-    <% if (pwmApplication.getLocalDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
+    <% if (dashboard_pwmApplication.getLocalDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
     <table class="tablemain">
         <tr>
             <td class="key">
@@ -509,7 +533,7 @@
                 <%= loopDB %>
             </td>
             <td>
-                <%= numberFormat.format(pwmApplication.getLocalDB().size(loopDB)) %>
+                <%= numberFormat.format(dashboard_pwmApplication.getLocalDB().size(loopDB)) %>
             </td>
         </tr>
         <% } %>
@@ -682,7 +706,7 @@
                     <%= t.getId() %>
                 </td>
                 <td>
-                    <%= t.getName() != null ? t.getName() : Display.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig()) %>
+                    <%= t.getName() != null ? t.getName() : Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) %>
                 </td>
                 <td>
                     <%= t.getPriority() %>

@@ -24,21 +24,20 @@ package password.pwm.wordlist;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.Sleeper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -50,7 +49,7 @@ import java.util.TimerTask;
 public class SharedHistoryManager implements Wordlist {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SharedHistoryManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SharedHistoryManager.class);
 
     private static final String KEY_OLDEST_ENTRY = "oldest_entry";
     private static final String KEY_VERSION = "version";
@@ -221,39 +220,6 @@ public class SharedHistoryManager implements Wordlist {
             cleanerTimer.schedule(new CleanerTask(), 1000, frequencyMs);
         }
     }
-
-    /*
-    private void populateFromWordlist() { // Useful to populate the wordlist during debugging, but otherwise this is an irrelavant method.
-        final Iterator<PwmDB.TransactionItem> iter;
-        try {
-            iter = pwmDB.iterator(PwmDB.DB.WORDLIST_WORDS);
-
-            int counter = 0;
-            while (counter < this.size() && iter.hasNext()) {
-                counter ++;
-                iter.next();
-            }
-
-            final long startTime = System.currentTimeMillis();
-            while (iter.hasNext() && status == WordlistStatus.OPEN) {
-                counter++;
-                final PwmDB.TransactionItem item = iter.next();
-                final String key = item.getKey();
-                addWord(null, key);
-            }
-
-            System.out.println("Niter time = " + new TimeDuration(System.currentTimeMillis(), startTime).asCompactString());
-        } catch (PwmDBException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                pwmDB.returnIterator(PwmDB.DB.WORDLIST_WORDS);
-            } catch (PwmDBException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    */
 
     private String normalizeWord(final String input) {
         if (input == null) {
@@ -433,17 +399,19 @@ public class SharedHistoryManager implements Wordlist {
         }
 
         {
-            final String securityKey = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
-            if (securityKey == null || securityKey.length() < 1) {
+            final PasswordData securityKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
+            if (securityKey == null) {
                 LOGGER.info("securityKey is not available, will remain closed");
                 status = STATUS.CLOSED;
                 return;
             }
             try {
-                this.salt = Helper.checksum(new ByteArrayInputStream(securityKey.getBytes("UTF8")),"SHA512");
-            } catch (IOException e) {
+                this.salt = SecureHelper.hash(
+                        new ByteArrayInputStream(securityKey.getStringValue().getBytes(PwmConstants.DEFAULT_CHARSET)),
+                        SecureHelper.HashAlgorithm.SHA512);
+            } catch (PwmUnrecoverableException e) {
                 LOGGER.info(
-                        "unable to create checksum-derived salt value from security key, will remain closed; error: " + e.getMessage());
+                        "unable to create hash-derived salt value from security key, will remain closed; error: " + e.getMessage());
                 status = STATUS.CLOSED;
                 return;
             }

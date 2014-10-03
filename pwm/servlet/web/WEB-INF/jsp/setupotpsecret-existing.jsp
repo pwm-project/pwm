@@ -35,11 +35,12 @@
     </jsp:include>
     <div id="centerbody">
         <p>
-            <% if (pwmSessionHeader.getUserInfoBean().getOtpUserRecord() != null && pwmSessionHeader.getUserInfoBean().getOtpUserRecord().getTimestamp() != null) { %>
-            <pwm:display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>
-            <% } else { %>
-            <pwm:display key="Display_WarnExistingOtpSecret"/>
-            <% } %>
+            <pwm:if test="hasStoredOtpTimestamp">
+                <pwm:display key="Display_WarnExistingOtpSecretTime" value1="@OtpSetupTime@"/>
+            </pwm:if>
+            <pwm:if test="hasStoredOtpTimestamp" negate="true">
+                <pwm:display key="Display_WarnExistingOtpSecret"/>
+            </pwm:if>
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>

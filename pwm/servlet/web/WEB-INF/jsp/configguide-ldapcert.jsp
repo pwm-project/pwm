@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
@@ -145,7 +146,7 @@
     });
 </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

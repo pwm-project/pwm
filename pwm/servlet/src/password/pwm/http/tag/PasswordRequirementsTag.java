@@ -30,8 +30,8 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Message;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -47,7 +47,7 @@ import java.util.MissingResourceException;
 public class PasswordRequirementsTag extends TagSupport {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordRequirementsTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordRequirementsTag.class);
     private String separator;
     private String prepend;
     private String form;

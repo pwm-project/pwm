@@ -44,10 +44,15 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.cache.CacheService;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
+import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -58,7 +63,7 @@ import java.util.*;
 
 public class PeopleSearchServlet extends PwmServlet {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PeopleSearchServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PeopleSearchServlet.class);
 
     public static class AttributeDetailBean implements Serializable {
         private String name;
@@ -167,7 +172,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throws PwmUnrecoverableException
     {
         try {
-            return PeopleSearchActions.valueOf(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+            return PeopleSearchActions.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -215,13 +220,13 @@ public class PeopleSearchServlet extends PwmServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         final Date startTime = new Date();
-        final String bodyString = pwmRequest.readRequestBody();
+        final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                 new TypeToken<Map<String, String>>() {
                 }.getType()
         );
 
-        final String username = Validator.sanatizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
+        final String username = Validator.sanitizeInputValue(pwmRequest.getConfig(), valueMap.get("username"), 1024);
         final boolean useProxy = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_USE_PROXY);
         final CacheService.CacheKey cacheKey = CacheService.CacheKey.makeCacheKey(
                 this.getClass(),
@@ -275,7 +280,7 @@ public class PeopleSearchServlet extends PwmServlet {
         if (!useProxy) {
             searchConfiguration.setLdapProfile(
                     pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID());
-            searchConfiguration.setChaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider(pwmRequest.getPwmApplication()));
+            searchConfiguration.setChaiProvider(pwmRequest.getPwmSession().getSessionManager().getChaiProvider());
         }
 
         final UserSearchEngine.UserSearchResults results;
@@ -304,7 +309,7 @@ public class PeopleSearchServlet extends PwmServlet {
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
-            pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration), JsonUtil.getGson().toJson(outputData));
+            pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration), JsonUtil.serialize(outputData));
         }
 
         if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
@@ -346,7 +351,7 @@ public class PeopleSearchServlet extends PwmServlet {
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
         final Date startTime = new Date();
-        final String bodyString = pwmRequest.readRequestBody();
+        final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                 new TypeToken<Map<String, String>>() {
                 }.getType()
@@ -428,12 +433,10 @@ public class PeopleSearchServlet extends PwmServlet {
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
             pwmRequest.getPwmApplication().getCacheService().put(cacheKey, CacheService.CachePolicy.makePolicy(expiration),
-                    JsonUtil.getGson().toJson(resultOutput));
+                    JsonUtil.serializeMap(resultOutput));
         }
 
-        if (pwmRequest.getPwmApplication().getStatisticsManager() != null) {
-            pwmRequest.getPwmApplication().getStatisticsManager().incrementValue(Statistic.PEOPLESEARCH_DETAILS);
-        }
+        StatisticsManager.incrementStat(pwmRequest, Statistic.PEOPLESEARCH_SEARCHES);
     }
 
 
@@ -475,7 +478,7 @@ public class PeopleSearchServlet extends PwmServlet {
     private void processUserPhotoImageRequest(final PwmRequest pwmRequest)
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
-        final String userKey = pwmRequest.readStringParameter("userKey");
+        final String userKey = pwmRequest.readParameterAsString("userKey");
         if (userKey.length() < 1) {
             pwmRequest.respondWithError(
                     new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER, "userKey parameter is missing"), false);
@@ -590,13 +593,13 @@ public class PeopleSearchServlet extends PwmServlet {
             final Locale locale = pwmSession.getSessionStateBean().getLocale();
             final ChaiProvider chaiProvider = pwmApplication.getProxiedChaiUser(userIdentity).getChaiProvider();
             userInfoBean = new UserInfoBean();
-            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-            userStatusReader.populateUserInfoBean(pwmSession.getSessionLabel(), userInfoBean, locale, userIdentity, null, chaiProvider);
+            final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmSession.getLabel());
+            userStatusReader.populateUserInfoBean(userInfoBean, locale, userIdentity, chaiProvider);
         } else {
             userInfoBean = null;
         }
         UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
-        return new MacroMachine(pwmApplication, userInfoBean, userDataReader);
+        return new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
     }
 
     private static void checkIfUserIdentityPermitted(
@@ -612,7 +615,7 @@ public class PeopleSearchServlet extends PwmServlet {
             filterString = filterString.replace("**","*");
         }
 
-        final boolean match = Helper.testQueryMatch(pwmApplication, pwmSession.getSessionLabel(), userIdentity, filterString);
+        final boolean match = Helper.testQueryMatch(pwmApplication, pwmSession.getLabel(), userIdentity, filterString);
         if (!match) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"requested userDN is not available within configured search filter"));
         }

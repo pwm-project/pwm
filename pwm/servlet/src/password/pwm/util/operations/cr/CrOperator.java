@@ -35,7 +35,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,7 +67,7 @@ public interface CrOperator {
     public void close();
 
     static class CrOperators {
-        private static final PwmLogger LOGGER = PwmLogger.getLogger(CrOperator.class);
+        private static final PwmLogger LOGGER = PwmLogger.forClass(CrOperator.class);
 
         static ResponseInfoBean convertToNoAnswerInfoBean(final ResponseSet responseSet, final DataStorageMethod dataSource
         )

@@ -39,12 +39,11 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.*;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +86,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     )
             throws PwmException
     {
-        LOGGER = PwmLogger.getLogger(SmsQueueManager.class);
+        LOGGER = PwmLogger.forClass(SmsQueueManager.class);
         final Settings settings = new Settings(
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_MAX_AGE_MS))),
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_SMS_RETRY_TIMEOUT_MS))),
@@ -133,14 +132,14 @@ public class SmsQueueManager extends AbstractQueueManager {
         final Configuration config = pwmApplication.getConfig();
         final String gatewayUrl = config.readSettingAsString(PwmSetting.SMS_GATEWAY_URL);
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
-        final String gatewayPass = config.readSettingAsString(PwmSetting.SMS_GATEWAY_PASSWORD);
+        final PasswordData gatewayPass = config.readSettingAsPassword(PwmSetting.SMS_GATEWAY_PASSWORD);
 
         if (gatewayUrl == null || gatewayUrl.length() < 1) {
             LOGGER.debug("discarding sms send event (no SMS gateway url configured) " + smsItem.toString());
             return false;
         }
 
-        if (gatewayUser != null && gatewayUser.length() > 0 && (gatewayPass == null || gatewayPass.length() < 1)) {
+        if (gatewayUser != null && gatewayUser.length() > 0 && (gatewayPass == null)) {
             LOGGER.debug("discarding sms send event (SMS gateway user configured, but no password provided) " + smsItem.toString());
             return false;
         }
@@ -172,7 +171,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         final Configuration config = pwmApplication.getConfig();
 
         final String gatewayUser = config.readSettingAsString(PwmSetting.SMS_GATEWAY_USER);
-        final String gatewayPass = config.readSettingAsString(PwmSetting.SMS_GATEWAY_PASSWORD);
+        final PasswordData gatewayPass = config.readSettingAsPassword(PwmSetting.SMS_GATEWAY_PASSWORD);
 
         final String contentType = config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_TYPE);
         final SmsDataEncoding encoding = SmsDataEncoding.valueOf(config.readSettingAsString(PwmSetting.SMS_REQUEST_CONTENT_ENCODING));
@@ -185,10 +184,15 @@ public class SmsQueueManager extends AbstractQueueManager {
         {
             final String senderId = smsItemBean.getFrom() == null ? "" : smsItemBean.getFrom();
             requestData = requestData.replace("%USER%", smsDataEncode(gatewayUser, encoding));
-            requestData = requestData.replace("%PASS%", smsDataEncode(gatewayPass, encoding));
             requestData = requestData.replace("%SENDERID%", smsDataEncode(senderId, encoding));
             requestData = requestData.replace("%MESSAGE%", smsDataEncode(smsItemBean.getNextPart(), encoding));
             requestData = requestData.replace("%TO%", smsDataEncode(formatSmsNumber(smsItemBean.getTo()), encoding));
+        }
+
+        try {
+            requestData = requestData.replace("%PASS%", smsDataEncode(gatewayPass.getStringValue(), encoding));
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("unable to read sms password while reading configuration");
         }
 
         if (requestData.contains("%REQUESTID%")) {
@@ -256,6 +260,10 @@ public class SmsQueueManager extends AbstractQueueManager {
             LOGGER.error("IO error while sending SMS: " + e.getMessage());
             StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
             return false;
+        } catch (Exception e) {
+            LOGGER.error("unexpected error while sending SMS, discarding message: " + e.getMessage());
+            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
+            return true;
         }
     }
 
@@ -281,12 +289,7 @@ public class SmsQueueManager extends AbstractQueueManager {
                 returnData = StringUtil.escapeXml(data);
                 break;
             default:
-                try {
-                    returnData = (data==null)?"":URLEncoder.encode(data,"UTF8");
-                } catch (UnsupportedEncodingException e) {
-                    returnData = data;
-                    LOGGER.warn("Unexpected missing encoder for charset 'UTF8': " + e.getMessage());
-                }
+                returnData = data == null ? "" : StringUtil.urlEncode(data);
                 break;
         }
         return returnData;
@@ -312,10 +315,10 @@ public class SmsQueueManager extends AbstractQueueManager {
     protected String formatSmsNumber(final String smsNumber) {
         final Configuration config = pwmApplication.getConfig();
 
-		long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
+        long ccLong = config.readSettingAsLong(PwmSetting.SMS_DEFAULT_COUNTRY_CODE);
         String countryCodeNumber = "";
         if (ccLong > 0) {
-        	countryCodeNumber = String.valueOf(ccLong);
+            countryCodeNumber = String.valueOf(ccLong);
         }
 
         final SmsNumberFormat format = SmsNumberFormat.valueOf(config.readSettingAsString(PwmSetting.SMS_PHONE_NUMBER_FORMAT).toUpperCase());
@@ -382,7 +385,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         debugOutputMap.put("to", smsItemBean.getTo());
         debugOutputMap.put("from", smsItemBean.getFrom());
 
-        return JsonUtil.getGson().toJson(debugOutputMap);
+        return JsonUtil.serializeMap(debugOutputMap);
     }
 
     @Override

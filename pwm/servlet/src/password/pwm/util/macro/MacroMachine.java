@@ -22,45 +22,42 @@
 
 package password.pwm.util.macro;
 
+import org.h2.util.StringUtils;
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.bean.LoginInfoBean;
+import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.PwmLogger;
+import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MacroMachine {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(MacroMachine.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(MacroMachine.class);
 
     private final PwmApplication pwmApplication;
     private final UserInfoBean userInfoBean;
+    private final LoginInfoBean loginInfoBean;
     private final UserDataReader userDataReader;
     private final Map<Pattern,MacroImplementation> macroImplementations;
 
     public MacroMachine(
-            PwmApplication pwmApplication,
-            UserInfoBean userInfoBean
+            final PwmApplication pwmApplication,
+            final UserInfoBean userInfoBean,
+            final LoginInfoBean loginInfoBean,
+            final UserDataReader userDataReader
     )
     {
         this.pwmApplication = pwmApplication;
         this.userInfoBean = userInfoBean;
-        this.userDataReader = null;
-        this.macroImplementations = makeImplementations();
-    }
-
-    public MacroMachine(
-            PwmApplication pwmApplication,
-            UserInfoBean userInfoBean,
-            UserDataReader userDataReader
-    )
-    {
-        this.pwmApplication = pwmApplication;
-        this.userInfoBean = userInfoBean;
+        this.loginInfoBean = loginInfoBean;
         this.userDataReader = userDataReader;
         this.macroImplementations = makeImplementations();
     }
@@ -74,7 +71,6 @@ public class MacroMachine {
         for (Class macroClass : implementations) {
             try {
                 final MacroImplementation macroImplementation = (MacroImplementation)macroClass.newInstance();
-                macroImplementation.init(pwmApplication,userInfoBean,userDataReader);
                 final Pattern pattern = macroImplementation.getRegExPattern();
                 map.put(pattern,macroImplementation);
             } catch (Exception e) {
@@ -88,7 +84,6 @@ public class MacroMachine {
         for (final String url : externalMethods) {
             iteration++;
             final MacroImplementation macroImplementation = new ExternalRestMacro(iteration,url);
-            macroImplementation.init(pwmApplication,userInfoBean,userDataReader);
             final Pattern pattern = macroImplementation.getRegExPattern();
             map.put(pattern,macroImplementation);
         }
@@ -117,6 +112,33 @@ public class MacroMachine {
             return input;
         }
 
+        final MacroImplementation.MacroRequestInfo macroRequestInfo = new MacroImplementation.MacroRequestInfo() {
+            @Override
+            public PwmApplication getPwmApplication()
+            {
+                return pwmApplication;
+            }
+
+            @Override
+            public UserInfoBean getUserInfoBean()
+            {
+                return userInfoBean;
+            }
+
+            @Override
+            public LoginInfoBean getLoginInfoBean()
+            {
+                return loginInfoBean;
+            }
+
+            @Override
+            public UserDataReader getUserDataReader()
+            {
+                return userDataReader;
+            }
+        };
+
+
         String workingString = input;
 
         for (final Pattern pattern : macroImplementations.keySet()) {
@@ -125,7 +147,7 @@ public class MacroMachine {
             while (matched) {
                 final Matcher matcher = pattern.matcher(workingString);
                 if (matcher.find()) {
-                    workingString = doReplace(workingString, pwmMacro, matcher, stringReplacer);
+                    workingString = doReplace(workingString, pwmMacro, matcher, stringReplacer, macroRequestInfo);
                 } else {
                     matched = false;
                 }
@@ -139,14 +161,15 @@ public class MacroMachine {
             final String input,
             final MacroImplementation configVar,
             final Matcher matcher,
-            final StringReplacer stringReplacer
+            final StringReplacer stringReplacer,
+            final MacroImplementation.MacroRequestInfo macroRequestInfo
     ) {
         final String matchedStr = matcher.group();
         final int startPos = matcher.start();
         final int endPos = matcher.end();
         String replaceStr = "";
         try {
-            replaceStr = configVar.replaceValue(matchedStr);
+            replaceStr = configVar.replaceValue(matchedStr, macroRequestInfo);
         }  catch (Exception e) {
             LOGGER.error("error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }
@@ -175,12 +198,31 @@ public class MacroMachine {
 
     public static class URLEncoderReplacer implements StringReplacer {
         public String replace(String matchedMacro, String newValue) {
-            try {
-                return URLEncoder.encode(newValue, "UTF8"); // make sure replacement values are properly encoded
-            } catch (UnsupportedEncodingException e) {
-                LOGGER.error("unexpected error attempting to url-encode macro values: " + e.getMessage(),e);
-            }
-            return newValue;
+            return StringUtils.urlEncode(newValue); // make sure replacement values are properly encoded
         }
     }
+
+    public static MacroMachine forUser(
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Locale userLocale = pwmRequest.getLocale();
+        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
+        final UserInfoBean userInfoBean = new UserInfoBean();
+        userStatusReader.populateUserInfoBean(userInfoBean, userLocale, userIdentity);
+        return new MacroMachine(pwmApplication, null, null, userDataReader);
+    }
+
+    public static MacroMachine forNonUserSpecific(
+            final PwmApplication pwmApplication
+    )
+            throws PwmUnrecoverableException
+    {
+        return new MacroMachine(pwmApplication, null, null, null);
+    }
+
 }

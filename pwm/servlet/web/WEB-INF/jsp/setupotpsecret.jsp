@@ -20,8 +20,9 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
+<%@page import="password.pwm.config.option.ForceSetupPolicy"%>
 <%@page import="password.pwm.http.bean.SetupOtpBean"%>
-<%@page import="password.pwm.util.otp.OTPUserRecord"%>
+<%@ page import="password.pwm.util.otp.OTPUserRecord" %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
@@ -29,7 +30,7 @@
 <% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
 <%
     final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
-    final String ident = otpUserRecord.getIdentifier();
+    final ForceSetupPolicy forceSetupPolicy = PwmRequest.forRequest(request,response).getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class);
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -80,6 +81,17 @@
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
+            <% if (forceSetupPolicy == ForceSetupPolicy.FORCE_ALLOW_SKIP) { %>
+            <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret-skip"
+                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret-skip" class="pwm-form">
+                <input type="hidden" name="processAction" value="skip"/>
+                <button type="submit" name="continue" class="btn" id="skipbutton">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-fighter-jet"></span></pwm:if>
+                    <pwm:display key="Button_Skip"/>
+                </button>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
+            <% } %>
         </div>
     </div>
     <div class="push"></div>

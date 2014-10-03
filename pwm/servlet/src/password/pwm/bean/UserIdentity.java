@@ -28,8 +28,8 @@ import password.pwm.config.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
 
 import javax.crypto.SecretKey;
 import java.io.Serializable;
@@ -70,15 +70,15 @@ public class UserIdentity implements Serializable {
     }
 
     public String toString() {
-        return "UserIdentity: " + JsonUtil.getGson().toJson(this);
+        return "UserIdentity: " + JsonUtil.serialize(this);
     }
 
     public String toObfuscatedKey(final Configuration configuration)
             throws PwmUnrecoverableException {
         try {
             final SecretKey secretKey = configuration.getSecurityKey();
-            final String jsonValue = JsonUtil.getGson().toJson(this);
-            return CRYPO_HEADER + Helper.SimpleTextCrypto.encryptValue(jsonValue, secretKey, true);
+            final String jsonValue = JsonUtil.serialize(this);
+            return CRYPO_HEADER + SecureHelper.encryptToString(jsonValue, secretKey, true);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error making obfuscated user key: " + e.getMessage()));
         }
@@ -103,7 +103,7 @@ public class UserIdentity implements Serializable {
         try {
             final String input = key.substring(CRYPO_HEADER.length(),key.length());
             final SecretKey secretKey = configuration.getSecurityKey();
-            final String jsonValue = Helper.SimpleTextCrypto.decryptValue(input, secretKey, true);
+            final String jsonValue = SecureHelper.decryptStringValue(input, secretKey, true);
             return JsonUtil.getGson().fromJson(jsonValue,UserIdentity.class);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error reversing obfuscated user key: " + e.getMessage()));

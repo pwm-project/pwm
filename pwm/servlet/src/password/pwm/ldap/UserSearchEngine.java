@@ -44,8 +44,9 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
 import java.io.Serializable;
@@ -54,7 +55,7 @@ import java.util.*;
 
 public class UserSearchEngine {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserSearchEngine.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(UserSearchEngine.class);
 
     private static int searchCounter = 0;
 
@@ -91,46 +92,12 @@ public class UserSearchEngine {
             final String attrName = "%" + formItem.getName() + "%";
             String value = formValues.get(formItem);
             if (enableValueEscaping) {
-                value = escapeLdapString(value);
+                value = StringUtil.escapeLdap(value);
             }
             newSearchFilter = newSearchFilter.replace(attrName, value);
         }
 
         return newSearchFilter;
-    }
-
-    /**
-     * Based on http://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java.
-     *
-     * @param input string to have escaped
-     * @return ldap escaped script
-     *
-     */
-    public static String escapeLdapString(final String input) {
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char curChar = input.charAt(i);
-            switch (curChar) {
-                case '\\':
-                    sb.append("\\5c");
-                    break;
-                case '*':
-                    sb.append("\\2a");
-                    break;
-                case '(':
-                    sb.append("\\28");
-                    break;
-                case ')':
-                    sb.append("\\29");
-                    break;
-                case '\u0000':
-                    sb.append("\\00");
-                    break;
-                default:
-                    sb.append(curChar);
-            }
-        }
-        return sb.toString();
     }
 
     public UserIdentity resolveUsername(
@@ -165,8 +132,12 @@ public class UserSearchEngine {
             } else {
                 final SearchConfiguration searchConfiguration = new SearchConfiguration();
                 searchConfiguration.setUsername(username);
-                searchConfiguration.setContexts(Collections.singletonList(context));
-                searchConfiguration.setLdapProfile(profile);
+                if (context != null) {
+                    searchConfiguration.setContexts(Collections.singletonList(context));
+                }
+                if (profile != null) {
+                    searchConfiguration.setLdapProfile(profile);
+                }
                 return userSearchEngine.performSingleUserSearch(searchConfiguration);
             }
         } catch (PwmOperationalException e) {
@@ -177,7 +148,7 @@ public class UserSearchEngine {
     public UserIdentity performSingleUserSearch(
             final SearchConfiguration searchConfiguration
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final long startTime = System.currentTimeMillis();
         final DuplicateMode dupeMode = pwmApplication.getConfig().readSettingAsEnum(PwmSetting.LDAP_DUPLICATE_MODE, DuplicateMode.class);
@@ -241,7 +212,7 @@ public class UserSearchEngine {
             final int maxResults,
             final Collection<String> returnAttributes
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         final Collection<LdapProfile> ldapProfiles;
         if (searchConfiguration.getLdapProfile() != null && !searchConfiguration.getLdapProfile().isEmpty()) {
@@ -283,7 +254,7 @@ public class UserSearchEngine {
                             if (ignoreUnreachableProfiles) {
                                 errors.add(e.getErrorInformation().getDetailedErrorMsg());
                                 if (errors.size() >= ldapProfiles.size()) {
-                                    final String errorMsg = "all ldap profiles are unreachable; errors: " + JsonUtil.getGson().toJson(errors);
+                                    final String errorMsg = "all ldap profiles are unreachable; errors: " + JsonUtil.serializeCollection(errors);
                                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,errorMsg));
                                 }
                             } else {
@@ -304,7 +275,7 @@ public class UserSearchEngine {
             final int maxResults,
             final Collection<String> returnAttributes
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException {
+            throws PwmUnrecoverableException, PwmOperationalException {
         final long startTime = System.currentTimeMillis();
         LOGGER.debug(sessionLabel, "beginning user search process");
 
@@ -318,7 +289,7 @@ public class UserSearchEngine {
         final String searchFilter;
         if (searchConfiguration.getUsername() != null) {
             final String inputQuery = searchConfiguration.isEnableValueEscaping()
-                    ? escapeLdapString(searchConfiguration.getUsername())
+                    ? StringUtil.escapeLdap(searchConfiguration.getUsername())
                     : searchConfiguration.getUsername();
 
             if (searchConfiguration.getUsername().split(" ").length > 1) {
@@ -371,7 +342,6 @@ public class UserSearchEngine {
         returnMap = new LinkedHashMap<>();
         for (final String loopContext : searchContexts) {
             final Map<UserIdentity,Map<String,String>> singleContextResults;
-            try {
                 singleContextResults = doSingleContextSearch(
                         ldapProfile,
                         searchFilter,
@@ -381,9 +351,6 @@ public class UserSearchEngine {
                         chaiProvider,
                         timeLimitMS
                 );
-            } catch (ChaiOperationException e) {
-                throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during search: " + e.getMessage());
-            }
             returnMap.putAll(singleContextResults);
             if (returnMap.size() >= maxResults) {
                 break;
@@ -403,7 +370,7 @@ public class UserSearchEngine {
             final ChaiProvider chaiProvider,
             final long timeoutMs
     )
-            throws ChaiUnavailableException, PwmOperationalException, ChaiOperationException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         final SearchHelper searchHelper = new SearchHelper();
         searchHelper.setMaxResults(maxResults);
@@ -415,7 +382,14 @@ public class UserSearchEngine {
         LOGGER.debug(sessionLabel, "performing ldap search for user; " + debugInfo);
 
         final Date startTime = new Date();
-        final Map<String, Map<String,String>> results = chaiProvider.search(context, searchHelper);
+        final Map<String, Map<String,String>> results;
+        try {
+            results = chaiProvider.search(context, searchHelper);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+        } catch (ChaiOperationException e) {
+            throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()),"ldap error during search: " + e.getMessage());
+        }
         final TimeDuration searchDuration = TimeDuration.fromCurrent(startTime);
 
         if (pwmApplication.getStatisticsManager() != null && pwmApplication.getStatisticsManager().status() == PwmService.STATUS.OPEN) {

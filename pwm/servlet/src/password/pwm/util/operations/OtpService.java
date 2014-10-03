@@ -38,9 +38,9 @@ import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.otp.DbOtpOperator;
 import password.pwm.util.operations.otp.LdapOtpOperator;
 import password.pwm.util.operations.otp.LocalDbOtpOperator;
@@ -60,7 +60,7 @@ import java.util.*;
  */
 public class OtpService implements PwmService {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(OtpService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(OtpService.class);
 
     private final Map<DataStorageMethod, OtpOperator> operatorMap = new EnumMap<>(DataStorageMethod.class);
     private PwmApplication pwmApplication;
@@ -92,7 +92,7 @@ public class OtpService implements PwmService {
                     break;
             }
         } catch (Exception e) {
-            LOGGER.error("error checking otp secret: " + e.getMessage());
+            LOGGER.error(pwmSession.getLabel(),"error checking otp secret: " + e.getMessage());
         }
 
         if (!otpCorrect && allowRecoveryCodes && otpUserRecord.getRecoveryCodes() != null && otpUserRecord.getRecoveryInfo() != null) {
@@ -242,7 +242,10 @@ public class OtpService implements PwmService {
         return Collections.emptyList();
     }
 
-    public OTPUserRecord readOTPUserConfiguration(final UserIdentity userIdentity)
+    public OTPUserRecord readOTPUserConfiguration(
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         OTPUserRecord otpConfig = null;
@@ -253,7 +256,7 @@ public class OtpService implements PwmService {
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
 
         if (otpSecretStorageLocations != null) {
-            final String userGUID = readGuidIfNeeded(pwmApplication, otpSecretStorageLocations, userIdentity);
+            final String userGUID = readGuidIfNeeded(pwmApplication, sessionLabel, otpSecretStorageLocations, userIdentity);
             final Iterator<DataStorageMethod> locationIterator = otpSecretStorageLocations.iterator();
             while (otpConfig == null && locationIterator.hasNext()) {
                 final DataStorageMethod location = locationIterator.next();
@@ -262,15 +265,15 @@ public class OtpService implements PwmService {
                     try {
                         otpConfig = operator.readOtpUserConfiguration(userIdentity, userGUID);
                     } catch (Exception e) {
-                        LOGGER.error("unexpected error reading stored otp configuration from " + location + " for user " + userIdentity + ", error: " + e.getMessage());
+                        LOGGER.error(sessionLabel, "unexpected error reading stored otp configuration from " + location + " for user " + userIdentity + ", error: " + e.getMessage());
                     }
                 } else {
-                    LOGGER.warn(String.format("Storage location %s not implemented", location.toString()));
+                    LOGGER.warn(sessionLabel,String.format("Storage location %s not implemented", location.toString()));
                 }
             }
         }
 
-        LOGGER.trace("readOTPUserConfiguration completed in " + TimeDuration.fromCurrent(
+        LOGGER.trace(sessionLabel,"readOTPUserConfiguration completed in " + TimeDuration.fromCurrent(
                 methodStartTime).asCompactString());
         return otpConfig;
     }
@@ -286,7 +289,7 @@ public class OtpService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(
                 PwmSetting.OTP_SECRET_READ_PREFERENCE);
-        final String userGUID = readGuidIfNeeded(pwmApplication, otpSecretStorageLocations, userIdentity);
+        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
@@ -332,7 +335,7 @@ public class OtpService implements PwmService {
         final Configuration config = pwmApplication.getConfig();
         final List<DataStorageMethod> otpSecretStorageLocations = config.getOtpSecretStorageLocations(PwmSetting.OTP_SECRET_READ_PREFERENCE);
 
-        final String userGUID = readGuidIfNeeded(pwmApplication, otpSecretStorageLocations, userIdentity);
+        final String userGUID = readGuidIfNeeded(pwmApplication, pwmSession.getLabel(), otpSecretStorageLocations, userIdentity);
 
         final StringBuilder errorMsgs = new StringBuilder();
         if (otpSecretStorageLocations != null) {
@@ -368,25 +371,6 @@ public class OtpService implements PwmService {
         }
     }
 
-    /**
-     * Check whether the user needs to setup an OTP secret.
-     * @param pwmSession
-     * @param theUser
-     * @param otpConfig
-     * @return true if the record is null or does not contain a shared secret; otherwise false.
-     * @throws ChaiUnavailableException
-     * @throws PwmUnrecoverableException
-     */
-    public boolean checkIfOtpSetupNeeded(
-            final SessionLabel pwmSession,
-            final UserIdentity theUser,
-            final OTPUserRecord otpConfig
-    )
-            throws ChaiUnavailableException, PwmUnrecoverableException {
-        OTPUserRecord otp = readOTPUserConfiguration(theUser);
-        return (otp == null || otp.getSecret() == null);
-    }
-
     public boolean supportsRecoveryCodes() {
         Configuration config = pwmApplication.getConfig();
         final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
@@ -406,6 +390,7 @@ public class OtpService implements PwmService {
 
     private static String readGuidIfNeeded(
             final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel,
             final Collection<DataStorageMethod> otpSecretStorageLocations,
             final UserIdentity userIdentity
 
@@ -415,7 +400,7 @@ public class OtpService implements PwmService {
         final String userGUID;
         if (otpSecretStorageLocations.contains(DataStorageMethod.DB) || otpSecretStorageLocations.contains(
                 DataStorageMethod.LOCALDB)) {
-            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
+            userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
         } else {
             userGUID = null;
         }

@@ -29,13 +29,14 @@ import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.PwmLogger;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.lang.reflect.Method;
 
 public class ValueFactory {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ValueFactory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ValueFactory.class);
 
     public static StoredValue fromJson(final PwmSetting setting, final String input)
             throws PwmOperationalException
@@ -58,7 +59,7 @@ public class ValueFactory {
     }
 
     public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final String key)
-            throws PwmOperationalException
+            throws PwmUnrecoverableException, PwmOperationalException
     {
         if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
             return PasswordValue.fromXmlValue(settingElement, key);

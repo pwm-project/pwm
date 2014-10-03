@@ -22,7 +22,7 @@
 
 package password.pwm.util.otp;
 
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class OTPPamUtil {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(OTPPamUtil.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(OTPPamUtil.class);
 
     /**
      * Split the string in lines; separate by CR, LF or CRLF.

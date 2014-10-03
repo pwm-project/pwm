@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -40,7 +40,7 @@ public class
 {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static PwmLogger LOGGER = PwmLogger.getLogger(LocalDBStoredQueue.class, true);
+    private final static PwmLogger LOGGER = PwmLogger.forClass(LocalDBStoredQueue.class, true);
     private final static int MAX_SIZE = Integer.MAX_VALUE - 3;
 
     private final static String KEY_HEAD_POSITION = "_HEAD_POSITION";

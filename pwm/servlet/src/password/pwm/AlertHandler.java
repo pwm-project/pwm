@@ -27,14 +27,14 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.health.HealthRecord;
 import password.pwm.i18n.Display;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.report.ReportSummaryData;
 
 import java.util.*;
 
 public abstract class AlertHandler {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AlertHandler.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AlertHandler.class);
 
 
     public static void alertDailyStats(
@@ -128,7 +128,7 @@ public abstract class AlertHandler {
         { // server info
             final Map<String,String> metadata = new LinkedHashMap<>();
             metadata.put("Instance ID", pwmApplication.getInstanceID());
-            metadata.put("Site URL", pwmApplication.getSiteURL());
+            metadata.put("Site URL", pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL));
             metadata.put("Timestamp",PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
             metadata.put("Up Time", TimeDuration.fromCurrent(pwmApplication.getStartupTime()).asLongString());
 

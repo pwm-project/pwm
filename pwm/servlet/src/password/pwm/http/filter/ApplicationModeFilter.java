@@ -24,15 +24,14 @@ package password.pwm.http.filter;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmServletURLHelper;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmURL;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -54,25 +53,58 @@ public class ApplicationModeFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException
     {
+        final HttpServletRequest req = (HttpServletRequest)servletRequest;
+        final HttpServletResponse resp = (HttpServletResponse)servletResponse;
+
         // add request url to request attribute
-        servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, ((HttpServletRequest) servletRequest).getRequestURI());
+        servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, req.getRequestURI());
+
+        // check if app is available.
+        boolean applicationIsAvailable = false;
+        try {
+            ContextManager.getPwmApplication(req);
+            applicationIsAvailable = true;
+        } catch (Throwable e) {
+            LOGGER.error("can't load application: " + e.getMessage());
+        }
+
+        if (!applicationIsAvailable) {
+            if (!(new PwmURL(req).isResourceURL())) {
+                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
+                servletContext.getRequestDispatcher(url).forward(req, resp);
+                return;
+            }
+        }
 
         // ignore if resource request
-        if (!PwmServletURLHelper.isResourceURL((HttpServletRequest)servletRequest)) {
+        final PwmURL pwmURL = new PwmURL(req);
+        if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL()) {
             // check for valid config
             try {
-                if (checkConfigModes((HttpServletRequest)servletRequest, (HttpServletResponse)servletResponse, servletContext)) {
+                if (checkConfigModes(req, resp, servletContext)) {
                     return;
                 }
             } catch (PwmUnrecoverableException e) {
                 if (e.getError() == PwmError.ERROR_UNKNOWN) {
                     try { LOGGER.error(e.getMessage()); } catch (Exception ignore) { /* noop */ }
                 }
-                throw new ServletException(e.getErrorInformation().toDebugStr());
+                servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO, e.getErrorInformation());
+                ServletHelper.forwardToErrorPage(req, resp, true);
+                return;
             }
         }
 
-        filterChain.doFilter(servletRequest,servletResponse);
+        try {
+            filterChain.doFilter(servletRequest, servletResponse);
+        } catch (Throwable e) {
+            final String errorMsg = "uncaught error while processing filter chain: " + e.getMessage() +
+                    (e.getCause() == null ? "" : ", cause: " + e.getCause().getMessage());
+            if (e instanceof IOException) {
+                LOGGER.trace(errorMsg);
+            } else {
+                LOGGER.error(errorMsg,e);
+            }
+        }
     }
 
     @Override
@@ -94,17 +126,18 @@ public class ApplicationModeFilter implements Filter {
 
         final PwmApplication.MODE mode = theManager.getApplicationMode();
 
-        if (PwmServletURLHelper.isResourceURL(req)) {
+        final PwmURL pwmURL = new PwmURL(req);
+        if (pwmURL.isResourceURL()) {
             return false;
         }
 
         if (mode == PwmApplication.MODE.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
-            if (PwmServletURLHelper.isCommandServletURL(req) || PwmServletURLHelper.isWebServiceURL(req)) {
+            if (pwmURL.isCommandServletURL() || pwmURL.isWebServiceURL()) {
                 return false;
             }
 
-            if (PwmServletURLHelper.isConfigGuideURL(req)) {
+            if (pwmURL.isConfigGuideURL()) {
                 return false;
             } else {
                 LOGGER.debug("unable to find a valid configuration, redirecting " + req.getRequestURI() + " to ConfigGuide");
@@ -118,10 +151,8 @@ public class ApplicationModeFilter implements Filter {
             if (rootError == null) {
                 rootError = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed.");
             }
-            final PwmSession pwmSession = PwmSession.getPwmSession(req.getSession());
-            final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-            ssBean.setSessionError(rootError);
-            ServletHelper.forwardToErrorPage(req, resp, true);
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+            pwmRequest.respondWithError(rootError);
             return true;
         }
 

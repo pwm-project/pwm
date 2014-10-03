@@ -24,13 +24,12 @@ package password.pwm.http.filter;
 
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +45,7 @@ import java.io.IOException;
 public class AuthorizationFilter implements Filter {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AuthenticationFilter.class);
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -74,14 +73,14 @@ public class AuthorizationFilter implements Filter {
     {
         final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
         try {
             hasPermission = pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
         } catch (Exception e) {
-            LOGGER.warn("error during authorization check: " + e.getMessage());
+            LOGGER.warn(pwmRequest, "error during authorization check: " + e.getMessage());
         }
 
         try {
@@ -90,12 +89,11 @@ public class AuthorizationFilter implements Filter {
                 return;
             }
         } catch (Exception e) {
-            LOGGER.warn("unexpected error executing filter chain: " + e.getMessage());
+            LOGGER.warn(pwmRequest, "unexpected error executing filter chain: " + e.getMessage());
             return;
         }
 
-        ssBean.setSessionError(PwmError.ERROR_UNAUTHORIZED.toInfo());
-        ServletHelper.forwardToErrorPage(req, resp, req.getSession().getServletContext());
+        pwmRequest.respondWithError(PwmError.ERROR_UNAUTHORIZED.toInfo());
     }
 
     public void destroy() {

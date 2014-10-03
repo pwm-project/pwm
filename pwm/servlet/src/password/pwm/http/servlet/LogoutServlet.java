@@ -26,36 +26,38 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.filter.SessionFilter;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
 
-public class LogoutServlet extends TopServlet {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LogoutServlet.class);
+public class LogoutServlet extends PwmServlet {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LogoutServlet.class);
 
-    protected void processRequest(final HttpServletRequest req, final HttpServletResponse resp)
+    @Override
+    protected ProcessAction readProcessAction(PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        return null;
+    }
+
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final StringBuilder debugMsg = new StringBuilder();
         debugMsg.append("processing logout request from user");
-        final boolean logoutDueToIdle = Validator.readBooleanFromRequest(req, "idle");
+        final boolean logoutDueToIdle = Boolean.parseBoolean(pwmRequest.readParameterAsString("idle"));
         if (logoutDueToIdle) {
             debugMsg.append(" due to client idle timeout");
         }
 
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         LOGGER.debug(pwmSession,debugMsg);
         pwmSession.unauthenticateUser();
@@ -63,8 +65,8 @@ public class LogoutServlet extends TopServlet {
         { //if there is a session url, then use that to do a redirect.
             final String sessionLogoutURL = pwmSession.getSessionStateBean().getLogoutURL();
             if (sessionLogoutURL != null && sessionLogoutURL.length() > 0) {
-                LOGGER.trace(pwmSession, "redirecting user to session parameter set logout url:" + sessionLogoutURL );
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(sessionLogoutURL, req, resp));
+                LOGGER.trace(pwmSession, "redirecting user to session parameter set logout url: " + sessionLogoutURL );
+                pwmRequest.sendRedirect(sessionLogoutURL);
                 pwmSession.invalidate();
                 return;
             }
@@ -86,19 +88,19 @@ public class LogoutServlet extends TopServlet {
                 logoutURL.append(!pwmSession.getSessionStateBean().isPrivateUrlAccessed());
                 String sessionForwardURL = pwmSession.getSessionStateBean().getForwardURL();
                 if (sessionForwardURL != null && sessionForwardURL.length() > 0) {
-                    logoutURL.append("&" + pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_FORWARD_URL) + "=");
-                    logoutURL.append(URLEncoder.encode(sessionForwardURL, "UTF-8"));
+                    logoutURL.append("&").append(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_PARAM_NAME_FORWARD_URL)).append("=");
+                    logoutURL.append(StringUtil.urlEncode(sessionForwardURL));
                 }
 
                 LOGGER.trace(pwmSession, "redirecting user to configured logout url:" + logoutURL.toString());
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(logoutURL.toString(), req, resp));
+                pwmRequest.sendRedirect(logoutURL.toString());
                 pwmSession.invalidate();
                 return;
             }
         }
 
         // if we didn't go anywhere yet, then show the pwm logout jsp
-        ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.LOGOUT);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.LOGOUT);
         pwmSession.invalidate();
     }
 }

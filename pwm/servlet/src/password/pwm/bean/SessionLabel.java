@@ -66,17 +66,4 @@ public class SessionLabel implements Serializable {
     {
         return srcHostname;
     }
-
-    public String toLabel() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.getSessionID());
-        if (this.getUsername() != null) {
-            final String userID = getUsername();
-            if (userID.length() > 0) {
-                sb.append(",");
-                sb.append(userID);
-            }
-        }
-        return sb.toString();
-    }
 }

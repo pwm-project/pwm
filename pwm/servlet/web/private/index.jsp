@@ -46,92 +46,92 @@
                     </td>
                 </tr>
             </pwm:if>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) { %>
-            <pwm:if test="permission" arg1="SETUP_RESPONSE">
+            <pwm:if test="setupChallengeEnabled">
+                <pwm:if test="permission" arg1="SETUP_RESPONSE">
+                    <tr style="border:0">
+                        <td class="menubutton_key">
+                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='SetupResponses'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
+                                <pwm:display key="Title_SetupResponses"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_SetupResponses"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+            </pwm:if>
+            <pwm:if test="otpEnabled">
+                <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
+                    <tr style="border:0">
+                        <td class="menubutton_key">
+                            <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtp'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-qrcode"></span></pwm:if>
+                                <pwm:display key="Title_SetupOtpSecret"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_SetupOtpSecret"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+            </pwm:if>
+            <pwm:if test="profileUpdateEnabled">
+                <pwm:if test="permission" arg1="PROFILE_UPDATE">
+                    <tr style="border:0">
+                        <td class="menubutton_key">
+                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='UpdateProfile'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
+                                <pwm:display key="Title_UpdateProfile"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_UpdateProfile"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+            </pwm:if>
+            <pwm:if test="shortcutsEnabled">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='SetupResponses'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
-                            <pwm:display key="Title_SetupResponses"/>
+                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Shortcuts'/>">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
+                            <pwm:display key="Title_Shortcuts"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:display key="Long_Title_SetupResponses"/></p>
+                        <p><pwm:display key="Long_Title_Shortcuts"/></p>
                     </td>
                 </tr>
             </pwm:if>
-            <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
-            <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
+            <pwm:if test="peopleSearchEnabled">
+                <pwm:if test="permission" arg1="PEOPLE_SEARCH">
+                    <tr style="border:0">
+                        <td class="menubutton_key">
+                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='PeopleSearch'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
+                                <pwm:display key="Title_PeopleSearch"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_PeopleSearch"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+            </pwm:if>
+            <pwm:if test="accountInfoEnabled">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtp'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-qrcode"></span></pwm:if>
-                            <pwm:display key="Title_SetupOtpSecret"/>
+                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-file-o"></span></pwm:if>
+                            <pwm:display key="Title_UserInformation"/>
                         </a>
                     </td>
                     <td style="border: 0">
-                        <p><pwm:display key="Long_Title_SetupOtpSecret"/></p>
+                        <p><pwm:display key="Long_Title_UserInformation"/></p>
                     </td>
                 </tr>
             </pwm:if>
-            <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.UPDATE_PROFILE_ENABLE)) { %>
-            <pwm:if test="permission" arg1="PROFILE_UPDATE">
-                <tr style="border:0">
-                    <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='UpdateProfile'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
-                            <pwm:display key="Title_UpdateProfile"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_UpdateProfile"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_ENABLE)) { %>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Shortcuts'/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
-                        <pwm:display key="Title_Shortcuts"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_Shortcuts"/></p>
-                </td>
-            </tr>
-            <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.PEOPLE_SEARCH_ENABLE)) { %>
-            <pwm:if test="permission" arg1="PEOPLE_SEARCH">
-                <tr style="border:0">
-                    <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='PeopleSearch'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
-                            <pwm:display key="Title_PeopleSearch"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_PeopleSearch"/></p>
-                    </td>
-                </tr>
-            </pwm:if>
-            <% } %>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_ENABLED)) { %>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-file-o"></span></pwm:if>
-                        <pwm:display key="Title_UserInformation"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_UserInformation"/></p>
-                </td>
-            </tr>
-            <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
             <pwm:if test="permission" arg1="HELPDESK">
                 <tr style="border:0">
@@ -172,19 +172,19 @@
                     </td>
                 </tr>
             </pwm:if>
-            <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_LOGOUT_BUTTON)) { %>
-            <tr style="border:0">
-                <td class="menubutton_key">
-                    <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='../public/Logout'/>">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
-                        <pwm:display key="Title_Logout"/>
-                    </a>
-                </td>
-                <td style="border: 0">
-                    <p><pwm:display key="Long_Title_Logout"/></p>
-                </td>
-            </tr>
-            <% } %>
+            <pwm:if test="showLogout">
+                <tr style="border:0">
+                    <td class="menubutton_key">
+                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='../public/Logout'/>">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
+                            <pwm:display key="Title_Logout"/>
+                        </a>
+                    </td>
+                    <td style="border: 0">
+                        <p><pwm:display key="Long_Title_Logout"/></p>
+                    </td>
+                </tr>
+            </pwm:if>
         </table>
     </div>
     <div class="push"></div>

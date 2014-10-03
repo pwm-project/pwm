@@ -29,31 +29,32 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
 import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.*;
+import password.pwm.ldap.LdapUserDataReader;
+import password.pwm.ldap.UserDataReader;
+import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
 import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.rest.RestTokenDataClient;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -62,115 +63,151 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class ActivateUserServlet extends TopServlet {
+public class ActivateUserServlet extends PwmServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ActivateUserServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ActivateUserServlet.class);
     private static final String TOKEN_NAME = ActivateUserServlet.class.getName();
 
+    public enum ActivateUserAction implements PwmServlet.ProcessAction {
+        activate(PwmServlet.HttpMethod.POST),
+        enterCode(PwmServlet.HttpMethod.POST),
+        reset(PwmServlet.HttpMethod.POST),
+        agree(PwmServlet.HttpMethod.POST),
 
-// -------------------------- OTHER METHODS --------------------------
+        ;
 
-    protected void processRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+        private final PwmServlet.HttpMethod method;
+
+        ActivateUserAction(PwmServlet.HttpMethod method)
+        {
+            this.method = method;
+        }
+
+        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(method);
+        }
+    }
+
+    protected ActivateUserAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return ActivateUserAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+
+
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
         //Fetch the session state bean.
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         final Configuration config = pwmApplication.getConfig();
-        final String processAction = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
         if (!config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) {
-            ssBean.setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"activate user is not enabled");
+            pwmRequest.respondWithError(errorInformation);
             return;
         }
 
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
-            ssBean.setSessionError(PwmError.ERROR_USERAUTHENTICATED.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_USERAUTHENTICATED);
+            pwmRequest.respondWithError(errorInformation);
             return;
         }
 
+        final ActivateUserAction action = readProcessAction(pwmRequest);
+
         // convert a url command like /pwm/public/NewUserServlet/12321321 to redirect with a process action.
-        if (processAction == null || processAction.length() < 1) {
-            if (convertURLtokenCommand(req, resp, pwmApplication, pwmSession)) {
+        if (action == null) {
+            if (pwmRequest.convertURLtokenCommand()) {
                 return;
             }
-        }
+        } else {
+            pwmRequest.validatePwmFormID();
+            switch (action) {
+                case activate:
+                    handleActivationRequest(pwmRequest);
+                    break;
 
-        if (processAction != null && processAction.length() > 0) {
-            Validator.validatePwmFormID(req);
-            if ("activate".equalsIgnoreCase(processAction)) {
-                handleActivationRequest(req, resp);
-            } else if ("enterCode".equalsIgnoreCase(processAction)) {
-                handleEnterTokenCode(req, resp, pwmApplication, pwmSession);
-            } else if ("reset".equalsIgnoreCase(processAction)) {
-                pwmSession.clearSessionBean(ActivateUserBean.class);
-                advanceToNextStage(req, resp);
-            } else if ("agree".equalsIgnoreCase(processAction)) {         // accept password change agreement
-                LOGGER.debug(pwmSession.getSessionLabel(), "user accepted activate user agreement");
-                activateUserBean.setAgreementPassed(true);
-                advanceToNextStage(req, resp);
+                case enterCode:
+                    handleEnterTokenCode(pwmRequest);
+                    break;
+
+                case reset:
+                    pwmSession.clearSessionBean(ActivateUserBean.class);
+                    advanceToNextStage(pwmRequest);
+                    break;
+
+                case agree:
+                    LOGGER.debug(pwmSession.getLabel(), "user accepted activate user agreement");
+                    activateUserBean.setAgreementPassed(true);
+                    advanceToNextStage(pwmRequest);
+                    break;
             }
         }
 
-        if (!resp.isCommitted()) {
-            this.advanceToNextStage(req, resp);
+        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+            this.advanceToNextStage(pwmRequest);
         }
     }
 
-    public void handleActivationRequest(final HttpServletRequest req, final HttpServletResponse resp)
+    public void handleActivationRequest(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         pwmSession.clearActivateUserBean();
-        final List<FormConfiguration> formItem = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
+        final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
 
         Map<FormConfiguration,String> formValues = new HashMap();
         try {
             //read the values from the request
-            formValues = Validator.readFormValuesFromRequest(req, formItem, ssBean.getLocale());
+            formValues = FormUtility.readFormValuesFromRequest(pwmRequest, configuredActivationForm,
+                    ssBean.getLocale());
 
             // check for intruders
             pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
 
             // read the context attr
-            final String contextParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_CONTEXT, 1024, "");
+            final String contextParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
 
             // read the profile attr
-            final String ldapProfile = Validator.readStringFromRequest(req, PwmConstants.PARAM_LDAP_PROFILE, 1024, "");
+            final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
 
             // see if the values meet the configured form requirements.
-            Validator.validateParmValuesMeetRequirements(formValues, ssBean.getLocale());
+            FormUtility.validateFormValues(formValues, ssBean.getLocale());
+
+            final String searchFilter = figureLdapSearchFilter(pwmRequest);
 
             // get an ldap user object based on the params
             final UserIdentity userIdentity;
             {
-                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
+                final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
                 searchConfiguration.setContexts(Collections.singletonList(contextParam));
-                searchConfiguration.setFilter(config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER));
+                searchConfiguration.setFilter(searchFilter);
                 searchConfiguration.setFormValues(formValues);
                 searchConfiguration.setLdapProfile(ldapProfile);
                 userIdentity = userSearchEngine.performSingleUserSearch(searchConfiguration);
             }
 
-            validateParamsAgainstLDAP(formValues, pwmApplication, pwmSession, userIdentity, config);
+            validateParamsAgainstLDAP(pwmRequest, formValues, userIdentity);
 
             final List<UserPermission> userPermissions = config.readSettingAsUserPermission(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
-            if (!Helper.testUserPermissions(pwmApplication, pwmSession.getSessionLabel(), userIdentity, userPermissions)) {
+            if (!Helper.testUserPermissions(pwmApplication, pwmSession.getLabel(), userIdentity, userPermissions)) {
                 final String errorMsg = "user " + userIdentity + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);
@@ -186,24 +223,24 @@ public class ActivateUserServlet extends TopServlet {
         } catch (PwmOperationalException e) {
             pwmApplication.getIntruderManager().convenience().markAttributes(formValues, pwmSession);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            ssBean.setSessionError(e.getErrorInformation());
-            LOGGER.debug(pwmSession.getSessionLabel(),e.getErrorInformation().toDebugStr());
+            pwmRequest.setResponseError(e.getErrorInformation());
+            LOGGER.debug(pwmSession.getLabel(),e.getErrorInformation().toDebugStr());
         }
 
         // redirect user to change password screen.
-        advanceToNextStage(req,resp);
+        advanceToNextStage(pwmRequest);
     }
 
-    private void advanceToNextStage(final HttpServletRequest req, final HttpServletResponse resp)
+    private void advanceToNextStage(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
 
         if (!activateUserBean.isFormValidated() || activateUserBean.getUserIdentity() == null) {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER);
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
             return;
         }
 
@@ -212,51 +249,58 @@ public class ActivateUserServlet extends TopServlet {
             if (!activateUserBean.isTokenIssued()) {
                 try {
                     final Locale locale = pwmSession.getSessionStateBean().getLocale();
-                    initializeToken(pwmSession, pwmApplication, locale, activateUserBean.getUserIdentity());
+                    initializeToken(pwmRequest, locale, activateUserBean.getUserIdentity());
                 } catch (PwmOperationalException e) {
-                    pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-                    ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER);
+                    pwmRequest.setResponseError(e.getErrorInformation());
+                    pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER);
                     return;
                 }
             }
 
             if (!activateUserBean.isTokenPassed()) {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER_ENTER_CODE);
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_ENTER_CODE);
                 return;
             }
         }
 
-        final String agreementMessage = config.readSettingAsLocalizedString(PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
-                pwmSession.getSessionStateBean().getLocale());
-        if (agreementMessage != null && agreementMessage.length() > 0 && !activateUserBean.isAgreementPassed()) {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ACTIVATE_USER_AGREEMENT);
+        final String agreementText = config.readSettingAsLocalizedString(
+                PwmSetting.ACTIVATE_AGREEMENT_MESSAGE,
+                pwmSession.getSessionStateBean().getLocale()
+        );
+        if (agreementText != null && agreementText.length() > 0 && !activateUserBean.isAgreementPassed()) {
+            if (activateUserBean.getAgreementText() == null) {
+                final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, activateUserBean.getUserIdentity());
+                final String expandedText = macroMachine.expandMacros(agreementText);
+                activateUserBean.setAgreementText(expandedText);
+            }
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ACTIVATE_USER_AGREEMENT);
             return;
         }
 
         try {
-            activateUser(pwmSession, pwmApplication, activateUserBean.getUserIdentity());
-            ServletHelper.forwardToSuccessPage(req, resp);
+            activateUser(pwmRequest, activateUserBean.getUserIdentity());
+            pwmRequest.forwardToSuccessPage(Message.SUCCESS_ACTIVATE_USER);
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            LOGGER.debug(pwmSession.getSessionLabel(), e.getErrorInformation().toDebugStr());
+            LOGGER.debug(pwmRequest, e.getErrorInformation());
             pwmApplication.getIntruderManager().convenience().markUserIdentity(activateUserBean.getUserIdentity(),pwmSession);
             pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.respondWithError(e.getErrorInformation());
         }
     }
 
     public void activateUser(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
+            final PwmRequest pwmRequest,
             final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        Configuration config = pwmApplication.getConfig();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final Configuration config = pwmApplication.getConfig();
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
         if (config.readSettingAsBoolean(PwmSetting.ACTIVATE_USER_UNLOCK)) {
             try {
-                theUser.unlock();
+                theUser.unlockPassword();
             } catch (ChaiOperationException e) {
                 final String errorMsg = "error unlocking user " + userIdentity + ": " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
@@ -266,26 +310,24 @@ public class ActivateUserServlet extends TopServlet {
 
         try {
             {  // execute configured actions
-                LOGGER.debug(pwmSession.getSessionLabel(), "executing configured pre-actions to user " + theUser.getEntryDN());
+                LOGGER.debug(pwmSession.getLabel(), "executing configured pre-actions to user " + theUser.getEntryDN());
                 final List<ActionConfiguration> configValues = config.readSettingAsAction(PwmSetting.ACTIVATE_USER_PRE_WRITE_ATTRIBUTES);
                 if (configValues != null && !configValues.isEmpty()) {
-                    final Locale locale = pwmSession.getSessionStateBean().getLocale();
-                    final UserInfoBean userInfoBean = new UserInfoBean();
-                    UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
-                    userStatusReader.populateUserInfoBean(pwmSession.getSessionLabel(), userInfoBean, locale, userIdentity, null);
+                    final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
                     final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                     settings.setExpandPwmMacros(true);
-                    settings.setUserInfoBean(userInfoBean);
+                    settings.setMacroMachine(macroMachine);
                     final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                     actionExecutor.executeActions(configValues, settings, pwmSession);
                 }
             }
 
             //authenticate the pwm session
-            UserAuthenticator.authUserWithUnknownPassword(userIdentity, pwmSession, pwmApplication, true, UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+            sessionAuthenticator.authUserWithUnknownPassword(userIdentity,AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
             //ensure a change password is triggered
-            pwmSession.getUserInfoBean().setAuthenticationType(UserInfoBean.AuthenticationType.AUTH_FROM_FORGOTTEN);
+            pwmSession.getLoginInfoBean().setAuthenticationType(AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // mark the event log
@@ -298,7 +340,7 @@ public class ActivateUserServlet extends TopServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);
 
             // send email or sms
-            sendPostActivationNotice(pwmSession, pwmApplication);
+            sendPostActivationNotice(pwmRequest);
 
             // setup post-change attributes
             final PostChangePasswordAction postAction = new PostChangePasswordAction() {
@@ -311,12 +353,13 @@ public class ActivateUserServlet extends TopServlet {
                         throws PwmUnrecoverableException {
                     try {
                         {  // execute configured actions
+                            final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
                             final ChaiUser proxiedUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                            LOGGER.debug(pwmSession.getSessionLabel(), "executing post-activate configured actions to user " + proxiedUser.getEntryDN());
+                            LOGGER.debug(pwmSession.getLabel(), "executing post-activate configured actions to user " + proxiedUser.getEntryDN());
                             final List<ActionConfiguration> configValues = pwmApplication.getConfig().readSettingAsAction(PwmSetting.ACTIVATE_USER_POST_WRITE_ATTRIBUTES);
                             final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                             settings.setExpandPwmMacros(true);
-                            settings.setUserInfoBean(pwmSession.getUserInfoBean());
+                            settings.setMacroMachine(macroMachine);
                             final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                             actionExecutor.executeActions(configValues, settings, pwmSession);
                         }
@@ -336,7 +379,7 @@ public class ActivateUserServlet extends TopServlet {
                 }
             };
 
-            pwmSession.getUserInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
+            pwmSession.getLoginInfoBean().addPostChangePasswordActions("activateUserWriteAttributes", postAction);
         } catch (ImpossiblePasswordPolicyException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_UNKNOWN, "unexpected ImpossiblePasswordPolicyException error while activating user");
             LOGGER.warn(pwmSession, info, e);
@@ -344,16 +387,16 @@ public class ActivateUserServlet extends TopServlet {
         }
     }
 
-    public static void validateParamsAgainstLDAP(
+    protected static void validateParamsAgainstLDAP(
+            final PwmRequest pwmRequest,
             final Map<FormConfiguration, String> formValues,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final UserIdentity userIdentity,
-            final Configuration config
+            final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmDataValidationException, PwmUnrecoverableException
     {
-        final String searchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final String searchFilter = figureLdapSearchFilter(pwmRequest);
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()));
 
         for (final FormConfiguration formItem : formValues.keySet()) {
@@ -367,12 +410,12 @@ public class ActivateUserServlet extends TopServlet {
                     if (!chaiUser.compareStringAttribute(attrName, value)) {
                         final String errorMsg = "incorrect value for '" + attrName + "'";
                         final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, errorMsg, new String[]{attrName});
-                        LOGGER.debug(pwmSession.getSessionLabel(), errorInfo.toDebugStr());
+                        LOGGER.debug(pwmSession.getLabel(), errorInfo.toDebugStr());
                         throw new PwmDataValidationException(errorInfo);
                     }
-                    LOGGER.trace(pwmSession.getSessionLabel(), "successful validation of ldap value for '" + attrName + "'");
+                    LOGGER.trace(pwmSession.getLabel(), "successful validation of ldap value for '" + attrName + "'");
                 } catch (ChaiOperationException e) {
-                    LOGGER.error(pwmSession.getSessionLabel(), "error during param validation of '" + attrName + "', error: " + e.getMessage());
+                    LOGGER.error(pwmSession.getLabel(), "error during param validation of '" + attrName + "', error: " + e.getMessage());
                     throw new PwmDataValidationException(new ErrorInformation(PwmError.ERROR_ACTIVATION_VALIDATION_FAILED, "ldap error testing value for '" + attrName + "'", new String[]{attrName}));
                 }
             }
@@ -380,11 +423,12 @@ public class ActivateUserServlet extends TopServlet {
     }
 
     private void sendPostActivationNotice(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
@@ -392,26 +436,26 @@ public class ActivateUserServlet extends TopServlet {
         switch (pref) {
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
-                final boolean suc1 = sendPostActivationEmail(pwmSession, pwmApplication);
-                final boolean suc2 = sendPostActivationSms(pwmSession, pwmApplication);
+                final boolean suc1 = sendPostActivationEmail(pwmRequest);
+                final boolean suc2 = sendPostActivationSms(pwmRequest);
                 success = suc1 || suc2;
                 break;
             case EMAILFIRST:
                 // Send email first, try SMS if email is not available
-                success = sendPostActivationEmail(pwmSession, pwmApplication) || sendPostActivationSms(pwmSession, pwmApplication);
+                success = sendPostActivationEmail(pwmRequest) || sendPostActivationSms(pwmRequest);
                 break;
             case SMSFIRST:
                 // Send SMS first, try email if SMS is not available
-                success = sendPostActivationSms(pwmSession, pwmApplication) || sendPostActivationEmail(pwmSession, pwmApplication);
+                success = sendPostActivationSms(pwmRequest) || sendPostActivationEmail(pwmRequest);
                 break;
             case SMSONLY:
                 // Only try SMS
-                success = sendPostActivationSms(pwmSession, pwmApplication);
+                success = sendPostActivationSms(pwmRequest);
                 break;
             case EMAILONLY:
             default:
                 // Only try email
-                success = sendPostActivationEmail(pwmSession, pwmApplication);
+                success = sendPostActivationEmail(pwmRequest);
                 break;
         }
         if (!success) {
@@ -419,12 +463,13 @@ public class ActivateUserServlet extends TopServlet {
         }
     }
 
-    private Boolean sendPostActivationEmail(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
+    private boolean sendPostActivationEmail(
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -435,16 +480,19 @@ public class ActivateUserServlet extends TopServlet {
             return false;
         }
 
-        pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, pwmSession.getUserInfoBean(),
-                pwmSession.getSessionManager().getUserDataReader(pwmApplication));
+        pwmApplication.getEmailQueue().submitEmail(
+                configuredEmailSetting,
+                pwmSession.getUserInfoBean(),
+                pwmSession.getSessionManager().getMacroMachine(pwmApplication)
+        );
         return true;
     }
 
-    private Boolean sendPostActivationSms(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException {
+    private Boolean sendPostActivationSms(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException, ChaiUnavailableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final Configuration config = pwmApplication.getConfig();
         final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
@@ -457,29 +505,31 @@ public class ActivateUserServlet extends TopServlet {
         try {
             toSmsNumber = userDataReader.readStringAttribute(config.readSettingAsString(PwmSetting.SMS_USER_PHONE_ATTRIBUTE));
         } catch (Exception e) {
-            LOGGER.debug(pwmSession.getSessionLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfoBean().getUserIdentity() + "': " + e.getMessage());
+            LOGGER.debug(pwmSession.getLabel(), "error reading SMS attribute from user '" + pwmSession.getUserInfoBean().getUserIdentity() + "': " + e.getMessage());
             return false;
         }
 
         if (toSmsNumber == null || toSmsNumber.length() < 1) {
-            LOGGER.debug(pwmSession.getSessionLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no SMS number configured");
+            LOGGER.debug(pwmSession.getLabel(), "skipping send activation SMS for '" + pwmSession.getUserInfoBean().getUserIdentity() + "' no SMS number configured");
             return false;
         }
 
         final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
         final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, senderId, message, maxlen);
-        pwmApplication.sendSmsUsingQueue(smsItem, null, userDataReader);
+        pwmApplication.sendSmsUsingQueue(smsItem, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
         return true;
     }
 
     public static void initializeToken(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
+            final PwmRequest pwmRequest,
             final Locale locale,
             final UserIdentity userIdentity
 
     )
-            throws PwmUnrecoverableException, PwmOperationalException, ChaiUnavailableException {
+            throws PwmUnrecoverableException, PwmOperationalException, ChaiUnavailableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
         final Configuration config = pwmApplication.getConfig();
 
@@ -492,7 +542,7 @@ public class ActivateUserServlet extends TopServlet {
             } catch (ChaiOperationException e) {
                 final String errorMsg = "unable to read user email attribute due to ldap error, unable to send token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-                LOGGER.error(pwmSession.getSessionLabel(), errorInformation);
+                LOGGER.error(pwmSession.getLabel(), errorInformation);
                 throw new PwmOperationalException(errorInformation);
             }
 
@@ -502,7 +552,7 @@ public class ActivateUserServlet extends TopServlet {
             } catch (Exception e) {
                 final String errorMsg = "unable to read user SMS attribute due to ldap error, unable to send token: " + e.getMessage();
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATION_FAILURE, errorMsg);
-                LOGGER.error(pwmSession.getSessionLabel(), errorInformation);
+                LOGGER.error(pwmSession.getLabel(), errorInformation);
                 throw new PwmOperationalException(errorInformation);
             }
             inputTokenDestData = new RestTokenDataClient.TokenDestinationData(toAddress,toSmsNumber,null);
@@ -510,7 +560,7 @@ public class ActivateUserServlet extends TopServlet {
 
         final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmApplication);
         final RestTokenDataClient.TokenDestinationData outputDestTokenData = restTokenDataClient.figureDestTokenDisplayString(
-                pwmSession.getSessionLabel(),
+                pwmSession.getLabel(),
                 inputTokenDestData,
                 activateUserBean.getUserIdentity(),
                 pwmSession.getSessionStateBean().getLocale());
@@ -529,40 +579,39 @@ public class ActivateUserServlet extends TopServlet {
         try {
             final Date userLastPasswordChange = PasswordUtility.determinePwdLastModified(
                     pwmApplication,
-                    pwmSession.getSessionLabel(),
+                    pwmSession.getLabel(),
                     activateUserBean.getUserIdentity());
             if (userLastPasswordChange != null) {
                 tokenMapData.put(PwmConstants.TOKEN_KEY_PWD_CHG_DATE, PwmConstants.DEFAULT_DATETIME_FORMAT.format(userLastPasswordChange));
             }
         } catch (ChaiUnavailableException e) {
-            LOGGER.error(pwmSession.getSessionLabel(), "unexpected error reading user's last password change time");
+            LOGGER.error(pwmSession.getLabel(), "unexpected error reading user's last password change time");
         }
 
         final String tokenKey;
         final TokenPayload tokenPayload;
         try {
             tokenPayload = pwmApplication.getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
-            tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmSession);
-            LOGGER.debug(pwmSession.getSessionLabel(), "generated activate user tokenKey code for session");
+            tokenKey = pwmApplication.getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
+            LOGGER.debug(pwmSession.getLabel(), "generated activate user tokenKey code for session");
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
         }
 
-        sendToken(pwmApplication, userIdentity, locale, outputDestTokenData.getEmail(), outputDestTokenData.getSms(), tokenKey);
+        sendToken(pwmRequest, userIdentity, locale, outputDestTokenData.getEmail(), outputDestTokenData.getSms(), tokenKey);
         activateUserBean.setTokenDisplayText(outputDestTokenData.getDisplayValue());
         activateUserBean.setTokenIssued(true);
     }
 
     private void handleEnterTokenCode(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
+            final PwmRequest pwmRequest
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, IOException, ServletException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final ActivateUserBean activateUserBean = pwmSession.getActivateUserBean();
-        final String userEnteredCode = Validator.readStringFromRequest(req, PwmConstants.PARAM_TOKEN);
+        final String userEnteredCode = pwmRequest.readParameterAsString(PwmConstants.PARAM_TOKEN);
 
         ErrorInformation errorInformation = null;
         try {
@@ -586,16 +635,16 @@ public class ActivateUserServlet extends TopServlet {
             if (errorInformation == null) {
                 errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT);
             }
-            LOGGER.debug(pwmSession.getSessionLabel(), errorInformation.toDebugStr());
-            pwmSession.getSessionStateBean().setSessionError(errorInformation);
+            LOGGER.debug(pwmSession.getLabel(), errorInformation.toDebugStr());
+            pwmRequest.setResponseError(errorInformation);
         }
 
-        this.advanceToNextStage(req, resp);
+        this.advanceToNextStage(pwmRequest);
     }
 
     private static void sendToken(
-            final PwmApplication pwmApplication,
-            final UserIdentity theUser,
+            final PwmRequest pwmRequest,
+            final UserIdentity userIdentity,
             final Locale userLocale,
             final String toAddress,
             final String toSmsNumber,
@@ -603,16 +652,18 @@ public class ActivateUserServlet extends TopServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmApplication.getConfig();
         final MessageSendMethod pref = MessageSendMethod.valueOf(config.readSettingAsString(PwmSetting.ACTIVATE_TOKEN_SEND_METHOD));
         final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_ACTIVATION_VERIFICATION, userLocale);
         final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_VERIFICATION_TEXT, userLocale);
-        final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, theUser);
+
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
 
         TokenService.TokenSender.sendToken(
                 pwmApplication,
                 null,
-                userDataReader,
+                macroMachine,
                 emailItemBean,
                 pref,
                 toAddress,
@@ -621,4 +672,23 @@ public class ActivateUserServlet extends TopServlet {
                 tokenKey
         );
     }
+
+    private static String figureLdapSearchFilter(final PwmRequest pwmRequest)
+            throws PwmUnrecoverableException
+    {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final Configuration config = pwmApplication.getConfig();
+        final List<FormConfiguration> configuredActivationForm = config.readSettingAsForm(PwmSetting.ACTIVATE_USER_FORM);
+
+        final String configuredSearchFilter = config.readSettingAsString(PwmSetting.ACTIVATE_USER_SEARCH_FILTER);
+        final String searchFilter;
+        if (configuredSearchFilter == null || configuredSearchFilter.isEmpty()) {
+            searchFilter = FormUtility.ldapSearchFilterForForm(pwmApplication,configuredActivationForm);
+            LOGGER.trace(pwmRequest,"auto generated search filter based on activation form: " + searchFilter);
+        } else {
+            searchFilter = configuredSearchFilter;
+        }
+        return searchFilter;
+    }
+
 }

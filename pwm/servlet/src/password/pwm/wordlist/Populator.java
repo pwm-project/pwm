@@ -26,9 +26,13 @@ import password.pwm.PwmService;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.Sleeper;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.TransactionSizeCalculator;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +47,7 @@ import java.util.TreeMap;
 class Populator {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Populator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Populator.class);
 
 
     private static final int MAX_LINE_LENGTH = 64; // words truncated to this length, prevents massive words if the input

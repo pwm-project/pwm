@@ -33,30 +33,29 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.ldap.UserAuthenticator;
+import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 public class CASAuthenticationHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
 
     public static boolean authUserUsingCASClearPass(
-            final HttpServletRequest req,
+            final PwmRequest pwmRequest,
             final String clearPassUrl
     )
             throws UnsupportedEncodingException, PwmUnrecoverableException, ChaiUnavailableException, PwmOperationalException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final HttpSession session = req.getSession();
+        final HttpSession session = pwmRequest.getHttpServletRequest().getSession();
 
         //make sure user session isn't already authenticated
         if (ssBean.isAuthenticated()) {
@@ -79,15 +78,15 @@ public class CASAuthenticationHelper {
 
         final String clearPassRequestUrl = clearPassUrl + "?" + "ticket="
                 + proxyTicket + "&" + "service="
-                + URLEncoder.encode(clearPassUrl, "UTF-8");
+                + StringUtil.urlEncode(clearPassUrl);
 
         final String response = CommonUtils.getResponseFromServer(
                 clearPassRequestUrl, "UTF-8");
 
         final String username = assertion.getPrincipal().getName();
-        final String password = XmlUtils.getTextForElement(response, "credentials");
+        final PasswordData password = new PasswordData(XmlUtils.getTextForElement(response, "credentials"));
 
-        if (password == null || password.length() < 1) {
+        if (password == null) {
             final String errorMsg = "CAS server did not return credentials for user '" + username + "'";
             LOGGER.trace(pwmSession, errorMsg);
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg);
@@ -96,7 +95,8 @@ public class CASAuthenticationHelper {
 
         //user isn't already authenticated and has CAS assertion and password, so try to auth them.
         LOGGER.debug(pwmSession, "attempting to authenticate user '" + username + "' using CAS assertion and password");
-        UserAuthenticator.authenticateUser(username, password, null, null, pwmSession, pwmApplication, req.isSecure());
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmApplication, pwmSession);
+        sessionAuthenticator.searchAndAuthenticateUser(username, password, null, null);
         return true;
     }
 }

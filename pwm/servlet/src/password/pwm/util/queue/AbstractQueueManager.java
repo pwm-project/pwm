@@ -34,17 +34,17 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
 public abstract class AbstractQueueManager implements PwmService {
-    protected PwmLogger LOGGER = PwmLogger.getLogger(AbstractQueueManager.class);
+    protected PwmLogger LOGGER = PwmLogger.forClass(AbstractQueueManager.class);
 
     private static final long QUEUE_POLL_INTERVAL = 30 * 1003;
 
@@ -76,7 +76,7 @@ public abstract class AbstractQueueManager implements PwmService {
     protected void add(final Serializable input)
             throws PwmUnrecoverableException
     {
-        final String gsonInput = JsonUtil.getGson().toJson(input);
+        final String gsonInput = JsonUtil.serialize(input);
         final int nextItemID = getNextItemCount();
         final QueueEvent event = new QueueEvent(gsonInput, new Date(), nextItemID);
 
@@ -89,7 +89,7 @@ public abstract class AbstractQueueManager implements PwmService {
             return;
         }
 
-        final String jsonEvent = JsonUtil.getGson().toJson(event);
+        final String jsonEvent = JsonUtil.serialize(event);
         sendQueue.addLast(jsonEvent);
         LOGGER.trace("submitted item to queue: " + queueItemToDebugString(event) + ", queue size: " + sendQueue.size());
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,11 @@ package password.pwm.util;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.PwmRequest;
+import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
-import java.nio.charset.Charset;
 
 /**
  * Simple data object containing username/password info derived from a "Basic" Authorization HTTP Header.
@@ -36,44 +37,41 @@ import java.nio.charset.Charset;
  * @author Jason D. Rivard
  */
 public class BasicAuthInfo implements Serializable {
-// ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(BasicAuthInfo.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(BasicAuthInfo.class);
 
     private final String username;
-    private final String password;
-
-// -------------------------- STATIC METHODS --------------------------
+    private final PasswordData password;
 
     /**
      * Extracts the basic auth info from the header
      *
-     * @param req http servlet request
+     * @param pwmRequest http servlet request
      * @return a BasicAuthInfo object containing username/password, or null if the "Authorization" header doesn't exist or is malformed
      */
     public static BasicAuthInfo parseAuthHeader(
             final PwmApplication pwmApplication,
-            final HttpServletRequest req
+            final PwmRequest pwmRequest
     ) {
-        final String authHeader = req.getHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH);
+        final String authHeader = pwmRequest.readHeaderValueAsString(PwmConstants.HTTP_HEADER_BASIC_AUTH);
 
         if (authHeader != null) {
-            if (authHeader.indexOf(PwmConstants.HTTP_BASIC_AUTH_PREFIX) != -1) {
+            if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {
                 // ***** Get the encoded username/chpass string
                 // Strip off "Basic " from "Basic c2pvaG5zLmNzaTo=bm92ZWxs"
                 final String toStrip = PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ";
-                final String encoded = authHeader.substring(toStrip.length(), authHeader.length());
+                final String encodedValue = authHeader.substring(toStrip.length(), authHeader.length());
 
                 try {
                     // ***** Decode the username/chpass string
                     final String charSet = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_BASIC_AUTH_CHARSET);
-                    final String decoded = new String(Base64Util.decode(encoded), charSet);
+                    final String decoded = new String(StringUtil.base64Decode(encodedValue), charSet);
 
                     // The decoded string should now look something like:
                     //   "cn=user,o=company:chpass" or "user:chpass"
                     return parseHeaderString(decoded);
                 } catch (Exception e) {
-                    LOGGER.debug("error decoding auth header", e);
+                    LOGGER.debug(pwmRequest, "error decoding auth header");
                 }
             }
         }
@@ -90,10 +88,10 @@ public class BasicAuthInfo implements Serializable {
             if (index != -1) {
                 // ***** Separate "username:chpass"
                 final String username = input.substring(0, index);
-                final String password = input.substring(index + 1);
+                final PasswordData password = new PasswordData(input.substring(index + 1));
                 return new BasicAuthInfo(username, password);
             } else {
-                return new BasicAuthInfo(input, "");
+                return new BasicAuthInfo(input, null);
             }
         } catch (Exception e) {
             LOGGER.error("error decoding auth header: " + e.getMessage());
@@ -101,13 +99,15 @@ public class BasicAuthInfo implements Serializable {
         }
     }
 
-    public String toAuthHeader() {
+    public String toAuthHeader()
+            throws PwmUnrecoverableException
+    {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.getUsername());
         sb.append(":");
-        sb.append(this.getPassword());
+        sb.append(this.getPassword().getStringValue());
 
-        sb.replace(0, sb.length(), Base64Util.encodeBytes(sb.toString().getBytes()));
+        sb.replace(0, sb.length(), StringUtil.base64Encode(sb.toString().getBytes(PwmConstants.DEFAULT_CHARSET)));
 
         sb.insert(0, PwmConstants.HTTP_BASIC_AUTH_PREFIX+" ");
 
@@ -118,7 +118,7 @@ public class BasicAuthInfo implements Serializable {
 
     public BasicAuthInfo(
             final String username,
-            final String password
+            final PasswordData password
     ) {
         this.username = username;
         this.password = password;
@@ -126,7 +126,7 @@ public class BasicAuthInfo implements Serializable {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public String getPassword() {
+    public PasswordData getPassword() {
         return password;
     }
 

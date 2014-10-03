@@ -25,10 +25,12 @@ package password.pwm.util.cli;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.value.PasswordValue;
-import password.pwm.util.Helper;
+import password.pwm.util.PasswordData;
 import password.pwm.util.PwmRandom;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Collections;
 
 public class ConfigNewCommand extends AbstractCliCommand {
@@ -41,14 +43,14 @@ public class ConfigNewCommand extends AbstractCliCommand {
         storedConfiguration.writeConfigProperty(
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, String.valueOf(0));
         storedConfiguration.writeSetting(
-                PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)), null);
+                PwmSetting.PWM_SECURITY_KEY, new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(
+                512))), null);
 
         storedConfiguration.writeConfigProperty(
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM, storedConfiguration.settingChecksum());
-        final String configXmlBlob = storedConfiguration.toXml();
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
-        Helper.writeFileAsString(outputFile, configXmlBlob, "UTF8");
+        storedConfiguration.toXml(new OutputStreamWriter(new FileOutputStream(outputFile, false),StoredConfiguration.STORAGE_CHARSET));
         out("success");
     }
 

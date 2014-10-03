@@ -37,7 +37,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.novell.pwdmgt.*;
 
 import javax.xml.rpc.Stub;
@@ -48,7 +48,7 @@ import java.util.*;
 
 public class NMASUAWSOperator implements CrOperator {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(NMASUAWSOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(NMASUAWSOperator.class);
 
     final PwmApplication pwmApplication;
 

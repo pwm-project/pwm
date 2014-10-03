@@ -24,7 +24,6 @@ package password.pwm.config.function;
 
 import com.novell.ldapchai.ChaiEntry;
 import com.novell.ldapchai.ChaiFactory;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -39,12 +38,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
 
 public class UserMatchViewerFunction implements SettingUIFunction {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserMatchViewerFunction.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(UserMatchViewerFunction.class);
 
     @Override
     public String provideFunction(
@@ -101,9 +100,6 @@ public class UserMatchViewerFunction implements SettingUIFunction {
                 } catch (PwmUnrecoverableException e) {
                     LOGGER.error("error reading matching users: " + e.getMessage());
                     throw new PwmOperationalException(e.getErrorInformation());
-                } catch (ChaiUnavailableException e) {
-                    LOGGER.error("error reading matching users: " + e.getMessage());
-                    throw new PwmOperationalException(PwmError.forChaiError(e.getErrorCode()));
                 }
             }
         }

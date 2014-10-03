@@ -22,8 +22,9 @@
 
 package password.pwm.util.localdb;
 
-import password.pwm.util.Base64Util;
-import password.pwm.util.PwmLogger;
+import password.pwm.PwmConstants;
+import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class LocalDBCompressor implements LocalDB {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBCompressor.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBCompressor.class);
 
     static final String COMPRESS_PREFIX = "c!";
 
@@ -138,7 +139,7 @@ public class LocalDBCompressor implements LocalDB {
         }
         final String compressedValue;
         try {
-            compressedValue = Base64Util.encodeBytes(input.getBytes("UTF8"), Base64Util.GZIP);
+            compressedValue = StringUtil.base64Encode(input.getBytes(PwmConstants.DEFAULT_CHARSET),StringUtil.Base64Options.GZIP);
         } catch (IOException e) {
             return input;
         }
@@ -156,7 +157,7 @@ public class LocalDBCompressor implements LocalDB {
         if (input.startsWith(COMPRESS_PREFIX)) {
             final String compressedValue = input.substring(COMPRESS_PREFIX.length(),input.length());
             try {
-                return new String(Base64Util.decode(compressedValue),"UTF8");
+                return new String(StringUtil.base64Decode(compressedValue, StringUtil.Base64Options.GZIP),PwmConstants.DEFAULT_CHARSET);
             } catch (IOException e) {
                 LOGGER.warn("error decompressing data string: " + input + "\n error: " + e.getMessage());
                 return compressedValue;

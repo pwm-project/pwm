@@ -60,6 +60,7 @@ PWM_NEWUSER.updateDisplay=function(data) {
 
     if (data['error']) {
         PWM_MAIN.showError(data['errorMessage']);
+        PWM_MAIN.getObject("submitBtn").disabled = true;
     } else {
         var resultInfo = data['data'];
         var message = resultInfo["message"];

@@ -22,6 +22,7 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<Context tldValidation="false" unloadDelay="30000" useHttpOnly="true" sessionCookieName="SID">
-  <Manager sessionIdLength="64"/>
+<Context tldValidation="false" unloadDelay="30000" useHttpOnly="true">
+  <Manager sessionIdLength="64" pathname=""/>
+  <!--pathname param prevents session persistence across restarts -->
 </Context>

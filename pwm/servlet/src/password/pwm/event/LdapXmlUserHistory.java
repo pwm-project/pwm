@@ -39,7 +39,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -57,7 +57,7 @@ import java.util.List;
 class LdapXmlUserHistory implements UserHistoryStore, Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LdapXmlUserHistory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapXmlUserHistory.class);
 
     private static final String XML_ATTR_TIMESTAMP = "timestamp";
     private static final String XML_ATTR_TRANSACTION = "eventCode";

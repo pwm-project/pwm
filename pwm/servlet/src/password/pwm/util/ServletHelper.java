@@ -37,9 +37,11 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
+import password.pwm.http.PwmURL;
 import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
@@ -50,24 +52,18 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.*;
 
 public class ServletHelper {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ServletHelper.class);
-
-    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<>(
-            Arrays.asList(new String[] {
-                    "password",
-                    PwmConstants.PARAM_TOKEN,
-                    PwmConstants.PARAM_RESPONSE_PREFIX,
-            }));
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ServletHelper.class);
 
     /**
      * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, boolean)} )}
@@ -187,64 +183,6 @@ public class ServletHelper {
         return sb.toString();
     }
 
-    public static String debugHttpRequest(final PwmApplication pwmApplication, final HttpServletRequest req) {
-        return debugHttpRequest(pwmApplication, req, "");
-    }
-
-    public static String debugHttpRequest(final PwmApplication pwmApplication, final HttpServletRequest req, final String extraText) {
-
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append(req.getMethod());
-        sb.append(" request for: ");
-        sb.append(req.getRequestURI());
-
-        if (req.getParameterMap().isEmpty()) {
-            sb.append(" (no params)");
-            if (extraText != null) {
-                sb.append(" ");
-                sb.append(extraText);
-            }
-        } else {
-            if (extraText != null) {
-                sb.append(" ");
-                sb.append(extraText);
-            }
-            sb.append("\n");
-
-            for (final Enumeration paramNameEnum = req.getParameterNames(); paramNameEnum.hasMoreElements();) {
-                final String paramName = (String) paramNameEnum.nextElement();
-                final Set<String> paramValues = new HashSet<>();
-                try {
-                    paramValues.addAll(Validator.readStringsFromRequest(req, paramName, 1024));
-                } catch (PwmUnrecoverableException e) {
-                    LOGGER.error("unexpected error debugging http request: " + e.toString());
-                }
-
-                for (final String paramValue : paramValues) {
-                    sb.append("  ").append(paramName).append("=");
-                    boolean strip = false;
-                    for (final String stripValue : HTTP_DEBUG_STRIP_VALUES) {
-                        if (paramName.toLowerCase().contains(stripValue.toLowerCase())) {
-                            strip = true;
-                        }
-                    }
-                    if (strip) {
-                        sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
-                    } else {
-                        sb.append('\'');
-                        sb.append(paramValue);
-                        sb.append('\'');
-                    }
-
-                    sb.append('\n');
-                }
-            }
-
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        return sb.toString();
-    }
 
     public static String readRequestBody(final HttpServletRequest request)
             throws IOException, PwmUnrecoverableException
@@ -275,6 +213,10 @@ public class ServletHelper {
             final HttpServletResponse resp,
             boolean fromServlet
     ) {
+        if (pwmApplication == null || pwmSession == null || resp == null) {
+            return;
+        }
+
         if (!resp.isCommitted()) {
             final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
             final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
@@ -327,11 +269,7 @@ public class ServletHelper {
                 if (cookie != null) {
                     final String loopName = cookie.getName();
                     if (cookieName.equals(loopName)) {
-                        try {
-                            return URLDecoder.decode(cookie.getValue(),"UTF8");
-                        } catch (UnsupportedEncodingException e) {
-                            LOGGER.warn("error decoding cookie value for cookie '" + loopName + "', error: " + e.getMessage());
-                        }
+                        return StringUtil.urlDecode(cookie.getValue());
                     }
                 }
             }
@@ -340,13 +278,9 @@ public class ServletHelper {
     }
 
     public static void writeCookie(final HttpServletResponse resp, final String cookieName, final String cookieValue, final int seconds) {
-        try {
-            final Cookie theCookie = new Cookie(cookieName, URLEncoder.encode(cookieValue, "UTF8"));
-            theCookie.setMaxAge(seconds);
-            resp.addCookie(theCookie);
-        } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("error decoding cookie value for cookie '" + cookieName + "', error: " + e.getMessage());
-        }
+        final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
+        theCookie.setMaxAge(seconds);
+        resp.addCookie(theCookie);
     }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
@@ -408,8 +342,9 @@ public class ServletHelper {
             throws IOException
     {
         final String outputString = restResultBean.toJson();
-        resp.setContentType("application/json;charset=utf-8");
+        resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
         resp.getWriter().print(outputString);
+        resp.getWriter().flush();
     }
 
     public static String readFileUpload(
@@ -473,7 +408,7 @@ public class ServletHelper {
 
     private static String streamToString(final InputStream stream, final int maxFileChars)
             throws IOException, PwmUnrecoverableException {
-        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,"UTF-8"));
+        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream,PwmConstants.DEFAULT_CHARSET));
         final StringBuilder sb = new StringBuilder();
         int charCounter = 0;
         int nextChar = bufferedReader.read();
@@ -501,8 +436,6 @@ public class ServletHelper {
         if (!recycleEnabled) {
             return;
         }
-
-        LOGGER.debug(pwmSession,"forcing new http session due to authentication");
 
         // read the old session data
         final HttpSession oldSession = req.getSession(true);
@@ -536,9 +469,6 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        // set the auto-config url value.
-        pwmApplication.setAutoSiteURL(req);
-
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // mark if first request
@@ -558,7 +488,7 @@ public class ServletHelper {
         }
 
         // update the privateUrlAccessed flag
-        if (PwmServletURLHelper.isPrivateUrl(req)) {
+        if (new PwmURL(req).isPrivateUrl()) {
             ssBean.setPrivateUrlAccessed(true);
         }
 
@@ -575,7 +505,7 @@ public class ServletHelper {
     )
             throws PwmUnrecoverableException
     {
-        final String localeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_LOCALE);
+        final String localeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_NAME);
         final String localeCookie = ServletHelper.readCookie(req,localeCookieName);
         if (localeCookieName.length() > 0 && localeCookie != null) {
             LOGGER.debug(pwmSession, "detected locale cookie in request, setting locale to " + localeCookie);
@@ -587,7 +517,7 @@ public class ServletHelper {
             LOGGER.trace(pwmSession, "user locale set to '" + pwmSession.getSessionStateBean().getLocale() + "'");
         }
 
-        final String themeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_NAME_THEME);
+        final String themeCookieName = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_THEME_NAME);
         final String themeCookie = ServletHelper.readCookie(req,themeCookieName);
         if (localeCookieName.length() > 0 && themeCookie != null && themeCookie.length() > 0) {
             LOGGER.debug(pwmSession, "detected theme cookie in request, setting theme to " + themeCookie);
@@ -649,7 +579,8 @@ public class ServletHelper {
                     if (key != null && key.length() > 0) {
                         final String requiredValue = configuredValues.get(key);
                         if (requiredValue != null && requiredValue.length() > 0) {
-                            final String value = Validator.sanatizeInputValue(pwmApplication.getConfig(),req.getHeader(key),1024);
+                            final String value = Validator.sanitizeInputValue(pwmApplication.getConfig(),
+                                    req.getHeader(key), 1024);
                             if (value == null || value.length() < 1) {
                                 final String errorMsg = "request is missing required value for header '" + key + "'";
                                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SECURITY_VIOLATION,errorMsg);
@@ -717,7 +648,6 @@ public class ServletHelper {
             final String inputUrl,
             final Map<String, String> parameters
     )
-            throws UnsupportedEncodingException
     {
         final StringBuilder output = new StringBuilder();
         output.append(inputUrl == null ? "" : inputUrl);
@@ -725,7 +655,7 @@ public class ServletHelper {
         if (parameters != null) {
             for (final String key : parameters.keySet()) {
                 final String value = parameters.get(key);
-                final String encodedValue = URLEncoder.encode(value,"UTF8");
+                final String encodedValue = StringUtil.urlEncode(value);
 
                 output.append(output.toString().contains("?") ? "&" : "?");
                 output.append(key);
@@ -750,7 +680,11 @@ public class ServletHelper {
     {
         final ServletContext servletContext = request.getSession().getServletContext();
         final String url = jspURL.getPath();
-        LOGGER.trace(PwmSession.getPwmSession(request),"forwarding to " + url);
+        try {
+            LOGGER.trace(PwmSession.getPwmSession(request), "forwarding to " + url);
+        } catch (Exception e) {
+            /* noop, server may not be up enough to do the log output */
+        }
         servletContext.getRequestDispatcher(url).forward(request, response);
     }
 }

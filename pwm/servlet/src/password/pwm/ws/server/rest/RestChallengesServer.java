@@ -58,7 +58,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 @Path("/challenges")
-public class RestChallengesServer {
+public class RestChallengesServer extends AbstractRestServer {
     public static class Policy {
         public List<ChallengeBean> challenges;
         public List<ChallengeBean> helpdeskChallenges;
@@ -123,7 +123,7 @@ public class RestChallengesServer {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doFormGetChallengeData(
             @QueryParam("answers") final boolean answers,
             @QueryParam("helpdesk") final boolean helpdesk,
@@ -137,7 +137,7 @@ public class RestChallengesServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -156,22 +156,27 @@ public class RestChallengesServer {
             if (restRequestBean.getUserIdentity() == null) {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(), restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(), chaiUser);
                 challengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getChallengeSet();
                 helpdeskChallengeSet = restRequestBean.getPwmSession().getUserInfoBean().getChallengeProfile().getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().getLdapProfileID();
             } else {
                 final ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());                final Locale userLocale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
                 final CrService crService = restRequestBean.getPwmApplication().getCrService();
-                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(),restRequestBean.getUserIdentity(), chaiUser);
+                responseSet = crService.readUserResponseSet(restRequestBean.getPwmSession().getLabel(),restRequestBean.getUserIdentity(), chaiUser);
                 final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                         restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getUserIdentity(),
                         chaiUser,userLocale
                 );
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
-                        restRequestBean.getUserIdentity(), chaiUser, passwordPolicy, userLocale);
+                        restRequestBean.getPwmSession().getLabel(),
+                        restRequestBean.getUserIdentity(),
+                        chaiUser,
+                        passwordPolicy,
+                        userLocale
+                );
                 challengeSet = challengeProfile.getChallengeSet();
                 helpdeskChallengeSet = challengeProfile.getHelpdeskChallengeSet();
                 outputUsername = restRequestBean.getUserIdentity().toDeliminatedKey();
@@ -219,7 +224,7 @@ public class RestChallengesServer {
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doSetChallengeDataJson(
             final JsonChallengesData jsonInput
@@ -231,7 +236,7 @@ public class RestChallengesServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -254,10 +259,11 @@ public class RestChallengesServer {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
                 userGUID = LdapOperationsHelper.readLdapGuidValue(
                         restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getPwmSession().getLabel(),
                         userIdentity,
                         false);
                 final ChallengeProfile challengeProfile = crService.readUserChallengeProfile(
+                        restRequestBean.getPwmSession().getLabel(),
                         userIdentity,
                         chaiUser,
                         PwmPasswordPolicy.defaultPolicy(),
@@ -288,7 +294,7 @@ public class RestChallengesServer {
     }
 
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doDeleteChallengeData(
             @QueryParam("username") final String username
     )
@@ -300,7 +306,7 @@ public class RestChallengesServer {
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
             servicePermissions.setHelpdeskPermitted(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -338,7 +344,7 @@ public class RestChallengesServer {
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
                 userGUID = LdapOperationsHelper.readLdapGuidValue(
                         restRequestBean.getPwmApplication(),
-                        restRequestBean.getPwmSession().getSessionLabel(),
+                        restRequestBean.getPwmSession().getLabel(),
                         restRequestBean.getUserIdentity(),
                         false);
 

@@ -33,11 +33,12 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.SecureHelper;
 import password.pwm.util.Sleeper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +54,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     protected LocalDB localDB;
     protected Populator populator;
 
-    protected static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractWordlist.class);
+    protected static final PwmLogger LOGGER = PwmLogger.forClass(AbstractWordlist.class);
     protected String DEBUG_LABEL = "Generic Wordlist";
 
     protected int storedSize = 0;
@@ -164,9 +165,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     protected String makeChecksumString(final File wordlistFile)
-            throws IOException {
+            throws PwmUnrecoverableException, IOException {
         final StringBuilder checksumString = new StringBuilder();
-        checksumString.append("checksum=").append(Helper.md5sum(wordlistFile));
+        checksumString.append("hash=").append(SecureHelper.md5sum(wordlistFile));
         checksumString.append(",length=").append(wordlistFile.length());
         checksumString.append(",caseSensitive=").append(wordlistConfiguration.isCaseSensitive());
         return checksumString.toString();
@@ -174,9 +175,9 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     protected void checkPopulation()
             throws Exception {
-        LOGGER.trace("calculating checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath());
+        LOGGER.trace("calculating hash of " + wordlistConfiguration.getWordlistFile().getAbsolutePath());
         final String checksumString = makeChecksumString(wordlistConfiguration.getWordlistFile());
-        LOGGER.trace("checksum of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
+        LOGGER.trace("hash of " + wordlistConfiguration.getWordlistFile().getAbsolutePath() + " complete, result: " + checksumString);
 
         final boolean clearRequired = !checkDbStatus() || !checkDbVersion() || !checkChecksum(checksumString);
         final boolean isComplete = !clearRequired && VALUE_STATUS.COMPLETE.equals(VALUE_STATUS.forString(localDB.get(META_DB, KEY_STATUS)));
@@ -206,15 +207,15 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private boolean checkChecksum(final String checksum)
             throws Exception {
-        LOGGER.trace("checking wordlist file checksum stored in LocalDB");
+        LOGGER.trace("checking wordlist file hash stored in LocalDB");
 
         final Object checksumInDb = localDB.get(META_DB, KEY_CHECKSUM);
         final boolean result = checksum.equals(checksumInDb);
 
         if (!result) {
-            LOGGER.info("existing ZIP checksum does not match current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + "), clearing db");
+            LOGGER.info("existing ZIP hash does not match current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + "), clearing db");
         } else {
-            LOGGER.trace("existing ZIP checksum matches current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + ")");
+            LOGGER.trace("existing ZIP hash matches current wordlist file, db=(" + checksumInDb + "), file=(" + checksum + ")");
         }
 
         return result;

@@ -32,12 +32,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +48,6 @@ public class ConfigurationReader {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigurationReader.class.getName());
-    private static final String CONFIG_FILE_CHARSET = "UTF-8";
 
     private final File configFile;
     private final String configFileChecksum;
@@ -188,9 +184,9 @@ public class ConfigurationReader {
         }
 
         LOGGER.trace("generating xml string configuration blob");
-        final String configXmlBlob = storedConfiguration.toXml();
         LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
-        Helper.writeFileAsString(configFile, configXmlBlob, CONFIG_FILE_CHARSET);
+
+        storedConfiguration.toXml(new OutputStreamWriter(new FileOutputStream(configFile, false),StoredConfiguration.STORAGE_CHARSET));
         LOGGER.info("saved configuration " + storedConfiguration.toString());
         if (pwmApplication != null) {
             final String actualChecksum = storedConfiguration.settingChecksum();
@@ -211,7 +207,7 @@ public class ConfigurationReader {
             final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
             final File backupFile = new File(backupFilePath);
             Helper.rotateBackups(backupFile, backupRotations);
-            Helper.writeFileAsString(backupFile, configXmlBlob, CONFIG_FILE_CHARSET);
+            storedConfiguration.toXml(new OutputStreamWriter(new FileOutputStream(backupFile, false),StoredConfiguration.STORAGE_CHARSET));
         }
     }
 
@@ -230,7 +226,7 @@ public class ConfigurationReader {
             final String actualChecksum = storedConfiguration.settingChecksum();
             return !actualChecksum.equals(storedChecksum);
         } catch (Exception e) {
-            LOGGER.warn("unable to evaluate checksum file: " + e.getMessage());
+            LOGGER.warn("unable to evaluate hash file: " + e.getMessage());
         }
         return true;
     }

@@ -25,7 +25,6 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -33,7 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditEvent;
 import password.pwm.i18n.Message;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.PasswordData;
 import password.pwm.util.RandomPasswordGenerator;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
@@ -44,16 +43,15 @@ import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 
 @Path("/setpassword")
-public class RestSetPasswordServer {
-    @Context
-    HttpServletRequest request;
+public class RestSetPasswordServer extends AbstractRestServer {
+
     public static class JsonInputData implements Serializable
     {
         public String username;
@@ -63,7 +61,7 @@ public class RestSetPasswordServer {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPostSetPasswordForm(
             final @FormParam("username") String username,
             final @FormParam("password") String password,
@@ -76,22 +74,23 @@ public class RestSetPasswordServer {
         jsonInputData.password = password;
         jsonInputData.random = random;
 
-        return doSetPassword(request, jsonInputData);
+        return doSetPassword(request, response, jsonInputData);
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doPostSetPasswordJson(
             final JsonInputData jsonInputData
     )
             throws PwmUnrecoverableException
     {
-        return doSetPassword(request, jsonInputData);
+        return doSetPassword(request, response, jsonInputData);
     }
 
     private static Response doSetPassword(
             final HttpServletRequest request,
+            final HttpServletResponse response,
             final JsonInputData jsonInputData
 
     )
@@ -103,7 +102,7 @@ public class RestSetPasswordServer {
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
             servicePermissions.setHelpdeskPermitted(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInputData.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInputData.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -148,18 +147,18 @@ public class RestSetPasswordServer {
                 final ChaiUser chaiUser = useProxy
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
-                final String newPassword;
+                final PasswordData newPassword;
                 if (random) {
                     final PwmPasswordPolicy passwordPolicy = PasswordUtility.readPasswordPolicyForUser(
                             restRequestBean.getPwmApplication(),
-                            restRequestBean.getPwmSession().getSessionLabel(),
+                            restRequestBean.getPwmSession().getLabel(),
                             restRequestBean.getUserIdentity(),
                             chaiUser,
                             restRequestBean.getPwmSession().getSessionStateBean().getLocale()
                     );
-                    newPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), passwordPolicy, restRequestBean.getPwmApplication());
+                    newPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession().getLabel(), passwordPolicy, restRequestBean.getPwmApplication());
                 } else {
-                    newPassword = password;
+                    newPassword = new PasswordData(password);
                 }
                 PasswordUtility.helpdeskSetUserPassword(
                         restRequestBean.getPwmSession(),
@@ -168,26 +167,17 @@ public class RestSetPasswordServer {
                         restRequestBean.getPwmApplication(),
                         newPassword
                 );
-                final UserInfoBean uiBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
-                userStatusReader.populateUserInfoBean(
-                        restRequestBean.getPwmSession().getSessionLabel(),
-                        uiBean,
-                        restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                        restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
-                        newPassword,
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider(restRequestBean.getPwmApplication())
-                );
                 jsonResultData.password = null;
                 jsonResultData.username = restRequestBean.getUserIdentity().toDeliminatedKey();
             } else {
-                final String newPassword;
+                final PasswordData newPassword;
                 if (random) {
                     newPassword = RandomPasswordGenerator.createRandomPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication());
                 } else {
-                    newPassword = password;
+                    newPassword = new PasswordData(password);
                 }
-                PasswordUtility.setUserPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(), newPassword);
+                PasswordUtility.setActorPassword(restRequestBean.getPwmSession(), restRequestBean.getPwmApplication(),
+                        newPassword);
                 restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(), restRequestBean.getPwmSession());
                 jsonResultData.password = null;
                 jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDeliminatedKey();

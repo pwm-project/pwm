@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -65,8 +66,8 @@
         });
     </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_IDLE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

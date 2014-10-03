@@ -22,6 +22,8 @@
 
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.PwmSettingCategory" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
@@ -32,9 +34,9 @@
 <%
     final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
-    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
+    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(PwmRequest.forRequest(request, response));
     final boolean showDesc = cookie.isShowDesc();
-    final password.pwm.config.PwmSetting.Category category = cookie.getCategory();
+    final PwmSettingCategory category = cookie.getCategory();
 %>
 <% if (category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
 <div id="categoryDescription" class="categoryDescription">
@@ -71,7 +73,7 @@
         <pwm:if test="showIcons"><span class="btn-icon fa fa-tags"></span></pwm:if>
         Define Profiles
     </button>
-    <% if (cookie.getCategory() == PwmSetting.Category.LDAP_PROFILE) { %>
+    <% if (cookie.getCategory() == PwmSettingCategory.LDAP_PROFILE) { %>
     <button class="btn" onclick="PWM_CFGEDIT.ldapHealthCheck()">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
         Test LDAP Profile

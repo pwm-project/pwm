@@ -1,12 +1,12 @@
+<%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.event.AuditEvent" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
-<%@ page import="java.util.Collections" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="java.util.TreeSet" %>
+<%@ page import="java.util.*" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -30,14 +30,19 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    PwmRequest pwmRequest = null;
+    try {
+        pwmRequest = PwmRequest.forRequest(request, response);
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<%
-    final Locale userLocale = pwmSessionHeader.getSessionStateBean().getLocale();
-%>
+<% final Locale userLocale = JspUtility.locale(request); %>
 <body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -48,7 +53,7 @@
 <ol>
     <li><a href="#settings">Settings</a></li>
     <ol>
-        <% for (final PwmSetting.Category category : PwmSetting.Category.values()) { %>
+        <% for (final PwmSettingCategory category : PwmSettingCategory.values()) { %>
         <li><a href="#settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></li>
         <% } %>
     </ol>
@@ -64,8 +69,8 @@
     </ol>
 </ol>
 <br/>
-<h1>Configuration Settings</h1>
-<% for (final PwmSetting.Category category : PwmSetting.Category.values()) { %>
+<h1><a id="settings">Configuration Settings</a></h1>
+<% for (final PwmSettingCategory category : PwmSettingCategory.values()) { %>
 <h2><a id="settings_category_<%=category.toString()%>"><%=category.getLabel(userLocale)%></a></h2>
 <p>
     <%=category.getDescription(userLocale)%>
@@ -220,7 +225,7 @@
             <%= auditEvent.getMessage().getResourceKey() %>
         </td>
         <td>
-            <%= auditEvent.getMessage().getLocalizedMessage(userLocale, pwmApplicationHeader.getConfig()) %>
+            <%= auditEvent.getMessage().getLocalizedMessage(userLocale, null) %>
         </td>
     </tr>
     <% } %>
@@ -253,7 +258,7 @@
             <%=error.getResourceKey()%>
         </td>
         <td>
-            <%=error.getLocalizedMessage(userLocale, pwmApplicationHeader.getConfig())%>
+            <%=error.getLocalizedMessage(userLocale, null)%>
         </td>
     </tr>
     <% } %>
@@ -267,7 +272,7 @@
 <table>
     <% final ResourceBundle resourceBundle = ResourceBundle.getBundle(bundle.getTheClass().getName()); %>
     <% for (final String key : new TreeSet<String>(Collections.list(resourceBundle.getKeys()))) { %>
-    <% final Map<Locale,String> values = LocaleHelper.getUniqueLocalizations(pwmApplicationHeader, bundle.getTheClass(), key, PwmConstants.DEFAULT_LOCALE); %>
+    <% final Map<Locale,String> values = LocaleHelper.getUniqueLocalizations(pwmRequest.getPwmApplication(), bundle.getTheClass(), key, PwmConstants.DEFAULT_LOCALE); %>
     <% for (final Locale locale : values.keySet()) { %>
     <% if (locale.equals(PwmConstants.DEFAULT_LOCALE)) { %>
     <tr>
@@ -305,7 +310,7 @@
         });
     </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

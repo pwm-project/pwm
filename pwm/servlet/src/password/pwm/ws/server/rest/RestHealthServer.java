@@ -34,7 +34,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMonitor;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestRequestBean;
@@ -44,14 +44,11 @@ import password.pwm.ws.server.ServicePermissions;
 import password.pwm.ws.server.rest.bean.HealthData;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -60,15 +57,8 @@ import java.util.List;
 import java.util.Locale;
 
 @Path("/health")
-public class RestHealthServer {
-    final private static PwmLogger LOGGER = PwmLogger.getLogger(RestHealthServer.class);
-
-
-    @Context
-    HttpServletRequest request;
-
-    @Context
-    ServletContext context;
+public class RestHealthServer extends AbstractRestServer {
+    final private static PwmLogger LOGGER = PwmLogger.forClass(RestHealthServer.class);
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -78,7 +68,7 @@ public class RestHealthServer {
         final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -100,14 +90,14 @@ public class RestHealthServer {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPwmHealthJsonGet(
             @QueryParam("refreshImmediate") final boolean requestImmediateParam
     ) {
         final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ public interface Wordlist extends PwmService {
     static final String KEY_ELAPSEDSECONDS = "RUNTIME";
     static final String KEY_SIZE = "SIZE";
 
-    // string used as localdb version checksum, if different then value in localdb, localdb will be cleared.
+    // string used as localdb version hash, if different then value in localdb, localdb will be cleared.
     static final String VALUE_VERSION = "wordlist-db-12";
 
     public boolean containsWord(final String word);

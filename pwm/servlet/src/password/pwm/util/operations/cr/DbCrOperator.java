@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2013 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@
 package password.pwm.util.operations.cr;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.cr.*;
+import com.novell.ldapchai.cr.ChaiCrFactory;
+import com.novell.ldapchai.cr.ChaiResponseSet;
+import com.novell.ldapchai.cr.ResponseSet;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmApplication;
@@ -33,15 +35,15 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.logging.PwmLogger;
 
 
 public class DbCrOperator implements CrOperator {
 
-    final static private PwmLogger LOGGER = PwmLogger.getLogger(DbCrOperator.class);
+    final static private PwmLogger LOGGER = PwmLogger.forClass(DbCrOperator.class);
 
     final PwmApplication pwmApplication;
 

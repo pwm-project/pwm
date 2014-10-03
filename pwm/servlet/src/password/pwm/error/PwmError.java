@@ -25,7 +25,7 @@ package password.pwm.error;
 import com.novell.ldapchai.exception.ChaiError;
 import password.pwm.config.Configuration;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.Locale;
 
@@ -156,6 +156,7 @@ public enum PwmError {
     ERROR_INTRUDER_TOKEN_DEST("Error_TokenDestIntruder", 5073, true),
     ERROR_OTP_RECOVERY_USED("Error_OtpRecoveryUsed", 5074, true),
     ERROR_REDIRECT_ILLEGAL("Error_RedirectIllegal", 5075, true),
+    ERROR_CRYPT_ERROR("Error_CryptError", 5076, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),
@@ -180,7 +181,7 @@ public enum PwmError {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmError.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmError.class);
 
     private final int errorCode;
     private final String resourceKey;
@@ -205,6 +206,16 @@ public enum PwmError {
                         return pwmError;
                     }
                 }
+            }
+        }
+
+        return null;
+    }
+
+    public static PwmError forErrorNumber(final int code) {
+        for (final PwmError pwmError : values()) {
+            if (pwmError.getErrorCode() == code) {
+                return pwmError;
             }
         }
 

@@ -28,6 +28,9 @@ import password.pwm.PwmConstants;
 import password.pwm.config.*;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.error.PwmException;
+import password.pwm.util.PasswordData;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.net.URI;
@@ -38,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class ConfigurationChecker implements HealthChecker {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ConfigurationChecker.class);
+
     public List<HealthRecord> doHealthCheck(final PwmApplication pwmApplication)
     {
         if (pwmApplication.getConfig() == null) {
@@ -55,13 +60,23 @@ public class ConfigurationChecker implements HealthChecker {
             records.add(HealthRecord.forMessage(HealthMessage.Config_ConfigMode));
         }
 
-        if (PwmConstants.UNCONFIGURED_URL_VALUE.equals(pwmApplication.getSiteURL())) {
-            records.add(
-                    HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, settingToOutputText(PwmSetting.PWM_URL)));
+        final String siteUrl = config.readSettingAsString(PwmSetting.PWM_SITE_URL);
+        try {
+            if (siteUrl == null || siteUrl.isEmpty() || siteUrl.equals(
+                    PwmSetting.PWM_SITE_URL.getDefaultValue(config.getTemplate()).toNativeObject())) {
+                records.add(
+                        HealthRecord.forMessage(HealthMessage.Config_NoSiteURL, settingToOutputText(PwmSetting.PWM_SITE_URL)));
+            }
+        } catch (PwmException e) {
+            LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting site URL setting: " + e.getMessage());
         }
 
         if (!config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS)) {
             records.add(HealthRecord.forMessage(HealthMessage.Config_RequireHttps,settingToOutputText(PwmSetting.REQUIRE_HTTPS)));
+        }
+
+        if (config.readSettingAsBoolean(PwmSetting.LDAP_ENABLE_WIRE_TRACE)) {
+            records.add(HealthRecord.forMessage(HealthMessage.Config_LDAPWireTrace,settingToOutputText(PwmSetting.LDAP_ENABLE_WIRE_TRACE)));
         }
 
         if (Boolean.parseBoolean(config.readAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE))) {
@@ -108,27 +123,39 @@ public class ConfigurationChecker implements HealthChecker {
 
         {
             for (final PwmSetting setting : PwmSetting.values()) {
-                if (PwmSettingSyntax.PASSWORD == setting.getSyntax() && !config.isDefaultValue(
-                        setting) && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
-                    final String passwordValue = config.readSettingAsString(setting);
-                    final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
-                    if (strength < 50) {
-                        records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
-                                settingToOutputText(setting, null), String.valueOf(strength)));
+                if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
+                    if (!setting.getCategory().hasProfiles()) {
+                        if (!config.isDefaultValue(setting)) {
+                            try {
+                                final PasswordData passwordValue = config.readSettingAsPassword(setting);
+                                final int strength = PasswordUtility.judgePasswordStrength(
+                                        passwordValue.getStringValue());
+                                if (strength < 50) {
+                                    records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
+                                            settingToOutputText(setting, null), String.valueOf(strength)));
+                                }
+                            } catch (Exception e) {
+                                LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + settingToOutputText(setting, null) +  ", error: " + e.getMessage());
+                            }
+                        }
                     }
                 }
             }
             for (final LdapProfile profile : config.getLdapProfiles().values()) {
-                final String passwordValue = profile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
-                final int strength = PasswordUtility.checkPasswordStrength(config, passwordValue);
-                if (strength < 50) {
-                    records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
-                            settingToOutputText(PwmSetting.LDAP_PROXY_USER_PASSWORD, profile),
-                            String.valueOf(strength)));
+                final PwmSetting setting = PwmSetting.LDAP_PROXY_USER_PASSWORD;
+                try {
+                    final PasswordData passwordValue = profile.readSettingAsPassword(setting);
+                    final int strength = PasswordUtility.judgePasswordStrength(passwordValue.getStringValue());
+                    if (strength < 50) {
+                        records.add(HealthRecord.forMessage(HealthMessage.Config_WeakPassword,
+                                settingToOutputText(setting, profile),
+                                String.valueOf(strength)));
+                    }
+                } catch (PwmException e) {
+                    LOGGER.error(PwmConstants.HEALTH_SESSION_LABEL,"error while inspecting setting " + settingToOutputText(setting, profile) +  ", error: " + e.getMessage());
                 }
             }
         }
-
 
         {
             final String novellUserAppURL = config.readSettingAsString(PwmSetting.EDIRECTORY_PWD_MGT_WEBSERVICE_URL);
@@ -174,7 +201,7 @@ public class ConfigurationChecker implements HealthChecker {
                     records.add(HealthRecord.forMessage(HealthMessage.Config_MissingLDAPResponseAttr,
                             settingToOutputText(loopSetting),
                             settingToOutputText(PwmSetting.CHALLENGE_USER_ATTRIBUTE)
-                            ));
+                    ));
                 }
             }
         }

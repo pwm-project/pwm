@@ -23,6 +23,7 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -32,7 +33,7 @@
 <%@ page import="java.util.TreeSet" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
+<% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(PwmRequest.forRequest(request, response)); %>
 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
 <% final ResourceBundle bundle = ResourceBundle.getBundle(bundleName.getTheClass().getName()); %>
 <pwm:script>

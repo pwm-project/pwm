@@ -34,12 +34,14 @@ import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -56,7 +58,7 @@ import java.util.jar.JarInputStream;
 public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseAccessorImpl.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseAccessorImpl.class, true);
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
 
@@ -111,7 +113,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                 config.readSettingAsString(PwmSetting.DATABASE_CLASS),
                 config.readSettingAsString(PwmSetting.DATABASE_URL),
                 config.readSettingAsString(PwmSetting.DATABASE_USERNAME),
-                config.readSettingAsString(PwmSetting.DATABASE_PASSWORD),
+                config.readSettingAsPassword(PwmSetting.DATABASE_PASSWORD),
                 config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_KEY),
                 config.readSettingAsString(PwmSetting.DATABASE_COLUMN_TYPE_VALUE),
                 jdbcDriverBytes
@@ -246,14 +248,14 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             if (dbConfiguration.getUsername() != null && !dbConfiguration.getUsername().isEmpty()) {
                 connectionProperties.setProperty("user", dbConfiguration.getUsername());
             }
-            if (dbConfiguration.getPassword() != null && !dbConfiguration.getPassword().isEmpty()) {
-                connectionProperties.setProperty("password", dbConfiguration.getPassword());
+            if (dbConfiguration.getPassword() != null) {
+                connectionProperties.setProperty("password", dbConfiguration.getPassword().getStringValue());
             }
             final Connection connection = driver.connect(connectionURL, connectionProperties);
             LOGGER.debug("successfully opened connection to database " + connectionURL);
             connection.setAutoCommit(true);
             return connection;
-        } catch (SQLException e) {
+        } catch (PwmUnrecoverableException | SQLException e) {
             final String errorMsg = "error connecting to database: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DB_UNAVAILABLE,errorMsg);
             throw new DatabaseException(errorInformation);
@@ -687,7 +689,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         private final String driverClassname;
         private final String connectionString;
         private final String username;
-        private final String password;
+        private final PasswordData password;
         private final String columnTypeKey;
         private final String columnTypeValue;
         private final byte[] jdbcDriver;
@@ -696,7 +698,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
                 final String driverClassname,
                 final String connectionString,
                 final String username,
-                final String password,
+                final PasswordData password,
                 final String columnTypeKey,
                 final String columnTypeValue,
                 final byte[] jdbcDriver
@@ -722,7 +724,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             return username;
         }
 
-        public String getPassword() {
+        public PasswordData getPassword() {
             return password;
         }
 
@@ -744,7 +746,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             if (driverClassname == null || driverClassname.length() < 1) {
                 if (connectionString == null || connectionString.length() < 1) {
                     if (username == null || username.length() < 1) {
-                        if (password == null || password.length() < 1) {
+                        if (password == null) {
                             return true;
                         }
                     }

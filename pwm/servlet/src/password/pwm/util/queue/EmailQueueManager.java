@@ -24,6 +24,7 @@ package password.pwm.util.queue;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -32,11 +33,11 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
@@ -73,7 +74,7 @@ public class
     public void init(final PwmApplication pwmApplication)
             throws PwmException
     {
-        LOGGER = PwmLogger.getLogger(EmailQueueManager.class);
+        LOGGER = PwmLogger.forClass(EmailQueueManager.class);
         javaMailProps = makeJavaMailProps(pwmApplication.getConfig());
         final Settings settings = new Settings(
                 new TimeDuration(Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.QUEUE_EMAIL_MAX_AGE_MS))),
@@ -126,28 +127,25 @@ public class
     public void submitEmail(
             final EmailItemBean emailItem,
             final UserInfoBean uiBean,
-            final UserDataReader userDataReader
+            final MacroMachine macroMachine
     )
     {
         if (emailItem == null) {
             return;
         }
 
-        String toAddress = emailItem.getTo();
-        if (toAddress == null || toAddress.length() < 1 && uiBean != null) {
-            toAddress = uiBean.getUserEmailAddress();
+        EmailItemBean workingItemBean = emailItem;
+
+        if ((emailItem.getTo() == null || emailItem.getTo().isEmpty()) && uiBean != null) {
+            final String toAddress = uiBean.getUserEmailAddress();
+            workingItemBean = newEmailToAddress(workingItemBean, toAddress);
         }
 
-        final MacroMachine macroMachine = new MacroMachine(pwmApplication, uiBean, userDataReader);
-        final EmailItemBean expandedEmailItem = new EmailItemBean(
-                macroMachine.expandMacros(toAddress),
-                macroMachine.expandMacros(emailItem.getFrom()),
-                macroMachine.expandMacros(emailItem.getSubject()),
-                macroMachine.expandMacros(emailItem.getBodyPlain()),
-                macroMachine.expandMacros(emailItem.getBodyHtml())
-        );
+        if (macroMachine != null) {
+            workingItemBean = applyMacrosToEmail(workingItemBean, macroMachine);
+        }
 
-        if (expandedEmailItem.getTo() == null || expandedEmailItem.getTo().length() < 1) {
+        if (workingItemBean.getTo() == null || workingItemBean.getTo().length() < 1) {
             LOGGER.error("no destination address available for email, skipping; email: " + emailItem.toString());
         }
 
@@ -156,7 +154,7 @@ public class
         }
 
         try {
-            add(expandedEmailItem);
+            add(workingItemBean);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn("unable to add email to queue: " + e.getMessage());
         }
@@ -169,23 +167,23 @@ public class
         try {
             final Message message = convertEmailItemToMessage(emailItemBean, this.pwmApplication.getConfig());
             final String mailuser = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_USERNAME);
-            final String mailpassword = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_PASSWORD);
+            final PasswordData mailpassword = this.pwmApplication.getConfig().readSettingAsPassword(PwmSetting.EMAIL_PASSWORD);
 
             // Login to SMTP server first if both username and password is given
             final String logText;
-            if (mailuser == null || mailuser.length() < 1 || mailpassword == null || mailpassword.length() < 1) {
+            if (mailuser == null || mailuser.length() < 1 || mailpassword == null) {
 
                 logText = "plaintext";
                 Transport.send(message);
             } else {
-                // createSharedHistoryManager a new Session object for the message
+                // create a new Session object for the message
                 final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
                 final String mailhost = this.pwmApplication.getConfig().readSettingAsString(PwmSetting.EMAIL_SERVER_ADDRESS);
                 final int mailport = (int)this.pwmApplication.getConfig().readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT);
 
                 final Transport tr = session.getTransport("smtp");
-                tr.connect(mailhost, mailport, mailuser, mailpassword);
+                tr.connect(mailhost, mailport, mailuser, mailpassword.getStringValue());
                 message.saveChanges();
                 tr.sendMessage(message, message.getAllRecipients());
                 tr.close();
@@ -197,7 +195,7 @@ public class
 
             lastSendFailure = null;
             return true;
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             lastSendFailure = HealthRecord.forMessage(HealthMessage.Email_SendFailure, e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
@@ -220,7 +218,7 @@ public class
         final boolean hasHtml = emailItemBean.getBodyHtml() != null && emailItemBean.getBodyHtml().length() > 0;
 
 
-        // createSharedHistoryManager a new Session object for the message
+        // create a new Session object for the message
         final javax.mail.Session session = javax.mail.Session.getInstance(javaMailProps, null);
 
         final Message message = new MimeMessage(session);
@@ -234,15 +232,15 @@ public class
             final MimeMultipart content = new MimeMultipart("alternative");
             final MimeBodyPart text = new MimeBodyPart();
             final MimeBodyPart html = new MimeBodyPart();
-            text.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=\"utf-8\"");
-            html.setContent(emailItemBean.getBodyHtml(), "text/html; charset=\"utf-8\"");
+            text.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
+            html.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
             content.addBodyPart(text);
             content.addBodyPart(html);
             message.setContent(content);
         } else if (hasPlainText) {
-            message.setContent(emailItemBean.getBodyPlain(), "text/plain; charset=\"utf-8\"");
+            message.setContent(emailItemBean.getBodyPlain(), PwmConstants.ContentTypeValue.plain.getHeaderValue());
         } else if (hasHtml) {
-            message.setContent(emailItemBean.getBodyHtml(), "text/html; charset=\"utf-8\"");
+            message.setContent(emailItemBean.getBodyHtml(), PwmConstants.ContentTypeValue.html.getHeaderValue());
         }
 
         return message;
@@ -283,9 +281,9 @@ public class
             final InternetAddress address = new InternetAddress();
             address.setAddress(splitString[1].trim());
             try {
-                address.setPersonal(splitString[0].trim(), "UTF8");
+                address.setPersonal(splitString[0].trim(), PwmConstants.DEFAULT_CHARSET.toString());
             } catch (UnsupportedEncodingException e) {
-                LOGGER.error("unsupported encoding (UTF8) error while parsing internet address '" + input + "', error: " + e.getMessage());
+                LOGGER.error("unsupported encoding error while parsing internet address '" + input + "', error: " + e.getMessage());
             }
             return address;
         }
@@ -304,13 +302,37 @@ public class
         debugOutputMap.put("from", emailItemBean.getFrom());
         debugOutputMap.put("subject", emailItemBean.getSubject());
 
-        return JsonUtil.getGson().toJson(debugOutputMap);
+        return JsonUtil.serializeMap(debugOutputMap);
     }
 
     @Override
     protected void noteDiscardedItem(QueueEvent queueEvent)
     {
         StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
+    }
+
+    public static EmailItemBean applyMacrosToEmail(final EmailItemBean emailItem, final MacroMachine macroMachine) {
+        final EmailItemBean expandedEmailItem;
+        expandedEmailItem = new EmailItemBean(
+                macroMachine.expandMacros(emailItem.getTo()),
+                macroMachine.expandMacros(emailItem.getFrom()),
+                macroMachine.expandMacros(emailItem.getSubject()),
+                macroMachine.expandMacros(emailItem.getBodyPlain()),
+                macroMachine.expandMacros(emailItem.getBodyHtml())
+        );
+        return expandedEmailItem;
+    }
+
+    public static EmailItemBean newEmailToAddress(final EmailItemBean emailItem, final String toAddress) {
+        final EmailItemBean expandedEmailItem;
+        expandedEmailItem = new EmailItemBean(
+                toAddress,
+                emailItem.getFrom(),
+                emailItem.getSubject(),
+                emailItem.getBodyPlain(),
+                emailItem.getBodyHtml()
+        );
+        return expandedEmailItem;
     }
 }
 

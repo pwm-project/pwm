@@ -29,7 +29,11 @@ import password.pwm.config.option.PasswordSyncCheckMode;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.*;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.Percent;
+import password.pwm.util.ProgressInfo;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
 import java.io.Serializable;
@@ -39,7 +43,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 public class PasswordChangeProgressChecker {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PasswordChangeProgressChecker.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PasswordChangeProgressChecker.class);
 
     public static final String PROGRESS_KEY_REPLICATION = "replication";
 
@@ -325,7 +329,7 @@ public class PasswordChangeProgressChecker {
                 }
                 final Percent pctComplete = new Percent(duplicateValues + 1, checkResults.size());
                 final ProgressRecord progressRecord = makeReplicaProgressRecord(pctComplete);
-                LOGGER.trace("read password replication sync status as: " + JsonUtil.getGson().toJson(progressRecord));
+                LOGGER.trace("read password replication sync status as: " + JsonUtil.serialize(progressRecord));
                 return progressRecord;
             }
         } catch (PwmUnrecoverableException e) {

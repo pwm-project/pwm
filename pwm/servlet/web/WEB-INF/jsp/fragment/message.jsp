@@ -26,12 +26,11 @@
   --%>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <div id="message_wrapper">
-<% if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionError() != null) { %>
-    <% final ErrorInformation errorInformation = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError(); %>
+<% final ErrorInformation requestError = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO); %>
+<% if (requestError != null) { %>
     <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
-    <span id="errorCode" style="display: none"><%=errorInformation.getError().getErrorCode()%></span>
-    <span id="errorName" style="display: none"><%=errorInformation.getError().toString()%></span>
-<% PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); %>
+    <span id="errorCode" style="display: none"><%=requestError.getError().getErrorCode()%></span>
+    <span id="errorName" style="display: none"><%=requestError.getError().toString()%></span>
 <% } else if (PwmSession.getPwmSession(session).getSessionStateBean().getSessionSuccess() != null) { %>
     <span id="message" class="message message-success"><pwm:SuccessMessage/></span>
 <% PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); %>

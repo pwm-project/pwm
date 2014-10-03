@@ -44,7 +44,7 @@
             <h1>
                 <label for="currentPassword"><pwm:display key="Field_CurrentPassword"/></label>
             </h1>
-            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword passwordfield"/>
+            <input id="currentPassword" type="<pwm:value name="passwordFieldType"/>" class="inputfield" name="currentPassword"/>
             <br/>
             <% } %>
             <% request.setAttribute("form",PwmSetting.PASSWORD_REQUIRE_FORM); %>
@@ -56,9 +56,6 @@
                     <pwm:display key="Button_Continue"/>
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
-                <input type="hidden" name="hideButton" class="btn"
-                       value="<pwm:display key="Button_Show"/>"
-                       onclick="toggleMaskPasswords()" id="hide_button"/>
                 <% if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired() && !passwordStatus.isViolatesPolicy()) { %>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
                 <% } %>

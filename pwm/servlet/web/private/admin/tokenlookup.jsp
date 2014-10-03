@@ -1,6 +1,7 @@
-<%@ page import="password.pwm.Validator" %>
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.error.PwmOperationalException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.token.TokenPayload" %>
 <%@ page import="java.util.Iterator" %>
 <%--
@@ -29,6 +30,14 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    PwmRequest tokenlookup_pwmRequest = null;
+    try {
+        tokenlookup_pwmRequest = PwmRequest.forRequest(request, response);
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -38,7 +47,7 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="admin-nav.jsp" %>
-        <% final String tokenKey = Validator.readStringFromRequest(request,"token");%>
+        <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
         <% if (tokenKey != null && tokenKey.length() > 0) { %>
         <table>
             <tr>
@@ -57,7 +66,7 @@
                 boolean tokenExpired = false;
                 String lookupError = null;
                 try {
-                    tokenPayload = pwmApplicationHeader.getTokenService().retrieveTokenData(tokenKey);
+                    tokenPayload = tokenlookup_pwmRequest.getPwmApplication().getTokenService().retrieveTokenData(tokenKey);
                 } catch (PwmOperationalException e) {
                     tokenExpired= e.getError() == PwmError.ERROR_TOKEN_EXPIRED;
                     lookupError = e.getMessage();

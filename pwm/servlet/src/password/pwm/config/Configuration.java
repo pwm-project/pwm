@@ -39,13 +39,12 @@ import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogLevel;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.PasswordData;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 
 import javax.crypto.SecretKey;
@@ -60,7 +59,7 @@ import java.util.*;
 public class Configuration implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private final static PwmLogger LOGGER = PwmLogger.getLogger(Configuration.class);
+    private final static PwmLogger LOGGER = PwmLogger.forClass(Configuration.class);
 
     private final StoredConfiguration storedConfiguration;
 
@@ -83,7 +82,7 @@ public class Configuration implements Serializable {
     }
 
     public String toString(final PwmSetting pwmSetting) {
-        return JsonUtil.getGson().toJson(this.storedConfiguration.readSetting(pwmSetting).toNativeObject());
+        return this.storedConfiguration.readSetting(pwmSetting).toDebugString(false,PwmConstants.DEFAULT_LOCALE);
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -193,6 +192,11 @@ public class Configuration implements Serializable {
         return JavaTypeConverter.valueToString(readStoredValue(setting));
     }
 
+    public PasswordData readSettingAsPassword(final PwmSetting setting)
+    {
+        return JavaTypeConverter.valueToPassword(readStoredValue(setting));
+    }
+
     static abstract class JavaTypeConverter {
         static String valueToString(final StoredValue value) {
             if (value == null) return null;
@@ -202,6 +206,16 @@ public class Configuration implements Serializable {
             final Object nativeObject = value.toNativeObject();
             if (nativeObject == null) return null;
             return nativeObject.toString();
+        }
+
+        static PasswordData valueToPassword(final StoredValue value) {
+            if (value == null) return null;
+            if ((!(value instanceof PasswordValue))) {
+                throw new IllegalArgumentException("setting value is not readable as password");
+            }
+            final Object nativeObject = value.toNativeObject();
+            if (nativeObject == null) return null;
+            return (PasswordData)nativeObject;
         }
 
         static List<String> valueToStringArray(final StoredValue value) {
@@ -559,27 +573,28 @@ public class Configuration implements Serializable {
         return storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);
     }
 
-    public SecretKey getSecurityKey() throws PwmOperationalException {
-        final String configValue = readSettingAsString(PwmSetting.PWM_SECURITY_KEY);
-        if (configValue == null || configValue.length() <= 0) {
+    public SecretKey getSecurityKey() throws PwmUnrecoverableException {
+        final PasswordData configValue = readSettingAsPassword(PwmSetting.PWM_SECURITY_KEY);
+        if (configValue == null) {
             final String errorMsg = "Security Key value is not configured";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
-            throw new PwmOperationalException(errorInfo);
+            throw new PwmUnrecoverableException(errorInfo);
         }
 
-        if (configValue.length() < 32) {
+        final String rawValue = configValue.getStringValue();
+        if (rawValue.length() < 32) {
             final String errorMsg = "Security Key must be greater than 32 characters in length";
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
-            throw new PwmOperationalException(errorInfo);
+            throw new PwmUnrecoverableException(errorInfo);
         }
 
         try {
-            return Helper.SimpleTextCrypto.makeKey(configValue);
+            return SecureHelper.makeKey(rawValue);
         } catch (Exception e) {
             final String errorMsg = "unexpected error generating Security Key crypto: " + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_INVALID_SECURITY_KEY, errorMsg);
             LOGGER.error(errorInfo.toDebugStr(),e);
-            throw new PwmOperationalException(errorInfo);
+            throw new PwmUnrecoverableException(errorInfo);
         }
     }
 
@@ -734,7 +749,7 @@ public class Configuration implements Serializable {
         if (readSettingAsString(PwmSetting.DATABASE_USERNAME) == null || readSettingAsString(PwmSetting.DATABASE_USERNAME).length() < 1) {
             return false;
         }
-        if (readSettingAsString(PwmSetting.DATABASE_PASSWORD) == null || readSettingAsString(PwmSetting.DATABASE_PASSWORD).length() < 1) {
+        if (readSettingAsPassword(PwmSetting.DATABASE_PASSWORD) == null) {
             return false;
         }
 

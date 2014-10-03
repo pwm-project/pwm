@@ -22,9 +22,10 @@
 
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
-<%@ page import="password.pwm.util.LocalDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogEvent" %>
-<%@ page import="password.pwm.util.PwmLogLevel" %>
+<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.logging.LocalDBLogger" %>
+<%@ page import="password.pwm.util.logging.PwmLogEvent" %>
+<%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="java.util.Map" %>
@@ -50,7 +51,7 @@
             <td class="key" style="border:0">
                 <label for="level">Level</label>
                 <br/>
-                <% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "INFO");%>
+                <% final String selectedLevel = PwmRequest.forRequest(request, response).readParameterAsString("level", "INFO");%>
                 <select id="level" name="level" style="width: auto;">
                     <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
                     </option>
@@ -69,7 +70,7 @@
             <td class="key" style="border: 0">
                 <label for="type">Type</label>
                 <br/>
-                <% final String selectedType = password.pwm.Validator.readStringFromRequest(request, "type", 255, "Both");%>
+                <% final String selectedType = PwmRequest.forRequest(request, response).readParameterAsString("type", "Both");%>
                 <select id="type" name="type" style="width:auto">
                     <option value="User" <%= "User".equals(selectedType) ? "selected=\"selected\"" : "" %>>User</option>
                     <option value="System" <%= "System".equals(selectedType) ? "selected=\"selected\"" : "" %>>System
@@ -81,18 +82,18 @@
                 Username
                 <br/>
                 <input name="username" type="text"
-                       value="<%=password.pwm.Validator.readStringFromRequest(request,"username")%>"/>
+                       value="<%=PwmRequest.forRequest(request, response).readParameterAsString("username")%>"/>
             </td>
             <td class="key" style="border: 0">
                 Containing text
                 <br/>
                 <input name="text" type="text"
-                       value="<%=password.pwm.Validator.readStringFromRequest(request,"text")%>"/>
+                       value="<%=PwmRequest.forRequest(request, response).readParameterAsString("text")%>"/>
             </td>
             <td class="key" style="border: 0">
                 Max Count
                 <br/>
-                <% final String selectedCount = password.pwm.Validator.readStringFromRequest(request, "count");%>
+                <% final String selectedCount = PwmRequest.forRequest(request, response).readParameterAsString("count");%>
                 <select name="count" style="width:auto">
                     <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
                     <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
@@ -109,7 +110,7 @@
             <td class="key" style="border: 0">
                 Max Time
                 <br/>
-                <% final String selectedTime = password.pwm.Validator.readStringFromRequest(request, "maxTime");%>
+                <% final String selectedTime = PwmRequest.forRequest(request, response).readParameterAsString("maxTime");%>
                 <select name="maxTime" style="width: auto">
                     <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
                     </option>
@@ -124,7 +125,7 @@
             <td class="key" style="border: 0">
                 <label for="displayText">Display</label>
                 <br/>
-                <% final String displayText = password.pwm.Validator.readStringFromRequest(request, "displayText", 255, "Both");%>
+                <% final String displayText = PwmRequest.forRequest(request, response).readParameterAsString("displayText", "Both");%>
                 <select id="displayText" name="displayText" style="width: auto">
                     <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>Table</option>
                     <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Text</option>
@@ -142,23 +143,23 @@
     LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     int eventCount = 100;
     long maxTime = 10000;
-    final String username = password.pwm.Validator.readStringFromRequest(request, "username");
-    final String text = password.pwm.Validator.readStringFromRequest(request, "text");
+    final String username = PwmRequest.forRequest(request, response).readParameterAsString("username");
+    final String text = PwmRequest.forRequest(request, response).readParameterAsString("text");
     final boolean displayAsText = Boolean.parseBoolean(displayText);
     try {
-        logLevel = PwmLogLevel.valueOf(password.pwm.Validator.readStringFromRequest(request, "level"));
+        logLevel = PwmLogLevel.valueOf(PwmRequest.forRequest(request, response).readParameterAsString("level"));
     } catch (Exception e) {
     }
     try {
-        logType = LocalDBLogger.EventType.valueOf(password.pwm.Validator.readStringFromRequest(request, "type"));
+        logType = LocalDBLogger.EventType.valueOf(PwmRequest.forRequest(request, response).readParameterAsString("type"));
     } catch (Exception e) {
     }
     try {
-        eventCount = Integer.parseInt(password.pwm.Validator.readStringFromRequest(request, "count"));
+        eventCount = Integer.parseInt(PwmRequest.forRequest(request, response).readParameterAsString("count"));
     } catch (Exception e) {
     }
     try {
-        maxTime = Long.parseLong(password.pwm.Validator.readStringFromRequest(request, "maxTime"));
+        maxTime = Long.parseLong(PwmRequest.forRequest(request, response).readParameterAsString("maxTime"));
     } catch (Exception e) {
     }
 
@@ -176,7 +177,7 @@
 <% } else { %>
 <% if (displayAsText) { %>
 <hr/>
-<pre><% while (searchResults.hasNext()) { final PwmLogEvent event = searchResults.next(); %><%= event.toLogString(true) %><%="\n"%><% } %></pre>
+<pre><% while (searchResults.hasNext()) { final PwmLogEvent event = searchResults.next(); %><%=StringUtil.escapeHtml(event.toLogString()) %><%="\n"%><% } %></pre>
 <hr/>
 <% } else {%>
 <pwm:script>

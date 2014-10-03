@@ -46,54 +46,31 @@ PWM_CONFIG.lockConfiguration=function() {
     }});
 };
 
-PWM_CONFIG.waitForRestart=function(startTime) {
-    if (!startTime) {
-        PWM_MAIN.showWaitDialog({
-            title: 'Waiting for application restart...'
-        });
-        PWM_CONFIG.waitForRestart(new Date().getTime());
-        return;
-    }
-
-    require(["dojo"],function(dojo){
-        var currentTime = new Date().getTime();
-        dojo.xhrGet({
-            url: PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true",
-            preventCache: true,
-            timeout: 10 * 1000,
-            dataType: "json",
-            handleAs: "json",
-            load: function(data) {
-                if (data['error'] == true) {
-                    PWM_MAIN.clearDijitWidget('waitDialogID');
-                    PWM_MAIN.showError(data['errorDetail']);
-                    return;
-                }
-
-                var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
-                if (serverStartTime != PWM_GLOBAL['startupTime']) {
-                    window.location = PWM_GLOBAL['url-context'];
-                    return;
-                }
-                var diff = currentTime - startTime;
-                console.log('oldEpoch=' + oldEpoch + ", currentEpoch=" + epoch + ", difftime=" + diff);
-                if (diff > 4 * 60 * 1000) { // timeout
-                    alert('Unable to restart, please restart application server manually.');
-                } else {
-                    //PWM_MAIN.getObject('restartMessage').innerHTML = 'Waiting for server restart - ' + (diff) + ' ms';
-                    setTimeout(function() {
-                        PWM_CONFIG.waitForRestart(startTime)
-                    }, Math.random() * 1000);
-                }
-            },
-            error: function(error) {
-                setTimeout(function() {
-                    PWM_CONFIG.waitForRestart(startTime)
-                }, 1000);
-                console.log('Waiting for server restart, unable to contact server: ' + error);
+PWM_CONFIG.waitForRestart=function() {
+    console.log("beginning request to determine application status: ");
+    var loadFunction = function(data) {
+        try {
+            var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
+            if (serverStartTime != PWM_GLOBAL['startupTime']) {
+                console.log("application appears to be restarted, redirecting to context url: ");
+                window.location = PWM_GLOBAL['url-context'];
+                return;
             }
-        });
-    });
+        } catch (e) {
+            console.log("can't read current server startupTime, will retry detection (current error: " + e + ")");
+        }
+        setTimeout(function() {
+            PWM_CONFIG.waitForRestart()
+        }, Math.random() * 3000);
+    };
+    var errorFunction = function(error) {
+        setTimeout(function() {
+            PWM_CONFIG.waitForRestart()
+        }, 3000);
+        console.log('Waiting for server restart, unable to contact server: ' + error);
+    };
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForRestart=true";
+    PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
 PWM_CONFIG.startNewConfigurationEditor=function(template) {
@@ -319,43 +296,37 @@ PWM_CONFIG.openLogViewer=function(level) {
 
 PWM_CONFIG.showHeaderHealth = function() {
     var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
-    require(["dojo"],function(dojo){
-        var parentDiv = PWM_MAIN.getObject('headerHealthData');
-        var headerDiv = PWM_MAIN.getObject('header-warning');
-        if (parentDiv && headerDiv) {
-            dojo.xhrGet({
-                url: refreshUrl,
-                handleAs: "json",
-                headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-                timeout: PWM_MAIN.ajaxTimeout,
-                preventCache: true,
-                load: function(data) {
-                    var healthRecords = data['data']['records'];
-                    var htmlBody = '';
-                    for (var i = 0; i < healthRecords.length; i++) {
-                        var healthData = healthRecords[i];
-                        if (healthData['status'] == 'WARN') {
-                            headerDiv.style.display = 'block';
-                            htmlBody += '<div class="header-error">';
-                            htmlBody += healthData['status'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['topic'];
-                            htmlBody += " - ";
-                            htmlBody += healthData['detail'];
-                            htmlBody += '</div>';
-                        }
+    var parentDiv = PWM_MAIN.getObject('headerHealthData');
+    var headerDiv = PWM_MAIN.getObject('header-warning');
+    if (parentDiv && headerDiv) {
+        var loadFunction = function(data) {
+            if (data['data'] && data['data']['records']) {
+                var healthRecords = data['data']['records'];
+                var htmlBody = '';
+                for (var i = 0; i < healthRecords.length; i++) {
+                    var healthData = healthRecords[i];
+                    if (healthData['status'] == 'WARN') {
+                        headerDiv.style.display = 'block';
+                        htmlBody += '<div class="header-error">';
+                        htmlBody += healthData['status'];
+                        htmlBody += " - ";
+                        htmlBody += healthData['topic'];
+                        htmlBody += " - ";
+                        htmlBody += healthData['detail'];
+                        htmlBody += '</div>';
                     }
-                    parentDiv.innerHTML = htmlBody;
-                    setTimeout(function(){
-                        PWM_CONFIG.showHeaderHealth()
-                    },60 * 1000);
-                },
-                error: function(error) {
-                    console.log('unable to read header health status: ' + error);
                 }
-            });
-        }
-    });
+                parentDiv.innerHTML = htmlBody;
+                setTimeout(function () {
+                    PWM_CONFIG.showHeaderHealth()
+                }, 60 * 1000);
+            }
+        };
+        var errorFunction = function(error) {
+            console.log('unable to read header health status: ' + error);
+        };
+        PWM_MAIN.ajaxRequest(refreshUrl, loadFunction,{errorFunction:errorFunction,method:'GET'});
+    }
 };
 
 PWM_CONFIG.downloadLocalDB = function () {

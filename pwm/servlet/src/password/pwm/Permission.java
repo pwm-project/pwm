@@ -23,7 +23,7 @@
 package password.pwm;
 
 import password.pwm.config.PwmSetting;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 /**
  * @author Jason D. Rivard
@@ -45,7 +45,7 @@ public enum Permission {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Permission.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Permission.class);
 
     private PwmSetting pwmSetting;
 

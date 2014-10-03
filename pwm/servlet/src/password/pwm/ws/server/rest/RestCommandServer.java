@@ -30,32 +30,23 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/command")
-public class RestCommandServer {
-    @Context
-    HttpServletRequest request;
-
-    @Context
-    ServletContext context;
-
+public class RestCommandServer extends AbstractRestServer {
     @GET
     @Path("/report/start")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doReportEngineStart(
     ) {
         final ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -74,13 +65,13 @@ public class RestCommandServer {
 
     @GET
     @Path("/report/stop")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doReportEngineStop(
     ) {
         final ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;
@@ -99,13 +90,13 @@ public class RestCommandServer {
 
     @GET
     @Path("/report/clear")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doReportEngineClear(
     ) {
         final ServicePermissions servicePermissions = ServicePermissions.ADMIN_OR_CONFIGMODE;
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             RestServerHelper.handleNonJsonErrorResult(e.getErrorInformation());
             return null;

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.util.PwmLogger;
+import password.pwm.PwmConstants;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
@@ -34,9 +35,8 @@ import java.util.zip.ZipInputStream;
  */
 class ZipReader {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ZipReader.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ZipReader.class);
 
-    private static final String CHARSET = "UTF-8";
 // ------------------------------ FIELDS ------------------------------
 
     private final ZipInputStream zipStream;
@@ -77,7 +77,7 @@ class ZipReader {
 
         if (zipEntry != null) {
             lineCounter = 0;
-            reader = new BufferedReader(new InputStreamReader(zipStream,CHARSET));
+            reader = new BufferedReader(new InputStreamReader(zipStream, PwmConstants.DEFAULT_CHARSET));
         }
     }
 

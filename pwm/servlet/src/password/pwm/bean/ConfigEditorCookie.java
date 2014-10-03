@@ -23,7 +23,7 @@
 package password.pwm.bean;
 
 import password.pwm.PwmConstants;
-import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
 
 import java.io.Serializable;
 
@@ -32,7 +32,7 @@ public class ConfigEditorCookie implements Serializable {
     private boolean showDesc = true;
     private EDIT_MODE editMode = EDIT_MODE.SETTINGS;
     private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
-    private PwmSetting.Category category = PwmSetting.Category.LDAP_PROFILE;
+    private PwmSettingCategory category = PwmSettingCategory.LDAP_PROFILE;
     private boolean notesSeen;
     private String profile = "";
     private String setting = "";
@@ -64,11 +64,11 @@ public class ConfigEditorCookie implements Serializable {
         this.editMode = editMode;
     }
 
-    public PwmSetting.Category getCategory() {
+    public PwmSettingCategory getCategory() {
         return category;
     }
 
-    public void setCategory(PwmSetting.Category category) {
+    public void setCategory(PwmSettingCategory category) {
         this.category = category;
     }
 

@@ -27,13 +27,13 @@ import password.pwm.PwmService;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
 
 public class HealthMonitor implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(HealthMonitor.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(HealthMonitor.class);
     private static final int MIN_INTERVAL_SECONDS = 30;
     private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 

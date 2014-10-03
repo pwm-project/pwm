@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -44,7 +45,7 @@
     });
 </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

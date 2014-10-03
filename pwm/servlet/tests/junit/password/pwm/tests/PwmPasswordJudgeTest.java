@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,27 +24,27 @@ package password.pwm.tests;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import password.pwm.PwmPasswordJudge;
+import password.pwm.util.operations.PasswordUtility;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PwmPasswordJudgeTest extends TestCase {
     public void testJudgePassword() throws Exception {
-        final PwmPasswordJudge judge = new PwmPasswordJudge();
-        Assert.assertEquals(0, judge.judgePassword(null,""));
-        Assert.assertEquals(100, judge.judgePassword(null, "V.{a$f.*B697e+%J9pOPn~E0CyqN~9XmR?yjOGFC(k+la?n6&^I3bwZq[miF(`0"));
+        Assert.assertEquals(0, PasswordUtility.judgePasswordStrength(""));
+        Assert.assertEquals(100, PasswordUtility.judgePasswordStrength(
+                "V.{a$f.*B697e+%J9pOPn~E0CyqN~9XmR?yjOGFC(k+la?n6&^I3bwZq[miF(`0"));
 
-        final List<Integer> judgeValues = new ArrayList<Integer>();
-        judgeValues.add(judge.judgePassword(null, ""));
-        judgeValues.add(judge.judgePassword(null, "3"));
-        judgeValues.add(judge.judgePassword(null, "3sadasd"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdA"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdAASDSADSAD"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdAASDSADSAD#"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdAASDSADSAD##@!#!^%&^$*"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdAASDSADSAD##@!#!^%&^$*aa"));
-        judgeValues.add(judge.judgePassword(null, "3sadasdAASDSADSAD##@!#!^%&^$*aaaaaaaaaaaa"));
+        final List<Integer> judgeValues = new ArrayList<>();
+        judgeValues.add(PasswordUtility.judgePasswordStrength(""));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasd"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdA"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdAASDSADSAD"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdAASDSADSAD#"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdAASDSADSAD##@!#!^%&^$*"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdAASDSADSAD##@!#!^%&^$*aa"));
+        judgeValues.add(PasswordUtility.judgePasswordStrength("3sadasdAASDSADSAD##@!#!^%&^$*aaaaaaaaaaaa"));
         /*
         judgeValues.add(0);
         judgeValues.add(1);

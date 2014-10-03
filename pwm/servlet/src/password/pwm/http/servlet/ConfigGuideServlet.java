@@ -22,14 +22,11 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.Validator;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
 import password.pwm.config.value.*;
@@ -42,7 +39,11 @@ import password.pwm.http.bean.ConfigGuideBean;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.*;
+import password.pwm.util.PasswordData;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.X509Utils;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.rest.bean.HealthData;
 
@@ -56,7 +57,7 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
-public class ConfigGuideServlet extends TopServlet {
+public class ConfigGuideServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ConfigGuideServlet.class.getName());
 
@@ -78,6 +79,32 @@ public class ConfigGuideServlet extends TopServlet {
     public static final String PARAM_CONFIG_PASSWORD_VERIFY = "config-password-verify";
 
     private static final String LDAP_PROFILE_KEY = "";
+
+
+    public enum ConfigGuideAction implements PwmServlet.ProcessAction {
+        ldapHealth,
+        updateForm,
+        gotoStep,
+        useConfiguredCerts,
+        uploadConfig,
+        ;
+
+        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(PwmServlet.HttpMethod.POST);
+        }
+    }
+
+    protected ConfigGuideAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return ConfigGuideAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
 
     public static Map<String,String> defaultForm(PwmSetting.Template template) {
         final Map<String,String> defaultLdapForm = new HashMap<>();
@@ -114,31 +141,29 @@ public class ConfigGuideServlet extends TopServlet {
     }
 
     @Override
-    protected void processRequest(HttpServletRequest req, HttpServletResponse resp)
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
 
-        if (((ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class)).getStep() == STEP.START) {
+        if (((ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class)).getStep() == STEP.START) {
             pwmSession.clearSessionBeans();
             pwmSession.getSessionStateBean().setTheme(null);
         }
 
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
+        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
 
         if (pwmApplication.getApplicationMode() != PwmApplication.MODE.NEW) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"ConfigGuide unavailable unless in NEW mode");
-            ssBean.setSessionError(errorInformation);
-            LOGGER.error(pwmSession,errorInformation.toDebugStr());
-            ServletHelper.forwardToErrorPage(req,resp,true);
+            LOGGER.error(pwmSession, errorInformation.toDebugStr());
+            pwmRequest.respondWithError(errorInformation);
             return;
         }
 
-        pwmSession.setSessionTimeout(req.getSession(), Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT)));
+        pwmSession.setSessionTimeout(
+                pwmRequest.getHttpServletRequest().getSession(),
+                Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CONFIG_GUIDE_IDLE_TIMEOUT)));
 
         if (configGuideBean.getStep() == STEP.LDAPCERT) {
             final String ldapServerString = ((List<String>) configGuideBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_SERVER_URLS, LDAP_PROFILE_KEY).toNativeObject()).get(0);
@@ -156,27 +181,33 @@ public class ConfigGuideServlet extends TopServlet {
             }
         }
 
-        if (actionParam != null && actionParam.length() > 0) {
-            Validator.validatePwmFormID(req);
-            if (actionParam.equalsIgnoreCase("ldapHealth")) {
-                restLdapHealth(resp, pwmSession);
-                return;
-            } else if (actionParam.equalsIgnoreCase("updateForm")) {
-                restUpdateLdapForm(req, resp, pwmSession);
-                return;
-            } else if (actionParam.equalsIgnoreCase("gotoStep")) {
-                restGotoStep(pwmRequest);
-                return;
-            } else if (actionParam.equalsIgnoreCase("useConfiguredCerts")) {
-                restUseConfiguredCerts(req, resp);
-                return;
-            } else if (actionParam.equalsIgnoreCase("uploadConfig")) {
-                restUploadConfig(pwmRequest);
-                return;
+        final ConfigGuideAction action = readProcessAction(pwmRequest);
+        if (action != null) {
+            pwmRequest.validatePwmFormID();
+            switch (action) {
+                case ldapHealth:
+                    restLdapHealth(pwmRequest, configGuideBean);
+                    return;
+
+                case updateForm:
+                    restUpdateLdapForm(pwmRequest, configGuideBean);
+                    return;
+
+                case gotoStep:
+                    restGotoStep(pwmRequest);
+                    return;
+
+                case useConfiguredCerts:
+                    restUseConfiguredCerts(pwmRequest, configGuideBean);
+                    return;
+
+                case uploadConfig:
+                    restUploadConfig(pwmRequest);
+                    return;
             }
         }
 
-        forwardToJSP(req,resp);
+        forwardToJSP(pwmRequest);
     }
 
     public static void restUploadConfig(final PwmRequest pwmRequest)
@@ -225,13 +256,12 @@ public class ConfigGuideServlet extends TopServlet {
 
 
     private void restUseConfiguredCerts(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean
     )
             throws PwmUnrecoverableException, IOException
     {
-        final boolean value = Validator.readBooleanFromRequest(req, "value");
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
+        final boolean value = Boolean.parseBoolean(pwmRequest.readParameterAsString("value"));
         configGuideBean.setUseConfiguredCerts(value);
         final StoredValue newStoredValue = value ?
                 new X509CertificateValue(configGuideBean.getLdapCertificates()) :
@@ -242,17 +272,17 @@ public class ConfigGuideServlet extends TopServlet {
                 newStoredValue,
                 null
         );
-        ServletHelper.outputJsonResult(resp,new RestResultBean());
+        pwmRequest.outputJsonResult(new RestResultBean());
     }
 
 
     private void restLdapHealth(
-            final HttpServletResponse resp,
-            final PwmSession pwmSession
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean
+
     )
             throws IOException
     {
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
         final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
@@ -273,7 +303,7 @@ public class ConfigGuideServlet extends TopServlet {
                 }
                 if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
                     final int maxSearchSize = 500;
-                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, pwmSession.getSessionLabel());
+                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, pwmRequest.getSessionLabel());
                     final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
                     searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
                     try {
@@ -296,7 +326,7 @@ public class ConfigGuideServlet extends TopServlet {
                         }
                     } catch (Exception e) {
                         final String errorMsg = "error while attempting to search for Admin users: " + e.getMessage();
-                        LOGGER.warn(pwmSession,errorMsg);
+                        LOGGER.warn(pwmRequest, errorMsg);
                         records.add(new HealthRecord(HealthStatus.WARN,"Admin Users",errorMsg));
                     }
                 }
@@ -310,26 +340,22 @@ public class ConfigGuideServlet extends TopServlet {
 
         HealthData jsonOutput = new HealthData();
         jsonOutput.records = password.pwm.ws.server.rest.bean.HealthRecord.fromHealthRecords(records,
-                pwmSession.getSessionStateBean().getLocale(), tempConfiguration);
+                pwmRequest.getLocale(), tempConfiguration);
         jsonOutput.timestamp = new Date();
         jsonOutput.overall = HealthMonitor.getMostSevereHealthStatus(records).toString();
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(jsonOutput);
-        ServletHelper.outputJsonResult(resp, restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void restUpdateLdapForm(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmSession pwmSession
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean
     )
             throws IOException, PwmUnrecoverableException
     {
-        final String bodyString = ServletHelper.readRequestBody(req);
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmSession.getSessionBean(ConfigGuideBean.class);
         final StoredConfiguration storedConfiguration = configGuideBean.getStoredConfiguration();
-        final Map<String,String> incomingFormData = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());
+        final Map<String,String> incomingFormData = pwmRequest.readBodyAsJsonStringMap();
 
         if (incomingFormData != null) {
             configGuideBean.getFormData().putAll(incomingFormData);
@@ -339,7 +365,7 @@ public class ConfigGuideServlet extends TopServlet {
             try {
                 final PwmSetting.Template template = PwmSetting.Template.valueOf(incomingFormData.get(PARAM_TEMPLATE_NAME));
                 if (configGuideBean.getSelectedTemplate() != template) {
-                    LOGGER.debug(pwmSession, "resetting form defaults using " + template.toString() + " template");
+                    LOGGER.debug(pwmRequest, "resetting form defaults using " + template.toString() + " template");
                     final Map<String, String> defaultForm = defaultForm(template);
                     configGuideBean.getFormData().putAll(defaultForm);
                     configGuideBean.setSelectedTemplate(template);
@@ -354,14 +380,14 @@ public class ConfigGuideServlet extends TopServlet {
 
 
         final RestResultBean restResultBean = new RestResultBean();
-        ServletHelper.outputJsonResult(resp, restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
         updateLdapInfo(storedConfiguration, configGuideBean.getFormData(), incomingFormData);
         //LOGGER.info("config: " + storedConfiguration.toString());
     }
 
     private void restGotoStep(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException {
-        final String requestedStep = pwmRequest.readStringParameter("step");
+        final String requestedStep = pwmRequest.readParameterAsString("step");
         STEP step = null;
         if (requestedStep != null && requestedStep.length() > 0) {
             try {
@@ -382,7 +408,6 @@ public class ConfigGuideServlet extends TopServlet {
             try {
                 writeConfig(contextManager, configGuideBean);
             } catch (PwmOperationalException e) {
-                pwmRequest.getPwmSession().getSessionStateBean().setSessionError(e.getErrorInformation());
                 final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
                 pwmRequest.outputJsonResult(restResultBean);
                 return;
@@ -402,7 +427,9 @@ public class ConfigGuideServlet extends TopServlet {
             final StoredConfiguration storedConfiguration,
             final Map<String,String> ldapForm,
             final Map<String,String> incomingLdapForm
-    ) {
+    )
+            throws PwmUnrecoverableException
+    {
         {
             final String ldapServerIP = ldapForm.get(PARAM_LDAP_HOST);
             final String ldapServerPort = ldapForm.get(PARAM_LDAP_PORT);
@@ -417,7 +444,8 @@ public class ConfigGuideServlet extends TopServlet {
             final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
             final String ldapAdminPW = ldapForm.get(PARAM_LDAP_ADMIN_PW);
             storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapAdminDN), null);
-            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, new PasswordValue(ldapAdminPW), null);
+            final PasswordValue passwordValue = new PasswordValue(new PasswordData(ldapAdminPW));
+            storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, passwordValue, null);
         }
 
         // set context based on ldap dn
@@ -481,7 +509,8 @@ public class ConfigGuideServlet extends TopServlet {
 
         try {
             // add a random security key
-            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, new PasswordValue(PwmRandom.getInstance().alphaNumericString(512)), null);
+            final PasswordValue newSecurityKey = new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(512)));
+            storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, newSecurityKey, null);
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
             configReader.saveConfiguration(storedConfiguration, pwmApplication);
@@ -497,11 +526,12 @@ public class ConfigGuideServlet extends TopServlet {
 
 
     static void forwardToJSP(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;

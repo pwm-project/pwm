@@ -265,8 +265,8 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="PWM_CHANGEPW.beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])">' + PWM_MAIN.showString('Button_More') + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\')">' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="PWM_CHANGEPW.beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])"><span class="btn-icon fa fa-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\')"><span class="btn-icon fa fa-backward"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
     randomConfig['dialogBody'] = dialogBody;
     PWM_GLOBAL['lastRandomConfig'] = randomConfig;
@@ -311,23 +311,10 @@ PWM_CHANGEPW.fetchRandoms=function(randomConfig) {
             PWM_CHANGEPW.fetchRandoms(randomConfig);
         };
 
-        var dataInput = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
+        var url = PWM_GLOBAL['url-restservice'] + "/randompassword";
+        var content = randomConfig['dataInput'] == null ? { } : randomConfig['dataInput'];
 
-        require(["dojo"],function(dojo){
-            dojo.xhrPost({
-                url: PWM_GLOBAL['url-restservice'] + "/randompassword",
-                headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                content: dataInput,
-                preventCache: true,
-                timeout: PWM_MAIN.ajaxTimeout,
-                sync: false,
-                handleAs: "json",
-                load: successFunction,
-                error: function(errorObj){
-                    PWM_MAIN.showError("unexpected randomgen version string from server: " + errorObj);
-                }
-            });
-        });
+        PWM_MAIN.ajaxRequest(url,successFunction,{content:content});
     }
 };
 
@@ -416,58 +403,52 @@ PWM_CHANGEPW.setInputFocus=function() {
 
 PWM_CHANGEPW.refreshCreateStatus=function(refreshInterval) {
     require(["dojo","dijit/registry"],function(dojo,registry){
-        var displayStringsUrl = "ChangePassword?processAction=checkProgress&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+        var displayStringsUrl = "ChangePassword?processAction=checkProgress";
         var completedUrl = "ChangePassword?processAction=complete&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-        dojo.xhrGet({
-            url: displayStringsUrl,
-            preventCache: true,
-            handleAs: 'json',
-            timeout: PWM_GLOBAL['client.ajaxTypingTimeout'],
-            headers: { "Accept": "application/json" },
-            load: function(data) {
-                var progressBar = registry.byId('passwordProgressBar');
-                progressBar.set("value",data['data']['percentComplete']);
+        var loadFunction = function(data) {
+            var progressBar = registry.byId('passwordProgressBar');
+            progressBar.set("value",data['data']['percentComplete']);
 
-                try {
-                    var tableBody = '';
-                    if (data['data']['messages']) {
-                        for (var msgItem in data['data']['messages']) {
-                            (function(message){
-                                if (message['show']) {
-                                    tableBody += '<tr><td>' + message['label'] + '</td><td>'
-                                    tableBody += message['complete'] ? "Completed" : "In Progress"
-                                    tableBody += '</td></tr>'
-                                }
-                            }(data['data']['messages'][msgItem]));
-                        }
+            try {
+                var tableBody = '';
+                if (data['data']['messages']) {
+                    for (var msgItem in data['data']['messages']) {
+                        (function(message){
+                            if (message['show']) {
+                                tableBody += '<tr><td>' + message['label'] + '</td><td>'
+                                tableBody += message['complete'] ? "Completed" : "In Progress"
+                                tableBody += '</td></tr>'
+                            }
+                        }(data['data']['messages'][msgItem]));
                     }
-                    if (PWM_MAIN.getObject('progressMessageTable')) {
-                        PWM_MAIN.getObject('progressMessageTable').innerHTML = tableBody;
-                    }
-                    if (PWM_MAIN.getObject('estimatedRemainingSeconds')) {
-                        PWM_MAIN.getObject('estimatedRemainingSeconds').innerHTML = data['data']['estimatedRemainingSeconds'];
-                    }
-                    if (PWM_MAIN.getObject('elapsedSeconds')) {
-                        PWM_MAIN.getObject('elapsedSeconds').innerHTML = data['data']['elapsedSeconds'];
-                    }
-                } catch (e) {
-                    console.log('unable to update progressMessageTable, error: ' + e);
                 }
+                if (PWM_MAIN.getObject('progressMessageTable')) {
+                    PWM_MAIN.getObject('progressMessageTable').innerHTML = tableBody;
+                }
+                if (PWM_MAIN.getObject('estimatedRemainingSeconds')) {
+                    PWM_MAIN.getObject('estimatedRemainingSeconds').innerHTML = data['data']['estimatedRemainingSeconds'];
+                }
+                if (PWM_MAIN.getObject('elapsedSeconds')) {
+                    PWM_MAIN.getObject('elapsedSeconds').innerHTML = data['data']['elapsedSeconds'];
+                }
+            } catch (e) {
+                console.log('unable to update progressMessageTable, error: ' + e);
+            }
 
-                if (data['data']['complete'] == true) {
-                    PWM_MAIN.goto(completedUrl,{delay:1000})
-                } else {
-                    setTimeout(function(){
-                        PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
-                    },refreshInterval);
-                }
-            },
-            error: function(error) {
-                console.log('unable to read password change status: ' + error);
+            if (data['data']['complete'] == true) {
+                PWM_MAIN.goto(completedUrl,{delay:1000})
+            } else {
                 setTimeout(function(){
                     PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
                 },refreshInterval);
             }
-        });
+        };
+        var errorFunction = function(error) {
+            console.log('unable to read password change status: ' + error);
+            setTimeout(function(){
+                PWM_CHANGEPW.refreshCreateStatus(refreshInterval);
+            },refreshInterval);
+        };
+        PWM_MAIN.ajaxRequest(displayStringsUrl, loadFunction, {errorFunction:errorFunction});
     });
-}
+};

@@ -33,11 +33,14 @@
 <body class="nihilo">
 <%
     List<UserAuditRecord> auditRecords = Collections.emptyList();
+    Locale userLocale = PwmConstants.DEFAULT_LOCALE;
     try {
-        auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+        auditRecords = pwmRequest.getPwmApplication().getAuditManager().readUserHistory(pwmRequest.getPwmSession());
+        userLocale = pwmRequest.getLocale();
     } catch (Exception e) {
     }
-    final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
+
 %>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">

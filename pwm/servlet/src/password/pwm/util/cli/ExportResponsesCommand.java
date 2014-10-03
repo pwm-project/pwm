@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.ldap.UserSearchEngine;
@@ -60,7 +61,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
 
         final Gson gson = JsonUtil.getGson();
         final String systemRecordDelimiter = System.getProperty("line.separator");
-        final Writer writer = new BufferedWriter(new PrintWriter(outputFile,"UTF-8"));
+        final Writer writer = new BufferedWriter(new PrintWriter(outputFile, PwmConstants.DEFAULT_CHARSET.toString()));
         final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
         out("searching " + results.size() + " users for stored responses to write to " + outputFile.getAbsolutePath() + "....");
         int counter = 0;

@@ -38,10 +38,10 @@ import password.pwm.health.HealthStatus;
 import password.pwm.i18n.Display;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.net.URI;
@@ -49,11 +49,11 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 public class VersionChecker implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(VersionChecker.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(VersionChecker.class);
 
     private static final String KEY_VERSION = "version";
     private static final String KEY_BUILD = "build";
-    private static final String PWMDB_KEY_VERSION_CHECK_INFO_CACHE = "versionCheckInfoCache";
+    private static final String LOCALDB_KEY_VERSION_CHECK_INFO_CACHE = "versionCheckInfoCache";
     
     private static final String VERSION_CHECK_URL = PwmConstants.PWM_URL_CLOUD + "/rest/pwm/current-version";
 
@@ -68,7 +68,7 @@ public class VersionChecker implements PwmService {
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
                 final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,
-                        PWMDB_KEY_VERSION_CHECK_INFO_CACHE);
+                        LOCALDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
                     versionCheckInfoCache = JsonUtil.getGson().fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
@@ -173,7 +173,7 @@ public class VersionChecker implements PwmService {
             try {
                 final Gson gson = JsonUtil.getGson();
                 final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
-                pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META,PWMDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
+                pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META, LOCALDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
             } catch (LocalDBException e) {
                 LOGGER.error("error writing version check info out of LocalDB: " + e.getMessage());
             }
@@ -185,7 +185,7 @@ public class VersionChecker implements PwmService {
     private Map<String,String> doCurrentVersionFetch() throws IOException, URISyntaxException {
         final URI requestURI = new URI(VERSION_CHECK_URL);
         final HttpGet httpGet = new HttpGet(requestURI.toString());
-        httpGet.setHeader("Accept", "application/json");
+        httpGet.setHeader("Accept", PwmConstants.ContentTypeValue.json.getHeaderValue());
         LOGGER.trace("sending cloud version request to: " + VERSION_CHECK_URL);
 
         final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpGet);

@@ -26,6 +26,7 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.util.SearchHelper;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
@@ -55,8 +56,13 @@ class LdapTokenMachine implements TokenMachine {
         this.tokenAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.TOKEN_LDAP_ATTRIBUTE);
     }
 
-    public String generateToken(TokenPayload tokenPayload) throws PwmUnrecoverableException, PwmOperationalException {
-        return tokenService.makeUniqueTokenForMachine(this);
+    public String generateToken(
+            SessionLabel sessionLabel,
+            TokenPayload tokenPayload
+    )
+            throws PwmUnrecoverableException, PwmOperationalException
+    {
+        return tokenService.makeUniqueTokenForMachine(sessionLabel, this);
     }
 
     public TokenPayload retrieveToken(String tokenKey)

@@ -26,11 +26,13 @@ import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
-import password.pwm.error.*;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
@@ -38,11 +40,16 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
 import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.*;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
 import password.pwm.util.localdb.LocalDBUtility;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.PwmLogEvent;
+import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.crypto.SecretKey;
@@ -50,17 +57,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.nio.charset.Charset;
+import java.io.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ConfigManagerServlet extends PwmServlet {
-    final static private PwmLogger LOGGER = PwmLogger.getLogger(ConfigManagerServlet.class);
+    final static private PwmLogger LOGGER = PwmLogger.forClass(ConfigManagerServlet.class);
 
     private static final String CONFIGMANAGER_INTRUDER_USERNAME = "ConfigurationManagerLogin";
 
@@ -92,13 +95,11 @@ public class ConfigManagerServlet extends PwmServlet {
             throws PwmUnrecoverableException
     {
         try {
-            return ConfigManagerAction.valueOf(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+            return ConfigManagerAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
         } catch (IllegalArgumentException e) {
             return null;
         }
     }
-
-
 
     protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
@@ -228,7 +229,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 throw new PwmUnrecoverableException(PwmError.ERROR_AUTHENTICATION_REQUIRED);
             }
 
-            if (pwmSession.getUserInfoBean().getAuthenticationType() != UserInfoBean.AuthenticationType.AUTHENTICATED) {
+            if (pwmSession.getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_AUTHENTICATION_REQUIRED,
                         "Username/Password authentication is required to edit configuration.  This session has not been authenticated using a user password (SSO or other method used)."));
             }
@@ -253,11 +254,19 @@ public class ConfigManagerServlet extends PwmServlet {
             return false;
         }
 
-        SecretKey securityKey = null;
-        try {
-            securityKey = pwmRequest.getConfig().getSecurityKey();
-        } catch (PwmOperationalException e) {
-            LOGGER.error("error establishing security key for persistent login: " + e.getMessage());
+        final SecretKey securityKey = pwmRequest.getConfig().getSecurityKey();
+
+        final String persistentLoginValue;
+        if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
+            persistentLoginValue = SecureHelper.hash(
+                    storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
+                            + pwmSession.getUserInfoBean().getUserIdentity().toDeliminatedKey(),
+                    SecureHelper.HashAlgorithm.SHA512);
+
+        } else {
+            persistentLoginValue = SecureHelper.hash(
+                    storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
+                    SecureHelper.HashAlgorithm.SHA512);
         }
 
         boolean persistentLoginAccepted = false;
@@ -268,12 +277,12 @@ public class ConfigManagerServlet extends PwmServlet {
             );
             if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
                 try {
-                    final String jsonStr = Helper.SimpleTextCrypto.decryptValue(cookieStr, securityKey);
+                    final String jsonStr = SecureHelper.decryptStringValue(cookieStr, securityKey);
                     final PersistentLoginInfo persistentLoginInfo = JsonUtil.getGson().fromJson(jsonStr,
                             PersistentLoginInfo.class);
                     if (persistentLoginInfo != null) {
                         if (persistentLoginInfo.getExpireDate().after(new Date())) {
-                            if (storedConfig.verifyPassword(persistentLoginInfo.getPassword())) {
+                            if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
                                 persistentLoginAccepted = true;
                                 LOGGER.debug(pwmRequest, "accepting persistent config login from cookie (expires "
                                                 + PwmConstants.DEFAULT_DATETIME_FORMAT.format(persistentLoginInfo.getExpireDate())
@@ -294,7 +303,7 @@ public class ConfigManagerServlet extends PwmServlet {
             }
         }
 
-        final String password = pwmRequest.readStringParameter("password");
+        final String password = pwmRequest.readParameterAsString("password");
         boolean passwordAccepted = false;
         if (!persistentLoginAccepted) {
             if (password != null && password.length() > 0) {
@@ -302,9 +311,9 @@ public class ConfigManagerServlet extends PwmServlet {
                     passwordAccepted = true;
                 } else{
                     pwmApplication.getIntruderManager().convenience().markAddressAndSession(pwmSession);
-                    pwmApplication.getIntruderManager().mark(RecordType.USERNAME, CONFIGMANAGER_INTRUDER_USERNAME, pwmSession);
+                    pwmApplication.getIntruderManager().mark(RecordType.USERNAME, CONFIGMANAGER_INTRUDER_USERNAME, pwmSession.getLabel());
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_WRONGPASSWORD);
-                    pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                    pwmRequest.setResponseError(errorInformation);
                 }
             }
         }
@@ -313,13 +322,13 @@ public class ConfigManagerServlet extends PwmServlet {
             configManagerBean.setPasswordVerified(true);
             pwmApplication.getIntruderManager().convenience().clearAddressAndSession(pwmSession);
             pwmApplication.getIntruderManager().clear(RecordType.USERNAME,CONFIGMANAGER_INTRUDER_USERNAME);
-            if (!persistentLoginAccepted && "on".equals(pwmRequest.readStringParameter("remember"))) {
+            if (!persistentLoginAccepted && "on".equals(pwmRequest.readParameterAsString("remember"))) {
                 final int persistentSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_PERSISTENT_LOGIN_SECONDS));
                 if (persistentSeconds > 0) {
                     final Date expirationDate = new Date(System.currentTimeMillis() + (persistentSeconds * 1000));
-                    final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, password);
-                    final String jsonPersistentLoginInfo = JsonUtil.getGson().toJson(persistentLoginInfo);
-                    final String cookieValue = Helper.SimpleTextCrypto.encryptValue(jsonPersistentLoginInfo,
+                    final PersistentLoginInfo persistentLoginInfo = new PersistentLoginInfo(expirationDate, persistentLoginValue);
+                    final String jsonPersistentLoginInfo = JsonUtil.serialize(persistentLoginInfo);
+                    final String cookieValue = SecureHelper.encryptToString(jsonPersistentLoginInfo,
                             securityKey);
                     ServletHelper.writeCookie(
                             pwmRequest.getHttpServletResponse(),
@@ -463,12 +472,12 @@ public class ConfigManagerServlet extends PwmServlet {
         final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
 
         try {
-
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
-            final String output = storedConfiguration.toXml();
+            final Writer responseWriter = resp.getWriter();
             resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
-            resp.setContentType("text/xml;charset=utf-8");
-            resp.getWriter().print(output);
+            resp.setContentType(PwmConstants.ContentTypeValue.xml.getHeaderValue());
+            storedConfiguration.toXml(responseWriter);
+            responseWriter.close();
         } catch (Exception e) {
             LOGGER.error(pwmSession, "unable to download configuration: " + e.getMessage());
         }
@@ -479,14 +488,14 @@ public class ConfigManagerServlet extends PwmServlet {
     {
         final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
         resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
-        resp.setContentType("application/zip");
+        resp.setContentType(PwmConstants.ContentTypeValue.zip.getHeaderValue());
         resp.setContentLength(0);
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
         ZipOutputStream zipOutput = null;
         try {
-            zipOutput = new ZipOutputStream(resp.getOutputStream(), Charset.forName("UTF8"));
+            zipOutput = new ZipOutputStream(resp.getOutputStream(), PwmConstants.DEFAULT_CHARSET);
             outputZipDebugFile(pwmRequest, zipOutput, pathPrefix);
         } catch (Exception e) {
             LOGGER.error(pwmRequest, "error during zip debug building: " + e.getMessage());
@@ -527,8 +536,10 @@ public class ConfigManagerServlet extends PwmServlet {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
 
-            final String output = storedConfiguration.toXml();
-            zipOutput.write(output.getBytes("UTF8"));
+            final StringWriter writer = new StringWriter();
+            storedConfiguration.toXml(writer);
+            final String output = writer.toString();
+            zipOutput.write(output.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
         }
@@ -553,7 +564,7 @@ public class ConfigManagerServlet extends PwmServlet {
             outputMap.put("threads",Thread.getAllStackTraces());
 
             final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
-            zipOutput.write(recordJson.getBytes("UTF8"));
+            zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
         }
@@ -562,7 +573,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
                 final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getApplicationPath());
                 final String json = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
-                zipOutput.write(json.getBytes("UTF8"));
+                zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
                 zipOutput.closeEntry();
                 zipOutput.flush();
             } catch (Exception e) {
@@ -586,8 +597,8 @@ public class ConfigManagerServlet extends PwmServlet {
             int counter = 0;
             while (searchResults.hasNext()) {
                 final PwmLogEvent event = searchResults.next();
-                zipOutput.write(event.toLogString(false).getBytes("UTF8"));
-                zipOutput.write("\n".getBytes("UTF8"));
+                zipOutput.write(event.toLogString().getBytes(PwmConstants.DEFAULT_CHARSET));
+                zipOutput.write("\n".getBytes(PwmConstants.DEFAULT_CHARSET));
                 counter++;
                 if (counter % 100 == 0) {
                     zipOutput.flush();
@@ -600,7 +611,7 @@ public class ConfigManagerServlet extends PwmServlet {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
             final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
-            zipOutput.write(recordJson.getBytes("UTF8"));
+            zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
         }

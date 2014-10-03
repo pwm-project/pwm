@@ -23,6 +23,7 @@
 package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.event.AuditManager;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
@@ -45,7 +46,7 @@ public class ExportAuditCommand extends AbstractCliCommand {
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
         final FileWriter fileWriter = new FileWriter(outputFile,true);
-        final int counter = auditManager.outpuVaultToCsv(fileWriter, false);
+        final int counter = auditManager.outpuVaultToCsv(fileWriter, PwmConstants.DEFAULT_LOCALE, false);
         fileWriter.close();
         out("completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }

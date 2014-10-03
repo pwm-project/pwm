@@ -21,7 +21,9 @@
   --%>
 
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
+<%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
@@ -34,14 +36,14 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <%@ include file="fragment/header.jsp" %>
 <% final Collection<Locale> localeList = new ArrayList<Locale>(ContextManager.getPwmApplication(session).getConfig().getKnownLocales()); %>
 <% localeList.remove(LocaleHelper.localeResolver(PwmConstants.DEFAULT_LOCALE, localeList)); %>
 <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-<% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response); %>
+<% final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(PwmRequest.forRequest(request, response)); %>
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
-<% final password.pwm.config.PwmSetting.Category category = cookie.getCategory(); %>
+<% final PwmSettingCategory category = cookie.getCategory(); %>
 <body class="nihilo">
 <link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <pwm:script>
@@ -55,14 +57,14 @@
     <% } %>
 </script>
 </pwm:script>
-<div id="wrapper" style="border:1px; background-color: black">
-    <div id="header" style="height: 25px; position: fixed">
+<div id="wrapper" style="border:1px;">
+    <div id="header" style="height: 25px; position: fixed;">
         <div id="header-center">
             <div id="header-title">
                 <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
-                <% if (category.getType() == PwmSetting.Category.Type.SETTING) { %>
+                <% if (category.getType() == PwmSettingCategory.Type.SETTING) { %>
                 Settings - <%=category.getLabel(locale)%>
-                <% } else if (category.getType() == PwmSetting.Category.Type.PROFILE) { %>
+                <% } else if (category.hasProfiles()) { %>
                 Profile - <%=category.getLabel(locale)%>
                 <% } else { %>
                 Modules - <%=category.getLabel(locale)%>
@@ -100,15 +102,25 @@
     <div id="TopMenu_Wrapper" class="menu-wrapper">
         <div id="TopMenu" class="menu-bar">
         </div>
-        <div id="TopMenu_Underflow" class="menu-underflow"><%-- gradient for page to fade under menu --%>
+        <div id="TopMenu_Underflow" class="menu-underflow">
         </div>
     </div>
-    <div id="centerbody-config" class="centerbody-config">
-        <div style="height: 45px">
+    <div id="centerbody-config" class="centerbody-config" style="height:100%">
+        <div style="height: 45px; width:100%">
         </div>
-        <div id="mainContentPane" style="width: 600px">
+        <%--
+        <div style="float: left; width:200px; background-color: white;">
+            <% boolean selected = false; %>
+            <% for (final PwmSettingCategory menuCategory : PwmSettingCategory.values()) { %>
+            <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_CFGEDIT.gotoSetting('<%=menuCategory.getKey()%>');">
+                <%=menuCategory.getLabel(locale)%>
+            </a>
+            <% } %>
+        </div>
+        --%>
+        <div id="mainContentPane" style="width: 600px;float:left; background-color: white">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS || cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
-            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.getType() == PwmSetting.Category.Type.PROFILE) { %>
+            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.hasProfiles()) { %>
             <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_PROFILE.getPath()%>"/>
             <% } else { %>
             <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SETTINGS.getPath()%>"/>
@@ -119,6 +131,7 @@
         </div>
         <span style="display:none; visibility: hidden" id="message" class="message"></span>
     </div>
+    <br/><br/>
     <div class="push"></div>
 </div>
 <pwm:script>
@@ -129,7 +142,8 @@
     });
 </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>

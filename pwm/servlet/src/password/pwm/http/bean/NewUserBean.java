@@ -22,14 +22,17 @@
 
 package password.pwm.http.bean;
 
+import password.pwm.config.FormConfiguration;
 import password.pwm.http.servlet.NewUserServlet;
+import password.pwm.util.PasswordData;
 
 import java.util.Date;
 import java.util.Map;
 
 public class NewUserBean implements PwmSessionBean {
+    private NewUserForm newUserForm;
+
     private String tokenDisplayText;
-    private Map<String,String> formData;
 
     private boolean agreementPassed;
     private boolean emailTokenIssued;
@@ -40,7 +43,36 @@ public class NewUserBean implements PwmSessionBean {
     private NewUserVerificationPhase verificationPhase = NewUserVerificationPhase.NONE;
     private Date createStartTime;
 
-    public NewUserBean() {
+    public static class NewUserForm {
+        private Map<FormConfiguration,String> formData;
+        private PasswordData newUserPassword;
+        private PasswordData confirmPassword;
+
+        public NewUserForm(
+                Map<FormConfiguration, String> formData,
+                PasswordData newUserPassword,
+                PasswordData confirmPassword
+        )
+        {
+            this.formData = formData;
+            this.newUserPassword = newUserPassword;
+            this.confirmPassword = confirmPassword;
+        }
+
+        public Map<FormConfiguration, String> getFormData()
+        {
+            return formData;
+        }
+
+        public PasswordData getNewUserPassword()
+        {
+            return newUserPassword;
+        }
+
+        public PasswordData getConfirmPassword()
+        {
+            return confirmPassword;
+        }
     }
 
     public boolean isEmailTokenIssued() {
@@ -69,13 +101,6 @@ public class NewUserBean implements PwmSessionBean {
         this.tokenDisplayText = tokenDisplayText;
     }
 
-    public Map<String, String> getFormData() {
-        return formData;
-    }
-
-    public void setFormData(Map<String, String> formData) {
-        this.formData = formData;
-    }
 
     public boolean isAgreementPassed() {
         return agreementPassed;
@@ -136,5 +161,15 @@ public class NewUserBean implements PwmSessionBean {
     public void setCreateStartTime(Date createStartTime)
     {
         this.createStartTime = createStartTime;
+    }
+
+    public NewUserForm getNewUserForm()
+    {
+        return newUserForm;
+    }
+
+    public void setNewUserForm(NewUserForm newUserForm)
+    {
+        this.newUserForm = newUserForm;
     }
 }

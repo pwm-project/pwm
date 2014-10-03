@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -27,12 +29,19 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <%
-    long refreshSeconds = 30 * ContextManager.getPwmApplication(request).getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME);
-    long checkIntervalSeconds = Long.parseLong(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
+    long refreshSeconds = 10;
+    long checkIntervalSeconds = 5;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        refreshSeconds = 30 * pwmRequest.getConfig().readSettingAsLong(PwmSetting.NEWUSER_MINIMUM_WAIT_TIME);
+        checkIntervalSeconds = Long.parseLong(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_AJAX_PW_WAIT_CHECK_SECONDS));
+    } catch (PwmException e) {
+        /* noop */
+    }
 %>
 <meta http-equiv="refresh" content="<%=refreshSeconds%>;url=NewUser?processAction=complete&pwmFormID=<pwm:FormID/>">
 <div id="wrapper">
-    <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
+    <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_PleaseWait"/>
     </jsp:include>
@@ -66,7 +75,7 @@
 </script>
 </pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/newuser.js'/>"></script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

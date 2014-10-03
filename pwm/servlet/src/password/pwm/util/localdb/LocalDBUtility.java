@@ -22,16 +22,16 @@
 
 package password.pwm.util.localdb;
 
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.ProgressInfo;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
-import password.pwm.util.csv.CsvReader;
-import password.pwm.util.csv.CsvWriter;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -41,7 +41,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class LocalDBUtility {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBUtility.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBUtility.class);
 
     final static List<LocalDB.DB> BACKUP_IGNORE_DBs;
     private final LocalDB localDB;
@@ -104,9 +104,10 @@ public class LocalDBUtility {
         },30 * 1000, 30 * 1000);
 
 
-        CsvWriter csvWriter = null;
+        Writer csvWriter = null;
         try {
-            csvWriter = new CsvWriter(new OutputStreamWriter(new GZIPOutputStream(outputStream)),',');
+            csvWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(outputStream),PwmConstants.DEFAULT_CHARSET));
+            final CSVPrinter csvPrinter = new CSVPrinter(csvWriter,PwmConstants.DEFAULT_CSV_FORMAT);
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
                     final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
@@ -114,7 +115,7 @@ public class LocalDBUtility {
                         while (localDBIterator.hasNext()) {
                             final String key = localDBIterator.next();
                             final String value = localDB.get(loopDB, key);
-                            csvWriter.writeRecord(new String[]{loopDB.toString(), key, value});
+                            csvPrinter.printRecord(loopDB.toString(), key, value);
                             exportLineCounter++;
                         }
                     } finally {
@@ -159,10 +160,11 @@ public class LocalDBUtility {
 
         writeStringToOut(out, "counting records in input file...");
         importLineCounter = 0;
-        CsvReader csvReader = null;
+        Reader csvReader = null;
         try {
-            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile))),',');
-            while (csvReader.readRecord()) {
+            csvReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(inputFile)),PwmConstants.DEFAULT_CHARSET));
+            for (final Iterator<CSVRecord> records = PwmConstants.DEFAULT_CSV_FORMAT.parse(csvReader).iterator(); records.hasNext();) {
+                records.next();
                 importLineCounter++;
             }
         } finally {
@@ -217,14 +219,16 @@ public class LocalDBUtility {
             }
         }, 0, 30 * 1000);
 
-        CsvReader csvReader = null;
+
+        Reader csvReader = null;
         try {
-            csvReader = new CsvReader(new InputStreamReader(new GZIPInputStream(inputStream)),',');
-            while (csvReader.readRecord()) {
-                final LocalDB.DB db = LocalDB.DB.valueOf(csvReader.get(0));
-                final String key = csvReader.get(1);
-                final String value = csvReader.get(2);
-                transactionMap.get(db).put(key,value);
+            csvReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(inputStream),PwmConstants.DEFAULT_CHARSET));
+            for (final CSVRecord record : PwmConstants.DEFAULT_CSV_FORMAT.parse(csvReader)) {
+                importLineCounter++;
+                final LocalDB.DB db = LocalDB.DB.valueOf(record.get(0));
+                final String key = record.get(1);
+                final String value = record.get(2);
+                transactionMap.get(db).put(key, value);
                 int cachedTransactions = 0;
                 importLineCounter++;
                 for (final LocalDB.DB loopDB : LocalDB.DB.values()) {

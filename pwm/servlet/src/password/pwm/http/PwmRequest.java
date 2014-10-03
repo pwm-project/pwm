@@ -22,41 +22,65 @@
 
 package password.pwm.http;
 
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import password.pwm.AppProperty;
+import org.h2.util.StringUtils;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.SessionLabel;
+import password.pwm.bean.SessionStateBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.filter.SessionFilter;
+import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URI;
 import java.util.*;
 
-public class PwmRequest implements Serializable {
+public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmRequest.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmRequest.class);
 
-    private final HttpServletRequest httpServletRequest;
+    private static final Set<String> HTTP_DEBUG_STRIP_VALUES = new HashSet<>(
+            Arrays.asList(new String[] {
+                    "password",
+                    PwmConstants.PARAM_TOKEN,
+                    PwmConstants.PARAM_RESPONSE_PREFIX,
+            }));
+
     private final HttpServletResponse httpServletResponse;
     private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
+
+    private final Set<Flag> flags = new HashSet<>();
+
+    public enum Flag {
+        HIDE_LOCALE,
+        HIDE_IDLE,
+        HIDE_THEME,
+        HIDE_FOOTER_TEXT,
+        HIDE_HEADER_BUTTONS,
+        NO_REQ_COUNTER,
+    }
 
     public static PwmRequest forRequest(
             HttpServletRequest request,
@@ -64,21 +88,28 @@ public class PwmRequest implements Serializable {
     )
             throws PwmUnrecoverableException
     {
-        PwmRequest pwmRequest = (PwmRequest)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST);
+        PwmRequest pwmRequest = (PwmRequest) request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST);
         if (pwmRequest == null) {
-            pwmRequest = new PwmRequest(request, response);
-            request.setAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST,pwmRequest);
+            final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+            pwmRequest = new PwmRequest(request, response, pwmApplication, pwmSession);
+            request.setAttribute(PwmConstants.REQUEST_ATTR_PWM_REQUEST, pwmRequest);
         }
         return pwmRequest;
     }
 
-    private PwmRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
+    private PwmRequest(
+            final HttpServletRequest httpServletRequest,
+            final HttpServletResponse httpServletResponse,
+            final PwmApplication pwmApplication,
+            final PwmSession pwmSession
+    )
             throws PwmUnrecoverableException
     {
-        this.httpServletRequest = httpServletRequest;
+        super(httpServletRequest, pwmApplication.getConfig());
         this.httpServletResponse = httpServletResponse;
-        pwmSession = PwmSession.getPwmSession(httpServletRequest);
-        pwmApplication = ContextManager.getPwmApplication(httpServletRequest);
+        this.pwmSession = pwmSession;
+        this.pwmApplication = pwmApplication;
     }
 
     public PwmApplication getPwmApplication()
@@ -92,12 +123,7 @@ public class PwmRequest implements Serializable {
     }
 
     public SessionLabel getSessionLabel() {
-        return pwmSession.getSessionLabel();
-    }
-
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
+        return pwmSession.getLabel();
     }
 
     public HttpServletResponse getHttpServletResponse()
@@ -113,11 +139,6 @@ public class PwmRequest implements Serializable {
         return pwmApplication.getConfig();
     }
 
-    public String readStringParameter(final String name)
-            throws PwmUnrecoverableException
-    {
-        return Validator.readStringFromRequest(this.getHttpServletRequest(), name);
-    }
 
     public void forwardToJsp(final PwmConstants.JSP_URL jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
@@ -142,7 +163,7 @@ public class PwmRequest implements Serializable {
             return;
         }
 
-        pwmSession.getSessionStateBean().setSessionError(errorInformation);
+        this.setResponseError(errorInformation);
 
         try {
             forwardToJsp(PwmConstants.JSP_URL.ERROR);
@@ -154,50 +175,30 @@ public class PwmRequest implements Serializable {
         }
     }
 
-    public void forwardToSuccessPage()
+    public void forwardToSuccessPage(Message message)
             throws ServletException, PwmUnrecoverableException, IOException
     {
+        forwardToSuccessPage(message, null);
+    }
+
+    public void forwardToSuccessPage(Message message, final String field)
+            throws ServletException, PwmUnrecoverableException, IOException
+    {
+        pwmSession.getSessionStateBean().setSessionSuccess(message, field);
         ServletHelper.forwardToSuccessPage(this.getHttpServletRequest(), this.getHttpServletResponse());
     }
 
 
-    public String readRequestBody()
-            throws IOException, PwmUnrecoverableException
-    {
-        final int maxChars = Integer.parseInt(this.getConfig().readAppProperty(AppProperty.HTTP_BODY_MAXREAD_LENGTH));
-        return readRequestBody(maxChars);
-    }
-
-    public String readRequestBody(final int maxChars) throws IOException {
-        final StringBuilder inputData = new StringBuilder();
-        String line;
-        try {
-            final BufferedReader reader = this.getHttpServletRequest().getReader();
-            while (((line = reader.readLine()) != null) && inputData.length() < maxChars) {
-                inputData.append(line);
-            }
-        } catch (Exception e) {
-            LOGGER.error("error reading request body stream: " + e.getMessage());
-        }
-        return inputData.toString();
-    }
-
-    public Map<String,String> readCookiePreferences() {
-        Map<String,String> preferences = new HashMap<>();
-        try {
-            final String jsonString = ServletHelper.readCookie(this.getHttpServletRequest(), "preferences");
-            preferences = JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {
-            }.getType());
-        } catch (Exception e) {
-            LOGGER.warn("error parsing cookie preferences: " + e.getMessage());
-        }
-        return Collections.unmodifiableMap(preferences);
-    }
-
     public void sendRedirect(final String redirectURL)
             throws PwmUnrecoverableException, IOException
     {
-        httpServletResponse.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, httpServletRequest, httpServletResponse));
+        LOGGER.debug(getSessionLabel(), "sending user redirect response to " + redirectURL);
+        httpServletResponse.sendRedirect(
+                SessionFilter.rewriteRedirectURL(
+                        redirectURL,
+                        this.getHttpServletRequest(),
+                        httpServletResponse)
+        );
     }
 
     public void sendRedirectToContinue()
@@ -211,18 +212,14 @@ public class PwmRequest implements Serializable {
     public void recycleSessions()
             throws IOException, ServletException
     {
-        ServletHelper.recycleSessions(pwmApplication, pwmSession, httpServletRequest, httpServletResponse);
+        LOGGER.debug(pwmSession,"forcing new http session due to authentication");
+        ServletHelper.recycleSessions(pwmApplication, pwmSession, this.getHttpServletRequest(), httpServletResponse);
     }
 
     public void outputJsonResult(final RestResultBean restResultBean)
             throws IOException
     {
         ServletHelper.outputJsonResult(this.httpServletResponse, restResultBean);
-    }
-
-    public boolean isJsonRequest() {
-        final String acceptHeader = httpServletRequest.getHeader("Accept");
-        return acceptHeader.contains("application/json");
     }
 
     public ContextManager getContextManager()
@@ -301,4 +298,233 @@ public class PwmRequest implements Serializable {
             return content;
         }
     }
+
+    public UserIdentity getUserInfoIfLoggedIn() {
+        return this.getPwmSession().getSessionStateBean().isAuthenticated()
+                ? this.getPwmSession().getUserInfoBean().getUserIdentity()
+                : null;
+    }
+
+
+
+    public void validatePwmFormID()
+            throws PwmUnrecoverableException
+    {
+        Validator.validatePwmFormID(getHttpServletRequest());
+    }
+
+    public boolean convertURLtokenCommand()
+            throws IOException, PwmUnrecoverableException
+    {
+        final String uri = this.getHttpServletRequest().getRequestURI();
+        if (uri == null || uri.length() < 1) {
+            return false;
+        }
+        final String servletPath = this.getHttpServletRequest().getServletPath();
+        if (!uri.contains(servletPath)) {
+            LOGGER.error("unexpected uri handler, uri '" + uri + "' does not contain servlet path '" + servletPath + "'");
+            return false;
+        }
+
+        String aftPath = uri.substring(uri.indexOf(servletPath) + servletPath.length(),uri.length());
+        if (aftPath.startsWith("/")) {
+            aftPath = aftPath.substring(1,aftPath.length());
+        }
+
+        if (aftPath.contains("?")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.contains("&")) {
+            aftPath = aftPath.substring(0,aftPath.indexOf("?"));
+        }
+
+        if (aftPath.length() <= 1) {
+            return false;
+        }
+
+        final StringBuilder redirectURL = new StringBuilder();
+        redirectURL.append(this.getHttpServletRequest().getContextPath());
+        redirectURL.append(this.getHttpServletRequest().getServletPath());
+        redirectURL.append("?");
+        redirectURL.append(PwmConstants.PARAM_ACTION_REQUEST).append("=enterCode");
+        redirectURL.append("&");
+        redirectURL.append(PwmConstants.PARAM_TOKEN).append("=").append(StringUtils.urlEncode(aftPath));
+        redirectURL.append("&");
+        redirectURL.append(PwmConstants.PARAM_FORM_ID).append("=").append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
+
+        LOGGER.debug(pwmSession, "detected long servlet url, redirecting user to " + redirectURL);
+        sendRedirect(redirectURL.toString());
+        return true;
+    }
+
+
+
+    public void setResponseError(final ErrorInformation errorInformation) {
+        setAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO, errorInformation);
+    }
+
+    public void setAttribute(final String name, final Object value) {
+        this.getHttpServletRequest().setAttribute(name,value);
+    }
+
+    public Object getAttribute(final String name) {
+        return this.getHttpServletRequest().getAttribute(name);
+    }
+
+    public PwmURL getURL() {
+        return new PwmURL(this.getHttpServletRequest());
+    }
+
+    public void markPreLoginUrl()
+    {
+        final String originalRequestedUrl = this.getHttpServletRequest().getRequestURL().toString();
+        if (pwmSession.getSessionStateBean().getOriginalRequestURL() == null) {
+            LOGGER.trace(this, "noted originally requested url as: " + originalRequestedUrl);
+            pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
+        }
+    }
+
+    public void sendRedirectToPreLoginUrl()
+            throws IOException, PwmUnrecoverableException
+    {
+        LOGGER.trace(this, "redirecting user to originally requested (pre-authentication) url: ");
+        sendRedirect(determinePostLoginUrl());
+    }
+
+    public String determinePostLoginUrl() {
+        final String originalURL = this.getPwmSession().getSessionStateBean().getOriginalRequestURL();
+        this.getPwmSession().getSessionStateBean().setOriginalRequestURL(null);
+
+        if (originalURL != null && !originalURL.isEmpty()) {
+            final PwmURL originalPwmURL = new PwmURL(URI.create(originalURL),this.getContextPath());
+            if (!originalPwmURL.isLoginServlet()) {
+                return originalURL;
+            }
+        }
+        return this.getContextPath();
+    }
+
+
+    public void debugHttpRequestToLog()
+            throws PwmUnrecoverableException
+    {
+        debugHttpRequestToLog(null);
+    }
+
+    public void debugHttpRequestToLog(final String extraText)
+            throws PwmUnrecoverableException
+    {
+
+        final StringBuilder sb = new StringBuilder();
+        final HttpServletRequest req = this.getHttpServletRequest();
+
+        sb.append(req.getMethod());
+        sb.append(" request for: ");
+        sb.append(req.getRequestURI());
+
+        if (req.getParameterMap().isEmpty()) {
+            sb.append(" (no params)");
+            if (extraText != null) {
+                sb.append(" ");
+                sb.append(extraText);
+            }
+        } else {
+            if (extraText != null) {
+                sb.append(" ");
+                sb.append(extraText);
+            }
+            sb.append("\n");
+
+            final Map<String,List<String>> valueMap = this.readMultiParametersAsMap();
+            for (final String paramName : valueMap.keySet()) {
+                for (final String paramValue : valueMap.get(paramName)) {
+                    sb.append("  ").append(paramName).append("=");
+                    boolean strip = false;
+                    for (final String stripValue : HTTP_DEBUG_STRIP_VALUES) {
+                        if (paramName.toLowerCase().contains(stripValue.toLowerCase())) {
+                            strip = true;
+                        }
+                    }
+                    if (strip) {
+                        sb.append(PwmConstants.LOG_REMOVED_VALUE_REPLACEMENT);
+                    } else {
+                        sb.append('\'');
+                        sb.append(paramValue);
+                        sb.append('\'');
+                    }
+
+                    sb.append('\n');
+                }
+            }
+
+            sb.deleteCharAt(sb.length() - 1);
+        }
+        LOGGER.trace(this.getSessionLabel(), sb.toString());
+    }
+
+    public boolean isAuthenticated() {
+        return pwmSession.getSessionStateBean().isAuthenticated();
+    }
+
+    public boolean isForcedPageView() {
+        if (!isAuthenticated()) {
+            return false;
+        }
+
+        final PwmURL pwmURL = getURL();
+        final UserInfoBean userInfoBean = pwmSession.getUserInfoBean();
+
+        if (userInfoBean.isRequiresNewPassword() && pwmURL.isChangePasswordURL()) {
+            return true;
+        }
+
+        if (userInfoBean.isRequiresResponseConfig() && pwmURL.isSetupResponsesURL()) {
+            return true;
+        }
+
+        if (userInfoBean.isRequiresOtpConfig() && pwmURL.isSetupOtpSecretURL()) {
+            return true;
+        }
+
+        if (userInfoBean.isRequiresUpdateProfile() && pwmURL.isProfileUpdateURL()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public void setFlag(final Flag flag, final boolean status) {
+        if (status) {
+            flags.add(flag);
+        } else {
+            flags.remove(flag);
+        }
+    }
+
+    public boolean isFlag(final Flag flag) {
+        return flags.contains(flag);
+    }
+
+    public String getForwardUrl(
+    ) {
+        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        String redirectURL = ssBean.getForwardURL();
+        if (redirectURL == null || redirectURL.length() < 1) {
+            redirectURL = this.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
+        }
+
+        if (redirectURL == null || redirectURL.length() < 1) {
+            redirectURL = this.getContextPath();
+        }
+
+        return redirectURL;
+    }
+
+    public String getLogoutURL(
+    ) {
+        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
+    }
+
 }

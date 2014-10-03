@@ -29,7 +29,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsBundle;
 import password.pwm.util.stats.StatisticsManager;
@@ -53,8 +53,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Path("/statistics")
-public class RestStatisticsServer {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestStatisticsServer.class);
+public class RestStatisticsServer extends AbstractRestServer {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestStatisticsServer.class);
 
     @Context
     HttpServletRequest request;
@@ -73,7 +73,7 @@ public class RestStatisticsServer {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response doPwmStatisticJsonGet(
             final @QueryParam("statKey") String statKey,
@@ -84,7 +84,7 @@ public class RestStatisticsServer {
         final ServicePermissions servicePermissions = figurePermissions();
         final RestRequestBean restRequestBean;
         try {
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -167,7 +167,7 @@ public class RestStatisticsServer {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doPwmAppDashboardJsonGet(
     )
     {

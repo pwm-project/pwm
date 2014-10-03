@@ -30,9 +30,9 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPPamUtil;
 import password.pwm.util.otp.OTPUrlUtil;
 import password.pwm.util.otp.OTPUserRecord;
@@ -45,7 +45,7 @@ import javax.crypto.SecretKey;
  */
 public abstract class AbstractOtpOperator implements OtpOperator {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractOtpOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractOtpOperator.class);
     private Configuration config;
 
     /**
@@ -61,7 +61,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
             final OTPStorageFormat format = config.readSettingAsEnum(PwmSetting.OTP_SECRET_STORAGEFORMAT,OTPStorageFormat.class);
             switch (format) {
                 case PWM:
-                    value = JsonUtil.getGson().toJson(otpUserRecord);
+                    value = JsonUtil.serialize(otpUserRecord);
                     break;
                 case OTPURL:
                     value = OTPUrlUtil.composeOtpUrl(otpUserRecord);
@@ -91,7 +91,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      */
     public String encryptAttributeValue(String unencrypted) throws PwmUnrecoverableException, PwmOperationalException {
         SecretKey key = config.getSecurityKey();
-        return Helper.SimpleTextCrypto.encryptValue(unencrypted, key);
+        return SecureHelper.encryptToString(unencrypted, key);
     }
 
     /**
@@ -104,7 +104,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
      */
     public String decryptAttributeValue(String encrypted) throws PwmUnrecoverableException, PwmOperationalException {
         SecretKey key = config.getSecurityKey();
-        return Helper.SimpleTextCrypto.decryptValue(encrypted, key);
+        return SecureHelper.decryptStringValue(encrypted, key);
     }
 
     /**

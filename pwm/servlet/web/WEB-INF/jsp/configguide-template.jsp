@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
 <%--
@@ -55,7 +56,7 @@
                 <% for (final PwmSetting.Template loopTemplate : PwmSetting.Template.values()) { %>
                 <% boolean selected = loopTemplate.equals(selectedTemplate); %>
                 <option value="<%=loopTemplate.toString()%>"<% if (selected) { %> selected="selected"<% } %>>
-                    <%=loopTemplate.getLabel(pwmSessionHeader.getSessionStateBean().getLocale())%>
+                    <%=loopTemplate.getLabel(JspUtility.locale(request))%>
                 </option>
                 <% } %>
             </select>
@@ -119,7 +120,7 @@
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

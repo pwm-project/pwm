@@ -51,6 +51,7 @@ PWM_PS.processPeopleSearch = function() {
             grid.refresh();
             grid.renderArray(gridData);
             grid.on(".dgrid-row:click", function(evt){
+                evt.preventDefault();
                 var row = grid.row(evt);
                 var userKey = row.data['userKey'];
                 PWM_PS.showUserDetail(userKey);
@@ -109,47 +110,33 @@ PWM_PS.showUserDetail = function(userKey) {
     };
     PWM_MAIN.showWaitDialog({
         loadFunction:function(){
-            require(["dojo", "dojo/json"], function (dojo, json) {
-                var bodyString = dojo.toJson(sendData);
-                dojo.xhrPost({
-                    url: "PeopleSearch?processAction=detail&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                    headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                    contentType: "application/json;charset=utf-8",
-                    encoding: "utf-8",
-                    handleAs: "json",
-                    dataType: "json",
-                    postData: bodyString,
-                    error: function (errorObj) {
-                        PWM_MAIN.showError("error loading " + userKey + ", reason: " + errorObj);
-                        PWM_MAIN.closeWaitDialog();
-                    },
-                    load: function (data) {
-                        if (data['error'] == true) {
-                            console.error('unable to load people detail, error: ' + data['errorDetail']);
-                            PWM_MAIN.showError(data['errorDetail']);
-                            PWM_MAIN.closeWaitDialog();
-                            return;
+            var url = "PeopleSearch?processAction=detail";
+            var loadFunction = function(data) {
+                if (data['error'] == true) {
+                    console.error('unable to load people detail, error: ' + data['errorDetail']);
+                    PWM_MAIN.showError(data['errorDetail']);
+                    PWM_MAIN.closeWaitDialog();
+                    return;
+                }
+                var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
+                PWM_MAIN.showDialog({
+                    title:data['data']['displayName'],
+                    width:550,
+                    allowMove:true,
+                    text:htmlBody,
+                    showClose:true,
+                    loadFunction:function(){
+                        var photoURL = PWM_MAIN.addPwmFormIDtoURL(data['data']['photoURL']);
+                        if (photoURL) {
+                            PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
                         }
-                        var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
-                        PWM_MAIN.showDialog({
-                            title:data['data']['displayName'],
-                            width:550,
-                            allowMove:true,
-                            text:htmlBody,
-                            showClose:true,
-                            loadFunction:function(){
-                                var photoURL = PWM_MAIN.addPwmFormIDtoURL(data['data']['photoURL']);
-                                if (photoURL) {
-                                    PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
-                                }
-                                setTimeout(function() {
-                                    try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
-                                },1000);
-                            }
-                        });
+                        setTimeout(function() {
+                            try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
+                        },1000);
                     }
                 });
-            });
+            };
+            PWM_MAIN.ajaxRequest(url, loadFunction, {content:sendData});
         }
     });
 };
@@ -174,12 +161,10 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
 };
 
 PWM_PS.initPeopleSearchPage = function() {
-    readCookie();
     PWM_PS.makeSearchGrid(function(){
         require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
             on(PWM_MAIN.getObject('username'), "keyup, input", function(){
                 PWM_PS.processPeopleSearch();
-                writeCookie();
             });
             PWM_PS.processPeopleSearch();
         });
@@ -201,23 +186,3 @@ PWM_PS.loadPicture = function(parentDiv,url) {
     });
 };
 
-function readCookie() {
-    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
-        try {
-            var preferences = json.parse(dojoCookie("preferences"));
-            if (preferences['username'] && !PWM_MAIN.getObject('username').value) {
-                PWM_MAIN.getObject('username').value = preferences['username'];
-            }
-        } catch (e) {
-            console.log("error reading preferences cookie: " + e);
-        }
-    });
-}
-
-function writeCookie() {
-    require(['dojo/json','dojo/cookie'], function(json,dojoCookie){
-        var preferences = {username: PWM_MAIN.getObject('username').value};
-        var cookieString = json.stringify(preferences);
-        dojoCookie("preferences", cookieString, {expires: 5}); // 5 days
-    });
-}

@@ -46,6 +46,7 @@ public enum HealthMessage {
     Config_MissingProxyPassword             (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_NoSiteURL                        (HealthStatus.WARN,     HealthTopic.Configuration),
     Config_RequireHttps                     (HealthStatus.CONFIG,   HealthTopic.Configuration),
+    Config_LDAPWireTrace                    (HealthStatus.WARN,     HealthTopic.Configuration),
     Config_PromiscuousLDAP                  (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_ShowDetailedErrors               (HealthStatus.CONFIG,   HealthTopic.Configuration),
     Config_AddTestUser                      (HealthStatus.CONFIG,   HealthTopic.Configuration),

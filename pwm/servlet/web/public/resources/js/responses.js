@@ -45,7 +45,7 @@ PWM_RESPONSES.validateResponses=function() {
             return domForm.toObject('setupResponses');
         };
         validationProps['processResultsFunction'] = function(data){
-            PWM_RESPONSES.updateDisplay(data);
+            PWM_RESPONSES.updateDisplay(data['data']);
         };
 
         PWM_MAIN.pwmFormValidator(validationProps);

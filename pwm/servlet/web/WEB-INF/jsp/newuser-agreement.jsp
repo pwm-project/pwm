@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -28,15 +29,13 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
-    <% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_HEADER_BUTTONS,"true"); %>
+    <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_NewUser"/>
     </jsp:include>
     <div id="centerbody">
         <%@ include file="fragment/message.jsp" %>
-        <% final MacroMachine macroMachine = new MacroMachine(pwmApplicationHeader, pwmSessionHeader.getUserInfoBean(), null); %>
-        <% final String agreementText = ContextManager.getPwmApplication(session).getConfig().readSettingAsLocalizedString(PwmSetting.NEWUSER_AGREEMENT_MESSAGE, PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
-        <% final String expandedText = macroMachine.expandMacros(agreementText); %>
+        <% final String expandedText = (String)request.getAttribute(PwmConstants.REQUEST_ATTR_AGREEMENT_TEXT); %>
         <br/><br/>
         <div id="agreementText" class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">

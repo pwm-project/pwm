@@ -25,15 +25,15 @@ package password.pwm.health;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.PwmException;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.Collections;
 import java.util.List;
 
 public class DatabaseStatusChecker implements HealthChecker {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseStatusChecker.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseStatusChecker.class);
 
     @Override
     public List<HealthRecord> doHealthCheck(PwmApplication pwmApplication)

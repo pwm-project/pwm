@@ -22,6 +22,8 @@
 
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.config.PwmSettingCategory" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
@@ -32,16 +34,16 @@
 <%
     final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
-    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
+    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(PwmRequest.forRequest(request, response));
     final boolean showDesc = cookie.isShowDesc();
-    final password.pwm.config.PwmSetting.Category category = cookie.getCategory();
+    final PwmSettingCategory category = cookie.getCategory();
 %>
 <% if (category.getDescription(locale) != null && category.getDescription(locale).length() > 1) { %>
 <div id="categoryDescription" class="categoryDescription">
     <%= category.getDescription(locale)%>
 </div>
 <% } %>
-<% if (cookie.getCategory() == PwmSetting.Category.DATABASE) { %>
+<% if (cookie.getCategory() == PwmSettingCategory.DATABASE) { %>
 <div style="width: 100%; text-align: center">
 <button class="btn" onclick="PWM_CFGEDIT.databaseHealthCheck()">
     <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
@@ -76,6 +78,7 @@
     <jsp:include page="configeditor-setting.jsp"/>
     <% } %>
 </div>
+<br/><br/>
 <jsp:include page="settings-scripts.jsp"/>
 <% } %>
 

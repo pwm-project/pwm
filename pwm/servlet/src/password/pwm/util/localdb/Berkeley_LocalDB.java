@@ -29,8 +29,8 @@ import com.sleepycat.util.RuntimeExceptionWrapper;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.util.*;
@@ -44,7 +44,7 @@ import static password.pwm.util.localdb.LocalDB.DB;
 public class Berkeley_LocalDB implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Berkeley_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Berkeley_LocalDB.class, true);
 
     private final static boolean IS_TRANSACTIONAL = true;
     private final static int OPEN_RETRY_SECONDS = 60;
@@ -123,11 +123,6 @@ public class Berkeley_LocalDB implements LocalDBProvider {
     Berkeley_LocalDB()
             throws Exception {
     }
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface PwmDB ---------------------
 
     public void close()
             throws LocalDBException {

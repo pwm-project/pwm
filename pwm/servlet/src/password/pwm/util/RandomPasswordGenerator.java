@@ -27,6 +27,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmService;
+import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
@@ -34,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.wordlist.SeedlistManager;
@@ -66,22 +68,22 @@ public class RandomPasswordGenerator {
 
     private static final PwmRandom RANDOM = PwmRandom.getInstance();
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RandomPasswordGenerator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RandomPasswordGenerator.class);
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static String createRandomPassword(
+    public static PasswordData createRandomPassword(
             final PwmSession pwmSession,
             final PwmApplication pwmApplication
     )
             throws PwmUnrecoverableException
     {
         final PwmPasswordPolicy userPasswordPolicy = pwmSession.getUserInfoBean().getPasswordPolicy();
-        return createRandomPassword(pwmSession, userPasswordPolicy, pwmApplication);
+        return createRandomPassword(pwmSession.getLabel(), userPasswordPolicy, pwmApplication);
     }
 
-    public static String createRandomPassword(
-            final PwmSession pwmSession,
+    public static PasswordData createRandomPassword(
+            final SessionLabel sessionLabel,
             final PwmPasswordPolicy passwordPolicy,
             final PwmApplication pwmApplication
     )
@@ -91,7 +93,7 @@ public class RandomPasswordGenerator {
         randomGeneratorConfig.setPasswordPolicy(passwordPolicy);
 
         return createRandomPassword(
-                pwmSession,
+                sessionLabel,
                 randomGeneratorConfig,
                 pwmApplication
         );
@@ -105,7 +107,7 @@ public class RandomPasswordGenerator {
      * If there is an identifiable reason the password can not be created (such as mis-configured rules) then
      * an {@link com.novell.ldapchai.exception.ImpossiblePasswordPolicyException} will be thrown.
      *
-     * @param pwmSession A valid pwmSession
+     * @param sessionLabel A valid pwmSession
      * @param randomGeneratorConfig Policy to be used during generation
      * @param pwmApplication Used to get configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
@@ -113,8 +115,8 @@ public class RandomPasswordGenerator {
      *          If there is no way to create a password using the configured rules and
      *          default seed phrase
      */
-    public static String createRandomPassword(
-            final PwmSession pwmSession,
+    public static PasswordData createRandomPassword(
+            final SessionLabel sessionLabel,
             final RandomGeneratorConfig randomGeneratorConfig,
             final PwmApplication pwmApplication
     )
@@ -198,14 +200,14 @@ public class RandomPasswordGenerator {
         {
             final TimeDuration td = TimeDuration.fromCurrent(startTimeMS);
             if (validPassword) {
-                LOGGER.trace(pwmSession, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
+                LOGGER.trace(sessionLabel, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
                 final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null, false);
-                final int judgeLevel = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password.toString());
+                final int judgeLevel = PasswordUtility.judgePasswordStrength(password);
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);
-                LOGGER.error(pwmSession, sb.toString());
+                LOGGER.error(sessionLabel, sb.toString());
             }
         }
 
@@ -217,9 +219,9 @@ public class RandomPasswordGenerator {
         sb.append("real-time random password generator called");
         sb.append(" (").append(TimeDuration.fromCurrent(startTimeMS).asCompactString());
         sb.append(")");
-        LOGGER.trace(pwmSession, sb.toString());
+        LOGGER.trace(sessionLabel, sb.toString());
 
-        return password.toString();
+        return new PasswordData(password.toString());
     }
 
     private static void modifyPasswordBasedOnErrors(final StringBuilder password, final List<ErrorInformation> errors, final SeedMachine seedMachine) {

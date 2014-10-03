@@ -27,17 +27,18 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.util.Locale;
 
 public class RestClientHelper {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestClientHelper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestClientHelper.class);
 
     public static String makeOutboundRestWSCall(
             final PwmApplication pwmApplication,
@@ -48,15 +49,15 @@ public class RestClientHelper {
             throws PwmOperationalException
     {
         final HttpPost httpPost = new HttpPost(url);
-        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
         if (locale != null) {
             httpPost.setHeader("Accept-Locale", locale.toString());
         }
-        httpPost.setHeader("Content-Type", "application/json");
+        httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
         final HttpResponse httpResponse;
         try {
             final StringEntity stringEntity = new StringEntity(jsonRequestBody);
-            stringEntity.setContentType("application/json");
+            stringEntity.setContentType(PwmConstants.AcceptValue.json.getHeaderValue());
             httpPost.setEntity(stringEntity);
             LOGGER.debug("beginning external rest call to: " + httpPost.toString() + ", body: " + jsonRequestBody);
             httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);

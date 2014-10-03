@@ -34,7 +34,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ContextManager implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ContextManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ContextManager.class);
 
     private ServletContext servletContext;
     private Timer taskMaster;
@@ -162,7 +162,7 @@ public class ContextManager implements Serializable {
             }
 
             if (PwmApplication.MODE.ERROR == mode) {
-                outputError("Startup Error: " + startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr());
+                outputError("Startup Error: " + (startupErrorInformation == null ? "un-specified error" : startupErrorInformation.toDebugStr()));
             }
         } catch (Throwable e) {
             handleStartupError("unable to initialize application due to configuration related error: ",e);
@@ -343,13 +343,6 @@ public class ContextManager implements Serializable {
             LOGGER.info("application restart; shutdown completed, now starting new application instance");
             restartCount++;
             initialize();
-
-            if (PwmConstants.CLEAR_SESSIONS_ON_RESTART) {
-                LOGGER.info("invalidating all existing http sessions");
-                for (PwmSession pwmSession: getPwmSessions()) {
-                    try { pwmSession.invalidate(); } catch (Exception e) { /* no error */ }
-                }
-            }
 
             LOGGER.info("application restart completed");
             restartRequestedFlag = false;

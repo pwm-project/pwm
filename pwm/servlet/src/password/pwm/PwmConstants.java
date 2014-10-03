@@ -22,10 +22,13 @@
 
 package password.pwm;
 
+import org.apache.commons.csv.CSVFormat;
+import password.pwm.bean.SessionLabel;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.Health;
 import password.pwm.i18n.Message;
 
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -75,9 +78,10 @@ public abstract class PwmConstants {
     public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
     public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));
 
-    public static final int MAX_CONFIG_FILE_CHARS = Integer.parseInt(readPwmConstantsBundle("config.maxFileChars"));
-
     public static final Locale DEFAULT_LOCALE = new Locale(readPwmConstantsBundle("locale.defaultLocale"));
+    public static final Charset DEFAULT_CHARSET = Charset.forName("UTF8");
+
+    public static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT;
 
     public static final String DEFAULT_DATETIME_FORMAT_STR = readPwmConstantsBundle("locale.defaultDateTimeFormat");
     public static final TimeZone DEFAULT_TIMEZONE = TimeZone.getTimeZone(readPwmConstantsBundle("locale.defaultTimeZone"));
@@ -87,9 +91,8 @@ public abstract class PwmConstants {
     }
 
     public static final int DEFAULT_WORDLIST_LOADFACTOR = Integer.parseInt(readPwmConstantsBundle("wordlist.loadFactor"));
-    public static final int PWMDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
-    public static final int PWMDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
-    public static final boolean CLEAR_SESSIONS_ON_RESTART = Boolean.parseBoolean(readPwmConstantsBundle("clearSessionsOnRestart"));
+    public static final int LOCALDB_LOGGER_MAX_QUEUE_SIZE = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxQueueSize"));
+    public static final int LOCALDB_LOGGER_MAX_DIRTY_BUFFER_MS = Integer.parseInt(readPwmConstantsBundle("pwmDBLoggerMaxDirtyBufferMS"));
     public static final boolean ENABLE_EULA_DISPLAY = Boolean.parseBoolean(readPwmConstantsBundle("enableEulaDisplay"));
     public static final boolean TRIAL_MODE = Boolean.parseBoolean(readPwmConstantsBundle("trial"));
     public static final int TRIAL_MAX_AUTHENTICATIONS = 100;
@@ -97,8 +100,10 @@ public abstract class PwmConstants {
 
     public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
 
-    public static final int USER_COOKIE_MAX_AGE_SECONDS = Integer.parseInt(readPwmConstantsBundle("userCookieMaxAgeSeconds"));
-    public static final int SERVER_AJAX_TYPING_CACHE_SIZE = Integer.parseInt(readPwmConstantsBundle("server.ajaxTypingCacheSize"));
+    private static final String SESSION_LABEL_SESSION_ID = "!";
+    public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
+    public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
+
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
@@ -121,17 +126,14 @@ public abstract class PwmConstants {
     public static final String CONTEXT_ATTR_CONTEXT_MANAGER = "ContextManager";
     public static final String CONTEXT_ATTR_RESOURCE_CACHE = "ResourceFileServlet-Cache";
     public static final String CONTEXT_ATTR_RESOURCE_HIT_AVG = "ResourceFileServlet-HitAvg";
+
     public static final String SESSION_ATTR_PWM_SESSION = "PwmSession";
+
+    public static final String REQUEST_ATTR_PWM_ERRORINFO = "PwmErrorInfo";
     public static final String REQUEST_ATTR_PWM_REQUEST = "PwmRequest";
     public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
-    public static final String REQUEST_ATTR_SHOW_LOCALE = "pwm.showLocale";
-    public static final String REQUEST_ATTR_SHOW_IDLE = "pwm.showIdle";
-    public static final String REQUEST_ATTR_HIDE_THEME = "pwm.hideTheme";
-    public static final String REQUEST_ATTR_HIDE_FOOTER_TEXT = "pwm.hideFooterText";
-    public static final String REQUEST_ATTR_HIDE_HEADER_BUTTONS = "pwm.hideHeaderButtons";
-    public static final String REQUEST_ATTR_NO_REQ_COUNTER = "pwm.noReqCounterIncrement";
-    public static final String REQUEST_ATTR_HELPDESK_DETAILNAME = "pwm.helpdeskDetailName";
-
+    public static final String REQUEST_ATTR_AGREEMENT_TEXT = "AgreementText";
+    public static final String REQUEST_ATTR_COMPLETE_TEXT = "CompleteText";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
@@ -139,20 +141,22 @@ public abstract class PwmConstants {
 
     public static enum JSP_URL {
 
+        INIT("init.jsp"),
+        ERROR("error.jsp"),
+        SUCCESS("success.jsp"),
+        APP_UNAVAILABLE("application-unavailable.jsp"),
         ACTIVATE_USER("activateuser.jsp"),
         ACTIVATE_USER_AGREEMENT("activateuser-agreement.jsp"),
         ACTIVATE_USER_ENTER_CODE("activateuser-entercode.jsp"),
         LOGIN("login.jsp"),
         LOGIN_PW_ONLY("login-passwordonly.jsp"),
         LOGOUT("logout.jsp"),
-        SUCCESS("success.jsp"),
-        ERROR("error.jsp"),
-        INIT("init.jsp"),
         PASSWORD_CHANGE("changepassword.jsp"),
         PASSWORD_FORM("changepassword-form.jsp"),
         PASSWORD_CHANGE_WAIT("changepassword-wait.jsp"),
         PASSWORD_AGREEMENT("changepassword-agreement.jsp"),
         PASSWORD_COMPLETE("changepassword-complete.jsp"),
+        PASSWORD_WARN("changepassword-warn.jsp"),
         RECOVER_PASSWORD_SEARCH("forgottenpassword-search.jsp"),
         RECOVER_PASSWORD_RESPONSES("forgottenpassword-responses.jsp"),
         RECOVER_PASSWORD_ACTION_CHOICE("forgottenpassword-actionchoice.jsp"),
@@ -206,16 +210,18 @@ public abstract class PwmConstants {
     }
 
     public static final String URL_JSP_CONFIG_GUIDE = "WEB-INF/jsp/configguide-%1%.jsp";
-    public static final String URL_JSP_PASSWORD_WARN = "private/passwordwarn.jsp";
+
     public static final String URL_SERVLET_LOGIN = "Login";
-    public static final String URL_SERVLET_OAUTH_COSUMER = "oauth";
+    public static final String URL_SERVLET_OAUTH_CONSUMER = "oauth";
     public static final String URL_SERVLET_LOGOUT = "Logout";
     public static final String URL_SERVLET_CHANGE_PASSWORD = "ChangePassword";
     public static final String URL_SERVLET_UPDATE_PROFILE = "UpdateProfile";
     public static final String URL_SERVLET_SETUP_RESPONSES = "SetupResponses";
     public static final String URL_SERVLET_SETUP_OTP_SECRET = "SetupOtp";
     public static final String URL_SERVLET_RECOVER_PASSWORD = "ForgottenPassword";
+    public static final String URL_SERVLET_RECOVER_USERNAME = "ForgottenUsername";
     public static final String URL_SERVLET_NEW_USER = "NewUser";
+    public static final String URL_SERVLET_USER_ACTIVATION = "ActivateUser";
     public static final String URL_SERVLET_GUEST_REGISTRATION = "GuestRegistration";
     public static final String URL_SERVLET_GUEST_UPDATE = "GuestUpdate";
     public static final String URL_SERVLET_CAPTCHA = "Captcha";
@@ -232,13 +238,12 @@ public abstract class PwmConstants {
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
+    public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";
 
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
     public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");
-
-    public static final String MIMETYPE_FORM = "application/x-www-form-urlencoded";
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{
@@ -338,6 +343,44 @@ public abstract class PwmConstants {
 
         public boolean isAdminOnly() {
             return adminOnly;
+        }
+    }
+
+    public enum ContentTypeValue {
+        json("application/json; charset=" + PwmConstants.DEFAULT_CHARSET),
+        zip("application/zip"),
+        xml("text/xml; charset=" + PwmConstants.DEFAULT_CHARSET),
+        csv("text/csv; charset=" + PwmConstants.DEFAULT_CHARSET),
+        javascript("text/javascript; charset=" + PwmConstants.DEFAULT_CHARSET),
+        plain("text/plain; charset=" + PwmConstants.DEFAULT_CHARSET),
+        html("text/html; charset=" + PwmConstants.DEFAULT_CHARSET),
+        form("application/x-www-form-urlencoded; charset=" + PwmConstants.DEFAULT_CHARSET),
+        png("image/png"),
+        ;
+
+        private String headerValue;
+
+        ContentTypeValue(String headerValue) {
+            this.headerValue = headerValue;
+        }
+
+        public String getHeaderValue() {
+            return headerValue;
+        }
+    }
+
+    public enum AcceptValue {
+        json("application/json"),
+        ;
+
+        private String headerValue;
+
+        AcceptValue(String headerValue) {
+            this.headerValue = headerValue;
+        }
+
+        public String getHeaderValue() {
+            return headerValue;
         }
     }
 }

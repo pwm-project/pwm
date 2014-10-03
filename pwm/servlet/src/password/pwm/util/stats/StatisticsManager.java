@@ -23,6 +23,7 @@
 package password.pwm.util.stats;
 
 import com.google.gson.Gson;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
@@ -38,10 +39,13 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.*;
-import password.pwm.util.csv.CsvWriter;
+import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PwmRandom;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -54,7 +58,7 @@ import java.util.*;
 
 public class StatisticsManager implements PwmService {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(StatisticsManager.class);
 
     private static final int DB_WRITE_FREQUENCY_MS = 60 * 1000;  // 1 minutes
 
@@ -241,7 +245,7 @@ public class StatisticsManager implements PwmService {
                             final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
                             epsMeterMap.put(loopEpsType.toString() + loopEpsDuration.toString(),eventRateMeter);
                         } catch (Exception e) {
-                            LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from PwmDB: " + e.getMessage());
+                            LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from LocalDB: " + e.getMessage());
                         }
                     }
                 }
@@ -475,7 +479,7 @@ public class StatisticsManager implements PwmService {
                 }
             }
             final Map<String,String> otherData = new HashMap<>();
-            otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),pwmApplication.getSiteURL());
+            otherData.put(StatsPublishBean.KEYS.SITE_URL.toString(),config.readSettingAsString(PwmSetting.PWM_SITE_URL));
             otherData.put(StatsPublishBean.KEYS.SITE_DESCRIPTION.toString(),config.readSettingAsString(PwmSetting.PUBLISH_STATS_SITE_DESCRIPTION));
             otherData.put(StatsPublishBean.KEYS.INSTALL_DATE.toString(),PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmApplication.getInstallTime()));
 
@@ -500,8 +504,8 @@ public class StatisticsManager implements PwmService {
         final Gson gson = JsonUtil.getGson();
         final String jsonDataString = gson.toJson(statsPublishData);
         httpPost.setEntity(new StringEntity(jsonDataString));
-        httpPost.setHeader("Accept", "application/json");
-        httpPost.setHeader("Content-Type", "application/json");
+        httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
+        httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
         LOGGER.debug("preparing to send anonymous statistics to " + requestURI.toString() + ", data to send: " + jsonDataString);
         final HttpResponse httpResponse = Helper.getHttpClient(pwmApplication.getConfig()).execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -511,7 +515,7 @@ public class StatisticsManager implements PwmService {
         try {
             localDB.put(LocalDB.DB.PWM_STATS, KEY_CLOUD_PUBLISH_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
         } catch (LocalDBException e) {
-            LOGGER.error("unexpected error trying to save last statistics published time to PwmDB: " + e.getMessage());
+            LOGGER.error("unexpected error trying to save last statistics published time to LocalDB: " + e.getMessage());
         }
     }
 
@@ -520,9 +524,9 @@ public class StatisticsManager implements PwmService {
     {
         LOGGER.trace("beginning output stats to csv process");
         final Date startTime = new Date();
-        final CsvWriter csvWriter = new CsvWriter(writer,',');
 
-        StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
+        final CSVPrinter csvPrinter = new CSVPrinter(writer,PwmConstants.DEFAULT_CSV_FORMAT);
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
@@ -532,7 +536,7 @@ public class StatisticsManager implements PwmService {
             for (Statistic stat : Statistic.values()) {
                 headers.add(stat.getLabel(locale));
             }
-            csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
+            csvPrinter.printRecords(headers);
         }
 
         int counter = 0;
@@ -547,7 +551,7 @@ public class StatisticsManager implements PwmService {
             for (final Statistic stat : Statistic.values()) {
                 lineOutput.add(bundle.getStatistic(stat));
             }
-            csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
+            csvPrinter.printRecords(lineOutput);
         }
 
         LOGGER.trace("completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(

@@ -1,3 +1,4 @@
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -40,14 +41,13 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <form action="<pwm:url url='ConfigManager'/>" method="post" name="configLogin" enctype="application/x-www-form-urlencoded"
+        <form action="<pwm:url url='ConfigManager'/>" method="post" id="configLogin" name="configLogin" enctype="application/x-www-form-urlencoded"
               class="pwm-form">
-
             <h1>Configuration Password</h1>
             <br class="clear"/>
             <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" autofocus/>
             <div id="buttonbar">
-                <input type="checkbox" id="remember" name="remember">Remember Login</input>
+                <input type="checkbox" id="remember" name="remember">Remember Password for 1 Hour</input>
                 <br>
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
@@ -67,7 +67,7 @@
     });
 </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

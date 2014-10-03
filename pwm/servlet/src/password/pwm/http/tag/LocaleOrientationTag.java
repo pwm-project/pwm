@@ -23,7 +23,7 @@
 package password.pwm.http.tag;
 
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
@@ -32,7 +32,7 @@ import java.util.Locale;
 
 public class LocaleOrientationTag extends PwmAbstractTag {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocaleOrientationTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocaleOrientationTag.class);
 
     private String locale;
 

@@ -56,10 +56,10 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.SessionManager;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -74,7 +74,7 @@ import java.security.Security;
 import java.util.*;
 
 public class NMASCrOperator implements CrOperator {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(NMASCrOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(NMASCrOperator.class);
 
     private int threadCounter = 0;
     private final List<NMASSessionThread> sessionMonitorThreads = Collections.synchronizedList(new ArrayList<NMASSessionThread>());
@@ -294,7 +294,7 @@ public class NMASCrOperator implements CrOperator {
             final Configuration config = pwmApplication.getConfig();
             final List<String> ldapURLs = ldapProfile.readSettingAsStringArray(PwmSetting.LDAP_SERVER_URLS);
             final String proxyDN = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_DN);
-            final String proxyPW = ldapProfile.readSettingAsString(PwmSetting.LDAP_PROXY_USER_PASSWORD);
+            final PasswordData proxyPW = ldapProfile.readSettingAsPassword(PwmSetting.LDAP_PROXY_USER_PASSWORD);
             chaiConfiguration = LdapOperationsHelper.createChaiConfiguration(config, ldapProfile, ldapURLs, proxyDN,
                     proxyPW);
             chaiConfiguration.setSetting(ChaiSetting.PROVIDER_IMPLEMENTATION, JLDAPProviderImpl.class.getName());
@@ -317,7 +317,7 @@ public class NMASCrOperator implements CrOperator {
             final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
             final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
             try {
-                if (theUser.isLocked()) {
+                if (theUser.isPasswordLocked()) {
                     LOGGER.trace("user " + theUser.getEntryDN() + " appears to be intruder locked, aborting nmas ResponseSet loading" );
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INTRUDER_LDAP,"nmas account is intruder locked-out"));
                 } else if (!theUser.isAccountEnabled()) {
@@ -440,7 +440,7 @@ public class NMASCrOperator implements CrOperator {
         }
     }
 
-    private class NMASResponseSession implements SessionManager.CloseConnectionListener {
+    private class NMASResponseSession {
 
         private LDAPConnection ldapConnection;
         final private GenLcmUI lcmEnv;
@@ -493,11 +493,6 @@ public class NMASCrOperator implements CrOperator {
                 }
                 this.ldapConnection = null;
             }
-        }
-
-        @Override
-        public void connectionsClosed() {
-            close();
         }
 
         private class ChalRespCallbackHandler extends NMASCallbackHandler

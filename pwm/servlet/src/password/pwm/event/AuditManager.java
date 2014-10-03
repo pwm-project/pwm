@@ -23,11 +23,13 @@
 package password.pwm.event;
 
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
 import password.pwm.bean.EmailItemBean;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
@@ -38,19 +40,21 @@ import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.http.PwmSession;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
-import password.pwm.util.csv.CsvWriter;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 
 public class AuditManager implements PwmService {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AuditManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AuditManager.class);
 
     private STATUS status = STATUS.NEW;
     private Settings settings = new Settings();
@@ -110,13 +114,13 @@ public class AuditManager implements PwmService {
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
             final UserIdentity perpetrator,
-            final PwmSession pwmSession
+            final SessionLabel sessionLabel
     )
     {
         return createUserAuditRecord(
                 eventCode,
                 perpetrator,
-                pwmSession,
+                sessionLabel,
                 null
         );
     }
@@ -124,7 +128,7 @@ public class AuditManager implements PwmService {
     public UserAuditRecord createUserAuditRecord(
             final AuditEvent eventCode,
             final UserIdentity perpetrator,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final String message
     )
     {
@@ -133,8 +137,8 @@ public class AuditManager implements PwmService {
                 perpetrator,
                 message,
                 perpetrator,
-                pwmSession != null ? pwmSession.getSessionStateBean().getSrcAddress() : null,
-                pwmSession != null ? pwmSession.getSessionStateBean().getSrcHostname() : null
+                sessionLabel != null ? sessionLabel.getSrcAddress() : null,
+                sessionLabel != null ? sessionLabel.getSrcHostname() : null
         );
     }
 
@@ -285,7 +289,9 @@ public class AuditManager implements PwmService {
         return userHistoryStore.readUserHistory(userInfoBean);
     }
 
-    protected void sendAsEmail(final AuditRecord record) {
+    protected void sendAsEmail(final AuditRecord record)
+            throws PwmUnrecoverableException
+    {
         if (record == null || record.getEventCode() == null) {
             return;
         }
@@ -314,11 +320,13 @@ public class AuditManager implements PwmService {
             final String toAddress,
             final String fromAddress
 
-    ) {
+    )
+            throws PwmUnrecoverableException
+    {
         final String subject = PwmConstants.PWM_APP_NAME + " - Audit Event - " + record.getEventCode().toString();
 
         final StringBuilder body = new StringBuilder();
-        final String jsonRecord = JsonUtil.getGson().toJson(record);
+        final String jsonRecord = JsonUtil.serialize(record);
         final Map<String,Object> mapRecord = JsonUtil.getGson().fromJson(jsonRecord, new TypeToken <Map<String, Object>>() {
         }.getType());
 
@@ -330,7 +338,8 @@ public class AuditManager implements PwmService {
         }
 
         final EmailItemBean emailItem = new EmailItemBean(toAddress, fromAddress, subject, body.toString(), null);
-        pwmApplication.getEmailQueue().submitEmail(emailItem, null, null);
+        final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication);
+        pwmApplication.getEmailQueue().submitEmail(emailItem, null, macroMachine);
     }
 
     public int vaultSize() {
@@ -352,7 +361,7 @@ public class AuditManager implements PwmService {
             throws PwmUnrecoverableException
     {
 
-        final String gsonRecord = JsonUtil.getGson().toJson(auditRecord);
+        final String gsonRecord = JsonUtil.serialize(auditRecord);
 
         if (status != STATUS.OPEN) {
             LOGGER.warn("discarding audit event (AuditManager is not open); event=" + gsonRecord);
@@ -396,27 +405,31 @@ public class AuditManager implements PwmService {
     }
 
 
-    public int outpuVaultToCsv(final Writer writer, final boolean includeHeader)
+    public int outpuVaultToCsv(final Writer writer, final Locale locale, final boolean includeHeader)
             throws IOException
     {
-        CsvWriter csvWriter = new CsvWriter(writer,',');
-        csvWriter.writeComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
-        csvWriter.writeComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
+        final Configuration config = null;
+
+        final CSVPrinter csvPrinter = new CSVPrinter(new BufferedWriter(writer), PwmConstants.DEFAULT_CSV_FORMAT);
+
+        csvPrinter.printComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
+        csvPrinter.printComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
             headers.add("Type");
-            headers.add("Event");
-            headers.add("Timestamp");
-            headers.add("Message");
-            headers.add("Instance");
-            headers.add("Perpetrator ID");
-            headers.add("Perpetrator DN");
-            headers.add("Target ID");
-            headers.add("Target DN");
-            headers.add("Source Address");
-            headers.add("Source Hostname");
-            csvWriter.writeRecord(headers.toArray(new String[headers.size()]));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_EventCode",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Timestamp",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Message",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Instance",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_PerpetratorID",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_PerpetratorDN",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_TargetID",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_TargetDN",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_SourceAddress",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_SourceHost",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_GUID",config,password.pwm.i18n.Admin.class));
+            csvPrinter.printRecords(headers);
         }
 
         int counter = 0;
@@ -440,9 +453,9 @@ public class AuditManager implements PwmService {
                 lineOutput.add(((UserAuditRecord)loopRecord).getSourceAddress());
                 lineOutput.add(((UserAuditRecord)loopRecord).getSourceHost());
             }
-            csvWriter.writeRecord(lineOutput.toArray(new String[lineOutput.size()]));
+            csvPrinter.printRecords(lineOutput);
         }
-        writer.flush();
+        csvPrinter.flush();
 
         return counter;
     }

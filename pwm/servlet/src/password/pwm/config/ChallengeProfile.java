@@ -31,13 +31,13 @@ import password.pwm.PwmConstants;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.cr.ChallengeItemBean;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
 import java.util.*;
 
 public class ChallengeProfile extends AbstractProfile implements Profile, Serializable {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ChallengeProfile.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ChallengeProfile.class);
 
     private final String profileID;
     private final Locale locale;

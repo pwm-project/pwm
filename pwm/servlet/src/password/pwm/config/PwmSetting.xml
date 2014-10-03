@@ -28,11 +28,10 @@
 <settings>
     <setting key="pwm.selfURL" level="0">
         <label>Site URL</label>
-        <description><![CDATA[The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.  <br/><br/>If blank, the system will attempt to auto-detect the URL, however some network configuration prevent accurately determining the URL and thus this setting will need to be configured.<br/><br/>Example: <b>http://www.example.com/password</b>.  The site URL must use a valid fully qualified hostname and can not use a network address.]]></description>
+        <description><![CDATA[The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.  Example: <b>http://www.example.com/password</b>.  The site URL must use a valid fully qualified hostname.  Do not use a network address.]]></description>
         <regex>^(http|https)://.+$</regex>
-        <placeholder>http://www.example.com/password</placeholder>
         <default>
-            <value />
+            <value>http://www.example.com/password</value>
         </default>
     </setting>
     <setting key="pwm.versionCheck.enable" level="0" required="true">
@@ -135,7 +134,7 @@
             <value><![CDATA[pwm]]></value>
         </default>
         <options>
-            <option value="default">Default</option>
+            <option value="basic">Basic</option>
             <option value="pwm">PWM</option>
             <option value="autumn">Autumn</option>
             <option value="blue">Blue</option>
@@ -438,7 +437,7 @@
     </setting>
     <setting key="changePassword.writeAttributes" level="0">
         <label>Post Password Change Actions</label>
-        <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  Macros can be used within the action and will be expanded based on the loged in user.]]></description>
+        <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  Macros can be used within the action and will be expanded based on the logged in user.]]></description>
         <default />
     </setting>
     <setting key="ldap.profile.list" level="0" hidden="true">
@@ -1478,6 +1477,20 @@
         <label>reCAPTCHA Private Key</label>
         <description><![CDATA[Private reCAPTCHA key.  If blank no captcha verification will be performed.]]></description>
     </setting>
+    <setting key="captcha.protectedPages" level="0">
+        <label>CAPTCHA Protected Pages</label>
+        <description><![CDATA[Pages protected by CAPTCHA.]]></description>
+        <default>
+            <value>NEW_USER_REGISTRATION</value>
+        </default>
+        <options>
+            <option value="LOGIN">Login Form</option>
+            <option value="FORGOTTEN_PASSWORD">Forgotten Password</option>
+            <option value="FORGOTTEN_USERNAME">Forgotten Username</option>
+            <option value="USER_ACTIVATION">User Activation</option>
+            <option value="NEW_USER_REGISTRATION">New User Registration</option>
+        </options>
+    </setting>
     <setting key="captcha.skip.param" level="1">
         <label>Captcha Skip Parameter Value</label>
         <description><![CDATA[Allows for skipping the captcha request if a known parameter is passed as a request parameter with a key of "skipCaptcha".   This is useful for "internal" clients / links where the captcha is unneccessary.<br/><br/>For example, if the value is 'okay', a request to:<br/><br/><i>/public/ForgottenPassword?skipCaptcha=okay</i><br/><br/>would cause captcha to be bypassed.]]></description>
@@ -1733,7 +1746,12 @@
         <default>
             <value/>
         </default>
-        <regex>^(udp|tcp|sslTcp)\,.+\,[0-9]*$</regex>
+        <regex>^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
+    </setting>
+    <setting key="audit.syslog.certificates" level="0" required="false">
+        <label>Syslog Audit Certificates</label>
+        <description><![CDATA[]]></description>
+        <default/>
     </setting>
     <setting key="token.storageMethod" level="0" required="true">
         <label>Token Storage Method</label>
@@ -1788,8 +1806,13 @@
         <label>Force Setup of One Time Passwords</label>
         <description><![CDATA[If true and one time passwords are enabled, the user will be directed to configure a one time password secret when logging in.  The user is forced to configure one time password if they do not have a current valid secret stored.]]></description>
         <default>
-            <value>false</value>
+            <value><![CDATA[SKIP]]></value>
         </default>
+        <options>
+            <option value="FORCE">Force Setup</option>
+            <option value="FORCE_ALLOW_SKIP">Force Setup - but allow user to skip</option>
+            <option value="SKIP">Do not force setup</option>
+        </options>
     </setting>
     <setting key="otp.secret.readPreference" level="0" required="true">
         <label>OTP Secret Read Location</label>
@@ -2196,16 +2219,19 @@
         <label>Forgotten Password User Search Form</label>
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
         <default>
-            <value>{"name":"mail","minimumLength":1,"maximumLength":64,"type":"email","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Email Address"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="recovery.searchFilter" level="0" required="true">
+    <setting key="recovery.searchFilter" level="1">
         <label>Forgotten Password User Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotten Password User Search Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotten Password User Search Form included the attributes <i>mail</i> and <i>sn</i>, then the filter <b>(&(objectClass=person)(mail=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
-        <default>
-            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
-        </default>
+        <description><![CDATA[LDAP search filter used to search for users during forgotten password recovery. &nbsp;The LDAP search filter should include each attribute in the <i>Forgotten Password User Search Form</i>.  Tokens made of a form item name (such as <code>cn</code>) enclosed with a percent sign <code>%cn%</code> will be replaced with values supplied by the user.<br><br>For example, if the <i>Activate User Form</i> included the attributes <code>cn</code> and <code>sn</code>, then this filter may be appropriate:<br><br><code>(&amp;(objectClass=person)(cn=%cn%)(sn=%sn%))</code><br><br>If this setting is left blank, a search filter based on the required items in the <i>Forgotten Password User Search Form</i> will be automatically generated.]]></description>
+        <default/>
     </setting>
     <setting key="recovery.response.readPreference" level="0" required="true">
         <label>Response Read Location</label>
@@ -2285,6 +2311,21 @@
         <description><![CDATA[Required LDAP attributes for forgotten password authentication.  These attributes will be required to be supplied by the user as part of the forgotten password autentication process.   The LDAP Proxy User will require LDAP <i>compare</i> permission to these attributes.]]></description>
         <default />
     </setting>
+    <setting key="recovery.availableMethods" level="2">
+        <label>Available User Identification Methods</label>
+        <description>Available User Identification Methods</description>
+        <default>
+            <value>CHALLENGE_RESPONSES</value>
+            <value>VALUE</value>
+        </default>
+        <options>
+            <option value="TOKEN">Send Email or SMS token</option>
+            <option value="OTP">Google Authentication</option>
+            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
+            <option value="ATTRIBUTES">LDAP Attributes</option>
+            <option value="REMOTE_RESPONSES">Remote web service responses</option>
+        </options>
+    </setting>
     <setting key="challenge.requireResponses" level="0">
         <label>Require Responses</label>
         <description><![CDATA[If enabled, the user will need to supply previously saved responses in order to proceed with forgotten password recovery.]]></description>
@@ -2313,8 +2354,6 @@
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
             <option value="CHOICE_SMS_EMAIL">User Choice - User decides if both SMS and email address is available, or auto send if only one is available.</option>
-
-
         </options>
     </setting>
     <setting key="recovery.require.otp" level="0" required="true" hidden="false">
@@ -2379,12 +2418,10 @@
             <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="forgottenUsername.searchFilter" level="0" required="true">
+    <setting key="forgottenUsername.searchFilter" level="1">
         <label>Forgotten Username Search Filter</label>
-        <description><![CDATA[Search filter used to find username.  Each attribute configured in the Forgotten Username Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Forgotton Username Form included the attributes "mail" and "sn", then the filter <b>(&(objectClass=person)(cn=%mail%)(sn=%sn%))</b> may be appropriate.]]></description>
-        <default>
-            <value><![CDATA[(&(objectClass=person)(mail=%mail%)(sn=%sn%))]]></value>
-        </default>
+        <description><![CDATA[LDAP search filter used to search for users during forgotten username recovery. &nbsp;The LDAP search filter should include each attribute in the <i>Forgotten Username Form</i>.  Tokens made of a form item name (such as <code>cn</code>) enclosed with a percent sign <code>%cn%</code> will be replaced with values supplied by the user.<br><br>For example, if the <i>Forgotten Username Form</i> included the attributes <code>cn</code> and <code>sn</code>, then this filter may be appropriate:<br><br><code>(&amp;(objectClass=person)(cn=%cn%)(sn=%sn%))</code><br><br>If this setting is left blank, a search filter based on the required items in the <i>Forgotten Username Form</i> will be automatically generated.]]></description>
+        <default/>
     </setting>
     <setting key="forgottenUsername.usernameAttribute" level="0" required="true">
         <label>Username LDAP Attribute</label>
@@ -2624,16 +2661,19 @@
         <label>Activate User Form</label>
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
         <default>
-            <value>{"name":"cn","minimumLength":2,"maximumLength":32,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
-            <value>{"name":"sn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Last Name"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+            <value>{"name":"cn","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="AD">
+            <value>{"name":"sAMAccountName","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>{"name":"uid","minimumLength":1,"maximumLength":64,"type":"text","required":true,"confirmationRequired":false,"readonly":false,"labels":{"":"Username"},"regexErrors":{"":""},"description":{"":""},"selectOptions":{}}</value>
         </default>
     </setting>
-    <setting key="activateUser.searchFilter" level="0" required="true">
+    <setting key="activateUser.searchFilter" level="1" required="false">
         <label>Activation Search Filter</label>
-        <description><![CDATA[Search filter used to find user during user activation.  Each attribute configured in the Activate User Form should be included in the search filter.  Strings encoded with a percent sign (%) will be replaced with values supplied by the user.<br/><br/>For example, if the Activate User Form included the attributes "cn" and "sn", then the filter <b>(&(objectClass=person)(cn=%cn%)(sn=%sn%))</b> may be appropriate.<br/><br/>Any attributes that are listed in the form but are not used in the search filter will tested by attempting an ldap compare with the user supplied value.]]></description>
-        <default>
-            <value><![CDATA[(&(objectClass=person)(cn=%cn%))]]></value>
-        </default>
+        <description><![CDATA[LDAP search filter used to search for users during user activation. &nbsp;The LDAP search filter should include each attribute in the <i>Activate User Form</i>.  Tokens made of a form item name (such as <code>cn</code>) enclosed with a percent sign <code>%cn%</code> will be replaced with values supplied by the user.<br><br>For example, if the <i>Activate User Form</i> included the attributes <code>cn</code> and <code>sn</code>, then this filter may be appropriate:<br><br><code>(&amp;(objectClass=person)(cn=%cn%)(sn=%sn%))</code><br><br>Any attributes that are listed in the form but are not used in the search filter will tested by performing an LDAP compare operation with the user supplied value.<br><br>If this setting is left blank, a search filter based on the required items in the <i>Activate User Search Form</i> will be automatically generated.]]></description>
+        <default/>
     </setting>
     <setting key="activateUser.queryMatch" level="0" required="true">
         <label>Activation Permission</label>
@@ -3347,13 +3387,6 @@
             <value>0</value>
         </default>
     </setting>
-    <setting key="externalJudgeMethod" level="0">
-        <label>External Judge Method</label>
-        <description><![CDATA[Java classes to call to determine the strength of a given password.  External judge methods must implement the interface <i>password.pwm.ExternalJudgeMethod</i>. During password judge checks, all listed classes will be invoked.  If multiple results are returned, the lowest returned value will be used as the result.]]></description>
-        <default>
-            <value><![CDATA[password.pwm.PwmPasswordJudge]]></value>
-        </default>
-    </setting>
     <setting key="http.proxy.url" level="0">
         <label>HTTP Proxy</label>
         <description><![CDATA[The url of the HTTP proxy server.  If blank, no proxy server will be used.<ul><li>For http proxy server, use "<i>http://serverame:3128</i>" format</li><li>For authenticated proxy server, use the "<i>http://username:password@servername:3128</i>" format</ul></li><br/>]]></description>
@@ -3694,9 +3727,10 @@
         <description><![CDATA[Attribute to request from the OAuth server to be used as the username for local authentication.  This value will then be resolved the same as if the user had typed the password at the local authentication page.]]></description>
         <default/>
     </setting>
-    <category key="LDAP_PROFILE">
-        <label>LDAP Directory Profiles</label>
+    <category key="LDAP_PROFILE" profiles="true">
+        <label>LDAP Directories</label>
         <description><![CDATA[Settings that control interaction with the LDAP directory.  Multiple directory profiles can be created to support multiple LDAP user stores.]]></description>
+        <profile setting="ldap.profile.list"/>
     </category>
     <category key="LDAP_GLOBAL">
         <label>LDAP Settings</label>
@@ -3713,6 +3747,7 @@
     <category key="PASSWORD_POLICY">
         <label>Password Policy Profiles</label>
         <description><![CDATA[Settings that define the LDAP directories that are used by the application.  If the user identities are in multiple LDAP directories, configure each directory as an LDAP Directory Profile.  Within each LDAP directory profile definition you can control the individual servers and other settings for each LDAP directory.]]></description>
+        <profile setting="password.profile.list"/>
     </category>
     <category key="PASSWORD_GLOBAL">
         <label>Password Settings</label>
@@ -3725,6 +3760,7 @@
     <category key="CHALLENGE_POLICY">
         <label>Challenge Profiles</label>
         <description><![CDATA[Define the challenge policy users will use for populating response answers.]]></description>
+        <profile setting="challenge.profile.list"/>
     </category>
     <category key="EMAIL">
         <label>Email</label>
@@ -3838,6 +3874,7 @@
     <category key="HELPDESK_PROFILE">
         <label>Helpdesk Profile</label>
         <description><![CDATA[Profile for administrative helpdesk.]]></description>
+        <profile setting="helpdesk.profile.list"/>
     </category>
     <template key="NOVL">
         <label>NetIQ eDirectory</label>

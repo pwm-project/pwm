@@ -26,13 +26,11 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.error.*;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
@@ -50,7 +48,7 @@ import java.util.HashSet;
 public abstract class PwmServlet extends HttpServlet {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmServlet.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmServlet.class);
 
     // -------------------------- OTHER METHODS --------------------------
     public void doGet(
@@ -209,7 +207,23 @@ public abstract class PwmServlet extends HttpServlet {
                 }
                 break;
 
+
+            case ERROR_PASSWORD_REQUIRED:
+                LOGGER.warn(
+                        "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
+                //store the original requested url
+                try {
+                    PwmRequest.forRequest(req, resp).markPreLoginUrl();
+                } catch (Throwable e1) {
+                    LOGGER.error("error while marking pre-login url:" + e1.getMessage());
+                }
+
+                LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
+                resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
+                return true;
+
             case ERROR_UNKNOWN:
+            default:
                 LOGGER.fatal(e.getErrorInformation().toDebugStr());
                 try { // try to update stats
                     if (pwmSession != null) {
@@ -219,26 +233,6 @@ public abstract class PwmServlet extends HttpServlet {
                     //noop
                 }
                 break;
-
-            case ERROR_PASSWORD_REQUIRED:
-                LOGGER.warn(
-                        "attempt to access functionality requiring password authentication, but password not yet supplied by actor, forwarding to password Login page");
-                //store the original requested url
-                final String originalRequestedUrl = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-                if (pwmSession != null && pwmSession.getSessionStateBean() != null) {
-                    pwmSession.getSessionStateBean().setOriginalRequestURL(originalRequestedUrl);
-                }
-
-                LOGGER.debug(pwmSession, "user is authenticated without a password, redirecting to login page");
-                resp.sendRedirect(req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN);
-                return true;
-
-            default:
-                String errorMsg = "error during page generation: " + e.getMessage();
-                try {
-                    errorMsg = ServletHelper.debugHttpRequest(pwmApplication, req, errorMsg);
-                } catch (Exception e2) { /* noop */ }
-                LOGGER.error(pwmSession, errorMsg);
         }
         return false;
     }
@@ -249,11 +243,7 @@ public abstract class PwmServlet extends HttpServlet {
     )
             throws IOException, ServletException
     {
-
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-        ssBean.setSessionError(e.getErrorInformation());
-        final String acceptHeader = pwmRequest.getHttpServletRequest().getHeader("Accept");
-        if (acceptHeader.contains("application/json")) {
+        if (pwmRequest.isJsonRequest()) {
             final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
             pwmRequest.outputJsonResult(restResultBean);
         } else {
@@ -286,16 +276,5 @@ public abstract class PwmServlet extends HttpServlet {
         methods.add(HttpMethod.GET);
         methods.add(HttpMethod.POST);
         GET_AND_POST_METHODS = Collections.unmodifiableSet(methods);
-    }
-
-    static boolean convertURLtokenCommand(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    )
-            throws IOException
-    {
-        return TopServlet.convertURLtokenCommand(req, resp, pwmApplication, pwmSession);
     }
 }

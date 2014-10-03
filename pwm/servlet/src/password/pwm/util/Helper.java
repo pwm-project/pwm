@@ -34,14 +34,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
-import password.pwm.ExternalChangeMethod;
-import password.pwm.ExternalJudgeMethod;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
@@ -53,19 +50,14 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.ConfigurationChecker;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.URI;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -80,59 +72,13 @@ public class
         Helper {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Helper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Helper.class);
 
     // -------------------------- STATIC METHODS --------------------------
 
     private Helper() {
     }
 
-
-    public static String md5sum(final String input)
-            throws IOException {
-        if (input == null || input.length() < 1) {
-            return null;
-        }
-        return md5sum(new ByteArrayInputStream(input.getBytes()));
-    }
-
-    public static String md5sum(final File theFile)
-            throws IOException {
-        return md5sum(new FileInputStream(theFile));
-    }
-
-    public static String md5sum(final InputStream is)
-            throws IOException {
-        return checksum(is, "MD5");
-    }
-
-    public static String checksum(final InputStream is, String algorithmName)
-            throws IOException {
-
-        final InputStream bis = is instanceof BufferedInputStream ? is : new BufferedInputStream(is);
-
-        final MessageDigest messageDigest;
-        try {
-            messageDigest = MessageDigest.getInstance(algorithmName);
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        }
-
-        final byte[] buffer = new byte[1024];
-        int length;
-        while (true) {
-            length = bis.read(buffer, 0, buffer.length);
-            if (length == -1) {
-                break;
-            }
-            messageDigest.update(buffer, 0, length);
-        }
-        bis.close();
-
-        final byte[] bytes = messageDigest.digest();
-
-        return byteArrayToHexString(bytes);
-    }
 
     /**
      * Convert a byte[] array to readable string format. This makes the "hex" readable
@@ -181,40 +127,6 @@ public class
         return System.currentTimeMillis() - startTime;
     }
 
-    public static List<Integer> invokeExternalJudgeMethods(
-            final Configuration config,
-            //final PwmSession pwmSession,
-            final String password)  {
-        final List<String> externalMethods = config.readSettingAsStringArray(PwmSetting.EXTERNAL_JUDGE_METHODS);
-        final List<Integer> returnList = new ArrayList<>();
-
-        // process any configured external change password methods configured.
-        for (final String classNameString : externalMethods) {
-            if (classNameString != null && classNameString.length() > 0) {
-                try {
-                    // load up the class and get an instance.
-                    final Class<?> theClass = Class.forName(classNameString);
-                    final ExternalJudgeMethod externalClass = (ExternalJudgeMethod) theClass.newInstance();
-
-                    // invoke the passwordChange method;
-                    final int result = externalClass.judgePassword(config, password);
-                    LOGGER.trace("externalJudgeMethod '" + classNameString + "' returned a value of " + result);
-                    returnList.add(result);
-                } catch (ClassCastException e) {
-                    LOGGER.error("configured external class " + classNameString + " is not an instance of " + ExternalChangeMethod.class.getName());
-                } catch (ClassNotFoundException e) {
-                    LOGGER.error("unable to load configured external class: " + classNameString + " " + e.getMessage() + "; perhaps the class is not in the classpath?");
-                } catch (IllegalAccessException e) {
-                    LOGGER.error("unable to load configured external class: " + classNameString + " " + e.getMessage());
-                } catch (InstantiationException e) {
-                    LOGGER.error("unable to load configured external class: " + classNameString + " " + e.getMessage());
-                }
-            }
-        }
-
-        return returnList;
-    }
-
     public static boolean testEmailAddress(final String address) {
         final Pattern pattern = Pattern.compile(PwmConstants.EMAIL_REGEX_MATCH);
         final Matcher matcher = pattern.matcher(address);
@@ -241,7 +153,7 @@ public class
             final Map<FormConfiguration,String> formValues,
             final boolean expandMacros
     )
-            throws ChaiUnavailableException, PwmOperationalException
+            throws ChaiUnavailableException, PwmOperationalException, PwmUnrecoverableException
     {
         final Map<String,String> tempMap = new HashMap<>();
 
@@ -250,8 +162,9 @@ public class
                 tempMap.put(formItem.getName(),formValues.get(formItem));
             }
         }
-        final UserDataReader userDataReader = new LdapUserDataReader(pwmSession.getUserInfoBean().getUserIdentity(), theUser);
-        writeMapToLdap(pwmApplication, theUser, tempMap, pwmSession.getUserInfoBean(), userDataReader, expandMacros);
+
+        final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+        writeMapToLdap(theUser, tempMap, macroMachine, expandMacros);
     }
 
     /**
@@ -266,11 +179,9 @@ public class
      * @throws PwmOperationalException if their is an unexpected ldap problem
      */
     public static void writeMapToLdap(
-            final PwmApplication pwmApplication,
             final ChaiUser theUser,
             final Map<String,String> valueMap,
-            final UserInfoBean userInfoBean,
-            final UserDataReader userDataReader,
+            final MacroMachine macroMachine,
             final boolean expandMacros
     )
             throws PwmOperationalException, ChaiUnavailableException
@@ -289,7 +200,6 @@ public class
         for (final String attrName : valueMap.keySet()) {
             String attrValue = valueMap.get(attrName) != null ? valueMap.get(attrName) : "";
             if (expandMacros) {
-                final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, userDataReader);
                 attrValue = macroMachine.expandMacros(attrValue);
             }
             if (!attrValue.equals(currentValues.get(attrName))) {
@@ -409,7 +319,7 @@ public class
         final BufferedReader reader = new BufferedReader(
                 charset == null ?
                         new InputStreamReader(new FileInputStream(filePath)) :
-                        new InputStreamReader(new FileInputStream(filePath), "UTF8"));
+                        new InputStreamReader(new FileInputStream(filePath), PwmConstants.DEFAULT_CHARSET));
 
         char[] buf = new char[1024];
         int numRead;
@@ -510,96 +420,6 @@ public class
         nextZuluMidnight.set(Calendar.SECOND, 0);
         nextZuluMidnight.add(Calendar.HOUR, 24);
         return nextZuluMidnight.getTime();
-    }
-
-    public static class SimpleTextCrypto {
-
-        public static String encryptValue(final String value, final SecretKey key)
-                throws PwmUnrecoverableException
-        {
-            return encryptValue(value, key, false);
-        }
-
-        public static String encryptValue(final String value, final SecretKey key, final boolean urlSafe)
-                throws PwmUnrecoverableException
-        {
-            try {
-                if (value == null || value.length() < 1) {
-                    return "";
-                }
-
-                final Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
-                final byte[] encrypted = cipher.doFinal(value.getBytes());
-                return urlSafe ?  Base64Util.encodeBytes(encrypted, Base64Util.URL_SAFE | Base64Util.GZIP) : Base64Util.encodeBytes(encrypted);
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error performing simple crypt operation: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                LOGGER.error(errorInformation.toDebugStr());
-                throw new PwmUnrecoverableException(errorInformation);
-            }
-        }
-
-        public static String decryptValue(final String value, final SecretKey key)
-                throws PwmUnrecoverableException
-        {
-            return decryptValue(value, key, false);
-        }
-
-        public static String decryptValue(final String value, final SecretKey key, final boolean urlSafe)
-                throws PwmUnrecoverableException
-        {
-            try {
-                if (value == null || value.length() < 1) {
-                    return "";
-                }
-
-                final byte[] decoded = urlSafe ? Base64Util.decode(value, Base64Util.URL_SAFE | Base64Util.GZIP): Base64Util.decode(value);
-                final Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.DECRYPT_MODE, key);
-                final byte[] decrypted = cipher.doFinal(decoded);
-                return new String(decrypted);
-            } catch (Exception e) {
-                final String errorMsg = "unexpected error performing simple decrypt operation: " + e.getMessage();
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);
-                throw new PwmUnrecoverableException(errorInformation);
-            }
-        }
-
-        public static SecretKey makeKey(final String text)
-                throws NoSuchAlgorithmException, UnsupportedEncodingException {
-            final MessageDigest md = MessageDigest.getInstance("SHA1");
-            md.update(text.getBytes("iso-8859-1"), 0, text.length());
-            final byte[] key = new byte[16];
-            System.arraycopy(md.digest(), 0, key, 0, 16);
-            return new SecretKeySpec(key, "AES");
-        }
-    }
-
-    public static String figureForwardURL(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req
-    ) {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        String redirectURL = ssBean.getForwardURL();
-        if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_FORWARD);
-        }
-
-        if (redirectURL == null || redirectURL.length() < 1) {
-            redirectURL = req.getContextPath();
-        }
-
-        return redirectURL;
-    }
-
-    public static String figureLogoutURL(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession
-    ) {
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-        return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
 
     public static int figureLdapConnectionCount(final PwmApplication pwmApplication, final ContextManager contextManager) {
@@ -732,17 +552,46 @@ public class
 
     public static void checkUrlAgainstWhitelist(
             final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
+            final SessionLabel sessionLabel,
             final String inputURL
     )
             throws PwmOperationalException
     {
-        LOGGER.trace(pwmSession, "beginning test of requested redirect URL: " + inputURL);
+        LOGGER.trace(sessionLabel, "beginning test of requested redirect URL: " + inputURL);
         if (inputURL == null || inputURL.isEmpty()) {
             return;
         }
 
-        final URI inputURI = URI.create(inputURL);
+        final URI inputURI;
+        try {
+            inputURI = URI.create(inputURL);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(sessionLabel, "unable to parse requested redirect url '" + inputURL + "', error: " + e.getMessage());
+            // dont put input uri in error response
+            final String errorMsg = "unable to parse url: " + e.getMessage();
+            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
+        }
+
+        { // check to make sure we werent handed a non-http uri.
+            final String scheme = inputURI.getScheme();
+            if (scheme != null && !scheme.isEmpty() && !scheme.equalsIgnoreCase("http") && !scheme.equals("https")) {
+                final String errorMsg = "unsupported url scheme";
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
+            }
+        }
+
+        if (inputURI.getHost() != null && !inputURI.getHost().isEmpty()) { // disallow localhost uri
+            try {
+                InetAddress inetAddress = InetAddress.getByName(inputURI.getHost());
+                if (inetAddress.isLoopbackAddress()) {
+                    final String errorMsg = "redirect to loopback host is not permitted";
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
+                }
+            } catch (UnknownHostException e) {
+                /* noop */
+            }
+        }
+
         final StringBuilder sb = new StringBuilder();
         if (inputURI.getScheme() != null) {
             sb.append(inputURI.getScheme());
@@ -760,7 +609,7 @@ public class
         }
 
         final String testURI = sb.toString();
-        LOGGER.trace(pwmSession, "will test parsed and decoded URL: " + testURI);
+        LOGGER.trace(sessionLabel, "will test parsed and decoded URL: " + testURI);
 
         final String REGEX_PREFIX = "regex:";
         final List<String> whiteList = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.SECURITY_REDIRECT_WHITELIST);
@@ -770,26 +619,44 @@ public class
                     final String strPattern = loopFragment.substring(REGEX_PREFIX.length(), loopFragment.length());
                     final Pattern pattern = Pattern.compile(strPattern);
                     if (pattern.matcher(testURI).matches()) {
-                        LOGGER.debug(pwmSession, "positive URL match for regex pattern: " + strPattern);
+                        LOGGER.debug(sessionLabel, "positive URL match for regex pattern: " + strPattern);
                         return;
                     } else {
-                        LOGGER.trace(pwmSession, "negative URL match for regex pattern: " + strPattern);
+                        LOGGER.trace(sessionLabel, "negative URL match for regex pattern: " + strPattern);
                     }
                 } catch (Exception e) {
-                    LOGGER.error(pwmSession, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage());;
+                    LOGGER.error(sessionLabel, "error while testing URL match for regex pattern: '" + loopFragment + "', error: " + e.getMessage());;
                 }
 
             } else {
                 if (testURI.startsWith(loopFragment)) {
-                    LOGGER.debug(pwmSession, "positive URL match for pattern: " + loopFragment);
+                    LOGGER.debug(sessionLabel, "positive URL match for pattern: " + loopFragment);
                     return;
                 } else {
-                    LOGGER.trace(pwmSession, "negative URL match for pattern: " + loopFragment);
+                    LOGGER.trace(sessionLabel, "negative URL match for pattern: " + loopFragment);
                 }
             }
         }
 
         final String errorMsg = testURI + " is not a match for any configured redirect whitelist, see setting: " + ConfigurationChecker.settingToOutputText(PwmSetting.SECURITY_REDIRECT_WHITELIST);
         throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_REDIRECT_ILLEGAL,errorMsg));
+    }
+
+    public static boolean determineIfDetailErrorMsgShown(final PwmApplication pwmApplication) {
+        if (pwmApplication == null) {
+            return false;
+        }
+        PwmApplication.MODE mode = pwmApplication.getApplicationMode();
+        if (mode == PwmApplication.MODE.CONFIGURATION) {
+            return true;
+        }
+        if (mode == PwmApplication.MODE.RUNNING) {
+            if (pwmApplication.getConfig() != null) {
+                if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

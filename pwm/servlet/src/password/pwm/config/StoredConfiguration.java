@@ -34,17 +34,15 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.ValueFactory;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.*;
+import password.pwm.error.*;
+import password.pwm.util.BCrypt;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -92,7 +90,7 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(StoredConfiguration.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(StoredConfiguration.class);
     private static final String XML_FORMAT_VERSION = "3";
 
     public static final String XML_ELEMENT_ROOT = "PwmConfiguration";
@@ -113,7 +111,7 @@ public class StoredConfiguration implements Serializable {
     public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
     public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
 
-    private String createTime;
+    public static final Charset STORAGE_CHARSET = Charset.forName("UTF8");
 
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
@@ -128,19 +126,19 @@ public class StoredConfiguration implements Serializable {
         return new StoredConfiguration();
     }
 
-    public static StoredConfiguration copy(final StoredConfiguration input)
-            throws PwmUnrecoverableException
-    {
-        try {
-            final String inputAsXML = input.toXml();
-            final InputStream inputStream = new ByteArrayInputStream(inputAsXML.getBytes(StandardCharsets.UTF_8));
-            return fromXml(inputStream);
-        } catch (IOException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected io error during configuration memory copy: " + e.getMessage()));
-        }
+    public static StoredConfiguration copy(final StoredConfiguration input) {
+        final StoredConfiguration copy = new StoredConfiguration();
+        copy.document = input.document.clone();
+        return copy;
     }
 
     public static StoredConfiguration fromXml(final InputStream xmlData)
+            throws PwmUnrecoverableException
+    {
+        return fromXml(new InputStreamReader(xmlData, STORAGE_CHARSET));
+    }
+
+    public static StoredConfiguration fromXml(final Reader xmlData)
             throws PwmUnrecoverableException
     {
         final Date startTime = new Date();
@@ -156,14 +154,8 @@ public class StoredConfiguration implements Serializable {
 
         final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
         try {
-            final Element rootElement = inputDocument.getRootElement();
             newConfiguration.document = inputDocument;
-            final String createTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_CREATE_TIME);
-            if (createTimeString == null) {
-                throw new IllegalArgumentException("missing createTime timestamp");
-            }
-            newConfiguration.createTime = createTimeString;
-
+            newConfiguration.createTime(); // verify create time;
             fixupMandatoryElements(inputDocument);
         } catch (Exception e) {
             final String errorMsg = "error reading configuration file format, error=" + e.getMessage();
@@ -185,7 +177,7 @@ public class StoredConfiguration implements Serializable {
      */
     private static void checkIfXmlRequiresUpdate(final StoredConfiguration storedConfiguration) {
         for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                 final StoredValue value = storedConfiguration.readSetting(setting);
                 if (value.requiresStoredUpdate()) {
                     storedConfiguration.writeSetting(setting, value, null);
@@ -193,8 +185,8 @@ public class StoredConfiguration implements Serializable {
             }
         }
 
-        for (final PwmSetting.Category category : PwmSetting.Category.values()) {
-            if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            if (category.hasProfiles()) {
                 for (final String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
                     for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                         final StoredValue value = storedConfiguration.readSetting(profileSetting, profileID);
@@ -226,7 +218,7 @@ public class StoredConfiguration implements Serializable {
     public StoredConfiguration()
     {
         fixupMandatoryElements(document);
-        createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+        final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
     }
 
@@ -382,9 +374,12 @@ public class StoredConfiguration implements Serializable {
         domModifyLock.readLock().lock();
         try {
             final StoredValue currentValue = readSetting(setting, profileID);
+            if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
+                return currentValue == null || currentValue.toNativeObject() == null;
+            }
             final StoredValue defaultValue = defaultValue(setting, this.getTemplate());
-            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue.toNativeObject());
-            final String defaultJsonValue = JsonUtil.getGson().toJson(defaultValue.toNativeObject());
+            final String currentJsonValue = JsonUtil.serialize((Serializable)currentValue.toNativeObject());
+            final String defaultJsonValue = JsonUtil.serialize((Serializable)defaultValue.toNativeObject());
             return defaultJsonValue.equalsIgnoreCase(currentJsonValue);
         } finally {
             domModifyLock.readLock().unlock();
@@ -395,7 +390,7 @@ public class StoredConfiguration implements Serializable {
     {
         try {
             return pwmSetting.getDefaultValue(template);
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             final String errorMsg = "error reading default value for setting " + pwmSetting.toString() + ", error: " + e.getErrorInformation().toDebugStr();
             LOGGER.error(errorMsg,e);
             throw new IllegalStateException(errorMsg);
@@ -432,7 +427,7 @@ public class StoredConfiguration implements Serializable {
             final TreeMap<String,Object> outputObject = new TreeMap<>();
 
             for (final PwmSetting setting : PwmSetting.values()) {
-                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                     if (!isDefaultValue(setting,null)) {
                         final StoredValue value = readSetting(setting);
                         outputObject.put(setting.getKey(), value.toDebugString(false, null));
@@ -440,8 +435,8 @@ public class StoredConfiguration implements Serializable {
                 }
             }
 
-            for (final PwmSetting.Category category : PwmSetting.Category.values()) {
-                if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+            for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+                if (category.hasProfiles()) {
                     final TreeMap<String,Object> profiles = new TreeMap<>();
                     for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
                         final TreeMap<String,String> profileObject = new TreeMap<>();
@@ -469,22 +464,21 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String toXml()
+    public void toXml(final Writer outputWriter)
             throws IOException, PwmUnrecoverableException
     {
         fixupMandatoryElements(document);
 
         final Format format = Format.getPrettyFormat();
-        format.setEncoding("UTF-8");
+        format.setEncoding(STORAGE_CHARSET.toString());
         final XMLOutputter outputter = new XMLOutputter();
         outputter.setFormat(format);
-        final String outputString = outputter.outputString(document);
-        validateXmlSchema(outputString);
-        return outputString;
+
+        outputter.output(document, outputWriter);
     }
 
     public List<String> profilesForSetting(final PwmSetting pwmSetting) {
-        if (pwmSetting.getCategory().getType() != PwmSetting.Category.Type.PROFILE && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
+        if (!pwmSetting.getCategory().hasProfiles() && pwmSetting.getSyntax() != PwmSettingSyntax.PROFILE) {
             throw new IllegalArgumentException("cannot build profile list for non-profile setting " + pwmSetting.toString());
         }
 
@@ -518,7 +512,7 @@ public class StoredConfiguration implements Serializable {
             errorPrefix.append("-");
             errorPrefix.append(loopSetting.getLabel(PwmConstants.DEFAULT_LOCALE));
 
-            if (loopSetting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
+            if (loopSetting.getCategory().hasProfiles()) {
                 errorPrefix.append("-");
                 for (final String profile : profilesForSetting(loopSetting)) {
                     final String errorAppend = "".equals(profile) ? "Default" : profile;
@@ -590,7 +584,7 @@ public class StoredConfiguration implements Serializable {
         for (final String searchWord : searchTerm.split(" ")) {
             final LinkedHashSet<ConfigRecordID> loopResults = new LinkedHashSet<>();
             for (final PwmSetting loopSetting : PwmSetting.values()) {
-                if (loopSetting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
+                if (loopSetting.getCategory().hasProfiles()) {
                     for (final String profile : profilesForSetting(loopSetting)) {
                         final StoredValue loopValue = readSetting(loopSetting, profile);
                         if (matchSetting(loopSetting,loopValue,searchWord,locale)) {
@@ -645,7 +639,7 @@ public class StoredConfiguration implements Serializable {
 
 
     public StoredValue readSetting(final PwmSetting setting) {
-        if (setting.getCategory().getType() == PwmSetting.Category.Type.PROFILE) {
+        if (setting.getCategory().hasProfiles()) {
             throw new IllegalStateException("cannot read setting key " + setting.getKey() + " as non-group setting");
         }
 
@@ -668,7 +662,7 @@ public class StoredConfiguration implements Serializable {
 
             try {
                 return ValueFactory.fromXmlValues(setting, settingElement, getKey());
-            } catch (PwmOperationalException e) {
+            } catch (PwmException e) {
                 final String errorMsg = "unexpected error reading setting '" + setting.getKey() + "' profile '" + profileID + "', error: " + e.getMessage();
                 throw new IllegalStateException(errorMsg);
             }
@@ -742,7 +736,7 @@ public class StoredConfiguration implements Serializable {
     ) {
         final Class correctClass = setting.getSyntax().getStoredValueImpl();
 
-        if (profileID != null && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+        if (profileID != null && !setting.getCategory().hasProfiles()) {
             throw new IllegalArgumentException("cannot specify profile for non-profile setting");
         }
 
@@ -780,42 +774,41 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String settingChecksum() throws IOException {
+    public String settingChecksum() throws PwmUnrecoverableException {
         final StringBuilder sb = new StringBuilder();
         sb.append("PwmSettingsChecksum");
 
         for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+            if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                 if (!isDefaultValue(setting,null)) {
                     final StoredValue value = readSetting(setting);
-                    sb.append(setting.getKey()).append(JsonUtil.getGson().toJson(value));
+                    sb.append(setting.getKey()).append(JsonUtil.serialize(value));
                 }
             }
         }
 
-        for (final PwmSetting.Category category : PwmSetting.Category.values()) {
-            if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+        for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+            if (category.hasProfiles()) {
                 for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
                     for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
                         if (!isDefaultValue(profileSetting, profileID)) {
                             final StoredValue value = readSetting(profileSetting, profileID);
-                            sb.append(profileSetting.getKey()).append(profileID).append(JsonUtil.getGson().toJson(value));
+                            sb.append(profileSetting.getKey()).append(profileID).append(JsonUtil.serialize(value));
                         }
                     }
                 }
             }
         }
 
-        sb.append(createTime);
+        sb.append(createTime());
 
-        final InputStream is = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
-        return Helper.md5sum(is);
+        return SecureHelper.md5sum(sb.toString());
     }
 
 
     private void preModifyActions() {
         if (locked) {
-            throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modifed");
+            throw new UnsupportedOperationException("StoredConfiguration is locked and cannot be modified");
         }
         document.getRootElement().setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
     }
@@ -1041,7 +1034,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     public String getKey() {
-        return createTime + StoredConfiguration.class.getSimpleName();
+        return createTime() + StoredConfiguration.class.getSimpleName();
     }
 
     public boolean isModified() {
@@ -1127,16 +1120,16 @@ public class StoredConfiguration implements Serializable {
         public void updateChangeLog(final String bundleName, final String keyName, final Map<String,String> localeValueMap) {
             final String key = bundleName + "!" + keyName;
             final Map<String,String> currentValue = readLocaleBundleMap(bundleName, keyName);
-            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue);
-            final String newJsonValue = JsonUtil.getGson().toJson(localeValueMap);
+            final String currentJsonValue = JsonUtil.serializeMap(currentValue);
+            final String newJsonValue = JsonUtil.serializeMap(localeValueMap);
             final ConfigRecordID configRecordID = new ConfigRecordID(ConfigRecordID.RecordType.LOCALE_BUNDLE, key, null);
             updateChangeLog(configRecordID,currentJsonValue,newJsonValue);
         }
 
         public void updateChangeLog(final PwmSetting setting, final String profileID, final StoredValue newValue) {
             final StoredValue currentValue = readSetting(setting, profileID);
-            final String currentJsonValue = JsonUtil.getGson().toJson(currentValue);
-            final String newJsonValue = JsonUtil.getGson().toJson(newValue);
+            final String currentJsonValue = JsonUtil.serialize(currentValue);
+            final String newJsonValue = JsonUtil.serialize(newValue);
             final ConfigRecordID configRecordID = new ConfigRecordID(ConfigRecordID.RecordType.SETTING, setting, profileID);
             updateChangeLog(configRecordID,currentJsonValue,newJsonValue);
         }
@@ -1252,7 +1245,7 @@ public class StoredConfiguration implements Serializable {
 
         public StoredValueIterator(boolean includeDefaults) {
             for (final PwmSetting setting : PwmSetting.values()) {
-                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && setting.getCategory().getType() != PwmSetting.Category.Type.PROFILE) {
+                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
                     if (includeDefaults || !isDefaultValue(setting)) {
                         SettingValueRecord settingValueRecord = new SettingValueRecord(setting, null, null);
                         settingQueue.add(settingValueRecord);
@@ -1260,8 +1253,8 @@ public class StoredConfiguration implements Serializable {
                 }
             }
 
-            for (final PwmSetting.Category category : PwmSetting.Category.values()) {
-                if (category.getType() == PwmSetting.Category.Type.PROFILE) {
+            for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+                if (category.hasProfiles()) {
                     for (final String profileID : profilesForSetting(category.getProfileSetting())) {
                         for (final PwmSetting setting : PwmSetting.getSettings(category)) {
                             if (includeDefaults || !isDefaultValue(setting,profileID)) {
@@ -1297,5 +1290,14 @@ public class StoredConfiguration implements Serializable {
         {
 
         }
+    }
+
+    private String createTime() {
+        final Element rootElement = document.getRootElement();
+        final String createTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_CREATE_TIME);
+        if (createTimeString == null || createTimeString.isEmpty()) {
+            throw new IllegalStateException("missing createTime timestamp");
+        }
+        return createTimeString;
     }
 }

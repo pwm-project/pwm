@@ -22,27 +22,18 @@
 
 package password.pwm;
 
-import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiOperationException;
-import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.util.SearchHelper;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.*;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.cache.CacheService;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.List;
 
 /**
  * Static utility class for validating parameters, passwords and user input.
@@ -52,9 +43,7 @@ import java.util.*;
 public class Validator {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Validator.class);
-
-    final private static String NEGATIVE_CACHE_HIT = "NEGATIVE_CACHE_HIT";
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Validator.class);
 
     public static final String PARAM_CONFIRM_SUFFIX = "_confirm";
 
@@ -62,109 +51,6 @@ public class Validator {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static int readIntegerFromRequest(
-            final HttpServletRequest req,
-            final String paramName,
-            final int defaultValue
-    ) {
-        if (req == null) {
-            return defaultValue;
-        }
-
-        final String theString = req.getParameter(paramName);
-
-        try {
-            return Integer.valueOf(theString);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    public static boolean readBooleanFromRequest(
-            final HttpServletRequest req,
-            final String value
-    ) {
-        if (req == null) {
-            return false;
-        }
-
-        final String theString = req.getParameter(value);
-
-        return theString != null && (theString.equalsIgnoreCase("true") ||
-                theString.equalsIgnoreCase("1") ||
-                theString.equalsIgnoreCase("yes") ||
-                theString.equalsIgnoreCase("y"));
-
-    }
-
-    public static Map<FormConfiguration, String> readFormValuesFromRequest(
-            final HttpServletRequest req,
-            final Collection<FormConfiguration> formItems,
-            final Locale locale
-    )
-            throws PwmDataValidationException, PwmUnrecoverableException
-    {
-        final Map<String,String> tempMap = readRequestParametersAsMap(req);
-        return readFormValuesFromMap(tempMap, formItems, locale);
-    }
-
-
-    public static Map<FormConfiguration, String> readFormValuesFromMap(
-            final Map<String,String> inputMap,
-            final Collection<FormConfiguration> formItems,
-            final Locale locale
-    )
-            throws PwmDataValidationException, PwmUnrecoverableException {
-        if (formItems == null || formItems.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        final Map<FormConfiguration, String> returnMap = new LinkedHashMap<>();
-
-        if (inputMap == null) {
-            return returnMap;
-        }
-
-        for (final FormConfiguration formItem : formItems) {
-            final String keyName = formItem.getName();
-            final String value = inputMap.get(keyName);
-
-            if (formItem.isRequired()) {
-                if (value == null || value.length() < 0) {
-                    final String errorMsg = "missing required value for field '" + formItem.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, errorMsg, new String[]{formItem.getLabel(locale)});
-                    throw new PwmDataValidationException(error);
-                }
-            }
-
-            if (formItem.isConfirmationRequired()) {
-                final String confirmValue = inputMap.get(keyName + PARAM_CONFIRM_SUFFIX);
-                if (!confirmValue.equals(value)) {
-                    final String errorMsg = "incorrect confirmation value for field '" + formItem.getName() + "'";
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_BAD_CONFIRM, errorMsg, new String[]{formItem.getLabel(locale)});
-                    throw new PwmDataValidationException(error);
-                }
-            }
-            if (value != null && !formItem.isReadonly()) {
-                returnMap.put(formItem,value);
-            }
-        }
-
-        return returnMap;
-    }
-
-    public static String readStringFromRequest(
-            final HttpServletRequest req,
-            final String value
-    ) throws PwmUnrecoverableException {
-        final int maxLength = Integer.parseInt(ContextManager.getPwmApplication(req).getConfig().readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
-        final Set<String> results = readStringsFromRequest(req, value, maxLength);
-        if (results == null || results.isEmpty()) {
-            return "";
-        }
-
-        return results.iterator().next();
-    }
 
     public static void validatePwmFormID(final HttpServletRequest req)
             throws PwmUnrecoverableException
@@ -217,88 +103,20 @@ public class Validator {
         }
     }
 
-    public static String readStringFromRequest(
-            final HttpServletRequest req,
-            final String value,
-            final int maxLength,
-            final String defaultValue
-    ) throws PwmUnrecoverableException {
 
-        final String result = readStringFromRequest(req, value, maxLength);
-        if (result == null || result.length() < 1) {
-            return defaultValue;
-        }
 
-        return result;
+    public static String sanitizeInputValue(
+            final Configuration config,
+            final String input
+    ) {
+        return sanitizeInputValue(config, input, 10 *1024);
     }
 
-    public static String readStringFromRequest(
-            final HttpServletRequest req,
-            final String value,
-            final String defaultValue
-    ) throws PwmUnrecoverableException {
-
-        final int maxLength = Integer.parseInt(ContextManager.getPwmApplication(req).getConfig().readAppProperty(AppProperty.HTTP_PARAM_MAX_READ_LENGTH));
-        final String result = readStringFromRequest(req, value, maxLength);
-        if (result == null || result.length() < 1) {
-            return defaultValue;
-        }
-
-        return result;
-    }
-
-    public static String readStringFromRequest(
-            final HttpServletRequest req,
-            final String value,
-            final int maxLength
-    ) throws PwmUnrecoverableException {
-        final Set<String> results = readStringsFromRequest(req, value, maxLength);
-        if (results == null || results.isEmpty()) {
-            return "";
-        }
-
-        return results.iterator().next();
-    }
-
-    public static Set<String> readStringsFromRequest(
-            final HttpServletRequest req,
-            final String value,
-            final int maxLength
-    ) throws PwmUnrecoverableException {
-        if (req == null) {
-            return Collections.emptySet();
-        }
-
-        if (req.getParameter(value) == null) {
-            return Collections.emptySet();
-        }
-
-        final PwmApplication theManager = ContextManager.getPwmApplication(req);
-
-        final String theStrings[] = req.getParameterValues(value);
-        final Set<String> resultSet = new HashSet<>();
-
-        for (String theString : theStrings) {
-            if (req.getCharacterEncoding() == null) {
-                try {
-                    final byte[] stringBytesISO = theString.getBytes("ISO-8859-1");
-                    theString = new String(stringBytesISO, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    LOGGER.warn("suspicious input: error attempting to decode request: " + e.getMessage());
-                }
-            }
-
-            final String sanatizedValue = sanatizeInputValue(theManager.getConfig(), theString, maxLength);
-
-            if (sanatizedValue.length() > 0) {
-                resultSet.add(sanatizedValue);
-            }
-        }
-
-        return resultSet;
-    }
-
-    public static String sanatizeInputValue(final Configuration config, final String input, int maxLength) {
+    public static String sanitizeInputValue(
+            final Configuration config,
+            final String input,
+            int maxLength
+    ) {
 
         String theString = input == null ? "" : input.trim();
 
@@ -326,171 +144,6 @@ public class Validator {
         return theString;
     }
 
-    /**
-     * Validates each of the parameters in the supplied map against the vales in the embedded config
-     * and checks to make sure the ParamConfig value meets the requiremetns of the ParamConfig itself.
-     *
-     *
-     * @param formValues - a Map containing String keys of parameter names and ParamConfigs as values
-     * @throws password.pwm.error.PwmDataValidationException - If there is a problem with any of the fields
-     * @throws com.novell.ldapchai.exception.ChaiUnavailableException
-     *                             if ldap server becomes unavailable
-     * @throws password.pwm.error.PwmUnrecoverableException
-     *                             if an unexpected error occurs
-     */
-    public static void validateParmValuesMeetRequirements(
-            final Map<FormConfiguration, String> formValues, final Locale locale
-    )
-            throws PwmUnrecoverableException, ChaiUnavailableException, PwmDataValidationException
-    {
-        for (final FormConfiguration formItem : formValues.keySet()) {
-            final String value = formValues.get(formItem);
-            formItem.checkValue(value,locale);
-        }
-    }
 
-
-    public static void validateAttributeUniqueness(
-            final PwmApplication pwmApplication,
-            final Map<FormConfiguration,String> formValues,
-            final Locale locale,
-            final Collection<UserIdentity> excludeDN
-    )
-            throws PwmDataValidationException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException
-    {
-        final Map<String, String> filterClauses = new HashMap<>();
-        final Map<String,String> labelMap = new HashMap<>();
-        final List<String> uniqueAttributes = new ArrayList();
-        for (final FormConfiguration formItem : formValues.keySet()) {
-            if (formItem.isUnique() && !formItem.isReadonly()) {
-                if (formItem.getType() != FormConfiguration.Type.hidden) {
-                    uniqueAttributes.add(formItem.getName());
-                    final String value = formValues.get(formItem);
-                    if (value != null && value.length() > 0) {
-                        filterClauses.put(formItem.getName(), value);
-                        labelMap.put(formItem.getName(), formItem.getLabel(locale));
-                    }
-                }
-            }
-        }
-
-        if (filterClauses.isEmpty()) { // nothing to search
-            return;
-        }
-
-        final StringBuilder filter = new StringBuilder();
-        {
-            filter.append("(&"); // outer;
-
-            // object classes;
-            filter.append("(|");
-            for (final String objectClass : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.DEFAULT_OBJECT_CLASSES)) {
-                filter.append("(objectClass=").append(objectClass).append(")");
-            }
-            filter.append(")");
-
-            // attributes
-            filter.append("(|");
-            for (final String name : filterClauses.keySet()) {
-                final String value = filterClauses.get(name);
-                filter.append("(").append(name).append("=").append(UserSearchEngine.escapeLdapString(value)).append(")");
-            }
-            filter.append(")");
-
-            filter.append(")");
-        }
-
-        final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheService.CacheKey cacheKey = CacheService.CacheKey.makeCacheKey(
-                Validator.class, null, "attr_unique_check_" + filter.toString()
-        );
-        if (cacheService != null) {
-            final String cacheValue = cacheService.get(cacheKey);
-            if (cacheValue != null) {
-                if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
-                    return;
-                } else {
-                    final ErrorInformation errorInformation = JsonUtil.getGson().fromJson(cacheValue,ErrorInformation.class);
-                    throw new PwmDataValidationException(errorInformation);
-                }
-            }
-        }
-
-        final SearchHelper searchHelper = new SearchHelper();
-        searchHelper.setFilterAnd(filterClauses);
-
-        final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();
-        searchConfiguration.setFilter(filter.toString());
-
-        int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
-        final CacheService.CachePolicy cachePolicy = CacheService.CachePolicy.makePolicy(30 * 1000);
-
-        try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
-            final Map<UserIdentity,Map<String,String>> results = new LinkedHashMap<>(userSearchEngine.performMultiUserSearch(searchConfiguration,resultSearchSizeLimit,Collections.<String>emptyList()));
-
-            if (excludeDN != null && !excludeDN.isEmpty()) {
-                for (final UserIdentity loopIgnoreIdentity : excludeDN) {
-                    for (final Iterator<UserIdentity> iterator = results.keySet().iterator(); iterator.hasNext(); ) {
-                        final UserIdentity loopUser = iterator.next();
-                        if (loopIgnoreIdentity.equals(loopUser)) {
-                            iterator.remove();
-                        }
-                    }
-                }
-            }
-
-            if (!results.isEmpty()) {
-                final UserIdentity userIdentity = results.keySet().iterator().next();
-                if (labelMap.size() == 1) { // since only one value searched, it must be that one value
-                    final String attributeName = labelMap.values().iterator().next();
-                    LOGGER.trace("found duplicate value for attribute '" + attributeName + "' on entry " + userIdentity);
-                    final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{attributeName});
-                    throw new PwmDataValidationException(error);
-                }
-
-                // do a compare on a user values to find one that matches.
-                for (final String name : filterClauses.keySet()) {
-                    final String value = filterClauses.get(name);
-                    final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                    if (theUser.compareStringAttribute(name,value)) {
-                        final String label = labelMap.get(name);
-                        LOGGER.trace("found duplicate value for attribute '" + label + "' on entry " + userIdentity);
-                        final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null, new String[]{label});
-                        throw new PwmDataValidationException(error);
-                    }
-                }
-
-                // user didn't match on the compare.. shouldn't get here but just in case
-                final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
-                throw new PwmDataValidationException(error);
-            }
-        } catch (PwmOperationalException e) {
-            if (cacheService != null) {
-                final String jsonPayload = JsonUtil.getGson().toJson(e.getErrorInformation());
-                cacheService.put(cacheKey, cachePolicy, jsonPayload);
-            }
-            throw new PwmDataValidationException(e.getErrorInformation());
-        }
-        if (cacheService != null) {
-            cacheService.put(cacheKey, cachePolicy, NEGATIVE_CACHE_HIT);
-        }
-    }
-
-    public static Map<String,String> readRequestParametersAsMap(final HttpServletRequest req)
-            throws PwmUnrecoverableException
-    {
-        if (req == null) {
-            return Collections.emptyMap();
-        }
-
-        final Map<String,String> tempMap = new LinkedHashMap<>();
-        for (Enumeration keyEnum = req.getParameterNames(); keyEnum.hasMoreElements();) {
-            final String keyName = keyEnum.nextElement().toString();
-            final String value = readStringFromRequest(req,keyName);
-            tempMap.put(keyName,value);
-        }
-        return tempMap;
-    }
 }
 

@@ -1,4 +1,7 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
+<%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -25,13 +28,18 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% ErrorInformation errorInfo;
+<%
+    PwmRequest pwmRequest = null;
     try {
-        errorInfo = PwmSession.getPwmSession(session).getSessionStateBean().getSessionError();
-    } catch (PwmUnrecoverableException e) {
-        errorInfo = e.getErrorInformation();
-    } %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER,"true"); %>
+        pwmRequest = PwmRequest.forRequest(request,response);
+    } catch (PwmException e) {
+        /* noop */
+    }
+    final ErrorInformation errorInfo = (ErrorInformation)request.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO);
+
+%>
+<html dir="<pwm:LocaleOrientation/>">
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <div id="wrapper">
@@ -44,10 +52,9 @@
         <br/>
         <br/>
         <span id="message" class="message message-error"><pwm:ErrorMessage/></span>
-        <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionError(null); } catch (Exception e) {} %>
         <br/>
         <br/>
-        <% if (pwmApplicationHeader != null && pwmApplicationHeader.getApplicationMode() != PwmApplication.MODE.ERROR) { %>
+        <pwm:if test="showErrorDetail">
         <% if (errorInfo != null && !errorInfo.getError().isErrorIsPermanent()) { %>
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
@@ -62,6 +69,13 @@
             </form>
         </div>
         <% } %>
+        </pwm:if>
+        <% if (errorInfo != null && errorInfo.getError() == PwmError.ERROR_APP_UNAVAILABLE) { %>
+        <pwm:script>
+            <script type="application/javascript">
+                setTimeout(function(){location.reload();},2 * 1000);
+            </script>
+        </pwm:script>
         <% } %>
     </div>
     <div class="push"></div>

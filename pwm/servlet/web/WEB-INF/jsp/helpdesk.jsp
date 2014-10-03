@@ -75,15 +75,14 @@
     </div>
     <div class="push"></div>
 </div>
-<form id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
-    <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+<form action="<pwm:url url='Helpdesk'/>" id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
 </form>
 <pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['helpdesk_search_columns'] = <%=JsonUtil.getGson().toJson(helpdeskBean.getSearchColumnHeaders())%>;
+        PWM_VAR['helpdesk_search_columns'] = <%=JsonUtil.serializeMap(helpdeskBean.getSearchColumnHeaders())%>;
         PWM_HELPDESK.initHelpdeskSearchPage();
         PWM_MAIN.getObject('username').focus()
     });

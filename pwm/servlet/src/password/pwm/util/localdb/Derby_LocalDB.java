@@ -25,8 +25,8 @@ package password.pwm.util.localdb;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.sql.CallableStatement;
@@ -42,7 +42,7 @@ import java.util.Map;
  * @author Jason D. Rivard
  */
 public class Derby_LocalDB extends AbstractJDBC_LocalDB {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Derby_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(Derby_LocalDB.class, true);
 
     private static final String DERBY_CLASSPATH = "org.apache.derby.jdbc.EmbeddedDriver";
     private static final String DERBY_DEFAULT_SCHEMA = "APP";

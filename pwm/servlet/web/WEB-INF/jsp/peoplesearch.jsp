@@ -21,6 +21,7 @@
   --%>
 
 <%@ page import="password.pwm.config.FormConfiguration" %>
+<%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.LinkedHashMap" %>
@@ -31,6 +32,22 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
+<%
+    final Map<String, String> searchColumns = new LinkedHashMap<String, String>();
+    String photoStyle = "";
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        photoStyle = pwmRequest.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR);
+        final List<FormConfiguration> searchForm = pwmRequest.getConfig().readSettingAsForm(PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
+        for (final FormConfiguration formConfiguration : searchForm) {
+            searchColumns.put(formConfiguration.getName(),
+                    formConfiguration.getLabel(pwmRequest.getLocale()));
+        }
+    } catch (PwmException e) {
+            /* noop */
+    }
+
+%>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -73,25 +90,14 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script>
-    <%
-        final Map<String, String> searchColumns = new LinkedHashMap<String, String>();
-        {
-            final List<FormConfiguration> searchForm = pwmApplicationHeader.getConfig().readSettingAsForm(
-                    PwmSetting.PEOPLE_SEARCH_RESULT_FORM);
-            for (final FormConfiguration formConfiguration : searchForm) {
-                searchColumns.put(formConfiguration.getName(),
-                    formConfiguration.getLabel(pwmSessionHeader.getSessionStateBean().getLocale()));
-            }
-        }
-    %>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_VAR['peoplesearch_search_columns'] = <%=JsonUtil.getGson().toJson(searchColumns)%>;
-        PWM_VAR['photo_style_attribute'] = '<%=StringUtil.escapeJS(pwmApplicationHeader.getConfig().readSettingAsString(PwmSetting.PEOPLE_SEARCH_PHOTO_STYLE_ATTR))%>';
-        PWM_PS.initPeopleSearchPage();
-        PWM_MAIN.getObject('username').focus()
-    });
-</script>
+    <script>
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_VAR['peoplesearch_search_columns'] = <%=JsonUtil.serializeMap(searchColumns)%>;
+            PWM_VAR['photo_style_attribute'] = '<%=StringUtil.escapeJS(photoStyle)%>';
+            PWM_PS.initPeopleSearchPage();
+            PWM_MAIN.getObject('username').focus()
+        });
+    </script>
 </pwm:script>
 <script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>

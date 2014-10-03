@@ -22,19 +22,31 @@
 
 <%@ page import="password.pwm.AppProperty" %>
 <%@ page import="password.pwm.Permission" %>
+<%@ page import="password.pwm.PwmApplication" %>
 <%@ page import="password.pwm.PwmConstants" %>
-<%@ page import="password.pwm.util.PwmServletURLHelper" %>
+<%@ page import="password.pwm.http.PwmURL" %>
 <%
-    boolean headerEnabled = Boolean.parseBoolean(pwmApplicationHeaderBody.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))
-            && !PwmServletURLHelper.isConfigManagerURL(request);
+    boolean headerEnabled = false;
+    boolean adminUser = false;
+    boolean showHeader = false;
+    boolean healthCheck = false;
+    boolean configMode = false;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+        headerEnabled = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))
+                && !new PwmURL(request).isConfigManagerURL();
+        if (headerEnabled) {
+            final PwmApplication.MODE mode = pwmRequest.getPwmApplication().getApplicationMode();
+            adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
+            configMode = mode == PwmApplication.MODE.CONFIGURATION;
+            showHeader = configMode || PwmConstants.TRIAL_MODE;
+            healthCheck = mode != PwmApplication.MODE.RUNNING || adminUser;
+        }
+    } catch (Exception e) {
+        /* noop */
+    }
 %>
-<% if (headerEnabled) { %>
-<%
-    final boolean adminUser = pwmSessionHeaderBody.getSessionManager().checkPermission(pwmApplicationHeaderBody, Permission.PWMADMIN);
-    final boolean showHeader = pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION || PwmConstants.TRIAL_MODE;
-    final boolean healthCheck = pwmApplicationHeaderBody.getApplicationMode() != PwmApplication.MODE.RUNNING || adminUser;
-%>
-<% if (showHeader || healthCheck) { %>
+<% if (headerEnabled && (showHeader || healthCheck)) { %>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="<%=showHeader?"":"display: none"%>">
     <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
@@ -62,7 +74,7 @@
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
-    <% } else if (pwmApplicationHeaderBody.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) { %>
+    <% } else if (configMode) { %>
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
 <pwm:script>
     <script nonce="<pwm:value name="cspNonce"/>" type="application/javascript">
@@ -96,6 +108,5 @@
         });
     </script>
 </pwm:script>
-<% } %>
 <% } %>
 <% } %>

@@ -45,7 +45,6 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
 
     private boolean oldStyle = false;
 
-    @Deprecated
     public HealthRecord(
             final HealthStatus status,
             final String topic,

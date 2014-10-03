@@ -24,7 +24,8 @@ package password.pwm.http;
 
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.Helper;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -38,8 +39,12 @@ import javax.servlet.http.HttpSessionListener;
  *
  * @author Jason D. Rivard
  */
-public class HttpEventManager implements ServletContextListener, HttpSessionListener, HttpSessionActivationListener {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(HttpEventManager.class);
+public class HttpEventManager implements
+        ServletContextListener,
+        HttpSessionListener,
+        HttpSessionActivationListener
+{
+    private static final PwmLogger LOGGER = PwmLogger.forClass(HttpEventManager.class);
 
     public HttpEventManager()
     {
@@ -47,6 +52,13 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
 
     public void sessionCreated(final HttpSessionEvent httpSessionEvent)
     {
+        try {
+            // force an PwmSession object creation
+            PwmSession.getPwmSession(httpSessionEvent.getSession());
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.warn("error during PwmSession object creation: " + e.getMessage(),e);
+        }
+
     }
 
     public void sessionDestroyed(final HttpSessionEvent httpSessionEvent)
@@ -92,8 +104,8 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
     {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
-            LOGGER.trace(pwmSession.getSessionLabel(),"passivating session");
-            pwmSession.getSessionManager().closeConnections();
+            LOGGER.trace(pwmSession.getLabel(),"passivating session");
+            Helper.pause(10000);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to passivate session: " + e.getMessage());
         }
@@ -103,13 +115,11 @@ public class HttpEventManager implements ServletContextListener, HttpSessionList
     {
         try {
             final PwmSession pwmSession = PwmSession.getPwmSession(event.getSession());
-            LOGGER.trace(pwmSession.getSessionLabel(),"activating (de-passivating) session");
+            LOGGER.trace(pwmSession.getLabel(),"activating (de-passivating) session");
             ContextManager.getContextManager(event.getSession()).addPwmSession(pwmSession);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("unable to activate (de-passivate) session: " + e.getMessage());
         }
     }
-
-
 }
 

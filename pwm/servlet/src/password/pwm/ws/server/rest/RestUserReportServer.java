@@ -51,12 +51,12 @@ import java.text.NumberFormat;
 import java.util.*;
 
 @Path("/report")
-public class RestUserReportServer {
+public class RestUserReportServer extends AbstractRestServer {
     @Context
     HttpServletRequest request;
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppAuditData(
             @QueryParam("maximum") int maximum
     )
@@ -67,7 +67,7 @@ public class RestUserReportServer {
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -89,7 +89,7 @@ public class RestUserReportServer {
             }
         } finally {
             if (cacheBeanIterator != null) {
-                //cacheBeanIterator.close();
+                cacheBeanIterator.close();
             }
         }
 
@@ -104,7 +104,7 @@ public class RestUserReportServer {
 
     @GET
     @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetReportEngineStatusData(
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
@@ -112,7 +112,7 @@ public class RestUserReportServer {
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -133,7 +133,7 @@ public class RestUserReportServer {
 
     @GET
     @Path("/summary")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetReportSummaryData(
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, LocalDBException
@@ -141,7 +141,7 @@ public class RestUserReportServer {
         final RestRequestBean restRequestBean;
         try {
             final ServicePermissions servicePermissions = ServicePermissions.ADMIN_LOCAL_OR_EXTERNAL;
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, null);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }

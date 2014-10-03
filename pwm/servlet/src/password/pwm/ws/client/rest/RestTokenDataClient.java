@@ -35,16 +35,17 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.rest.RestStatusServer;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class RestTokenDataClient implements RestClient {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestTokenDataClient.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestTokenDataClient.class);
 
     public static class TokenDestinationData implements Serializable {
         private String email;
@@ -86,7 +87,7 @@ public class RestTokenDataClient implements RestClient {
     }
 
     private TokenDestinationData invoke(
-            final SessionLabel pwmSession,
+            final SessionLabel sessionLabel,
             final TokenDestinationData tokenDestinationData,
             final UserIdentity userIdentity,
             final String url,
@@ -98,17 +99,15 @@ public class RestTokenDataClient implements RestClient {
             throw new NullPointerException("tokenDestinationData can not be null");
         }
 
-        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<>();
+        final Map<String,Object> sendData = new LinkedHashMap<>();
         sendData.put(DATA_KEY_TOKENDATA, tokenDestinationData);
         if (userIdentity != null) {
             final UserInfoBean userInfoBean = new UserInfoBean();
-            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication);
+            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
             userStatusReader.populateUserInfoBean(
-                    pwmSession,
                     userInfoBean,
                     locale,
-                    userIdentity,
-                    null
+                    userIdentity
             );
 
             final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
@@ -116,7 +115,7 @@ public class RestTokenDataClient implements RestClient {
         }
 
 
-        final String jsonRequestData = JsonUtil.getGson().toJson(sendData);
+        final String jsonRequestData = JsonUtil.serializeMap(sendData);
         final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, url, jsonRequestData);
         return JsonUtil.getGson().fromJson(responseBody,TokenDestinationData.class);
     }

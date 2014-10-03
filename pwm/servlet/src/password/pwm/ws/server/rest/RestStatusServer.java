@@ -40,12 +40,10 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -53,7 +51,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 @Path("/status")
-public class RestStatusServer {
+public class RestStatusServer extends AbstractRestServer {
 
     public static class JsonStatusData implements Serializable {
         public String userDN;
@@ -110,9 +108,6 @@ public class RestStatusServer {
         }
     }
 
-    @Context
-    HttpServletRequest request;
-
     @GET
     @Produces(MediaType.TEXT_HTML)
     public javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
@@ -120,7 +115,7 @@ public class RestStatusServer {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetStatusData(
             @QueryParam("username") final String username
     ) {
@@ -130,7 +125,7 @@ public class RestStatusServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -139,14 +134,12 @@ public class RestStatusServer {
             final UserInfoBean userInfoBean;
             if (restRequestBean.getUserIdentity() != null) {
                 userInfoBean = new UserInfoBean();
-                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication());
+                final UserStatusReader userStatusReader = new UserStatusReader(restRequestBean.getPwmApplication(),restRequestBean.getPwmSession().getLabel());
                 userStatusReader.populateUserInfoBean(
-                        restRequestBean.getPwmSession().getSessionLabel(),
                         userInfoBean,
                         restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
                         restRequestBean.getUserIdentity(),
-                        null,
-                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider(restRequestBean.getPwmApplication())
+                        restRequestBean.getPwmSession().getSessionManager().getChaiProvider()
                 );
             } else {
                 userInfoBean = restRequestBean.getPwmSession().getUserInfoBean();

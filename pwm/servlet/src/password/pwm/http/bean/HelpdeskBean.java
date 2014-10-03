@@ -37,6 +37,7 @@ public class HelpdeskBean implements PwmSessionBean {
     private Map<String,String> searchColumnHeaders = Collections.emptyMap();
     private UserInfoBean userInfoBean = new UserInfoBean();
     private AdditionalUserInfo additionalUserInfo = new AdditionalUserInfo();
+    private String userDisplayName;
 
     public static class AdditionalUserInfo implements Serializable {
         private boolean intruderLocked;
@@ -45,6 +46,7 @@ public class HelpdeskBean implements PwmSessionBean {
         private Date lastLoginTime;
         private List<UserAuditRecord> userHistory;
         private Map<FormConfiguration, String> searchDetails;
+        private String passwordSetDelta;
 
         public boolean isIntruderLocked() {
             return intruderLocked;
@@ -93,6 +95,16 @@ public class HelpdeskBean implements PwmSessionBean {
         public void setSearchDetails(Map<FormConfiguration,String> searchDetails) {
             this.searchDetails = searchDetails;
         }
+
+        public String getPasswordSetDelta()
+        {
+            return passwordSetDelta;
+        }
+
+        public void setPasswordSetDelta(String passwordSetDelta)
+        {
+            this.passwordSetDelta = passwordSetDelta;
+        }
     }
 
     public UserInfoBean getUserInfoBean() {
@@ -127,5 +139,15 @@ public class HelpdeskBean implements PwmSessionBean {
     public void setSearchColumnHeaders(Map<String, String> searchColumnHeaders)
     {
         this.searchColumnHeaders = searchColumnHeaders;
+    }
+
+    public String getUserDisplayName()
+    {
+        return userDisplayName;
+    }
+
+    public void setUserDisplayName(String userDisplayName)
+    {
+        this.userDisplayName = userDisplayName;
     }
 }

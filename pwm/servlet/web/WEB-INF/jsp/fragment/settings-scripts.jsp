@@ -1,5 +1,6 @@
 <%@ page import="password.pwm.bean.ConfigEditorCookie" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -24,7 +25,7 @@
   --%>
 
 <%
-    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
+    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(PwmRequest.forRequest(request, response));
     boolean showAdvanced = cookie.getLevel() > 1;
     boolean jumpToSetting = false;
     if (cookie.getSetting() != null & !cookie.getSetting().isEmpty()) {

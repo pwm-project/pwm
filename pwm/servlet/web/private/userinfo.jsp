@@ -27,7 +27,6 @@
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
-<%@ page import="password.pwm.util.Helper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -39,12 +38,18 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-    final PwmSession pwmSession = PwmSession.getPwmSession(request);
-    final UserInfoBean uiBean = pwmSession.getUserInfoBean();
-    final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+    final PwmRequest userinfo_pwmRequest = PwmRequest.forRequest(request, response);
+    final UserInfoBean uiBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean();
+    final SessionStateBean ssBean = userinfo_pwmRequest.getPwmSession().getSessionStateBean();
     final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
-    final Set<ViewStatusFields> viewStatusFields = pwmApplication.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
+    final Set<ViewStatusFields> viewStatusFields = userinfo_pwmRequest.getConfig().readSettingAsOptionList(PwmSetting.ACCOUNT_INFORMATION_VIEW_STATUS_VALUES,ViewStatusFields.class);
+    List<UserAuditRecord> auditRecords = Collections.emptyList();
+    try {
+        auditRecords = userinfo_pwmRequest.getPwmApplication().getAuditManager().readUserHistory(userinfo_pwmRequest.getPwmSession());
+    } catch (Exception e) {
+    /*noop*/
+    }
+    final Locale userLocale = userinfo_pwmRequest.getLocale();
 %>
 
 <html dir="<pwm:LocaleOrientation/>">
@@ -77,15 +82,15 @@
                 <%= StringUtil.escapeHtml(uiBean.getUserIdentity().getUserDN()) %>
             </td>
         </tr>
-        <% if (pwmApplication.getConfig().getLdapProfiles().size() > 1) { %>
+        <% if (userinfo_pwmRequest.getConfig().getLdapProfiles().size() > 1) { %>
         <tr>
             <td class="key">
                 <pwm:display key="Field_LdapProfile"/>
             </td>
             <td>
-                <%= StringUtil.escapeHtml(pwmApplication.getConfig().getLdapProfiles().get(
+                <%= StringUtil.escapeHtml(userinfo_pwmRequest.getConfig().getLdapProfiles().get(
                         uiBean.getUserIdentity().getLdapProfileID()).getDisplayName(
-                        pwmSession.getSessionStateBean().getLocale())) %>
+                        userinfo_pwmRequest.getLocale())) %>
             </td>
         </tr>
         <% } %>
@@ -172,7 +177,7 @@
                 <pwm:display key="Field_PasswordSetTimeDelta"/>
             </td>
             <td>
-                <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplicationHeader.getConfig())%>
+                <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(userinfo_pwmRequest.getLocale(),"Value_NotApplicable",userinfo_pwmRequest.getConfig())%>
             </td>
         </tr>
         <tr>
@@ -190,7 +195,7 @@
             <% } %>
         </tr>
         <% } %>
-        <% ResponseInfoBean responseInfoBean = pwmSession.getUserInfoBean().getResponseInfoBean(); %>
+        <% ResponseInfoBean responseInfoBean = userinfo_pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean(); %>
         <% if (viewStatusFields.contains(ViewStatusFields.ResponsesStored)) { %>
         <tr>
             <td class="key">
@@ -271,7 +276,7 @@
                 <pwm:display key="Field_LogoutURL"/>
             </td>
             <td>
-                <%= StringUtil.escapeHtml(Helper.figureLogoutURL(pwmApplicationHeader, pwmSessionHeader)) %>
+                <%= StringUtil.escapeHtml(userinfo_pwmRequest.getLogoutURL()) %>
             </td>
         </tr>
         <% } %>
@@ -281,7 +286,7 @@
                 <pwm:display key="Field_ForwardURL"/>
             </td>
             <td>
-                <%= StringUtil.escapeHtml(Helper.figureForwardURL(pwmApplicationHeader, pwmSessionHeader, request)) %>
+                <%= StringUtil.escapeHtml(userinfo_pwmRequest.getForwardUrl()) %>
             </td>
         </tr>
         <% } %>
@@ -303,12 +308,7 @@
         </table>
     </div>
 </div>
-<% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_HISTORY)) { %>
-<%
-    List<UserAuditRecord> auditRecords = Collections.emptyList();
-    try { auditRecords = pwmApplicationHeader.getAuditManager().readUserHistory(pwmSessionHeader);} catch (Exception e) {/*noop*/}
-    final Locale userLocale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
-%>
+<% if (userinfo_pwmRequest != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_HISTORY)) { %>
 <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>">
     <div style="max-height: 400px; overflow: auto;">

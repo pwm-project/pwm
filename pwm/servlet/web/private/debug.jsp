@@ -21,16 +21,11 @@
   --%>
 
 <%@ page import="password.pwm.Permission" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.bean.UserInfoBean" %>
-<%@ page import="java.text.DateFormat" %>
+<% final PwmRequest debug_pwmRequest = PwmRequest.forRequest(request,response); %>
+<% final PwmSession debug_pwmSession = debug_pwmRequest.getPwmSession(); %>
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final UserInfoBean uiBean = PwmSession.getPwmSession(session).getUserInfoBean(); %>
-<% final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean(); %>
-<% final DateFormat dateFormatter = java.text.DateFormat.getDateInstance(DateFormat.FULL, ssBean.getLocale()); %>
-<% final DateFormat timeFormatter = java.text.DateFormat.getTimeInstance(DateFormat.FULL, ssBean.getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -42,34 +37,34 @@
         <table>
             <tr>
                 <td class="key">UserDN</td>
-                <td><%=pwmSessionHeader.getUserInfoBean().getUserIdentity().getUserDN()%></td>
+                <td><pwm:macro value="@LDAP:dn@"/></td>
             </tr>
             <tr>
                 <td class="key">Ldap Profile</td>
-                <td><%="".equals(pwmSessionHeader.getUserInfoBean().getUserIdentity().getLdapProfileID()) ? "default" : pwmSessionHeader.getUserInfoBean().getUserIdentity().getLdapProfileID()%></td>
+                <td><%="".equals(debug_pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID()) ? "default" : debug_pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID()%></td>
             </tr>
             <tr>
                 <td class="key">AuthType</td>
-                <td><%=pwmSessionHeader.getUserInfoBean().getAuthenticationType()%></td>
+                <td><%=debug_pwmSession.getLoginInfoBean().getAuthenticationType()%></td>
             </tr>
             <tr>
                 <td class="key">Session Creation Time</td>
-                <td><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmSessionHeader.getSessionStateBean().getSessionCreationTime())%></td>
+                <td><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(debug_pwmSession.getSessionStateBean().getSessionCreationTime())%></td>
             </tr>
             <tr>
                 <td class="key">Session ForwardURL</td>
-                <td><%=pwmSessionHeader.getSessionStateBean().getForwardURL()%></td>
+                <td><%=debug_pwmSession.getSessionStateBean().getForwardURL()%></td>
             </tr>
             <tr>
                 <td class="key">Session LogoutURL</td>
-                <td><%=pwmSessionHeader.getSessionStateBean().getLogoutURL()%></td>
+                <td><%=debug_pwmSession.getSessionStateBean().getLogoutURL()%></td>
             </tr>
         </table>
         <table>
             <% for (final Permission permission : Permission.values()) { %>
             <tr>
                 <td class="key"><%=permission.toString()%></td>
-                <td><%=pwmSessionHeader.getSessionManager().checkPermission(pwmApplicationHeader, permission)%></td>
+                <td><%=debug_pwmSession.getSessionManager().checkPermission(debug_pwmRequest.getPwmApplication(), permission)%></td>
             </tr>
             <% } %>
         </table>

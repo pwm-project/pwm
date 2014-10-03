@@ -35,11 +35,11 @@
         <p><pwm:display key="Display_UpdateProfile"/></p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfile" enctype="application/x-www-form-urlencoded"
-              class="pwm-form" onchange="validateForm()" onkeyup="validateForm()">
+        <form action="<pwm:url url='UpdateProfile'/>" method="post" name="updateProfileForm" enctype="application/x-www-form-urlencoded"
+              class="pwm-form" id="updateProfileForm">
 
             <% request.setAttribute("form",PwmSetting.UPDATE_PROFILE_FORM); %>
-            <% request.setAttribute("formData",pwmSessionHeader.getUpdateProfileBean().getFormData()); %>
+            <% request.setAttribute("formData",PwmRequest.forRequest(request,response).getPwmSession().getUpdateProfileBean().getFormData()); %>
             <jsp:include page="fragment/form.jsp"/>
 
             <div id="buttonbar">
@@ -58,37 +58,13 @@
 </div>
 <pwm:script>
 <script type="text/javascript">
-    function validateForm() {
-        var validationProps = new Array();
-        validationProps['serviceURL'] = "UpdateProfile" + "?processAction=validate";
-        validationProps['readDataFunction'] = function(){
-            var paramData = { };
-            for (var j = 0; j < document.forms.length; j++) {
-                for (var i = 0; i < document.forms[j].length; i++) {
-                    var current = document.forms[j].elements[i];
-                    paramData[current.name] = current.value;
-                }
-            }
-            return paramData;
-        };
-        validationProps['processResultsFunction'] = function(data){
-            if (data["success"] == "true") {
-                PWM_MAIN.getObject("submitBtn").disabled = false;
-                PWM_MAIN.showSuccess(data["message"]);
-            } else {
-                PWM_MAIN.getObject("submitBtn").disabled = true;
-                PWM_MAIN.showError(data['message']);
-            }
-        };
-
-        PWM_MAIN.pwmFormValidator(validationProps);
-    }
-
     PWM_GLOBAL['startupFunctions'].push(function(){
-        document.forms.updateProfile.elements[0].focus();
+        document.forms.updateProfileForm.elements[0].focus();
+        PWM_MAIN.addEventHandler('updateProfileForm','input',function(){PWM_UPDATE.validateForm()});
     });
 </script>
 </pwm:script>
+<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/updateprofile.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

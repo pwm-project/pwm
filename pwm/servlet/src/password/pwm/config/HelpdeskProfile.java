@@ -27,7 +27,8 @@ import password.pwm.PwmConstants;
 import java.util.*;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile{
-    final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(PwmSetting.Category.HELPDESK_PROFILE));
+    final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(
+            PwmSettingCategory.HELPDESK_PROFILE));
 
     protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);

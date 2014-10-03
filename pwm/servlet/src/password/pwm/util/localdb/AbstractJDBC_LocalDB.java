@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.sql.*;
@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(AbstractJDBC_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(AbstractJDBC_LocalDB.class, true);
 
     private static final String KEY_COLUMN = "id";
     private static final String VALUE_COLUMN = "value";
@@ -154,8 +154,6 @@ public abstract class AbstractJDBC_LocalDB implements LocalDBProvider {
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-
-// --------------------- Interface PwmDB ---------------------
 
     public void close()
             throws LocalDBException {

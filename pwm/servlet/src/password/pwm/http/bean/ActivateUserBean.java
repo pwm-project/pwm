@@ -30,6 +30,7 @@ public class ActivateUserBean implements PwmSessionBean {
     private boolean agreementPassed;
     private boolean formValidated;
     private String tokenDisplayText;
+    private String agreementText;
 
     private UserIdentity userIdentity;
 
@@ -79,5 +80,15 @@ public class ActivateUserBean implements PwmSessionBean {
 
     public void setTokenDisplayText(final String tokenSendAddress) {
         this.tokenDisplayText = tokenSendAddress;
+    }
+
+    public String getAgreementText()
+    {
+        return agreementText;
+    }
+
+    public void setAgreementText(String agreementText)
+    {
+        this.agreementText = agreementText;
     }
 }

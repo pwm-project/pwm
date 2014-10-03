@@ -23,8 +23,8 @@
 package password.pwm.util.localdb;
 
 import password.pwm.PwmApplication;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class LocalDBAdaptor implements LocalDB {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBAdaptor.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBAdaptor.class);
 
     private final LocalDBProvider innerDB;
 
@@ -272,7 +272,7 @@ public class LocalDBAdaptor implements LocalDB {
             sizeCache.put(db, CACHE_DIRTY);
         }
 
-        private int getSizeForDB(final DB db, final LocalDBProvider pwmDBProvider) throws LocalDBException {
+        private int getSizeForDB(final DB db, final LocalDBProvider localDBProvider) throws LocalDBException {
             // get the cached size out of the cache store
             final Integer cachedSize = sizeCache.get(db);
 
@@ -287,7 +287,7 @@ public class LocalDBAdaptor implements LocalDB {
             sizeCache.put(db, CACHE_WORKING);
 
             // get the "real" value.  this is the line that might take a long time
-            final int theSize = pwmDBProvider.size(db);
+            final int theSize = localDBProvider.size(db);
             final TimeDuration timeDuration = TimeDuration.fromCurrent(beginTime);
 
             // so long as nothing else has touched the cache (perhaps another thread populated it, or someone else marked it dirty, then

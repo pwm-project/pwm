@@ -23,9 +23,12 @@
 package password.pwm.util;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
@@ -33,17 +36,21 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class JsonUtil {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(JsonUtil.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(JsonUtil.class);
 
-    private static Gson GSON_SINGLETON = new GsonBuilder()
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
             .registerTypeAdapter(Date.class, new DateTypeAdapter())
             .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
             .registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
-            .create();
+            .disableHtmlEscaping();
+
+    private static final Gson GSON_SINGLETON = GSON_BUILDER.create();
 
     public static Gson getGson(GsonBuilder gsonBuilder) {
         if (gsonBuilder == null) {
@@ -62,6 +69,30 @@ public class JsonUtil {
         return GSON_SINGLETON;
     }
 
+    public static Map<String,Object> deserializeMap(final String jsonString) {
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, Object>>() {}.getType());
+    }
+
+    public static Map<String,String> deserializeStringMap(final String jsonString) {
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {}.getType());
+    }
+
+    public static <T> T deserialize(final String json, final Class<T> classOfT) {
+        return JsonUtil.getGson().fromJson(json, classOfT);
+    }
+
+    public static String serialize(final Serializable object) {
+        return JsonUtil.getGson().toJson(object);
+    }
+
+    public static String serializeMap(final Map object) {
+        return JsonUtil.getGson().toJson(object);
+    }
+
+    public static String serializeCollection(final Collection object) {
+        return JsonUtil.getGson().toJson(object);
+    }
+
     /**
      * Gson Serializer for {@link java.security.cert.X509Certificate}.  Neccessary because sometimes X509Certs have circular refecences
      * and the default gson serializer will cause a {@code java.lang.StackOverflowError}.  Standard Base64 encoding of
@@ -73,7 +104,7 @@ public class JsonUtil {
 
         public synchronized JsonElement serialize(X509Certificate cert, Type type, JsonSerializationContext jsonSerializationContext) {
             try {
-                return new JsonPrimitive(Base64Util.encodeBytes(cert.getEncoded()));
+                return new JsonPrimitive(StringUtil.base64Encode(cert.getEncoded()));
             } catch (CertificateEncodingException e) {
                 throw new IllegalStateException("unable to json-encode certificate: " + e.getMessage());
             }
@@ -84,7 +115,8 @@ public class JsonUtil {
         {
             try {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                return (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(Base64Util.decode(jsonElement.getAsString())));
+                return (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(StringUtil.base64Decode(
+                        jsonElement.getAsString())));
             } catch (Exception e) {
                 throw new JsonParseException("unable to parse x509certificate: " + e.getMessage());
             }
@@ -131,7 +163,7 @@ public class JsonUtil {
     private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
         public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             try {
-                return Base64Util.decode(json.getAsString());
+                return StringUtil.base64Decode(json.getAsString());
             } catch (IOException e) {
                 final String errorMsg = "io stream error while deserializing byte array: " + e.getMessage();
                 LOGGER.error(errorMsg);
@@ -141,7 +173,7 @@ public class JsonUtil {
 
         public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
             try {
-                return new JsonPrimitive(Base64Util.encodeBytes(src, Base64Util.GZIP));
+                return new JsonPrimitive(StringUtil.base64Encode(src, StringUtil.Base64Options.GZIP));
             } catch (IOException e) {
                 final String errorMsg = "io stream error while serializing byte array: " + e.getMessage();
                 LOGGER.error(errorMsg);

@@ -31,16 +31,17 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
+import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 class DatabaseUserHistory implements UserHistoryStore {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(DatabaseUserHistory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DatabaseUserHistory.class);
 
     private static final DatabaseTable TABLE = DatabaseTable.USER_AUDIT;
 
@@ -95,11 +96,11 @@ class DatabaseUserHistory implements UserHistoryStore {
         if (storedHistory == null) {
             return;
         }
-        final String str = JsonUtil.getGson().toJson(storedHistory);
+        final String str = JsonUtil.serialize(storedHistory);
         databaseAccessor.put(TABLE,guid,str);
     }
 
-    static class StoredHistory {
+    static class StoredHistory implements Serializable {
         private List<UserAuditRecord> records = new ArrayList<>();
 
         List<UserAuditRecord> getRecords() {

@@ -27,10 +27,10 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SeedlistManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SeedlistManager.class);
 
     private int initialPopulationCounter = 0;
 

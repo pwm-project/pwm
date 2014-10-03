@@ -34,19 +34,18 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.ClosableIterator;
-import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.SecureHelper;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 public class UserCacheService implements PwmService {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserCacheService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(UserCacheService.class);
 
     private CacheStoreWrapper cacheStore;
     private STATUS status;
@@ -56,7 +55,9 @@ public class UserCacheService implements PwmService {
         return status;
     }
 
-    public UserCacheRecord updateUserCache(final UserInfoBean userInfoBean) {
+    public UserCacheRecord updateUserCache(final UserInfoBean userInfoBean)
+            throws PwmUnrecoverableException
+    {
         final StorageKey storageKey = StorageKey.fromUserInfoBean(userInfoBean);
 
         boolean preExisting = false;
@@ -88,7 +89,9 @@ public class UserCacheService implements PwmService {
         return cacheStore.remove(storageKey);
     }
 
-    public void store(UserCacheRecord userCacheRecord) throws LocalDBException {
+    public void store(UserCacheRecord userCacheRecord)
+            throws LocalDBException, PwmUnrecoverableException
+    {
         final StorageKey storageKey = StorageKey.fromUserGUID(userCacheRecord.getUserGUID());
         cacheStore.write(storageKey, userCacheRecord);
     }
@@ -175,7 +178,9 @@ public class UserCacheService implements PwmService {
             return key;
         }
 
-        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean) {
+        public static StorageKey fromUserInfoBean(final UserInfoBean userInfoBean)
+                throws PwmUnrecoverableException
+        {
             final String userGUID = userInfoBean.getUserGuid();
             return fromUserGUID(userGUID);
         }
@@ -187,12 +192,10 @@ public class UserCacheService implements PwmService {
             return fromUserGUID(userGUID);
         }
 
-        private static StorageKey fromUserGUID(final String userGUID) {
-            try {
-                return new StorageKey(Helper.md5sum(userGUID));
-            } catch (IOException e) {
-                throw new IllegalStateException("can't generate md5sum of user guid due to IOException: " + e.getMessage());
-            }
+        private static StorageKey fromUserGUID(final String userGUID)
+                throws PwmUnrecoverableException
+        {
+            return new StorageKey(SecureHelper.md5sum(userGUID));
         }
     }
 
@@ -209,7 +212,7 @@ public class UserCacheService implements PwmService {
         private void write(StorageKey key, UserCacheRecord cacheBean)
                 throws LocalDBException
         {
-            final String jsonValue = JsonUtil.getGson().toJson(cacheBean);
+            final String jsonValue = JsonUtil.serialize(cacheBean);
             localDB.put(DB,key.getKey(),jsonValue);
         }
 

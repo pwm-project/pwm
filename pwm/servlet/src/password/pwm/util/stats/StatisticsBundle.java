@@ -26,7 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,7 @@ import java.util.TimeZone;
 
 public class StatisticsBundle {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(StatisticsBundle.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(StatisticsBundle.class);
 
     final static SimpleDateFormat STORED_DATETIME_FORMATTER = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
 

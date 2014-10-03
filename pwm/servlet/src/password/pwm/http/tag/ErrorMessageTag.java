@@ -24,13 +24,15 @@ package password.pwm.http.tag;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.config.PwmSetting;
+import password.pwm.PwmConstants;
 import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.Helper;
 import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,7 +44,7 @@ import javax.servlet.jsp.JspTagException;
 public class ErrorMessageTag extends PwmAbstractTag {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ErrorMessageTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ErrorMessageTag.class);
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -56,38 +58,40 @@ public class ErrorMessageTag extends PwmAbstractTag {
 
 
         try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final ErrorInformation error = pwmSession.getSessionStateBean().getSessionError();
+            PwmApplication pwmApplication = null;
+            try {
+                pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
+            } catch (PwmException e) { /* noop */ }
+            PwmSession pwmSession = null;
+            try {
+                pwmSession = PwmSession.getPwmSession(pageContext.getSession());
+            } catch (PwmException e) { /* noop */ }
+
+
+            final ErrorInformation error = (ErrorInformation)req.getAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO);
 
             if (error != null) {
+                final boolean showErrorDetail = Helper.determineIfDetailErrorMsgShown(pwmApplication);
 
-                boolean showErrorDetail = true;
-                if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
-                    if (pwmApplication.getConfig() != null) {
-                        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SHOW_DETAILED_ERRORS)) {
-                            showErrorDetail = false;
-                        }
-                    }
-                }
-
-                String errorMsg;
+                String outputMsg;
                 if (showErrorDetail) {
                     final String errorDetail = error.toDebugStr() == null ? "" : " { " + error.toDebugStr() + " }";
-                    errorMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
+                    outputMsg = error.toUserStr(pwmSession, pwmApplication) + errorDetail;
                 }  else {
-                    errorMsg = error.toUserStr(pwmSession, pwmApplication);
+                    outputMsg = error.toUserStr(pwmSession, pwmApplication);
                 }
 
-                final boolean allowHtml = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+                final boolean allowHtml = pwmApplication != null && Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
                 if (!allowHtml) {
-                    errorMsg = StringUtil.escapeHtml(errorMsg);
+                    outputMsg = StringUtil.escapeHtml(outputMsg);
                 }
 
-                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
-                final String rewrittenMsg = macroMachine.expandMacros(errorMsg);
+                if (pwmSession != null && pwmApplication != null) {
+                    final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+                    outputMsg = macroMachine.expandMacros(outputMsg);
+                }
 
-                pageContext.getOut().write(rewrittenMsg);
+                pageContext.getOut().write(outputMsg);
             }
         } catch (PwmUnrecoverableException e) {
             /* app not running */

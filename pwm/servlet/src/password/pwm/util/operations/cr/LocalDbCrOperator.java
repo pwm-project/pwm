@@ -33,12 +33,12 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 
 public class LocalDbCrOperator implements CrOperator {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDbCrOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDbCrOperator.class);
 
     private final LocalDB localDB;
 
@@ -100,7 +100,7 @@ public class LocalDbCrOperator implements CrOperator {
 
     public void clearResponses(final ChaiUser theUser, final String userGUID) throws PwmUnrecoverableException {
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot clear responses to localDB, user does not have a pwmGUID"));
         }
 
         if (localDB == null) {
@@ -124,7 +124,7 @@ public class LocalDbCrOperator implements CrOperator {
             throws PwmUnrecoverableException
     {
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to localDB, user does not have a pwmGUID"));
         }
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
@@ -146,12 +146,12 @@ public class LocalDbCrOperator implements CrOperator {
             localDB.put(LocalDB.DB.RESPONSE_STORAGE, userGUID, responseSet.stringValue());
             LOGGER.info("saved responses for user in LocalDB");
         } catch (LocalDBException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to pwmDB: " + e.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected LocalDB error saving responses to localDB: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(e);
             throw pwmOE;
         } catch (ChaiException e) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to pwmDB: " + e.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, "unexpected error saving responses to localDB: " + e.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(e);
             throw pwmOE;

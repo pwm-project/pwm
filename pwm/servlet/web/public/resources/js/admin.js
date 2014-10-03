@@ -151,22 +151,13 @@ PWM_ADMIN.refreshReportDataGrid=function() {
         PWM_VAR['reportGrid'].refresh();
         var maximum = PWM_MAIN.getObject('maxReportDataResults').value;
         var url = PWM_GLOBAL['url-restservice'] + "/report?maximum=" + maximum;
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                PWM_MAIN.closeWaitDialog();
-                PWM_VAR['reportGrid'].renderArray(data['data']['users']);
-            },
-            error: function(error) {
-                PWM_MAIN.closeWaitDialog();
-                alert('unable to load data: ' + error);
-            }
-        });
+        var loadFunction = function(data) {
+            PWM_MAIN.closeWaitDialog();
+            PWM_VAR['reportGrid'].renderArray(data['data']['users']);
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
     });
-}
+};
 
 
 PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
@@ -176,41 +167,31 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
 
     require(["dojo"],function(dojo){
         var url = PWM_GLOBAL['url-restservice'] + "/report/status";
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                if (data['data'] && data['data']['presentable']) {
-                    var fields = data['data']['presentable'];
-                    var htmlTable = '';
-                    for (var field in fields) {
-                        htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
-                    }
-                    PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
-                    for (var field in fields) {(function(field){
-                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field))
-                        console.log('called + ' + field);
-                    }(field)); }
+        var loadFunction = function(data) {
+            if (data['data'] && data['data']['presentable']) {
+                var fields = data['data']['presentable'];
+                var htmlTable = '';
+                for (var field in fields) {
+                    htmlTable += '<tr><td>' + field + '</td><td id="report_status_' + field + '">' + fields[field] + '</tr>';
                 }
-                if (data['data']['raw']['inprogress']) {
-                    PWM_MAIN.getObject("reportStartButton").disabled = true;
-                    PWM_MAIN.getObject("reportStopButton").disabled = false;
-                    PWM_MAIN.getObject("reportClearButton").disabled = true;
-                } else {
-                    PWM_MAIN.getObject("reportStartButton").disabled = false;
-                    PWM_MAIN.getObject("reportStopButton").disabled = true;
-                    PWM_MAIN.getObject("reportClearButton").disabled = false;
-                }
-                doRefresh();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to load data: ' + error;
-                PWM_MAIN.getObject('statusTable').innerHTML = '<tr><td>' + errorMsg + '</td></tr>';
-                doRefresh();
+                PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
+                for (var field in fields) {(function(field){
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field))
+                    console.log('called + ' + field);
+                }(field)); }
             }
-        });
+            if (data['data']['raw']['inprogress']) {
+                PWM_MAIN.getObject("reportStartButton").disabled = true;
+                PWM_MAIN.getObject("reportStopButton").disabled = false;
+                PWM_MAIN.getObject("reportClearButton").disabled = true;
+            } else {
+                PWM_MAIN.getObject("reportStartButton").disabled = false;
+                PWM_MAIN.getObject("reportStopButton").disabled = true;
+                PWM_MAIN.getObject("reportClearButton").disabled = false;
+            }
+            doRefresh();
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
     });
 };
 
@@ -223,28 +204,18 @@ PWM_ADMIN.refreshReportDataSummary=function(refreshTime) {
     require(["dojo","dojo/number"],function(dojo,number){
 
         var url = PWM_GLOBAL['url-restservice'] + "/report/summary";
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                if (data['data'] && data['data']['presentable']) {
-                    var htmlTable = '';
-                    for (var item in data['data']['presentable']) {
-                        var rowData = data['data']['presentable'][item];
-                        htmlTable += '<tr><td>' + rowData['label'] + '</td><td>' + rowData['count'] + '</td><td>' + (rowData['pct'] ? rowData['pct'] : '') + '</td></tr>';
-                    }
-                    PWM_MAIN.getObject('summaryTable').innerHTML = htmlTable;
+        var loadFunction = function(data) {
+            if (data['data'] && data['data']['presentable']) {
+                var htmlTable = '';
+                for (var item in data['data']['presentable']) {
+                    var rowData = data['data']['presentable'][item];
+                    htmlTable += '<tr><td>' + rowData['label'] + '</td><td>' + rowData['count'] + '</td><td>' + (rowData['pct'] ? rowData['pct'] : '') + '</td></tr>';
                 }
-                doRefresh();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to load data: ' + error;
-                PWM_MAIN.getObject('summaryTable').innerHTML = errorMsg;
-                doRefresh();
+                PWM_MAIN.getObject('summaryTable').innerHTML = htmlTable;
             }
-        });
+            doRefresh();
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
     });
 };
 
@@ -266,26 +237,15 @@ PWM_ADMIN.reportAction=function(action) {
     PWM_MAIN.showConfirmDialog({text:confirmText,okAction:function(){
         PWM_MAIN.showWaitDialog({loadFunction:function(){
             setTimeout(function(){
-                require(["dojo"],function(dojo){
-                    var url = PWM_GLOBAL['url-restservice'] + "/command/report/" + action;
-                    dojo.xhrGet({
-                        url: url,
-                        preventCache: true,
-                        headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-                        handleAs: 'json',
-                        load: function() {
-                            PWM_MAIN.closeWaitDialog();
-                            PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:successText,nextAction:function(){
-                                PWM_ADMIN.refreshReportDataStatus();
-                                PWM_ADMIN.refreshReportDataSummary();
-                            }});
-                        },
-                        error: function(error) {
-                            PWM_MAIN.closeWaitDialog();
-                            alert('unable to send report action: ' + error);
-                        }
-                    });
-                });
+                var url = PWM_GLOBAL['url-restservice'] + "/command/report/" + action;
+                var loadFunction = function(data) {
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showDialog({title:PWM_MAIN.showString('Title_Success'),text:successText,nextAction:function(){
+                        PWM_ADMIN.refreshReportDataStatus();
+                        PWM_ADMIN.refreshReportDataSummary();
+                    }});
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
             },3000);
         }});
     }});
@@ -336,21 +296,13 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
         grid.refresh();
         var maximum = PWM_MAIN.getObject('maxActiveSessionResults').value;
         var url = PWM_GLOBAL['url-restservice'] + "/app-data/session?maximum=" + maximum;
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                grid.renderArray(data['data']);
-                grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
-            },
-            error: function(error) {
-                alert('unable to load data: ' + error);
-            }
-        });
+        var loadFunction = function(data) {
+            grid.renderArray(data['data']);
+            grid.set("sort", { attribute : 'createTime', ascending: false, descending: true });
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
     });
-}
+};
 
 
 PWM_ADMIN.initIntrudersGrid=function() {
@@ -379,30 +331,23 @@ PWM_ADMIN.initIntrudersGrid=function() {
 };
 
 PWM_ADMIN.refreshIntruderGrid=function() {
-    require(["dojo"],function(dojo){
+    for (var i = 0; i < PWM_VAR['intruderRecordTypes'].length; i++) {
+        var recordType = PWM_VAR['intruderRecordTypes'][i];
+        PWM_VAR['intruderGrid'][recordType].refresh();
+    }
+    try {
+        var maximum = PWM_MAIN.getObject('maxIntruderGridResults').value;
+    } catch (e) {
+        maximum = 1000;
+    }
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum;
+    var loadFunction = function(data) {
         for (var i = 0; i < PWM_VAR['intruderRecordTypes'].length; i++) {
             var recordType = PWM_VAR['intruderRecordTypes'][i];
-            PWM_VAR['intruderGrid'][recordType].refresh();
+            PWM_VAR['intruderGrid'][recordType].renderArray(data['data'][recordType]);
         }
-        var maximum = PWM_MAIN.getObject('maxIntruderGridResults').value;
-        var url = PWM_GLOBAL['url-restservice'] + "/app-data/intruder?maximum=" + maximum;
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                for (var i = 0; i < PWM_VAR['intruderRecordTypes'].length; i++) {
-                    var recordType = PWM_VAR['intruderRecordTypes'][i];
-                    PWM_VAR['intruderGrid'][recordType].renderArray(data['data'][recordType]);
-                }
-            },
-            error: function(error) {
-                PWM_MAIN.closeWaitDialog();
-                alert('unable to load data: ' + error);
-            }
-        });
-    });
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
 
 PWM_ADMIN.auditUserHeaders = function() {
@@ -464,62 +409,54 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
             maximum = 1000;
         }
         var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
-        dojo.xhrGet({
-            url: url,
-            preventCache: true,
-            headers: {"X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            handleAs: 'json',
-            load: function(data) {
-                PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
-                PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-                PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
-                PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+        var loadFunction = function(data) {
+            PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
+            PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+            PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
+            PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
 
-                var detailView = function(evt, headers, grid){
-                    var row = grid.row(evt);
-                    var text = '<table>';
-                    for (var item in headers) {
-                        (function(key){
-                            var value = key in row.data ? row.data[key] : '';
-                            var label = headers[key];
-                            text += '<tr><td class="key">' + label + '</td>';
-                            text += '<td>';
-                            if (key == 'timestamp') {
-                                text += '<span class="timestamp" id="dialog_timestamp">' + value + '</span>'
-                            } else if (key == 'message') {
-                                text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
-                            } else {
-                                text += value;
-                            }
-                            text += '</td></tr>';
-                        })(item);
-                    }
-                    text += '</table>';
-                    PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,showClose:true,loadFunction:function(){
-                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('dialog_timestamp'));
-                    }});
-                };
+            var detailView = function(evt, headers, grid){
+                var row = grid.row(evt);
+                var text = '<table>';
+                for (var item in headers) {
+                    (function(key){
+                        var value = key in row.data ? row.data[key] : '';
+                        var label = headers[key];
+                        text += '<tr><td class="key">' + label + '</td>';
+                        text += '<td>';
+                        if (key == 'timestamp') {
+                            text += '<span class="timestamp" id="dialog_timestamp">' + value + '</span>'
+                        } else if (key == 'message') {
+                            text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
+                        } else {
+                            text += value;
+                        }
+                        text += '</td></tr>';
+                    })(item);
+                }
+                text += '</table>';
+                PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,showClose:true,loadFunction:function(){
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('dialog_timestamp'));
+                }});
+            };
 
-                PWM_VAR['auditUserGrid'].on(".dgrid-row .dgrid-cell:click", function(evt){
-                    detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
-                });
-                PWM_VAR['auditSystemGrid'].on(".dgrid-row .dgrid-cell:click", function(evt){
-                    detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
-                });
+            PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){
+                detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
+            });
+            PWM_VAR['auditSystemGrid'].on(".grid-row:click", function(evt){
+                detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
+            });
 
-                /*
-                 require(["dojo/query","dojo/_base/array"], function(query,array){
-                 var timestampGrids = query(".field-timestamp");
-                 array.forEach(timestampGrids, function(entry, i){
-                 PWM_MAIN.TimestampHandler.initElement(entry);
-                 });
-                 });
-                 */
-            },
-            error: function(error) {
-                alert('unable to load data: ' + error);
-            }
-        });
+            /*
+             require(["dojo/query","dojo/_base/array"], function(query,array){
+             var timestampGrids = query(".field-timestamp");
+             array.forEach(timestampGrids, function(entry, i){
+             PWM_MAIN.TimestampHandler.initElement(entry);
+             });
+             });
+             */
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
     });
 };
 
@@ -675,57 +612,54 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
         PWM_GLOBAL['healthRefreshFunction'] = function() {
             PWM_ADMIN.showAppHealth(parentDivID, options, refreshNow);
         };
-        dojo.xhrGet({
-            url: refreshUrl,
-            handleAs: "json",
-            headers: { "Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey'] },
-            timeout: 60 * 1000,
-            preventCache: true,
-            load: function(data) {
-                if (data['error']) {
-                    throw data['error'];
-                } else {
-                    PWM_GLOBAL['pwm-health'] = data['data']['overall'];
-                    var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
-                    parentDiv.innerHTML = htmlBody;
-                    PWM_GLOBAL['healthCheckInProgress'] = false;
-                    if (refreshTime > 0) {
-                        setTimeout(function() {
-                            PWM_ADMIN.showAppHealth(parentDivID, options);
-                        }, refreshTime);
-                    }
-                    if (showTimestamp) {
-                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('healthCheckTimestamp'));
-                    }
-                    if (finishFunction) {
-                        finishFunction();
-                    }
-                }
-            },
-            error: function(error) {
-                if (error != null) {
-                    console.log('error reaching server: ' + error);
-                }
-                var htmlBody = '<div style="text-align:center; background-color: #d20734">';
-                htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
-                htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
-                if (showRefresh) {
-                    htmlBody += '<a href="#" onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
-                }
-                htmlBody += '</div>';
+
+        var loadFunction = function(data) {
+            if (data['error']) {
+                throw data['error'];
+            } else {
+                PWM_GLOBAL['pwm-health'] = data['data']['overall'];
+                var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
                 parentDiv.innerHTML = htmlBody;
                 PWM_GLOBAL['healthCheckInProgress'] = false;
-                PWM_GLOBAL['pwm-health'] = 'WARN';
                 if (refreshTime > 0) {
                     setTimeout(function() {
                         PWM_ADMIN.showAppHealth(parentDivID, options);
                     }, refreshTime);
                 }
+                if (showTimestamp) {
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('healthCheckTimestamp'));
+                }
                 if (finishFunction) {
                     finishFunction();
                 }
             }
-        });
+        };
+
+        var errorFunction = function(error) {
+            if (error != null) {
+                console.log('error reaching server: ' + error);
+            }
+            var htmlBody = '<div style="text-align:center; background-color: #d20734">';
+            htmlBody += '<br/><span style="font-weight: bold;">unable to load health data from server</span></br>';
+            htmlBody += '<br/>' + new Date().toLocaleString() + '&nbsp;&nbsp;&nbsp;';
+            if (showRefresh) {
+                htmlBody += '<a href="#" onclick="PWM_ADMIN.showAppHealth(\'' + parentDivID + '\',null,true)">retry</a><br/><br/>';
+            }
+            htmlBody += '</div>';
+            parentDiv.innerHTML = htmlBody;
+            PWM_GLOBAL['healthCheckInProgress'] = false;
+            PWM_GLOBAL['pwm-health'] = 'WARN';
+            if (refreshTime > 0) {
+                setTimeout(function() {
+                    PWM_ADMIN.showAppHealth(parentDivID, options);
+                }, refreshTime);
+            }
+            if (finishFunction) {
+                finishFunction();
+            }
+        };
+
+        PWM_MAIN.ajaxRequest(refreshUrl,loadFunction,{errorFunction:errorFunction,method:'GET'});
     });
 };
 

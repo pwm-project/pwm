@@ -23,7 +23,6 @@
 package password.pwm.i18n;
 
 import password.pwm.config.Configuration;
-import password.pwm.util.PwmLogger;
 
 import java.util.Locale;
 
@@ -132,10 +131,6 @@ public enum Message implements DisplayBundleMarker {
     ;
 
 // ------------------------------ FIELDS ------------------------------
-
-    public static String FIELD_REPLACE_VALUE = "%1%";
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(Message.class);
 
     private final String resourceKey;
 

@@ -23,10 +23,8 @@
 package password.pwm.bean;
 
 import password.pwm.config.ShortcutItem;
-import password.pwm.error.ErrorInformation;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.i18n.Message;
-import password.pwm.util.BasicAuthInfo;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
 
@@ -52,7 +50,6 @@ public class SessionStateBean implements PwmSessionBean {
      */
     private boolean authenticated;
 
-    private ErrorInformation sessionError;
     private Message sessionSuccess;
     private String sessionSuccessField;
     private String originalRequestURL;
@@ -67,7 +64,6 @@ public class SessionStateBean implements PwmSessionBean {
     private String lastRequestURL;
 
     private Map<String, ShortcutItem> visibleShortcutItems;
-    private BasicAuthInfo originalBasicAuthInfo;
 
     private String requestVerificationKey = "key";
     private String sessionVerificationKey = "key";
@@ -91,6 +87,9 @@ public class SessionStateBean implements PwmSessionBean {
 
     // settings
     private int sessionVerificationKeyLength;
+
+    private boolean skippedOtpSetup;
+    private boolean skippedRequireNewPassword;
 
 
 
@@ -140,14 +139,6 @@ public class SessionStateBean implements PwmSessionBean {
         this.logoutURL = logoutURL;
     }
 
-    public BasicAuthInfo getOriginalBasicAuthInfo() {
-        return originalBasicAuthInfo;
-    }
-
-    public void setOriginalBasicAuthInfo(final BasicAuthInfo originalBasicAuthInfo) {
-        this.originalBasicAuthInfo = originalBasicAuthInfo;
-    }
-
     public String getOriginalRequestURL() {
         return originalRequestURL;
     }
@@ -162,14 +153,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void setPreCaptchaRequestURL(String preCaptchaRequestURL) {
         this.preCaptchaRequestURL = preCaptchaRequestURL;
-    }
-
-    public ErrorInformation getSessionError() {
-        return sessionError;
-    }
-
-    public void setSessionError(final ErrorInformation sessionError) {
-        this.sessionError = sessionError;
     }
 
     public String getSessionID() {
@@ -224,8 +207,6 @@ public class SessionStateBean implements PwmSessionBean {
     public void setPassedCaptcha(final boolean passedCaptcha) {
         this.passedCaptcha = passedCaptcha;
     }
-
-    // -------------------------- OTHER METHODS --------------------------
 
     public String getSessionVerificationKey() {
         return sessionVerificationKey;
@@ -355,10 +336,28 @@ public class SessionStateBean implements PwmSessionBean {
         scriptContents = new StringBuilder();
     }
 
-    // -------------------------- ENUMERATIONS --------------------------
-
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
+    }
+
+    public boolean isSkippedOtpSetup()
+    {
+        return skippedOtpSetup;
+    }
+
+    public void setSkippedOtpSetup(boolean skippedOtpSetup)
+    {
+        this.skippedOtpSetup = skippedOtpSetup;
+    }
+
+    public boolean isSkippedRequireNewPassword()
+    {
+        return skippedRequireNewPassword;
+    }
+
+    public void setSkippedRequirePassword(boolean skippedPasswordWarn)
+    {
+        this.skippedRequireNewPassword = skippedPasswordWarn;
     }
 }
 

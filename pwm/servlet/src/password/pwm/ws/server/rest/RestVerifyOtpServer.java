@@ -40,24 +40,19 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
 import java.net.URISyntaxException;
 
 @Path("/verifyotp")
-public class RestVerifyOtpServer {
+public class RestVerifyOtpServer extends AbstractRestServer {
 
     public static class JsonPutOtpInput implements Serializable {
         public String token;
         public String username;
     }
-
-    @Context
-    HttpServletRequest request;
 
     @GET
     @Produces(MediaType.TEXT_HTML)
@@ -66,7 +61,7 @@ public class RestVerifyOtpServer {
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doSetOtpDataJson(final RestVerifyOtpServer.JsonPutOtpInput jsonInput) {
         final RestRequestBean restRequestBean;
@@ -75,7 +70,7 @@ public class RestVerifyOtpServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -84,7 +79,7 @@ public class RestVerifyOtpServer {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
             }
 
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getSessionLabel());
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession().getLabel());
             UserIdentity userIdentity = restRequestBean.getUserIdentity();
             if (userIdentity == null) {
                 ChaiUser chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication());
@@ -92,7 +87,7 @@ public class RestVerifyOtpServer {
             }
 
             final OtpService otpService = restRequestBean.getPwmApplication().getOtpService();
-            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(userIdentity);
+            final OTPUserRecord otpUserRecord = otpService.readOTPUserConfiguration(restRequestBean.getPwmSession().getLabel(),userIdentity);
             final boolean verified = otpUserRecord !=null && otpService.validateToken(
                     restRequestBean.getPwmSession(),
                     userIdentity,

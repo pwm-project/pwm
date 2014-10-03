@@ -30,6 +30,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.bean.UserIdentity;
+import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
@@ -59,9 +60,14 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
             final PwmApplication pwmApplication,
             final UserIdentity userIdentity
     )
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
-        final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);
+        final ChaiUser user;
+        try {
+            user = pwmApplication.getProxiedChaiUser(userIdentity);
+        } catch (ChaiUnavailableException e) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
+        }
         return new LdapUserDataReader(userIdentity, user);
     }
 
@@ -75,7 +81,7 @@ public class LdapUserDataReader implements Serializable, UserDataReader {
         if (!userIdentity.getLdapProfileID().equals(pwmSession.getUserInfoBean().getUserIdentity().getLdapProfileID())) {
             throw new PwmUnrecoverableException(PwmError.ERROR_NO_LDAP_CONNECTION);
         }
-        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider(pwmApplication);
+        final ChaiProvider chaiProvider = pwmSession.getSessionManager().getChaiProvider();
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(),chaiProvider);
         return new LdapUserDataReader(userIdentity,chaiUser);
 

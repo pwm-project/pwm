@@ -139,7 +139,7 @@ public class AppDashboardData implements Serializable {
                     "siteURL",
                     Type.string,
                     l.forKey("Field_SiteURL"),
-                    pwmApplication.getSiteURL()
+                    pwmApplication.getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL)
             ));
             data.add(new DataElement(
                     "instanceID",

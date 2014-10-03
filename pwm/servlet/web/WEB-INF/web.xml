@@ -21,25 +21,25 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   -->
 
-<web-app id="PWM"
-         version="2.5"
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://java.sun.com/xml/ns/javaee"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-         metadata-complete="false">
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         id="PWM" version="3.0">
     <display-name>PWM Password Management</display-name>
     <distributable/>
     <description>Password Management Servlet</description>
     <context-param>
         <description>
-            Explicit location of application working directory.  If a relative path is specified, it is relative to the deployed applications base directory.
+            Explicit location of application working directory. If a relative path is specified, it is relative to the
+            deployed applications base directory.
         </description>
         <param-name>applicationPath</param-name>
         <param-value>/WEB-INF</param-value>
     </context-param>
     <context-param>
         <description>
-            Name of configuration XML file file.  If a relative path is specified, it is relative to the applicationPath param.
+            Name of configuration XML file file. If a relative path is specified, it is relative to the applicationPath
+            param.
         </description>
         <param-name>configurationFile</param-name>
         <param-value>PwmConfiguration.xml</param-value>
@@ -193,6 +193,7 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>CaptchaFilter</filter-name>
+        <url-pattern>/private/Login</url-pattern>
         <url-pattern>/public/NewUser</url-pattern>
         <url-pattern>/public/ActivateUser</url-pattern>
         <url-pattern>/public/ForgottenPassword</url-pattern>
@@ -294,7 +295,8 @@
         <servlet-name>ResourceFileServlet</servlet-name>
         <servlet-class>password.pwm.http.servlet.ResourceFileServlet</servlet-class>
         <init-param>
-            <description>zip files to treat as resource paths, separated by semi-colons (;), must end in .zip</description>
+            <description>zip files to treat as resource paths, separated by semi-colons (;), must end in .zip
+            </description>
             <param-name>zipFileResources</param-name>
             <param-value>/public/resources/dojo.zip;/public/resources/flags.zip</param-value>
         </init-param>
@@ -412,6 +414,9 @@
         <!-- Please use the Configuration to control the idle session timeout.
         This value will be overridden.  -->
         <session-timeout>5</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
     </session-config>
     <jsp-config>
         <taglib>

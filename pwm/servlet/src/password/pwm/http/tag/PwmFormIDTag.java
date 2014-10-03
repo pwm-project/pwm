@@ -23,15 +23,20 @@
 package password.pwm.http.tag;
 
 import password.pwm.bean.SessionStateBean;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.util.Helper;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.TagSupport;
+import java.io.IOException;
 
 public class PwmFormIDTag extends TagSupport {
 // --------------------- Interface Tag ---------------------
+
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmFormIDTag.class);
 
     public int doEndTag()
             throws javax.servlet.jsp.JspTagException
@@ -43,6 +48,13 @@ public class PwmFormIDTag extends TagSupport {
             final String pwmFormID = Helper.buildPwmFormID(ssBean);
 
             pageContext.getOut().write(pwmFormID);
+        } catch (PwmUnrecoverableException e) {
+            try {
+                pageContext.getOut().write("errorGeneratingPwmFormID");
+            } catch (IOException e1) {
+                /* ignore */
+            }
+            LOGGER.error("error during pwmFormIDTag output of pwmFormID: " + e.getMessage());
         } catch (Exception e) {
             throw new JspTagException(e.getMessage());
         }

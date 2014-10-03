@@ -30,12 +30,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.cr.ChallengeItemBean;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
 
 public class ChallengeValue extends AbstractValue implements StoredValue {
-    final static private PwmLogger LOGGER = PwmLogger.getLogger(ChallengeValue.class);
+    final static private PwmLogger LOGGER = PwmLogger.forClass(ChallengeValue.class);
     final Map<String, List<ChallengeItemBean>> values;
 
     ChallengeValue(final Map<String, List<ChallengeItemBean>> values) {
@@ -84,7 +84,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
             for (final ChallengeItemBean value : values.get(locale)) {
                 if (value != null) {
                     final Element valueElement = new Element(valueElementName);
-                    valueElement.addContent(new CDATA(JsonUtil.getGson().toJson(value)));
+                    valueElement.addContent(new CDATA(JsonUtil.serialize(value)));
                     if (locale != null && locale.length() > 0) {
                         valueElement.setAttribute("locale", locale);
                     }

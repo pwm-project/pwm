@@ -22,7 +22,9 @@
 
 package password.pwm.event;
 
-public class SystemAuditRecord extends AuditRecord {
+import java.io.Serializable;
+
+public class SystemAuditRecord extends AuditRecord implements Serializable {
 
     protected String instance;
 

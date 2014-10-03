@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
+import password.pwm.util.logging.PwmLogger;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -40,7 +44,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public class UrlShortenerService implements PwmService {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UrlShortenerService.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(UrlShortenerService.class);
 
     private PwmApplication pwmApplication;
     private BasicUrlShortener theShortener = null;

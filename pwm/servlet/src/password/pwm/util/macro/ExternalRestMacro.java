@@ -27,9 +27,8 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.client.rest.RestClientHelper;
 import password.pwm.ws.server.rest.RestStatusServer;
 
@@ -41,41 +40,34 @@ import java.util.regex.Pattern;
  * External macro @External1:<value>@ where 1 is incremental configuration item.
  */
 class ExternalRestMacro extends AbstractMacro {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(ExternalRestMacro.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ExternalRestMacro.class);
 
-    private PwmApplication pwmApplication;
-    private UserInfoBean userInfoBean;
-
-    private Pattern pattern = null;
-    private String url = null;
-
-    public ExternalRestMacro() {
-    }
+    private final Pattern pattern;
+    private final String url;
 
     public ExternalRestMacro(
             final int iteration,
             final String url
     ) {
-        pattern = Pattern.compile("@External" + iteration + ":.*@");
+        this.pattern = Pattern.compile("@External" + iteration + ":.*@");
         this.url = url;
     }
 
-    public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-        this.pwmApplication = pwmApplication;
-        this.userInfoBean = userInfoBean;
-
-    }
     public Pattern getRegExPattern()
     {
         return pattern;
     }
 
     public String replaceValue(
-            String matchValue
+            final String matchValue,
+            final MacroRequestInfo macroRequestInfo
     )
     {
+        final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+        final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
         final String inputString = matchValue.substring(11,matchValue.length() -1);
-        final HashMap<String,Object> sendData = new HashMap<>();
+        final Map<String,Object> sendData = new HashMap<>();
         if (userInfoBean != null) {
             final RestStatusServer.JsonStatusData jsonStatusData = RestStatusServer.JsonStatusData.fromUserInfoBean(userInfoBean,pwmApplication.getConfig(), PwmConstants.DEFAULT_LOCALE);
             sendData.put("userInfo",jsonStatusData);
@@ -83,7 +75,7 @@ class ExternalRestMacro extends AbstractMacro {
         sendData.put("input",inputString);
 
         try {
-            final String requestBody = JsonUtil.getGson().toJson(sendData);
+            final String requestBody = JsonUtil.serializeMap(sendData);
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication,
                     PwmConstants.DEFAULT_LOCALE, url,
                     requestBody);

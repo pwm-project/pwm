@@ -22,12 +22,11 @@
 
 package password.pwm.http.tag;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +38,7 @@ import javax.servlet.jsp.tagext.TagSupport;
  * @author Jason D. Rivard
  */
 public class PwmValueTag extends TagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmValueTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmValueTag.class);
 
     private String name;
 
@@ -67,8 +66,10 @@ public class PwmValueTag extends TagSupport {
             } catch (IllegalArgumentException e) {
                 LOGGER.error("can't output requested value name '" + getName() + "'");
             }
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
         } catch (Exception e) {
-            throw new JspTagException(e.getMessage());
+            throw new JspTagException(e.getMessage(),e);
         }
         return EVAL_PAGE;
     }
@@ -94,7 +95,7 @@ public class PwmValueTag extends TagSupport {
                         MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
                                 pwmRequest.getPwmApplication());
                         outputURL = macroMachine.expandMacros(outputURL);
-                    } catch (ChaiUnavailableException | PwmUnrecoverableException e) {
+                    } catch ( PwmUnrecoverableException e) {
                         LOGGER.error(pwmRequest, "error expanding macros in homeURL: " + e.getMessage());
                     }
                 }
@@ -110,6 +111,23 @@ public class PwmValueTag extends TagSupport {
                 final boolean maskResponseFields = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_MASK_RESPONSE_FIELDS);
                 return maskResponseFields ? "password" : "text";
             }
+
+            case customJavascript: {
+                final String customScript = pwmRequest.getConfig().readSettingAsString(
+                        PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT);
+                if (customScript != null && !customScript.isEmpty()) {
+                    try {
+                        final MacroMachine macroMachine = pwmRequest.getPwmSession().getSessionManager().getMacroMachine(
+                                pwmRequest.getPwmApplication());
+                        final String expandedScript = macroMachine.expandMacros(customScript);
+                        return expandedScript;
+                    } catch (Exception e) {
+                        LOGGER.error(pwmRequest, "error while expanding customJavascript macros: " + e.getMessage());
+                        return customScript;
+                    }
+                }
+                return "";
+            }
         }
 
         return "";
@@ -120,6 +138,7 @@ public class PwmValueTag extends TagSupport {
         homeURL,
         passwordFieldType,
         responseFieldType,
+        customJavascript
     }
 }
 

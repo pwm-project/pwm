@@ -20,8 +20,10 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.util.LocalDBLogger" %>
-<%@ page import="password.pwm.util.PwmLogLevel" %>
+<%@ page import="password.pwm.http.JspUtility" %>
+<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.logging.LocalDBLogger" %>
+<%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.util.Date" %>
 <!DOCTYPE html>
 
@@ -31,7 +33,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
-<% final String selectedLevel = password.pwm.Validator.readStringFromRequest(request, "level", 255, "");%>
+<% final String selectedLevel = PwmRequest.forRequest(request,response).readParameterAsString("level", 255);%>
 <body class="nihilo">
 <% if ("".equals(selectedLevel)) { %>
 <div style="text-align: center;"><pwm:display key="Display_PleaseWait"/></div>
@@ -76,9 +78,9 @@
     final LocalDBLogger.SearchParameters searchParameters = new LocalDBLogger.SearchParameters(logLevel, eventCount, "", "", maxTime, logType);
     final LocalDBLogger.SearchResults searchResults = localDBLogger.readStoredEvents(searchParameters);
 %>
-<pre><% while (searchResults.hasNext()) { %><%= searchResults.next().toLogString(true) %><%="\n"%><% } %></pre>
+<pre><% while (searchResults.hasNext()) { %><%=StringUtil.escapeHtml(searchResults.next().toLogString()) %><%="\n"%><% } %></pre>
 <% } %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <pwm:script>

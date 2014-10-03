@@ -22,29 +22,28 @@
 
 package password.pwm.http.filter;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.ApplicationPage;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmURL;
+import password.pwm.util.PasswordData;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Set;
 
 public class CaptchaFilter implements Filter {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(CaptchaFilter.class);
-
-    private ServletContext servletContext;
+    private static final PwmLogger LOGGER = PwmLogger.forClass(CaptchaFilter.class);
 
     public void init(final FilterConfig filterConfig) throws ServletException {
-        this.servletContext = filterConfig.getServletContext();
     }
 
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
@@ -54,69 +53,104 @@ public class CaptchaFilter implements Filter {
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
         try {
-            processFilter(req,resp,filterChain);
+            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
+            final boolean redirectPerformed = performRedirectIfRequired(pwmRequest);
+            if (!redirectPerformed) {
+                filterChain.doFilter(req, resp);
+            }
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing captcha filter: " + e.getMessage(), e );
         }
     }
 
-    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
-            throws PwmUnrecoverableException, IOException {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(this.servletContext);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+    private boolean performRedirectIfRequired(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException
+    {
 
-        final String captchaServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
-
-        checkIfCaptchaEnabled(pwmApplication,pwmSession);
-
-        try {
-            if (ssBean.isPassedCaptcha()) {
-                filterChain.doFilter(req, resp);
-                return;
-            }
-
-            final String requestedURL = req.getRequestURI();
-
-            // check if current request is actually for the captcha servlet url, if it is, just do nothing.
-            if (requestedURL.equals(captchaServletURL)) {
-                LOGGER.trace(pwmSession.getSessionLabel(), "permitting unverified request of captcha page");
-                filterChain.doFilter(req, resp);
-                return;
-            }
-        } catch (Exception e) {
-            LOGGER.warn(pwmSession, "error during captcha filter: " + e.getMessage(),e);
+        //if captcha is done then stop
+        if (pwmRequest.getPwmSession().getSessionStateBean().isPassedCaptcha()) {
+            return false;
         }
 
-        LOGGER.debug(pwmSession, "session requires captcha verification, redirecting to Captcha servlet");
-
-        // store the original requested url
-        final String urlToStore = req.getRequestURI() + (req.getQueryString() != null ? ('?' + req.getQueryString()) : "");
-        if (ssBean.getPreCaptchaRequestURL() == null) {
-            ssBean.setPreCaptchaRequestURL(urlToStore);
+        //if captcha not enabled then stop
+        if (!checkIfCaptchaEnabled(pwmRequest)) {
+            LOGGER.debug(pwmRequest,"reCaptcha private or public key not configured, skipping captcha check");
+            pwmRequest.getPwmSession().getSessionStateBean().setPassedCaptcha(true);
+            return false;
         }
 
-        resp.sendRedirect(
-                SessionFilter.rewriteRedirectURL(SessionFilter.rewriteRedirectURL(captchaServletURL, req, resp), req,
-                        resp));
+        final PwmURL pwmURL = pwmRequest.getURL();
+
+        //if on captcha page, then stop.
+        if (pwmURL.isCaptchaURL()) {
+            return false;
+        }
+
+
+        final Set<ApplicationPage> protectedModules = pwmRequest.getConfig().readSettingAsOptionList(
+                PwmSetting.CAPTCHA_PROTECTED_PAGES,
+                ApplicationPage.class
+        );
+
+        boolean redirectNeeded = false;
+        if (protectedModules != null) {
+            if (protectedModules.contains(ApplicationPage.LOGIN) && pwmURL.isLoginServlet()) {
+                redirectNeeded = true;
+            } else if (protectedModules.contains(ApplicationPage.FORGOTTEN_PASSWORD) && pwmURL.isForgottenPasswordServlet()) {
+                redirectNeeded = true;
+            } else if (protectedModules.contains(ApplicationPage.FORGOTTEN_USERNAME) && pwmURL.isForgottenUsernameServlet()) {
+                redirectNeeded = true;
+            } else if (protectedModules.contains(ApplicationPage.USER_ACTIVATION) && pwmURL.isUserActivationServlet()) {
+                redirectNeeded = true;
+            } else if (protectedModules.contains(ApplicationPage.NEW_USER_REGISTRATION) && pwmURL.isNewUserRegistrationServlet()) {
+                redirectNeeded = true;
+            }
+        }
+
+        if (redirectNeeded) {
+            LOGGER.debug(pwmRequest, "session requires captcha verification, redirecting to Captcha servlet");
+            redirectToCaptchaServlet(pwmRequest);
+            return true;
+        }
+
+        return false;
     }
 
-    private void checkIfCaptchaEnabled(final PwmApplication pwmApplication, final PwmSession pwmSession) throws PwmUnrecoverableException {
-        if (pwmSession.getSessionStateBean().isPassedCaptcha()) {
-            return;
+    private void redirectToCaptchaServlet(
+            final PwmRequest pwmRequest
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final HttpServletRequest req = pwmRequest.getHttpServletRequest();
+        final SessionStateBean sessionStateBean = pwmRequest.getPwmSession().getSessionStateBean();
+
+                // store the original requested url
+        if (sessionStateBean.getPreCaptchaRequestURL() == null) {
+            final String urlToStore = req.getRequestURI() +
+                    (req.getQueryString() != null
+                            ? ('?' + req.getQueryString())
+                            : ""
+                    );
+            sessionStateBean.setPreCaptchaRequestURL(urlToStore);
         }
 
-        final Configuration config = pwmApplication.getConfig();
-        final String privateKey = config.readSettingAsString(PwmSetting.RECAPTCHA_KEY_PRIVATE);
+        final String captchaServletURL = req.getContextPath() + "/public/" + PwmConstants.URL_SERVLET_CAPTCHA;
+        pwmRequest.sendRedirect(captchaServletURL);
+    }
+
+    private boolean checkIfCaptchaEnabled(
+            final PwmRequest pwmRequest
+    ) throws PwmUnrecoverableException
+    {
+        final Configuration config = pwmRequest.getPwmApplication().getConfig();
+        final PasswordData privateKey = config.readSettingAsPassword(PwmSetting.RECAPTCHA_KEY_PRIVATE);
         final String publicKey = config.readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
 
-        if ((privateKey == null || privateKey.length() < 1) && (publicKey == null || publicKey.length() < 1)) {
-            LOGGER.debug(pwmSession,"reCaptcha private or public key not configured, skipping captcha check");
-            pwmSession.getSessionStateBean().setPassedCaptcha(true);
-        }
+        return (privateKey != null && publicKey != null && !publicKey.isEmpty());
     }
 
     public void destroy() {
-        this.servletContext = null;
     }
 }

@@ -97,6 +97,6 @@ public class LoginActionServlet extends PwmServlet {
     protected LoginActionActions readProcessAction(final PwmRequest request)
             throws PwmUnrecoverableException
     {
-        return LoginActionActions.forValue(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+        return LoginActionActions.forValue(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
     }
 }

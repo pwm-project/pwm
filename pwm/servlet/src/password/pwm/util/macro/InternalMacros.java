@@ -22,11 +22,9 @@
 
 package password.pwm.util.macro;
 
-import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +33,7 @@ import java.util.regex.Pattern;
 
 public abstract class InternalMacros {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(InternalMacros.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(InternalMacros.class);
 
     public static final List<Class<? extends MacroImplementation>> INTERNAL_MACROS;
     static {
@@ -46,54 +44,36 @@ public abstract class InternalMacros {
     }
 
     public static class OtpSetupTimeMacro extends AbstractMacro {
-        UserInfoBean userInfoBean;
+        private static final Pattern PATTERN = Pattern.compile("@OtpSetupTime@");
 
-        public Pattern getRegExPattern()
-        {
-            return Pattern.compile("@OtpSetupTime@");
+        public Pattern getRegExPattern() {
+            return PATTERN;
         }
 
-        public String replaceValue(String matchValue)
+        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
         {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getOtpUserRecord() != null && userInfoBean.getOtpUserRecord().getTimestamp() != null) {
                 return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getOtpUserRecord().getTimestamp());
             }
             return null;
         }
-
-        public void init(
-                PwmApplication pwmApplication,
-                UserInfoBean userInfoBean,
-                UserDataReader userDataReader
-        )
-        {
-            this.userInfoBean = userInfoBean;
-        }
     }
 
     public static class ResponseSetupTimeMacro extends AbstractMacro {
-        UserInfoBean userInfoBean;
+        private static final Pattern PATTERN = Pattern.compile("@ResponseSetupTime@");
 
-        public Pattern getRegExPattern()
-        {
-            return Pattern.compile("@ResponseSetupTime@");
+        public Pattern getRegExPattern() {
+            return PATTERN;
         }
 
-        public String replaceValue(String matchValue)
+        public String replaceValue(String matchValue, MacroRequestInfo macroRequestInfo)
         {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
             if (userInfoBean != null && userInfoBean.getResponseInfoBean() != null && userInfoBean.getResponseInfoBean().getTimestamp() != null) {
                 return PwmConstants.DEFAULT_DATETIME_FORMAT.format(userInfoBean.getResponseInfoBean().getTimestamp());
             }
             return null;
-        }
-
-        public void init(
-                PwmApplication pwmApplication,
-                UserInfoBean userInfoBean,
-                UserDataReader userDataReader
-        )
-        {
-            this.userInfoBean = userInfoBean;
         }
     }
 }

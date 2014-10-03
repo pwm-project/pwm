@@ -25,6 +25,7 @@ package password.pwm.util;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.*;
 import java.net.URI;
@@ -33,47 +34,52 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public abstract class X509Utils {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(X509Utils.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(X509Utils.class);
 
     public static X509Certificate[] readLdapServerCerts(final URI ldapUri)
             throws PwmOperationalException
     {
         final String ldapHost = ldapUri.getHost();
         final int ldapPort = ldapUri.getPort();
+        return readLdapServerCerts(ldapHost, ldapPort);
+    }
 
-        LOGGER.debug("LDAPCertReader: beginning certificate read procedure to import ldap certificates from host=" + ldapHost + ", port=" + ldapPort);
+    public static X509Certificate[] readLdapServerCerts(final String ldapHost, final int ldapPort)
+            throws PwmOperationalException
+    {
+        LOGGER.debug("ServerCertReader: beginning certificate read procedure to import ldap certificates from host=" + ldapHost + ", port=" + ldapPort);
         final CertReaderTrustManager certReaderTm = new CertReaderTrustManager();
         try { // use custom trust manager to read the certificates
             final SSLContext ctx = SSLContext.getInstance("TLS");
             ctx.init(null, new TrustManager[]{certReaderTm}, new SecureRandom());
             final SSLSocketFactory factory = ctx.getSocketFactory();
             final SSLSocket sslSock = (SSLSocket) factory.createSocket(ldapHost,ldapPort);
-            LOGGER.debug("LDAPCertReader: socket established to host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: socket established to host=" + ldapHost + ", port=" + ldapPort);
             sslSock.isConnected();
-            LOGGER.debug("LDAPCertReader: connected to host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: connected to host=" + ldapHost + ", port=" + ldapPort);
             sslSock.getOutputStream().write("data!".getBytes());//write some data so the connection gets established
-            LOGGER.debug("LDAPCertReader: data transfer completed host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: data transfer completed host=" + ldapHost + ", port=" + ldapPort);
             sslSock.close();
-            LOGGER.debug("LDAPCertReader: certificate information read from host=" + ldapHost + ", port=" + ldapPort);
+            LOGGER.debug("ServerCertReader: certificate information read from host=" + ldapHost + ", port=" + ldapPort);
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
-            errorMsg.append("unable to read ldap server certificates from ");
-            errorMsg.append(ldapUri.toString());
+            errorMsg.append("unable to read ldap server certificates from host=");
+            errorMsg.append(ldapHost).append(", port=").append(ldapPort);
             errorMsg.append(" error: ");
             errorMsg.append(e.getMessage());
-            LOGGER.error("LDAPCertReader: " + errorMsg);
+            LOGGER.error("ServerCertReader: " + errorMsg);
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CERTIFICATE_ERROR, errorMsg.toString(), new String[]{errorMsg.toString()});
             throw new PwmOperationalException(errorInformation);
         }
         final X509Certificate[] certs = certReaderTm.getCertificates();
         if (certs == null) {
-            LOGGER.debug("LDAPCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()");
+            LOGGER.debug("ServerCertReader: unable to read certificates: null returned from CertReaderTrustManager.getCertificates()");
         } else {
             for (final X509Certificate certificate : certs) {
-                LOGGER.debug("LDAPCertReader: read x509 Certificate from host=" + ldapHost + ", port=" + ldapPort + ": \n" + certificate.toString());
+                LOGGER.debug("ServerCertReader: read x509 Certificate from host=" + ldapHost + ", port=" + ldapPort + ": \n" + certificate.toString());
             }
         }
-        LOGGER.debug("LDAPCertReader: process completed");
+        LOGGER.debug("ServerCertReader: process completed");
         return certs;
     }
 

@@ -25,38 +25,42 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
 <%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    PwmSession pwmSessionHeader = null;
-    PwmApplication pwmApplicationHeader = null;
+
+    boolean showTheme = false;
+    boolean includeXVersion = false;
+    String restClientKey = "";
+    String clientEtag = "";
+    String jspFileName = "";
+    String instanceID = "";
     try {
-        pwmApplicationHeader = ContextManager.getPwmApplication(session);
-        pwmSessionHeader = PwmSession.getPwmSession(session);
+        final PwmRequest pwmRequestHeader = PwmRequest.forRequest(request,response);
+
+        showTheme = !pwmRequestHeader.isFlag(PwmRequest.Flag.HIDE_THEME);
+        includeXVersion = Boolean.parseBoolean(pwmRequestHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+        restClientKey = pwmRequestHeader.getPwmSession().getRestClientKey();
+        clientEtag = password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(pwmRequestHeader);
+        instanceID = pwmRequestHeader.getPwmApplication().getInstanceID();
+        jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
+
+        pwmRequestHeader.getPwmSession().getSessionStateBean().clearScriptContents();
+        if (!pwmRequestHeader.isFlag(PwmRequest.Flag.NO_REQ_COUNTER)) {
+            pwmRequestHeader.getPwmSession().getSessionManager().incrementRequestCounterKey();
+        }
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
 
     // read parameters from calling jsp;
-    final boolean showTheme = !"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME));
-    final boolean includeXVersion = Boolean.parseBoolean(pwmApplicationHeader.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
-    final boolean incrementRequestCounter = !"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER));
-
-    if (pwmSessionHeader != null) {
-        pwmSessionHeader.getSessionStateBean().clearScriptContents();
-    }
-
-    if (incrementRequestCounter && pwmSessionHeader != null) {
-        pwmSessionHeader.getSessionManager().incrementRequestCounterKey();
-    }
-
-    final String jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
 %>
 <head>
     <title><pwm:display key="Title_TitleBar"/></title>
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
-    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=pwmApplicationHeader != null ? pwmApplicationHeader.getInstanceID() : ""%>" data-jsp-name="<%=jspFileName%>"
-          data-url-context="<%=request.getContextPath()%>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=password.pwm.ws.server.rest.RestAppDataServer.makeClientEtag(request,pwmApplicationHeader,pwmSessionHeader)%>" data-restClientKey="<%=pwmSessionHeader.getRestClientKey()%>"/>
+    <meta id="application-info" name="application-name" content="<%=PwmConstants.PWM_APP_NAME%> Password Self Service" <%if (includeXVersion){%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-version="<%=PwmConstants.BUILD_VERSION%> (<%=PwmConstants.BUILD_TYPE%>)" data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-build="<%=PwmConstants.BUILD_NUMBER%>" <%}%>data-<%=PwmConstants.PWM_APP_NAME.toLowerCase()%>-instance="<%=instanceID%>" data-jsp-name="<%=jspFileName%>"
+          data-url-context="<%=request.getContextPath()%>" data-pwmFormID="<pwm:FormID/>" data-clientEtag="<%=clientEtag%>" data-restClientKey="<%=restClientKey%>"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
     <link rel="icon" type="image/x-icon" href="<pwm:url url='/public/resources/favicon.ico' addContext="true"/>"/>

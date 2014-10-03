@@ -35,7 +35,7 @@ public class ExportLocalDBCommand extends AbstractCliCommand {
     void doCommand()
             throws Exception
     {
-        final LocalDB pwmDB = cliEnvironment.getLocalDB();
+        final LocalDB localDB = cliEnvironment.getLocalDB();
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
         if (outputFile.exists()) {
@@ -43,9 +43,9 @@ public class ExportLocalDBCommand extends AbstractCliCommand {
             return;
         }
 
-        final LocalDBUtility pwmDBUtility = new LocalDBUtility(pwmDB);
+        final LocalDBUtility localDBUtility = new LocalDBUtility(localDB);
         try {
-            pwmDBUtility.exportLocalDB(new FileOutputStream(outputFile), System.out, true);
+            localDBUtility.exportLocalDB(new FileOutputStream(outputFile), System.out, true);
         } catch (PwmOperationalException e) {
             out("error during export: " + e.getMessage());
         }

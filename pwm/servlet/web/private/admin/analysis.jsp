@@ -1,4 +1,6 @@
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%@ page import="password.pwm.util.stats.StatisticsBundle" %>
 <%@ page import="password.pwm.util.stats.StatisticsManager" %>
@@ -27,9 +29,27 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    final Locale locale = JspUtility.locale(request);
+    final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
+
+    StatisticsManager statsManager = null;
+    String statsPeriodSelect = "";
+    String statsChartSelect = "";
+    StatisticsBundle stats = null;
+    PwmRequest analysis_pwmRequest = null;
+    try {
+        analysis_pwmRequest = PwmRequest.forRequest(request, response);
+        statsManager = analysis_pwmRequest.getPwmApplication().getStatisticsManager();
+        statsPeriodSelect = analysis_pwmRequest.readParameterAsString("statsPeriodSelect");
+        statsChartSelect = analysis_pwmRequest.readParameterAsString("statsChartSelect",Statistic.PASSWORD_CHANGES.toString());
+        stats = statsManager.getStatBundleForKey(statsPeriodSelect);
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -37,13 +57,13 @@
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Data Analysis"/>
     </jsp:include>
-    <div id="centerbody">
+    <div id="centerbody" class="wide">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
-                <% if (pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
+                <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
                 <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
-                    <div style="max-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto" id="summaryTableWarpper">
+                    <div style="max-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto" id="summaryTableWrapper">
                         <table id="summaryTable">
                             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                         </table>
@@ -118,19 +138,13 @@
                 </div>
                 <% } else { %>
                 <div>
-                    <%= PwmError.ERROR_SERVICE_NOT_AVAILABLE.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),pwmApplicationHeader.getConfig()) %>
+                    <%= PwmError.ERROR_SERVICE_NOT_AVAILABLE.getLocalizedMessage(analysis_pwmRequest.getLocale(),
+                            analysis_pwmRequest.getConfig()) %>
                 </div>
                 <% } %>
             </div>
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>">
-                    <% final PwmApplication pwmApplication = ContextManager.getPwmApplication(session); %>
-                    <% final StatisticsManager statsManager = ContextManager.getPwmApplication(session).getStatisticsManager(); %>
-                    <% final String statsPeriodSelect = password.pwm.Validator.readStringFromRequest(request, "statsPeriodSelect"); %>
-                    <% final String statsChartSelect = password.pwm.Validator.readStringFromRequest(request, "statsChartSelect").length() > 0 ? password.pwm.Validator.readStringFromRequest(request, "statsChartSelect") : Statistic.PASSWORD_CHANGES.toString(); %>
-                    <% final StatisticsBundle stats = statsManager.getStatBundleForKey(statsPeriodSelect); %>
-                    <% final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale(); %>
-                    <% final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT; %>
                     <div style="max-height: 350px; overflow-y: auto">
                         <table>
                             <tr>
@@ -142,10 +156,10 @@
                                         <select name="statsPeriodSelect" onchange="PWM_MAIN.getObject('statsUpdateForm').submit();"
                                                 data-dojo-type="dijit.form.Select" style="width: 500px;" data-dojo-props="maxHeight: -1">
                                             <option value="<%=StatisticsManager.KEY_CUMULATIVE%>" <%= StatisticsManager.KEY_CUMULATIVE.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since installation - <%= dateFormat.format(pwmApplication.getInstallTime()) %>
+                                                since installation - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getInstallTime()) %>
                                             </option>
                                             <option value="<%=StatisticsManager.KEY_CURRENT%>" <%= StatisticsManager.KEY_CURRENT.equals(statsPeriodSelect) ? "selected=\"selected\"" : "" %>>
-                                                since startup - <%= dateFormat.format(pwmApplication.getStartupTime()) %>
+                                                since startup - <%= dateFormat.format(analysis_pwmRequest.getPwmApplication().getStartupTime()) %>
                                             </option>
                                             <% final Map<StatisticsManager.DailyKey, String> availableKeys = statsManager.getAvailableKeys(locale); %>
                                             <% for (final StatisticsManager.DailyKey key : availableKeys.keySet()) { %>
@@ -236,7 +250,7 @@
         });
     </script>
 </pwm:script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

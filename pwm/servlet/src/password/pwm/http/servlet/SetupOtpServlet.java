@@ -26,32 +26,33 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import net.glxn.qrgen.image.ImageType;
+import org.apache.commons.io.IOUtils;
 import password.pwm.*;
-import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.ForceSetupPolicy;
 import password.pwm.config.option.OTPStorageFormat;
 import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupOtpBean;
-import password.pwm.http.filter.SessionFilter;
-import password.pwm.util.Helper;
+import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.OtpService;
 import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URLDecoder;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -60,100 +61,136 @@ import java.util.Map;
  *
  * @author Jason D. Rivard, Menno Pieters
  */
-public class SetupOtpServlet extends TopServlet {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SetupOtpServlet.class);
+public class SetupOtpServlet extends PwmServlet {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpServlet.class);
 
-    @Override
-    protected void processRequest(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
+    public enum SetupOtpAction implements PwmServlet.ProcessAction {
+        clearOtp(PwmServlet.HttpMethod.POST),
+        testOtpSecret(PwmServlet.HttpMethod.POST),
+        toggleSeen(PwmServlet.HttpMethod.POST),
+        restValidateCode(PwmServlet.HttpMethod.POST),
+        complete(PwmServlet.HttpMethod.POST),
+        showQrImage(PwmServlet.HttpMethod.GET),
+        skip(PwmServlet.HttpMethod.POST),
+
+        ;
+
+        private final PwmServlet.HttpMethod method;
+
+        SetupOtpAction(PwmServlet.HttpMethod method)
+        {
+            this.method = method;
+        }
+
+        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(method);
+        }
+    }
+
+    protected SetupOtpAction readProcessAction(final PwmRequest request)
+            throws PwmUnrecoverableException
+    {
+        try {
+            return SetupOtpAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    protected void processAction(final PwmRequest pwmRequest)
             throws ServletException, ChaiUnavailableException, IOException, PwmUnrecoverableException
     {
         // fetch the required beans / managers
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
         final UserInfoBean uiBean = pwmSession.getUserInfoBean();
         final Configuration config = pwmApplication.getConfig();
 
         if (!config.readSettingAsBoolean(PwmSetting.OTP_ENABLED)) {
-            LOGGER.error(pwmSession, "setup OTP Secret not enabled");
-            PwmSession.getPwmSession(req).getSessionStateBean().setSessionError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo());
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            final String errorMsg = "setup OTP Secret service is not enabled";
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg);
+            LOGGER.error(pwmRequest, errorInformation);
+            pwmRequest.respondWithError(errorInformation);
             return;
         }
 
         // check to see if the user is permitted to setup OTP
         if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.SETUP_OTP_SECRET)) {
-            LOGGER.error(pwmSession, String.format("user %s does not have permission to setup an OTP secret", uiBean.getUserIdentity()));
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED));
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            final String errorMsg = String.format("user %s does not have permission to setup an OTP secret", uiBean.getUserIdentity());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
+            LOGGER.error(pwmRequest, errorInformation);
+            pwmRequest.respondWithError(errorInformation);
             return;
         }
 
         // check whether the setup can be stored
         if (!canSetupOtpSecret(config)) {
             LOGGER.error(pwmSession, "OTP Secret cannot be setup");
-            ssBean.setSessionError(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG));
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            pwmRequest.respondWithError(PwmError.ERROR_INVALID_CONFIG.toInfo());
             return;
         }
 
-        if (pwmSession.getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD) {
+        if (pwmSession.getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD) {
             LOGGER.error(pwmSession, "OTP Secret requires a password login");
             throw new PwmUnrecoverableException(PwmError.ERROR_PASSWORD_REQUIRED);
         }
 
         final SetupOtpBean otpBean = (SetupOtpBean) pwmSession.getSessionBean(SetupOtpBean.class);
 
-        // read the action request parameter
-        final String actionParam = Validator.readStringFromRequest(req, PwmConstants.PARAM_ACTION_REQUEST);
+        initializeBean(pwmRequest, otpBean);
 
-        initializeBean(pwmSession, pwmApplication, otpBean);
+        final SetupOtpAction action = readProcessAction(pwmRequest);
+        if (action != null) {
+            pwmRequest.validatePwmFormID();
 
-        // process requested action
-        if (actionParam != null && !actionParam.isEmpty()) {
-            Validator.validatePwmFormID(req);
-            // handle the requested action.
+            switch (action) {
+                case clearOtp:
+                    handleClearOtpSecret(pwmRequest, otpBean);
+                    break;
 
-            if ("clearOtp".equalsIgnoreCase(actionParam)) {
-                handleClearOtpSecret(pwmSession, pwmApplication, req, resp, otpBean);
-            } else if ("testOtpSecret".equalsIgnoreCase(actionParam)) {
-                handleTestOtpSecret(pwmApplication, pwmSession, req, resp, otpBean);
-            } else if ("toggleSeen".equalsIgnoreCase(actionParam)) {
-                otpBean.setCodeSeen(!otpBean.isCodeSeen());
-                    /* TODO: handle case to HOTP */
-            } else if ("restValidateCode".equalsIgnoreCase(actionParam)) {
-                handleRestValidateCode(pwmRequest, otpBean);
-                return;
-            } else if ("complete".equalsIgnoreCase(actionParam)) {
-                handleComplete(pwmSession, pwmApplication, req, resp, otpBean);
-                return;
-            } else if ("showQrImage".equalsIgnoreCase(actionParam)) {
-                handleQrImageRequest(pwmSession, req, resp, otpBean);
-                return;
+                case testOtpSecret:
+                    handleTestOtpSecret(pwmRequest, otpBean);
+                    break;
+
+                case toggleSeen:
+                    otpBean.setCodeSeen(!otpBean.isCodeSeen());
+                    break;
+
+                case restValidateCode:
+                    handleRestValidateCode(pwmRequest);
+                    return;
+
+                case complete:
+                    handleComplete(pwmRequest);
+                    return;
+
+                case showQrImage:
+                    handleQrImageRequest(pwmRequest, otpBean);
+                    return;
+
+                case skip: {
+                    handleSkip(pwmRequest, otpBean);
+                    return;
+                }
             }
         }
-
-        this.advanceToNextStage(pwmApplication, pwmSession, req, resp, otpBean);
+        this.advanceToNextStage(pwmRequest, otpBean);
     }
 
     private void advanceToNextStage(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-
         if (otpBean.isHasPreExistingOtp()) {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_EXISTING);
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_EXISTING);
             return;
         }
+
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         if (otpBean.isConfirmed()) {
             final OtpService otpService = pwmApplication.getOtpService();
@@ -176,45 +213,53 @@ public class SetupOtpServlet extends TopServlet {
                     errorInformation = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET,"unexpected error saving otp secret: " + e.getMessage());
                 }
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
-                pwmSession.getSessionStateBean().setSessionError(errorInformation);
+                pwmRequest.setResponseError(errorInformation);
             }
         }
 
         if (otpBean.isCodeSeen()) {
             if (otpBean.isWritten()) {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_SUCCESS);
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_SUCCESS);
             } else {
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
+                pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET_TEST);
             }
         } else {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SETUP_OTP_SECRET);
+            pwmRequest.forwardToJsp(PwmConstants.JSP_URL.SETUP_OTP_SECRET);
         }
     }
 
 
-    private void handleComplete(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+    private void handleSkip(
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
+        final ForceSetupPolicy policy = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP,ForceSetupPolicy.class);
+        if (policy == ForceSetupPolicy.FORCE_ALLOW_SKIP) {
+            pwmRequest.getPwmSession().getUserInfoBean().setRequiresOtpConfig(false);
+            pwmRequest.sendRedirectToContinue();
+            return;
+        }
+        this.advanceToNextStage(pwmRequest, otpBean);
+    }
 
-        pwmSession.getUserInfoBean().setRequiresOtpConfig(false);
+    private void handleComplete(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
+    {
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        pwmSession.getSessionStateBean().setSkippedOtpSetup(true);
         pwmSession.clearSessionBean(SetupOtpBean.class);
 
-        final String redirectURL = PwmConstants.URL_SERVLET_COMMAND + "?" + "processAction=continue&pwmFormID="
-                + Helper.buildPwmFormID(pwmSession.getSessionStateBean());
-        resp.sendRedirect(SessionFilter.rewriteRedirectURL(redirectURL, req, resp));
+        pwmRequest.sendRedirectToContinue();
     }
 
 
 
     private void handleRestValidateCode(
-            final PwmRequest pwmRequest,
-            final SetupOtpBean otpBean
+            final PwmRequest pwmRequest
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
@@ -224,10 +269,10 @@ public class SetupOtpServlet extends TopServlet {
         final OTPUserRecord otpUserRecord = pwmSession.getUserInfoBean().getOtpUserRecord();
         final OtpService otpService = pwmApplication.getOtpService();
 
-        final String bodyString = pwmRequest.readRequestBody();
+        final String bodyString = pwmRequest.readRequestBodyAsString();
         final Map<String, String> clientValues = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
         }.getType());
-        final String code = Validator.sanatizeInputValue(pwmApplication.getConfig(), clientValues.get("code"),1024);
+        final String code = Validator.sanitizeInputValue(pwmApplication.getConfig(), clientValues.get("code"), 1024);
 
         try {
             boolean passed = otpService.validateToken(
@@ -240,7 +285,7 @@ public class SetupOtpServlet extends TopServlet {
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(passed);
 
-            LOGGER.trace(pwmSession,"returning result for restValidateCode: " + JsonUtil.getGson().toJson(restResultBean));
+            LOGGER.trace(pwmSession,"returning result for restValidateCode: " + JsonUtil.serialize(restResultBean));
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
 
@@ -251,41 +296,40 @@ public class SetupOtpServlet extends TopServlet {
     }
 
     private void handleClearOtpSecret(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
         final OtpService service = pwmApplication.getOtpService();
         final UserIdentity theUser = pwmSession.getUserInfoBean().getUserIdentity();
         try {
             service.clearOTPUserConfiguration(pwmSession, theUser);
         } catch (PwmOperationalException e) {
-            pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
-            LOGGER.error(e.getErrorInformation().toDebugStr());
+            pwmRequest.setResponseError(e.getErrorInformation());
+            LOGGER.error(pwmRequest, e.getErrorInformation());
             return;
         }
 
         otpBean.setHasPreExistingOtp(false);
-        initializeBean(pwmSession, pwmApplication, otpBean);
+        initializeBean(pwmRequest, otpBean);
     }
 
     private void handleTestOtpSecret(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final String otpToken = Validator.readStringFromRequest(req, PwmConstants.PARAM_OTP_TOKEN);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+
+        final String otpToken = pwmRequest.readParameterAsString(PwmConstants.PARAM_OTP_TOKEN);
         final OtpService otpService = pwmApplication.getOtpService();
         if (otpToken != null && otpToken.length() > 0) {
-            LOGGER.debug(pwmSession, String.format("received OTP token: %s", otpToken));
+            LOGGER.debug(pwmRequest, String.format("received OTP token: %s", otpToken));
             try {
                 if (otpService.validateToken(
                         pwmSession,
@@ -294,16 +338,16 @@ public class SetupOtpServlet extends TopServlet {
                         otpToken,
                         false
                 )) {
-                    LOGGER.info(pwmSession, "correct OTP secret");
+                    LOGGER.debug(pwmRequest, "correct OTP secret");
                     otpBean.setConfirmed(true);
                     otpBean.setChallenge(null);
                 } else {
-                    LOGGER.warn(pwmSession, "wrong OTP secret");
-                    pwmSession.getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
+                    LOGGER.debug(pwmRequest, "wrong OTP secret");
+                    pwmRequest.setResponseError(new ErrorInformation(PwmError.ERROR_INCORRECT_RESPONSE));
                 }
             } catch (PwmOperationalException e) {
-                LOGGER.error(pwmSession, "error validating otp token: " + e.getMessage());
-                pwmSession.getSessionStateBean().setSessionError(e.getErrorInformation());
+                LOGGER.error(pwmRequest, "error validating otp token: " + e.getMessage());
+                pwmRequest.setResponseError(e.getErrorInformation());
             }
         }
 
@@ -311,12 +355,13 @@ public class SetupOtpServlet extends TopServlet {
     }
 
     private void initializeBean(
-            final PwmSession pwmSession,
-            final PwmApplication pwmApplication,
+            final PwmRequest pwmRequest,
             final SetupOtpBean otpBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         // has pre-existing, nothing to do.
         if (otpBean.isHasPreExistingOtp()) {
@@ -328,7 +373,7 @@ public class SetupOtpServlet extends TopServlet {
 
         // first time here
         if (otpBean.getOtpUserRecord() == null) {
-            final OTPUserRecord existingUserRecord = service.readOTPUserConfiguration(theUser);
+            final OTPUserRecord existingUserRecord = service.readOTPUserConfiguration(pwmRequest.getSessionLabel(),theUser);
             if (existingUserRecord != null) {
                 otpBean.setHasPreExistingOtp(true);
                 LOGGER.trace(pwmSession, "user has existing otp record");
@@ -392,37 +437,58 @@ public class SetupOtpServlet extends TopServlet {
     }
 
     private void handleQrImageRequest(
-            final PwmSession pwmSession,
-            final HttpServletRequest request,
-            final HttpServletResponse response,
+            final PwmRequest pwmRequest,
             final SetupOtpBean setupOtpBean
     )
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         final OTPUserRecord otp = setupOtpBean.getOtpUserRecord();
         final String otptype = otp.getType().toString();
         final String content = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), otp.getIdentifier(),
                 otp.getSecret());
         if (content == null || content.length() == 0) {
-            LOGGER.error(pwmSession, "unable to produce qrcode image, missing content parameter");
+            LOGGER.error(pwmRequest, "unable to produce qrcode image, missing content parameter");
         }
 
         int height = 200;
         int width = 200;
         try {
-            width = Integer.parseInt(request.getParameter("width"));
+            width = Integer.parseInt(pwmRequest.readParameterAsString("width"));
         } catch (Exception e) {
-            LOGGER.error(pwmSession, "error parsing width parameter: " + e.getMessage());
+            LOGGER.error(pwmRequest, "error parsing width parameter for qrcode image: " + e.getMessage());
         }
         try {
-            height = Integer.parseInt(request.getParameter("height"));
-        } catch (NumberFormatException e) {
-            LOGGER.error(pwmSession, "error parsing height parameter: " + e.getMessage());
+            height = Integer.parseInt(pwmRequest.readParameterAsString("height"));
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "error parsing height parameter for qrcode image: " + e.getMessage());
         }
 
-        final QRCode code = QRCode.from(URLDecoder.decode(content, "UTF-8")).withCharset("UTF-8").withSize(width, height);
-        response.setContentType("image/png");
-        code.to(ImageType.PNG).writeTo(response.getOutputStream());
-        response.getOutputStream().close();
+        final byte[] imageBytes;
+        try {
+            final QRCode codeImage = QRCode.from(StringUtil.urlDecode(content)).withCharset(PwmConstants.DEFAULT_CHARSET.toString());
+            final QRCode sizedImage = codeImage.withSize(width, height);
+            imageBytes = sizedImage.to(ImageType.PNG).stream().toByteArray();
+        } catch (Exception e) {
+            final String errorMsg = "error generating qrcode image: " + e.getMessage();
+            LOGGER.error(pwmRequest, errorMsg);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
+        }
+
+        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.png.getHeaderValue());
+
+        OutputStream outputStream = null;
+        try {
+            outputStream = pwmRequest.getHttpServletResponse().getOutputStream();
+            IOUtils.copy(new ByteArrayInputStream(imageBytes), outputStream);
+            outputStream.flush();
+        } catch (Exception e) {
+            final String errorMsg = "error while sending qrcode image to http client: " + e.getMessage();
+            LOGGER.error(pwmRequest, errorMsg);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
+        } finally {
+            if (outputStream != null) {
+                try { outputStream.close(); } catch (Exception e) { /*noop*/ }
+            }
+        }
     }
 }

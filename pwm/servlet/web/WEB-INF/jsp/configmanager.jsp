@@ -1,7 +1,6 @@
-<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
-<%@ page import="password.pwm.util.PwmLogLevel" %>
 <%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.logging.PwmLogLevel" %>
 <%@ page import="java.io.File" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -347,7 +346,7 @@
 </pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE,"false"); %>
+<% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

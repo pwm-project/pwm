@@ -26,8 +26,8 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class LocalDBFactory {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocalDBFactory.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocalDBFactory.class);
 
 // -------------------------- STATIC METHODS --------------------------
 

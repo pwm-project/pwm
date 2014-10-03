@@ -25,13 +25,13 @@ package password.pwm.i18n;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
 
 public class LocaleHelper {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LocaleHelper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LocaleHelper.class);
 
     public static Class classForShortName(final String shortName) {
         if (shortName == null || shortName.isEmpty()) {
@@ -211,7 +211,7 @@ public class LocaleHelper {
     }
 
     public static Map<Locale,String> getUniqueLocalizations(
-            PwmApplication pwmApplication,
+            final PwmApplication pwmApplication,
             final Class<? extends DisplayBundleMarker> bundleClass,
             final String key,
             final Locale defaultLocale

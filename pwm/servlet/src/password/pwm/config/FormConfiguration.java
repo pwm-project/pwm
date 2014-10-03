@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.error.*;
 import password.pwm.i18n.LocaleHelper;
@@ -230,7 +229,7 @@ public class FormConfiguration implements Serializable {
         final StringBuilder sb = new StringBuilder();
 
         sb.append("FormItem: ");
-        sb.append(JsonUtil.getGson().toJson(this));
+        sb.append(JsonUtil.serialize(this));
 
         return sb.toString();
     }
@@ -240,7 +239,7 @@ public class FormConfiguration implements Serializable {
 // -------------------------- OTHER METHODS --------------------------
 
     public void checkValue(final String value, final Locale locale)
-            throws PwmDataValidationException, ChaiUnavailableException, PwmUnrecoverableException {
+            throws PwmDataValidationException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
             final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_REQUIRED, null, new String[]{getLabel(locale)});

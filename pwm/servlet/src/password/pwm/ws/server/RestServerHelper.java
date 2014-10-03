@@ -32,17 +32,18 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -51,7 +52,7 @@ import java.util.List;
 import java.util.Locale;
 
 public abstract class RestServerHelper {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RestServerHelper.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RestServerHelper.class);
 
     public static javax.ws.rs.core.Response doHtmlRedirect() throws URISyntaxException {
         final URI uri = javax.ws.rs.core.UriBuilder.fromUri("../rest.jsp?forwardedFromRestServer=true").build();
@@ -60,12 +61,15 @@ public abstract class RestServerHelper {
 
     public static RestRequestBean initializeRestRequest(
             final HttpServletRequest request,
+            final HttpServletResponse response,
             final ServicePermissions servicePermissions,
             final String requestedUsername
     )
-            throws PwmUnrecoverableException {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
-        final PwmSession pwmSession = PwmSession.getPwmSession(request);
+            throws PwmUnrecoverableException
+    {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
 
         ServletHelper.handleRequestInitialization(request, pwmApplication, pwmSession);
 
@@ -79,13 +83,10 @@ public abstract class RestServerHelper {
             pwmSession.getSessionStateBean().setLocale(userLocale == null ? PwmConstants.DEFAULT_LOCALE : userLocale);
         }
 
-        final StringBuilder logMsg = new StringBuilder();
-        logMsg.append("REST WebService Request: ");
-        logMsg.append(ServletHelper.debugHttpRequest(pwmApplication,request));
-        LOGGER.debug(pwmSession,logMsg);
+        pwmRequest.debugHttpRequestToLog("[REST WebService Request]");
 
         try {
-            handleAuthentication(request,pwmApplication,pwmSession);
+            handleAuthentication(request,response,pwmApplication,pwmSession);
         } catch (ChaiUnavailableException e) {
             throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
         }
@@ -190,7 +191,7 @@ public abstract class RestServerHelper {
 
 
         try {
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getSessionLabel());
+            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
             return userSearchEngine.resolveUsername(username, null, null);
         } catch (PwmOperationalException e) {
             throw new PwmUnrecoverableException(e.getErrorInformation());
@@ -202,6 +203,7 @@ public abstract class RestServerHelper {
 
     private static void handleAuthentication(
             final HttpServletRequest request,
+            final HttpServletResponse response,
             final PwmApplication pwmApplication,
             final PwmSession pwmSession
     )
@@ -210,10 +212,10 @@ public abstract class RestServerHelper {
             return;
         }
 
-        if (BasicAuthInfo.parseAuthHeader(pwmApplication, request) != null) {
+        final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, PwmRequest.forRequest(request,response));
+        if (basicAuthInfo != null) {
             try {
-                AuthenticationFilter.authUserUsingBasicHeader(request,
-                        BasicAuthInfo.parseAuthHeader(pwmApplication, request));
+                AuthenticationFilter.authUserUsingBasicHeader(request, basicAuthInfo);
             } catch (PwmOperationalException e) {
                 throw new PwmUnrecoverableException(e.getErrorInformation());
             }

@@ -1,3 +1,5 @@
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.i18n.Admin" %>
 <%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.intruder.RecordType" %>
@@ -24,9 +26,16 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    PwmRequest activity_pwmRequest = null;
+    try {
+        activity_pwmRequest = PwmRequest.forRequest(request, response);
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -53,19 +62,9 @@
 
 
             <% for (RecordType recordType : RecordType.values()) { %>
-            <% String titleName = LocaleHelper.getLocalizedMessage(pwmSessionHeader.getSessionStateBean().getLocale(),"IntruderRecordType_" + recordType.toString(), pwmApplicationHeader.getConfig(), Admin.class); %>
+            <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
             <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>">
                 <div id="<%=recordType%>_Grid">
-                </div>
-                <br/>
-                <div style="text-align: center">
-                    <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
-                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
-                    Rows
-                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
-                        <pwm:display key="Button_Refresh" bundle="Admin"/>
-                    </button>
                 </div>
             </div>
             <% } %>
@@ -113,11 +112,24 @@
                 </div>
             </div>
         </div>
+        <br/>
+        <%--
+        <div style="text-align: center">
+            <input name="maxResults" id="maxIntruderGridResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
+                   data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+            Rows
+            <button class="btn" type="button" onclick="PWM_ADMIN.refreshIntruderGrid()">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                <pwm:display key="Button_Refresh" bundle="Admin"/>
+            </button>
+        </div>
+        --%>
     </div>
     <div>
         <div class="push"></div>
     </div>
-    <pwm:script>
+</div>
+<pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser,ready){
@@ -130,8 +142,8 @@
             });
         });
     </script>
-    </pwm:script>
-    <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+</pwm:script>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>
 

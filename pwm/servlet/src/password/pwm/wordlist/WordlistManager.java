@@ -27,8 +27,8 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.localdb.LocalDB;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public class WordlistManager extends AbstractWordlist implements Wordlist {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(WordlistManager.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(WordlistManager.class);
 
 // ------------------------------ FIELDS ------------------------------
 

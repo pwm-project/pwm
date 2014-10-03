@@ -23,8 +23,74 @@
 package password.pwm.util;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import password.pwm.PwmConstants;
+import password.pwm.util.logging.PwmLogger;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 
 public abstract class StringUtil {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(StringUtil.class);
+
+    /**
+     * Based on http://www.owasp.org/index.php/Preventing_LDAP_Injection_in_Java.
+     *
+     * @param input string to have escaped
+     * @return ldap escaped script
+     *
+     */
+    public static String escapeLdap(final String input) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            char curChar = input.charAt(i);
+            switch (curChar) {
+                case '\\':
+                    sb.append("\\5c");
+                    break;
+                case '*':
+                    sb.append("\\2a");
+                    break;
+                case '(':
+                    sb.append("\\28");
+                    break;
+                case ')':
+                    sb.append("\\29");
+                    break;
+                case '\u0000':
+                    sb.append("\\00");
+                    break;
+                default:
+                    sb.append(curChar);
+            }
+        }
+        return sb.toString();
+    }
+
+    public enum Base64Options {
+        GZIP,
+        URL_SAFE,
+        ;
+
+        private static int asBase64UtilOptions(Base64Options[] options) {
+            int b64UtilOptions = 0;
+            Set<Base64Options> optionsEnum = EnumSet.noneOf(Base64Options.class);
+            optionsEnum.addAll(Arrays.asList(options));
+
+            if (optionsEnum.contains(Base64Options.GZIP)) {
+                b64UtilOptions = b64UtilOptions | Base64Util.GZIP;
+            }
+            if (optionsEnum.contains(Base64Options.URL_SAFE)) {
+                b64UtilOptions = b64UtilOptions | Base64Util.URL_SAFE;
+            }
+            return b64UtilOptions;
+        }
+    }
+
     public static String escapeJS(final String input) {
         return StringEscapeUtils.escapeEcmaScript(input);
     }
@@ -47,5 +113,71 @@ public abstract class StringUtil {
     public static String escapeXml(final String input)
     {
         return StringEscapeUtils.escapeXml11(input);
+    }
+
+    public static String urlEncode(final String input) {
+        try {
+            return URLEncoder.encode(input, PwmConstants.DEFAULT_CHARSET.toString());
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("unexpected error during url encoding: " + e.getMessage());
+            return input;
+        }
+    }
+
+    public static String urlDecode(final String input) {
+        try {
+            return URLDecoder.decode(input, PwmConstants.DEFAULT_CHARSET.toString());
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.error("unexpected error during url decoding: " + e.getMessage());
+            return input;
+        }
+    }
+
+    public static byte[] base64Decode(final String input)
+            throws IOException
+    {
+        return Base64Util.decode(input);
+    }
+
+    public static byte[] base64Decode(final String input, final StringUtil.Base64Options... options)
+            throws IOException
+    {
+        final int b64UtilOptions = Base64Options.asBase64UtilOptions(options);
+
+        return Base64Util.decode(input, b64UtilOptions);
+    }
+
+    public static String base64Encode(final byte[] input)
+    {
+        return Base64Util.encodeBytes(input);
+    }
+
+    public static String base64Encode(final byte[] input, final StringUtil.Base64Options... options)
+            throws IOException
+    {
+        final int b64UtilOptions = Base64Options.asBase64UtilOptions(options);
+
+        if (b64UtilOptions > 0) {
+            return Base64Util.encodeBytes(input, b64UtilOptions);
+        } else {
+            return Base64Util.encodeBytes(input);
+        }
+    }
+
+    public static String padEndToLength(final String input, final int length, final char appendChar) {
+        if (input == null) {
+            return null;
+        }
+
+        if (input.length() >= length) {
+            return input;
+        }
+
+        final StringBuilder sb = new StringBuilder(input);
+        while (sb.length() < length) {
+            sb.append(appendChar);
+        }
+
+        return sb.toString();
     }
 }

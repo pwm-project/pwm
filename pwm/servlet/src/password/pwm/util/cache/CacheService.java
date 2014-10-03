@@ -28,11 +28,11 @@ import password.pwm.PwmService;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.Helper;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.logging.PwmLogger;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 public class CacheService implements PwmService {
-    private static PwmLogger LOGGER = PwmLogger.getLogger(CacheService.class);
+    private static PwmLogger LOGGER = PwmLogger.forClass(CacheService.class);
 
     private transient ConcurrentMap<String,MemoryValueWrapper> memoryCache;
     private STATUS status = STATUS.OPENING;
@@ -88,7 +88,9 @@ public class CacheService implements PwmService {
         return memoryCache;
     }
 
-    public void put(CacheKey cacheKey, CachePolicy cachePolicy, String payload) {
+    public void put(CacheKey cacheKey, CachePolicy cachePolicy, String payload)
+            throws PwmUnrecoverableException
+    {
         if (cacheKey == null) {
             return;
         }
@@ -100,7 +102,9 @@ public class CacheService implements PwmService {
         getMemoryCache().put(key,wrapper);
     }
 
-    public String get(CacheKey cacheKey) {
+    public String get(CacheKey cacheKey)
+            throws PwmUnrecoverableException
+    {
         if (cacheKey == null) {
             return null;
         }
@@ -196,12 +200,10 @@ public class CacheService implements PwmService {
             this.cacheKey = cacheKey;
         }
 
-        private String getKey() {
-            try {
-                return Helper.md5sum(this.cacheKey);
-            } catch (IOException e) {
-                return cacheKey;
-            }
+        private String getKey()
+                throws PwmUnrecoverableException
+        {
+                return SecureHelper.md5sum(this.cacheKey);
         }
 
         public static CacheKey makeCacheKey(

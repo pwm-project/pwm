@@ -22,12 +22,13 @@
 
 package password.pwm.event;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * UserAuditRecord data
  */
-public class UserAuditRecord extends AuditRecord {
+public class UserAuditRecord extends AuditRecord implements Serializable {
     protected String perpetratorID;
     protected String perpetratorDN;
     protected String perpetratorLdapProfile;

@@ -35,11 +35,11 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.db.DatabaseException;
 import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDBException;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
 /**
@@ -48,7 +48,7 @@ import password.pwm.util.otp.OTPUserRecord;
  */
 public class DbOtpOperator extends AbstractOtpOperator {
 
-    final static private PwmLogger LOGGER = PwmLogger.getLogger(DbOtpOperator.class);
+    final static private PwmLogger LOGGER = PwmLogger.forClass(DbOtpOperator.class);
 
     final PwmApplication pwmApplication;
 
@@ -61,7 +61,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
     public OTPUserRecord readOtpUserConfiguration(UserIdentity theUser, String userGUID) throws PwmUnrecoverableException {
         LOGGER.trace(String.format("Enter: readOtpUserConfiguration(%s, %s)", theUser, userGUID));
         if (userGUID == null || userGUID.length() < 1) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save responses to pwmDB, user does not have a pwmGUID"));
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_MISSING_GUID, "cannot save otp to db, user does not have a GUID"));
         }
 
         OTPUserRecord otpConfig = null;
@@ -76,7 +76,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
                     otpConfig = decomposeOtpAttribute(value);
                 }
                 if (otpConfig != null) {
-                    LOGGER.debug("found user OTP secret in LocalDB: " + otpConfig.toString());
+                    LOGGER.debug("found user OTP secret in db: " + otpConfig.toString());
                 }
             }
         } catch (LocalDBException e) {
@@ -116,7 +116,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
             databaseAccessor.put(DatabaseTable.OTP, userGUID, value);
             LOGGER.info("saved OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
         } catch (PwmOperationalException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving responses to pwmDB: " + ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;
@@ -142,7 +142,7 @@ public class DbOtpOperator extends AbstractOtpOperator {
             databaseAccessor.remove(DatabaseTable.OTP, userGUID);
             LOGGER.info("cleared OTP secret for " + theUser + " in remote database (key=" + userGUID + ")");
         } catch (DatabaseException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving responses to pwmDB: " + ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, "unexpected error saving otp to db: " + ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;

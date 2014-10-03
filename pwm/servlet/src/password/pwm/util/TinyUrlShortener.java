@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,12 +27,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import password.pwm.PwmApplication;
+import password.pwm.util.logging.PwmLogger;
 
-import java.net.URLEncoder;
 import java.util.Properties;
 
 public class TinyUrlShortener extends BasicUrlShortener {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(TinyUrlShortener.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(TinyUrlShortener.class);
 	private final String apiUrl = "http://tinyurl.com/api-create.php?url=";
 	private Properties configuration = null;
 
@@ -46,7 +46,7 @@ public class TinyUrlShortener extends BasicUrlShortener {
 	public String shorten(String input, PwmApplication context) {
 		try {
 			LOGGER.debug("Trying to shorten url: "+input);
-			final String encodedUrl = URLEncoder.encode(input, "UTF-8");
+			final String encodedUrl = StringUtil.urlEncode(input);
 			final String callUrl = apiUrl + encodedUrl;
         	final HttpClient httpClient = Helper.getHttpClient(context.getConfig());
 	        final HttpGet httpRequest = new HttpGet(callUrl);

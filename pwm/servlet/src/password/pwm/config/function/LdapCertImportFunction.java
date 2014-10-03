@@ -23,6 +23,7 @@
 package password.pwm.config.function;
 
 import password.pwm.PwmApplication;
+import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.SettingUIFunction;
 import password.pwm.config.StoredConfiguration;
@@ -33,6 +34,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.http.PwmSession;
+import password.pwm.i18n.Message;
 import password.pwm.util.X509Utils;
 
 import java.net.URI;
@@ -74,7 +76,9 @@ public class LdapCertImportFunction implements SettingUIFunction {
             ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error importing certificates: " + e.getMessage());
             throw new PwmOperationalException(errorInformation);
         }
-        storedConfiguration.writeSetting(setting, profile, new X509CertificateValue(resultCertificates), pwmSession.getUserInfoBean().getUserIdentity());
-        return "Successfully Imported Certificates";
+
+        final UserIdentity userIdentity = pwmSession.getSessionStateBean().isAuthenticated() ? pwmSession.getUserInfoBean().getUserIdentity() : null;
+        storedConfiguration.writeSetting(setting, profile, new X509CertificateValue(resultCertificates), userIdentity);
+        return Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_UNKNOWN, pwmApplication.getConfig());
     }
 }

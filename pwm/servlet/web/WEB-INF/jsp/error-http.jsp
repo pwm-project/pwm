@@ -1,4 +1,5 @@
 <%@ page import="password.pwm.error.PwmError" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -27,7 +28,7 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%@ page isErrorPage="true" %>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_NO_REQ_COUNTER,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.NO_REQ_COUNTER); %>
 <%@ include file="fragment/header.jsp" %>
 <% final int statusCode = pageContext.getErrorData().getStatusCode(); %>
 <body class="nihilo">
@@ -42,9 +43,9 @@
         <br/>
         <span id="message" class="message message-error">
             <% if (404 == statusCode) { %>
-            <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(),null)%>
+            <%=PwmError.ERROR_HTTP_404.getLocalizedMessage(JspUtility.locale(request),null)%>
             <% } else { %>
-            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(PwmSession.getPwmSession(session).getSessionStateBean().getLocale(),null)%>
+            <%=PwmError.ERROR_UNKNOWN.getLocalizedMessage(JspUtility.locale(request),null)%>
             <% } %>
         </span>
         <br/>

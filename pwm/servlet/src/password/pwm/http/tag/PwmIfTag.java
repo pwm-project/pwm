@@ -30,7 +30,8 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.Helper;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PwmIfTag extends BodyTagSupport {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmIfTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmIfTag.class);
 
     private String test;
     private String arg1;
@@ -90,7 +91,7 @@ public class PwmIfTag extends BodyTagSupport {
                     LOGGER.warn(pwmSession, errorMsg);
                 }
             } catch (PwmUnrecoverableException e) {
-                e.printStackTrace();
+                LOGGER.error("error executing PwmIfTag for test '" + test + "', error: " + e.getMessage());
             }
         }
 
@@ -118,13 +119,26 @@ public class PwmIfTag extends BodyTagSupport {
         showCancel(new BooleanPwmSettingTest(PwmSetting.DISPLAY_CANCEL_BUTTON)),
         showReset(new BooleanPwmSettingTest(PwmSetting.DISPLAY_RESET_BUTTON)),
         showHome(new BooleanPwmSettingTest(PwmSetting.DISPLAY_HOME_BUTTON)),
+        showLogout(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGOUT_BUTTON)),
         showLoginOptions(new BooleanPwmSettingTest(PwmSetting.DISPLAY_LOGIN_PAGE_OPTIONS)),
         showStrengthMeter(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_STRENGTH_METER)),
         showRandomPasswordGenerator(new BooleanPwmSettingTest(PwmSetting.PASSWORD_SHOW_AUTOGEN)),
         permission(new BooleanPermissionTest()),
         otpEnabled(new BooleanPwmSettingTest(PwmSetting.OTP_ENABLED)),
+        hasStoredOtpTimestamp(new HasStoredOtpTimestamp()),
+        setupChallengeEnabled(new BooleanPwmSettingTest(PwmSetting.CHALLENGE_ENABLE)),
+        updateProfileEnabled(new BooleanPwmSettingTest(PwmSetting.UPDATE_PROFILE_ENABLE)),
+        shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
+        peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
+        accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
         booleanSetting(new BooleanPwmSettingTest(null)),
-        stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),;
+        stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
+        forcedPageView(new ForcedPageViewTest()),
+        showErrorDetail(new ShowErrorDetailTest()),
+
+        ;
+
+
 
         private Test test;
 
@@ -218,7 +232,18 @@ public class PwmIfTag extends BodyTagSupport {
         )
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
-            return pwmRequest.getPwmSession() != null && pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated();
+            return pwmRequest.isAuthenticated();
+        }
+    }
+
+    private static class ForcedPageViewTest implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return pwmRequest.isForcedPageView();
         }
     }
 
@@ -230,6 +255,36 @@ public class PwmIfTag extends BodyTagSupport {
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
             return pwmRequest.getPwmApplication().getApplicationMode() == PwmApplication.MODE.CONFIGURATION;
+        }
+    }
+
+    private static class HasStoredOtpTimestamp implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            if (!pwmRequest.isAuthenticated()) {
+                return false;
+            }
+            if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord() != null) {
+                if (pwmRequest.getPwmSession().getUserInfoBean().getOtpUserRecord().getTimestamp() != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    private static class ShowErrorDetailTest implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
         }
     }
 }

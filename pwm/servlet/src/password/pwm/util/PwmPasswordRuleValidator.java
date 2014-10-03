@@ -33,6 +33,7 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
 import password.pwm.util.stats.Statistic;
 import password.pwm.ws.client.rest.RestClientHelper;
@@ -43,7 +44,7 @@ import java.util.regex.Pattern;
 
 public class PwmPasswordRuleValidator {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmPasswordRuleValidator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmPasswordRuleValidator.class);
 
     private final PwmApplication pwmApplication;
     private final PwmPasswordPolicy policy;
@@ -67,8 +68,8 @@ public class PwmPasswordRuleValidator {
     }
 
     public boolean testPassword(
-            final String password,
-            final String oldPassword,
+            final PasswordData password,
+            final PasswordData oldPassword,
             final UserInfoBean userInfoBean,
             final ChaiUser user
     )
@@ -82,7 +83,7 @@ public class PwmPasswordRuleValidator {
         if (user != null) {
             try {
                 LOGGER.trace("calling chai directory password validation checker");
-                user.testPasswordPolicy(password);
+                user.testPasswordPolicy(password.getStringValue());
             } catch (UnsupportedOperationException e) {
                 LOGGER.trace("Unsupported operation was thrown while validating password: " + e.toString());
             } catch (ChaiUnavailableException e) {
@@ -114,8 +115,8 @@ public class PwmPasswordRuleValidator {
      * @return true if the password is okay, never returns false.
      */
     private List<ErrorInformation> validate(
-            final String password,
-            final String oldPassword,
+            final PasswordData password,
+            final PasswordData oldPassword,
             final UserInfoBean uiBean
     )
             throws PwmUnrecoverableException
@@ -129,15 +130,28 @@ public class PwmPasswordRuleValidator {
     }
 
     public List<ErrorInformation> internalPwmPolicyValidator(
-            final String password,
-            final String oldPassword,
+            final PasswordData password,
+            final PasswordData oldPassword,
+            final UserInfoBean uiBean,
+            final boolean failFast
+    )
+            throws PwmUnrecoverableException
+    {
+        final String passwordString = password.getStringValue();
+        final String oldPasswordString = oldPassword == null ? null : oldPassword.getStringValue();
+        return internalPwmPolicyValidator(passwordString, oldPasswordString, uiBean, failFast);
+    }
+
+    public List<ErrorInformation> internalPwmPolicyValidator(
+            final String passwordString,
+            final String oldPasswordString,
             final UserInfoBean uiBean,
             final boolean failFast
     )
             throws PwmUnrecoverableException
     {
         // null check
-        if (password == null) {
+        if (passwordString == null) {
             return Collections.singletonList(new ErrorInformation(PwmError.ERROR_UNKNOWN, "empty (null) new password"));
         }
 
@@ -145,9 +159,9 @@ public class PwmPasswordRuleValidator {
         final PwmPasswordPolicy.RuleHelper ruleHelper = policy.getRuleHelper();
 
         //check against old password
-        if (oldPassword != null && oldPassword.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
-            if (oldPassword.length() > 0) {
-                if (oldPassword.equalsIgnoreCase(password)) {
+        if (oldPasswordString != null && oldPasswordString.length() > 0 && ruleHelper.readBooleanValue(PwmPasswordRule.DisallowCurrent)) {
+            if (oldPasswordString.length() > 0) {
+                if (oldPasswordString.equalsIgnoreCase(passwordString)) {
                     errorList.add(new ErrorInformation(PwmError.PASSWORD_SAMEASOLD));
                 }
             }
@@ -155,12 +169,12 @@ public class PwmPasswordRuleValidator {
             //check chars from old password
             final int maxOldAllowed = ruleHelper.readIntValue(PwmPasswordRule.MaximumOldChars);
             if (maxOldAllowed > 0) {
-                if (oldPassword.length() > 0) {
-                    final String lPassword = password.toLowerCase();
+                if (oldPasswordString.length() > 0) {
+                    final String lPassword = passwordString.toLowerCase();
                     final Set<Character> dupeChars = new HashSet<>();
 
                     //add all dupes to the set.
-                    for (final char loopChar : oldPassword.toLowerCase().toCharArray()) {
+                    for (final char loopChar : oldPasswordString.toLowerCase().toCharArray()) {
                         if (lPassword.indexOf(loopChar) != -1) {
                             dupeChars.add(loopChar);
                         }
@@ -178,7 +192,7 @@ public class PwmPasswordRuleValidator {
             return errorList;
         }
 
-        errorList.addAll(basicSyntaxRuleChecks(password,policy,uiBean));
+        errorList.addAll(basicSyntaxRuleChecks(passwordString,policy,uiBean));
 
         if (failFast && errorList.size() > 1) {
             return errorList;
@@ -186,7 +200,7 @@ public class PwmPasswordRuleValidator {
 
         // check against disallowed values;
         if (!ruleHelper.getDisallowedValues().isEmpty()) {
-            final String lcasePwd = password.toLowerCase();
+            final String lcasePwd = passwordString.toLowerCase();
             final Set<String> paramValues = new HashSet<>(ruleHelper.getDisallowedValues());
 
             for (final String loopValue : paramValues) {
@@ -208,7 +222,7 @@ public class PwmPasswordRuleValidator {
             final List paramConfigs = policy.getRuleHelper().getDisallowedAttributes();
             if (uiBean != null) {
                 final Map<String,String> userValues = uiBean.getCachedPasswordRuleAttributes();
-                final String lcasePwd = password.toLowerCase();
+                final String lcasePwd = passwordString.toLowerCase();
                 for (final Object paramConfig : paramConfigs) {
                     final String attr = (String) paramConfig;
                     final String userValue = userValues.get(attr) == null ? "" : userValues.get(attr).toLowerCase();
@@ -236,7 +250,7 @@ public class PwmPasswordRuleValidator {
             final int requiredPasswordStrength = ruleHelper.readIntValue(PwmPasswordRule.MinimumStrength);
             if (requiredPasswordStrength > 0) {
                 if (pwmApplication != null) {
-                    final int passwordStrength = PasswordUtility.checkPasswordStrength(pwmApplication.getConfig(), password);
+                    final int passwordStrength = PasswordUtility.judgePasswordStrength(passwordString);
                     if (passwordStrength < requiredPasswordStrength) {
                         errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_WEAK));
                         //LOGGER.trace(pwmSession, "password rejected, password strength of " + passwordStrength + " is lower than policy requirement of " + requiredPasswordStrength);
@@ -251,7 +265,7 @@ public class PwmPasswordRuleValidator {
 
         // check regex matches.
         for (final Pattern pattern : ruleHelper.getRegExMatch()) {
-            if (!pattern.matcher(password).matches()) {
+            if (!pattern.matcher(passwordString).matches()) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
                 //LOGGER.trace(pwmSession, "password rejected, does not match configured regex pattern: " + pattern.toString());
             }
@@ -263,7 +277,7 @@ public class PwmPasswordRuleValidator {
 
         // check no-regex matches.
         for (final Pattern pattern : ruleHelper.getRegExNoMatch()) {
-            if (pattern.matcher(password).matches()) {
+            if (pattern.matcher(passwordString).matches()) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_INVALID_CHAR));
                 //LOGGER.trace(pwmSession, "password rejected, matches configured no-regex pattern: " + pattern.toString());
             }
@@ -280,7 +294,7 @@ public class PwmPasswordRuleValidator {
                 final int requiredMatches = ruleHelper.readIntValue(PwmPasswordRule.CharGroupsMinMatch);
                 int matches = 0;
                 for (final Pattern pattern : ruleGroups) {
-                    if (pattern.matcher(password).find()) {
+                    if (pattern.matcher(passwordString).find()) {
                         matches++;
                     }
                 }
@@ -301,7 +315,7 @@ public class PwmPasswordRuleValidator {
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
             if (pwmApplication != null) {
                 if (pwmApplication.getWordlistManager().status() == PwmService.STATUS.OPEN) {
-                    final boolean found = pwmApplication.getWordlistManager().containsWord(password);
+                    final boolean found = pwmApplication.getWordlistManager().containsWord(passwordString);
 
                     if (found) {
                         //LOGGER.trace(pwmSession, "password rejected, in wordlist file");
@@ -324,7 +338,7 @@ public class PwmPasswordRuleValidator {
         // check for shared (global) password history
         if (pwmApplication != null) {
             if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.PASSWORD_SHAREDHISTORY_ENABLE) && pwmApplication.getSharedHistoryManager().status() == PwmService.STATUS.OPEN) {
-                final boolean found = pwmApplication.getSharedHistoryManager().containsWord(password);
+                final boolean found = pwmApplication.getSharedHistoryManager().containsWord(passwordString);
 
                 if (found) {
                     //LOGGER.trace(pwmSession, "password rejected, in global shared history");
@@ -451,7 +465,7 @@ public class PwmPasswordRuleValidator {
     public List<ErrorInformation> invokeExternalRuleMethods(
             final Configuration config,
             final PwmPasswordPolicy pwmPasswordPolicy,
-            final String password,
+            final PasswordData password,
             final UserInfoBean uiBean
     )
             throws PwmUnrecoverableException
@@ -459,7 +473,7 @@ public class PwmPasswordRuleValidator {
         final List<ErrorInformation> returnedErrors = new ArrayList<>();
         final String restURL = config.readSettingAsString(PwmSetting.EXTERNAL_PWCHECK_REST_URLS);
         final boolean haltOnError = Boolean.parseBoolean(config.readAppProperty(AppProperty.WS_REST_CLIENT_PWRULE_HALTONERROR));
-        final LinkedHashMap<String,Object> sendData = new LinkedHashMap<>();
+        final Map<String,Object> sendData = new LinkedHashMap<>();
 
         if (restURL == null || restURL.isEmpty()) {
             return Collections.emptyList();
@@ -478,7 +492,7 @@ public class PwmPasswordRuleValidator {
             sendData.put("userInfo", jsonStatusData);
         }
 
-        final String jsonRequestBody = JsonUtil.getGson().toJson(sendData);
+        final String jsonRequestBody = JsonUtil.serializeMap(sendData);
         try {
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
                     jsonRequestBody);

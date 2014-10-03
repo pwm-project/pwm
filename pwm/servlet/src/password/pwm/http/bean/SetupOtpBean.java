@@ -22,7 +22,7 @@
 
 package password.pwm.http.bean;
 
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
 import java.security.NoSuchAlgorithmException;
@@ -33,7 +33,7 @@ import java.util.List;
 
 public class SetupOtpBean implements PwmSessionBean {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SetupOtpBean.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SetupOtpBean.class);
 
     private OTPUserRecord otpUserRecord;
     private boolean confirmed;

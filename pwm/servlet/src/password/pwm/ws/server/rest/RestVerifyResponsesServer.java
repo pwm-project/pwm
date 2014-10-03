@@ -41,9 +41,7 @@ import password.pwm.ws.server.RestResultBean;
 import password.pwm.ws.server.RestServerHelper;
 import password.pwm.ws.server.ServicePermissions;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.Serializable;
@@ -53,7 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 @Path("/verifyresponses")
-public class RestVerifyResponsesServer {
+public class RestVerifyResponsesServer extends AbstractRestServer {
     public static class JsonPutChallengesInput implements Serializable {
         public List<ChallengeBean> challenges;
         public String username;
@@ -79,9 +77,6 @@ public class RestVerifyResponsesServer {
         }
     }
 
-    @Context
-    HttpServletRequest request;
-
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response doHtmlRedirect() throws URISyntaxException {
@@ -89,7 +84,7 @@ public class RestVerifyResponsesServer {
     }
 
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response doSetChallengeDataJson(
             final JsonPutChallengesInput jsonInput
@@ -101,7 +96,7 @@ public class RestVerifyResponsesServer {
             servicePermissions.setAdminOnly(false);
             servicePermissions.setAuthRequired(true);
             servicePermissions.setBlockExternal(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, servicePermissions, jsonInput.username);
+            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, jsonInput.username);
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
@@ -119,7 +114,7 @@ public class RestVerifyResponsesServer {
                 chaiUser = restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),userIdentity);
             }
 
-            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession().getSessionLabel(), restRequestBean.getUserIdentity(), chaiUser);
+            final ResponseSet responseSet = restRequestBean.getPwmApplication().getCrService().readUserResponseSet(restRequestBean.getPwmSession().getLabel(), restRequestBean.getUserIdentity(), chaiUser);
             final boolean verified = responseSet.test(jsonInput.toCrMap());
 
             if (restRequestBean.isExternal()) {

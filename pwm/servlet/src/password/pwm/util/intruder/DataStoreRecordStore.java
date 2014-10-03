@@ -24,14 +24,18 @@ package password.pwm.util.intruder;
 
 import password.pwm.PwmService;
 import password.pwm.error.*;
-import password.pwm.util.*;
+import password.pwm.util.ClosableIterator;
+import password.pwm.util.DataStore;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 class DataStoreRecordStore implements RecordStore {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(DataStoreRecordStore.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DataStoreRecordStore.class);
     private static final int MAX_REMOVALS_PER_CYCLE = 10 * 1000;
 
     private final IntruderManager intruderManager;
@@ -79,7 +83,7 @@ class DataStoreRecordStore implements RecordStore {
 
     @Override
     public void write(final String key, final IntruderRecord record) throws PwmOperationalException {
-        final String jsonRecord = JsonUtil.getGson().toJson(record);
+        final String jsonRecord = JsonUtil.serialize(record);
         try {
             dataStore.put(key, jsonRecord);
         } catch (PwmDataStoreException e) {

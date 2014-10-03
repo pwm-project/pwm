@@ -26,8 +26,8 @@ import password.pwm.PwmApplication;
 import password.pwm.config.PwmSetting;
 import password.pwm.i18n.Admin;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
 
@@ -101,7 +101,7 @@ public enum Statistic {
 
     ;
 
-    private final static PwmLogger LOGGER = PwmLogger.getLogger(Statistic.class);
+    private final static PwmLogger LOGGER = PwmLogger.forClass(Statistic.class);
     private final Type type;
     private final String key;
     private final StatDetail statDetail;

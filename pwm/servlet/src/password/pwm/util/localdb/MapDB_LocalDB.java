@@ -25,8 +25,8 @@ package password.pwm.util.localdb;
 import org.mapdb.DBMaker;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +45,7 @@ import static password.pwm.util.localdb.LocalDB.DB;
 public class MapDB_LocalDB implements LocalDBProvider {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(MapDB_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(MapDB_LocalDB.class, true);
     private static final String FILE_NAME = "mapdb";
 
     private org.mapdb.DB recman;

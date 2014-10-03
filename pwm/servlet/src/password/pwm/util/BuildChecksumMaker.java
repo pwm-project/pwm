@@ -23,6 +23,7 @@
 package password.pwm.util;
 
 import com.google.gson.GsonBuilder;
+import password.pwm.error.PwmUnrecoverableException;
 
 import java.io.*;
 import java.util.LinkedHashMap;
@@ -33,13 +34,13 @@ public class BuildChecksumMaker {
 
 
     public static void main(final String[] args)
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         makeBuildChecksumFile(args);
     }
 
     public static void makeBuildChecksumFile(final String[] args)
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         if (args == null || args.length < 2) {
             output("usage: BuildManifestMaker <directory source> <output file>");
@@ -50,7 +51,7 @@ public class BuildChecksumMaker {
     }
 
     public static void makeBuildChecksumFile(final File rootDirectory, final File outputFile)
-            throws IOException
+            throws IOException, PwmUnrecoverableException
     {
         if (!rootDirectory.exists()) {
             output("error: can't find input directory");
@@ -78,13 +79,16 @@ public class BuildChecksumMaker {
     }
 
     public static Map<String,String> readDirectorySums(final File rootFile)
-            throws IOException
+            throws PwmUnrecoverableException, FileNotFoundException
     {
         return readDirectorySums(rootFile,"");
     }
 
-    private static Map<String,String> readDirectorySums(final File rootFile, final String relativePath)
-            throws IOException
+    protected static Map<String,String> readDirectorySums(
+            final File rootFile,
+            final String relativePath
+    )
+            throws PwmUnrecoverableException, FileNotFoundException
     {
         final LinkedHashMap<String,String> results = new LinkedHashMap<>();
         for (final File loopFile : rootFile.listFiles()) {
@@ -99,10 +103,10 @@ public class BuildChecksumMaker {
     }
 
     private static String md5sumFile(final File file)
-            throws IOException
+            throws PwmUnrecoverableException, FileNotFoundException
     {
         final InputStream is = new FileInputStream(file);
-        return Helper.md5sum(is);
+        return SecureHelper.md5sum(is);
     }
 
     private static void output(final String output) {

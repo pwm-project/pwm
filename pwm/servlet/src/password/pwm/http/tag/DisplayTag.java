@@ -24,15 +24,14 @@ package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
+import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +45,7 @@ import java.util.MissingResourceException;
 public class DisplayTag extends PwmAbstractTag {
 // ------------------------------ FIELDS ------------------------------
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(DisplayTag.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(DisplayTag.class);
 
     private String key;
     private String value1;
@@ -116,25 +115,26 @@ public class DisplayTag extends PwmAbstractTag {
             throws javax.servlet.jsp.JspTagException {
         try {
             final HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
-            final Locale locale = PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
-            final UserDataReader userDataReader;
-            final UserInfoBean uiBean;
-            if (pwmSession.getSessionStateBean().isAuthenticated()) {
-                userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
-                uiBean = PwmSession.getPwmSession(req).getUserInfoBean();
-            } else {
-                userDataReader = null;
-                uiBean = null;
-            }
+            PwmApplication pwmApplication = null;
+            try {
+                pwmApplication = ContextManager.getPwmApplication(pageContext.getSession());
+            } catch (PwmException e) { /* noop */ }
+            PwmSession pwmSession = null;
+            try {
+                pwmSession = PwmSession.getPwmSession(pageContext.getSession());
+            } catch (PwmException e) { /* noop */ }
+
+            final Locale locale = pwmSession == null ? PwmConstants.DEFAULT_LOCALE : PwmSession.getPwmSession(req).getSessionStateBean().getLocale();
 
             final Class bundle = readBundle();
-            final String displayMessage = figureDisplayMessage(locale, pwmApplication.getConfig(), bundle);
-            final MacroMachine macroMachine = new MacroMachine(pwmApplication, uiBean, userDataReader);
-            final String expandedMessage = macroMachine.expandMacros(displayMessage);
+            String displayMessage = figureDisplayMessage(locale, pwmApplication == null ? null : pwmApplication.getConfig(), bundle);
 
-            pageContext.getOut().write(expandedMessage);
+            if (pwmApplication != null && pwmSession != null) {
+                final MacroMachine macroMachine = pwmSession.getSessionManager().getMacroMachine(pwmApplication);
+                displayMessage = macroMachine.expandMacros(displayMessage);
+            }
+
+            pageContext.getOut().write(displayMessage);
         } catch (PwmUnrecoverableException e) { {
             LOGGER.debug("error while executing jsp display tag: " + e.getMessage());
             return EVAL_PAGE;

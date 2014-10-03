@@ -23,11 +23,17 @@
 package password.pwm.event;
 
 import com.google.gson.Gson;
-import org.productivity.java.syslog4j.Syslog;
-import org.productivity.java.syslog4j.SyslogConfigIF;
 import org.productivity.java.syslog4j.SyslogIF;
+import org.productivity.java.syslog4j.impl.AbstractSyslogConfigIF;
+import org.productivity.java.syslog4j.impl.AbstractSyslogWriter;
+import org.productivity.java.syslog4j.impl.backlog.NullSyslogBackLogHandler;
+import org.productivity.java.syslog4j.impl.net.AbstractNetSyslog;
+import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig;
+import org.productivity.java.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslogConfig;
+import org.productivity.java.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslogWriter;
+import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslog;
 import org.productivity.java.syslog4j.impl.net.udp.UDPNetSyslogConfig;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -41,29 +47,38 @@ import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.X509Utils;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.localdb.LocalDBStoredQueue;
+import password.pwm.util.logging.PwmLogger;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.X509TrustManager;
 import java.io.Serializable;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
-class SyslogAuditService {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(SyslogAuditService.class);
+public class SyslogAuditService {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(SyslogAuditService.class);
 
     private static final int WARNING_WINDOW_MS = 30 * 60 * 1000;
     private static final String QUEUE_STORAGE_DELIMINATOR = "###";
+    private static final String SYSLOG_INSTANCE_NAME = "syslog-audit";
 
     private final int MAX_QUEUE_SIZE;
     private final long MAX_AGE_MS;
     private final long RETRY_TIMEOUT_MS;
-    private final Map<SyslogConfig,SyslogIF> syslogInstances = new LinkedHashMap<>();
-    private final Map<SyslogConfig,ErrorInformation> syslogErrors = new LinkedHashMap<>();
     private final LocalDBStoredQueue syslogQueue;
 
     private volatile Date lastSendError;
+    private SyslogIF syslogInstance = null;
+    private ErrorInformation lastError = null;
+    private X509Certificate[] certificates = null;
 
     private final Configuration configuration;
     private final Timer timer;
@@ -80,53 +95,58 @@ class SyslogAuditService {
         syslogQueue = LocalDBStoredQueue.createLocalDBStoredQueue(pwmApplication, pwmApplication.getLocalDB(), LocalDB.DB.SYSLOG_QUEUE);
 
         this.configuration = pwmApplication.getConfig();
-        final String syslogConfigStrings = configuration.readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
+        this.certificates = configuration.readSettingAsCertificate(PwmSetting.AUDIT_SYSLOG_CERTIFICATES);
+
+        final String syslogConfigString = configuration.readSettingAsString(PwmSetting.AUDIT_SYSLOG_SERVERS);
         final SyslogConfig syslogConfig;
         try {
-            syslogConfig = SyslogConfig.fromConfigString(syslogConfigStrings);
-            syslogInstances.put(syslogConfig, makeSyslogInstance(syslogConfig));
+            syslogConfig = SyslogConfig.fromConfigString(syslogConfigString);
+            syslogInstance = makeSyslogInstance(syslogConfig);
             timer.schedule(new WriterTask(),1000);
             LOGGER.trace("queued service running for " + syslogConfig);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("error parsing syslog configuration for '" + syslogConfigStrings + "', error: " + e.getMessage());
+            LOGGER.error("error parsing syslog configuration for '" + syslogConfigString + "', error: " + e.getMessage());
         }
     }
 
     private SyslogIF makeSyslogInstance(final SyslogConfig syslogConfig)
     {
-        final SyslogConfigIF syslogConfigIF;
+        final AbstractSyslogConfigIF syslogConfigIF;
+        final AbstractNetSyslog syslogInstance;
+
         switch (syslogConfig.getProtocol()) {
             case sslTcp:
-                final SSLTCPNetSyslogConfig sslTcpConfig = new SSLTCPNetSyslogConfig();
-                sslTcpConfig.setThreaded(false);
-                sslTcpConfig.setMaxQueueSize(0);
-                sslTcpConfig.setThrowExceptionOnWrite(true);
-                syslogConfigIF = sslTcpConfig;
-                break;
+            case tls: {
+                syslogConfigIF = new SSLTCPNetSyslogConfig();
+                ((SSLTCPNetSyslogConfig)syslogConfigIF).setBackLogHandlers(Collections.singletonList(new NullSyslogBackLogHandler()));
+                syslogInstance = new LocalTrustSSLTCPNetSyslog();
+            }
+            break;
 
-            case tcp:
-                final TCPNetSyslogConfig tcpConfig = new TCPNetSyslogConfig();
-                tcpConfig.setThreaded(false);
-                tcpConfig.setMaxQueueSize(0);
-                tcpConfig.setThrowExceptionOnWrite(true);
-                syslogConfigIF = tcpConfig;
-                break;
+            case tcp: {
+                syslogConfigIF = new TCPNetSyslogConfig();
+                ((TCPNetSyslogConfig) syslogConfigIF).setBackLogHandlers(Collections.singletonList(new NullSyslogBackLogHandler()));
+                syslogInstance = new TCPNetSyslog();
+            }
+            break;
 
-            case udp:
-                final UDPNetSyslogConfig udpConfig = new UDPNetSyslogConfig();
-                udpConfig.setThreaded(false);
-                udpConfig.setMaxQueueSize(0);
-                syslogConfigIF = udpConfig;
-                break;
+            case udp: {
+                syslogConfigIF = new UDPNetSyslogConfig();
+                syslogInstance = new UDPNetSyslog();
+            }
+            break;
 
             default:
                 throw new IllegalArgumentException("unknown protocol type");
         }
+
+        syslogConfigIF.setThreaded(false);
+        syslogConfigIF.setMaxQueueSize(0);
+        syslogConfigIF.setThrowExceptionOnWrite(true);
         syslogConfigIF.setHost(syslogConfig.getHost());
         syslogConfigIF.setPort(syslogConfig.getPort());
-        syslogConfigIF.setThrowExceptionOnWrite(true);
-
-        return Syslog.createInstance(syslogConfig.toString(), syslogConfigIF);
+        syslogInstance.initialize(SYSLOG_INSTANCE_NAME, syslogConfigIF);
+        return syslogInstance;
     }
 
     public void add(AuditRecord event) throws PwmOperationalException {
@@ -137,17 +157,18 @@ class SyslogAuditService {
         }
 
         final String prefix = event.getClass().getCanonicalName();
-        final String jsonValue = prefix + QUEUE_STORAGE_DELIMINATOR + JsonUtil.getGson().toJson(event);
+        final String jsonValue = prefix + QUEUE_STORAGE_DELIMINATOR + JsonUtil.serialize(event);
         syslogQueue.offerLast(jsonValue);
         timer.schedule(new WriterTask(),1);
     }
 
     public List<HealthRecord> healthCheck() {
         final List<HealthRecord> healthRecords = new ArrayList<>();
-        for (final SyslogConfig syslogConfig : syslogErrors.keySet()) {
-            final ErrorInformation errorInformation = syslogErrors.get(syslogConfig);
+        if (lastError != null) {
+            final ErrorInformation errorInformation = lastError;
             if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
-                healthRecords.add(new HealthRecord(HealthStatus.WARN,"AuditManager",errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, "AuditManager",
+                        errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
             }
         }
         return healthRecords;
@@ -169,7 +190,7 @@ class SyslogAuditService {
                     final String[] splitString = storedString.split(QUEUE_STORAGE_DELIMINATOR,2);
                     final String className = splitString[0];
                     final String jsonString = splitString[1];
-                    record = (AuditRecord) JsonUtil.getGson().fromJson(jsonString,Class.forName(className));
+                    record = (AuditRecord) JsonUtil.deserialize(jsonString,Class.forName(className));
                 } catch (Exception e) {
                     LOGGER.error("error decoding stored syslog event, discarding; error: " + e.getMessage());
                     syslogQueue.removeFirst();
@@ -177,7 +198,7 @@ class SyslogAuditService {
                 if (record != null) {
                     final TimeDuration recordAge = TimeDuration.fromCurrent(record.getTimestamp());
                     if (recordAge.isLongerThan(MAX_AGE_MS)) {
-                        LOGGER.info("discarding syslog audit event, maximum queued age exceeded: " + JsonUtil.getGson().toJson(record));
+                        LOGGER.info("discarding syslog audit event, maximum queued age exceeded: " + JsonUtil.serialize(record));
                         syslogQueue.removeFirst();
                     } else {
                         boolean sendSuccess = processEvent(record);
@@ -201,34 +222,30 @@ class SyslogAuditService {
         sb.append(" ");
         sb.append(gs.toJson(auditRecord));
 
-        for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
-            final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
-            try {
-                syslogIF.info(sb.toString());
-                syslogErrors.remove(syslogConfig);
-                return true;
-            } catch (Exception e) {
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, e.getMessage(), new String[]{syslogConfig.toString(),e.getMessage()});
-                syslogErrors.put(syslogConfig, errorInformation);
-                LOGGER.error(errorInformation.toDebugStr());
-            }
+        final SyslogIF syslogIF = syslogInstance;
+        try {
+            syslogIF.info(sb.toString());
+            LOGGER.trace("delivered syslog audit event: " + sb.toString());
+            lastError = null;
+            return true;
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SYSLOG_WRITE_ERROR, e.getMessage(), new String[]{e.getMessage()});
+            lastError = errorInformation;
+            LOGGER.error(errorInformation.toDebugStr());
         }
 
         return false;
     }
 
     public void close() {
-        for (final SyslogConfig syslogConfig : syslogInstances.keySet()) {
-            final SyslogIF syslogIF = syslogInstances.get(syslogConfig);
-            Syslog.destroyInstance(syslogConfig.toString());
-            syslogIF.shutdown();
-        }
+        final SyslogIF syslogIF = syslogInstance;
+        syslogIF.shutdown();
         timer.cancel();
-        syslogInstances.clear();
+        syslogInstance = null;
     }
 
     public static class SyslogConfig implements Serializable {
-        public enum Protocol {sslTcp, tcp, udp }
+        public enum Protocol { sslTcp, tcp, udp, tls }
 
         private Protocol protocol;
         private String host;
@@ -280,11 +297,47 @@ class SyslogAuditService {
         }
 
         public String toString() {
-            return JsonUtil.getGson().toJson(this);
+            return JsonUtil.serialize(this);
         }
     }
 
     public int queueSize() {
         return syslogQueue != null ? syslogQueue.size() : 0;
+    }
+
+    private class LocalTrustSyslogWriterClass extends SSLTCPNetSyslogWriter {
+        private LocalTrustSyslogWriterClass()
+        {
+            super();
+        }
+
+        @Override
+        protected SocketFactory obtainSocketFactory()
+        {
+            if (certificates != null && certificates.length >= 1) {
+                try {
+                    final SSLContext sc = SSLContext.getInstance("SSL");
+                    sc.init(null, new X509TrustManager[]{new X509Utils.PwmTrustManager(certificates)},
+                            new java.security.SecureRandom());
+                    return sc.getSocketFactory();
+                } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                    LOGGER.error("unexpected error loading syslog certificates: " + e.getMessage());
+                }
+            }
+
+            return super.obtainSocketFactory();
+        }
+    }
+
+    private class LocalTrustSSLTCPNetSyslog extends SSLTCPNetSyslog {
+
+
+        @Override
+        public AbstractSyslogWriter createWriter()
+        {
+            LocalTrustSyslogWriterClass newClass = new LocalTrustSyslogWriterClass();
+            newClass.initialize(this);
+            return newClass;
+        }
     }
 }

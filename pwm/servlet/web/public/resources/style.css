@@ -66,6 +66,10 @@ h3 {
     font-size: 12px;
 }
 
+form {
+    display: inline;
+}
+
 #form {
     border-radius: 3px;
     -moz-border-radius: 3px;

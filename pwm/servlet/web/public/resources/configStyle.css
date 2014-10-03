@@ -38,9 +38,10 @@
     border-top-right-radius: 5px;
 }
 .setting_title.modified {
-    background-color: #aa1e08;
+/*    background-color: #aa1e08;
     color: #ffffff;
     text-shadow: none;
+    */
 }
 
 .setting_title .text {
@@ -191,3 +192,25 @@
       background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #4f485d), color-stop(1, #191820) );
       background:linear-gradient(to bottom, #4f485d 5%, #191820 100% );
   }
+
+.menubutton.selected {
+    box-shadow: none;
+}
+
+.menubutton {
+    cursor: pointer;
+    font-weight: normal;
+    display: block;
+    text-align: center;
+    border-radius: 3px;
+    border: 10px;
+    text-decoration: none;
+    color: black;
+    white-space: normal;
+    background: #E8E1F6;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #E8E1F6), color-stop(1, #B2B1B9) );
+    background:linear-gradient(to bottom, #E8E1F6 5%, #B2B1B9 100% );
+}.menubutton:hover {
+     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
+     background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+ }

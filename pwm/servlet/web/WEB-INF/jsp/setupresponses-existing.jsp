@@ -22,6 +22,8 @@
 
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.ResponseInfoBean" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 
 <!DOCTYPE html>
@@ -30,7 +32,15 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
-<% final ResponseInfoBean responseInfoBean = pwmSessionHeader.getUserInfoBean().getResponseInfoBean(); %>
+<%
+    ResponseInfoBean responseInfoBean = null;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        responseInfoBean = pwmRequest.getPwmSession().getUserInfoBean().getResponseInfoBean();
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -38,7 +48,7 @@
     </jsp:include>
     <div id="centerbody">
         <p>
-            <% if (responseInfoBean.getTimestamp() != null) { %>
+            <% if (responseInfoBean != null && responseInfoBean.getTimestamp() != null) { %>
             <pwm:display key="Display_WarnExistingResponseTime" value1="@ResponseSetupTime@"/>
             <% } else { %>
             <pwm:display key="Display_WarnExistingResponse"/>

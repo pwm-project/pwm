@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
+import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +37,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PwmScriptTag extends BodyTagSupport {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmScriptTag.class);
+
     private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile("<\\s*script.*?>|<\\s*\\/\\s*script\\s*.*?>"); // match start and end <script> tags
 
     public int doStartTag()
@@ -46,7 +49,7 @@ public class PwmScriptTag extends BodyTagSupport {
             final boolean stripJsInline = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT));
             return stripJsInline ? super.doStartTag() : EVAL_BODY_INCLUDE;
         } catch (PwmUnrecoverableException e) {
-            e.printStackTrace();
+            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
         }
         return super.doStartTag();
     }
@@ -64,7 +67,7 @@ public class PwmScriptTag extends BodyTagSupport {
                 bc.clearBody();
             }
         } catch (PwmUnrecoverableException e) {
-            e.printStackTrace();
+            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
         }
         return SKIP_BODY;
     }

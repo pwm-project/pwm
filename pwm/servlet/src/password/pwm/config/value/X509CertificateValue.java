@@ -26,17 +26,21 @@ import com.google.gson.GsonBuilder;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
-import password.pwm.util.*;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.X509Utils;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
 public class X509CertificateValue extends AbstractValue implements StoredValue {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(X509CertificateValue.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(X509CertificateValue.class);
     private X509Certificate[] certificates;
 
     public X509CertificateValue(X509Certificate[] certificates) {
@@ -68,7 +72,8 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
             final String b64encodedStr = loopValueElement.getText();
             try {
                 final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(Base64Util.decode(b64encodedStr)));
+                final byte[] certByteValue = StringUtil.base64Decode(b64encodedStr);
+                final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certByteValue));
                 certificates.add(certificate);
             } catch (Exception e) {
                 LOGGER.error("error decoding certificate: " + e.getMessage());
@@ -83,7 +88,7 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
         for (final X509Certificate value : certificates) {
             final Element valueElement = new Element(valueElementName);
             try {
-                valueElement.addContent(Base64Util.encodeBytes(value.getEncoded()));
+                valueElement.addContent(StringUtil.base64Encode(value.getEncoded()));
             } catch (CertificateEncodingException e) {
                 LOGGER.error("error encoding certificate: " + e.getMessage());
             }
@@ -112,16 +117,17 @@ public class X509CertificateValue extends AbstractValue implements StoredValue {
             map.put("issueDate",cert.getNotBefore().toString());
             map.put("expireDate",cert.getNotAfter().toString());
             try {
-                map.put("md5sum",Helper.checksum(new ByteArrayInputStream(cert.getEncoded()), "MD5"));
-            } catch (IOException e) {
-                LOGGER.warn("error generating md5 sum for certificate: " + e.getMessage());
-            } catch (CertificateEncodingException e) {
-                LOGGER.warn("error generating md5 sum for certificate: " + e.getMessage());
+                map.put("md5Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+                        SecureHelper.HashAlgorithm.MD5));
+                map.put("sha1Hash", SecureHelper.hash(new ByteArrayInputStream(cert.getEncoded()),
+                        SecureHelper.HashAlgorithm.SHA1));
+            } catch (PwmUnrecoverableException | CertificateEncodingException e) {
+                LOGGER.warn("error generating hash for certificate: " + e.getMessage());
             }
             list.add(map);
         }
         return prettyFormat
                 ? JsonUtil.getGson(new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()).toJson(list)
-                : JsonUtil.getGson().toJson(list);
+                : JsonUtil.serializeCollection(list);
     }
 }

@@ -53,7 +53,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
         final PwmApplication pwmApplication = cliEnvironment.getPwmApplication();
 
         final File inputFile = (File)cliEnvironment.getOptions().get(INPUT_FILE_OPTIONNAME);
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),"UTF-8"));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile),PwmConstants.DEFAULT_CHARSET.toString()));
         out("importing stored responses from " + inputFile.getAbsolutePath() + "....");
 
         int counter = 0;
@@ -76,7 +76,7 @@ public class ImportResponsesCommand extends AbstractCliCommand {
                 out("writing responses to user '" + user.getEntryDN() + "'");
                 try {
                     final ChallengeProfile challengeProfile = pwmApplication.getCrService().readUserChallengeProfile(
-                            userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
+                            null, userIdentity, user, PwmPasswordPolicy.defaultPolicy(), PwmConstants.DEFAULT_LOCALE);
                     final ChallengeSet challengeSet = challengeProfile.getChallengeSet();
                     final String userGuid = LdapOperationsHelper.readLdapGuidValue(pwmApplication, null, userIdentity, false);
                     final ResponseInfoBean responseInfoBean = inputData.toResponseInfoBean(PwmConstants.DEFAULT_LOCALE,challengeSet.getIdentifier());

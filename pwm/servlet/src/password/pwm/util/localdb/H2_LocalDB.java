@@ -24,7 +24,7 @@ package password.pwm.util.localdb;
 
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
 import java.sql.Connection;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 public class H2_LocalDB extends AbstractJDBC_LocalDB {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(H2_LocalDB.class, true);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(H2_LocalDB.class, true);
 
     private static final String H2_CLASSPATH = "org.h2.Driver";
 

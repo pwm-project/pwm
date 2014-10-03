@@ -29,10 +29,11 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.value.StringArrayValue;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmException;
 import password.pwm.health.HealthMessage;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.rest.bean.HealthRecord;
 
 import java.io.IOException;
@@ -41,7 +42,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class CodeIntegrityChecker {
-    final static private PwmLogger LOGGER = PwmLogger.getLogger(CodeIntegrityChecker.class);
+    final static private PwmLogger LOGGER = PwmLogger.forClass(CodeIntegrityChecker.class);
     final static private boolean debugFlag = false;
 
     static public class Stats {
@@ -181,7 +182,7 @@ public class CodeIntegrityChecker {
             for (final String rawValue : localeFlagMap.keySet()) {
                 knownLocales.add(LocaleHelper.parseLocaleString(rawValue));
             }
-        } catch (PwmOperationalException e) {
+        } catch (PwmException e) {
             throw new IllegalStateException("error reading default locale list",e);
         }
 

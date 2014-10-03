@@ -25,12 +25,15 @@ package password.pwm.util.intruder;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmOperationalException;
-import password.pwm.util.*;
-
-import java.io.IOException;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.ClosableIterator;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 class RecordManagerImpl implements RecordManager {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(RecordManagerImpl.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(RecordManagerImpl.class);
 
     private final RecordType recordType;
     private final RecordStore recordStore;
@@ -73,7 +76,7 @@ class RecordManagerImpl implements RecordManager {
 
         final TimeDuration age = TimeDuration.fromCurrent(record.getTimeStamp());
         if (age.isLongerThan(settings.getCheckDuration())) {
-            LOGGER.debug("re-setting existing outdated record=" + JsonUtil.getGson().toJson(record) + " (" + age.asCompactString() + ")");
+            LOGGER.debug("re-setting existing outdated record=" + JsonUtil.serialize(record) + " (" + age.asCompactString() + ")");
             record = new IntruderRecord(recordType, subject);
         }
 
@@ -125,15 +128,15 @@ class RecordManagerImpl implements RecordManager {
         try {
             recordStore.write(makeKey(intruderRecord.getSubject()),intruderRecord);
         } catch (PwmOperationalException e) {
-            LOGGER.warn("unexpected error attempting to write intruder record " + JsonUtil.getGson().toJson(intruderRecord) + ", error: " + e.getMessage());
+            LOGGER.warn("unexpected error attempting to write intruder record " + JsonUtil.serialize(intruderRecord) + ", error: " + e.getMessage());
         }
     }
 
     private String makeKey(final String subject) throws PwmOperationalException {
         final String md5sum;
         try {
-            md5sum = Helper.md5sum(subject);
-        } catch (IOException e) {
+            md5sum = SecureHelper.md5sum(subject);
+        } catch (PwmUnrecoverableException e) {
             throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,"error generating md5sum for intruder record: " + e.getMessage());
         }
         return md5sum + recordType.toString();

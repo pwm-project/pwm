@@ -6,6 +6,7 @@
 <%@ page import="password.pwm.config.PwmSettingSyntax" %>
 <%@ page import="password.pwm.config.StoredConfiguration" %>
 <%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.ConfigManagerBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigEditorServlet" %>
@@ -37,11 +38,12 @@
 
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
+    final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
     final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
     final PwmSetting loopSetting = (PwmSetting)request.getAttribute("setting");
     final Locale locale = PwmSession.getPwmSession(session).getSessionStateBean().getLocale();
     final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean();
-    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(request, response);
+    final ConfigEditorCookie cookie = ConfigEditorServlet.readConfigEditorCookie(pwmRequest);
     final boolean showDescription = (Boolean)request.getAttribute("showDescription");
     final String profileID = (String)request.getAttribute("profileID");
     final StoredConfiguration.SettingMetaData settingMetaData = configManagerBean.getConfiguration().readSettingMetadata(loopSetting,profileID);
@@ -151,7 +153,7 @@
             UserPermissionHandler.init('table_setting_<%=loopSetting.getKey()%>', '<%=loopSetting.getKey()%>');
             require(["dojo/parser","dijit/form/Button"],function(parser,Button){
                 new Button({
-                    onClick:function(){executeSettingFunction('<%=loopSetting.getKey()%>',preferences['profile'],'password.pwm.config.function.UserMatchViewerFunction')}
+                    onClick:function(){PWM_CFGEDIT.executeSettingFunction('<%=loopSetting.getKey()%>','password.pwm.config.function.UserMatchViewerFunction')}
                 },'<%=loopSetting.getKey()%>_ViewMatchesButton');
             });
         });
@@ -163,7 +165,7 @@
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.getGson().toJson(loopSetting.getOptions())%>);
+            FormTableHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.serializeMap(loopSetting.getOptions())%>);
         });
     </script>
     </pwm:script>
@@ -173,7 +175,7 @@
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            OptionListHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.getGson().toJson(loopSetting.getOptions())%>);
+            OptionListHandler.init('<%=loopSetting.getKey()%>',<%=JsonUtil.serializeMap(loopSetting.getOptions())%>);
         });
     </script>
     </pwm:script>

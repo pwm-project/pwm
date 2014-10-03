@@ -24,38 +24,39 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmUnrecoverableException" %>
-<%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
-<%@ page import="password.pwm.util.macro.MacroMachine" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Locale" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     PwmSession pwmSessionFooter = null;
     PwmApplication pwmApplicationFooter = null;
+    PwmRequest footer_pwmRequest = null;
     try {
-        pwmApplicationFooter = ContextManager.getPwmApplication(session);
-        pwmSessionFooter = PwmSession.getPwmSession(session);
+        footer_pwmRequest = PwmRequest.forRequest(request,response);
+        pwmApplicationFooter = footer_pwmRequest.getPwmApplication();
+        pwmSessionFooter = footer_pwmRequest.getPwmSession();
     } catch (PwmUnrecoverableException e) {
         /* application must be unavailable */
     }
 %>
-<% final Locale userLocaleFooter = pwmSessionFooter.getSessionStateBean().getLocale(); %>
+<% final Locale userLocaleFooter = pwmSessionFooter == null ? PwmConstants.DEFAULT_LOCALE : pwmSessionFooter.getSessionStateBean().getLocale(); %>
 <% boolean segmentDisplayed = false; %>
 <%-- begin pwm footer --%>
 <div id="footer">
-    <% if (!"true".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT))) { %>
+    <% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_FOOTER_TEXT)) { %>
     <div id="footer-content">
         <span class="infotext">
             <pwm:display key="Display_FooterInfoText"/>&nbsp;
         </span>
         <div>
-            <% if (pwmSessionFooter.getSessionStateBean().isAuthenticated()) { %>
-            <%= pwmSessionFooter.getUserInfoBean().getUsername()%>
+            <% if (footer_pwmRequest.isAuthenticated()) { %>
+            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()%>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
-            <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_IDLE))) { %>
+            <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_IDLE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="idle_wrapper">
             <span id="idle_status">
@@ -64,7 +65,7 @@
             </span>
             <% segmentDisplayed = true; } %>
             <% } %>
-            <% if (!"false".equalsIgnoreCase((String)request.getAttribute(PwmConstants.REQUEST_ATTR_SHOW_LOCALE))) { %>
+            <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_LOCALE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
             <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
                 <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
@@ -77,15 +78,11 @@
         </div>
     </div>
     <% } %>
-    <% final String customScript = pwmApplicationFooter.getConfig().readSettingAsString(PwmSetting.DISPLAY_CUSTOM_JAVASCRIPT); %>
-    <% if (customScript != null && customScript.length() > 0) { %>
     <pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
-        <% final MacroMachine macroMachineFooter = new MacroMachine(pwmApplicationFooter,pwmSessionFooter.getUserInfoBean(),pwmSessionFooter.getSessionManager().getUserDataReader(pwmApplicationFooter)); %>
-        <%= macroMachineFooter.expandMacros(customScript) %>
+    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" id="customJavascipt">
+        <pwm:value name="customJavascript"/>
     </script>
     </pwm:script>
-    <% } %>
     <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
     <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
     <pwm:if test="stripInlineJavascript">

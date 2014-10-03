@@ -44,8 +44,9 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
-    final PwmSession pwmSession = PwmSession.getPwmSession(request);
-    final PwmApplication pwmApplication = ContextManager.getPwmApplication(request);
+    final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
+    final PwmSession pwmSession = pwmRequest.getPwmSession();
+    final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
     final HelpdeskBean helpdeskBean = pwmSession.getHelpdeskBean();
     final DateFormat dateFormatter = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final HelpdeskUIMode SETTING_PW_UI_MODE = HelpdeskUIMode.valueOf(
@@ -54,7 +55,7 @@
     final String obfuscatedDN = helpdeskBean.getUserInfoBean().getUserIdentity().toObfuscatedKey(
             pwmApplication.getConfig());
     final UserInfoBean searchedUserInfo = helpdeskBean.getUserInfoBean();
-    final String displayName = (String)request.getAttribute(PwmConstants.REQUEST_ATTR_HELPDESK_DETAILNAME);
+    final String displayName = helpdeskBean.getUserDisplayName();
     final Set<ViewStatusFields> viewStatusFields = pwmApplication.getConfig().readSettingAsOptionList(PwmSetting.HELPDESK_VIEW_STATUS_VALUES,ViewStatusFields.class);
 %>
 <html dir="<pwm:LocaleOrientation/>">
@@ -230,7 +231,7 @@
         <pwm:display key="Field_PasswordSetTimeDelta"/>
     </td>
     <td>
-        <%= searchedUserInfo.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(searchedUserInfo.getPasswordLastModifiedTime()).asLongString(pwmSession.getSessionStateBean().getLocale()) : Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", pwmApplicationHeader.getConfig())%>
+        <%= helpdeskBean.getAdditionalUserInfo().getPasswordSetDelta() %>
     </td>
 </tr>
 <% } %>
@@ -521,7 +522,7 @@
         Delete User
     </button>
     <% } %>
-    <button name="button_continue" class="btn" onclick="window.location = window.location" id="button_continue">
+    <button name="button_continue" class="btn" onclick="PWM_MAIN.goto('Helpdesk')" id="button_continue">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
         <pwm:display key="Button_GoBack"/>
     </button>

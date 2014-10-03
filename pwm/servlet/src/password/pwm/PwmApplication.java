@@ -27,11 +27,8 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import org.apache.log4j.*;
-import org.apache.log4j.xml.DOMConfigurator;
 import password.pwm.bean.SmsItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredConfiguration;
@@ -44,7 +41,6 @@ import password.pwm.event.AuditManager;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.health.HealthMonitor;
 import password.pwm.ldap.LdapConnectionService;
-import password.pwm.ldap.UserDataReader;
 import password.pwm.token.TokenService;
 import password.pwm.util.*;
 import password.pwm.util.cache.CacheService;
@@ -52,6 +48,10 @@ import password.pwm.util.db.DatabaseAccessorImpl;
 import password.pwm.util.intruder.IntruderManager;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBFactory;
+import password.pwm.util.logging.LocalDBLogger;
+import password.pwm.util.logging.PwmLogLevel;
+import password.pwm.util.logging.PwmLogManager;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.CrService;
 import password.pwm.util.operations.OtpService;
@@ -64,13 +64,7 @@ import password.pwm.wordlist.SeedlistManager;
 import password.pwm.wordlist.SharedHistoryManager;
 import password.pwm.wordlist.WordlistManager;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -83,7 +77,7 @@ public class PwmApplication {
 // ------------------------------ FIELDS ------------------------------
 
     // ----------------------------- CONSTANTS ----------------------------
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(PwmApplication.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(PwmApplication.class);
     private static final String DEFAULT_INSTANCE_ID = "-1";
 
 
@@ -114,7 +108,6 @@ public class PwmApplication {
 
 
     private String instanceID = DEFAULT_INSTANCE_ID;
-    private String autoSiteUrl;
     private final Configuration configuration;
 
     private LocalDB localDB;
@@ -152,15 +145,6 @@ public class PwmApplication {
             CacheService.class
     ));
 
-    private static final List<Package> LOGGING_PACKAGES  = Collections.unmodifiableList(Arrays.asList(
-            PwmApplication.class.getPackage(),
-            ChaiUser.class.getPackage(),
-            Package.getPackage("org.jasig.cas.client")
-    ));
-
-// -------------------------- STATIC METHODS --------------------------
-
-    // --------------------------- CONSTRUCTORS ---------------------------
 
     public PwmApplication(
             final Configuration config,
@@ -258,9 +242,6 @@ public class PwmApplication {
     }
 
 
-    // -------------------------- OTHER METHODS --------------------------
-
-
     public TokenService getTokenService() {
         return (TokenService)pwmServices.get(TokenService.class);
     }
@@ -306,7 +287,7 @@ public class PwmApplication {
                     break;
             }
 
-            Initializer.initializeLogger(configuration, log4jFile, consoleLevel, applicationPath, fileLevel);
+            PwmLogManager.initializeLogger(this, configuration, log4jFile, consoleLevel, applicationPath, fileLevel);
 
             switch (getApplicationMode()) {
                 case RUNNING:
@@ -327,8 +308,8 @@ public class PwmApplication {
                 + ", configurationFile=" + (configurationFile == null ? "null" : configurationFile.getAbsolutePath())
         );
 
-        Initializer.initializeLocalDB(this);
-        Initializer.initializeLocalDBLogger(this);
+        this.localDB = Initializer.initializeLocalDB(this);
+        this.localDBLogger = PwmLogManager.initializeLocalDBLogger(this);
 
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
@@ -400,11 +381,11 @@ public class PwmApplication {
         if (this.getConfig() != null) {
             final Map<AppProperty,String> nonDefaultProperties = getConfig().readAllNonDefaultAppProperties();
             if (nonDefaultProperties != null && !nonDefaultProperties.isEmpty()) {
-                final LinkedHashMap<String,String> tempMap = new LinkedHashMap<>();
+                final Map<String,String> tempMap = new LinkedHashMap<>();
                 for (final AppProperty loopProperty : nonDefaultProperties.keySet()) {
                     tempMap.put(loopProperty.getKey(), nonDefaultProperties.get(loopProperty));
                 }
-                LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.getGson().toJson(tempMap));
+                LOGGER.trace("non-default app properties read from configuration: " + JsonUtil.serializeMap(tempMap));
             } else {
                 LOGGER.trace("no non-default app properties in configuration");
             }
@@ -419,7 +400,7 @@ public class PwmApplication {
         try {
             getAuditManager().submit(auditRecord);
         } catch (PwmException e) {
-            LOGGER.warn("unable to submit alert event " + JsonUtil.getGson().toJson(auditRecord));
+            LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
         }
     }
 
@@ -477,7 +458,7 @@ public class PwmApplication {
         envStats.put("threads",Thread.activeCount());
         envStats.put("chaiApi",ChaiConstant.CHAI_API_VERSION + ", b" + ChaiConstant.CHAI_API_BUILD_INFO);
 
-        return "environment info: " + JsonUtil.getGson().toJson(envStats);
+        return "environment info: " + JsonUtil.serializeMap(envStats);
     }
 
     private static String logDebugInfo() {
@@ -486,7 +467,7 @@ public class PwmApplication {
         debugStats.put("memallocd",Runtime.getRuntime().totalMemory());
         debugStats.put("memmax",Runtime.getRuntime().maxMemory());
         debugStats.put("threads",Thread.activeCount());
-        return "debug info:" + JsonUtil.getGson().toJson(debugStats);
+        return "debug info:" + JsonUtil.serializeMap(debugStats);
     }
 
     public StatisticsManager getStatisticsManager() {
@@ -505,14 +486,16 @@ public class PwmApplication {
         return (CacheService)pwmServices.get(CacheService.class);
     }
 
-    public void sendSmsUsingQueue(final SmsItemBean smsItem, final UserInfoBean uiBean, final UserDataReader userDataReader) {
+    public void sendSmsUsingQueue(
+            final SmsItemBean smsItem,
+            final MacroMachine macroMachine
+    ) {
         final SmsQueueManager smsQueue = getSmsQueue();
         if (smsQueue == null) {
             LOGGER.error("SMS queue is unavailable, unable to send SMS: " + smsItem.toString());
             return;
         }
 
-        final MacroMachine macroMachine = new MacroMachine(this, uiBean, userDataReader);
         final SmsItemBean rewrittenSmsItem = new SmsItemBean(
                 macroMachine.expandMacros(smsItem.getTo()),
                 macroMachine.expandMacros(smsItem.getFrom()),
@@ -539,7 +522,7 @@ public class PwmApplication {
             try {
                 getAuditManager().submit(auditRecord);
             } catch (PwmException e) {
-                LOGGER.warn("unable to submit alert event " + JsonUtil.getGson().toJson(auditRecord));
+                LOGGER.warn("unable to submit alert event " + JsonUtil.serialize(auditRecord));
             }
         }
 
@@ -596,117 +579,22 @@ public class PwmApplication {
 // -------------------------- INNER CLASSES --------------------------
 
     private static class Initializer {
-        private static void initializeLogger(
-                final Configuration config,
-                final File log4jConfigFile,
-                final String consoleLogLevel,
-                final File pwmApplicationPath,
-                final String fileLogLevel
-        ) {
-            // clear all existing package loggers
-            for (final Package logPackage : LOGGING_PACKAGES) {
-                if (logPackage != null) {
-                    final Logger logger = Logger.getLogger(logPackage.getName());
-                    logger.removeAllAppenders();
-                    logger.setLevel(Level.TRACE);
-                }
-            }
 
-            Exception configException = null;
-            boolean configured = false;
-
-            // try to configure using the log4j config file (if it exists)
-            if (log4jConfigFile != null) {
-                try {
-                    if (!log4jConfigFile.exists()) {
-                        throw new Exception("file not found: " + log4jConfigFile.getAbsolutePath());
-                    }
-                    DOMConfigurator.configure(log4jConfigFile.getAbsolutePath());
-                    LOGGER.debug("successfully initialized log4j using file " + log4jConfigFile.getAbsolutePath());
-                    configured = true;
-                } catch (Exception e) {
-                    configException = e;
-                }
-            }
-
-            // if we haven't yet configured log4j for whatever reason, do so using the hardcoded defaults and level (if supplied)
-            if (!configured) {
-                final Layout patternLayout = new PatternLayout(config.readAppProperty(AppProperty.LOGGING_PATTERN));
-
-                // configure console logging
-                if (consoleLogLevel != null && consoleLogLevel.length() > 0 && !"Off".equals(consoleLogLevel)) {
-                    final ConsoleAppender consoleAppender = new ConsoleAppender(patternLayout);
-                    final Level level = Level.toLevel(consoleLogLevel);
-                    consoleAppender.setThreshold(level);
-                    for (final Package logPackage : LOGGING_PACKAGES) {
-                        if (logPackage != null) {
-                            final Logger logger = Logger.getLogger(logPackage.getName());
-                            logger.addAppender(consoleAppender);
-                        }
-                    }
-                    LOGGER.debug("successfully initialized default console log4j config at log level " + level.toString());
-                } else {
-                    LOGGER.debug("skipping stdout log4j initialization due to blank setting for log level");
-                }
-
-                // configure file logging
-                final String logDirectorySetting = config.readAppProperty(AppProperty.LOGGING_FILE_PATH);
-                final File logDirectory = Helper.figureFilepath(logDirectorySetting,pwmApplicationPath);
-
-                if (logDirectory != null && fileLogLevel != null && fileLogLevel.length() > 0 && !"Off".equals(fileLogLevel)) {
-                    try {
-                        if (!logDirectory.exists()) {
-                            if (logDirectory.mkdir()) {
-                                LOGGER.info("created directory " + logDirectory.getAbsoluteFile());
-                            } else {
-                                throw new IOException("failed to create directory " + logDirectory.getAbsoluteFile());
-                            }
-                        }
-
-                        final String fileName = logDirectory.getAbsolutePath() + File.separator + PwmConstants.PWM_APP_NAME + ".log";
-                        final RollingFileAppender fileAppender = new RollingFileAppender(patternLayout,fileName,true);
-                        final Level level = Level.toLevel(fileLogLevel);
-                        fileAppender.setThreshold(level);
-                        fileAppender.setMaxBackupIndex(Integer.parseInt(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_ROLLOVER)));
-                        fileAppender.setMaxFileSize(config.readAppProperty(AppProperty.LOGGING_FILE_MAX_SIZE));
-                        for (final Package logPackage : LOGGING_PACKAGES) {
-                            if (logPackage != null) {
-                                final Logger logger = Logger.getLogger(logPackage.getName());
-                                logger.addAppender(fileAppender);
-                            }
-                        }
-                        LOGGER.debug("successfully initialized default file log4j config at log level " + level.toString());
-                    } catch (IOException e) {
-                        LOGGER.debug("error initializing RollingFileAppender: " + e.getMessage());
-                    }
-                }
-            }
-
-            // if there was an exception trying to load the log4j file, then log it (hopefully the defaults worked)
-            if (configException != null) {
-                LOGGER.error("error loading log4jconfig file '" + log4jConfigFile + "' error: " + configException.getMessage());
-            }
-
-            // disable jersey warnings.
-            java.util.logging.LogManager.getLogManager().addLogger(java.util.logging.Logger.getLogger("com.sun.jersey.spi.container.servlet.WebComponent"));
-            java.util.logging.LogManager.getLogManager().getLogger("com.sun.jersey.spi.container.servlet.WebComponent").setLevel(java.util.logging.Level.OFF);
-        }
-
-        public static void initializeLocalDB(final PwmApplication pwmApplication) {
+        public static LocalDB initializeLocalDB(final PwmApplication pwmApplication) {
             if (pwmApplication.getApplicationMode() == MODE.ERROR || pwmApplication.getApplicationMode() == MODE.NEW) {
                 LOGGER.warn("skipping LocalDB open due to application mode " + pwmApplication.getApplicationMode());
-                return;
+                return null;
             }
 
             final File databaseDirectory;
             // see if META-INF isn't already there, then use WEB-INF.
             try {
-                final String pwmDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
-                databaseDirectory = Helper.figureFilepath(pwmDBLocationSetting, pwmApplication.applicationPath);
+                final String localDBLocationSetting = pwmApplication.getConfig().readSettingAsString(PwmSetting.PWMDB_LOCATION);
+                databaseDirectory = Helper.figureFilepath(localDBLocationSetting, pwmApplication.applicationPath);
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"error locating configured LocalDB directory: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
-                return;
+                return null;
             }
 
             LOGGER.debug("using localDB path " + databaseDirectory);
@@ -714,43 +602,13 @@ public class PwmApplication {
             // initialize the localDB
             try {
                 final boolean readOnly = pwmApplication.getApplicationMode() == MODE.READ_ONLY;
-                pwmApplication.localDB = LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig());
+                return LocalDBFactory.getInstance(databaseDirectory, readOnly, pwmApplication, pwmApplication.getConfig());
             } catch (Exception e) {
                 pwmApplication.lastLocalDBFailure = new ErrorInformation(PwmError.ERROR_LOCALDB_UNAVAILABLE,"unable to initialize LocalDB: " + e.getMessage());
                 LOGGER.warn(pwmApplication.lastLocalDBFailure.toDebugStr());
             }
-        }
 
-        public static void initializeLocalDBLogger(final PwmApplication pwmApplication) {
-            if (pwmApplication.getApplicationMode() == MODE.READ_ONLY) {
-                LOGGER.trace("skipping initialization of LocalDBLogger due to read-only mode");
-                return;
-            }
-
-            // initialize the localDBLogger
-            final PwmLogLevel localLogLevel = pwmApplication.getConfig().getEventLogLocalDBLevel();
-            try {
-                final int maxEvents = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_EVENTS);
-                final long maxAgeMS = 1000 * pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_PWMDB_MAX_AGE);
-                pwmApplication.localDBLogger = PwmLogger.initPwmApplication(pwmApplication.localDB, maxEvents, maxAgeMS, localLogLevel, pwmApplication);
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize localDBLogger: " + e.getMessage());
-            }
-
-            // add appender for other packages;
-            try {
-                final LocalDBLog4jAppender localDBLog4jAppender = new LocalDBLog4jAppender(pwmApplication.localDBLogger);
-                for (final Package logPackage : LOGGING_PACKAGES) {
-                    if (logPackage != null && !logPackage.equals(PwmApplication.class.getPackage())) {
-                        final Logger logger = Logger.getLogger(logPackage.getName());
-                        logger.addAppender(localDBLog4jAppender);
-                        logger.setLevel(localLogLevel.getLog4jLevel());
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.warn("unable to initialize localDBLogger/extraAppender: " + e.getMessage());
-            }
-
+            return null;
         }
     }
 
@@ -764,58 +622,6 @@ public class PwmApplication {
         RUNNING,
         READ_ONLY,
         ERROR
-    }
-
-    public String getSiteURL() {
-        final String configuredURL = configuration.readSettingAsString(PwmSetting.PWM_URL);
-        if (configuredURL == null || configuredURL.length() < 1) {
-            return autoSiteUrl == null ? PwmConstants.UNCONFIGURED_URL_VALUE : autoSiteUrl;
-        }
-        return configuredURL;
-    }
-
-    public void setAutoSiteURL(final HttpServletRequest request) {
-        if (autoSiteUrl == null && request != null) {
-            try {
-                final URL url = new URL(request.getRequestURL().toString());
-
-                final String hostname = url.getHost();
-
-                //ignore localhost;
-                if (hostname.equalsIgnoreCase("localhost") || hostname.equalsIgnoreCase("127.0.0.1")) {
-                    //LOGGER.debug("ignoring loopback host during autoSiteURL detection: " + url.toString());
-                    return;
-                }
-
-                { //ignore if numeric
-                    try {
-                        InetAddress inetAddress = InetAddress.getByName(hostname);
-                        if (hostname.equals(inetAddress.getHostAddress())) {
-                            return;
-                        }
-                    } catch (UnknownHostException e) {
-                        /* noop */
-                        //LOGGER.debug("exception examining hostname as siteURL candidate: " + e.getMessage());
-                    }
-                }
-
-                final StringBuilder sb = new StringBuilder();
-                sb.append(url.getProtocol());
-                sb.append("://");
-                sb.append(url.getHost());
-                if (url.getPort() != -1) {
-                    sb.append(":");
-                    sb.append(url.getPort());
-                }
-                sb.append(request.getSession().getServletContext().getContextPath());
-
-                autoSiteUrl = sb.toString();
-                LOGGER.debug("autoSiteURL detected as: " + autoSiteUrl);
-
-            } catch (MalformedURLException e) {
-                LOGGER.error("unexpected malformed url error trying to set autoSiteURL: " + e.getMessage());
-            }
-        }
     }
 
     public String getInstanceNonce() {

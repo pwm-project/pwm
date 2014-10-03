@@ -21,6 +21,8 @@
   --%>
 
 <%@ page import="password.pwm.config.ShortcutItem" %>
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="java.util.Collections" %>
 <%@ page import="java.util.Map" %>
 <!DOCTYPE html>
 
@@ -30,7 +32,15 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<% final Map<String, ShortcutItem> shortcutItems = PwmSession.getPwmSession(session).getSessionStateBean().getVisibleShortcutItems(); %>
+<%
+    Map<String, ShortcutItem> shortcutItems = Collections.emptyMap();
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        shortcutItems = pwmRequest.getPwmSession().getSessionStateBean().getVisibleShortcutItems();
+    } catch (PwmException e) {
+        /* noop */
+    }
+%>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Shortcuts"/>
@@ -45,7 +55,15 @@
             <% for (final ShortcutItem item : shortcutItems.values()) { %>
             <tr style="border:0">
                 <td style="border:0; text-align: right; width:10%">
-                    <% String target = pwmApplicationHeader.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW) ? item.getLabel() : ""; %>
+                    <%
+                        String target = "";
+                        try {
+                            final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+                            target = pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.SHORTCUT_NEW_WINDOW) ? item.getLabel() : "";
+                        } catch (PwmException e) {
+                            /* noop */
+                        }
+                    %>
                     <a class="menubutton" target="<%=target%>" href="<pwm:url url='/private/Shortcuts' addContext="true"/>?processAction=selectShortcut&link=<%= item.getLabel() %>">
                         <%= item.getLabel() %>
                     </a>

@@ -1,6 +1,7 @@
+<%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
-<%@ page import="password.pwm.util.ServletHelper" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.util.stats.Statistic" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -29,15 +30,15 @@
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_THEME,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <% try { PwmSession.getPwmSession(session).unauthenticateUser(); } catch (Exception e) { }%>
 <%
     if (!ContextManager.getPwmApplication(request).getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES)) {
         final Locale locale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale();
-        PwmSession.getPwmSession(request).getSessionStateBean().setSessionError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                "Configuration setting " + PwmSetting.Category.MISC.getLabel(locale) + " --> " + PwmSetting.ENABLE_EXTERNAL_WEBSERVICES.getLabel(locale) + " must be enabled for this page to function."));
-        ServletHelper.forwardToErrorPage(request, response, true);
+        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
+                "Configuration setting " + PwmSettingCategory.MISC.getLabel(locale) + " --> " + PwmSetting.ENABLE_EXTERNAL_WEBSERVICES.getLabel(locale) + " must be enabled for this page to function.");
+        PwmRequest.forRequest(request,response).respondWithError(errorInformation);
     }
 %>
 <body id="body" class="nihilo" style="background-color: black">
@@ -237,7 +238,7 @@
 </script>
 </pwm:script>
 <script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
-<% request.setAttribute(PwmConstants.REQUEST_ATTR_HIDE_FOOTER_TEXT,"true"); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

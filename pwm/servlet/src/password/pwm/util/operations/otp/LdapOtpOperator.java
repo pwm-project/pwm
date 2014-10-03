@@ -36,7 +36,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.PwmLogger;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
 /**
@@ -45,7 +45,7 @@ import password.pwm.util.otp.OTPUserRecord;
  */
 public class LdapOtpOperator extends AbstractOtpOperator {
 
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(LdapOtpOperator.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(LdapOtpOperator.class);
     private PwmApplication pwmApplication;
 
     public LdapOtpOperator(PwmApplication pwmApplication) {

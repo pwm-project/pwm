@@ -76,29 +76,22 @@ PWM_MAIN.pageLoadHandler = function() {
 };
 
 PWM_MAIN.loadClientData=function(completeFunction) {
-    require(["dojo"],function(dojo){
-        PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
-        var displayStringsUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client?etag=" + PWM_GLOBAL['clientEtag'];
-        dojo.xhrGet({
-            url: displayStringsUrl,
-            handleAs: 'json',
-            timeout: PWM_MAIN.ajaxTimeout,
-            headers: { "Accept": "application/json" },
-            load: function(data) {
-                for (var globalProp in data['data']['PWM_GLOBAL']) {
-                    PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
-                }
-                console.log('loaded client data');
-                if (completeFunction) completeFunction();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to read app-data: ' + error;;
-                console.log(errorMsg);
-                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
-                if (completeFunction) completeFunction();
-            }
-        });
-    });
+    PWM_GLOBAL['app-data-client-retry-count'] = PWM_GLOBAL['app-data-client-retry-count'] + 1;
+    var url = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client?etag=" + PWM_GLOBAL['clientEtag'];
+    var loadFunction = function(data) {
+        for (var globalProp in data['data']['PWM_GLOBAL']) {
+            PWM_GLOBAL[globalProp] = data['data']['PWM_GLOBAL'][globalProp];
+        }
+        console.log('loaded client data');
+        if (completeFunction) completeFunction();
+    };
+    var errorFunction = function(error) {
+        var errorMsg = 'unable to read app-data: ' + error;;
+        console.log(errorMsg);
+        if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
+        if (completeFunction) completeFunction();
+    };
+    PWM_MAIN.ajaxRequest(url, loadFunction, {errorFunction:errorFunction,method:'GET'});
 };
 
 PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
@@ -133,16 +126,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
 };
 
 PWM_MAIN.initPage = function() {
-    for (var j = 0; j < document.forms.length; j++) {
-        var loopForm = document.forms[j];
-        loopForm.setAttribute('autocomplete', 'off');
-        require(["dojo","dojo/on"], function(dojo,on){
-            on(loopForm, "reset", function(){
-                PWM_MAIN.handleFormClear();
-                return false;
-            });
-        });
-    }
+    PWM_MAIN.applyFormAttributes();
 
     require(["dojo","dojo/on"], function(dojo,on){
         on(document, "keypress", function(event){
@@ -202,15 +186,6 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    require(["dojo/query","dojo/on"], function(query,on){
-        var results = query('.pwm-form');
-        for (var i = 0; i < results.length; i++) {
-            var element = results[i];
-            on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
-        }
-    });
-
-
     for (var i = 0; i < PWM_GLOBAL['startupFunctions'].length; i++) {
         try {
             PWM_GLOBAL['startupFunctions'][i]();
@@ -226,6 +201,39 @@ PWM_MAIN.initPage = function() {
     PWM_MAIN.preloadResources();
 
     console.log('initPage completed');
+};
+
+PWM_MAIN.applyFormAttributes = function() {
+    require(["dojo/query","dojo/on"], function(query,on){
+        var results = query('.pwm-form');
+        for (var i = 0; i < results.length; i++) {
+            var element = results[i];
+            on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
+        }
+    });
+
+
+    require(["dojo/_base/array", "dojo/query", "dojo/on"], function(array, query, on){
+        array.forEach(
+            query("form"),
+            function(formElement){
+                formElement.setAttribute('autocomplete', 'off');
+
+                //ios/webkit
+                formElement.setAttribute('autocapitalize', 'none');
+                formElement.setAttribute('autocorrect', 'off');
+            }
+        );
+
+        array.forEach(
+            query(".pwm-form"),
+            function(formElement){
+                on(formElement, "submit", function(event){
+                    PWM_MAIN.handleFormSubmit(formElement, event);
+                });
+            }
+        );
+    });
 };
 
 PWM_MAIN.preloadAll = function(nextFunction) {
@@ -272,13 +280,20 @@ PWM_MAIN.showString = function (key, options) {
 
 PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
     var element = PWM_MAIN.getObject(nodeId);
-    require(["dojo","dojo/on"], function(dojo,on){
-        on(element, eventType, functionToAdd);
-    });
+    if (element) {
+        require(["dojo", "dojo/on"], function (dojo, on) {
+            if (dojo.isIE <= 9 && eventType == 'input') {
+                on(element, 'change', functionToAdd);
+                on(element, 'keyup', functionToAdd);
+            }
+            on(element, eventType, functionToAdd);
+        });
+    }
 };
 
 
 PWM_MAIN.goto = function(url,options) {
+    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
     if (!options['noContext'] && url.indexOf(PWM_GLOBAL['url-context']) != 0) {
         if (url.substring(0,1) == '/') {
@@ -325,38 +340,29 @@ PWM_MAIN.handleLoginFormSubmit = function(form, event) {
     require(["dojo","dojo/dom-form"], function(dojo, domForm) {
         event.preventDefault();
         PWM_MAIN.showWaitDialog({loadFunction: function () {
-            var formData = domForm.toObject(form);
-            var formDataString = dojo.toJson(formData);
-            dojo.xhrPost({
-                url: 'Login?processAction=restLogin&pwmFormID=' + PWM_GLOBAL['pwmFormID'],
-                postData: formDataString,
-                headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey']},
-                contentType: "application/json;charset=utf-8",
-                encoding: "utf-8",
-                handleAs: "json",
-                dataType: "json",
-                preventCache: true,
-                timeout: PWM_GLOBAL['client.ajaxTypingTimeout'] ? PWM_GLOBAL['client.ajaxTypingTimeout'] : 30 * 1000,
-                error: function (errorObj) {
-                    console.error('error logging in: ' + errorObj);
-                    PWM_MAIN.closeWaitDialog();
-                    PWM_MAIN.handleFormSubmit(loginFormElement, null);
-                },
-                load: function (data) {
-                    if (data['error'] == true) {
-                        PWM_MAIN.closeWaitDialog();
-                        PWM_MAIN.showError(data['errorMessage']);
-                        PWM_MAIN.getObject('password').value = '';
-                        PWM_MAIN.getObject('password').focus();
-                        return;
-                    }
-                    console.log('authentication success');
-                    var nextURL = data['data']['nextURL'];
-                    if (nextURL) {
-                        PWM_MAIN.goto(nextURL, {noContext: true});
-                    }
+            var options = {};
+            options['content'] = domForm.toObject(form);
+            delete options['content']['processAction'];
+            delete options['content']['pwmFormID'];
+            var url = 'Login?processAction=restLogin';
+            var loadFunction = function(data) {
+
+                if (data['error'] == true) {
+                    PWM_MAIN.showErrorDialog(data,{
+                        okAction:function(){
+                            PWM_MAIN.getObject('password').value = '';
+                            PWM_MAIN.getObject('password').focus();
+                        }
+                    });
+                    return;
                 }
-            });
+                console.log('authentication success');
+                var nextURL = data['data']['nextURL'];
+                if (nextURL) {
+                    PWM_MAIN.goto(nextURL, {noContext: true});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction,options);
         }});
     });
 };
@@ -532,17 +538,28 @@ PWM_MAIN.showTooltip = function(options){
 };
 
 PWM_MAIN.clearDijitWidget = function (widgetName) {
-    require(["dijit/registry"],function(registry){
+    require(["dojo","dijit/registry"],function(dojo, registry){
+        /*
+         try {
+         registry.byId(widgetName).destroy(true);
+         } catch (e) {
+         console.log("error destroying widget '" + widgetName + '", error: ' + e);
+         }
+         */
+
+
         var oldDijitNode = registry.byId(widgetName);
         if (oldDijitNode != null) {
             try {
                 oldDijitNode.destroyRecursive();
             } catch (error) {
+                console.log('error destroying old widget: ' + error);
             }
 
             try {
                 oldDijitNode.destroy();
             } catch (error) {
+                console.log('error destroying old widget: ' + error);
             }
         }
     });
@@ -580,19 +597,16 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                     iconClass: localeIconClass,
                     onClick: function() {
                         PWM_MAIN.showWaitDialog({loadFunction:function(){
-                            var pingURL = PWM_GLOBAL['url-command'] + "?processAction=idleUpdate&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&" + PWM_GLOBAL['paramName.locale'] + "=" + localeKey;
-                            dojo.xhrGet({
-                                url: pingURL,
-                                sync: false,
-                                preventCache: true,
-                                load: function() {
-                                    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
-                                    setTimeout(function(){window.location.reload();},1000);
-                                },
-                                error: function(error) {
-                                    alert('unable to set locale: ' + error);
-                                }
-                            });
+                            var nextUrl = window.location.toString();
+                            if (window.location.toString().indexOf('?') > 0) {
+                                var params = dojo.queryToObject(window.location.search.substring(1,window.location.search.length));
+                                params['locale'] = localeKey;
+                                nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
+                                    + dojo.objectToQuery(params);
+                            } else {
+                                nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+                            }
+                            PWM_MAIN.goto(nextUrl);
                         }});
                     }
                 }));
@@ -616,6 +630,28 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
             }));
         }
     });
+};
+
+PWM_MAIN.showErrorDialog = function(error, options) {
+    options = options === undefined ? {} : options;
+    var body = '';
+    var logMsg = '';
+    if (error && error['error']) {
+        body += error['errorMessage'];
+        logMsg += error['errorCode'] + "," + error['errorMessage'];
+        if (error['errorDetail']) {
+            body += "<br/><br/>" + error['errorDetail'];
+            logMsg += ", detail: " + error['errorDetail'];
+        }
+    } else {
+        body += error;
+        logMsg + error;
+    }
+
+    console.log('displaying error message: ' + logMsg);
+    options['title'] = PWM_MAIN.showString('Title_Error');
+    options['text'] = body;
+    PWM_MAIN.showDialog(options);
 };
 
 PWM_MAIN.showWaitDialog = function(options) {
@@ -653,9 +689,9 @@ PWM_MAIN.showDialog = function(options) {
     var title = options['title'] || 'DialogTitle';
     var text = options['text'] || 'DialogBody';
     var okAction = 'okAction' in options ? options['okAction'] : function(){};
-    var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){};
-    var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){};
-    var width = options['width'] || 300;
+    var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){console.log('no-dialog-cancelaction')};
+    var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){console.log('no-dialog-loadfunction')};
+    var width = options['width'] || 350;
     var showOk = 'showOk' in options ? options['showOk'] : true;
     var showCancel = 'showCancel' in options ? options['showCancel'] : false;
     var showClose = 'showClose' in options ? options['showClose'] : false;
@@ -697,7 +733,9 @@ PWM_MAIN.showDialog = function(options) {
         if (!showClose) {
             dojo.style(theDialog.closeButtonNode, "display", "none");
         }
-        dojo.connect(theDialog,"onShow",null,loadFunction);
+        dojo.connect(theDialog,"onShow",null,function(){
+            loadFunction();
+        });
         theDialog.show();
     });
 };
@@ -731,17 +769,15 @@ PWM_MAIN.showEula = function(requireAgreement, agreeFunction) {
 };
 
 PWM_MAIN.showConfirmDialog = function(options) {
-    options = options || {};
+    options = options == undefined ? {} : options;
     options['showCancel'] = true;
     options['title'] = 'title' in options ? options['title'] : PWM_MAIN.showString('Button_Confirm');
     PWM_MAIN.showDialog(options);
 };
 
 PWM_MAIN.closeWaitDialog = function(idName) {
-    idName = idName || 'dialogPopup';
-    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
-        PWM_MAIN.clearDijitWidget(idName);
-    });
+    idName = idName == undefined ? 'dialogPopup' : idName;
+    PWM_MAIN.clearDijitWidget(idName);
 };
 
 PWM_MAIN.clearError=function() {
@@ -998,9 +1034,9 @@ PWM_MAIN.messageDivFloatHandler = function() {
 };
 
 PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
-    var CONSOLE_DEBUG = true;
+    var CONSOLE_DEBUG = false;
 
-    var serviceURL = validationProps['serviceURL'];
+    var serviceURL = PWM_MAIN.addPwmFormIDtoURL(validationProps['serviceURL']);
     var readDataFunction = validationProps['readDataFunction'];
     var processResultsFunction = validationProps['processResultsFunction'];
     var messageWorking = validationProps['messageWorking'] ? validationProps['messageWorking'] : PWM_MAIN.showString('Display_PleaseWait');
@@ -1062,45 +1098,35 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         }, 5);
     }
 
-    serviceURL += serviceURL.indexOf('?') > 0 ? '&' : '?';
-    serviceURL += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
-
     require(["dojo"],function(dojo){
         var formDataString = dojo.toJson(formData);
         if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
-        dojo.xhrPost({
-            url: serviceURL,
-            postData: formDataString,
-            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            contentType: "application/json;charset=utf-8",
-            encoding: "utf-8",
-            handleAs: "json",
-            dataType: "json",
-            preventCache: true,
-            timeout: ajaxTimeout,
-            error: function(errorObj) {
-                PWM_GLOBAL['validationInProgress'] = false;
-                if (showMessage) {
-                    PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
-                }
-                if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
-                processResultsFunction(null);
-                completeFunction();
-            },
-            load: function(data){
-                PWM_GLOBAL['validationInProgress'] = false;
-                delete PWM_GLOBAL['validationLastType'];
-                PWM_GLOBAL['validationCache'][formKey] = data;
-                if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
-                PWM_MAIN.pwmFormValidator(validationProps, true);
+        var loadFunction = function(data) {
+            PWM_GLOBAL['validationInProgress'] = false;
+            delete PWM_GLOBAL['validationLastType'];
+            PWM_GLOBAL['validationCache'][formKey] = data;
+            if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
+            PWM_MAIN.pwmFormValidator(validationProps, true);
+        };
+        var options = {};
+        options['content'] = formData;
+        options['ajaxTimeout'] = ajaxTimeout;
+        options['errorFunction'] = function(error) {
+            PWM_GLOBAL['validationInProgress'] = false;
+            if (showMessage) {
+                PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
             }
-        });
+            if (CONSOLE_DEBUG) console.log('pwmFormValidator: error connecting to service: ' + errorObj);
+            processResultsFunction(null);
+            completeFunction();
+        };
+        PWM_MAIN.ajaxRequest(serviceURL,loadFunction,options);
     });
 };
 
 PWM_MAIN.preloadImages = function(imgArray){
-    var newimages=[]
-    var arr=(typeof imgArray!="object")? [imgArray] : imgArray //force arr parameter to always be an array
+    var newimages=[];
+    var arr=(typeof imgArray!="object")? [imgArray] : imgArray; //force arr parameter to always be an array
     for (var i=0; i<arr.length; i++){
         newimages[i]=new Image();
         newimages[i].src=arr[i];
@@ -1610,37 +1636,52 @@ PWM_MAIN.TimestampHandler.toggleElement = function(element) {
 };
 
 PWM_MAIN.addPwmFormIDtoURL = function(url) {
+    return PWM_MAIN.addParamToUrl(url,'pwmFormID',PWM_GLOBAL['pwmFormID']);
+};
+
+PWM_MAIN.addParamToUrl = function(url,paramName,paramValue) {
     if (!url || url.length < 1) {
         return '';
     }
 
-    if (url.indexOf('pwmFormID') > 0) {
+    if (url.indexOf(paramName) > 0) {
         return url;
     }
 
     url += url.indexOf('?') > 0 ? '&' : '?';
-    url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    url += paramName + "=" + paramValue;
     return url;
 };
 
-
 PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
-    require(["dojo"], function (dojo) {
+    options = options === undefined ? {} : options;
+    var content = 'content' in options ? options['content'] : null;
+    var method = 'method' in options ? options['method'] : 'POST';
+    var errorFunction = 'errorFunction' in options ? options['errorFunction'] : function(error){
+        PWM_MAIN.showErrorDialog(error);
+    };
+    var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_GLOBAL['client.ajaxTypingTimeout'];
+    require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
+        loadFunction = loadFunction != undefined ? loadFunction : function(data){alert('missing load function, return results:' + dojo.toJson(data))};
         url = PWM_MAIN.addPwmFormIDtoURL(url);
-        loadFunction = loadFunction || function(data){alert('missing load function, return results:' + dojo.toJson(data))};
-
-        dojo.xhrPost({
-            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            url: url,
+        url = PWM_MAIN.addParamToUrl(url,'preventCache',Date.now());
+        var postOptions = {
+            headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey'], "Content-Type":"application/json;charset=utf-8"},
+            encoding: "utf-8",
+            method: method,
+            preventCache: false,
             dataType: "json",
             handleAs: "json",
-            preventCache: true,
-            load: loadFunction,
-            error: function(error) {
-                alert('error:' + error);
-            }
-        });
+            timeout: ajaxTimeout
+        };
+
+        if (content != null) {
+            postOptions['data'] = dojoJson.stringify(content);
+        }
+
+        xhr(url, postOptions).then(loadFunction, errorFunction, function(evt){});
     });
 };
+
 
 PWM_MAIN.pageLoadHandler();

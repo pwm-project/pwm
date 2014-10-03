@@ -22,15 +22,14 @@
 
 package password.pwm.bean;
 
-import password.pwm.Permission;
 import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.ChallengeProfile;
 import password.pwm.http.bean.PwmSessionBean;
-import password.pwm.util.PostChangePasswordAction;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.otp.OTPUserRecord;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * A bean that is stored in the user's session.   Only information that is particular to logged in user is stored in the
@@ -42,19 +41,16 @@ import java.util.*;
  * then there should not be a {@link UserInfoBean} in the HTTP session.
  *
  * @author Jason D. Rivard
- * @see password.pwm.ldap.UserStatusHelper#populateUserInfoBean(password.pwm.http.PwmSession, UserInfoBean, password.pwm.PwmApplication, java.util.Locale, String, String, com.novell.ldapchai.provider.ChaiProvider)
+ * @see password.pwm.ldap.UserStatusReader#populateUserInfoBean(SessionLabel, UserInfoBean, java.util.Locale, UserIdentity, com.novell.ldapchai.provider.ChaiProvider)
  */
 public class UserInfoBean implements PwmSessionBean {
 // ------------------------------ FIELDS ------------------------------
 
     private UserIdentity userIdentity;
-    private String userCurrentPassword;
     private String username;
     private String userEmailAddress;
     private String userSmsNumber;
     private String userGuid;
-
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(UserInfoBean.class);
 
     /**
      * A listing of all readable attributes on the ldap user object
@@ -72,29 +68,15 @@ public class UserInfoBean implements PwmSessionBean {
 
     private Date passwordExpirationTime;
     private Date passwordLastModifiedTime;
-    private Date localAuthTime;
     private Date lastLdapLoginTime;
-
-    private Map<Permission, Permission.PERMISSION_STATUS> permissions = new HashMap<>();
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
     private boolean requiresOtpConfig;
     private boolean requiresUpdateProfile;
-    
-    private AuthenticationType authenticationType = AuthenticationType.UNAUTHENTICATED;
 
-    private Map<String, PostChangePasswordAction> postChangePasswordActions = new HashMap<>();
 
-    public enum AuthenticationType {
-        UNAUTHENTICATED,
-        AUTHENTICATED,
-        AUTH_BIND_INHIBIT,
-        AUTH_FROM_FORGOTTEN,
-        AUTH_WITHOUT_PASSWORD
-    }
-
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public Map<String,String> getCachedPasswordRuleAttributes() {
         return this.cachedPasswordRuleAttributes;
@@ -112,14 +94,6 @@ public class UserInfoBean implements PwmSessionBean {
     public void setCachedAttributeValues(Map<String, String> cachedAttributeValues)
     {
         this.cachedAttributeValues = cachedAttributeValues;
-    }
-
-    public Date getLocalAuthTime() {
-        return localAuthTime;
-    }
-
-    public void setLocalAuthTime(final Date localAuthTime) {
-        this.localAuthTime = localAuthTime;
     }
 
     public Date getLastLdapLoginTime() {
@@ -146,14 +120,6 @@ public class UserInfoBean implements PwmSessionBean {
         this.passwordPolicy = passwordPolicy;
     }
 
-    public String getUserCurrentPassword() {
-        return userCurrentPassword;
-    }
-
-    public void setUserCurrentPassword(final String userCurrentPassword) {
-        this.userCurrentPassword = userCurrentPassword;
-    }
-
     public UserIdentity getUserIdentity() {
         return userIdentity;
     }
@@ -168,14 +134,6 @@ public class UserInfoBean implements PwmSessionBean {
 
     public void setPasswordExpirationTime(final Date passwordExpirationTime) {
         this.passwordExpirationTime = passwordExpirationTime;
-    }
-
-    public Map<Permission, Permission.PERMISSION_STATUS> getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(final Map<Permission, Permission.PERMISSION_STATUS> permissions) {
-        this.permissions = permissions;
     }
 
     public String getUsername() {
@@ -258,58 +216,12 @@ public class UserInfoBean implements PwmSessionBean {
         this.userGuid = userGuid;
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
-    public void clearPermissions() {
-        permissions.clear();
-    }
-
-    public Permission.PERMISSION_STATUS getPermission(final Permission permission) {
-        final Permission.PERMISSION_STATUS status = permissions.get(permission);
-        return status == null ? Permission.PERMISSION_STATUS.UNCHECKED : status;
-    }
-
-    public void setPermission(final Permission permission, final Permission.PERMISSION_STATUS status) {
-        permissions.put(permission, status);
-    }
-
-    public void addPostChangePasswordActions(final String key, final PostChangePasswordAction postChangePasswordAction) {
-        if (postChangePasswordAction == null) {
-            postChangePasswordActions.remove(key);
-        } else {
-            postChangePasswordActions.put(key, postChangePasswordAction);
-        }
-    }
-
-    public List<PostChangePasswordAction> removePostChangePasswordActions() {
-        final List<PostChangePasswordAction> copiedList = new ArrayList<>();
-        copiedList.addAll(postChangePasswordActions.values());
-        postChangePasswordActions.clear();
-        return copiedList;
-    }
-
-    public Map<String, PostChangePasswordAction> getPostChangePasswordActions() {
-        return postChangePasswordActions;
-    }
-
-    public void setPostChangePasswordActions(Map<String, PostChangePasswordAction> postChangePasswordActions) {
-        this.postChangePasswordActions = postChangePasswordActions;
-    }
-
     public ResponseInfoBean getResponseInfoBean() {
         return responseInfoBean;
     }
 
     public void setResponseInfoBean(ResponseInfoBean responseInfoBean) {
         this.responseInfoBean = responseInfoBean;
-    }
-
-    public AuthenticationType getAuthenticationType() {
-        return authenticationType;
-    }
-
-    public void setAuthenticationType(AuthenticationType authenticationType) {
-        this.authenticationType = authenticationType;
     }
 
     public OTPUserRecord getOtpUserRecord()

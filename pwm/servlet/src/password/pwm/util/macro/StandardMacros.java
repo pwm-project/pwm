@@ -26,10 +26,13 @@ import com.novell.ldapchai.exception.ChaiException;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
+import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.UserDataReader;
-import password.pwm.util.PwmLogger;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,7 +45,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class StandardMacros {
-    private static final PwmLogger LOGGER = PwmLogger.getLogger(StandardMacros.class);
+    private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
 
     public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
     static {
@@ -64,23 +67,18 @@ public abstract class StandardMacros {
     }
 
     public static class LdapMacro extends AbstractMacro {
-        public UserDataReader userDataReader;
-
-        public LdapMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean, UserDataReader userDataReader)
-        {
-            this.userDataReader = userDataReader;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@LDAP:.*?@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@LDAP:.*?@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final UserDataReader userDataReader = macroRequestInfo.getUserDataReader();
+
             if (userDataReader == null) {
                 return "";
             }
@@ -109,22 +107,18 @@ public abstract class StandardMacros {
     }
 
     public static class InstanceIDMacro extends AbstractMacro {
-        public PwmApplication pwmApplication;
-
-        public InstanceIDMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.pwmApplication = pwmApplication;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@InstanceID@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@InstanceID@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final PwmApplication pwmApplication = macroRequestInfo.getPwmApplication();
+
             if (pwmApplication == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', pwmApplication is null");
                 return "";
@@ -135,21 +129,16 @@ public abstract class StandardMacros {
     }
 
     public static class CurrentTimeMacro extends AbstractMacro {
-        public PwmApplication pwmApplication;
-
-        public CurrentTimeMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.pwmApplication = pwmApplication;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@CurrentTime:.*?@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@CurrentTime:.*?@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+
         ) {
             final String datePattern = matchValue.substring(13,matchValue.length() -1);
 
@@ -169,40 +158,34 @@ public abstract class StandardMacros {
     }
 
     public static class CurrentTimeDefaultMacro extends AbstractMacro {
-        public CurrentTimeDefaultMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-        }
+        private static final Pattern PATTERN = Pattern.compile("@CurrentTime@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@CurrentTime@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         }
     }
 
     public static class UserPwExpirationTimeMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public UserPwExpirationTimeMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:PwExpireTime:.*?@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireTime:.*?@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+
         ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
             if (userInfoBean == null) {
                 return "";
             }
@@ -229,22 +212,18 @@ public abstract class StandardMacros {
     }
 
     public static class UserPwExpirationTimeDefaultMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public UserPwExpirationTimeDefaultMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:PwExpireTime@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:PwExpireTime@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
             if (userInfoBean == null) {
                 return "";
             }
@@ -259,22 +238,18 @@ public abstract class StandardMacros {
     }
 
     public static class UserDaysUntilPwExpireMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public UserDaysUntilPwExpireMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:DaysUntilPwExpire@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:DaysUntilPwExpire@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
             if (userInfoBean == null) {
                 LOGGER.error("could not replace value for '" + matchValue + "', userInfoBean is null");
                 return "";
@@ -290,22 +265,18 @@ public abstract class StandardMacros {
     }
 
     public static class UserIDMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public UserIDMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:ID@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:ID@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
             if (userInfoBean == null || userInfoBean.getUsername() == null) {
                 return "";
             }
@@ -315,19 +286,18 @@ public abstract class StandardMacros {
     }
 
     public static class UserEmailMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:Email@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:Email@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
+            final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
+
             if (userInfoBean == null || userInfoBean.getUserEmailAddress() == null) {
                 return "";
             }
@@ -337,71 +307,60 @@ public abstract class StandardMacros {
     }
 
     public static class UserPasswordMacro extends AbstractMacro {
-        public UserInfoBean userInfoBean;
-
-        public UserPasswordMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.userInfoBean = userInfoBean;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@User:Password@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@User:Password@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
-            if (userInfoBean == null || userInfoBean.getUserCurrentPassword() == null) {
+            final LoginInfoBean loginInfoBean = macroRequestInfo.getLoginInfoBean();
+
+            try {
+                if (loginInfoBean == null || loginInfoBean.getUserCurrentPassword() == null) {
+                    return "";
+                }
+
+                return loginInfoBean.getUserCurrentPassword().getStringValue();
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.error("error decrypting in memory password during macro replacement: " + e.getMessage());
                 return "";
             }
-
-            return userInfoBean.getUserCurrentPassword();
         }
     }
 
     public static class SiteURLMacro extends AbstractMacro {
-        public PwmApplication pwmApplication;
-
-        public SiteURLMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-
-            this.pwmApplication = pwmApplication;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@SiteURL@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@SiteURL@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
-            return pwmApplication.getSiteURL();
+            return macroRequestInfo.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL);
         }
     }
 
     public static class SiteHostMacro extends AbstractMacro {
-        public PwmApplication pwmApplication;
-
-        public SiteHostMacro() {
-        }
-
-        public void init(PwmApplication pwmApplication, UserInfoBean userInfoBean,UserDataReader userDataReader) {
-            this.pwmApplication = pwmApplication;
-        }
+        private static final Pattern PATTERN = Pattern.compile("@SiteHost@");
 
         public Pattern getRegExPattern() {
-            return Pattern.compile("@SiteHost@");
+            return PATTERN;
         }
 
         public String replaceValue(
-                String matchValue
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
         ) {
             try {
-                final URL url = new URL(pwmApplication.getSiteURL());
+                final String siteUrl = macroRequestInfo.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL);
+                final URL url = new URL(siteUrl);
                 return url.getHost();
             } catch (MalformedURLException e) {
                 LOGGER.error("unable to parse configured/detected site URL: " + e.getMessage());
@@ -411,21 +370,23 @@ public abstract class StandardMacros {
     }
 
     public static class RandomCharMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@RandomChar:[0-9]+(:.+)?@");
 
-        public Pattern getRegExPattern()
-        {
-            return Pattern.compile("@RandomChar:[0-9]+(:.+)?@");
+        public Pattern getRegExPattern() {
+            return PATTERN;
         }
 
-        public String replaceValue(String matchValue)
-        {
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        ) {
             if (matchValue == null || matchValue.length() < 1) {
                 return "";
             }
 
-            matchValue = matchValue.replaceAll("^@|@$",""); // strip leading / trailing @
+            final String cleanedMatchValue = matchValue.replaceAll("^@|@$",""); // strip leading / trailing @
 
-            final String[] splitString = matchValue.split(":");
+            final String[] splitString = cleanedMatchValue.split(":");
             int length = 1;
             if (splitString.length > 1) {
                 try {
@@ -442,15 +403,5 @@ public abstract class StandardMacros {
                 return PwmRandom.getInstance().alphaNumericString(length);
             }
         }
-
-        public void init(
-                PwmApplication pwmApplication,
-                UserInfoBean userInfoBean,
-                UserDataReader userDataReader
-        )
-        {
-
-        }
     }
-
 }

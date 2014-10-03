@@ -22,22 +22,20 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.UserIdentity;
-import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.ldap.UserAuthenticator;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.PwmLogger;
-import password.pwm.util.PwmServletURLHelper;
+import password.pwm.ldap.auth.AuthenticationType;
+import password.pwm.ldap.auth.SessionAuthenticator;
+import password.pwm.util.PasswordData;
+import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -82,14 +80,12 @@ public class LoginServlet extends PwmServlet {
             throws PwmUnrecoverableException
     {
         try {
-            return LoginServletAction.valueOf(request.readStringParameter(PwmConstants.PARAM_ACTION_REQUEST));
+            return LoginServletAction.valueOf(request.readParameterAsString(PwmConstants.PARAM_ACTION_REQUEST));
         } catch (IllegalArgumentException e) {
             return null;
         }
     }
 
-
-// -------------------------- OTHER METHODS --------------------------
 
     public void processAction(
             final PwmRequest pwmRequest
@@ -97,7 +93,7 @@ public class LoginServlet extends PwmServlet {
             throws ServletException, IOException, ChaiUnavailableException, PwmUnrecoverableException
     {
         final boolean passwordOnly = pwmRequest.getPwmSession().getSessionStateBean().isAuthenticated() &&
-                pwmRequest.getPwmSession().getUserInfoBean().getAuthenticationType() == UserInfoBean.AuthenticationType.AUTH_WITHOUT_PASSWORD;
+                pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() == AuthenticationType.AUTH_WITHOUT_PASSWORD;
 
         final LoginServletAction action = readProcessAction(pwmRequest);
 
@@ -123,31 +119,27 @@ public class LoginServlet extends PwmServlet {
     private void processLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
-        final String username = pwmRequest.readStringParameter("username");
-        final String password = pwmRequest.readStringParameter("password");
-        final String context = pwmRequest.readStringParameter(PwmConstants.PARAM_CONTEXT);
-        final String ldapProfile = pwmRequest.readStringParameter(PwmConstants.PARAM_LDAP_PROFILE);
+        final String username = pwmRequest.readParameterAsString("username");
+        final PasswordData password = pwmRequest.readParameterAsPassword("password");
+        final String context = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
 
         try {
             handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);
         } catch (PwmOperationalException e) {
-            pwmRequest.getPwmSession().getSessionStateBean().setSessionError(e.getErrorInformation());
+            pwmRequest.setResponseError(e.getErrorInformation());
             forwardToJSP(pwmRequest, passwordOnly);
             return;
         }
 
         // login has succeeded
-        pwmRequest.sendRedirect(determinePostLoginUrl(pwmRequest));
+        pwmRequest.sendRedirectToPreLoginUrl();
     }
 
     private void processRestLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
-        final String bodyString = pwmRequest.readRequestBody();
-        final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
-                new TypeToken<Map<String, String>>() {
-                }.getType()
-        );
+        final Map<String, String> valueMap = pwmRequest.readBodyAsJsonStringMap();
 
         if (valueMap == null || valueMap.isEmpty()) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing json request body");
@@ -156,10 +148,10 @@ public class LoginServlet extends PwmServlet {
         }
 
         final Configuration config = pwmRequest.getConfig();
-        final String username = Validator.sanatizeInputValue(config, valueMap.get("username"), 1024);
-        final String password = Validator.sanatizeInputValue(config, valueMap.get("password"), 1024);
-        final String context = Validator.sanatizeInputValue(config, valueMap.get(PwmConstants.PARAM_CONTEXT), 1024);
-        final String ldapProfile = Validator.sanatizeInputValue(config, valueMap.get(PwmConstants.PARAM_LDAP_PROFILE),
+        final String username = Validator.sanitizeInputValue(config, valueMap.get("username"), 1024);
+        final PasswordData password = new PasswordData(Validator.sanitizeInputValue(config, valueMap.get("password"), 1024));
+        final String context = Validator.sanitizeInputValue(config, valueMap.get(PwmConstants.PARAM_CONTEXT), 1024);
+        final String ldapProfile = Validator.sanitizeInputValue(config, valueMap.get(PwmConstants.PARAM_LDAP_PROFILE),
                 1024);
 
         try {
@@ -171,15 +163,16 @@ public class LoginServlet extends PwmServlet {
 
         // login has succeeded
         final RestResultBean restResultBean = new RestResultBean();
-        final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", determinePostLoginUrl(pwmRequest)));
+        final HashMap<String,String> resultMap = new HashMap<>(Collections.singletonMap("nextURL", pwmRequest.determinePostLoginUrl()));
         restResultBean.setData(resultMap);
+        LOGGER.debug(pwmRequest, "rest login succeeded");
         pwmRequest.outputJsonResult(restResultBean);
     }
 
     private void handleLoginRequest(
             final PwmRequest pwmRequest,
             final String username,
-            final String password,
+            final PasswordData password,
             final String context,
             final String ldapProfile,
             final boolean passwordOnly
@@ -190,15 +183,16 @@ public class LoginServlet extends PwmServlet {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing username parameter"));
         }
 
-        if (password == null || password.isEmpty()) {
+        if (password == null) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_MISSING_PARAMETER,"missing password parameter"));
         }
 
+        final SessionAuthenticator sessionAuthenticator = new SessionAuthenticator(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
         if (passwordOnly) {
             final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
-            UserAuthenticator.authenticateUser(userIdentity, password, pwmRequest.getPwmSession(), pwmRequest.getPwmApplication(), pwmRequest.getHttpServletRequest().isSecure());
+            sessionAuthenticator.authenticateUser(userIdentity, password);
         } else {
-            UserAuthenticator.authenticateUser(username, password, context, ldapProfile, pwmRequest.getPwmSession(), pwmRequest.getPwmApplication(), pwmRequest.getHttpServletRequest().isSecure());
+            sessionAuthenticator.searchAndAuthenticateUser(username, password, context, ldapProfile);
         }
 
         // recycle the session to prevent session fixation attack.
@@ -213,17 +207,6 @@ public class LoginServlet extends PwmServlet {
     {
         final PwmConstants.JSP_URL url = passwordOnly ? PwmConstants.JSP_URL.LOGIN_PW_ONLY : PwmConstants.JSP_URL.LOGIN;
         pwmRequest.forwardToJsp(url);
-    }
-
-    private static String determinePostLoginUrl(final PwmRequest pwmRequest) {
-        final String originalURL = pwmRequest.getPwmSession().getSessionStateBean().getOriginalRequestURL();
-        pwmRequest.getPwmSession().getSessionStateBean().setOriginalRequestURL(null);
-
-        if (!PwmServletURLHelper.isLoginServlet(pwmRequest.getHttpServletRequest())) {
-            return originalURL;
-        } else {
-            return pwmRequest.getHttpServletRequest().getContextPath();
-        }
     }
 }
 
