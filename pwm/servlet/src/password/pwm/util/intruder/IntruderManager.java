@@ -22,7 +22,6 @@
 
 package password.pwm.util.intruder;
 
-import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
@@ -50,6 +49,7 @@ import password.pwm.util.db.DatabaseTable;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBDataStore;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -364,19 +364,10 @@ public class IntruderManager implements Serializable, PwmService {
             return;
         }
 
-        final Map<String,String> values = new LinkedHashMap<>();
-        values.put("type", intruderRecord.getType().toString());
-        values.put(intruderRecord.getType().toString(),intruderRecord.getSubject());
-        values.put("attempts", String.valueOf(intruderRecord.getAttemptCount()));
-        values.put("age", TimeDuration.fromCurrent(intruderRecord.getTimeStamp()).asCompactString());
-
-        final String bodyText = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(values);
-
-
         if (intruderRecord.getType() == RecordType.USER_ID) {
             try {
                 final UserIdentity identity = UserIdentity.fromDelimitedKey(intruderRecord.getSubject());
-                sendIntruderNoticeEmail(pwmApplication, identity, bodyText);
+                sendIntruderNoticeEmail(pwmApplication, identity);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.error("unable to send intruder mail, can't read userDN/ldapProfile from stored record: " + e.getMessage());
             }
@@ -537,8 +528,7 @@ public class IntruderManager implements Serializable, PwmService {
 
     private static void sendIntruderNoticeEmail(
             final PwmApplication pwmApplication,
-            final UserIdentity userIdentity,
-            final String bodyText
+            final UserIdentity userIdentity
     )
     {
         final Configuration config = pwmApplication.getConfig();
@@ -548,25 +538,20 @@ public class IntruderManager implements Serializable, PwmService {
             return;
         }
 
-        final UserInfoBean userInfoBean = new UserInfoBean();
         try {
+            final UserInfoBean userInfoBean = new UserInfoBean();
             final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, null);
+            MacroMachine.forUser(pwmApplication, PwmConstants.DEFAULT_LOCALE, null, userIdentity);
             userStatusReader.populateUserInfoBean(
                     userInfoBean,
                     PwmConstants.DEFAULT_LOCALE,
                     userIdentity
             );
+            pwmApplication.getEmailQueue().submitEmail(configuredEmailSetting, userInfoBean, null);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error reading user info while sending intruder notice for user " + userIdentity + ", error: " + e.getMessage());
         }
 
-        pwmApplication.getEmailQueue().submitEmail(new EmailItemBean(
-                configuredEmailSetting.getTo(),
-                configuredEmailSetting.getFrom(),
-                configuredEmailSetting.getSubject(),
-                bodyText,
-                bodyText
-        ), userInfoBean, null);
     }
 
     public ServiceInfo serviceInfo()

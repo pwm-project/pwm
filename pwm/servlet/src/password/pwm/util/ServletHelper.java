@@ -36,6 +36,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
+import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.filter.SessionFilter;
@@ -208,14 +209,16 @@ public class ServletHelper {
     }
 
     public static void addPwmResponseHeaders(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletResponse resp,
+            final PwmRequest pwmRequest,
             boolean fromServlet
     ) {
-        if (pwmApplication == null || pwmSession == null || resp == null) {
+
+        if (pwmRequest == null) {
             return;
         }
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
 
         if (!resp.isCommitted()) {
             final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
@@ -248,7 +251,7 @@ public class ServletHelper {
             if (fromServlet && pwmSession != null) {
                 final String contentPolicy = pwmApplication.getConfig().readSettingAsString(PwmSetting.SECURITY_CSP_HEADER);
                 if (contentPolicy != null && !contentPolicy.isEmpty()) {
-                    final String nonce = pwmSession.getSessionStateBean().getSessionVerificationKey();
+                    final String nonce = pwmRequest.getCspNonce();
                     final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);
                     resp.setHeader("Content-Security-Policy", expandedPolicy);
                 }

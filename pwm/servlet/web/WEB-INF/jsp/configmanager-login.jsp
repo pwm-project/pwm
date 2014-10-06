@@ -34,7 +34,7 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
@@ -61,7 +61,7 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<pwm:value name="cspNonce"/>">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('password').focus();
     });

@@ -162,8 +162,8 @@ public class RestCheckPasswordServer extends AbstractRestServer {
 
             final PasswordCheckRequest checkRequest = new PasswordCheckRequest(
                     userDN,
-                    new PasswordData(jsonInput.password1),
-                    new PasswordData(jsonInput.password2),
+                    jsonInput.password1 == null || jsonInput.password1.isEmpty() ? null : new PasswordData(jsonInput.password1),
+                    jsonInput.password2 == null || jsonInput.password2.isEmpty() ? null : new PasswordData(jsonInput.password2),
                     uiBean
             );
 

@@ -136,6 +136,17 @@ PWM_MAIN.initPage = function() {
 
     if (PWM_MAIN.getObject('button_cancel')) {
         PWM_MAIN.getObject('button_cancel').style.visibility = 'visible';
+        PWM_MAIN.addEventHandler('button_cancel','click',function(){PWM_MAIN.handleFormCancel()});
+    }
+
+    if (PWM_MAIN.getObject('header_configManagerButton')) {
+        PWM_MAIN.addEventHandler('header_configManagerButton','click',function(){PWM_MAIN.goto('/private/config/ConfigManager')});
+    }
+    if (PWM_MAIN.getObject('header_configEditorButton')) {
+        PWM_MAIN.addEventHandler('header_configEditorButton','click',function(){PWM_CONFIG.startConfigurationEditor()});
+    }
+    if (PWM_MAIN.getObject('header_openLogViewerButton')) {
+        PWM_MAIN.addEventHandler('header_openLogViewerButton','click',function(){PWM_CONFIG.openLogViewer(null)});
     }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
@@ -1661,16 +1672,23 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
         PWM_MAIN.showErrorDialog(error);
     };
     var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_GLOBAL['client.ajaxTypingTimeout'];
+    var requestHeaders = {};
+    requestHeaders['Accept'] = "application/json";
+    requestHeaders['X-RestClientKey'] = PWM_GLOBAL['restClientKey'];
+    if (content != null) {
+        requestHeaders['Content-Type'] = "application/json";
+    }
+
     require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
         loadFunction = loadFunction != undefined ? loadFunction : function(data){alert('missing load function, return results:' + dojo.toJson(data))};
         url = PWM_MAIN.addPwmFormIDtoURL(url);
         url = PWM_MAIN.addParamToUrl(url,'preventCache',Date.now());
         var postOptions = {
-            headers: {"Accept": "application/json", "X-RestClientKey": PWM_GLOBAL['restClientKey'], "Content-Type":"application/json;charset=utf-8"},
-            encoding: "utf-8",
+            headers: requestHeaders,
+            //encoding: "utf-8",
             method: method,
             preventCache: false,
-            dataType: "json",
+            //dataType: "json",
             handleAs: "json",
             timeout: ajaxTimeout
         };

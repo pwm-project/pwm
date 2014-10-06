@@ -49,22 +49,22 @@
 <% if (headerEnabled && (showHeader || healthCheck)) { %>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="<%=showHeader?"":"display: none"%>">
-    <span onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor:pointer; white-space: nowrap">
-        <a class="btn">
+    <span style="cursor:pointer; white-space: nowrap">
+        <a class="btn" id="header_configManagerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigManager" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.startConfigurationEditor()" style="cursor:pointer; white-space: nowrap">
-        <a class="btn">
+    <span style="cursor:pointer; white-space: nowrap">
+        <a class="btn" id="header_configEditorButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
     </span>
     &nbsp;&nbsp;
-    <span onclick="PWM_CONFIG.openLogViewer(null)" style="cursor:pointer; white-space: nowrap">
-        <a class="btn">
+    <span style="cursor:pointer; white-space: nowrap">
+        <a class="btn" id="header_openLogViewerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-list-alt"></span></pwm:if>
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
         </a>

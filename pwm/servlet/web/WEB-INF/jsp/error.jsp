@@ -1,5 +1,4 @@
 <%@ page import="password.pwm.error.ErrorInformation" %>
-<%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%--
@@ -59,24 +58,16 @@
         <div id="buttonbar">
             <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
-                <input type="hidden"
-                       name="processAction"
-                       value="continue"/>
+                <input type="hidden" name="processAction" value="continue"/>
                 <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
+                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
         </div>
         <% } %>
         </pwm:if>
-        <% if (errorInfo != null && errorInfo.getError() == PwmError.ERROR_APP_UNAVAILABLE) { %>
-        <pwm:script>
-            <script type="application/javascript">
-                setTimeout(function(){location.reload();},2 * 1000);
-            </script>
-        </pwm:script>
-        <% } %>
     </div>
     <div class="push"></div>
 </div>

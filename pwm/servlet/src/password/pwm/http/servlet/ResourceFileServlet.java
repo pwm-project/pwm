@@ -234,7 +234,7 @@ public class ResourceFileServlet extends HttpServlet {
             if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
                 response.reset();
                 response.setStatus(304);
-                ServletHelper.addPwmResponseHeaders(pwmApplication, null, response, false);
+                ServletHelper.addPwmResponseHeaders(pwmRequest, false);
                 if (pwmRequest != null) {
                     try { pwmRequest.debugHttpRequestToLog("returning HTTP 304 status"); } catch (PwmUnrecoverableException e2) { /* noop */ }
                 }
@@ -251,7 +251,7 @@ public class ResourceFileServlet extends HttpServlet {
         response.setContentType(contentType);
 
         // set pwm headers
-        ServletHelper.addPwmResponseHeaders(pwmApplication, null, response, false);
+        ServletHelper.addPwmResponseHeaders(pwmRequest, false);
 
         try {
             boolean fromCache = false;

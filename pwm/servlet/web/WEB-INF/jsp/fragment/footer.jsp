@@ -80,7 +80,9 @@
     <% } %>
     <pwm:script>
     <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" id="customJavascipt">
-        <pwm:value name="customJavascript"/>
+        PWM_GLOBAL['startupFunctions'].push(function() {
+            <pwm:value name="customJavascript"/>
+        });
     </script>
     </pwm:script>
     <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>

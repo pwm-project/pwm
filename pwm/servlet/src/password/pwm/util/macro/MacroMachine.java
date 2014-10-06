@@ -24,6 +24,7 @@ package password.pwm.util.macro;
 
 import org.h2.util.StringUtils;
 import password.pwm.PwmApplication;
+import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
@@ -208,10 +209,19 @@ public class MacroMachine {
     )
             throws PwmUnrecoverableException
     {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final Locale userLocale = pwmRequest.getLocale();
+        return forUser(pwmRequest.getPwmApplication(), pwmRequest.getLocale(), pwmRequest.getSessionLabel(),userIdentity);
+    }
+
+    public static MacroMachine forUser(
+            final PwmApplication pwmApplication,
+            final Locale userLocale,
+            final SessionLabel sessionLabel,
+            final UserIdentity userIdentity
+    )
+            throws PwmUnrecoverableException
+    {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userIdentity);
-        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
+        final UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, sessionLabel);
         final UserInfoBean userInfoBean = new UserInfoBean();
         userStatusReader.populateUserInfoBean(userInfoBean, userLocale, userIdentity);
         return new MacroMachine(pwmApplication, null, null, userDataReader);

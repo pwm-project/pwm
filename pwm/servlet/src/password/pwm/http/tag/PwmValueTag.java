@@ -84,7 +84,7 @@ public class PwmValueTag extends TagSupport {
 
         switch (value) {
             case cspNonce:
-                return pwmRequest.getPwmSession().getSessionStateBean().getSessionVerificationKey();
+                return pwmRequest.getCspNonce();
 
             case homeURL: {
                 String outputURL = pwmRequest.getConfig().readSettingAsString(PwmSetting.URL_HOME);

@@ -115,7 +115,7 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
+<script type="text/javascript" nonce="<pwm:value name="cspNonce"/>">
     PWM_GLOBAL['startupFunctions'].push(function(){
         if (PWM_MAIN.getObject('username').value.length < 1) {
             PWM_MAIN.getObject('username').focus();
@@ -130,9 +130,6 @@
             });
         });
     });
-
-
-
 </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>

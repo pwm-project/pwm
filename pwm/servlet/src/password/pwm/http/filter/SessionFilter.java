@@ -216,7 +216,7 @@ public class SessionFilter implements Filter {
 
         if (!resp.isCommitted()) {
             resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
-            ServletHelper.addPwmResponseHeaders(pwmApplication, pwmSession, resp, true);
+            ServletHelper.addPwmResponseHeaders(pwmRequest, true);
         }
 
         try {

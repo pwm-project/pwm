@@ -41,6 +41,7 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
+import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
@@ -70,6 +71,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     private final HttpServletResponse httpServletResponse;
     private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
+    private final String cspNonce;
 
     private final Set<Flag> flags = new HashSet<>();
 
@@ -110,6 +112,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         this.httpServletResponse = httpServletResponse;
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
+        this.cspNonce = PwmRandom.getInstance().alphaNumericString(10);
     }
 
     public PwmApplication getPwmApplication()
@@ -527,4 +530,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return ssBean.getLogoutURL() == null ? pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_LOGOUT) : ssBean.getLogoutURL();
     }
 
+    public String getCspNonce()
+    {
+        return cspNonce;
+    }
 }
