@@ -449,10 +449,8 @@ class AuthenticationRequest {
             if (oracleDS_PostPasswordAllowChangeTime != null && !oracleDS_PostPasswordAllowChangeTime.isEmpty()) {
                 // password allow change time has appeared, but wasn't present previously, so delete it.
                 log(PwmLogLevel.TRACE, "a new value for passwordAllowChangeTime attribute to user " + chaiUser.getEntryDN() + " has appeared, will remove");
-                final Set<String> values = new HashSet<>(
-                        Collections.singletonList(OracleDSEntries.convertDateToZulu(new Date())));
-                chaiProvider.writeStringAttribute(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
-                        values, true);
+                chaiProvider.deleteStringAttributeValue(chaiUser.getEntryDN(), ORACLE_ATTR_PW_ALLOW_CHG_TIME,
+                        oracleDS_PostPasswordAllowChangeTime);
                 log(PwmLogLevel.TRACE, "deleted attribute value for passwordAllowChangeTime attribute on user " + chaiUser.getEntryDN());
             }
         }
