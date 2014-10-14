@@ -50,7 +50,6 @@ import password.pwm.ws.server.rest.bean.HealthData;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -216,7 +215,6 @@ public class ConfigGuideServlet extends PwmServlet {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.RUNNING) {
             final String errorMsg = "config upload is not permitted when in running mode";
@@ -238,17 +236,17 @@ public class ConfigGuideServlet extends PwmServlet {
                     LOGGER.trace(pwmSession, "read config from file: " + storedConfig.toString());
                     final RestResultBean restResultBean = new RestResultBean();
                     restResultBean.setSuccessMessage("read message");
-                    ServletHelper.outputJsonResult(resp, restResultBean);
+                    pwmRequest.getPwmResponse().outputJsonResult(restResultBean);
                     req.getSession().invalidate();
                 } catch (PwmException e) {
                     final RestResultBean restResultBean = RestResultBean.fromError(e.getErrorInformation(), pwmRequest);
-                    ServletHelper.outputJsonResult(resp, restResultBean);
+                    pwmRequest.getPwmResponse().outputJsonResult(restResultBean);
                     LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
                 }
             } else {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_UPLOAD_FAILURE, "error reading config file: no file present in upload");
                 final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
-                ServletHelper.outputJsonResult(resp, restResultBean);
+                pwmRequest.getPwmResponse().outputJsonResult(restResultBean);
                 LOGGER.error(pwmSession, errorInformation.toDebugStr());
             }
         }
@@ -309,7 +307,7 @@ public class ConfigGuideServlet extends PwmServlet {
                     try {
                         final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfig, maxSearchSize, Collections.<String>emptyList());
                         if (results == null || results.isEmpty()) {
-                            records.add(new HealthRecord(HealthStatus.WARN,"Admin Users","No admin users are defined with the current Administration Search Filter"));
+                            records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,"No admin users are defined with the current Administration Search Filter"));
                         } else {
                             final StringBuilder sb = new StringBuilder();
                             sb.append("<ul>");
@@ -322,12 +320,12 @@ public class ConfigGuideServlet extends PwmServlet {
                             if (results.size() == maxSearchSize) {
                                 sb.append(LocaleHelper.getLocalizedMessage("Display_SearchResultsExceeded",tempConfiguration, Display.class));
                             }
-                            records.add(new HealthRecord(HealthStatus.GOOD,"Admin Users","Users matching current Administration Search Filter: " + sb.toString()));
+                            records.add(new HealthRecord(HealthStatus.GOOD,HealthTopic.Configuration,"Users matching current Administration Search Filter: " + sb.toString()));
                         }
                     } catch (Exception e) {
                         final String errorMsg = "error while attempting to search for Admin users: " + e.getMessage();
                         LOGGER.warn(pwmRequest, errorMsg);
-                        records.add(new HealthRecord(HealthStatus.WARN,"Admin Users",errorMsg));
+                        records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,errorMsg));
                     }
                 }
                 break;
@@ -531,12 +529,11 @@ public class ConfigGuideServlet extends PwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
         final ServletContext servletContext = req.getSession().getServletContext();
         final ConfigGuideBean configGuideBean = (ConfigGuideBean)PwmSession.getPwmSession(req).getSessionBean(ConfigGuideBean.class);
         String destURL = '/' + PwmConstants.URL_JSP_CONFIG_GUIDE;
         destURL = destURL.replace("%1%", configGuideBean.getStep().toString().toLowerCase());
-        servletContext.getRequestDispatcher(destURL).forward(req, resp);
+        servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());
     }
 
     public enum STEP {

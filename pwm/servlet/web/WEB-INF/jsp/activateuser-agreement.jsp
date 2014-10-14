@@ -52,7 +52,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='ActivateUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded" style="display: inline;">
                 <input type="hidden" name="processAction" value="reset"/>
                 <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>

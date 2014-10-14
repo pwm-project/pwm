@@ -35,8 +35,12 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.FormUtility;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.http.PwmRequest;
@@ -168,7 +172,7 @@ public class ChangePasswordServlet extends PwmServlet {
             }
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             advancedToNextStage(pwmRequest, changePasswordBean);
         }
     }

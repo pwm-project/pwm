@@ -51,6 +51,14 @@
 </button>
     </div>
 <% } %>
+<% if (cookie.getCategory() == PwmSettingCategory.SMS) { %>
+<div style="width: 100%; text-align: center">
+    <button class="btn" onclick="PWM_CFGEDIT.smsHealthCheck()">
+        <pwm:if test="showIcons"><span class="btn-icon fa fa-bolt"></span></pwm:if>
+        Test SMS Settings
+    </button>
+</div>
+<% } %>
 <br/>
 <% for (final PwmSetting loopSetting : PwmSetting.getSettings(category,0)) { %>
 <% request.setAttribute("setting",loopSetting); %>

@@ -25,12 +25,12 @@ package password.pwm.util;
 import com.novell.ldapchai.exception.ImpossiblePasswordPolicyException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.PwmService;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -123,6 +123,8 @@ public class RandomPasswordGenerator {
             throws PwmUnrecoverableException
     {
         final long startTimeMS = System.currentTimeMillis();
+
+        validateSettings(pwmApplication, randomGeneratorConfig);
 
         if (randomGeneratorConfig.getSeedlistPhrases() == null || randomGeneratorConfig.getSeedlistPhrases().isEmpty()) {
             Set<String> seeds = DEFAULT_SEED_PHRASES;
@@ -586,6 +588,33 @@ public class RandomPasswordGenerator {
 
         public void setPasswordPolicy(final PwmPasswordPolicy passwordPolicy) {
             this.passwordPolicy = passwordPolicy;
+        }
+    }
+
+    public static void validateSettings(final PwmApplication pwmApplication, final RandomGeneratorConfig randomGeneratorConfig)
+            throws PwmUnrecoverableException
+    {
+        final int maxLength = Integer.parseInt(
+                pwmApplication.getConfig().readAppProperty(AppProperty.PASSWORD_RANDOMGEN_MAX_LENGTH));
+        if (randomGeneratorConfig.getMinimumLength() > maxLength) {
+            throw new PwmUnrecoverableException(new ErrorInformation(
+                    PwmError.ERROR_UNKNOWN,
+                    "minimum random generated password length exceeds preset random generator threshold"
+            ));
+        }
+
+        if (randomGeneratorConfig.getMaximumLength() > maxLength) {
+            throw new PwmUnrecoverableException(new ErrorInformation(
+                    PwmError.ERROR_UNKNOWN,
+                    "maximum random generated password length exceeds preset random generator threshold"
+            ));
+        }
+
+        if (randomGeneratorConfig.getMinimumStrength() > RandomGeneratorConfig.MAXIMUM_STRENGTH) {
+            throw new PwmUnrecoverableException(new ErrorInformation(
+                    PwmError.ERROR_UNKNOWN,
+                    "minimum random generated password strength exceeds maximum possible"
+            ));
         }
     }
 }

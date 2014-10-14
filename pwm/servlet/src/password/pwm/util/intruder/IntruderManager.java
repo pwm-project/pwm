@@ -41,6 +41,7 @@ import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.*;
@@ -223,7 +224,7 @@ public class IntruderManager implements Serializable, PwmService {
     @Override
     public List<HealthRecord> healthCheck() {
         if (startupError != null && status != STATUS.OPEN) {
-            return Collections.singletonList(new HealthRecord(HealthStatus.WARN,this.getClass().getSimpleName(),"unable to start: " + startupError.toDebugStr()));
+            return Collections.singletonList(new HealthRecord(HealthStatus.WARN, HealthTopic.Application,"unable to start: " + startupError.toDebugStr()));
         }
         return Collections.emptyList();
     }

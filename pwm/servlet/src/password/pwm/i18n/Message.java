@@ -126,6 +126,7 @@ public enum Message implements DisplayBundleMarker {
     REQUIREMENT_NOTCASESENSITIVE("Requirement_NotCaseSensitive"),
     REQUIREMENT_MINIMUMFREQUENCY("Requirement_MinimumFrequency"),
     REQUIREMENT_AD_COMPLEXITY("Requirement_ADComplexity"),
+    REQUIREMENT_AD_2008_COMPLEXITY("Requirement_ADComplexity2008"),
     REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired"),
 
     ;

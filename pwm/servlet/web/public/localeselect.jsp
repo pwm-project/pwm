@@ -49,8 +49,8 @@
         <% for (final Locale locale : localeList) { %>
         <% final String flagCode = localeselect_pwmApplication.getConfig().getKnownLocaleFlagMap().get(locale); %>
         <div style="text-align: center; width: 100%">
-            <img alt="flag" src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
-            <a href="<%=request.getContextPath()%>?<%=localeselect_pwmApplication.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
+            <img alt="flag" src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagCode%>.png"/>
+            <a href="<pwm:context/>?<%=localeselect_pwmApplication.getConfig().readAppProperty(password.pwm.AppProperty.HTTP_PARAM_NAME_LOCALE)%>=<%=locale.toString()%>">
                 <%=locale.getDisplayName()%> - <%=locale.getDisplayName(locale)%>
             </a>
         </div>

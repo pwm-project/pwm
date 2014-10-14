@@ -30,6 +30,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.SecureHelper;
 
@@ -53,7 +54,15 @@ public class PasswordValue implements StoredValue {
     }
 
     static PasswordValue fromJson(final String value) {
-        throw new IllegalStateException("PasswordValue can not be json serialized");
+        final String strValue = JsonUtil.getGson().fromJson(value, String.class);
+        if (strValue != null && !strValue.isEmpty()) {
+            try {
+                return new PasswordValue(new PasswordData(strValue));
+            } catch (PwmUnrecoverableException e) {
+                throw new IllegalStateException("PasswordValue can not be json de-serialized: " + e.getMessage());
+            }
+        }
+        return new PasswordValue();
     }
 
     static PasswordValue fromXmlValue(final Element settingElement, final String key)

@@ -85,7 +85,7 @@
                         </button>
                     </div>
                     <div style="text-align: center">
-                        <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                        <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
                             <button type="submit" class="btn" id="Button_DownloadReportRecords">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_DownloadReportRecords" bundle="Admin"/>

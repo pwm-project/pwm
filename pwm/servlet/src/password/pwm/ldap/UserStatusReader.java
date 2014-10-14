@@ -29,10 +29,12 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.*;
 import password.pwm.config.*;
+import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -423,7 +425,8 @@ public class UserStatusReader {
     ) {
         final Set<String> interestingUserAttributes = new HashSet<>();
         interestingUserAttributes.addAll(uiBean.getPasswordPolicy().getRuleHelper().getDisallowedAttributes());
-        if (uiBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.ADComplexity)) {
+        if (uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2003
+                || uiBean.getPasswordPolicy().getRuleHelper().getADComplexityLevel() == ADPolicyComplexity.AD2008) {
             interestingUserAttributes.add("sAMAccountName");
             interestingUserAttributes.add("displayName");
             interestingUserAttributes.add("fullname");

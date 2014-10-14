@@ -45,6 +45,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -167,7 +168,7 @@ public class SyslogAuditService {
         if (lastError != null) {
             final ErrorInformation errorInformation = lastError;
             if (TimeDuration.fromCurrent(errorInformation.getDate()).isShorterThan(WARNING_WINDOW_MS)) {
-                healthRecords.add(new HealthRecord(HealthStatus.WARN, "AuditManager",
+                healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit,
                         errorInformation.toUserStr(PwmConstants.DEFAULT_LOCALE, configuration)));
             }
         }

@@ -29,6 +29,7 @@ import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
@@ -568,19 +569,19 @@ public class LocalDBLogger implements PwmService {
         final List<HealthRecord> healthRecords = new ArrayList<>();
 
         if (status != STATUS.OPEN) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN, "LocalDBLogger", "LocalDBLogger is not open, status is " + status.toString()));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Application, "LocalDBLogger is not open, status is " + status.toString()));
             return healthRecords;
         }
 
         final int eventCount = getStoredEventCount();
         if (eventCount > settings.getMaxEvents() + 5000) {
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(settings.getMaxEvents())));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application, "Record count of " + NumberFormat.getInstance().format(eventCount) + " records, is more than the configured maximum of " + NumberFormat.getInstance().format(settings.getMaxEvents())));
         }
 
         final Date tailDate = getTailDate();
         final TimeDuration timeDuration = TimeDuration.fromCurrent(tailDate);
         if (timeDuration.isLongerThan(settings.getMaxAgeMs())) { // older than max age
-            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, "LocalDBLogger", "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(settings.getMaxAgeMs()).asCompactString()));
+            healthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application, "Oldest record is " + timeDuration.asCompactString() + ", configured maximum is " + new TimeDuration(settings.getMaxAgeMs()).asCompactString()));
         }
 
         return healthRecords;

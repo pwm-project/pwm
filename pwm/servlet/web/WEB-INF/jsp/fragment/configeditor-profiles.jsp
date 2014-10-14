@@ -50,7 +50,7 @@
 <% request.setAttribute("showDescription",true); %>
 <jsp:include page="configeditor-setting.jsp"/>
 <div style="width: 100%; padding-bottom: 10px">
-    <button class="btn" onclick="preferences['editMode'] = 'SETTINGS'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">
+    <button class="btn" onclick="PWM_VAR['preferences']['editMode'] = 'SETTINGS'; setConfigEditorCookie();  loadMainPageBody();" style="cursor:pointer">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-chevron-circle-left"></span></pwm:if>
         Return to configuration editor
     </button>
@@ -81,7 +81,7 @@
     <% } %>
 </div>
 <pwm:script>
-    <script>
+    <script type="application/javascript">
         function selectProfile() {
             var htmlBody = '<br/><div style="width:100%; text-align: center">';
             htmlBody += '<a onclick="gotoProfile(\'\')">' + 'Default' + '</a>';
@@ -98,7 +98,7 @@
         }
 
         function gotoProfile(profile) {
-            preferences['profile'] = profile;
+            PWM_VAR['preferences']['profile'] = profile;
 
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                 setConfigEditorCookie();
@@ -107,7 +107,7 @@
         }
 
         function editProfiles() {
-            preferences['editMode'] = 'PROFILE';
+            PWM_VAR['preferences']['editMode'] = 'PROFILE';
             PWM_MAIN.showWaitDialog({loadFunction:function() {
                 setConfigEditorCookie();
                 loadMainPageBody();

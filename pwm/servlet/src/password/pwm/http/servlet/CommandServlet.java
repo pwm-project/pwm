@@ -35,7 +35,6 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.report.ReportService;
 import password.pwm.util.stats.StatisticsManager;
@@ -43,7 +42,6 @@ import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Date;
 
@@ -75,7 +73,7 @@ public class CommandServlet extends PwmServlet {
         LOGGER.trace(pwmSession, "received request for action " + action);
 
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        //final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
 
         if (action.equalsIgnoreCase("idleUpdate")) {
             processIdleUpdate(pwmRequest);
@@ -104,8 +102,9 @@ public class CommandServlet extends PwmServlet {
         } else if (action.equalsIgnoreCase("scriptContents")) {
             outputSessionScriptContents(pwmRequest);
         } else {
-            LOGGER.debug(pwmSession, "unknown command sent to CommandServlet: " + action);
-            ServletHelper.forwardToErrorPage(req, resp, this.getServletContext());
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown command sent to CommandServlet: " + action);
+            LOGGER.debug(pwmSession, errorInformation);
+            pwmRequest.respondWithError(errorInformation);
         }
     }
 
@@ -115,9 +114,9 @@ public class CommandServlet extends PwmServlet {
             throws ChaiUnavailableException, IOException, ServletException, PwmUnrecoverableException
     {
         pwmRequest.validatePwmFormID();
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
-            pwmRequest.getHttpServletResponse().setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            pwmRequest.getHttpServletResponse().setContentType("text/plain");
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
+            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
+            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
     }
 
@@ -168,10 +167,10 @@ public class CommandServlet extends PwmServlet {
             return;
         }
 
-        pwmRequest.getHttpServletResponse().setHeader("content-disposition", "attachment;filename=UserReportService.csv");
-        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.csv.getHeaderValue());
+        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=UserReportService.csv");
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
 
-        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getHttpServletResponse().getOutputStream());
+        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getPwmResponse().getOutputStream());
         final ReportService userReport = pwmApplication.getUserReportService();
 
         try {
@@ -193,9 +192,9 @@ public class CommandServlet extends PwmServlet {
         final Date pageLeaveNoticeTime = new Date();
         pwmSession.getSessionStateBean().setPageLeaveNoticeTime(pageLeaveNoticeTime);
         LOGGER.debug("pageLeaveNotice indicated at " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(pageLeaveNoticeTime) + ", referer=" + referrer);
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
-            pwmRequest.getHttpServletResponse().setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            pwmRequest.getHttpServletResponse().setContentType("text/plain");
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
+            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate");
+            pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.plain);
         }
     }
 
@@ -236,10 +235,10 @@ public class CommandServlet extends PwmServlet {
             return;
         }
 
-        pwmRequest.getHttpServletResponse().setHeader("content-disposition", "attachment;filename=AuditLog.csv");
-        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.csv.getHeaderValue());
+        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=AuditLog.csv");
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
 
-        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getHttpServletResponse().getOutputStream());
+        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getPwmResponse().getOutputStream());
 
         try {
             pwmApplication.getAuditManager().outpuVaultToCsv(new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET), pwmSession.getSessionStateBean().getLocale(), true);
@@ -289,13 +288,13 @@ public class CommandServlet extends PwmServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
         }
 
-        pwmRequest.getHttpServletResponse().setHeader("content-disposition","attachment; fileName=statistics.csv");
-        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.csv.getHeaderValue());
+        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=statistics.csv");
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
 
         Writer writer = null;
         try {
             final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
-            writer = pwmRequest.getHttpServletResponse().getWriter();
+            writer = pwmRequest.getPwmResponse().getWriter();
             statsManager.outputStatsToCsv(writer, pwmSession.getSessionStateBean().getLocale(), true);
         } catch (Exception e) {
             final String errorMessage = "unexpected error executing web service: " + e.getMessage();
@@ -312,8 +311,8 @@ public class CommandServlet extends PwmServlet {
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
     {
         final StringBuilder sb = pwmRequest.getPwmSession().getSessionStateBean().getScriptContents();
-        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.javascript.getHeaderValue());
-        final PrintWriter writer = pwmRequest.getHttpServletResponse().getWriter();
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.javascript);
+        final PrintWriter writer = pwmRequest.getPwmResponse().getWriter();
         writer.print(sb.toString());
         writer.close();
     }

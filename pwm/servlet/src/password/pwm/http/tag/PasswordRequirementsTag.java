@@ -23,9 +23,10 @@
 package password.pwm.http.tag;
 
 import password.pwm.PwmApplication;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
@@ -60,164 +61,206 @@ public class PasswordRequirementsTag extends TagSupport {
             final Locale locale
     ) {
         final List<String> returnValues = new ArrayList<>();
+        final ADPolicyComplexity ADPolicyLevel = pwordPolicy.getRuleHelper().getADComplexityLevel();
 
-        int value = 0;
 
         final PwmPasswordPolicy.RuleHelper ruleHelper = pwordPolicy.getRuleHelper();
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.CaseSensitive)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_CASESENSITIVE, value, locale, config));
+            returnValues.add(getLocalString(Message.REQUIREMENT_CASESENSITIVE, null, locale, config));
         } else {
-            returnValues.add(getLocalString(Message.REQUIREMENT_NOTCASESENSITIVE, value, locale, config));
+            returnValues.add(getLocalString(Message.REQUIREMENT_NOTCASESENSITIVE, null, locale, config));
         }
 
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLength);
-        if (value > 0 || ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            if (value < 6 && ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
+        {
+            int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLength);
+            if (ADPolicyLevel == ADPolicyComplexity.AD2003) {
                 value = 6;
             }
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINLENGTH, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLength);
-        if (value > 0 && value < 64) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLENGTH, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINALPHA, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXALPHA, value, locale, config));
-        }
-
-        if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWNUMERIC, value, locale, config));
-        } else {
-            value = ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric);
+            if (value == 0 && ADPolicyLevel == ADPolicyComplexity.AD2008) {
+                value = 6;
+            }
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MINNUMERIC, value, locale, config));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINLENGTH, value, locale, config));
             }
+        }
 
-            value = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLength);
+            if (value > 0 && value < 64) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXLENGTH, value, locale, config));
+            }
+        }
+
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MAXNUMERIC, value, locale, config));
-            }
-
-            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharNumeric)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTNUMERIC, value, locale, config));
-            }
-
-            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharNumeric)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_LASTNUMERIC, value, locale, config));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINALPHA, value, locale, config));
             }
         }
 
-        if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWSPECIAL, value, locale, config));
-        } else {
-            value = ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial);
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MINSPECIAL, value, locale, config));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXALPHA, value, locale, config));
             }
+        }
 
-            value = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
+        {
+            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWNUMERIC, null, locale, config));
+            } else {
+                    final int minValue = ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric);
+                    if (minValue > 0) {
+                        returnValues.add(getLocalString(Message.REQUIREMENT_MINNUMERIC, minValue, locale, config));
+                    }
+
+                    final int maxValue = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
+                    if (maxValue > 0) {
+                        returnValues.add(getLocalString(Message.REQUIREMENT_MAXNUMERIC, maxValue, locale, config));
+                    }
+
+                    if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharNumeric)) {
+                        returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTNUMERIC, maxValue, locale, config));
+                    }
+
+                    if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharNumeric)) {
+                        returnValues.add(getLocalString(Message.REQUIREMENT_LASTNUMERIC, maxValue, locale, config));
+                    }
+            }
+        }
+
+        {
+            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_ALLOWSPECIAL, null, locale, config));
+            } else {
+                final int minValue = ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial);
+                if (minValue > 0) {
+                    returnValues.add(getLocalString(Message.REQUIREMENT_MINSPECIAL, minValue, locale, config));
+                }
+
+                final int maxValue = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
+                if (maxValue > 0) {
+                    returnValues.add(getLocalString(Message.REQUIREMENT_MAXSPECIAL, maxValue, locale, config));
+                }
+
+                if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharSpecial)) {
+                    returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTSPECIAL, maxValue, locale, config));
+                }
+
+                if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharSpecial)) {
+                    returnValues.add(getLocalString(Message.REQUIREMENT_LASTSPECIAL, maxValue, locale, config));
+                }
+            }
+        }
+
+        {
+            final int value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumRepeat);
             if (value > 0) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_MAXSPECIAL, value, locale, config));
-            }
-
-            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowFirstCharSpecial)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_FIRSTSPECIAL, value, locale, config));
-            }
-
-            if (!ruleHelper.readBooleanValue(PwmPasswordRule.AllowLastCharSpecial)) {
-                returnValues.add(getLocalString(Message.REQUIREMENT_LASTSPECIAL, value, locale, config));
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXREPEAT, value, locale, config));
             }
         }
 
-        value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumRepeat);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXREPEAT, value, locale, config));
-        }
-
-        value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXSEQREPEAT, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINLOWER, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXLOWER, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINUPPER, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MAXUPPER, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_MINUNIQUE, value, locale, config));
-        }
-
-        List<String> setValue = ruleHelper.getDisallowedValues();
-        if (!setValue.isEmpty()) {
-            final StringBuilder fieldValue = new StringBuilder();
-            for (final String loopValue : setValue) {
-                fieldValue.append(" ");
-                fieldValue.append(StringUtil.escapeHtml(loopValue));
+        {
+            final int value = pwordPolicy.getRuleHelper().readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXSEQREPEAT, value, locale, config));
             }
-            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale, config));
         }
 
-        setValue = ruleHelper.getDisallowedAttributes();
-        if (!setValue.isEmpty() || ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale, config));
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINLOWER, value, locale, config));
+            }
+        }
+
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXLOWER, value, locale, config));
+            }
+        }
+
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINUPPER, value, locale, config));
+            }
+        }
+
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MAXUPPER, value, locale, config));
+            }
+        }
+
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_MINUNIQUE, value, locale, config));
+            }
+        }
+
+        {
+            final List<String> setValue = ruleHelper.getDisallowedValues();
+            if (!setValue.isEmpty()) {
+                final StringBuilder fieldValue = new StringBuilder();
+                for (final String loopValue : setValue) {
+                    fieldValue.append(" ");
+                    fieldValue.append(StringUtil.escapeHtml(loopValue));
+                }
+                returnValues.add(
+                        getLocalString(Message.REQUIREMENT_DISALLOWEDVALUES, fieldValue.toString(), locale, config));
+            }
+        }
+
+        {
+            final List<String> setValue = ruleHelper.getDisallowedAttributes();
+            if (!setValue.isEmpty() || ADPolicyLevel == ADPolicyComplexity.AD2003) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_DISALLOWEDATTRIBUTES, "", locale, config));
+            }
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.EnableWordlist)) {
             returnValues.add(getLocalString(Message.REQUIREMENT_WORDLIST, "", locale, config));
         }
 
-        value = ruleHelper.readIntValue(PwmPasswordRule.MaximumOldChars);
-        if (value > 0) {
-            returnValues.add(getLocalString(Message.REQUIREMENT_OLDCHAR, value, locale, config));
-        }
-
-        value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLifetime);
-        if (value > 0) {
-            final int SECONDS_PER_DAY = 60 * 60 * 24;
-
-            final String durationStr;
-            if (value % SECONDS_PER_DAY == 0) {
-                final int valueAsDays = value / (60 * 60 * 24);
-                final String key = valueAsDays <= 1 ? "Display_Day" : "Display_Days";
-                durationStr = valueAsDays + " " + Display.getLocalizedMessage(locale, key, config);
-            } else {
-                final int valueAsHours = value / (60 * 60);
-                final String key = valueAsHours <= 1 ? "Display_Hour" : "Display_Hours";
-                durationStr = valueAsHours + " " + Display.getLocalizedMessage(locale, key, config);
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MaximumOldChars);
+            if (value > 0) {
+                returnValues.add(getLocalString(Message.REQUIREMENT_OLDCHAR, value, locale, config));
             }
-
-            final String userMsg = Message.getLocalizedMessage(locale, Message.REQUIREMENT_MINIMUMFREQUENCY, config, durationStr);
-            returnValues.add(userMsg);
         }
 
-        if (ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
+        {
+            final int value = ruleHelper.readIntValue(PwmPasswordRule.MinimumLifetime);
+            if (value > 0) {
+                final int SECONDS_PER_DAY = 60 * 60 * 24;
+
+                final String durationStr;
+                if (value % SECONDS_PER_DAY == 0) {
+                    final int valueAsDays = value / (60 * 60 * 24);
+                    final String key = valueAsDays <= 1 ? "Display_Day" : "Display_Days";
+                    durationStr = valueAsDays + " " + Display.getLocalizedMessage(locale, key, config);
+                } else {
+                    final int valueAsHours = value / (60 * 60);
+                    final String key = valueAsHours <= 1 ? "Display_Hour" : "Display_Hours";
+                    durationStr = valueAsHours + " " + Display.getLocalizedMessage(locale, key, config);
+                }
+
+                final String userMsg = Message.getLocalizedMessage(locale, Message.REQUIREMENT_MINIMUMFREQUENCY, config,
+                        durationStr);
+                returnValues.add(userMsg);
+            }
+        }
+
+        if (ADPolicyLevel == ADPolicyComplexity.AD2003) {
             returnValues.add(getLocalString(Message.REQUIREMENT_AD_COMPLEXITY, "", locale, config));
+        } else if (ADPolicyLevel == ADPolicyComplexity.AD2008) {
+            final int maxViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
+            returnValues.add(getLocalString(Message.REQUIREMENT_AD_2008_COMPLEXITY, String.valueOf(maxViolations), locale, config));
         }
 
         if (ruleHelper.readBooleanValue(PwmPasswordRule.UniqueRequired)) {

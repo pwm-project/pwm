@@ -34,6 +34,8 @@ import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Static utility class for validating parameters, passwords and user input.
@@ -109,7 +111,7 @@ public class Validator {
             final Configuration config,
             final String input
     ) {
-        return sanitizeInputValue(config, input, 10 *1024);
+        return sanitizeInputValue(config, input, 10 * 1024);
     }
 
     public static String sanitizeInputValue(
@@ -145,5 +147,22 @@ public class Validator {
     }
 
 
+    public static String sanitizeHeaderValue(final Configuration configuration, final String input) {
+        if (input == null) {
+            return null;
+        }
+
+        final String regexStripPatternStr = configuration.readAppProperty(AppProperty.SECURITY_HTTP_STRIP_HEADER_REGEX);
+        if (regexStripPatternStr != null && !regexStripPatternStr.isEmpty()) {
+            final Pattern pattern = Pattern.compile(regexStripPatternStr);
+            final Matcher matcher = pattern.matcher(input);
+            final String output = matcher.replaceAll("");
+            if (!input.equals(output)) {
+                LOGGER.warn("stripped potentially harmful chars from value: input=" + input + " strippedOutput=" + output);
+            }
+            return output;
+        }
+        return input;
+    }
 }
 

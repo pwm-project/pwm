@@ -29,13 +29,12 @@ import com.novell.ldapchai.util.StringHelper;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.option.RecoveryAction;
-import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.option.*;
+import password.pwm.config.policy.HelpdeskProfile;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -149,7 +148,7 @@ public class Configuration implements Serializable {
         */
 
         final StoredValue value = readStoredValue(setting);
-        return JavaTypeConverter.valueToEnum(value, enumClass);
+        return JavaTypeConverter.valueToEnum(value, enumClass, setting);
     }
 
 
@@ -270,13 +269,13 @@ public class Configuration implements Serializable {
             return availableLocaleMap.get(matchedLocale);
         }
 
-        static <E extends Enum<E>> E valueToEnum(StoredValue value,  Class<E> enumClass) {
+        static <E extends Enum<E>> E valueToEnum(StoredValue value,  Class<E> enumClass, final PwmSetting setting) {
             final String strValue = (String)value.toNativeObject();
             try {
                 return (E)enumClass.getMethod("valueOf", String.class).invoke(null, strValue);
             } catch (InvocationTargetException e1) {
                 if (e1.getCause() instanceof IllegalArgumentException) {
-                    LOGGER.error("illegal setting value for option '" + strValue + "' is not recognized, will use default");
+                    LOGGER.error("illegal setting value for option '" + strValue + "' for setting key '" + setting.getKey() + "' is not recognized, will use default");
                 }
             } catch (Exception e1) {
                 LOGGER.error("unexpected error", e1);
@@ -463,6 +462,13 @@ public class Configuration implements Serializable {
                     case ChangeMessage:
                         value = JavaTypeConverter.valueToLocalizedString(
                                 storedConfiguration.readSetting(pwmSetting, profile), locale);
+                        break;
+                    case ADComplexityLevel:
+                        value = JavaTypeConverter.valueToEnum(
+                                storedConfiguration.readSetting(pwmSetting,profile),
+                                ADPolicyComplexity.class,
+                                pwmSetting
+                        ).toString();
                         break;
                     default:
                         value = String.valueOf(

@@ -32,7 +32,7 @@
         <jsp:param name="pwm.PageName" value="Title_Success"/>
     </jsp:include>
     <div id="centerbody">
-        <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+        <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
               enctype="application/x-www-form-urlencoded" class="pwm-form">
             <p><pwm:SuccessMessage/></p>
             <% try { PwmSession.getPwmSession(session).getSessionStateBean().setSessionSuccess(null,null); } catch (Exception e) {} %>

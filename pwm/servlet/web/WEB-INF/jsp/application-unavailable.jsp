@@ -31,8 +31,8 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable=no"/>
     <meta http-equiv="X-UA-Compatible" content="IE=10; IE=9; IE=8; IE=7" />
-    <link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%>/public/resources/favicon.ico"/>
-    <link href="<%=request.getContextPath()%>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link rel="icon" type="image/x-icon" href="<pwm:context/>/public/resources/favicon.ico"/>
+    <link href="<pwm:context/>/public/resources/style.css" rel="stylesheet" type="text/css" media="screen"/>
         <script type="text/javascript">
         </script>
 </head>

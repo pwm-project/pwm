@@ -64,7 +64,7 @@
     });
 </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/updateprofile.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/updateprofile.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

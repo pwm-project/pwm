@@ -23,7 +23,6 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
 <%@ page import="password.pwm.bean.SessionStateBean" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.http.PwmRequest" %>
 <%@ page import="password.pwm.http.bean.ForgottenPasswordBean" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
@@ -112,7 +111,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
     }
 </script>
 </pwm:script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/responses.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

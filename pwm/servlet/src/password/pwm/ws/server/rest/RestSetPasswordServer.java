@@ -24,8 +24,8 @@ package password.pwm.ws.server.rest;
 
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.Permission;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;

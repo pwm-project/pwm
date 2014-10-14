@@ -70,7 +70,7 @@
             <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
                 <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
                 <% if (flagFileName != null && !flagFileName.isEmpty()) { %>
-                <img src="<%=request.getContextPath()%><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>
+                <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>
                 <% } %>
                 &nbsp;<%=userLocaleFooter == null ? "" : userLocaleFooter.getDisplayName(userLocaleFooter)%>
             </span>
@@ -85,8 +85,8 @@
         });
     </script>
     </pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/main.js'/>"></script>
+    <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/main.js'/>"></script>
     <pwm:if test="stripInlineJavascript">
         <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:url url='/public/CommandServlet?processAction=scriptContents' addContext="true"/>&time=<%=System.currentTimeMillis()%>"></script>
     </pwm:if>

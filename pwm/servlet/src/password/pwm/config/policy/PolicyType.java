@@ -20,36 +20,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.config.policy;
 
-import java.util.Arrays;
-
-public class PasswordCharSequence implements CharSequence {
-    private final char[] value;
-
-    public PasswordCharSequence(char[] value)
-    {
-        this.value = value;
-    }
-
-    @Override
-    public int length()
-    {
-        return value.length;
-    }
-
-    @Override
-    public char charAt(int index)
-    {
-        return value[index];
-    }
-
-    @Override
-    public CharSequence subSequence(
-            int start,
-            int end
-    )
-    {
-        return new PasswordCharSequence(Arrays.copyOfRange(value, start, end));
-    }
+public enum PolicyType {
+    helpdesk,
+    password,
+    challengeresponse,
 }

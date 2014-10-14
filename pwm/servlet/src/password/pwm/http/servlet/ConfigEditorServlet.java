@@ -1,4 +1,4 @@
-    /*
+/*
  * Password Management Servlets (PWM)
  * http://code.google.com/p/pwm/
  *
@@ -22,34 +22,35 @@
 
 package password.pwm.http.servlet;
 
-    import com.google.gson.reflect.TypeToken;
-    import com.novell.ldapchai.exception.ChaiUnavailableException;
-    import password.pwm.AppProperty;
-    import password.pwm.PwmConstants;
-    import password.pwm.Validator;
-    import password.pwm.bean.ConfigEditorCookie;
-    import password.pwm.bean.UserIdentity;
-    import password.pwm.config.*;
-    import password.pwm.config.value.FileValue;
-    import password.pwm.config.value.ValueFactory;
-    import password.pwm.error.*;
-    import password.pwm.health.DatabaseStatusChecker;
-    import password.pwm.health.HealthRecord;
-    import password.pwm.health.LDAPStatusChecker;
-    import password.pwm.http.PwmRequest;
-    import password.pwm.http.PwmSession;
-    import password.pwm.http.bean.ConfigManagerBean;
-    import password.pwm.i18n.Message;
-    import password.pwm.util.JsonUtil;
-    import password.pwm.util.ServletHelper;
-    import password.pwm.util.TimeDuration;
-    import password.pwm.util.logging.PwmLogger;
-    import password.pwm.ws.server.RestResultBean;
-    import password.pwm.ws.server.rest.bean.HealthData;
+import com.google.gson.reflect.TypeToken;
+import com.novell.ldapchai.exception.ChaiUnavailableException;
+import password.pwm.AppProperty;
+import password.pwm.PwmConstants;
+import password.pwm.Validator;
+import password.pwm.bean.ConfigEditorCookie;
+import password.pwm.bean.SmsItemBean;
+import password.pwm.bean.UserIdentity;
+import password.pwm.config.*;
+import password.pwm.config.value.FileValue;
+import password.pwm.config.value.ValueFactory;
+import password.pwm.error.*;
+import password.pwm.health.*;
+import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmSession;
+import password.pwm.http.bean.ConfigManagerBean;
+import password.pwm.i18n.Message;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
+import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.queue.SmsQueueManager;
+import password.pwm.ws.server.RestResultBean;
+import password.pwm.ws.server.rest.bean.HealthData;
 
-    import javax.servlet.ServletException;
-    import java.io.IOException;
-    import java.util.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.*;
 
 public class ConfigEditorServlet extends PwmServlet {
 // ------------------------------ FIELDS ------------------------------
@@ -65,6 +66,7 @@ public class ConfigEditorServlet extends PwmServlet {
         resetSetting,
         ldapHealthCheck,
         databaseHealthCheck,
+        smsHealthCheck,
         finishEditing,
         executeSettingFunction,
         setConfigurationPassword,
@@ -103,7 +105,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (cookie == null) {
             cookie = new ConfigEditorCookie();
             final String jsonString = JsonUtil.serialize(cookie);
-            ServletHelper.writeCookie(pwmRequest.getHttpServletResponse(), COOKIE_NAME_PREFERENCES, jsonString, 60 * 60 * 24 * 3);
+            pwmRequest.getPwmResponse().writeCookie(COOKIE_NAME_PREFERENCES, jsonString, 60 * 60 * 24 * 3);
         }
 
         return cookie;
@@ -153,6 +155,10 @@ public class ConfigEditorServlet extends PwmServlet {
                     restDatabaseHealthCheck(pwmRequest, configManagerBean);
                     return;
 
+                case smsHealthCheck:
+                    restSmsHealthCheck(pwmRequest, configManagerBean);
+                    return;
+
                 case finishEditing:
                     restFinishEditing(pwmRequest, configManagerBean);
                     return;
@@ -188,7 +194,7 @@ public class ConfigEditorServlet extends PwmServlet {
 
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR);
         }
     }
@@ -489,7 +495,7 @@ public class ConfigEditorServlet extends PwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final String url = pwmRequest.getHttpServletRequest().getContextPath() + "/private/config/ConfigManager";
-        pwmRequest.getHttpServletResponse().sendRedirect(url);
+        pwmRequest.getPwmResponse().sendRedirect(url);
     }
 
     static void validateCookieProfile(
@@ -521,7 +527,7 @@ public class ConfigEditorServlet extends PwmServlet {
             }
         }
 
-        ServletHelper.writeCookie(pwmRequest.getHttpServletResponse(), COOKIE_NAME_PREFERENCES, JsonUtil.serialize(configEditorCookie), 60 * 60 * 24 * 3);
+        pwmRequest.getPwmResponse().writeCookie(COOKIE_NAME_PREFERENCES, JsonUtil.serialize(configEditorCookie), 60 * 60 * 24 * 3);
     }
 
     void restReadChangeLog(
@@ -669,9 +675,41 @@ public class ConfigEditorServlet extends PwmServlet {
         final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), healthRecords);
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(healthData);
-
         pwmRequest.outputJsonResult(restResultBean);
         LOGGER.debug(pwmRequest, "completed restDatabaseHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
+    }
+
+    private void restSmsHealthCheck(
+            final PwmRequest pwmRequest,
+            final ConfigManagerBean configManagerBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final Date startTime = new Date();
+        LOGGER.debug(pwmRequest, "beginning restSmsHealthCheck");
+
+        final List<HealthRecord> returnRecords = new ArrayList<>();
+        final Configuration config = new Configuration(configManagerBean.getConfiguration());
+
+        if (!SmsQueueManager.smsIsConfigured(config)) {
+            returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "SMS not configured"));
+        } else {
+            final Map<String,String> testParams = pwmRequest.readBodyAsJsonStringMap();
+            final SmsItemBean testSmsItem = new SmsItemBean(testParams.get("to"),testParams.get("message"));
+            try {
+                final String responseBody = SmsQueueManager.sendDirectMessage(config,testSmsItem);
+                returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "message sent"));
+                returnRecords.add(new HealthRecord(HealthStatus.INFO, HealthTopic.SMS, "response body: \n" + StringUtil.escapeHtml(responseBody)));
+            } catch (PwmException e) {
+                returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.SMS, "unable to send message: " + e.getMessage()));
+            }
+        }
+
+        final RestResultBean restResultBean = new RestResultBean();
+        final HealthData healthData = HealthRecord.asHealthDataBean(config, pwmRequest.getLocale(), returnRecords);
+        restResultBean.setData(healthData);
+        pwmRequest.outputJsonResult(restResultBean);
+        LOGGER.debug(pwmRequest, "completed restSmsHealthCheck in " + TimeDuration.fromCurrent(startTime).asCompactString());
     }
 
     private void doUploadFile(
@@ -685,10 +723,17 @@ public class ConfigEditorServlet extends PwmServlet {
 
         final Map<String, PwmRequest.FileUploadItem> fileUploads;
         try {
-            fileUploads = pwmRequest.readFileUploads(10 * 1024 * 1000, 1);
+            final int maxFileSize = Integer.parseInt(
+                    pwmRequest.getConfig().readAppProperty(AppProperty.CONFIG_MAX_JDBC_JAR_SIZE));
+            fileUploads = pwmRequest.readFileUploads(maxFileSize, 1);
         } catch (PwmException e) {
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
             LOGGER.error(pwmRequest, "error during file upload: " + e.getErrorInformation().toDebugStr());
+            return;
+        } catch (Throwable e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error during file upload: " + e.getMessage());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
+            LOGGER.error(pwmRequest, errorInformation);
             return;
         }
 
@@ -698,7 +743,9 @@ public class ConfigEditorServlet extends PwmServlet {
             final Map<FileValue.FileInformation, FileValue.FileContent> newFileValueMap = new LinkedHashMap<>();
             newFileValueMap.put(new FileValue.FileInformation(uploadItem.getName(),uploadItem.getType()),new FileValue.FileContent(uploadItem.getContent()));
 
-            final UserIdentity userIdentity = pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity();
+            final UserIdentity userIdentity = pwmRequest.isAuthenticated()
+                    ? pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity()
+                    : null;
             configManagerBean.getConfiguration().writeSetting(setting, new FileValue(newFileValueMap), userIdentity);
 
             pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.SUCCESS_UNKNOWN));

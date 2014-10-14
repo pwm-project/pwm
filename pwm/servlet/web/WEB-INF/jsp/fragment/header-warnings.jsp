@@ -47,7 +47,7 @@
     }
 %>
 <% if (headerEnabled && (showHeader || healthCheck)) { %>
-<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <div id="header-warning" style="<%=showHeader?"":"display: none"%>">
     <span style="cursor:pointer; white-space: nowrap">
         <a class="btn" id="header_configManagerButton">

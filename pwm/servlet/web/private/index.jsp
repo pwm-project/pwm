@@ -36,7 +36,7 @@
             <pwm:if test="permission" arg1="CHANGE_PASSWORD">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='ChangePassword'/>">
+                        <a id="button_ChangePassword" class="menubutton" href="<pwm:url url='ChangePassword'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-key"></span></pwm:if>
                             <pwm:display key="Title_ChangePassword"/>
                         </a>
@@ -50,7 +50,7 @@
                 <pwm:if test="permission" arg1="SETUP_RESPONSE">
                     <tr style="border:0">
                         <td class="menubutton_key">
-                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='SetupResponses'/>">
+                            <a class="menubutton" href="<pwm:url url='SetupResponses'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-list-ol"></span></pwm:if>
                                 <pwm:display key="Title_SetupResponses"/>
                             </a>
@@ -65,7 +65,7 @@
                 <pwm:if test="permission" arg1="SETUP_OTP_SECRET">
                     <tr style="border:0">
                         <td class="menubutton_key">
-                            <a onclick="PWM_MAIN.showWaitDialog();" class="menubutton" href="<pwm:url url='SetupOtp'/>">
+                            <a class="menubutton" href="<pwm:url url='SetupOtp'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-qrcode"></span></pwm:if>
                                 <pwm:display key="Title_SetupOtpSecret"/>
                             </a>
@@ -80,7 +80,7 @@
                 <pwm:if test="permission" arg1="PROFILE_UPDATE">
                     <tr style="border:0">
                         <td class="menubutton_key">
-                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='UpdateProfile'/>">
+                            <a class="menubutton" href="<pwm:url url='UpdateProfile'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-edit"></span></pwm:if>
                                 <pwm:display key="Title_UpdateProfile"/>
                             </a>
@@ -94,7 +94,7 @@
             <pwm:if test="shortcutsEnabled">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Shortcuts'/>">
+                        <a class="menubutton" href="<pwm:url url='Shortcuts'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-external-link"></span></pwm:if>
                             <pwm:display key="Title_Shortcuts"/>
                         </a>
@@ -108,7 +108,7 @@
                 <pwm:if test="permission" arg1="PEOPLE_SEARCH">
                     <tr style="border:0">
                         <td class="menubutton_key">
-                            <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='PeopleSearch'/>">
+                            <a class="menubutton" href="<pwm:url url='PeopleSearch'/>">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-search"></span></pwm:if>
                                 <pwm:display key="Title_PeopleSearch"/>
                             </a>
@@ -122,7 +122,7 @@
             <pwm:if test="accountInfoEnabled">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
+                        <a class="menubutton" href="<pwm:url url='userinfo.jsp'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-file-o"></span></pwm:if>
                             <pwm:display key="Title_UserInformation"/>
                         </a>
@@ -136,7 +136,7 @@
             <pwm:if test="permission" arg1="HELPDESK">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='Helpdesk'/>">
+                        <a class="menubutton" href="<pwm:url url='Helpdesk'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-user"></span></pwm:if>
                             <pwm:display key="Title_Helpdesk"/>
                         </a>
@@ -151,7 +151,7 @@
             <pwm:if test="permission" arg1="GUEST_REGISTRATION">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='GuestRegistration'/>"><pwm:display key="Title_GuestRegistration"/></a>
+                        <a class="menubutton" href="<pwm:url url='GuestRegistration'/>"><pwm:display key="Title_GuestRegistration"/></a>
                     </td>
                     <td style="border: 0">
                         <p><pwm:display key="Long_Title_GuestRegistration"/></p>
@@ -162,7 +162,7 @@
             <pwm:if test="permission" arg1="PWMADMIN">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='admin/dashboard.jsp'/>">
+                        <a class="menubutton" href="<pwm:url url='admin/dashboard.jsp'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
                             <pwm:display key="Title_Admin"/>
                         </a>
@@ -175,7 +175,7 @@
             <pwm:if test="showLogout">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a onclick="PWM_MAIN.showWaitDialog()" class="menubutton" href="<pwm:url url='../public/Logout'/>">
+                        <a class="menubutton" href="<pwm:url url='../public/Logout'/>">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                             <pwm:display key="Title_Logout"/>
                         </a>

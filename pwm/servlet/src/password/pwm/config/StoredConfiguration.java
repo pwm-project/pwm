@@ -32,7 +32,9 @@ import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
+import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
 import password.pwm.util.BCrypt;
@@ -163,6 +165,7 @@ public class StoredConfiguration implements Serializable {
             throw new PwmUnrecoverableException(errorInfo);
         }
 
+        updateDeprecatedSettings(newConfiguration);
         checkIfXmlRequiresUpdate(newConfiguration);
         final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.debug("successfully loaded configuration (" + totalDuration.asCompactString() + ")");
@@ -1299,5 +1302,23 @@ public class StoredConfiguration implements Serializable {
             throw new IllegalStateException("missing createTime timestamp");
         }
         return createTimeString;
+    }
+
+    private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) {
+        for (final String profileID : storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY)) {
+            if (!storedConfiguration.isDefaultValue(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID)) {
+                boolean ad2003Enabled = (boolean)storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY).toNativeObject();
+                final StoredValue value;
+                if (ad2003Enabled) {
+                    value = new StringValue(ADPolicyComplexity.AD2003.toString());
+                } else {
+                    value = new StringValue(ADPolicyComplexity.NONE.toString());
+                }
+                LOGGER.warn("converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
+                        + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString());
+                storedConfiguration.writeSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL,profileID,value,null);
+                storedConfiguration.resetSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID,null);
+            }
+        }
     }
 }

@@ -35,6 +35,7 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.i18n.Display;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
@@ -211,13 +212,13 @@ public class VersionChecker implements PwmService {
             VersionCheckInfoCache checkInfoCache = getVersionCheckInfo();
             if (checkInfoCache.getLastError() == null) {
                 if (!isVersionCurrent()) {
-                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION,"Version",
+                    returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application,
                             "This version of " + PwmConstants.PWM_APP_NAME + " is out of date." + "  The current version is "
                                     + versionCheckInfoCache.getCurrentVersion() + " (b" + versionCheckInfoCache.getCurrentBuild() + ")."
                                     + "  Check the project page for more information."));
                 }
             } else {
-                returnRecords.add(new HealthRecord(HealthStatus.WARN,"Version","Unable to check current version: " + versionCheckInfoCache.getLastError().toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Application,"Unable to check current version: " + versionCheckInfoCache.getLastError().toDebugStr()));
             }
         }
 

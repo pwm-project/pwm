@@ -39,6 +39,7 @@ import password.pwm.config.option.UserEventStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -267,7 +268,7 @@ public class AuditManager implements PwmService {
         }
 
         if (lastError != null) {
-            healthRecords.add(new HealthRecord(HealthStatus.WARN,"AuditManager", lastError.toDebugStr()));
+            healthRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Audit, lastError.toDebugStr()));
         }
 
         return healthRecords;

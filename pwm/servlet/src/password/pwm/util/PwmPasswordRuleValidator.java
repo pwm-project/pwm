@@ -27,11 +27,16 @@ import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiError;
 import com.novell.ldapchai.exception.ChaiPasswordPolicyException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import password.pwm.*;
+import password.pwm.AppProperty;
+import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
+import password.pwm.PwmService;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.PasswordUtility;
@@ -374,12 +379,26 @@ public class PwmPasswordRuleValidator {
      * @return list of errors if the password does not meet requirements, or an empty list if the password complies
      *         with AD requirements
      */
+
     private static List<ErrorInformation> checkPasswordForADComplexity(
+            final ADPolicyComplexity complexityLevel,
             final UserInfoBean userInfoBean,
             final String password,
-            final PasswordCharCounter charCounter
+            final PasswordCharCounter charCounter,
+            final int maxGroupViolationCount
     ) {
         final List<ErrorInformation> errorList = new ArrayList<>();
+
+        if (password == null || password.length() < 6) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_SHORT));
+            return errorList;
+        }
+
+        final int maxLength = complexityLevel == ADPolicyComplexity.AD2003 ? 128 : 512;
+        if (password.length() > maxLength) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_LONG));
+            return errorList;
+        }
 
         if (userInfoBean != null && userInfoBean.getCachedPasswordRuleAttributes() != null) {
             final Map<String,String> userAttrs = userInfoBean.getCachedPasswordRuleAttributes();
@@ -411,29 +430,53 @@ public class PwmPasswordRuleValidator {
         if (charCounter.getNumericChars() > 0) {
             complexityPoints++;
         }
-        if (charCounter.getSpecialChars() > 0) {
-            complexityPoints++;
-        }
-        if (charCounter.getOtherLetter() > 0) {
-            complexityPoints++;
+        switch (complexityLevel) {
+            case AD2003:
+                if (charCounter.getSpecialChars() > 0 || charCounter.getOtherLetter() > 0) {
+                    complexityPoints++;
+                }
+                break;
+
+            case AD2008:
+                if (charCounter.getSpecialChars() > 0) {
+                    complexityPoints++;
+                }
+                if (charCounter.getOtherLetter() > 0) {
+                    complexityPoints++;
+                }
+                break;
         }
 
-        if (complexityPoints < 3) {
-            if (charCounter.getUpperChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
-            }
-            if (charCounter.getLowerChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
-            }
-            if (charCounter.getNumericChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
-            }
-            if (charCounter.getSpecialChars() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
-            }
-            if (charCounter.getOtherLetter() < 1) {
-                errorList.add(new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION));
-            }
+        switch (complexityLevel) {
+            case AD2008:
+                final int totalGroups = 5;
+                final int violations = totalGroups - complexityPoints;
+                if (violations <= maxGroupViolationCount) {
+                    return errorList;
+                }
+                break;
+
+            case AD2003:
+                if (complexityPoints < 3) {
+                    return errorList;
+                }
+                break;
+        }
+
+        if (charCounter.getUpperChars() < 1) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
+        }
+        if (charCounter.getLowerChars() < 1) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
+        }
+        if (charCounter.getNumericChars() < 1) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
+        }
+        if (charCounter.getSpecialChars() < 1) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+        }
+        if (charCounter.getOtherLetter() < 1) {
+            errorList.add(new ErrorInformation(PwmError.PASSWORD_UNKNOWN_VALIDATION));
         }
 
         return errorList;
@@ -676,8 +719,12 @@ public class PwmPasswordRuleValidator {
         }
 
         // check ad-complexity
-        if (ruleHelper.readBooleanValue(PwmPasswordRule.ADComplexity)) {
-            errorList.addAll(checkPasswordForADComplexity(uiBean, password, charCounter));
+        {
+            final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
+            if (complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008) {
+                final int maxGroupViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
+                errorList.addAll(checkPasswordForADComplexity(complexityLevel, uiBean, password, charCounter, maxGroupViolations));
+            }
         }
 
         return errorList;

@@ -73,6 +73,7 @@ public enum HealthMessage {
     LocalDB_CLOSED                          (HealthStatus.WARN,     HealthTopic.LocalDB),
     ServiceClosed_LocalDBUnavail            (HealthStatus.CAUTION,  HealthTopic.Application),
     ServiceClosed_AppReadOnly               (HealthStatus.CAUTION,  HealthTopic.Application),
+    SMS_SendFailure                         (HealthStatus.WARN,     HealthTopic.SMS),
 
     ;
 

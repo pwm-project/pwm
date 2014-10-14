@@ -292,12 +292,20 @@ public class PwmLogger {
         doPwmSessionLogEvent(PwmLogLevel.ERROR, pwmSession, convertErrorInformation(errorInformation), null);
     }
 
+    public void error(final PwmRequest pwmRequest, final CharSequence message, final Throwable exception) {
+        doPwmRequestLogEvent(PwmLogLevel.ERROR, pwmRequest, message, exception);
+    }
+
     public void error(final PwmRequest pwmRequest, final CharSequence message) {
         doPwmRequestLogEvent(PwmLogLevel.ERROR, pwmRequest, message, null);
     }
 
     public void error(final PwmRequest pwmRequest, final ErrorInformation errorInformation) {
         doPwmRequestLogEvent(PwmLogLevel.ERROR, pwmRequest, convertErrorInformation(errorInformation), null);
+    }
+
+    public void error(final ErrorInformation errorInformation) {
+        doPwmRequestLogEvent(PwmLogLevel.ERROR, null, convertErrorInformation(errorInformation), null);
     }
 
     public void error(final SessionLabel sessionLabel, final CharSequence message) {

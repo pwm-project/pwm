@@ -46,26 +46,28 @@ PWM_CONFIG.lockConfiguration=function() {
     }});
 };
 
-PWM_CONFIG.waitForRestart=function() {
+PWM_CONFIG.waitForRestart=function(options) {
+    options = options === undefined ? {} : options;
     console.log("beginning request to determine application status: ");
     var loadFunction = function(data) {
         try {
             var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
             if (serverStartTime != PWM_GLOBAL['startupTime']) {
                 console.log("application appears to be restarted, redirecting to context url: ");
-                window.location = PWM_GLOBAL['url-context'];
+                var redirectUrl = 'location' in options ? options['location'] : '/';
+                PWM_MAIN.goto(redirectUrl);
                 return;
             }
         } catch (e) {
             console.log("can't read current server startupTime, will retry detection (current error: " + e + ")");
         }
         setTimeout(function() {
-            PWM_CONFIG.waitForRestart()
+            PWM_CONFIG.waitForRestart(options)
         }, Math.random() * 3000);
     };
     var errorFunction = function(error) {
         setTimeout(function() {
-            PWM_CONFIG.waitForRestart()
+            PWM_CONFIG.waitForRestart(options)
         }, 3000);
         console.log('Waiting for server restart, unable to contact server: ' + error);
     };
@@ -354,7 +356,8 @@ PWM_CONFIG.uploadFile = function(options) {
 
     var completeFunction = function(data){
         if (data['error'] == true) {
-            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage'],okAction:function(){
+            var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+            PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
                 PWM_MAIN.goto(currentUrl);
             }});
         } else {
@@ -365,10 +368,8 @@ PWM_CONFIG.uploadFile = function(options) {
     };
 
     var errorFunction = function(data) {
-        var errorMsg = 'The file upload has failed.  Please try again or check the server logs for error information.'
-        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: errorMsg,okAction:function(){
-            PWM_MAIN.goto(currentUrl);
-        }});
+        var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
+        PWM_MAIN.showErrorDialog(data,{text:errorText});
     };
 
     completeFunction = 'completeFunction' in options ? options['completeFunction'] : completeFunction;

@@ -43,15 +43,11 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
     private final String old_topic;
     private final String old_detail;
 
-    private boolean oldStyle = false;
-
     public HealthRecord(
             final HealthStatus status,
             final String topic,
             final String detail
     ) {
-        this.oldStyle = true;
-
         if (status == null) {
             throw new NullPointerException("status cannot be null");
         }
@@ -61,6 +57,24 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
         this.old_detail = detail;
 
         this.topic = null;
+        this.message = null;
+        this.fields = null;
+    }
+
+    public HealthRecord(
+            final HealthStatus status,
+            final HealthTopic topic,
+            final String detail
+    ) {
+        if (status == null) {
+            throw new NullPointerException("status cannot be null");
+        }
+        this.status = status;
+
+        this.old_topic = null;
+        this.old_detail = detail;
+
+        this.topic = topic;
         this.message = null;
         this.fields = null;
     }
@@ -99,32 +113,22 @@ public class HealthRecord implements Serializable,Comparable<HealthRecord> {
     }
 
     public String getTopic(final Locale locale, final Configuration config) {
-        if (oldStyle) {
+        if (old_topic != null) {
             return old_topic;
         }
         return this.topic.getDescription(locale, config);
     }
 
     public String getDetail(final Locale locale, final Configuration config) {
-        if (oldStyle) {
+        if (old_detail != null) {
             return old_detail;
         }
         return this.message.getDescription(locale, config, fields);
     }
 
     public String toDebugString(final Locale locale, final Configuration config) {
-        if (oldStyle) {
-            return HealthRecord.class.getSimpleName() + " " + status + " " + old_topic + " " + old_detail;
-        }
-        final StringBuilder sb = new StringBuilder();
-        sb.append(HealthRecord.class.getSimpleName());
-        sb.append(" ");
-        sb.append(status.getDescription(locale,config));
-        sb.append(" ");
-        sb.append(this.getTopic(locale, config));
-        sb.append(" ");
-        sb.append(this.getDetail(locale, config));
-        return sb.toString();
+        return HealthRecord.class.getSimpleName() + " " + status.getDescription(locale, config) + " " + this.getTopic(
+                locale, config) + " " + this.getDetail(locale, config);
     }
 
     public int compareTo(final HealthRecord otherHealthRecord) {

@@ -52,7 +52,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <pwm:if test="showCancel">
-                <form action="<%=request.getContextPath()%>/public/<pwm:url url='ActivateUser'/>" method="post"
+                <form action="<pwm:context/>/public/<pwm:url url='ActivateUser'/>" method="post"
                       enctype="application/x-www-form-urlencoded"
                       style="display: inline;">
                     <input type="hidden" name="processAction" value="reset"/>

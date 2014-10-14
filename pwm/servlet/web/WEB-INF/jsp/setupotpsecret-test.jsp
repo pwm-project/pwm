@@ -78,7 +78,7 @@ TODO: support HOTP
     });
 </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

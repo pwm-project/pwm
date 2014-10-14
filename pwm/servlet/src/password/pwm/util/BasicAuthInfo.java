@@ -53,7 +53,7 @@ public class BasicAuthInfo implements Serializable {
             final PwmApplication pwmApplication,
             final PwmRequest pwmRequest
     ) {
-        final String authHeader = pwmRequest.readHeaderValueAsString(PwmConstants.HTTP_HEADER_BASIC_AUTH);
+        final String authHeader = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Authorization);
 
         if (authHeader != null) {
             if (authHeader.contains(PwmConstants.HTTP_BASIC_AUTH_PREFIX)) {

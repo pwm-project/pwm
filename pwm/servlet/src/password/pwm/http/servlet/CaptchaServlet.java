@@ -106,7 +106,7 @@ public class CaptchaServlet extends PwmServlet {
             }
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CAPTCHA);
         }
     }
@@ -237,8 +237,7 @@ public class CaptchaServlet extends PwmServlet {
     {
         final String cookieValue = figureSkipCookieValue(pwmRequest.getPwmApplication());
         if (cookieValue != null) {
-            ServletHelper.writeCookie(
-                    pwmRequest.getHttpServletResponse(),
+            pwmRequest.getPwmResponse().writeCookie(
                     SKIP_COOKIE_NAME,
                     cookieValue,
                     60 * 60 * 24 * 365

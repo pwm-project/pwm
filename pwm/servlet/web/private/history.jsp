@@ -66,7 +66,7 @@
         <br class="clear"/>
 
         <div id="buttonbar">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden"
                        name="processAction"

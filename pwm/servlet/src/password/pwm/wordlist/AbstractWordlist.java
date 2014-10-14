@@ -32,6 +32,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.Helper;
 import password.pwm.util.SecureHelper;
 import password.pwm.util.Sleeper;
@@ -383,12 +384,12 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     public List<HealthRecord> healthCheck() {
         if (wlStatus == STATUS.OPENING) {
 
-            final HealthRecord healthRecord = new HealthRecord(HealthStatus.CAUTION, this.DEBUG_LABEL, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus());
+            final HealthRecord healthRecord = new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application, this.DEBUG_LABEL + " is not yet open: " + this.getDebugStatus());
             return Collections.singletonList(healthRecord);
         }
 
         if (lastError != null) {
-            final HealthRecord healthRecord = new HealthRecord(HealthStatus.WARN, this.DEBUG_LABEL, this.DEBUG_LABEL + " error: " + lastError.toDebugStr());
+            final HealthRecord healthRecord = new HealthRecord(HealthStatus.WARN, HealthTopic.Application, this.DEBUG_LABEL + " error: " + lastError.toDebugStr());
             return Collections.singletonList(healthRecord);
         }
         return null;

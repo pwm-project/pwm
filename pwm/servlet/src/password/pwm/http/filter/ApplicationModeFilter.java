@@ -30,103 +30,55 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmURL;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
 import java.io.IOException;
 
-public class ApplicationModeFilter implements Filter {
+public class ApplicationModeFilter extends PwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
-    private ServletContext servletContext;
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        this.servletContext = filterConfig.getServletContext();
-    }
-
-    @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+    public void processFilter(
+            final PwmRequest pwmRequest,
+            final PwmFilterChain chain
+        )
             throws IOException, ServletException
     {
-        final HttpServletRequest req = (HttpServletRequest)servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse)servletResponse;
-
         // add request url to request attribute
-        servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, req.getRequestURI());
-
-        // check if app is available.
-        boolean applicationIsAvailable = false;
-        try {
-            ContextManager.getPwmApplication(req);
-            applicationIsAvailable = true;
-        } catch (Throwable e) {
-            LOGGER.error("can't load application: " + e.getMessage());
-        }
-
-        if (!applicationIsAvailable) {
-            if (!(new PwmURL(req).isResourceURL())) {
-                final String url = PwmConstants.JSP_URL.APP_UNAVAILABLE.getPath();
-                servletContext.getRequestDispatcher(url).forward(req, resp);
-                return;
-            }
-        }
+        pwmRequest.getHttpServletRequest().setAttribute(PwmConstants.REQUEST_ATTR_ORIGINAL_URI, pwmRequest.getHttpServletRequest().getRequestURI());
 
         // ignore if resource request
-        final PwmURL pwmURL = new PwmURL(req);
+        final PwmURL pwmURL = pwmRequest.getURL();
         if (!pwmURL.isResourceURL() && !pwmURL.isWebServiceURL()) {
             // check for valid config
             try {
-                if (checkConfigModes(req, resp, servletContext)) {
+                if (checkConfigModes(pwmRequest)) {
                     return;
                 }
             } catch (PwmUnrecoverableException e) {
                 if (e.getError() == PwmError.ERROR_UNKNOWN) {
                     try { LOGGER.error(e.getMessage()); } catch (Exception ignore) { /* noop */ }
                 }
-                servletRequest.setAttribute(PwmConstants.REQUEST_ATTR_PWM_ERRORINFO, e.getErrorInformation());
-                ServletHelper.forwardToErrorPage(req, resp, true);
+                pwmRequest.respondWithError(e.getErrorInformation(),true);
                 return;
             }
         }
 
-        try {
-            filterChain.doFilter(servletRequest, servletResponse);
-        } catch (Throwable e) {
-            final String errorMsg = "uncaught error while processing filter chain: " + e.getMessage() +
-                    (e.getCause() == null ? "" : ", cause: " + e.getCause().getMessage());
-            if (e instanceof IOException) {
-                LOGGER.trace(errorMsg);
-            } else {
-                LOGGER.error(errorMsg,e);
-            }
-        }
-    }
-
-    @Override
-    public void destroy() {
+        chain.doFilter();
     }
 
     private static boolean checkConfigModes(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext servletContext
+            final PwmRequest pwmRequest
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final PwmApplication theManager = ContextManager.getPwmApplication(servletContext);
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+        final PwmApplication.MODE mode = pwmApplication.getApplicationMode();
 
-        if (theManager == null) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"unable to load PwmApplication instance"));
-        }
-
-        final PwmApplication.MODE mode = theManager.getApplicationMode();
-
-        final PwmURL pwmURL = new PwmURL(req);
+        final PwmURL pwmURL = pwmRequest.getURL();
         if (pwmURL.isResourceURL()) {
             return false;
         }
@@ -140,18 +92,17 @@ public class ApplicationModeFilter implements Filter {
             if (pwmURL.isConfigGuideURL()) {
                 return false;
             } else {
-                LOGGER.debug("unable to find a valid configuration, redirecting " + req.getRequestURI() + " to ConfigGuide");
-                resp.sendRedirect(req.getContextPath() + "/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
+                LOGGER.debug("unable to find a valid configuration, redirecting " + pwmURL + " to ConfigGuide");
+                pwmRequest.getPwmResponse().sendRedirect(pwmRequest.getContextPath() + "/private/config/" + PwmConstants.URL_SERVLET_CONFIG_GUIDE);
                 return true;
             }
         }
 
         if (mode == PwmApplication.MODE.ERROR) {
-            ErrorInformation rootError = ContextManager.getContextManager(req.getSession()).getStartupErrorInformation();
+            ErrorInformation rootError = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession()).getStartupErrorInformation();
             if (rootError == null) {
                 rootError = new ErrorInformation(PwmError.ERROR_APP_UNAVAILABLE, "Application startup failed.");
             }
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
             pwmRequest.respondWithError(rootError);
             return true;
         }

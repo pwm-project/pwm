@@ -65,7 +65,7 @@
                 <pwm:display key="Button_Home"/>
             </a>
             <%-- this section handles the logout link (if user is logged in) --%>
-            <a class="header-button" href="<%=request.getContextPath()%><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
+            <a class="header-button" href="<pwm:context/><pwm:url url='/public/Logout'/>" style="visibility: <%=showLogout ? "inline" : "hidden"%>" id="LogoutButton">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>
                 <pwm:display key="Button_Logout"/>
             </a>

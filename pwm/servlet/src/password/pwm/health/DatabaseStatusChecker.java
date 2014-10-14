@@ -47,6 +47,9 @@ public class DatabaseStatusChecker implements HealthChecker {
 
     private static List<HealthRecord> checkDatabaseStatus(Configuration config)
     {
+        if (!config.hasDbConfigured()) {
+            return Collections.singletonList(new HealthRecord(HealthStatus.INFO,HealthTopic.Database,"Database not configured"));
+        }
         final DatabaseAccessorImpl impl = new DatabaseAccessorImpl();
         try {
             impl.init(config);

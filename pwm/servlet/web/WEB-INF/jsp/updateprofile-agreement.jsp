@@ -52,7 +52,7 @@
                 </button>
                 <input type="hidden" name="pwmFormID" id="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='Logout'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='Logout'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_logout">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-out"></span></pwm:if>

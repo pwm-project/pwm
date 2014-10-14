@@ -85,7 +85,7 @@
 <table >
 <tr>
     <td class="key" style="width:50px">url</td>
-    <td><a href="<%=request.getContextPath()%>/public/rest/challenges"><%=request.getContextPath()%>/public/rest/challenges</a></td>
+    <td><a href="<pwm:context/>/public/rest/challenges"><pwm:context/>/public/rest/challenges</a></td>
 </tr>
 <tr>
 <td class="key" style="width:50px">GET Method</td>
@@ -148,7 +148,7 @@
         <td class="key">Request</td>
 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
+GET <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept: application/json
 Location: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -208,7 +208,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         <td class="key">Request</td>
 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/challenges?answers=true&helpdesk=true HTTP/1.1
+GET <pwm:context/>/public/rest/challenges?answers=true&helpdesk=true HTTP/1.1
 Accept: application/json
 Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -361,7 +361,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
         <td class="exampleTD">
 <pre>
 Accept-Language: en
-POST <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
+POST <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -457,7 +457,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td class="key">Request</td>
         <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
+POST <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -532,7 +532,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                 <td class="key">Request</td>
         <td class="exampleTD">
 <pre>
-DELETE <%=request.getContextPath()%>/public/rest/challenges HTTP/1.1
+DELETE <pwm:context/>/public/rest/challenges HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -561,7 +561,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/checkpassword"><%=request.getContextPath()%>/public/rest/checkpassword</a></td>
+            <td><a href="<pwm:context/>/public/rest/checkpassword"><pwm:context/>/public/rest/checkpassword</a></td>
         </tr>
         <tr>
         </tr>
@@ -618,7 +618,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/checkpassword HTTP/1.1
+POST <pwm:context/>/public/rest/checkpassword HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -659,7 +659,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/checkpassword HTTP/1.1
+POST <pwm:context/>/public/rest/checkpassword HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
@@ -697,7 +697,7 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/health"><%=request.getContextPath()%>/public/rest/health</a></td>
+            <td><a href="<pwm:context/>/public/rest/health"><pwm:context/>/public/rest/health</a></td>
         </tr>
         <tr>
         </tr>
@@ -745,7 +745,7 @@ password1=dsa32!dabed&password2=dsa32!dabed&username=user1234
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/health HTTP/1.1
+GET <pwm:context/>/public/rest/health HTTP/1.1
 Accept-Language: en
 Accept: application/json
 </pre>
@@ -812,7 +812,7 @@ Accept: application/json
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/health&refreshImmediate=true HTTP/1.1
+GET <pwm:context/>/public/rest/health&refreshImmediate=true HTTP/1.1
 Accept-Language: en
 Accept: text/plain
 </pre>
@@ -835,7 +835,7 @@ GOOD
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/profile"><%=request.getContextPath()%>/public/rest/profile</a></td>
+            <td><a href="<pwm:context/>/public/rest/profile"><pwm:context/>/public/rest/profile</a></td>
         </tr>
         <tr>
             <td class="key" style="width:50px">GET Method</td>
@@ -869,7 +869,7 @@ GOOD
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
+GET <pwm:context/>/public/rest/profile HTTP/1.1
 Accept: application/json
 Accept-Language: en
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -998,7 +998,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/profile HTTP/1.1
+POST <pwm:context/>/public/rest/profile HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -1035,7 +1035,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/randompassword"><%=request.getContextPath()%>/public/rest/randompassword</a></td>
+            <td><a href="<pwm:context/>/public/rest/randompassword"><pwm:context/>/public/rest/randompassword</a></td>
         </tr>
         <tr>
         </tr>
@@ -1105,7 +1105,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/randompassword HTTP/1.1
+GET <pwm:context/>/public/rest/randompassword HTTP/1.1
 Accept-Language: en
 Accept: text/plain
 </pre>
@@ -1194,7 +1194,7 @@ cLi2mbers
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/randompassword HTTP/1.1
+GET <pwm:context/>/public/rest/randompassword HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -1229,7 +1229,7 @@ Content-Type: application/json
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/setpassword"><%=request.getContextPath()%>/public/rest/setpassword</a></td>
+            <td><a href="<pwm:context/>/public/rest/setpassword"><pwm:context/>/public/rest/setpassword</a></td>
         </tr>
         <tr>
         </tr>
@@ -1299,7 +1299,7 @@ Content-Type: application/json
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/setpassword HTTP/1.1
+POST <pwm:context/>/public/rest/setpassword HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -1328,7 +1328,7 @@ cLi2mbers
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/statistics"><%=request.getContextPath()%>/public/rest/statistics</a></td>
+            <td><a href="<pwm:context/>/public/rest/statistics"><pwm:context/>/public/rest/statistics</a></td>
         </tr>
         <tr>
         </tr>
@@ -1396,7 +1396,7 @@ cLi2mbers
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/statistics?days=14&statName=PASSWORD_CHANGES HTTP/1.1
+GET <pwm:context/>/public/rest/statistics?days=14&statName=PASSWORD_CHANGES HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -1463,7 +1463,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table >
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/status"><%=request.getContextPath()%>/public/rest/status</a></td>
+            <td><a href="<pwm:context/>/public/rest/status"><pwm:context/>/public/rest/status</a></td>
         </tr>
         <tr>
             <td class="key" style="width:50px">GET Method</td>
@@ -1505,7 +1505,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-GET <%=request.getContextPath()%>/public/rest/status HTTP/1.1
+GET <pwm:context/>/public/rest/status HTTP/1.1
 Accept: application/json
 Accept-Language: fr
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
@@ -1587,7 +1587,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/verifyotp"><%=request.getContextPath()%>/public/rest/verifyresponses</a></td>
+            <td><a href="<pwm:context/>/public/rest/verifyotp"><pwm:context/>/public/rest/verifyresponses</a></td>
         </tr>
         <tr>
         </tr>
@@ -1640,7 +1640,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/verifyotp HTTP/1.1
+POST <pwm:context/>/public/rest/verifyotp HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json
@@ -1674,7 +1674,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
     <table>
         <tr>
             <td class="key" style="width:50px">url</td>
-            <td><a href="<%=request.getContextPath()%>/public/rest/verifyresponses"><%=request.getContextPath()%>/public/rest/verifyresponses</a></td>
+            <td><a href="<pwm:context/>/public/rest/verifyresponses"><pwm:context/>/public/rest/verifyresponses</a></td>
         </tr>
         <tr>
         </tr>
@@ -1736,7 +1736,7 @@ Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
                         <td class="key">Request</td>
                 <td class="exampleTD">
 <pre>
-POST <%=request.getContextPath()%>/public/rest/verifyresponses HTTP/1.1
+POST <pwm:context/>/public/rest/verifyresponses HTTP/1.1
 Accept-Language: en
 Accept: application/json
 Content-Type: application/json

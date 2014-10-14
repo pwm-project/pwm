@@ -36,11 +36,15 @@ import com.novell.ldapchai.util.ChaiUtility;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
@@ -142,8 +146,6 @@ public class PasswordUtility {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-        if (senderId == null) { senderId = ""; }
         String message = config.readSettingAsLocalizedString(PwmSetting.SMS_CHALLENGE_NEW_PASSWORD_TEXT, userLocale);
 
         if (toNumber == null || toNumber.length() < 1) {
@@ -153,8 +155,7 @@ public class PasswordUtility {
 
         message = message.replace("%TOKEN%", newPassword.getStringValue());
 
-        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, senderId, message, maxlen), macroMachine);
+        pwmApplication.sendSmsUsingQueue(new SmsItemBean(toNumber, message), macroMachine);
         LOGGER.debug(String.format("password SMS added to send queue for %s", toNumber));
         return null;
     }
@@ -753,7 +754,7 @@ public class PasswordUtility {
                     );
                 }
 
-                return new PwmPasswordPolicy(ruleMap, chaiPolicy);
+                return PwmPasswordPolicy.createPwmPasswordPolicy(ruleMap, chaiPolicy);
             }
         } catch (ChaiOperationException e) {
             LOGGER.warn("error reading password policy for user " + theUser.getEntryDN() + ", error: " + e.getMessage());

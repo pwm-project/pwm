@@ -332,8 +332,9 @@
 <% } %>
 </div>
 <div id="buttonbar">
-    <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post" enctype="application/x-www-form-urlencoded">
+    <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post" enctype="application/x-www-form-urlencoded">
         <input type="hidden" name="processAction" value="continue"/>
+        <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
         <button type="submit" name="button" class="btn" id="button_continue">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
             <pwm:display key="Button_Continue"/>

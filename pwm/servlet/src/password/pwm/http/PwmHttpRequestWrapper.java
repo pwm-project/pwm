@@ -54,7 +54,7 @@ public abstract class PwmHttpRequestWrapper {
     }
 
     public boolean isJsonRequest() {
-        final String acceptHeader = httpServletRequest.getHeader("Accept");
+        final String acceptHeader = this.readHeaderValueAsString(PwmConstants.HttpHeader.Accept);
         return acceptHeader.contains(PwmConstants.AcceptValue.json.getHeaderValue());
     }
 
@@ -160,23 +160,27 @@ public abstract class PwmHttpRequestWrapper {
         return resultSet;
     }
 
-    public String readHeaderValueAsString(final String headerName) {
+    public String readHeaderValueAsString(final PwmConstants.HttpHeader headerName) {
         final HttpServletRequest req = this.getHttpServletRequest();
-        final String rawValue = req.getHeader(headerName);
-        return Validator.sanitizeInputValue(configuration, rawValue);
+        final String rawValue = req.getHeader(headerName.getHttpName());
+        final String sanitizedInputValue = Validator.sanitizeInputValue(configuration, rawValue);
+        return Validator.sanitizeHeaderValue(configuration, sanitizedInputValue);
+
     }
 
     public Map<String,List<String>> readHeaderValuesMap() {
         final HttpServletRequest req = this.getHttpServletRequest();
         final Map<String,List<String>> returnObj = new LinkedHashMap<>();
-        final Enumeration<String> headerNameEnum = req.getHeaderNames();
-        for (final String headerName = headerNameEnum.nextElement(); headerNameEnum.hasMoreElements();) {
+
+        for (final Enumeration<String> headerNameEnum = req.getHeaderNames();headerNameEnum.hasMoreElements();) {
+            final String headerName = headerNameEnum.nextElement();
             final List<String> valueList = new ArrayList<>();
-            final Enumeration<String> headerValueEnum = req.getHeaders(headerName);
-            for (final String headerValue = headerValueEnum.nextElement(); headerValueEnum.hasMoreElements();) {
-                final String sanitizedValue = Validator.sanitizeInputValue(configuration, headerValue);
-                if (sanitizedValue.length() > 0) {
-                    valueList.add(sanitizedValue);
+            for (final Enumeration<String> headerValueEnum = req.getHeaders(headerName); headerValueEnum.hasMoreElements();) {
+                final String headerValue = headerValueEnum.nextElement();
+                final String sanitizedInputValue = Validator.sanitizeInputValue(configuration, headerValue);
+                final String sanitizedHeaderValue = Validator.sanitizeHeaderValue(configuration, sanitizedInputValue);
+                if (sanitizedHeaderValue != null && !sanitizedHeaderValue.isEmpty()) {
+                    valueList.add(sanitizedHeaderValue);
                 }
             }
             if (!valueList.isEmpty()) {

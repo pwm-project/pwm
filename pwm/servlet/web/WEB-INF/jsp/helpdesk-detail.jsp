@@ -26,11 +26,11 @@
 <%@ page import="password.pwm.bean.UserInfoBean" %>
 <%@ page import="password.pwm.config.ActionConfiguration" %>
 <%@ page import="password.pwm.config.FormConfiguration" %>
-<%@ page import="password.pwm.config.PwmPasswordRule" %>
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.config.option.HelpdeskClearResponseMode" %>
 <%@ page import="password.pwm.config.option.HelpdeskUIMode" %>
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
+<%@ page import="password.pwm.config.policy.PwmPasswordRule" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
@@ -583,8 +583,8 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/helpdesk.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <jsp:include page="/WEB-INF/jsp/fragment/footer.jsp"/>
 </body>
 </html>

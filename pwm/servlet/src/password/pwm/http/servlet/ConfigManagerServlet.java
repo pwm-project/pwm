@@ -36,9 +36,9 @@ import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigManagerBean;
-import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.*;
@@ -56,7 +56,6 @@ import javax.crypto.SecretKey;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -297,7 +296,7 @@ public class ConfigManagerServlet extends PwmServlet {
                 if (!persistentLoginAccepted) {
                     Cookie removalCookie = new Cookie(PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,null);
                     removalCookie.setMaxAge(0);
-                    pwmRequest.getHttpServletResponse().addCookie(removalCookie);
+                    pwmRequest.getPwmResponse().addCookie(removalCookie);
                     LOGGER.debug(pwmRequest, "removing non-working persistent config login cookie");
                 }
             }
@@ -330,8 +329,7 @@ public class ConfigManagerServlet extends PwmServlet {
                     final String jsonPersistentLoginInfo = JsonUtil.serialize(persistentLoginInfo);
                     final String cookieValue = SecureHelper.encryptToString(jsonPersistentLoginInfo,
                             securityKey);
-                    ServletHelper.writeCookie(
-                            pwmRequest.getHttpServletResponse(),
+                    pwmRequest.getPwmResponse().writeCookie(
                             PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,
                             cookieValue,
                             persistentSeconds
@@ -346,12 +344,7 @@ public class ConfigManagerServlet extends PwmServlet {
             if (configManagerBean.getPrePasswordEntryUrl() != null) {
                 final String originalUrl = configManagerBean.getPrePasswordEntryUrl();
                 configManagerBean.setPrePasswordEntryUrl(null);
-                pwmRequest.getHttpServletResponse().sendRedirect(
-                        SessionFilter.rewriteRedirectURL(
-                                originalUrl,
-                                pwmRequest.getHttpServletRequest(),
-                                pwmRequest.getHttpServletResponse())
-                );
+                pwmRequest.getPwmResponse().sendRedirect(originalUrl);
                 return true;
             }
             return false;
@@ -469,13 +462,13 @@ public class ConfigManagerServlet extends PwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        final PwmResponse resp = pwmRequest.getPwmResponse();
 
         try {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             final Writer responseWriter = resp.getWriter();
-            resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
-            resp.setContentType(PwmConstants.ContentTypeValue.xml.getHeaderValue());
+            resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
+            resp.setContentType(PwmConstants.ContentTypeValue.xml);
             storedConfiguration.toXml(responseWriter);
             responseWriter.close();
         } catch (Exception e) {
@@ -486,10 +479,9 @@ public class ConfigManagerServlet extends PwmServlet {
     private void doGenerateSupportZip(final PwmRequest pwmRequest)
             throws IOException, ServletException
     {
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
-        resp.setHeader("content-disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
-        resp.setContentType(PwmConstants.ContentTypeValue.zip.getHeaderValue());
-        resp.setContentLength(0);
+        final PwmResponse resp = pwmRequest.getPwmResponse();
+        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-Support.zip");
+        resp.setContentType(PwmConstants.ContentTypeValue.zip);
 
         final String pathPrefix = PwmConstants.PWM_APP_NAME + "-Support" + "/";
 
@@ -629,11 +621,11 @@ public class ConfigManagerServlet extends PwmServlet {
     private void doExportLocalDB(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        final PwmResponse resp = pwmRequest.getPwmResponse();
         final Date startTime = new Date();
-        resp.setHeader("Content-Disposition", "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
-        resp.setContentType("application/octet-stream");
-        resp.setHeader("Content-Transfer-Encoding", "binary");
+        resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.PWM_APP_NAME + "-LocalDB.bak");
+        resp.setContentType(PwmConstants.ContentTypeValue.octetstream);
+        resp.setHeader(PwmConstants.HttpHeader.ContentTransferEncoding, "binary");
         final LocalDBUtility localDBUtility = new LocalDBUtility(pwmRequest.getPwmApplication().getLocalDB());
         try {
             localDBUtility.exportLocalDB(resp.getOutputStream(), LOGGER.asAppendable(PwmLogLevel.DEBUG, pwmRequest.getSessionLabel()), false);

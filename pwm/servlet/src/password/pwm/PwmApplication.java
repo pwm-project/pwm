@@ -498,9 +498,7 @@ public class PwmApplication {
 
         final SmsItemBean rewrittenSmsItem = new SmsItemBean(
                 macroMachine.expandMacros(smsItem.getTo()),
-                macroMachine.expandMacros(smsItem.getFrom()),
-                macroMachine.expandMacros(smsItem.getMessage()),
-                smsItem.getPartlength()
+                macroMachine.expandMacros(smsItem.getMessage())
         );
 
         try {

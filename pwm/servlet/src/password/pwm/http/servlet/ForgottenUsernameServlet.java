@@ -289,8 +289,6 @@ public class ForgottenUsernameServlet extends PwmServlet {
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
-        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-        if (senderId == null) { senderId = ""; }
 
         final String toNumber = userInfoBean.getUserSmsNumber();
         if (toNumber == null || toNumber.length() < 1) {
@@ -301,8 +299,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
         final UserDataReader userDataReader = LdapUserDataReader.appProxiedReader(pwmApplication, userInfoBean.getUserIdentity());
         final MacroMachine macroMachine = new MacroMachine(pwmApplication, userInfoBean, null, userDataReader);
 
-        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        final SmsItemBean smsItem = new SmsItemBean(toNumber, senderId, smsMessage, maxlen);
+        final SmsItemBean smsItem = new SmsItemBean(toNumber, smsMessage);
         pwmApplication.sendSmsUsingQueue(smsItem, macroMachine);
         return null;
     }

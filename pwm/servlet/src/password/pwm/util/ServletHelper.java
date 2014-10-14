@@ -35,24 +35,15 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
-import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
-import password.pwm.http.PwmURL;
-import password.pwm.http.filter.SessionFilter;
+import password.pwm.http.*;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.i18n.Message;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
-import password.pwm.ws.server.RestResultBean;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,101 +57,8 @@ public class ServletHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(ServletHelper.class);
 
-    /**
-     * Wrapper for {@link #forwardToErrorPage(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, boolean)} )}
-     * with forceLogout=true;
-     *
-     * @param req        Users http request
-     * @param resp       Users http response
-     * @param theContext The Servlet context
-     * @throws java.io.IOException            if there is an error writing to the response
-     * @throws javax.servlet.ServletException if there is a problem accessing the http objects
-     */
-    public static void forwardToErrorPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final ServletContext theContext
-    )
-            throws IOException, ServletException {
-        forwardToErrorPage(req, resp, true);
-    }
 
-    /**
-     * Forwards the user to the error page.  Callers to this method should populate the session bean's
-     * session error state.  If the session error state is null, then this method will populate it
-     * with a generic unknown error.
-     *
-     *
-     * @param req         Users http request
-     * @param resp        Users http response
-     * @param forceLogout if the user should be unauthenticated after showing the error
-     * @throws java.io.IOException            if there is an error writing to the response
-     * @throws javax.servlet.ServletException if there is a problem accessing the http objects
-     */
-    public static void forwardToErrorPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp,
-            final boolean forceLogout
-    )
-            throws IOException, ServletException {
-        try {
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.ERROR);
-            if (forceLogout) {
-                PwmSession.getPwmSession(req).unauthenticateUser();
-            }
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to error page: " + e.toString());
-        }
-    }
 
-    public static void forwardToLoginPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException {
-        final String loginServletURL = req.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
-        try{
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(loginServletURL, req, resp));
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to error page: " + e.toString());
-        }
-    }
-
-    public static void forwardToSuccessPage(
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_SUCCESS_PAGES)) {
-            ssBean.setSessionSuccess(null, null);
-            LOGGER.trace(pwmSession, "skipping success page due to configuration setting.");
-            final StringBuilder redirectURL = new StringBuilder();
-            redirectURL.append(req.getContextPath());
-            redirectURL.append("/public/");
-            redirectURL.append(SessionFilter.rewriteURL("CommandServlet",req,resp));
-            redirectURL.append("?processAction=continue");
-            redirectURL.append("&pwmFormID=");
-            redirectURL.append(Helper.buildPwmFormID(pwmSession.getSessionStateBean()));
-            resp.sendRedirect(redirectURL.toString());
-            return;
-        }
-
-        try {
-
-            if (ssBean.getSessionSuccess() == null) {
-                ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
-            }
-
-            ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.SUCCESS);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("unexpected error sending user to success page: " + e.toString());
-        }
-    }
 
     public static String debugHttpHeaders(final HttpServletRequest req) {
         final StringBuilder sb = new StringBuilder();
@@ -218,7 +116,7 @@ public class ServletHelper {
         }
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        final PwmResponse resp = pwmRequest.getPwmResponse();
 
         if (!resp.isCommitted()) {
             final boolean includeXAmb = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XAMB));
@@ -226,25 +124,38 @@ public class ServletHelper {
             final boolean includeXSessionID = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
             final boolean includeXVersion = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
             final boolean includeXFrameDeny = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
+            final boolean sendNoise = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(
+                    AppProperty.HTTP_HEADER_SEND_XNOISE));
 
             if (fromServlet && includeXAmb) {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Amb", PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
+                resp.setHeader(PwmConstants.HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
             }
 
             if (includeXVersion) {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Version", PwmConstants.SERVLET_VERSION);
+                resp.setHeader(PwmConstants.HttpHeader.XVersion, PwmConstants.SERVLET_VERSION);
             }
 
             if (includeXInstance) {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-Instance", String.valueOf(pwmApplication.getInstanceID()));
+                resp.setHeader(PwmConstants.HttpHeader.XInstance, String.valueOf(pwmApplication.getInstanceID()));
             }
 
             if (includeXSessionID && pwmSession != null) {
-                resp.setHeader("X-" + PwmConstants.PWM_APP_NAME + "-SessionID", pwmSession.getSessionStateBean().getSessionID());
+                resp.setHeader(PwmConstants.HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
             }
 
             if (includeXFrameDeny && fromServlet) {
-                resp.setHeader("X-Frame-Options", "DENY");
+                resp.setHeader(PwmConstants.HttpHeader.XFrameOptions, "DENY");
+            }
+
+            if (sendNoise && fromServlet) {
+                resp.setHeader(
+                        PwmConstants.HttpHeader.XNoise,
+                        PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
+                );
+            }
+
+            if (fromServlet) {
+                resp.setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");
             }
 
             //resp.setHeader("Content-Security-Policy","default-src 'self' 'unsafe-inline' 'unsafe-eval'");
@@ -253,12 +164,11 @@ public class ServletHelper {
                 if (contentPolicy != null && !contentPolicy.isEmpty()) {
                     final String nonce = pwmRequest.getCspNonce();
                     final String expandedPolicy = contentPolicy.replace("%NONCE%", nonce);
-                    resp.setHeader("Content-Security-Policy", expandedPolicy);
+                    resp.setHeader(PwmConstants.HttpHeader.ContentSecurityPolicy, expandedPolicy);
                 }
             }
 
-
-            resp.setHeader("Server",null);
+            resp.setHeader(PwmConstants.HttpHeader.Server,null);
         }
     }
 
@@ -280,11 +190,6 @@ public class ServletHelper {
         return null;
     }
 
-    public static void writeCookie(final HttpServletResponse resp, final String cookieName, final String cookieValue, final int seconds) {
-        final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
-        theCookie.setMaxAge(seconds);
-        resp.addCookie(theCookie);
-    }
 
     public static boolean cookieEquals(final HttpServletRequest req, final String cookieName, final String cookieValue) {
         final String value = readCookie(req, cookieName);
@@ -338,17 +243,6 @@ public class ServletHelper {
         return userIP == null ? "" : userIP;
     }
 
-    public static void outputJsonResult(
-            final HttpServletResponse resp,
-            final RestResultBean restResultBean
-    )
-            throws IOException
-    {
-        final String outputString = restResultBean.toJson();
-        resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
-        resp.getWriter().print(outputString);
-        resp.getWriter().flush();
-    }
 
     public static String readFileUpload(
             final HttpServletRequest req,
@@ -425,44 +319,6 @@ public class ServletHelper {
             }
         }
         return sb.toString();
-    }
-
-    public static void recycleSessions(
-            final PwmApplication pwmApplication,
-            final PwmSession pwmSession,
-            final HttpServletRequest req,
-            final HttpServletResponse resp
-    )
-            throws IOException, ServletException
-    {
-        final boolean recycleEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
-        if (!recycleEnabled) {
-            return;
-        }
-
-        // read the old session data
-        final HttpSession oldSession = req.getSession(true);
-        final Map<String,Object> sessionAttributes = new HashMap<>();
-        final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
-        while (oldSessionAttrNames.hasMoreElements()) {
-            final String attrName = (String)oldSessionAttrNames.nextElement();
-            sessionAttributes.put(attrName, oldSession.getAttribute(attrName));
-        }
-
-        for (final String attrName : sessionAttributes.keySet()) {
-            oldSession.removeAttribute(attrName);
-        }
-
-        //invalidate the old session
-        oldSession.invalidate();
-
-        // make a new session
-        final HttpSession newSession = req.getSession(true);
-
-        // write back all the session data
-        for (final String attrName : sessionAttributes.keySet()) {
-            newSession.setAttribute(attrName, sessionAttributes.get(attrName));
-        }
     }
 
     public static void handleRequestInitialization(
@@ -674,20 +530,4 @@ public class ServletHelper {
         return output.toString();
     }
 
-    public static void forwardToJsp(
-            final HttpServletRequest request,
-            final HttpServletResponse response,
-            final PwmConstants.JSP_URL jspURL
-    )
-            throws ServletException, IOException, PwmUnrecoverableException
-    {
-        final ServletContext servletContext = request.getSession().getServletContext();
-        final String url = jspURL.getPath();
-        try {
-            LOGGER.trace(PwmSession.getPwmSession(request), "forwarding to " + url);
-        } catch (Exception e) {
-            /* noop, server may not be up enough to do the log output */
-        }
-        servletContext.getRequestDispatcher(url).forward(request, response);
-    }
 }

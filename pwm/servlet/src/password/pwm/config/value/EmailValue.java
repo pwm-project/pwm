@@ -34,7 +34,7 @@ import password.pwm.util.JsonUtil;
 import java.util.*;
 
 public class EmailValue extends AbstractValue implements StoredValue {
-    final Map<String,EmailItemBean> values;
+    final Map<String,EmailItemBean> values; //key is locale identifier
 
     EmailValue(final Map<String,EmailItemBean> values) {
         this.values = values;
@@ -167,7 +167,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
 
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
-            if (values == null || values.size() < 1 || values.get(0) == null) {
+            if (values == null || values.isEmpty() || values.values().iterator().next() == null) {
                 return Collections.singletonList("required value missing");
             }
         }
@@ -190,4 +190,23 @@ public class EmailValue extends AbstractValue implements StoredValue {
 
         return Collections.emptyList();
     }
+
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (final String localeKey : values.keySet()) {
+                final EmailItemBean emailItemBean = values.get(localeKey);
+                sb.append("EmailItem ").append(localeKey).append(": \n");
+                sb.append("  To:").append(emailItemBean.getTo()).append("\n");
+                sb.append("From:").append(emailItemBean.getFrom()).append("\n");
+                sb.append("Subj:").append(emailItemBean.getSubject()).append("\n");
+                sb.append("Body:").append(emailItemBean.getBodyPlain()).append("\n");
+                sb.append("Html:").append(emailItemBean.getBodyHtml()).append("\n");
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeMap(values);
+        }
+    }
+
 }

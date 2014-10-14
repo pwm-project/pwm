@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,26 +23,21 @@
 package password.pwm.bean;
 
 
+import password.pwm.util.JsonUtil;
+
 import java.io.Serializable;
 
 public class SmsItemBean implements Serializable {
     private String to;
-    private String from;
     private String message;
-    private Integer partlength;
-    private Integer pos = 0;
 
     // --------------------------- CONSTRUCTORS ---------------------------
     public SmsItemBean(
             final String to,
-            final String from,
-            final String message,
-            final Integer partlength
+            final String message
     ) {
         this.to = to;
-        this.from = from;
         this.message = message;
-        this.partlength = partlength;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -55,43 +50,11 @@ public class SmsItemBean implements Serializable {
         this.message = message;
     }
 
-    public String getFrom() {
-        return from;
-    }
-
     public String getTo() {
         return to;
     }
     
-    public boolean hasNextPart() {
-        return (pos < message.length());
-    }
-
-    public String getNextPart() {
-        String ret = "";
-        Integer l = message.length();
-        Integer s = l - pos;
-        if (s > partlength) {
-            s = partlength;
-        }
-        if (s > 0) {
-            ret = message.substring(pos, pos+s);
-            pos += s;
-        }
-        return ret;
-    }
-
-    public void reset() {
-        pos = 0;
-    }
-
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("from: ").append(from).append(", to: ").append(to);
-        return sb.toString();
-    }
-
-    public Integer getPartlength() {
-        return partlength;
+        return "SMS Item: " + JsonUtil.serialize(this);
     }
 }

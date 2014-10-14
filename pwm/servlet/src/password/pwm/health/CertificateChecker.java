@@ -82,7 +82,7 @@ public class CertificateChecker implements HealthChecker {
             checkCertificate(certificate, warnDurationMs);
             return Collections.emptyList();
         } catch (PwmOperationalException e) {
-            final HealthRecord record = new HealthRecord(HealthStatus.WARN,"Certificates",e.getErrorInformation().toDebugStr());
+            final HealthRecord record = new HealthRecord(HealthStatus.WARN, HealthTopic.Configuration,e.getErrorInformation().toDebugStr());
             return Collections.singletonList(record);
         }
     }

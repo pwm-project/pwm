@@ -53,7 +53,7 @@
             </form>
         </div>
         <div style="text-align: center">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='NewUser'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='NewUser'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <button type="submit" name="button" class="btn" id="button_reset">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>

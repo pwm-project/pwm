@@ -20,13 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.policy;
 
 import password.pwm.PwmConstants;
+import password.pwm.config.*;
 
 import java.util.*;
 
-public class HelpdeskProfile extends AbstractProfile implements Profile{
+public class HelpdeskProfile extends AbstractProfile implements Profile {
     final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(
             PwmSettingCategory.HELPDESK_PROFILE));
 
@@ -35,7 +36,7 @@ public class HelpdeskProfile extends AbstractProfile implements Profile{
     }
 
 
-    static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
+    public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
         for (final PwmSetting setting : HELPDESK_PROFILE_SETTINGS) {
             final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);

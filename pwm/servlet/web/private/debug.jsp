@@ -69,7 +69,7 @@
             <% } %>
         </table>
         <div id="buttonbar">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input tabindex="2" type="submit" name="continue_btn" class="btn"
                        value="    <pwm:display key="Button_Continue"/>    "/>

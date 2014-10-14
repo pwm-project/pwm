@@ -177,7 +177,7 @@ public class NewUserServlet extends PwmServlet {
             }
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             this.advancedToNextStage(pwmRequest, newUserBean);
         }
     }

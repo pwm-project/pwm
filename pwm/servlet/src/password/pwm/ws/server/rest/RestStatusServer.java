@@ -26,7 +26,7 @@ import password.pwm.PwmService;
 import password.pwm.bean.PasswordStatus;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.PwmPasswordRule;
+import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;

@@ -42,7 +42,6 @@ import password.pwm.event.AuditEvent;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
-import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -182,7 +181,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmRequest.getPwmSession().clearForgottenPasswordBean();
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             this.advancedToNextStage(pwmRequest);
         }
     }
@@ -596,11 +595,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmSession.getUserInfoBean().setRequiresNewPassword(true);
 
             // redirect user to change password screen.
-            pwmRequest.getHttpServletResponse().sendRedirect(
-                    SessionFilter.rewriteRedirectURL(PwmConstants.URL_SERVLET_CHANGE_PASSWORD,
-                            pwmRequest.getHttpServletRequest(),
-                            pwmRequest.getHttpServletResponse()
-                    ));
+            pwmRequest.sendRedirect(PwmConstants.URL_SERVLET_CHANGE_PASSWORD);
         } catch (PwmUnrecoverableException e) {
             LOGGER.warn(pwmSession,
                     "unexpected error authenticating during forgotten password recovery process user: " + e.getMessage());

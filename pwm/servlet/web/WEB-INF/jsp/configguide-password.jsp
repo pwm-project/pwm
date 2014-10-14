@@ -32,9 +32,9 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -89,9 +89,9 @@
                         <input type="<pwm:value name="passwordFieldType"/>" id="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" name="<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>" class="passwordfield"/>
                         <div style="display: inline; padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
-                                 src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">
+                                 src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
-                                 src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">
+                                 src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
                         </div>
                         <pwm:script>
                         <script type="text/javascript">

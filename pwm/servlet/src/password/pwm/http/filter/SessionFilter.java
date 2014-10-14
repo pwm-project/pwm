@@ -33,11 +33,14 @@ import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
+import password.pwm.http.PwmResponse;
 import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
-import password.pwm.util.*;
+import password.pwm.util.Helper;
+import password.pwm.util.ServletHelper;
+import password.pwm.util.StringUtil;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
@@ -77,36 +80,31 @@ public class SessionFilter implements Filter {
         final HttpServletRequest req = (HttpServletRequest) servletRequest;
         final HttpServletResponse resp = (HttpServletResponse) servletResponse;
 
+        PwmRequest pwmRequest = null;
         try {
-            processFilter(req,resp,filterChain);
+            pwmRequest = PwmRequest.forRequest(req, resp);
+            processFilter(pwmRequest,filterChain);
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
-            ServletHelper.forwardToErrorPage(req,resp,true);
+            if (pwmRequest != null) {
+                pwmRequest.respondWithError(e.getErrorInformation(), true);
+            }
         }
     }
 
-    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
+    private void processFilter(final PwmRequest pwmRequest, final FilterChain filterChain)
             throws PwmUnrecoverableException, IOException, ServletException
     {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
+        final PwmResponse resp = pwmRequest.getPwmResponse();
 
-        ServletHelper.handleRequestInitialization(req, pwmApplication, pwmSession);
-
-        {
-            final boolean sendNoise = Boolean.parseBoolean(config.readAppProperty(AppProperty.HTTP_HEADER_SEND_XNOISE));
-            if (sendNoise) {
-                try {
-                    resp.setHeader( "X-" + PwmConstants.PWM_APP_NAME + "-Noise", PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10));
-                } catch (Exception e) { /* noop */ }
-            }
-        }
+        ServletHelper.handleRequestInitialization(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
 
         try {
-            ServletHelper.handleRequestSecurityChecks(req, pwmApplication, pwmSession);
+            ServletHelper.handleRequestSecurityChecks(pwmRequest.getHttpServletRequest(), pwmApplication, pwmSession);
         } catch (PwmUnrecoverableException e) {
             LOGGER.error(pwmRequest, e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -117,8 +115,8 @@ public class SessionFilter implements Filter {
         }
 
         // mark last url
-        if (!new PwmURL(req).isCommandServletURL()) {
-            ssBean.setLastRequestURL(req.getRequestURI());
+        if (!new PwmURL(pwmRequest.getHttpServletRequest()).isCommandServletURL()) {
+            ssBean.setLastRequestURL(pwmRequest.getHttpServletRequest().getRequestURI());
         }
 
         // mark last request time.
@@ -126,7 +124,7 @@ public class SessionFilter implements Filter {
 
         // debug the http session headers
         if (!pwmSession.getSessionStateBean().isDebugInitialized()) {
-            LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(req));
+            LOGGER.trace(pwmSession, ServletHelper.debugHttpHeaders(pwmRequest.getHttpServletRequest()));
             pwmSession.getSessionStateBean().setDebugInitialized(true);
         }
 
@@ -137,7 +135,7 @@ public class SessionFilter implements Filter {
         if (checkPageLeaveNotice(pwmSession, config)) {
             LOGGER.warn("invalidating session due to dirty page leave time greater then configured timeout");
             pwmSession.invalidate();
-            resp.sendRedirect(req.getRequestURI());
+            resp.sendRedirect(pwmRequest.getHttpServletRequest().getRequestURI());
             return;
         }
 
@@ -148,7 +146,7 @@ public class SessionFilter implements Filter {
         handleThemeParam(pwmRequest);
 
         // make sure connection is secure.
-        if (config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !req.isSecure()) {
+        if (config.readSettingAsBoolean(PwmSetting.REQUIRE_HTTPS) && !pwmRequest.getHttpServletRequest().isSecure()) {
             pwmRequest.respondWithError(PwmError.ERROR_SECURE_REQUEST_REQUIRED.toInfo());
             return;
         }
@@ -215,12 +213,11 @@ public class SessionFilter implements Filter {
         }
 
         if (!resp.isCommitted()) {
-            resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, proxy-revalidate");
             ServletHelper.addPwmResponseHeaders(pwmRequest, true);
         }
 
         try {
-            filterChain.doFilter(req, resp);
+            filterChain.doFilter(pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse());
         } catch (Exception e) {
             LOGGER.warn(pwmSession, "unhandled exception", e);
             throw new ServletException(e);
@@ -240,40 +237,6 @@ public class SessionFilter implements Filter {
     public void destroy() {
     }
 
-    public static String rewriteURL(final String url, final ServletRequest request, final ServletResponse response) throws PwmUnrecoverableException {
-        if (urlSessionsAllowed(request) && url != null) {
-            final HttpServletResponse resp = (HttpServletResponse) response;
-            final String newURL = resp.encodeURL(resp.encodeURL(url));
-            if (!url.equals(newURL)) {
-                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest) request);
-                LOGGER.trace(pwmSession, "rewriting URL from '" + url + "' to '" + newURL + "'");
-            }
-            return newURL;
-        } else {
-            return url;
-        }
-    }
-
-    public static String rewriteRedirectURL(final String url, final ServletRequest request, final ServletResponse response) throws PwmUnrecoverableException {
-        if (urlSessionsAllowed(request) && url != null) {
-            final HttpServletResponse resp = (HttpServletResponse) response;
-            final String newURL = resp.encodeRedirectURL(resp.encodeURL(url));
-            if (!url.equals(newURL)) {
-                final PwmSession pwmSession = PwmSession.getPwmSession((HttpServletRequest) request);
-                LOGGER.trace(pwmSession, "rewriting redirect URL from '" + url + "' to '" + newURL + "'");
-            }
-            return newURL;
-        } else {
-            return url;
-        }
-    }
-
-    private static boolean urlSessionsAllowed(final ServletRequest request) throws PwmUnrecoverableException {
-        final HttpServletRequest req = (HttpServletRequest) request;
-        final PwmApplication theManager = ContextManager.getPwmApplication(req);
-        return theManager != null && theManager.getConfig() != null && theManager.getConfig().readSettingAsBoolean(PwmSetting.ALLOW_URL_SESSIONS);
-    }
-
     /**
      * Attempt to determine if user agent is able to track sessions (either via url rewriting or cookies).
      */
@@ -285,7 +248,7 @@ public class SessionFilter implements Filter {
     {
         final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+        final PwmResponse pwmResponse = pwmRequest.getPwmResponse();
 
         if (pwmRequest.getURL().isCommandServletURL()) {
             return false;
@@ -300,12 +263,12 @@ public class SessionFilter implements Filter {
 
             LOGGER.trace(pwmRequest, "session has not been validated, redirecting with verification key to " + returnURL);
 
-            resp.setHeader("Connection","close");  // better chance of detecting un-sticky sessions this way
+            pwmResponse.setHeader(PwmConstants.HttpHeader.Connection, "close");  // better chance of detecting un-sticky sessions this way
             if (mode == SessionVerificationMode.VERIFY_AND_CACHE) {
                 req.setAttribute("Location",returnURL);
-                ServletHelper.forwardToJsp(req, resp, PwmConstants.JSP_URL.INIT);
+                pwmResponse.forwardToJsp(PwmConstants.JSP_URL.INIT);
             } else {
-                resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
+                pwmResponse.sendRedirect(returnURL);
             }
             return true;
         }
@@ -317,7 +280,7 @@ public class SessionFilter implements Filter {
             // session looks, good, mark it as such and return;
             LOGGER.trace(pwmRequest, "session validated, redirecting to original request url: " + returnURL);
             ssBean.setSessionVerified(true);
-            resp.sendRedirect(SessionFilter.rewriteRedirectURL(returnURL, req, resp));
+            pwmRequest.getPwmResponse().sendRedirect(returnURL);
             return true;
         }
 
@@ -397,7 +360,7 @@ public class SessionFilter implements Filter {
                 final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
                 newCookie.setMaxAge(Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_AGE)));
                 newCookie.setPath(pwmRequest.getContextPath() + "/");
-                pwmRequest.getHttpServletResponse().addCookie(newCookie);
+                pwmRequest.getPwmResponse().addCookie(newCookie);
             }
         }
     }
@@ -421,7 +384,7 @@ public class SessionFilter implements Filter {
                 if (configuredTheme != null && configuredTheme.equalsIgnoreCase(themeReqParameter)) {
                     newCookie.setMaxAge(0);
                 }
-                pwmRequest.getHttpServletResponse().addCookie(newCookie);
+                pwmRequest.getPwmResponse().addCookie(newCookie);
             }
         }
 

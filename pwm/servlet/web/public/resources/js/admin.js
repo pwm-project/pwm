@@ -673,9 +673,9 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
             htmlBody += loopRecord['topic'];
             htmlBody += '</td><td class="health-' + loopRecord['status'] + '">';
             htmlBody += loopRecord['status'];
-            htmlBody += "</td><td>";
+            htmlBody += '</td><td><div style="max-height: 200px; overflow: auto">';
             htmlBody += loopRecord['detail'];
-            htmlBody += "</td></tr>";
+            htmlBody += '</div></td></tr>';
         })(i)
     }
     if (showTimestamp || showRefresh) {

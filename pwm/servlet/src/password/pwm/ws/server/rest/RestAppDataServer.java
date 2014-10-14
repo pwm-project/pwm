@@ -41,7 +41,6 @@ import password.pwm.event.UserAuditRecord;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.http.filter.SessionFilter;
 import password.pwm.http.servlet.ResourceFileServlet;
 import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
@@ -423,13 +422,13 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("startupTime",pwmApplication.getStartupTime());
         settingMap.put("applicationMode",pwmApplication.getApplicationMode());
 
-        settingMap.put("url-context",request.getContextPath());
-        settingMap.put("url-logout",request.getContextPath() + SessionFilter.rewriteURL("/public/Logout?idle=true",
-                request, response));
-        settingMap.put("url-command",request.getContextPath() + SessionFilter.rewriteURL("/public/CommandServlet", request, response));
-        settingMap.put("url-resources",request.getContextPath() + SessionFilter.rewriteURL("/public/resources" + ResourceFileServlet.makeResourcePathNonce(pwmApplication), request, response));
-        settingMap.put("url-restservice",request.getContextPath() + SessionFilter.rewriteURL("/public/rest", request, response));
-        settingMap.put("url-setupresponses",request.getContextPath() + SessionFilter.rewriteURL("/private/SetupResponses", request, response));
+        final String contextPath = request.getContextPath();
+        settingMap.put("url-context", contextPath);
+        settingMap.put("url-logout", contextPath + "/public/Logout?idle=true");
+        settingMap.put("url-command", contextPath + "/public/CommandServlet");
+        settingMap.put("url-resources", contextPath + "/public/resources" + ResourceFileServlet.makeResourcePathNonce(pwmApplication));
+        settingMap.put("url-restservice", contextPath + "/public/rest");
+        settingMap.put("url-setupresponses",contextPath + "/private/SetupResponses");
 
         {
             String passwordGuideText = pwmApplication.getConfig().readSettingAsLocalizedString(PwmSetting.DISPLAY_PASSWORD_GUIDE_TEXT,pwmSession.getSessionStateBean().getLocale());

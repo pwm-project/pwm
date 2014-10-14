@@ -37,6 +37,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
 import password.pwm.health.HealthStatus;
+import password.pwm.health.HealthTopic;
 import password.pwm.util.ClosableIterator;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
@@ -159,7 +160,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             preOperationCheck();
         } catch (DatabaseException e) {
             lastError = e.getErrorInformation();
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Database server is not available: " + e.getErrorInformation().toDebugStr()));
+            returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Database, "Database server is not available: " + e.getErrorInformation().toDebugStr()));
             return returnRecords;
         }
 
@@ -170,7 +171,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             tempMap.put("date",(new java.util.Date()).toString());
             this.put(DatabaseTable.PWM_META, DatabaseAccessorImpl.KEY_TEST, gson.toJson(tempMap));
         } catch (PwmException e) {
-            returnRecords.add(new HealthRecord(HealthStatus.WARN, "Database", "Error writing to database: " + e.getErrorInformation().toDebugStr()));
+            returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr()));
             return returnRecords;
         }
 
@@ -178,12 +179,12 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             final TimeDuration errorAge = TimeDuration.fromCurrent(lastError.getDate().getTime());
 
             if (errorAge.isShorterThan(TimeDuration.HOUR)) {
-                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, "Database", "Database server was recently unavailable (" + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE) + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
+                returnRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Database, "Database server was recently unavailable (" + errorAge.asLongString(PwmConstants.DEFAULT_LOCALE) + " ago at " + lastError.getDate().toString()+ "): " + lastError.toDebugStr()));
             }
         }
 
         if (returnRecords.isEmpty()) {
-            returnRecords.add(new HealthRecord(HealthStatus.GOOD, "Database", "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
+            returnRecords.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.Database, "Database connection to " + this.dbConfiguration.getConnectionString() + " okay"));
         }
 
         return returnRecords;

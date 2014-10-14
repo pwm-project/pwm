@@ -682,8 +682,6 @@ public class TokenService implements PwmService {
                 throws PwmUnrecoverableException, ChaiUnavailableException
         {
             final Configuration config = pwmApplication.getConfig();
-            String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-            if (senderId == null) { senderId = ""; }
 
             if (smsNumber == null || smsNumber.length() < 1) {
                 return false;
@@ -693,8 +691,7 @@ public class TokenService implements PwmService {
 
             pwmApplication.getIntruderManager().mark(RecordType.TOKEN_DEST, smsNumber, null);
 
-            final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-            pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, senderId, modifiedMessage, maxlen), macroMachine);
+            pwmApplication.sendSmsUsingQueue(new SmsItemBean(smsNumber, modifiedMessage), macroMachine);
             LOGGER.debug("token SMS added to send queue for " + smsNumber);
             return true;
         }

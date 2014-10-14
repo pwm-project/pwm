@@ -156,7 +156,7 @@ public class ActivateUserServlet extends PwmServlet {
             }
         }
 
-        if (!pwmRequest.getHttpServletResponse().isCommitted()) {
+        if (!pwmRequest.getPwmResponse().isCommitted()) {
             this.advanceToNextStage(pwmRequest);
         }
     }
@@ -497,8 +497,6 @@ public class ActivateUserServlet extends PwmServlet {
         final UserDataReader userDataReader = pwmSession.getSessionManager().getUserDataReader(pwmApplication);
         final Locale locale = pwmSession.getSessionStateBean().getLocale();
 
-        String senderId = config.readSettingAsString(PwmSetting.SMS_SENDER_ID);
-        if (senderId == null) { senderId = ""; }
         final String message = config.readSettingAsLocalizedString(PwmSetting.SMS_ACTIVATION_TEXT, locale);
 
         final String toSmsNumber;
@@ -514,8 +512,7 @@ public class ActivateUserServlet extends PwmServlet {
             return false;
         }
 
-        final Integer maxlen = ((Long) config.readSettingAsLong(PwmSetting.SMS_MAX_TEXT_LENGTH)).intValue();
-        final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, senderId, message, maxlen);
+        final SmsItemBean smsItem = new SmsItemBean(toSmsNumber, message);
         pwmApplication.sendSmsUsingQueue(smsItem, pwmSession.getSessionManager().getMacroMachine(pwmApplication));
         return true;
     }

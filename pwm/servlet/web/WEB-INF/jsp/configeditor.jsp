@@ -45,7 +45,7 @@
 <% final ConfigManagerBean configManagerBean = PwmSession.getPwmSession(session).getConfigManagerBean(); %>
 <% final PwmSettingCategory category = cookie.getCategory(); %>
 <body class="nihilo">
-<link href="<%=request.getContextPath()%><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
+<link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <pwm:script>
 <script type="text/javascript">
     var PWM_VAR = PWM_VAR || {};
@@ -62,6 +62,7 @@
         <div id="header-center">
             <div id="header-title">
                 <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS) { %>
+                <% if (category != null) { %>
                 <% if (category.getType() == PwmSettingCategory.Type.SETTING) { %>
                 Settings - <%=category.getLabel(locale)%>
                 <% } else if (category.hasProfiles()) { %>
@@ -72,6 +73,7 @@
                 <% } else { %>
                 <% final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = cookie.getLocaleBundle(); %>
                 Custom Text - <%=bundleName.getTheClass().getSimpleName()%>
+                <% } %>
                 <% } %>
                 <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-spinner fa-spin"></span>
                 <div class="headerIcon" style="float: right" id="cancelButton_icon" onclick="PWM_CFGEDIT.cancelEditing()">
@@ -120,7 +122,9 @@
         --%>
         <div id="mainContentPane" style="width: 600px;float:left; background-color: white">
             <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.SETTINGS || cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE) { %>
-            <% if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.hasProfiles()) { %>
+            <% if (cookie.getCategory() == null) { %>
+            <jsp:include page="/WEB-INF/jsp/configeditor-home.jsp"/>
+            <% } else if (cookie.getEditMode() == ConfigEditorCookie.EDIT_MODE.PROFILE || category.hasProfiles()) { %>
             <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_PROFILE.getPath()%>"/>
             <% } else { %>
             <jsp:include page="<%=PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SETTINGS.getPath()%>"/>
@@ -144,9 +148,9 @@
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>
 </html>

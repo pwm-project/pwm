@@ -474,11 +474,11 @@ public class SetupOtpServlet extends PwmServlet {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg));
         }
 
-        pwmRequest.getHttpServletResponse().setContentType(PwmConstants.ContentTypeValue.png.getHeaderValue());
+        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.png);
 
         OutputStream outputStream = null;
         try {
-            outputStream = pwmRequest.getHttpServletResponse().getOutputStream();
+            outputStream = pwmRequest.getPwmResponse().getOutputStream();
             IOUtils.copy(new ByteArrayInputStream(imageBytes), outputStream);
             outputStream.flush();
         } catch (Exception e) {

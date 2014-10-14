@@ -43,7 +43,7 @@
 </table>
 <% } %>
 <% if (files.isEmpty()) { %>
-No file stored<br/><br/>
+No file present<br/><br/>
 <% } else { %>
 <button id="<%=loopSetting.getKey()%>_RemoveButton">Remove File</button>
 <% } %>

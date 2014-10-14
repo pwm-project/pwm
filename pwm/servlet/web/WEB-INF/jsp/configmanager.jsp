@@ -344,8 +344,8 @@
 
     </script>
 </pwm:script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url="/public/resources/js/admin.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <div><%@ include file="fragment/footer.jsp" %></div>
 </body>

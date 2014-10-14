@@ -30,11 +30,11 @@ import com.novell.ldapchai.impl.oracleds.entry.OracleDSEntries;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.PwmPasswordPolicy;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -95,18 +95,23 @@ class AuthenticationRequest {
 
         log(PwmLogLevel.TRACE, "beginning authentication using unknown password procedure");
 
-        PasswordData userPassword = learnUserPassword();
-
-        if (userPassword != null) {
-            strategy = AuthenticationStrategy.READ_THEN_BIND;
+        PasswordData userPassword = null;
+        final boolean configAlwaysUseProxy = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
+        if (configAlwaysUseProxy) {
+            strategy = AuthenticationStrategy.ADMIN_PROXY;
         } else {
-            userPassword = setTempUserPassword();
+            userPassword = learnUserPassword();
             if (userPassword != null) {
-                strategy = AuthenticationStrategy.WRITE_THEN_BIND;
+                strategy = AuthenticationStrategy.READ_THEN_BIND;
+            } else {
+                userPassword = setTempUserPassword();
+                if (userPassword != null) {
+                    strategy = AuthenticationStrategy.WRITE_THEN_BIND;
+                }
             }
-        }
-        if (userPassword == null) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"no available unknown-pw authentication method"));
+            if (userPassword == null) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"no available unknown-pw authentication method"));
+            }
         }
 
         try {
@@ -147,41 +152,52 @@ class AuthenticationRequest {
         intruderManager.check(RecordType.ADDRESS, sessionLabel.getSrcAddress());
 
         boolean allowBindAsUser = true;
-        try {
-            testCredentials(userIdentity, password);
-        } catch (PwmOperationalException e) {
-            boolean permitAuthDespiteError = false;
-            final ChaiProvider.DIRECTORY_VENDOR vendor = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID()).getDirectoryVendor();
-            if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError()) {
-                if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                        log(PwmLogLevel.INFO, "auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
-                        allowBindAsUser = false;
-                        permitAuthDespiteError = true;
-                    }
-                } else if (vendor == ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS) {
-                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                        log(PwmLogLevel.INFO, "auth bind failed, but will allow login due to 'pwdReset' user attribute, error: " + e.getErrorInformation().toDebugStr());
-                        allowBindAsUser = false;
-                        permitAuthDespiteError = true;
-                    }
-                }
-            } else if (PwmError.PASSWORD_EXPIRED == e.getError()) { // handle ad case where password is expired
-                if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
-                    if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
-                        if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
-                            throw e;
-                        }
-                        log(PwmLogLevel.INFO, "auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
-                        allowBindAsUser = false;
-                        permitAuthDespiteError = true;
-                    }
-                }
-            }
+        if (strategy == AuthenticationStrategy.ADMIN_PROXY) {
+            allowBindAsUser = false;
+        }
 
-            if (!permitAuthDespiteError) {    // auth failed, presumably due to wrong password.
-                statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
-                throw e;
+        if (allowBindAsUser) {
+            try {
+                testCredentials(userIdentity, password);
+            } catch (PwmOperationalException e) {
+                boolean permitAuthDespiteError = false;
+                final ChaiProvider.DIRECTORY_VENDOR vendor = pwmApplication.getProxyChaiProvider(
+                        userIdentity.getLdapProfileID()).getDirectoryVendor();
+                if (PwmError.PASSWORD_NEW_PASSWORD_REQUIRED == e.getError()) {
+                    if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                            log(PwmLogLevel.INFO,
+                                    "auth bind failed, but will allow login due to 'must change password on next login AD error', error: " + e.getErrorInformation().toDebugStr());
+                            allowBindAsUser = false;
+                            permitAuthDespiteError = true;
+                        }
+                    } else if (vendor == ChaiProvider.DIRECTORY_VENDOR.ORACLE_DS) {
+                        if (pwmApplication.getConfig().readSettingAsBoolean(
+                                PwmSetting.ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                            log(PwmLogLevel.INFO,
+                                    "auth bind failed, but will allow login due to 'pwdReset' user attribute, error: " + e.getErrorInformation().toDebugStr());
+                            allowBindAsUser = false;
+                            permitAuthDespiteError = true;
+                        }
+                    }
+                } else if (PwmError.PASSWORD_EXPIRED == e.getError()) { // handle ad case where password is expired
+                    if (vendor == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY) {
+                        if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_REQUIRE_NEW_PWD)) {
+                            if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_ALLOW_AUTH_EXPIRED)) {
+                                throw e;
+                            }
+                            log(PwmLogLevel.INFO,
+                                    "auth bind failed, but will allow login due to 'password expired AD error', error: " + e.getErrorInformation().toDebugStr());
+                            allowBindAsUser = false;
+                            permitAuthDespiteError = true;
+                        }
+                    }
+                }
+
+                if (!permitAuthDespiteError) {    // auth failed, presumably due to wrong password.
+                    statisticsManager.incrementValue(Statistic.AUTHENTICATION_FAILURES);
+                    throw e;
+                }
             }
         }
 
@@ -344,7 +360,6 @@ class AuthenticationRequest {
         final ChaiProvider chaiProvider = pwmApplication.getProxyChaiProvider(userIdentity.getLdapProfileID());
         final ChaiUser chaiUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), chaiProvider);
 
-
         // try setting a random password on the account to authenticate.
         if (!configAlwaysUseProxy && requestedAuthType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE) {
             log(PwmLogLevel.DEBUG, "attempting to set temporary random password");
@@ -467,7 +482,6 @@ class AuthenticationRequest {
         final boolean authIsFromForgottenPw = authenticationType == AuthenticationType.AUTH_FROM_PUBLIC_MODULE;
         final boolean alwaysUseProxyIsEnabled = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.AD_USE_PROXY_FOR_FORGOTTEN);
         final boolean passwordNotPresent = userPassword == null;
-
 
         if (authIsFromForgottenPw && (alwaysUseProxyIsEnabled || passwordNotPresent)) {
             final LdapProfile profile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());

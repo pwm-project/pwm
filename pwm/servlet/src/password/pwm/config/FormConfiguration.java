@@ -154,12 +154,20 @@ public class FormConfiguration implements Serializable {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, labels);
     }
 
+    public Map<String,String> getLabelLocaleMap() {
+        return Collections.unmodifiableMap(this.labels);
+    }
+
     public String getRegexError(final Locale locale) {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, regexErrors);
     }
 
     public String getDescription(final Locale locale) {
         return LocaleHelper.resolveStringKeyLocaleMap(locale, description);
+    }
+
+    public Map<String,String> getLabelDescriptionLocaleMap() {
+        return Collections.unmodifiableMap(this.description);
     }
 
     public int getMaximumLength() {

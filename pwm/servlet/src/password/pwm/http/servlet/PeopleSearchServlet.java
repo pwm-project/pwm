@@ -46,7 +46,6 @@ import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
 import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.logging.PwmLogger;
@@ -56,8 +55,8 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.*;
 
@@ -241,7 +240,7 @@ public class PeopleSearchServlet extends PwmServlet {
                         }.getType());
                 final RestResultBean restResultBean = new RestResultBean();
                 restResultBean.setData(resultOutput);
-                ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+                pwmRequest.outputJsonResult(restResultBean);
                 LOGGER.trace(pwmRequest.getPwmSession(), "finished rest peoplesearch search using CACHE in " + TimeDuration.fromCurrent(
                         startTime).asCompactString() + ", size=" + resultOutput.size());
 
@@ -264,7 +263,7 @@ public class PeopleSearchServlet extends PwmServlet {
             emptyResults.put("sizeExceeded", false);
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(emptyResults);
-            ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
 
@@ -294,7 +293,7 @@ public class PeopleSearchServlet extends PwmServlet {
             LOGGER.error(pwmRequest.getSessionLabel(), errorInformation.toDebugStr());
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(new ArrayList<Map<String, String>>());
-            ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+            pwmRequest.outputJsonResult(restResultBean);
             return;
         }
 
@@ -305,7 +304,7 @@ public class PeopleSearchServlet extends PwmServlet {
                 new ArrayList<>(results.resultsAsJsonOutput(pwmRequest.getPwmApplication())));
         outputData.put("sizeExceeded", sizeExceeded);
         restResultBean.setData(outputData);
-        ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
         final long maxCacheSeconds = pwmRequest.getConfig().readSettingAsLong(PwmSetting.PEOPLE_SEARCH_MAX_CACHE_SECONDS);
         if (maxCacheSeconds > 0) {
             final Date expiration = new Date(System.currentTimeMillis() * maxCacheSeconds * 1000);
@@ -382,7 +381,7 @@ public class PeopleSearchServlet extends PwmServlet {
                         }.getType());
                 final RestResultBean restResultBean = new RestResultBean();
                 restResultBean.setData(resultOutput);
-                ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+                pwmRequest.outputJsonResult(restResultBean);
                 LOGGER.trace(pwmRequest.getPwmSession(), "finished rest detail request in " + TimeDuration.fromCurrent(
                         startTime).asCompactString() + "using CACHED details, results=" + JsonUtil.getGson(
                         new GsonBuilder().disableHtmlEscaping()).toJson(restResultBean));
@@ -424,7 +423,7 @@ public class PeopleSearchServlet extends PwmServlet {
 
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(resultOutput);
-        ServletHelper.outputJsonResult(pwmRequest.getHttpServletResponse(), restResultBean);
+        pwmRequest.outputJsonResult(restResultBean);
         LOGGER.trace(pwmRequest.getPwmSession(), "finished rest detail request in " + TimeDuration.fromCurrent(
                 startTime).asCompactString() + ", results=" + JsonUtil.getGson(
                 new GsonBuilder().disableHtmlEscaping()).toJson(restResultBean));
@@ -502,17 +501,23 @@ public class PeopleSearchServlet extends PwmServlet {
         LOGGER.info(pwmRequest,
                 "received user photo request by " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
 
+
+
+        OutputStream outputStream = null;
         try {
-            final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
+            outputStream = pwmRequest.getPwmResponse().getOutputStream();
+            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "cache-control: private, max-age=3600");
             final ChaiUser chaiUser = getChaiUser(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
-            byte[][] photoData = chaiUser.readMultiByteAttribute("photo");
+            byte[][] photoData = chaiUser.readMultiByteAttribute(attribute);
             if (photoData != null && photoData.length > 0) {
-                resp.getOutputStream().write(photoData[0]);
-                resp.getOutputStream().close();
+                outputStream.write(photoData[0]);
             }
-            resp.setHeader("Cache-Control", "cache-control: private, max-age=3600");
         } catch (ChaiOperationException e) {
             e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                outputStream.close();
+            }
         }
     }
 

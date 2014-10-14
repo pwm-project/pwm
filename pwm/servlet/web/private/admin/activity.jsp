@@ -80,7 +80,7 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                             Download as CSV
@@ -101,7 +101,7 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="<%=request.getContextPath()%><pwm:url url="/private/CommandServlet"/>" method="GET">
+                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
                         <button type="submit" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
                             Download as CSV

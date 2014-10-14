@@ -244,6 +244,22 @@ PWM_MAIN.applyFormAttributes = function() {
                 });
             }
         );
+
+        array.forEach(
+            query("a"),
+            function(linkElement){
+                var hrefValue = linkElement.getAttribute('href');
+                if (hrefValue) {
+                    on(linkElement, "click", function (event) {
+                        event.preventDefault();
+                        PWM_MAIN.showWaitDialog({loadFunction: function () {
+                            PWM_MAIN.goto(hrefValue);
+                        }});
+                    });
+                    linkElement.removeAttribute('href');
+                }
+            }
+        );
     });
 };
 
@@ -647,11 +663,20 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     options = options === undefined ? {} : options;
     var body = '';
     var logMsg = '';
+    var titleMsg = PWM_MAIN.showString('Title_Error');
+    if ('text' in options) {
+        body += options['text'];
+        body += '<br/><br/>';
+        logMsg += options['text'];
+    }
     if (error && error['error']) {
+        titleMsg += ' ' + error['errorCode'];
+        logMsg += ' ' + error['errorCode'];
+
         body += error['errorMessage'];
         logMsg += error['errorCode'] + "," + error['errorMessage'];
         if (error['errorDetail']) {
-            body += "<br/><br/>" + error['errorDetail'];
+            body += "<br/><br/><div style='max-height: 250px; overflow-y: auto'>" + error['errorDetail'] + '</div>';
             logMsg += ", detail: " + error['errorDetail'];
         }
     } else {
@@ -660,7 +685,7 @@ PWM_MAIN.showErrorDialog = function(error, options) {
     }
 
     console.log('displaying error message: ' + logMsg);
-    options['title'] = PWM_MAIN.showString('Title_Error');
+    options['title'] = titleMsg;
     options['text'] = body;
     PWM_MAIN.showDialog(options);
 };
@@ -698,16 +723,31 @@ PWM_MAIN.showWaitDialog = function(options) {
 PWM_MAIN.showDialog = function(options) {
     options = options || {};
     var title = options['title'] || 'DialogTitle';
-    var text = options['text'] || 'DialogBody';
-    var okAction = 'okAction' in options ? options['okAction'] : function(){};
-    var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){console.log('no-dialog-cancelaction')};
-    var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){console.log('no-dialog-loadfunction')};
-    var width = options['width'] || 350;
+    var text = 'text' in options ? options['text'] : 'DialogBody';
+    var width = 'width' in options ? options['width'] : 350;
+    var closeOnOk = 'closeOnOk' in options ? options['closeOnOk'] : true;
     var showOk = 'showOk' in options ? options['showOk'] : true;
     var showCancel = 'showCancel' in options ? options['showCancel'] : false;
     var showClose = 'showClose' in options ? options['showClose'] : false;
     var allowMove = 'allowMove' in options ? options['allowMove'] : false;
     var idName = 'id' in options ? options['id'] : 'dialogPopup';
+    var okAction = function(){
+        if (closeOnOk) {
+            PWM_MAIN.closeWaitDialog(idName);
+        }
+        if ('okAction' in options) {
+            options['okAction']();
+        } else {
+            console.log('no-dialog-okaction')
+        }
+    };
+    var cancelAction = 'cancelAction' in options ? options['cancelAction'] : function(){
+        PWM_MAIN.closeWaitDialog(idName);
+        console.log('no-dialog-cancelaction')
+    };
+    var loadFunction = 'loadFunction' in options ? options['loadFunction'] : function(){
+        console.log('no-dialog-loadfunction')
+    };
 
     PWM_VAR['dialog_okAction'] = okAction;
     PWM_VAR['dialog_cancelAction'] = cancelAction;
@@ -719,18 +759,18 @@ PWM_MAIN.showDialog = function(options) {
         bodyText += '<br/><br/>';
     }
     if (showOk) {
-        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog(\'' + idName + '\');PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
+        bodyText += '<button class="btn" onclick="PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
             + '<span class="btn-icon fa fa-forward"></span>'
             + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
     if (showCancel) {
-        bodyText += '<button class="btn" onclick="PWM_MAIN.closeWaitDialog(\'' + idName + '\');PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
+        bodyText += '<button class="btn" onclick="PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
             + '<span class="btn-icon fa fa-backward"></span>'
             + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
     }
 
     if (width > 0) {
-        bodyText = '<div style="max-width: ' + width + 'px; width: ' + width + 'px">' + bodyText + '</div>';
+        bodyText = '<div style="max-width: ' + (width+5) + 'px; width: ' + width + 'px">' + bodyText + '</div>';
     }
     require(["dojo","dijit/Dialog"],function(dojo,Dialog){
         PWM_MAIN.clearDijitWidget(idName);

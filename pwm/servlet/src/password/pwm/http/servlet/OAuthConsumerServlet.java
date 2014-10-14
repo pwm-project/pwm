@@ -350,7 +350,7 @@ public class OAuthConsumerServlet extends PwmServlet {
         final String requestBody = ServletHelper.appendAndEncodeUrlParameters("", requestParams);
         LOGGER.trace(pwmRequest, "beginning " + debugText + " request to " + requestUrl + ", body: \n" + requestBody);
         final HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setHeader(PwmConstants.HTTP_HEADER_BASIC_AUTH,
+        httpPost.setHeader(PwmConstants.HttpHeader.Authorization.getHttpName(),
                 new BasicAuthInfo(settings.getClientID(), settings.getSecret()).toAuthHeader());
         final StringEntity bodyEntity = new StringEntity(requestBody);
         bodyEntity.setContentType(PwmConstants.ContentTypeValue.form.getHeaderValue());

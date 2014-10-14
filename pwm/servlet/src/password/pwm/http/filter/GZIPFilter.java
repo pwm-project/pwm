@@ -24,11 +24,12 @@ package password.pwm.http.filter;
 
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
+import password.pwm.PwmConstants;
+import password.pwm.http.PwmRequest;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
@@ -38,46 +39,34 @@ import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPOutputStream;
 
-public class GZIPFilter implements Filter {
-    private ServletContext servletContext;
+public class GZIPFilter extends PwmFilter {
 
     public void init(FilterConfig filterConfig)
             throws ServletException
     {
-        this.servletContext = filterConfig.getServletContext();
     }
 
     public void destroy()
     {
     }
 
-    public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-            FilterChain chain
+    public void processFilter(final PwmRequest pwmRequest, final PwmFilterChain chain
     )
             throws IOException, ServletException
     {
-        final HttpServletRequest httpRequest = (HttpServletRequest) request;
-        final HttpServletResponse httpResponse = (HttpServletResponse) response;
-        final String acceptEncoding = httpRequest.getHeader("Accept-Encoding");
-        if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled()) {
-            GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper(httpResponse);
-            chain.doFilter(request, gzipResponse);
+        final String acceptEncoding = pwmRequest.readHeaderValueAsString(PwmConstants.HttpHeader.Accept_Encoding);
+        if (acceptEncoding != null && acceptEncoding.contains("gzip") && isEnabled(pwmRequest)) {
+            GZIPHttpServletResponseWrapper gzipResponse = new GZIPHttpServletResponseWrapper((HttpServletResponse)chain.getServletResponse());
+            chain.doFilter(gzipResponse);
             gzipResponse.finish();
         } else {
-            chain.doFilter(request, response);
+            chain.doFilter();
         }
     }
 
-    private boolean isEnabled() {
-        try {
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(servletContext);
+    private boolean isEnabled(final PwmRequest pwmRequest) {
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
             return Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_ENABLE_GZIP));
-        } catch (PwmUnrecoverableException e) {
-            /* noop */
-        }
-        return false;
     }
 
 

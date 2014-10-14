@@ -25,5 +25,6 @@ package password.pwm.ldap.auth;
 public enum AuthenticationStrategy {
     BIND,
     READ_THEN_BIND,
-    WRITE_THEN_BIND
+    WRITE_THEN_BIND,
+    ADMIN_PROXY,
 }

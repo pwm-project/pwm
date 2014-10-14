@@ -300,6 +300,8 @@ public enum PwmSetting {
             "sms.forgottenUsername.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
     SMS_USE_URL_SHORTENER(
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS),
+    SMS_SUCCESS_RESULT_CODE(
+            "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS),
 
     //global password policy settings
     PASSWORD_POLICY_SOURCE(
@@ -374,8 +376,10 @@ public enum PwmSetting {
             "password.policy.minimumLifetime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_ENABLE_WORDLIST(
             "password.policy.checkWordlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
-    PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
+    PASSWORD_POLICY_AD_COMPLEXITY_LEVEL(
+            "password.policy.ADComplexityLevel", PwmSettingSyntax.SELECT, PwmSettingCategory.PASSWORD_POLICY),
+    PASSWORD_POLICY_AD_COMPLEXITY_MAX_VIOLATIONS(
+            "password.policy.ADComplexityMaxViolations", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_REGULAR_EXPRESSION_MATCH(
             "password.policy.regExMatch", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_REGULAR_EXPRESSION_NOMATCH(
@@ -405,8 +409,6 @@ public enum PwmSetting {
             "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
             "security.formNonce.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
-    ALLOW_URL_SESSIONS(
-            "allowUrlSessions", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
     ENABLE_SESSION_VERIFICATION(
             "enableSessionVerification", PwmSettingSyntax.SELECT, PwmSettingCategory.SECURITY),
     DISALLOWED_HTTP_INPUTS(
@@ -931,6 +933,11 @@ public enum PwmSetting {
             "oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.OAUTH),
     OAUTH_ID_DN_ATTRIBUTE_NAME(
             "oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
+
+
+    // deprecated.
+    PASSWORD_POLICY_AD_COMPLEXITY(
+            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
 
     ;
 

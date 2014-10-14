@@ -166,7 +166,7 @@
     <br/>
     <div class="noticebar">
         <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>  A public health page at
-        <a href="<%=request.getContextPath()%>/public/health.jsp"><%=request.getContextPath()%>/public/health.jsp</a>
+        <a href="<pwm:context/>/public/health.jsp"><pwm:context/>/public/health.jsp</a>
     </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>">
@@ -306,7 +306,7 @@
                     License Information
                 </td>
                 <td>
-                    <a href="<%=request.getContextPath()%><pwm:url url="/public/license.jsp"/>">License Information</a>
+                    <a href="<pwm:context/><pwm:url url="/public/license.jsp"/>">License Information</a>
                 </td>
             </tr>
         </table>
@@ -764,7 +764,7 @@
     }
 </script>
 </pwm:script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

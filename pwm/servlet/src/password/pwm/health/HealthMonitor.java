@@ -120,16 +120,14 @@ public class HealthMonitor implements PwmService {
         registerHealthCheck(new CertificateChecker());
 
         final Set<HealthRecord> newHealthRecords = new HashSet<>();
-        newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Check operation has not been performed since PWM has started."));
+        newHealthRecords.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.Application, "Health Check operation has not been performed since PWM has started."));
         healthRecords = Collections.unmodifiableSet(newHealthRecords);
 
         status = STATUS.OPEN;
     }
 
     public void close() {
-        final Set<HealthRecord> closeSet = new HashSet<>();
-        closeSet.add(new HealthRecord(HealthStatus.CAUTION, HealthMonitor.class.getSimpleName(), "Health Monitor has been closed."));
-        healthRecords = Collections.unmodifiableSet(closeSet);
+        healthRecords = Collections.emptySet();
         status = STATUS.CLOSED;
     }
 

@@ -56,7 +56,7 @@
         <pwm:if test="showErrorDetail">
         <% if (errorInfo != null && !errorInfo.getError().isErrorIsPermanent()) { %>
         <div id="buttonbar">
-            <form action="<%=request.getContextPath()%>/public/<pwm:url url='CommandServlet'/>" method="post"
+            <form action="<pwm:context/>/public/<pwm:url url='CommandServlet'/>" method="post"
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="continue"/>
                 <button type="submit" name="button" class="btn" id="button_continue" autofocus="autofocus">

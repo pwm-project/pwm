@@ -20,16 +20,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm;
+package password.pwm.config.policy;
 
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
+import password.pwm.PwmConstants;
 import password.pwm.config.Profile;
-import password.pwm.config.PwmPasswordRule;
 import password.pwm.config.UserPermission;
+import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.Serializable;
@@ -56,6 +57,14 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     private List<UserPermission> userPermissions;
     private String ruleText;
 
+    public static PwmPasswordPolicy createPwmPasswordPolicy(
+            final Map<String, String> policyMap,
+            final ChaiPasswordPolicy chaiPasswordPolicy
+    )
+    {
+        return new PwmPasswordPolicy(policyMap, chaiPasswordPolicy);
+    }
+
     public String getIdentifier()
     {
         return profileID;
@@ -68,11 +77,17 @@ public class PwmPasswordPolicy implements Profile,Serializable {
 // -------------------------- STATIC METHODS --------------------------
 
     static {
-        final Map<String, String> defaultPolicyMap = new HashMap<>();
-        for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
-            defaultPolicyMap.put(rule.getKey(), rule.getDefaultValue());
+        PwmPasswordPolicy newDefaultPolicy = null;
+        try {
+            final Map<String, String> defaultPolicyMap = new HashMap<>();
+            for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
+                defaultPolicyMap.put(rule.getKey(), rule.getDefaultValue());
+            }
+            newDefaultPolicy = createPwmPasswordPolicy(defaultPolicyMap, null);
+        } catch (Throwable t) {
+            LOGGER.fatal("error initializing PwmPasswordPolicy class: " + t.getMessage(),t);
         }
-        defaultPolicy = new PwmPasswordPolicy(defaultPolicyMap, null);
+        defaultPolicy = newDefaultPolicy;
     }
 
     public static PwmPasswordPolicy defaultPolicy() {
@@ -80,16 +95,22 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     }
 
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public PwmPasswordPolicy(final Map<String, String> policyMap, final ChaiPasswordPolicy chaiPasswordPolicy) {
+    private PwmPasswordPolicy(
+            final Map<String, String> policyMap,
+            final ChaiPasswordPolicy chaiPasswordPolicy
+    ) {
         if (policyMap != null) {
             this.policyMap.putAll(policyMap);
         }
+        if (chaiPasswordPolicy != null) {
+            if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity))) {
+                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2003.toString());
+            } else if (Boolean.parseBoolean(chaiPasswordPolicy.getValue(ChaiPasswordRule.ADComplexity2008))) {
+                this.policyMap.put(PwmPasswordRule.ADComplexityLevel.getKey(), ADPolicyComplexity.AD2008.toString());
+            }
+        }
         this.chaiPasswordPolicy = chaiPasswordPolicy;
     }
-
-// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {
@@ -225,7 +246,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         }
 
         final ChaiPasswordPolicy backingPolicy = this.chaiPasswordPolicy != null ? chaiPasswordPolicy : otherPolicy.chaiPasswordPolicy;
-        return new PwmPasswordPolicy(newPasswordPolicies, backingPolicy);
+        return createPwmPasswordPolicy(newPasswordPolicies, backingPolicy);
     }
 
     protected static String mergeMin(final String value1, final String value2) {
@@ -255,7 +276,7 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     }
 
     public static PwmPasswordPolicy createPwmPasswordPolicy(final Map<String, String> policyMap) {
-        return new PwmPasswordPolicy(policyMap, null);
+        return createPwmPasswordPolicy(policyMap, null);
     }
 
 
@@ -341,6 +362,14 @@ public class PwmPasswordPolicy implements Profile,Serializable {
         public String getChangeMessage() {
             final String changeMessage = passwordPolicy.getValue(PwmPasswordRule.ChangeMessage);
             return changeMessage == null ? "" : changeMessage;
+        }
+
+        public ADPolicyComplexity getADComplexityLevel() {
+            final String strLevel = passwordPolicy.getValue(PwmPasswordRule.ADComplexityLevel);
+            if (strLevel == null || strLevel.isEmpty()) {
+                return ADPolicyComplexity.NONE;
+            }
+            return ADPolicyComplexity.valueOf(strLevel);
         }
     }
 

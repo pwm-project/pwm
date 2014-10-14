@@ -27,14 +27,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body>
-<meta http-equiv="refresh" content="0;url=<%=request.getContextPath()%><pwm:url url="/config/ConfigManager"/>"/>
+<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/config/ConfigManager"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Configuration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-            Loading... <a href="<%=request.getContextPath()%><pwm:url url="/config/ConfigManage"/>">Configuration</a>
+            Loading... <a href="<pwm:context/><pwm:url url="/config/ConfigManage"/>">Configuration</a>
         </div>
     </div>
     <br class="clear"/>

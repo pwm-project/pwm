@@ -44,9 +44,9 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
-import javax.servlet.*;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +60,7 @@ import java.util.Map;
  *
  * @author Jason D. Rivard
  */
-public class AuthenticationFilter implements Filter {
+public class AuthenticationFilter extends PwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
@@ -74,31 +74,28 @@ public class AuthenticationFilter implements Filter {
             throws ServletException {
     }
 
-    public void doFilter(
-            final ServletRequest servletRequest,
-            final ServletResponse servletResponse,
-            final FilterChain chain
+    public void processFilter(
+            final PwmRequest pwmRequest,
+            final PwmFilterChain chain
     )
-            throws IOException, ServletException {
-        final HttpServletRequest req = (HttpServletRequest) servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse) servletResponse;
+            throws IOException, ServletException
+    {
 
         try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
-            final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-            final PwmSession pwmSession = PwmSession.getPwmSession(req);
+            final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
+            final PwmSession pwmSession = pwmRequest.getPwmSession();
             final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.NEW) {
                 if (pwmRequest.getURL().isConfigGuideURL()) {
-                    chain.doFilter(req, resp);
+                    chain.doFilter();
                     return;
                 }
             }
 
             if (pwmApplication.getApplicationMode() == PwmApplication.MODE.CONFIGURATION) {
                 if (pwmRequest.getURL().isConfigManagerURL()) {
-                    chain.doFilter(req, resp);
+                    chain.doFilter();
                     return;
                 }
             }
@@ -122,7 +119,7 @@ public class AuthenticationFilter implements Filter {
 
     private void processAuthenticatedSession(
             final PwmRequest pwmRequest,
-            final FilterChain chain
+            final PwmFilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
@@ -165,19 +162,18 @@ public class AuthenticationFilter implements Filter {
         }
 
         // user session is authed, and session and auth header match, so forward request on.
-        chain.doFilter(pwmRequest.getHttpServletRequest(), pwmRequest.getHttpServletResponse());
+        chain.doFilter();
     }
 
     private void processUnAuthenticatedSession(
             final PwmRequest pwmRequest,
-            final FilterChain chain
+            final PwmFilterChain chain
     )
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
-        final HttpServletResponse resp = pwmRequest.getHttpServletResponse();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
 
         // attempt external methods;
@@ -239,19 +235,19 @@ public class AuthenticationFilter implements Filter {
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
             final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmApplication.getConfig());
-            resp.setHeader("WWW-Authenticate", "Basic realm=\"" + displayMessage + "\"");
-            resp.setStatus(401);
+            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.WWW_Authenticate,"Basic realm=\"" + displayMessage + "\"");
+            pwmRequest.getPwmResponse().setStatus(401);
             return;
         }
 
         if (pwmRequest.getURL().isLoginServlet()) {
-            chain.doFilter(req, resp);
+            chain.doFilter();
             return;
         }
 
         //user is not authenticated so forward to LoginPage.
         LOGGER.trace(pwmSession.getLabel(), "user requested resource requiring authentication (" + req.getRequestURI() + "), but is not authenticated; redirecting to LoginServlet");
-        ServletHelper.forwardToLoginPage(req, resp);
+        pwmRequest.getPwmResponse().forwardToLoginPage();
     }
 
     public static void authUserUsingBasicHeader(
@@ -297,7 +293,7 @@ public class AuthenticationFilter implements Filter {
                     // load up the class and get an instance.
                     final Class<?> theClass = Class.forName(classNameString);
                     final ExternalWebAuthMethod eWebAuthMethod = (ExternalWebAuthMethod) theClass.newInstance();
-                    eWebAuthMethod.authenticate(pwmRequest.getHttpServletRequest(), pwmRequest.getHttpServletResponse(), pwmSession);
+                    eWebAuthMethod.authenticate(pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse(), pwmSession);
                 } catch(Exception e) {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error loading external interface login class: " + e.getMessage());
                     LOGGER.error(pwmRequest, errorInformation);

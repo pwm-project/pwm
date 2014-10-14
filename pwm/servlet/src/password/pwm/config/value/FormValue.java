@@ -122,4 +122,27 @@ public class FormValue extends AbstractValue implements StoredValue {
     {
         return needsXmlUpdate;
     }
+
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (final FormConfiguration formRow : values) {
+                sb.append("FormItem Name:").append(formRow.getName()).append("\n");
+                sb.append(" Type:").append(formRow.getType());
+                sb.append(" Min:").append(formRow.getMinimumLength());
+                sb.append(" Max:").append(formRow.getMaximumLength());
+                sb.append(" ReadOnly:").append(formRow.isReadonly());
+                sb.append(" Required:").append(formRow.isRequired());
+                sb.append(" Confirm:").append(formRow.isConfirmationRequired());
+                sb.append(" Unique:").append(formRow.isUnique());
+                sb.append("\n");
+                sb.append(" Label:").append(JsonUtil.serializeMap(formRow.getLabelLocaleMap()) + "\n");
+                sb.append(" Description:").append(JsonUtil.serializeMap(formRow.getLabelDescriptionLocaleMap()) + "\n");
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeCollection(values);
+        }
+    }
+
 }

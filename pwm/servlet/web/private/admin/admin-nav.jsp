@@ -24,7 +24,7 @@
 <div id="TopMenu" style="width: 600px">
 </div>
 <br/>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/admin.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/admin.js'/>"></script>
 <pwm:script>
 <script type="text/javascript">
     var PWM_ADMIN = PWM_ADMIN || {};
@@ -47,17 +47,17 @@
 </style>
 <div style="text-align: center">
     <% boolean selected = request.getRequestURI().contains("dashboard.jsp"); %>
-    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/dashboard.jsp')">
+    <a class="menubutton<%=selected?" selected":""%>" href="<pwm:context/>/private/admin/dashboard.jsp">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
         Dashboard
     </a>
     <% selected = request.getRequestURI().contains("activity.jsp"); %>
-    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/activity.jsp')">
+    <a class="menubutton<%=selected?" selected":""%>" href="<pwm:context/>/private/admin/activity.jsp">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-users"></span></pwm:if>
         User Activity
     </a>
     <% selected = request.getRequestURI().contains("analysis.jsp"); %>
-    <a class="menubutton<%=selected?" selected":""%>" onclick="PWM_MAIN.goto('/private/admin/analysis.jsp')">
+    <a class="menubutton<%=selected?" selected":""%>" href="<pwm:context/>/private/admin/analysis.jsp">
         <pwm:if test="showIcons"><span class="btn-icon fa fa-bar-chart-o"></span></pwm:if>
         Data Analysis
     </a>

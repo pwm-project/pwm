@@ -100,7 +100,7 @@ public abstract class PwmConstants {
 
     public static final String RECAPTCHA_VALIDATE_URL = readPwmConstantsBundle("recaptchaValidateUrl");
 
-    private static final String SESSION_LABEL_SESSION_ID = "!";
+    private static final String SESSION_LABEL_SESSION_ID = "-";
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
 
@@ -116,7 +116,6 @@ public abstract class PwmConstants {
     public static final String UNCONFIGURED_URL_VALUE = "[UNCONFIGURED_URL]";
     public static final float JAVA_MINIMUM_VERSION = (float)1.6;
 
-    public static final String HTTP_HEADER_BASIC_AUTH = readPwmConstantsBundle("httpHeaderAuthorization");
     public static final String HTTP_BASIC_AUTH_PREFIX = readPwmConstantsBundle("httpHeaderAuthorizationBasic");
     public static final String HTTP_HEADER_X_FORWARDED_FOR = readPwmConstantsBundle("httpHeaderXForwardedFor");
     public static final String HTTP_HEADER_REST_CLIENT_KEY = readPwmConstantsBundle("httpRestClientKey");
@@ -346,6 +345,44 @@ public abstract class PwmConstants {
         }
     }
 
+    public enum HttpHeader {
+        Accept("Accept"),
+        Connection("Connection"),
+        Content_Type("Content-Type"),
+        Content_Encoding("Content-Encoding"),
+        Location("Location"),
+        ContentSecurityPolicy("Content-Security-Policy"),
+        Server("Server"),
+        Cache_Control("Cache-Control"),
+        WWW_Authenticate("WWW-Authenticate"),
+        ContentDisposition("content-disposition"),
+        ContentTransferEncoding("Content-Transfer-Encoding"),
+        Accept_Encoding("Accept-Encoding"),
+        Authorization("Authorization"),
+
+        XFrameOptions("X-Frame-Options"),
+
+        XAmb("X-" + PwmConstants.PWM_APP_NAME + "-Amb"),
+        XVersion("X-" + PwmConstants.PWM_APP_NAME + "-Version"),
+        XInstance("X-" + PwmConstants.PWM_APP_NAME + "-Instance"),
+        XSessionID("X-" + PwmConstants.PWM_APP_NAME + "-SessionID"),
+        XNoise("X-" + PwmConstants.PWM_APP_NAME + "-Noise"),
+
+        ;
+
+        private final String httpName;
+
+        HttpHeader(String httpName)
+        {
+            this.httpName = httpName;
+        }
+
+        public String getHttpName()
+        {
+            return httpName;
+        }
+    }
+
     public enum ContentTypeValue {
         json("application/json; charset=" + PwmConstants.DEFAULT_CHARSET),
         zip("application/zip"),
@@ -356,9 +393,10 @@ public abstract class PwmConstants {
         html("text/html; charset=" + PwmConstants.DEFAULT_CHARSET),
         form("application/x-www-form-urlencoded; charset=" + PwmConstants.DEFAULT_CHARSET),
         png("image/png"),
+        octetstream("application/octet-stream"),
         ;
 
-        private String headerValue;
+        private final String headerValue;
 
         ContentTypeValue(String headerValue) {
             this.headerValue = headerValue;

@@ -80,7 +80,7 @@
             </table>
             <noscript>
                 <span><pwm:display key="Display_JavascriptRequired"/></span>
-                <a href="<%=request.getContextPath()%>"><pwm:display key="Title_MainPage"/></a>
+                <a href="<pwm:context/>"><pwm:display key="Title_MainPage"/></a>
             </noscript>
             <br/>
         </div>
@@ -99,7 +99,7 @@
         });
     </script>
 </pwm:script>
-<script type="text/javascript" defer="defer" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
+<script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/peoplesearch.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

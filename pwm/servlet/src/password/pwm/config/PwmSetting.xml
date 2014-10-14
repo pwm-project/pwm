@@ -800,7 +800,7 @@
         <default/>
     </setting>
     <setting key="sms.userSmsAttribute" level="0" required="true">
-        <label>User SMS number attribute</label>
+        <label>SMS Destintion Address LDAP Attribute</label>
         <description><![CDATA[User LDAP attribute containing the user's mobile phone number for SMS.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
@@ -814,12 +814,13 @@
             <value>300</value>
         </default>
     </setting>
-    <setting key="sms.gatewayURL" level="0" required="true">
+    <setting key="sms.gatewayURL" level="0">
         <label>SMS Gateway</label>
         <description><![CDATA[URL for the SMS gateway]]></description>
         <regex>^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
+        <placeholder>https://sms.example.com/service</placeholder>
         <default>
-            <value><![CDATA[https://sms.example.com/service]]></value>
+            <value/>
         </default>
     </setting>
     <setting key="sms.gatewayUser" level="0">
@@ -955,7 +956,7 @@
         <label>Challenge Token SMS Text</label>
         <description><![CDATA[Message text of SMS sent during forgotten password token process.]]></description>
         <default>
-            <value><![CDATA[Your activation token is %TOKEN%.]]></value>
+            <value><![CDATA[Your security code is %TOKEN%.]]></value>
         </default>
     </setting>
     <setting key="sms.challenge.newpassword.message" level="1" required="true">
@@ -998,6 +999,14 @@
         <description><![CDATA[Enable this option to use a url shortener service like tinyurl.com, bit.ly and goo.gl. This will enable searching the SMS text for http and https urls and replace them with a shortened version. The service to be used can be configured under the Miscellaneous options. Be sure to check View|Advanced.]]></description>
         <default>
             <value>false</value>
+        </default>
+    </setting>
+    <setting key="sms.successResultCodes" required="true" level="1">
+        <label>Successful HTTP Result Codes</label>
+        <description><![CDATA[HTTP Result codes that will be considered successful send attempts.]]></description>
+        <regex>^[0-9]{3}$</regex>
+        <default>
+            <value>200</value>
         </default>
     </setting>
     <setting key="password.profile.list" level="0" hidden="true">
@@ -1222,16 +1231,29 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="password.policy.ADComplexity" level="0" required="true">
-        <label>Enforce Microsoft-AD 2003 Password Complexity</label>
-        <description><![CDATA[Enforce Microsoft ActiveDirectory 2003 style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
+    <setting key="password.policy.ADComplexityLevel" level="0" required="true">
+        <label>Active Directory Password Complexity</label>
+        <description><![CDATA[Enforce Microsoft Active Directory 2003 style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
         <default>
-            <value>false</value>
+            <value>NONE</value>
         </default>
         <default template="AD">
-            <value>true</value>
+            <value>AD2003</value>
+        </default>
+        <options>
+            <option value="NONE">None - Do not enforce AD Complexity Rules</option>
+            <option value="AD2003">AD 2003 Level Complexity</option>
+            <option value="AD2008">AD 2008 Level Complexity</option>
+        </options>
+    </setting>
+    <setting key="password.policy.ADComplexityMaxViolations" level="0" required="true">
+        <label>Active Directory Password Complexity Maximum Violations</label>
+        <description><![CDATA[Number of Active Directory Password Complexity]]></description>
+        <default>
+            <value>2</value>
         </default>
     </setting>
+
     <setting key="password.policy.regExMatch" level="1">
         <label>Required Regular Expression Matches</label>
         <description><![CDATA[A Regular Expression pattern the password must match in order to be allowed.  Multiple patterns can be listed.  A pattern must match the <i>entire</i> password to be applied.  A partial match is ignored.]]></description>
@@ -1517,13 +1539,6 @@
         <description><![CDATA[Require a nonce (or unique key) for each form to prevent certain types of cross-site scripting (XSS) attacks.]]></description>
         <default>
             <value>true</value>
-        </default>
-    </setting>
-    <setting key="allowUrlSessions" level="2" required="true">
-        <label>Allow URL Sessions</label>
-        <description><![CDATA[If true, allow sessions to be managed via parameter on URL when cookies are not enabled.  This allows browsers (such as some mobile devices) that do not support cookies.]]></description>
-        <default>
-            <value>false</value>
         </default>
     </setting>
     <setting key="enableSessionVerification" level="0" required="true">
@@ -1927,7 +1942,7 @@
     </setting>
     <setting key="events.java.log4jconfigFile" level="1">
         <label>Log4j Configuration File</label>
-        <description><![CDATA[Location and name of a log4j xml configuration file.  If specified, this file will be used to configure the log4j system.  If unspecified, a basic log4j configuration will be used logging only to stdout. The location specified by this setting is relative to the <i>WEB-INF</i> directory.  An example <i>log4jconfig.xml</i> file is included in the <i>WEB-INF</i> directory.]]></description>
+        <description><![CDATA[Location and name of a log4j xml configuration file.  If specified, this file will be used to configure the log4j system.  If unspecified, the application logging will be configured according to the settings here any and configuration file will be ignored. The location specified by this setting is relative to the <i>WEB-INF</i> directory.  An example <i>log4jconfig-sample.xml</i> file is included in the <i>WEB-INF</i> directory.]]></description>
         <default>
             <value />
         </default>
@@ -2311,7 +2326,7 @@
         <description><![CDATA[Required LDAP attributes for forgotten password authentication.  These attributes will be required to be supplied by the user as part of the forgotten password autentication process.   The LDAP Proxy User will require LDAP <i>compare</i> permission to these attributes.]]></description>
         <default />
     </setting>
-    <setting key="recovery.availableMethods" level="2">
+    <setting key="recovery.availableMethods" level="0">
         <label>Available User Identification Methods</label>
         <description>Available User Identification Methods</description>
         <default>
@@ -2353,7 +2368,7 @@
             <option value="BOTH">Both - Send token to both email and SMS</option>
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
-            <option value="CHOICE_SMS_EMAIL">User Choice - User decides if both SMS and email address is available, or auto send if only one is available.</option>
+            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides, or auto send if only one is available.</option>
         </options>
     </setting>
     <setting key="recovery.require.otp" level="0" required="true" hidden="false">
@@ -3727,6 +3742,19 @@
         <description><![CDATA[Attribute to request from the OAuth server to be used as the username for local authentication.  This value will then be resolved the same as if the user had typed the password at the local authentication page.]]></description>
         <default/>
     </setting>
+
+    <!-- DEPRECATED SETTINGS -->
+    <setting key="password.policy.ADComplexity" level="99" required="false" hidden="true">
+        <label>DEPRECATED-Enforce Microsoft-AD 2003 Password Complexity</label>
+        <description><![CDATA[Enforce Microsoft ActiveDirectory 2003 style password complexity rules:<ul><li>Not contain the user's account name or parts of the user's full name that exceed two consecutive characters</li><li>Be at least six characters in length</li><li>Contain characters from three of the following four categories:<ul><li>English uppercase characters (A through Z)</li><li>English lowercase characters (a through z)</li><li>Base 10 digits (0 through 9)</li><li>Non-alphabetic characters (for example, !, $, #, %)</li></ul></ul>]]></description>
+        <default>
+            <value>false</value>
+        </default>
+        <default template="AD">
+            <value>true</value>
+        </default>
+    </setting>
+
     <category key="LDAP_PROFILE" profiles="true">
         <label>LDAP Directories</label>
         <description><![CDATA[Settings that control interaction with the LDAP directory.  Multiple directory profiles can be created to support multiple LDAP user stores.]]></description>

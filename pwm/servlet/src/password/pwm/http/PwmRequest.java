@@ -26,6 +26,7 @@ import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.h2.util.StringUtils;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
@@ -38,17 +39,16 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.filter.SessionFilter;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
 import password.pwm.util.PwmRandom;
-import password.pwm.util.ServletHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +68,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
                     PwmConstants.PARAM_RESPONSE_PREFIX,
             }));
 
-    private final HttpServletResponse httpServletResponse;
+    private final PwmResponse pwmResponse;
     private final PwmApplication pwmApplication;
     private final PwmSession pwmSession;
     private final String cspNonce;
@@ -109,7 +109,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             throws PwmUnrecoverableException
     {
         super(httpServletRequest, pwmApplication.getConfig());
-        this.httpServletResponse = httpServletResponse;
+        this.pwmResponse = new PwmResponse(httpServletResponse, this, pwmApplication.getConfig());
         this.pwmSession = pwmSession;
         this.pwmApplication = pwmApplication;
         this.cspNonce = PwmRandom.getInstance().alphaNumericString(10);
@@ -129,9 +129,9 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return pwmSession.getLabel();
     }
 
-    public HttpServletResponse getHttpServletResponse()
+    public PwmResponse getPwmResponse()
     {
-        return httpServletResponse;
+        return pwmResponse;
     }
 
     public Locale getLocale() {
@@ -146,7 +146,7 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public void forwardToJsp(final PwmConstants.JSP_URL jspURL)
             throws ServletException, IOException, PwmUnrecoverableException
     {
-        ServletHelper.forwardToJsp(this.getHttpServletRequest(), this.getHttpServletResponse(), jspURL);
+        this.getPwmResponse().forwardToJsp(jspURL);
     }
 
     public void respondWithError(final ErrorInformation errorInformation)
@@ -187,21 +187,14 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     public void forwardToSuccessPage(Message message, final String field)
             throws ServletException, PwmUnrecoverableException, IOException
     {
-        pwmSession.getSessionStateBean().setSessionSuccess(message, field);
-        ServletHelper.forwardToSuccessPage(this.getHttpServletRequest(), this.getHttpServletResponse());
+        getPwmResponse().forwardToSuccessPage(message, field);
     }
 
 
     public void sendRedirect(final String redirectURL)
             throws PwmUnrecoverableException, IOException
     {
-        LOGGER.debug(getSessionLabel(), "sending user redirect response to " + redirectURL);
-        httpServletResponse.sendRedirect(
-                SessionFilter.rewriteRedirectURL(
-                        redirectURL,
-                        this.getHttpServletRequest(),
-                        httpServletResponse)
-        );
+        getPwmResponse().sendRedirect(redirectURL);
     }
 
     public void sendRedirectToContinue()
@@ -216,13 +209,43 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
             throws IOException, ServletException
     {
         LOGGER.debug(pwmSession,"forcing new http session due to authentication");
-        ServletHelper.recycleSessions(pwmApplication, pwmSession, this.getHttpServletRequest(), httpServletResponse);
+        final boolean recycleEnabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(
+                AppProperty.HTTP_SESSION_RECYCLE_AT_AUTH));
+        if (!recycleEnabled) {
+            return;
+        }
+
+        final HttpServletRequest req = this.getHttpServletRequest();
+
+        // read the old session data
+        final HttpSession oldSession = req.getSession(true);
+        final Map<String,Object> sessionAttributes = new HashMap<>();
+        final Enumeration oldSessionAttrNames = oldSession.getAttributeNames();
+        while (oldSessionAttrNames.hasMoreElements()) {
+            final String attrName = (String)oldSessionAttrNames.nextElement();
+            sessionAttributes.put(attrName, oldSession.getAttribute(attrName));
+        }
+
+        for (final String attrName : sessionAttributes.keySet()) {
+            oldSession.removeAttribute(attrName);
+        }
+
+        //invalidate the old session
+        oldSession.invalidate();
+
+        // make a new session
+        final HttpSession newSession = req.getSession(true);
+
+        // write back all the session data
+        for (final String attrName : sessionAttributes.keySet()) {
+            newSession.setAttribute(attrName, sessionAttributes.get(attrName));
+        }
     }
 
     public void outputJsonResult(final RestResultBean restResultBean)
             throws IOException
     {
-        ServletHelper.outputJsonResult(this.httpServletResponse, restResultBean);
+        this.getPwmResponse().outputJsonResult(restResultBean);
     }
 
     public ContextManager getContextManager()

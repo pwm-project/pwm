@@ -165,7 +165,7 @@ public abstract class PwmServlet extends HttpServlet {
     }
 
     private PwmUnrecoverableException convertToPwmUnrecoverableException(
-            final Exception e
+            final Throwable e
     )
     {
         if (e instanceof PwmUnrecoverableException) {

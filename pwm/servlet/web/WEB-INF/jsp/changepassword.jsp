@@ -88,9 +88,9 @@
                         <%-- confirmation mark [not shown initially, enabled by javascript; see also changepassword.js:markConfirmationMark() --%>
                         <div style="padding-top:45px;">
                             <img style="visibility:hidden;" id="confirmCheckMark" alt="checkMark" height="15" width="15"
-                                 src="<%=request.getContextPath()%><pwm:url url='/public/resources/greenCheck.png'/>">
+                                 src="<pwm:context/><pwm:url url='/public/resources/greenCheck.png'/>">
                             <img style="visibility:hidden;" id="confirmCrossMark" alt="crossMark" height="15" width="15"
-                                 src="<%=request.getContextPath()%><pwm:url url='/public/resources/redX.png'/>">
+                                 src="<pwm:context/><pwm:url url='/public/resources/redX.png'/>">
                         </div>
                     </td>
                     <td style="border:0; width:10%">&nbsp;</td>
@@ -119,7 +119,7 @@
     });
 </script>
 </pwm:script>
-<script type="text/javascript" src="<%=request.getContextPath()%><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

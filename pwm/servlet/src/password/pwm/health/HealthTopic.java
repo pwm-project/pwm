@@ -36,6 +36,9 @@ public enum HealthTopic {
     TokenService,
     Platform,
     LocalDB,
+    SMS,
+    Database,
+    Audit,
 
     ;
 
