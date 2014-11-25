@@ -159,6 +159,7 @@ PWM_RESPONSES.startupResponsesPage=function() {
             PWM_MAIN.showInfo(initialPrompt);
         }
     }
+    PWM_MAIN.addEventHandler('setupResponses','input',function(){PWM_RESPONSES.validateResponses()});
 };
 
 

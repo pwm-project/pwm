@@ -28,6 +28,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
 
 import java.util.*;
@@ -41,28 +42,35 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
         this.value = Collections.unmodifiableMap(values);
     }
 
-    static LocalizedStringValue fromJson(final String input) {
-        if (input == null) {
-            return new LocalizedStringValue(Collections.<String, String>emptyMap());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
-            }.getType());
-            srcMap = srcMap == null ? Collections.<String,String>emptyMap() : new TreeMap(srcMap);
-            return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
-        }
-    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public LocalizedStringValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new LocalizedStringValue(Collections.<String, String>emptyMap());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
+                    }.getType());
+                    srcMap = srcMap == null ? Collections.<String, String>emptyMap() : new TreeMap(srcMap);
+                    return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
+                }
+            }
 
-    static LocalizedStringValue fromXmlElement(Element settingElement) {
-        final List elements = settingElement.getChildren("value");
-        final Map<String, String> values = new TreeMap<>();
-        for (final Object loopValue : elements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String localeString = loopValueElement.getAttributeValue("locale");
-            final String value = loopValueElement.getText();
-            values.put(localeString == null ? "" : localeString, value);
-        }
-        return new LocalizedStringValue(values);
+            public LocalizedStringValue fromXmlElement(Element settingElement, final String key)
+            {
+                final List elements = settingElement.getChildren("value");
+                final Map<String, String> values = new TreeMap<>();
+                for (final Object loopValue : elements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String localeString = loopValueElement.getAttributeValue("locale");
+                    final String value = loopValueElement.getText();
+                    values.put(localeString == null ? "" : localeString, value);
+                }
+                return new LocalizedStringValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -94,11 +102,27 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
         for (final String locale : value.keySet()) {
             final String loopValue = value.get(locale);
             final Matcher matcher = pattern.matcher(loopValue);
-            if (loopValue != null && loopValue.length() > 0 && !matcher.matches()) {
+            if (loopValue.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + loopValue + "'");
             }
         }
 
         return Collections.emptyList();
+    }
+
+    @Override
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && value != null && !value.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (final String localeKey : value.keySet()) {
+                if (value.size() > 1) {
+                    sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
+                }
+                sb.append(value.get(localeKey)).append("\n");
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeMap(value);
+        }
     }
 }

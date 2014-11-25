@@ -44,12 +44,13 @@
     final DateFormat dateFormat = PwmConstants.DEFAULT_DATETIME_FORMAT;
     final Map<Thread,StackTraceElement[]> threads = Thread.getAllStackTraces();
 
+    PwmRequest dashboard_pwmRequest = null;
     PwmApplication dashboard_pwmApplication = null;
     PwmSession dashboard_pwmSession = null;
     try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
-        dashboard_pwmApplication = pwmRequest.getPwmApplication();
-        dashboard_pwmSession = pwmRequest.getPwmSession();
+        dashboard_pwmRequest = PwmRequest.forRequest(request, response);
+        dashboard_pwmApplication = dashboard_pwmRequest.getPwmApplication();
+        dashboard_pwmSession = dashboard_pwmRequest.getPwmSession();
     } catch (PwmException e) {
         JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
     }
@@ -517,7 +518,7 @@
     </div>
 </div>
 <div data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes">
-    <% if (dashboard_pwmApplication.getLocalDB() != null && "true".equalsIgnoreCase(request.getParameter("showLocalDBCounts"))) { %>
+    <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showLocalDBCounts")) { %>
     <table class="tablemain">
         <tr>
             <td class="key">

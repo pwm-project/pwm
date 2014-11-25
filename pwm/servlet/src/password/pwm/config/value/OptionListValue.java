@@ -39,31 +39,38 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
         this.values = values;
     }
 
-    static OptionListValue fromJson(final String input) {
-        if (input == null) {
-            return new OptionListValue(Collections.<String>emptySet());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            Set<String> srcList = gson.fromJson(input, new TypeToken<Set<String>>() {
-            }.getType());
-            srcList = srcList == null ? Collections.<String>emptySet() : srcList;
-            srcList.removeAll(Collections.singletonList(null));
-            return new OptionListValue(Collections.unmodifiableSet(srcList));
-        }
-    }
-
-    static OptionListValue fromXmlElement(Element settingElement) throws PwmOperationalException
+    public static StoredValueFactory factory()
     {
-        final List valueElements = settingElement.getChildren("value");
-        final Set<String> values = new HashSet<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String value = loopValueElement.getText();
-            if (value != null && !value.trim().isEmpty()) {
-                values.add(value);
+        return new StoredValueFactory() {
+            public OptionListValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new OptionListValue(Collections.<String>emptySet());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    Set<String> srcList = gson.fromJson(input, new TypeToken<Set<String>>() {
+                    }.getType());
+                    srcList = srcList == null ? Collections.<String>emptySet() : srcList;
+                    srcList.removeAll(Collections.singletonList(null));
+                    return new OptionListValue(Collections.unmodifiableSet(srcList));
+                }
             }
-        }
-        return new OptionListValue(values);
+
+            public OptionListValue fromXmlElement(Element settingElement, final String key)
+                    throws PwmOperationalException
+            {
+                final List valueElements = settingElement.getChildren("value");
+                final Set<String> values = new HashSet<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String value = loopValueElement.getText();
+                    if (value != null && !value.trim().isEmpty()) {
+                        values.add(value);
+                    }
+                }
+                return new OptionListValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -82,5 +89,20 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
 
     public List<String> validateValue(PwmSetting pwmSetting) {
         return Collections.emptyList();
+    }
+
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
+                sb.append(valueIterator.next());
+                if (valueIterator.hasNext()) {
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeCollection(values);
+        }
     }
 }

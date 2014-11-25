@@ -40,17 +40,26 @@ public class BooleanValue implements StoredValue {
         this.value = value;
     }
 
-    static BooleanValue fromJson(String value) {
-        return new BooleanValue(JsonUtil.getGson().fromJson(value, Boolean.class));
+
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public BooleanValue fromJson(String value) {
+                return new BooleanValue(JsonUtil.getGson().fromJson(value, Boolean.class));
+            }
+
+            public BooleanValue fromXmlElement(final Element settingElement, final String input)
+            {
+                final Element valueElement = settingElement.getChild("value");
+                final String value = valueElement.getText();
+                return new BooleanValue(Boolean.valueOf(value));
+            }
+
+        };
     }
 
-    static BooleanValue fromXmlElement(final Element settingElement) {
-        final Element valueElement = settingElement.getChild("value");
-        final String value = valueElement.getText();
-        return new BooleanValue(Boolean.valueOf(value));
-    }
-
-    public List<String> validateValue(PwmSetting pwmSetting) {
+    public List<String> validateValue(PwmSetting pwmSetting)
+    {
         return Collections.emptyList();
     }
 

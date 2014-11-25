@@ -35,6 +35,7 @@ import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.UpdateProfileBean;
@@ -119,7 +120,7 @@ public class UpdateProfileServlet extends PwmServlet {
                     break;
 
                 case agree:
-                    updateProfileBean.setAgreementPassed(true);
+                    handleAgreeRequest(pwmRequest, updateProfileBean);
                     break;
 
                 case confirm:
@@ -247,6 +248,25 @@ public class UpdateProfileServlet extends PwmServlet {
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.UPDATE_ATTRIBUTES);
     }
 
+    private void handleAgreeRequest(
+            final PwmRequest pwmRequest,
+            final UpdateProfileBean updateProfileBean
+    )
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        LOGGER.debug(pwmRequest, "user accepted agreement");
+
+        if (!updateProfileBean.isAgreementPassed()) {
+            updateProfileBean.setAgreementPassed(true);
+            AuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+                    AuditEvent.AGREEMENT_PASSED,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getSessionLabel(),
+                    "UpdateProfile"
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
+        }
+    }
 
     public static void populateFormFromLdap(
             final List<FormConfiguration> formFields,
@@ -393,7 +413,7 @@ public class UpdateProfileServlet extends PwmServlet {
         final Locale userLocale = pwmRequest.getLocale();
 
         // see if the values meet form requirements.
-        FormUtility.validateFormValues(formValues, userLocale);
+        FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, userLocale);
 
         // check unique fields against ldap
             FormUtility.validateFormValueUniqueness(

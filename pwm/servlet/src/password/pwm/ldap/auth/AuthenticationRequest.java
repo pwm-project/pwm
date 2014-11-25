@@ -199,6 +199,22 @@ class AuthenticationRequest {
                     throw e;
                 }
             }
+        } else {
+            // verify user is not account disabled
+            final ChaiProvider proxyChaiProvider = pwmApplication.getProxyChaiProvider(
+                    userIdentity.getLdapProfileID());
+            final ChaiUser theUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), proxyChaiProvider);
+            try {
+                if (!theUser.isAccountEnabled()) {
+                    final String errorMsg = "prohibiting authentication via proxy user due to disabled LDAP account status";
+                    log(PwmLogLevel.DEBUG, errorMsg);
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_WRONGPASSWORD,errorMsg));
+                }
+            } catch (ChaiOperationException e) {
+                final String errorMsg = "error checking disabled LDAP account status during authentication via proxy user: " + e.getMessage();
+                log(PwmLogLevel.ERROR, errorMsg);
+                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_UNKNOWN,errorMsg));
+            }
         }
 
         statisticsManager.incrementValue(Statistic.AUTHENTICATIONS);

@@ -532,8 +532,13 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
         return flags.contains(flag);
     }
 
-    public String getForwardUrl(
-    ) {
+    public boolean hasForwardUrl() {
+        final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
+        final String redirectURL = ssBean.getForwardURL();
+        return !((redirectURL == null || redirectURL.isEmpty()) && this.getConfig().isDefaultValue(PwmSetting.URL_FORWARD));
+    }
+
+    public String getForwardUrl() {
         final SessionStateBean ssBean = this.getPwmSession().getSessionStateBean();
         String redirectURL = ssBean.getForwardURL();
         if (redirectURL == null || redirectURL.length() < 1) {

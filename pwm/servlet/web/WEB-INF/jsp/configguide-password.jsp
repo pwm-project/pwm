@@ -33,8 +33,6 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -47,7 +45,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div id="password" class="setting_outline">
@@ -72,9 +70,6 @@
                                             required: true,
                                             type: "password",
                                             style: "width: 200px",
-                                            onKeyUp: function() {
-                                                handleFormActivity();
-                                            },
                                             value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CONFIG_PASSWORD)%>'
                                         }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD%>");
                                     });
@@ -102,10 +97,7 @@
                                         name: '<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>',
                                         required: true,
                                         type: "password",
-                                        style: "width: 200px",
-                                        onKeyUp: function() {
-                                            handleFormActivity();
-                                        }
+                                        style: "width: 200px"
                                     }, "<%=ConfigGuideServlet.PARAM_CONFIG_PASSWORD_VERIFY%>");
                                 });
                             });
@@ -117,12 +109,12 @@
         </form>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('CR_STORAGE');">
+            <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('END');">
+            <button class="btn" id="button_next">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:display key="Button_Next" bundle="Config"/>
             </button>
@@ -142,6 +134,11 @@
             dojoParser.parse();
             checkIfNextEnabled();
         });
+
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('END')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('APP')});
+
+        PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
     });
 
     function checkIfNextEnabled() {
@@ -166,6 +163,8 @@
     }
 </script>
 </pwm:script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>

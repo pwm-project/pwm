@@ -53,50 +53,60 @@ public class PasswordValue implements StoredValue {
         value = passwordData;
     }
 
-    static PasswordValue fromJson(final String value) {
-        final String strValue = JsonUtil.getGson().fromJson(value, String.class);
-        if (strValue != null && !strValue.isEmpty()) {
-            try {
-                return new PasswordValue(new PasswordData(strValue));
-            } catch (PwmUnrecoverableException e) {
-                throw new IllegalStateException("PasswordValue can not be json de-serialized: " + e.getMessage());
-            }
-        }
-        return new PasswordValue();
-    }
-
-    static PasswordValue fromXmlValue(final Element settingElement, final String key)
-            throws PwmOperationalException, PwmUnrecoverableException
+    public static StoredValueFactory factory()
     {
-        final Element valueElement = settingElement.getChild("value");
-        final String rawValue = valueElement.getText();
-
-        final PasswordValue newPasswordValue = new PasswordValue();
-        if (rawValue == null || rawValue.isEmpty()) {
-            return newPasswordValue;
-        }
-
-        final boolean plainTextSetting;
-        {
-            final String plainTextAttributeStr = valueElement.getAttributeValue("plaintext");
-            plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean(plainTextAttributeStr);
-        }
-
-        if (plainTextSetting) {
-            newPasswordValue.value = new PasswordData(rawValue);
-            newPasswordValue.requiresStoredUpdate = true;
-        } else {
-            try {
-                final SecretKey secretKey = SecureHelper.makeKey(key);
-                newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey));
-                return newPasswordValue;
-            } catch (Exception e) {
-                final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
-                final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorMsg);
-                throw new PwmOperationalException(errorInfo);
+        return new StoredValueFactory() {
+            public PasswordValue fromJson(final String value)
+            {
+                final String strValue = JsonUtil.getGson().fromJson(value, String.class);
+                if (strValue != null && !strValue.isEmpty()) {
+                    try {
+                        return new PasswordValue(new PasswordData(strValue));
+                    } catch (PwmUnrecoverableException e) {
+                        throw new IllegalStateException(
+                                "PasswordValue can not be json de-serialized: " + e.getMessage());
+                    }
+                }
+                return new PasswordValue();
             }
-        }
-        return newPasswordValue;
+
+            public PasswordValue fromXmlElement(
+                    final Element settingElement,
+                    final String key
+            )
+                    throws PwmOperationalException, PwmUnrecoverableException
+            {
+                final Element valueElement = settingElement.getChild("value");
+                final String rawValue = valueElement.getText();
+
+                final PasswordValue newPasswordValue = new PasswordValue();
+                if (rawValue == null || rawValue.isEmpty()) {
+                    return newPasswordValue;
+                }
+
+                final boolean plainTextSetting;
+                {
+                    final String plainTextAttributeStr = valueElement.getAttributeValue("plaintext");
+                    plainTextSetting = plainTextAttributeStr != null && Boolean.parseBoolean(plainTextAttributeStr);
+                }
+
+                if (plainTextSetting) {
+                    newPasswordValue.value = new PasswordData(rawValue);
+                    newPasswordValue.requiresStoredUpdate = true;
+                } else {
+                    try {
+                        final SecretKey secretKey = SecureHelper.makeKey(key);
+                        newPasswordValue.value = new PasswordData(SecureHelper.decryptStringValue(rawValue, secretKey));
+                        return newPasswordValue;
+                    } catch (Exception e) {
+                        final String errorMsg = "unable to decode encrypted password value for setting: " + e.getMessage();
+                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR, errorMsg);
+                        throw new PwmOperationalException(errorInfo);
+                    }
+                }
+                return newPasswordValue;
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

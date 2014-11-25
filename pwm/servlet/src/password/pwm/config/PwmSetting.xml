@@ -240,6 +240,7 @@
             <value>OTPTimestamp</value>
             <value>Username</value>
             <value>UserEmail</value>
+            <value>UserSMS</value>
         </default>
         <options>
             <option value="GUID">GUID</option>
@@ -262,6 +263,7 @@
             <option value="Username">Username</option>
             <option value="UserDN">User DN</option>
             <option value="UserEmail">User Email</option>
+            <option value="UserSMS">User SMS</option>
         </options>
     </setting>
     <setting key="display.showLoginPageOptions" level="0" required="true">
@@ -294,14 +296,14 @@
     </setting>
     <setting key="display.css.customStyleLocation" level="1">
         <label>Custom CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL Location (and name) of the custom <i>style.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
     </setting>
     <setting key="display.css.customMobileStyleLocation" level="1">
         <label>Custom Mobile CSS Stylesheet Location</label>
-        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
+        <description><![CDATA[URL Location (and name) of the custom <i>mobileStyle.css</i> resource.  The setting <i>User Interface -> Theme</i> must be set to Custom for this setting to be useful.  If this URL is relative, it will be appended to the context path.]]></description>
         <default>
             <value><![CDATA[]]></value>
         </default>
@@ -676,6 +678,13 @@
             <value>25</value>
         </default>
     </setting>
+    <setting key="email.default.fromAddress" level="0">
+        <label>Default From Address</label>
+        <description><![CDATA[Default From Address]]></description>
+        <default>
+            <value>noreply@example.org</value>
+        </default>
+    </setting>
     <setting key="email.smtp.username" level="1">
         <label>SMTP Email Server Username</label>
         <description><![CDATA[Any emails generated will be sent by logging into server with this user.  A blank value will here will send SMTP messages without authentication.]]></description>
@@ -706,91 +715,98 @@
         <label>Change Password Email</label>
         <description><![CDATA[Email sent to user when a password change occurs.  This email is only sent when the user changes their own password.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
+            <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"You have changed your password.  If you did not initiate a password change please contact your help desk immediately.","bodyHtml":"\u003cb\u003eYou have changed your password.\u003c/b\u003e  If you have changed your password, then no action is required.  If you did not initiate a password change please contact your help desk."}</value>
         </default>
     </setting>
     <setting key="email.changePassword.helpdesk" level="0">
         <label>Helpdesk Change Password Email</label>
         <description><![CDATA[Email sent to user when the helpdesk changes the user's password.  Macros used for this setting will be expanded based on the user who's password is being changed, not the helpdesk user.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Change Password Notice \u003cnoreply@@SiteHost@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
+            <value>{"to":"@User:Email@","from":"Change Password Notice \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Change Notification","bodyPlain":"Your password has been changed by the heldesk.   You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk.","bodyHtml":"\u003cb\u003eYour password has been changed by the helpdesk.\u003c/b\u003e  You should set a new password immediately.  If you did not initiate a password change please contact your helpdesk."}</value>
         </default>
     </setting>
     <setting key="email.updateProfile" level="0">
         <label>Update Profile Email</label>
         <description><![CDATA[Email sent to users after a profile update.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Profile Update \u003cnoreply@@SiteHost@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Profile Update \u003c@DefaultEmailFromAddress@\u003e","subject":"Profile Update","bodyPlain":"Thank you for updating your profile information, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for updating your profile information, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser" level="0">
         <label>New User Email</label>
         <description><![CDATA[Email sent to newly created users.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Thank you for registering your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for registering your account, \u003c/b\u003e\u003cb\u003e@LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.newUser.token" level="0">
         <label>New User Verification Email</label>
         <description><![CDATA[Email sent during new user verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"New User Registration \u003cnoreply@@SiteHost@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"New User Registration \u003c@DefaultEmailFromAddress@\u003e","subject":"New User Verification","bodyPlain":"Thank you for requesting a new account. To continue with your account registration, please copy and paste the following code on the registration form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting a new account.  To continue with your account registration, please \u003ca href\u003d\"@SiteURL@/public/NewUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link does not work, you can copy and paste the following code on the registration form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.activation" level="0">
         <label>Activation Email</label>
         <description><![CDATA[Email sent to a user just after a successful activation.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Activation Notification \u003cnoreply@@SiteHost@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Activation Notification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Activated","bodyPlain":"Thank you for activating your account, @LDAP:givenName@.","bodyHtml":"\u003cb\u003eThank you for activating your account, @LDAP:givenName@.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.activation.token" level="0">
         <label>Activation Verification Email</label>
         <description><![CDATA[Email sent during activation verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Activation Verification \u003cnoreply@@SiteHost@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"Activation Verification \u003c@DefaultEmailFromAddress@\u003e","subject":"Account Verification","bodyPlain":"Thank you for requesting your account activation. To continue with your account activation, please copy and paste the following code onto the activation form:\n\n%TOKEN%\n\nIf you did not request to create a new account, you do not need to take any action.","bodyHtml":"Thank you for requesting your account activation.  To continue with your account activation, please \u003ca href\u003d\"@SiteURL@/public/ActivateUser/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the activation form:\u003cbr /\u003e\u003cbr /\u003e\u003cb\u003e\u003cpre\u003e%TOKEN%\u003c/pre\u003e\u003c/b\u003e\u003cbr /\u003eIf you did not request to create a new account, you do not need to take any action."}</value>
         </default>
     </setting>
     <setting key="email.challenge.token" level="0">
         <label>Forgotten Password Verification Email</label>
         <description><![CDATA[Email sent during forgotten password verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Forgotten Password \u003cnoreply@@SiteHost@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
+            <value>{"to":"@User:Email@","from":"Forgotten Password \u003c@DefaultEmailFromAddress@\u003e","subject":"Forgotten Password Verification","bodyPlain":"Thank you for requesting a password reset. To continue with your password reset, please copy and paste the following code onto the password reset form:\n\n%TOKEN%\n\nIf you do not wish to change your password at this time, you do not need to take any action.","bodyHtml":"Thank you for requesting a password reset.  To continue with your password reset, please \u003ca href\u003d\"@SiteURL@/public/ForgottenPassword/%TOKEN%\"\u003eclick here\u003c/a\u003e to continue.\u003cbr /\u003e\u003cbr /\u003eIf for some reason this link doesn\u0027t work, you can copy and paste the following code onto the password reset form:\u003cbr /\u003e\u003cbr /\u003e%TOKEN%\u003cbr /\u003e\u003cbr /\u003eIf you do not wish to change your password at this time, you do not need to take any action."}</value>
+        </default>
+    </setting>
+    <setting key="email.helpdesk.token" level="0">
+        <label>Helpdesk Verification Email</label>
+        <description><![CDATA[Email sent during helpdesk verification process.  %TOKEN% can be used to insert the token value into the email.]]></description>
+        <default>
+            <value>{"to":"@User:Email@","from":"Helpdesk \u003c@DefaultEmailFromAddress@\u003e","subject":"Helpdesk Verification","bodyPlain":"Your helpdesk has sent you a code to verify your identity. Your verification code is:\n\n%TOKEN%","bodyHtml":"Your helpdesk has sent you a code to verify your identity. Your verification code is: %TOKEN%."}</value>
         </default>
     </setting>
     <setting key="email.guest" level="1">
         <label>Guest Registration Email</label>
         <description><![CDATA[Email sent to newly created guest users.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Welcome","bodyPlain":"Your account has been created.\n\nYour username is: @User:ID@\nYour password is: @User:Password@","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e\u003cp\u003eYour username is:@User:ID@\u003cbr /\u003eYour password is: \u003cb\u003e@User:Password@\u003c/b\u003e\u003c/p\u003e"}</value>
         </default>
     </setting>
     <setting key="email.updateguest" level="1">
         <label>Guest Registration Update Email</label>
         <description><![CDATA[Email sent to updated guest users.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003cnoreply@@SiteHost@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Guest Registration Agent \u003c@DefaultEmailFromAddress@\u003e","subject":"Account update notification","bodyPlain":"Your account has been updated.","bodyHtml":"\u003cb\u003eYour account has been created.\u003c/b\u003e"}</value>
         </default>
     </setting>
     <setting key="email.sendpassword" level="1">
         <label>Send Password Email</label>
         <description><![CDATA[Email sent during forgotten password reset process if send password functionality is enabled.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Password Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Password Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your new password is:\n\n@User:Password@\n\nPlease change your password as soon as possible.","bodyHtml":"Thank you for requesting a password reset.  Your new password is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:Password@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.sendUsername" level="1">
         <label>Send Username Email</label>
         <description><![CDATA[Email sent (if configured) for forgotten username process.]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Username Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Username Information","bodyPlain":"Your username is:\n\n@User:ID@\n\n","bodyHtml":"Your username is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:ID@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
+            <value>{"to":"@User:Email@","from":"Username Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Username Information","bodyPlain":"Your username is:\n\n@User:ID@\n\n","bodyHtml":"Your username is:\u003cbr /\u003e\u003cbr /\u003e\u003cfont face\u003d\"\u0027Courier New\u0027\"\u003e\u003cb\u003e@User:ID@\u003cbr /\u003e\u003cbr /\u003e\u003c/b\u003e\u003c/font\u003e"}</value>
         </default>
     </setting>
     <setting key="email.intruderNotice" level="0">
-        <label>Intruder Notice Email </label>
+        <label>Intruder Notice Email</label>
         <description><![CDATA[Email sent when a userDN intruder lockout occurs]]></description>
         <default>
-            <value>{"to":"@User:Email@","from":"Intruder Notifier \u003cnoreply@@SiteHost@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
+            <value>{"to":"@User:Email@","from":"Intruder Notifier \u003c@DefaultEmailFromAddress@\u003e","subject":"Password Information","bodyPlain":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator.","bodyHtml":"Your account has been temporarily disabled due to several incorrect login/password reset attempts.  If this activity was not caused by you, please contact your administrator."}</value>
         </default>
     </setting>
     <setting key="email.smtp.advancedSettings" level="1">
@@ -952,15 +968,15 @@
             <value>6</value>
         </default>
     </setting>
-    <setting key="sms.challenge.token.message" level="1" required="true">
-        <label>Challenge Token SMS Text</label>
+    <setting key="sms.challenge.token.message" level="0" required="true">
+        <label>Forgotten Password SMS Text</label>
         <description><![CDATA[Message text of SMS sent during forgotten password token process.]]></description>
         <default>
             <value><![CDATA[Your security code is %TOKEN%.]]></value>
         </default>
     </setting>
-    <setting key="sms.challenge.newpassword.message" level="1" required="true">
-        <label>Challenge New Password SMS Text</label>
+    <setting key="sms.challenge.newpassword.message" level="0" required="true">
+        <label>Forgotten Password New Password SMS Text</label>
         <description><![CDATA[Message text of SMS with new password sent during forgotten password process.]]></description>
         <default>
             <value><![CDATA[Your new password is %TOKEN%.]]></value>
@@ -971,6 +987,13 @@
         <description><![CDATA[Text of SMS sent during new user verification process.]]></description>
         <default>
             <value><![CDATA[Your account verification token is %TOKEN%.]]></value>
+        </default>
+    </setting>
+    <setting key="sms.helpdesk.token.message" level="0" required="true">
+        <label>Helpdesk Verification SMS Text</label>
+        <description><![CDATA[Message text of SMS sent during helpdesk token verification process.]]></description>
+        <default>
+            <value><![CDATA[Your security code is %TOKEN%.]]></value>
         </default>
     </setting>
     <setting key="sms.forgottenUsername.message" level="0" required="true">
@@ -1010,7 +1033,7 @@
         </default>
     </setting>
     <setting key="password.profile.list" level="0" hidden="true">
-        <label>Password Policy Profiles</label>
+        <label>Password Policiesy Profiles</label>
         <description><![CDATA[List of Password Policy Profiles.  When multiple password policy profiles are configured, all profiles except for the default are evaluated in order to check if the <i>Password Policy Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
         <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default/>
@@ -1361,7 +1384,7 @@
     </setting>
     <setting key="password.wordlist.wordSize" level="1" required="true">
         <label>Wordlist Word Size Check</label>
-        <description><![CDATA[Number of characters in a word that is checked against the wordlist dictionary.  For example, if the word to be checked is "wordlist" and this setting is set to 6, then the combinations "wordli", "ordlis" and "rdlist" would all be checked against the configured dictionary.  If any of these values match, then the entire value is considered to match the wordlist.  If this value is set to zero or the word to check is smaller then the value specified here, then only the entire word ist checked.]]></description>
+        <description><![CDATA[Minimum number of characters in the password that are checked against the wordlist dictionary. For example, if the password to be checked is "wordlist" and this setting is set to 6, then the combinations "wordli", "wordlis", "wordlist", "ordlis", "ordlist" and "rdlist" would all be checked against the configured dictionary. If any of these values are equal to any word in the wordlist dictionary, then the password is considered to match the wordlist and will be rejected. If this value is set to zero or the password to check is smaller then the value specified here, then the entire password is checked against the wordlist but not any smaller parts of it.]]></description>
         <default>
             <value>0</value>
         </default>
@@ -1557,11 +1580,11 @@
         <label>Disallowed HTTP Inputs</label>
         <description><![CDATA[Disallowed values.  If any input values (on any http parameter) matches these patterns, the matching portion will be stripped from the input.]]></description>
         <default>
-            <value><![CDATA[(?i)<.*script.*>]]></value>
-            <value><![CDATA[(?i)<.*xml.*>*]]></value>
-            <value><![CDATA[(?i)<.*img.*>]]></value>
-            <value><![CDATA[(?i)<.*src.*>]]></value>
-            <value><![CDATA[(?i).*href.*]]></value>
+            <value><![CDATA[(?s)(?i)<.*script.*>]]></value>
+            <value><![CDATA[(?s)(?i)<.*xml.*>*]]></value>
+            <value><![CDATA[(?s)(?i)<.*img.*>]]></value>
+            <value><![CDATA[(?s)(?i)<.*src.*>]]></value>
+            <value><![CDATA[(?s)(?i).*href.*]]></value>
         </default>
     </setting>
     <setting key="pwm.requireHTTPS" level="0" required="true">
@@ -1602,9 +1625,7 @@
     <setting key="network.requiredHttpHeaders" level="1" required="false">
         <label>Required HTTP Headers</label>
         <description><![CDATA[<p>Required HTTP header name and value pairs.  If specified, any HTTP request sent to the server must have these headers to be honored.  This feature is useful if you have a security gateway and wish to only allow sessions from the gateway.</p><p>The settings must be in "name=value" format.</p>]]></description>
-        <default>
-            <value/>
-        </default>
+        <default/>
         <regex>^[a-zA-Z0-9.-]{1,1024}=.{1,1024}$</regex>
     </setting>
     <setting key="network.ip.permittedRange" level="1" required="false">
@@ -1675,7 +1696,7 @@
         <description><![CDATA[Set the HTTP Content-Security-Policy header.  This header instructs the browser to limit the locations from which it will load fonts, scripts and css files.]]></description>
         <default>
             <value><![CDATA[]]></value>
-            <!--<value><![CDATA[default-src 'self';style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline' www.google.com/recaptcha]]></value>-->
+            <!--<value><![CDATA[default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'nonce-%NONCE%' www.google.com/recaptcha]]></value>-->
         </default>
     </setting>
     <setting key="email.adminAlert.toAddress" level="0">
@@ -1713,9 +1734,10 @@
     </setting>
     <setting key="audit.user.eventList" level="0">
         <label>User Audit Event Types</label>
-        <description><![CDATA[Send an email when System Audit events occur to these email addresses.]]></description>
+        <description><![CDATA[Event types to record and act upon.]]></description>
         <default>
             <value>AUTHENTICATE</value>
+            <value>AGREEMENT_PASSED</value>
             <value>CHANGE_PASSWORD</value>
             <value>RECOVER_PASSWORD</value>
             <value>SET_RESPONSES</value>
@@ -1732,10 +1754,12 @@
             <value>HELPDESK_CLEAR_RESPONSES</value>
             <value>HELPDESK_CLEAR_OTP_SECRET</value>
             <value>HELPDESK_DELETE_USER</value>
+            <value>HELPDESK_VIEW_DETAIL</value>
             <value>HELPDESK_ACTION</value>
         </default>
         <options>
             <option value="AUTHENTICATE">Authenticate</option>
+            <option value="AGREEMENT_PASSED">Agreement Passed</option>
             <option value="CHANGE_PASSWORD">Change Password</option>
             <option value="RECOVER_PASSWORD">Recover Password</option>
             <option value="SET_RESPONSES">Set Responses</option>
@@ -1752,6 +1776,7 @@
             <option value="HELPDESK_CLEAR_RESPONSES">Helpdesk Clear Responses</option>
             <option value="HELPDESK_CLEAR_OTP_SECRET">Helpdesk Clear OTP</option>
             <option value="HELPDESK_DELETE_USER">Helpdesk Delete User</option>
+            <option value="HELPDESK_VIEW_DETAIL">Helpdesk View Detail</option>
             <option value="HELPDESK_ACTION">Helpdesk Action</option>
         </options>
     </setting>
@@ -2368,7 +2393,7 @@
             <option value="BOTH">Both - Send token to both email and SMS</option>
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
-            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides, or auto send if only one is available.</option>
+            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
     </setting>
     <setting key="recovery.require.otp" level="0" required="true" hidden="false">
@@ -2514,7 +2539,7 @@
         <description><![CDATA[
         <p>This setting controls the entry id of the newly created LDAP entry.  In some directories this is often used
         as the "username", though many directories separate the concepts and values of entry ID and username.</p>
-        <p>Values can (and usually do) include <a onclick="PWM_CFGEDIT.showMacroHelp()">macros</a>.  In case the first value
+        <p>Values can (and usually do) include macros.  In case the first value
         is already existing in the directory, each successive value is tried until a free value is found.  Though the user
         is not yet created when the macros are evaluated, LDAP macros will use the data provided on the new user form.  Other
         macros may not be useful as there no data yet available on the user.
@@ -2930,7 +2955,7 @@
         <label>LDAP Photo HTML Style Attribute</label>
         <description><![CDATA[When displaying the photo, the value for this attribute will be used to specify the HTML <i>&lt;img&gt;</i> tag's <i>style</i> attribute.  Any valid CSS style attribute can be used.  Typically this is used to specify the height and width of the photo such as "<i>height: 100px; width: 100px</i>".]]></description>
         <default>
-            <value></value>
+            <value>height: 100px; width: 100px</value>
         </default>
     </setting>
     <setting key="peopleSearch.maxCacheSeconds" level="1">
@@ -3182,6 +3207,7 @@
             <value>Username</value>
             <value>UserDN</value>
             <value>UserEmail</value>
+            <value>UserSMS</value>
         </default>
         <options>
             <option value="AccountEnabled">Account Enabled</option>
@@ -3203,6 +3229,7 @@
             <option value="Username">Username</option>
             <option value="UserDN">User DN</option>
             <option value="UserEmail">User Email</option>
+            <option value="UserSMS">User SMS</option>
         </options>
     </setting>
     <setting key="helpdesk.idleTimeout" level="0">
@@ -3291,7 +3318,15 @@
             <option value="BOTH">Both - Send token to both email and SMS</option>
             <option value="EMAILFIRST">Email First - Try to send token via email; if no email address is available, send via SMS</option>
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
+            <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
+sms    </setting>
+    <setting key="helpdesk.otp.verify" level="0">
+        <label>Enable OTP Verification</label>
+        <description><![CDATA[Enable OTP Verificaton.]]></description>
+        <default>
+            <value>true</value>
+        </default>
     </setting>
     <setting key="pwmDb.location" level="1" required="true">
         <label>LocalDB Location</label>
@@ -3755,10 +3790,27 @@
         </default>
     </setting>
 
+    <category key="SETTINGS">
+        <label>Settings</label>
+        <description>Settings</description>
+    </category>
+    <category key="PROFILES">
+        <label>Policies</label>
+        <description>Profiles</description>
+    </category>
+    <category key="MODULES">
+        <label>Modules</label>
+        <description>Modules</description>
+    </category>
+
     <category key="LDAP_PROFILE" profiles="true">
         <label>LDAP Directories</label>
         <description><![CDATA[Settings that control interaction with the LDAP directory.  Multiple directory profiles can be created to support multiple LDAP user stores.]]></description>
         <profile setting="ldap.profile.list"/>
+    </category>
+    <category key="LDAP">
+        <label>LDAP</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="LDAP_GLOBAL">
         <label>LDAP Settings</label>
@@ -3771,6 +3823,14 @@
     <category key="USER_INTERFACE">
         <label>User Interface</label>
         <description><![CDATA[These settings control application wide features and display format that is visible to the end user.]]></description>
+    </category>
+    <category key="UI_FEATURES">
+        <label>UI Features</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="UI_WEB">
+        <label>Look &amp; Feel</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="PASSWORD_POLICY">
         <label>Password Policy Profiles</label>
@@ -3794,13 +3854,37 @@
         <label>Email</label>
         <description><![CDATA[<p>Configuration settings for all sent emails.   For email body configuration, both plaintext and HTML settings are provided.  It is encouraged that for each configured setting and locale, both plaintext and HTML email bodies are configured.  Email will be delivered in both formats and the email client can choose which to display.</p> <p>Email definitions may use Macros.  See the "View" menu "Show Macro Help" for more information about Macros.</p>]]></description>
     </category>
+    <category key="EMAIL_SETTINGS">
+        <label>Email Settings</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="EMAIL_TEMPLATES">
+        <label>Email Templates</label>
+        <description><![CDATA[]]></description>
+    </category>
     <category key="SMS">
         <label>SMS</label>
         <description><![CDATA[Configuration settings for interfacing with SMS service gateways.  The SMS gateway should support REST web service to use with this application.  The service provider will provide you with information that will allow you to complete the settings here..]]></description>
     </category>
+    <category key="SMS_GATEWAY">
+        <label>SMS Gateway</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="SMS_MESSAGES">
+        <label>SMS Messages</label>
+        <description><![CDATA[]]></description>
+    </category>
     <category key="SECURITY">
         <label>Security</label>
         <description><![CDATA[Settings that control security aspects of the system.  In some cases, the security features of this application may interfere with integration of other systems.  Use caution when changing these settings as the overall security of the application could be impacted.]]></description>
+    </category>
+    <category key="APP_SECURITY">
+        <label>Application Security</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="WEB_SECURITY">
+        <label>Web Security</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="CAPTCHA">
         <label>Captcha</label>
@@ -3818,13 +3902,24 @@
         <label>One Time Password</label>
         <description><![CDATA[Options for time based one time passwords.]]></description>
     </category>
-
     <category key="LOGGING">
         <label>Logging</label>
         <description><![CDATA[Setting high debug levels can cause undesired overhead and the application may suffer as a result.  Conversely, retaining high-level logs can help aid troubleshooting as well as security forensics.]]></description>
     </category>
     <category key="AUDITING">
         <label>Auditing</label>
+        <description><![CDATA[Auditing]]></description>
+    </category>
+    <category key="AUDIT_CONFIG">
+        <label>Audit Configuration</label>
+        <description><![CDATA[Auditing]]></description>
+    </category>
+    <category key="USER_HISTORY">
+        <label>User History</label>
+        <description><![CDATA[Auditing]]></description>
+    </category>
+    <category key="AUDIT_FORWARD">
+        <label>Audit Forwarding</label>
         <description><![CDATA[Auditing]]></description>
     </category>
     <category key="EDIRECTORY">

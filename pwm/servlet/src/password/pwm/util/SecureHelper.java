@@ -39,6 +39,11 @@ public class SecureHelper {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SecureHelper.class);
 
+    private static final int HASH_BUFFER_SIZE = 1024;
+
+    public static final HashAlgorithm DEFAULT_HASH_ALGORITHM = HashAlgorithm.SHA512;
+    public static final BlockAlgorithm DEFAULT_BLOCK_ALGORITHM = BlockAlgorithm.AES;
+
     public enum HashAlgorithm {
         MD5("MD5"),
         SHA1("SHA1"),
@@ -49,6 +54,24 @@ public class SecureHelper {
         private final String algName;
 
         HashAlgorithm(String algName)
+        {
+            this.algName = algName;
+        }
+
+        public String getAlgName()
+        {
+            return algName;
+        }
+    }
+
+    public enum BlockAlgorithm {
+        AES("AES"),
+
+        ;
+
+        private final String algName;
+
+        BlockAlgorithm(String algName)
         {
             this.algName = algName;
         }
@@ -94,12 +117,22 @@ public class SecureHelper {
     )
             throws PwmUnrecoverableException
     {
+        return encryptToBytes(value, key, DEFAULT_BLOCK_ALGORITHM);
+    }
+
+    public static byte[] encryptToBytes(
+            final String value,
+            final SecretKey key,
+            final BlockAlgorithm blockAlgorithm
+    )
+            throws PwmUnrecoverableException
+    {
         try {
             if (value == null || value.length() < 1) {
                 return null;
             }
 
-            final Cipher cipher = Cipher.getInstance("AES");
+            final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
             cipher.init(Cipher.ENCRYPT_MODE, key, cipher.getParameters());
             return cipher.doFinal(value.getBytes(PwmConstants.DEFAULT_CHARSET));
         } catch (Exception e) {
@@ -148,12 +181,22 @@ public class SecureHelper {
     )
             throws PwmUnrecoverableException
     {
+        return decryptBytes(value, key, DEFAULT_BLOCK_ALGORITHM);
+    }
+
+    public static String decryptBytes(
+            final byte[] value,
+            final SecretKey key,
+            final BlockAlgorithm blockAlgorithm
+    )
+            throws PwmUnrecoverableException
+    {
         try {
             if (value == null || value.length < 1) {
                 return null;
             }
 
-            final Cipher cipher = Cipher.getInstance("AES");
+            final Cipher cipher = Cipher.getInstance(blockAlgorithm.getAlgName());
             cipher.init(Cipher.DECRYPT_MODE, key);
             final byte[] decrypted = cipher.doFinal(value);
             return new String(decrypted,PwmConstants.DEFAULT_CHARSET);
@@ -252,7 +295,7 @@ public class SecureHelper {
 
         try
         {
-            final byte[] buffer = new byte[1024];
+            final byte[] buffer = new byte[HASH_BUFFER_SIZE];
             int length;
             while (true) {
                 length = bis.read(buffer, 0, buffer.length);

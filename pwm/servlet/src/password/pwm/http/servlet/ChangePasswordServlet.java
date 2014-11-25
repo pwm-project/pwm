@@ -43,6 +43,7 @@ import password.pwm.config.option.RequireCurrentPasswordMode;
 import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ChangePasswordBean;
@@ -166,9 +167,7 @@ public class ChangePasswordServlet extends PwmServlet {
                     break;
 
                 case agree:
-                    LOGGER.debug(pwmRequest, "user accepted password change agreement");
-                    changePasswordBean.setAgreementPassed(true);
-                    break;
+                    handleAgreeRequest(pwmRequest, changePasswordBean);
             }
         }
 
@@ -239,6 +238,25 @@ public class ChangePasswordServlet extends PwmServlet {
             LOGGER.debug(e.getErrorInformation().toDebugStr());
             pwmRequest.setResponseError(e.getErrorInformation());
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE);
+        }
+    }
+
+    private void handleAgreeRequest(
+            final PwmRequest pwmRequest,
+            final ChangePasswordBean cpb
+    )
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        LOGGER.debug(pwmRequest, "user accepted password change agreement");
+        if (!cpb.isAgreementPassed()) {
+            cpb.setAgreementPassed(true);
+            AuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+                    AuditEvent.AGREEMENT_PASSED,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getSessionLabel(),
+                    "NewUser"
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
         }
     }
 

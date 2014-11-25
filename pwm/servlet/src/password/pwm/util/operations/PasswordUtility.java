@@ -612,7 +612,7 @@ public class PasswordUtility {
     */
 
     public static int judgePasswordStrength(
-            final CharSequence password
+            final String password
     )
             throws PwmUnrecoverableException
     {
@@ -631,15 +631,15 @@ public class PasswordUtility {
         score = score + ((charCounter.getUniqueChars()) * 3);
 
         // Numbers
-        if (charCounter.getNumericChars() > 0) {
+        if (charCounter.getNumericCharCount() > 0) {
             score = score + 8;
-            score = score + (charCounter.getNumericChars()) * 4;
+            score = score + (charCounter.getNumericCharCount()) * 4;
         }
 
         // specials
-        if (charCounter.getSpecialChars() > 0) {
+        if (charCounter.getSpecialCharsCount() > 0) {
             score = score + 14;
-            score = score + (charCounter.getSpecialChars()) * 5;
+            score = score + (charCounter.getSpecialCharsCount()) * 5;
         }
 
         // mixed case
@@ -846,7 +846,7 @@ public class PasswordUtility {
             }
         }
 
-        final int strength = judgePasswordStrength(password.getStringValue());
+        final int strength = judgePasswordStrength(password == null ? null : password.getStringValue());
         return new PasswordCheckInfo(userMessage, pass, strength, matchStatus, errorCode);
     }
 
@@ -859,6 +859,8 @@ public class PasswordUtility {
         final PasswordCheckInfo.MATCH_STATUS matchStatus;
         if (password2 == null) {
             matchStatus = PasswordCheckInfo.MATCH_STATUS.EMPTY;
+        } else if (password1 == null) {
+            matchStatus = PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
         } else {
             if (caseSensitive) {
                 matchStatus = password1.equals(password2) ? PasswordCheckInfo.MATCH_STATUS.MATCH : PasswordCheckInfo.MATCH_STATUS.NO_MATCH;
@@ -963,7 +965,7 @@ public class PasswordUtility {
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
                 final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
-                LOGGER.trace(sesionLabel, "read pwmPassswordChangeTime as: " + (pwmPwdLastModified == null ? "" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
+                LOGGER.trace(sesionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
                 return pwmPwdLastModified;
             } catch (ChaiOperationException e) {
                 LOGGER.error(sesionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());

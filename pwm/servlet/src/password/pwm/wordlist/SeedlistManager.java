@@ -107,4 +107,10 @@ public class SeedlistManager extends AbstractWordlist implements Wordlist {
 
         t.start();
     }
+
+    @Override
+    protected String makeVersionString()
+    {
+        return VALUE_VERSION;
+    }
 }

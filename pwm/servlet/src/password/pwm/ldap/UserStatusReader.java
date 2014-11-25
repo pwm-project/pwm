@@ -360,7 +360,7 @@ public class UserStatusReader {
         uiBean.setRequiresNewPassword(checkIfNewPasswordRequired(userIdentity, uiBean.getPasswordState()));
 
         // check if responses need to be updated
-        uiBean.setRequiresUpdateProfile(checkIfProfileUpdateNeeded(uiBean, userDataReader, userLocale));
+        uiBean.setRequiresUpdateProfile(checkIfProfileUpdateNeeded(config, uiBean, userDataReader, userLocale));
 
         // fetch last password modification time;
         final Date pwdLastModifedDate = PasswordUtility.determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
@@ -454,6 +454,7 @@ public class UserStatusReader {
     }
 
     public boolean checkIfProfileUpdateNeeded(
+            final Configuration configuration,
             final UserInfoBean uiBean,
             final UserDataReader userDataReader,
             final Locale locale
@@ -505,7 +506,7 @@ public class UserStatusReader {
             }
 
             try {
-                FormUtility.validateFormValues(formValues, locale);
+                FormUtility.validateFormValues(configuration, formValues, locale);
                 LOGGER.debug(sessionLabel, "checkProfile: " + userIdentity + " has value for attributes, update profile will not be required");
                 return false;
             } catch (PwmDataValidationException e) {

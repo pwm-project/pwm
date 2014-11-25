@@ -61,7 +61,7 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript" nonce="<pwm:value name="cspNonce"/>">
+<script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_MAIN.getObject('password').focus();
     });

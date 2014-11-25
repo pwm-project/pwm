@@ -82,6 +82,9 @@ public class RestAppDataServer extends AbstractRestServer {
         public PwmSettingSyntax syntax;
         public boolean hidden;
         public boolean required;
+        public Map<String,String> options;
+        public String pattern;
+        public String placeholder;
     }
 
     public static class CategoryInfo implements Serializable {
@@ -90,7 +93,7 @@ public class RestAppDataServer extends AbstractRestServer {
         public String description;
         public String label;
         public PwmSettingSyntax syntax;
-        public PwmSettingCategory.Type type;
+        public String parent;
         public boolean hidden;
     }
 
@@ -514,6 +517,9 @@ public class RestAppDataServer extends AbstractRestServer {
                 settingInfo.category = setting.getCategory();
                 settingInfo.required = setting.isRequired();
                 settingInfo.hidden = setting.isHidden();
+                settingInfo.options = setting.getOptions();
+                settingInfo.pattern = setting.getRegExPattern().toString();
+                settingInfo.placeholder = setting.getPlaceholder(locale);
                 settingMap.put(setting.getKey(),settingInfo);
             }
             returnMap.put("settings",settingMap);
@@ -526,8 +532,10 @@ public class RestAppDataServer extends AbstractRestServer {
                 categoryInfo.level = category.getLevel();
                 categoryInfo.description = category.getDescription(locale);
                 categoryInfo.label = category.getLabel(locale);
-                categoryInfo.type = category.getType();
                 categoryInfo.hidden = category.isHidden();
+                if (category.getParent() != null) {
+                    categoryInfo.parent = category.getParent().getKey();
+                }
                 categoryMap.put(category.getKey(),categoryInfo);
             }
             returnMap.put("categories",categoryMap);

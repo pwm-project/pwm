@@ -45,8 +45,8 @@
 <% final Locale userLocaleFooter = pwmSessionFooter == null ? PwmConstants.DEFAULT_LOCALE : pwmSessionFooter.getSessionStateBean().getLocale(); %>
 <% boolean segmentDisplayed = false; %>
 <%-- begin pwm footer --%>
+<% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_FOOTER_TEXT)) { %>
 <div id="footer">
-    <% if (footer_pwmRequest != null && !footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_FOOTER_TEXT)) { %>
     <div id="footer-content">
         <span class="infotext">
             <pwm:display key="Display_FooterInfoText"/>&nbsp;
@@ -77,17 +77,14 @@
             <% segmentDisplayed = true; } %>
         </div>
     </div>
-    <% } %>
-    <pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" id="customJavascipt">
+</div>
+<% } %>
+<pwm:script>
+    <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
             <pwm:value name="customJavascript"/>
         });
     </script>
-    </pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/main.js'/>"></script>
-    <pwm:if test="stripInlineJavascript">
-        <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:url url='/public/CommandServlet?processAction=scriptContents' addContext="true"/>&time=<%=System.currentTimeMillis()%>"></script>
-    </pwm:if>
-</div>
+</pwm:script>
+<script nonce="<pwm:value name="cspNonce"/>" data-dojo-config="async: true" dojo-sync-loader="false" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/dojo/dojo/dojo.js'/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/main.js'/>"></script>

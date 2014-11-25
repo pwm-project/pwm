@@ -69,6 +69,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
         var styleAttr = PWM_VAR['photo_style_attribute'];
         htmlBody += '<div id="userPhotoParentDiv"><img style="' + styleAttr + '" src="' + blankSrc + '"></div>';
     }
+    htmlBody += '<div id="peopleSearch-userDetailWrapper">';
     htmlBody += '<table style="max-height: 450px; overflow-y: auto">';
     for (var iter in data['detail']) {
         (function(iterCount){
@@ -100,11 +101,12 @@ PWM_PS.convertDetailResultToHtml = function(data) {
             htmlBody += '</td>'
         })(iter);
     }
-    htmlBody += '</table>';
+    htmlBody += '</table></div>';
     return htmlBody;
 };
 
 PWM_PS.showUserDetail = function(userKey) {
+    console.log('beginning showUserDetail, userKey=' + userKey);
     var sendData = {
         userKey:userKey
     };
@@ -162,10 +164,7 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
 
 PWM_PS.initPeopleSearchPage = function() {
     PWM_PS.makeSearchGrid(function(){
-        require(["dojo/dom-construct", "dojo/on"], function(domConstruct, on){
-            on(PWM_MAIN.getObject('username'), "keyup, input", function(){
-                PWM_PS.processPeopleSearch();
-            });
+        PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_PS.processPeopleSearch();
         });
     });

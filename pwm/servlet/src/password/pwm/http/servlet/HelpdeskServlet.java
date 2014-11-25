@@ -31,6 +31,7 @@ import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -38,10 +39,8 @@ import password.pwm.config.ActionConfiguration;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.http.PwmRequest;
@@ -53,6 +52,8 @@ import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.token.TokenPayload;
+import password.pwm.token.TokenService;
 import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.intruder.IntruderManager;
@@ -61,8 +62,10 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.operations.ActionExecutor;
 import password.pwm.util.operations.OtpService;
+import password.pwm.util.otp.OTPUserRecord;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
+import password.pwm.ws.client.rest.RestTokenDataClient;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
@@ -79,6 +82,7 @@ import java.util.*;
 public class HelpdeskServlet extends PwmServlet {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(HelpdeskServlet.class);
+    private static final String TOKEN_NAME = HelpdeskServlet.class.getName();
 
     public enum HelpdeskAction implements PwmServlet.ProcessAction {
         doUnlock(PwmServlet.HttpMethod.POST),
@@ -87,6 +91,8 @@ public class HelpdeskServlet extends PwmServlet {
         detail(PwmServlet.HttpMethod.POST),
         executeAction(PwmServlet.HttpMethod.POST),
         deleteUser(PwmServlet.HttpMethod.POST),
+        validateOtpCode(PwmServlet.HttpMethod.POST),
+        sendVerificationToken(PwmServlet.HttpMethod.POST),
 
         ;
 
@@ -170,6 +176,14 @@ public class HelpdeskServlet extends PwmServlet {
 
                 case deleteUser:
                     restDeleteUserRequest(pwmRequest, helpdeskBean);
+                    return;
+
+                case validateOtpCode:
+                    restValidateOtpCodeRequest(pwmRequest, helpdeskBean);
+                    return;
+
+                case sendVerificationToken:
+                    restSendVerificationTokenRequest(pwmRequest, helpdeskBean);
                     return;
             }
         }
@@ -320,6 +334,16 @@ public class HelpdeskServlet extends PwmServlet {
 
         final UserIdentity userIdentity = UserIdentity.fromKey(userKey, pwmRequest.getConfig());
         processDetailRequest(pwmRequest, helpdeskBean, userIdentity);
+        final UserAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+                AuditEvent.HELPDESK_VIEW_DETAIL,
+                pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),
+                null,
+                userIdentity,
+                pwmRequest.getSessionLabel().getSrcAddress(),
+                pwmRequest.getSessionLabel().getSrcHostname()
+        );
+        pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
+
     }
 
 
@@ -491,15 +515,12 @@ public class HelpdeskServlet extends PwmServlet {
         }
     }
 
-
     private void processUnlockPassword(
             final PwmRequest pwmRequest,
             final HelpdeskBean helpdeskBean
     )
             throws PwmUnrecoverableException, ChaiUnavailableException, IOException, ServletException
     {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-
         if (helpdeskBean.getUserInfoBean() == null) {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "password unlock request, but no user result in search");
             LOGGER.error(pwmRequest, errorInformation);
@@ -558,14 +579,147 @@ public class HelpdeskServlet extends PwmServlet {
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.HELPDESK_DETAIL);
     }
 
+    private void restValidateOtpCodeRequest(
+            final PwmRequest pwmRequest,
+            final HelpdeskBean helpdeskBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) {
+            pwmRequest.outputJsonResult(RestResultBean.fromError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo()));
+            return;
+        }
+
+        final Map<String,String> inputRecord = pwmRequest.readBodyAsJsonStringMap();
+        final String code = inputRecord.get("code");
+        final OTPUserRecord otpUserRecord = helpdeskBean.getUserInfoBean().getOtpUserRecord();
+        try {
+            final boolean passed = pwmRequest.getPwmApplication().getOtpService().validateToken(
+                    pwmRequest.getPwmSession(),
+                    helpdeskBean.getUserInfoBean().getUserIdentity(),
+                    otpUserRecord,
+                    code,
+                    false
+            );
+            final RestResultBean restResultBean = new RestResultBean();
+            restResultBean.setData(passed);
+            pwmRequest.outputJsonResult(restResultBean);
+        } catch (PwmOperationalException e) {
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(), pwmRequest));
+        }
+    }
+
+    private void restSendVerificationTokenRequest(
+            final PwmRequest pwmRequest,
+            final HelpdeskBean helpdeskBean
+    )
+            throws IOException, PwmUnrecoverableException
+    {
+        final Configuration config = pwmRequest.getConfig();
+        MessageSendMethod tokenSendMethod = config.readSettingAsEnum(PwmSetting.HELPDESK_TOKEN_SEND_METHOD, MessageSendMethod.class);
+        if (tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL) {
+            final Map<String,String> bodyParams = pwmRequest.readBodyAsJsonStringMap();
+            if (bodyParams != null && bodyParams.containsKey("method")) {
+                switch (bodyParams.get("method")) {
+                    case "sms":
+                        tokenSendMethod = MessageSendMethod.SMSONLY;
+                        break;
+
+                    case "email":
+                        tokenSendMethod = MessageSendMethod.EMAILONLY;
+                        break;
+                }
+            }
+            if (tokenSendMethod == MessageSendMethod.CHOICE_SMS_EMAIL) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT, "unable to determine appropriate send method, missing method parameter indicaton from operator");
+                LOGGER.error(pwmRequest,errorInformation);
+                pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation,pwmRequest));
+                return;
+            }
+        }
+
+
+
+        final UserInfoBean userInfoBean = helpdeskBean.getUserInfoBean();
+        final UserIdentity userIdentity = userInfoBean.getUserIdentity();
+        final Map<String,String> tokenMapData = new HashMap<>();
+
+        final RestTokenDataClient.TokenDestinationData inputDestinationData = new RestTokenDataClient.TokenDestinationData(
+                userInfoBean.getUserEmailAddress(),
+                userInfoBean.getUserSmsNumber(),
+                null
+        );
+
+        final RestTokenDataClient restTokenDataClient = new RestTokenDataClient(pwmRequest.getPwmApplication());
+        final RestTokenDataClient.TokenDestinationData outputDestrestTokenDataClient = restTokenDataClient.figureDestTokenDisplayString(
+                pwmRequest.getSessionLabel(),
+                inputDestinationData,
+                userIdentity,
+                pwmRequest.getLocale());
+
+        final String tokenDestinationAddress = outputDestrestTokenDataClient.getDisplayValue();
+        final Set<String> destinationValues = new HashSet<>();
+        if (outputDestrestTokenDataClient.getEmail() != null) {
+            destinationValues.add(outputDestrestTokenDataClient.getEmail());
+        }
+        if (outputDestrestTokenDataClient.getSms() != null) {
+            destinationValues.add(outputDestrestTokenDataClient.getSms());
+        }
+
+        final String tokenKey;
+        TokenPayload tokenPayload;
+        try {
+            tokenPayload = pwmRequest.getPwmApplication().getTokenService().createTokenPayload(TOKEN_NAME, tokenMapData, userIdentity, destinationValues);
+            tokenKey = pwmRequest.getPwmApplication().getTokenService().generateNewToken(tokenPayload, pwmRequest.getSessionLabel());
+        } catch (PwmOperationalException e) {
+            throw new PwmUnrecoverableException(e.getErrorInformation());
+        }
+
+        LOGGER.debug(pwmRequest, "generated token code for " + userIdentity.toDeliminatedKey());
+
+        final EmailItemBean emailItemBean = config.readSettingAsEmail(PwmSetting.EMAIL_HELPDESK_TOKEN, pwmRequest.getLocale());
+        final String smsMessage = config.readSettingAsLocalizedString(PwmSetting.SMS_HELPDESK_TOKEN_TEXT, pwmRequest.getLocale());
+
+        final MacroMachine macroMachine = MacroMachine.forUser(pwmRequest, userIdentity);
+
+        try {
+            TokenService.TokenSender.sendToken(
+                    pwmRequest.getPwmApplication(),
+                    userInfoBean,
+                    macroMachine,
+                    emailItemBean,
+                    tokenSendMethod,
+                    outputDestrestTokenDataClient.getEmail(),
+                    outputDestrestTokenDataClient.getSms(),
+                    smsMessage,
+                    tokenKey
+            );
+        } catch (ChaiUnavailableException e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
+            LOGGER.error(pwmRequest,errorInformation);
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation,pwmRequest));
+            return;
+        } catch (PwmException e) {
+            LOGGER.error(pwmRequest,e.getErrorInformation());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(),pwmRequest));
+            return;
+        }
+
+        StatisticsManager.incrementStat(pwmRequest,Statistic.HELPDESK_TOKENS_SENT);
+        final HashMap<String,String> output = new HashMap<>();
+        output.put("destination",tokenDestinationAddress);
+        output.put("token",tokenKey);
+        final RestResultBean restResultBean = new RestResultBean();
+        restResultBean.setData(output);
+        pwmRequest.outputJsonResult(restResultBean);
+    }
+
     private void processClearOtpSecret(
             final PwmRequest pwmRequest,
             final HelpdeskBean helpdeskBean
     )
             throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        final SessionStateBean ssBean = pwmRequest.getPwmSession().getSessionStateBean();
-
         if (helpdeskBean.getUserInfoBean() == null) {
             final String errorMsg = "password unlock request, but no user result in search";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMsg);

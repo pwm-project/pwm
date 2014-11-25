@@ -205,7 +205,7 @@ public class RandomPasswordGenerator {
                 LOGGER.trace(sessionLabel, "finished random password generation in " + td.asCompactString() + " after " + tryCount + " tries.");
             } else {
                 final List<ErrorInformation> errors = pwmPasswordRuleValidator.internalPwmPolicyValidator(password.toString(), null, null, false);
-                final int judgeLevel = PasswordUtility.judgePasswordStrength(password);
+                final int judgeLevel = PasswordUtility.judgePasswordStrength(password.toString());
                 final StringBuilder sb = new StringBuilder();
                 sb.append("failed random password generation after ").append(td.asCompactString()).append(" after ").append(tryCount).append(" tries. ");
                 sb.append("(errors=").append(errors.size()).append(", judgeLevel=").append(judgeLevel);
@@ -226,7 +226,11 @@ public class RandomPasswordGenerator {
         return new PasswordData(password.toString());
     }
 
-    private static void modifyPasswordBasedOnErrors(final StringBuilder password, final List<ErrorInformation> errors, final SeedMachine seedMachine) {
+    private static void modifyPasswordBasedOnErrors(
+            final StringBuilder password,
+            final List<ErrorInformation> errors,
+            final SeedMachine seedMachine
+    ) {
         if (password == null || errors == null || errors.isEmpty()) {
             return;
         }
@@ -278,23 +282,27 @@ public class RandomPasswordGenerator {
             touched = true;
         }
 
-        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_NUMERIC)) {
-            deleteRandChar(password, seedMachine.getNumChars());
+        PasswordCharCounter passwordCharCounter = new PasswordCharCounter(password.toString());
+        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_NUMERIC) && passwordCharCounter.getNumericCharCount() > 0) {
+            deleteRandChar(password, passwordCharCounter.getNumericChars());
             touched = true;
+            passwordCharCounter = new PasswordCharCounter(password.toString());
         }
 
-        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_SPECIAL)) {
-            deleteRandChar(password, seedMachine.getSpecialChars());
+        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_SPECIAL) && passwordCharCounter.getSpecialCharsCount() > 0) {
+            deleteRandChar(password, passwordCharCounter.getSpecialChars());
             touched = true;
+            passwordCharCounter = new PasswordCharCounter(password.toString());
         }
 
-        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_UPPER)) {
-            deleteRandChar(password, seedMachine.getUpperChars());
+        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_UPPER) && passwordCharCounter.getUpperCharCount() > 0) {
+            deleteRandChar(password, passwordCharCounter.getUpperChars());
             touched = true;
+            passwordCharCounter = new PasswordCharCounter(password.toString());
         }
 
-        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_LOWER)) {
-            deleteRandChar(password, seedMachine.getLowerChars());
+        if (errorMessages.contains(PwmError.PASSWORD_TOO_MANY_LOWER) && passwordCharCounter.getLowerCharCount() > 0) {
+            deleteRandChar(password, passwordCharCounter.getLowerChars());
             touched = true;
         }
 

@@ -37,14 +37,21 @@ public class NumericValue extends AbstractValue implements StoredValue {
         this.value = value;
     }
 
-    static NumericValue fromJson(String value) {
-        return new NumericValue(JsonUtil.getGson().fromJson(value, Long.class));
-    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public NumericValue fromJson(String value)
+            {
+                return new NumericValue(JsonUtil.getGson().fromJson(value, Long.class));
+            }
 
-    static NumericValue fromXmlElement(final Element settingElement) {
-        final Element valueElement = settingElement.getChild("value");
-        final String value = valueElement.getText();
-        return new NumericValue(Long.valueOf(value));
+            public NumericValue fromXmlElement(final Element settingElement, final String input)
+            {
+                final Element valueElement = settingElement.getChild("value");
+                final String value = valueElement.getText();
+                return new NumericValue(Long.valueOf(value));
+            }
+        };
     }
 
     @Override

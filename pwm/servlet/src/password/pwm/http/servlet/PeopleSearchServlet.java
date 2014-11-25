@@ -55,9 +55,11 @@ import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URLConnection;
 import java.util.*;
 
 public class PeopleSearchServlet extends PwmServlet {
@@ -502,18 +504,26 @@ public class PeopleSearchServlet extends PwmServlet {
                 "received user photo request by " + pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity().toString() + " for user " + userIdentity.toString());
 
 
+        byte[][] photoData;
+        String mimeType;
+        try {
+            final ChaiUser chaiUser = getChaiUser(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
+            photoData = chaiUser.readMultiByteAttribute(attribute);
+            if (photoData == null || photoData.length == 0 || photoData[0].length == 0) {
+                LOGGER.error(pwmRequest, "user has no photo data stored in LDAP attribute");
+                return;
+            }
+            mimeType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(photoData[0]));
+        } catch (ChaiOperationException e) {
+            LOGGER.error(pwmRequest, "error reading user photo ldap attribute: " + e.getMessage());
+            return;
+        }
 
         OutputStream outputStream = null;
         try {
+            pwmRequest.getPwmResponse().getHttpServletResponse().setContentType(mimeType);
             outputStream = pwmRequest.getPwmResponse().getOutputStream();
-            pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.Cache_Control, "cache-control: private, max-age=3600");
-            final ChaiUser chaiUser = getChaiUser(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);
-            byte[][] photoData = chaiUser.readMultiByteAttribute(attribute);
-            if (photoData != null && photoData.length > 0) {
-                outputStream.write(photoData[0]);
-            }
-        } catch (ChaiOperationException e) {
-            e.printStackTrace();
+            outputStream.write(photoData[0]);
         } finally {
             if (outputStream != null) {
                 outputStream.close();

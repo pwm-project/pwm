@@ -52,31 +52,27 @@
             <br/>
             <div id="outline_ldap" class="setting_outline">
                 <div class="setting_title">
-                    LDAP Test User (Optional)
+                    Site URL
                 </div>
                 <div class="setting_body">
-                    Enter the LDAP DN of a test user account.  You will need to create a new test user account for this purpose.  This test user account should be created with the same privileges and policies
-                    as a typical user in your system.  This application will modify the password and perform other operations against the test user account to
-                    validate the configuration and health of both the LDAP server and this server.
-                    <br/><br/>
-                    This setting is optional but recommended.  If you do not wish to configure an LDAP Test User DN at this time, you can leave this setting blank and configure a test user later.
+                    The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.
+                    Example: <b>http://www.example.com/password</b>.  The site URL must use a valid fully qualified hostname.  Do not use a network address.                    <br/><br/>
                     <div class="setting_item">
-                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" style="padding-left: 5px; padding-top: 5px">
-                            <b>LDAP Test User DN</b>
+                        <div id="titlePane_<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
+                            <b>Site URL</b>
                             <br/>
                             <span class="fa fa-chevron-circle-right"></span>
-                            <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
+                            <input id="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" name="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL)%>"/>
                             <pwm:script>
                             <script type="text/javascript">
                                 PWM_GLOBAL['startupFunctions'].push(function(){
                                     require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
                                         new ValidationTextBox({
-                                            name: '<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>',
+                                            name: '<%=ConfigGuideServlet.PARAM_APP_SITEURL%>',
                                             required: false,
                                             style: "width: 550px",
-                                            placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
-                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
-                                        }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
+                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL)%>'
+                                        }, "<%=ConfigGuideServlet.PARAM_APP_SITEURL%>");
                                     });
                                 });
                             </script>
@@ -87,11 +83,6 @@
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:0; margin:0; padding:0">
-            <div style="text-align: center">
-                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
-            </div>
-        </div>
         <div id="buttonbar">
             <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
@@ -110,50 +101,16 @@
 <script type="text/javascript">
     function handleFormActivity() {
         PWM_GUIDE.updateForm();
-        clearHealthDiv();
-        checkIfNextEnabled();
-    }
-
-    function clearHealthDiv() {
-        var healthBodyObj = PWM_MAIN.getObject('healthBody');
-        var newHtml = '<div style="text-align: center">';
-        newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
-        newHtml += '</div>';
-        healthBodyObj.innerHTML = newHtml;
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        checkIfNextEnabled();
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('CR_STORAGE')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP2')});
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('PASSWORD')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('CR_STORAGE')});
 
         PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
-        PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
     });
 
-    function checkIfNextEnabled() {
-        var fieldValue = PWM_MAIN.getObject('<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>').value;
-        PWM_MAIN.getObject('button_next').disabled = false;
-        if (fieldValue.length && fieldValue.length > 0) {
-            if (PWM_GLOBAL['pwm-health'] !== 'GOOD' && PWM_GLOBAL['pwm-health'] !== 'CONFIG') {
-                PWM_MAIN.getObject('button_next').disabled = true;
-            }
-        }
-    }
-
-    function loadHealth() {
-        var options = {};
-        options['sourceUrl'] = 'ConfigGuide?processAction=ldapHealth';
-        options['showRefresh'] = false;
-        options['refreshTime'] = -1;
-        options['finishFunction'] = function(){
-            PWM_MAIN.closeWaitDialog();
-            checkIfNextEnabled();
-        };
-        PWM_MAIN.showWaitDialog();
-        PWM_ADMIN.showAppHealth('healthBody', options);
-    }
 </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>

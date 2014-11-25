@@ -29,6 +29,7 @@ import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.cr.ChallengeItemBean;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
@@ -36,46 +37,60 @@ import java.util.*;
 
 public class ChallengeValue extends AbstractValue implements StoredValue {
     final static private PwmLogger LOGGER = PwmLogger.forClass(ChallengeValue.class);
-    final Map<String, List<ChallengeItemBean>> values;
+    final Map<String, List<ChallengeItemBean>> values; //locale str as key.
 
     ChallengeValue(final Map<String, List<ChallengeItemBean>> values) {
         this.values = values;
     }
 
-    static ChallengeValue fromJson(final String input) {
-        if (input == null) {
-            return new ChallengeValue(Collections.<String,List<ChallengeItemBean>>emptyMap());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<ChallengeItemBean>>>() {
-            }.getType());
-            srcMap = srcMap == null ? Collections.<String,List<ChallengeItemBean>>emptyMap() : new TreeMap<>(srcMap);
-            return new ChallengeValue(Collections.unmodifiableMap(srcMap));
-        }
-    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
 
-    static ChallengeValue fromXmlElement(final Element settingElement) {
-        final List valueElements = settingElement.getChildren("value");
-        final Map<String, List<ChallengeItemBean>> values = new TreeMap<>();
-        final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals(settingElement.getAttributeValue("syntax"));
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
-            final String value = loopValueElement.getText();
-            if (!values.containsKey(localeString)) {
-                values.put(localeString, new ArrayList<ChallengeItemBean>());
+            public ChallengeValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new ChallengeValue(Collections.<String, List<ChallengeItemBean>>emptyMap());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input,
+                            new TypeToken<Map<String, List<ChallengeItemBean>>>() {
+                            }.getType());
+                    srcMap = srcMap == null ? Collections.<String, List<ChallengeItemBean>>emptyMap() : new TreeMap<>(
+                            srcMap);
+                    return new ChallengeValue(Collections.unmodifiableMap(srcMap));
+                }
             }
-            final ChallengeItemBean challengeItemBean;
-            if (oldStyle) {
-                challengeItemBean = parseOldVersionString(value);
-            } else {
-                challengeItemBean = JsonUtil.getGson().fromJson(value,ChallengeItemBean.class);
+
+            public ChallengeValue fromXmlElement(
+                    final Element settingElement,
+                    final String input
+            )
+            {
+                final List valueElements = settingElement.getChildren("value");
+                final Map<String, List<ChallengeItemBean>> values = new TreeMap<>();
+                final boolean oldStyle = "LOCALIZED_STRING_ARRAY".equals(settingElement.getAttributeValue("syntax"));
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String localeString = loopValueElement.getAttributeValue(
+                            "locale") == null ? "" : loopValueElement.getAttributeValue("locale");
+                    final String value = loopValueElement.getText();
+                    if (!values.containsKey(localeString)) {
+                        values.put(localeString, new ArrayList<ChallengeItemBean>());
+                    }
+                    final ChallengeItemBean challengeItemBean;
+                    if (oldStyle) {
+                        challengeItemBean = parseOldVersionString(value);
+                    } else {
+                        challengeItemBean = JsonUtil.getGson().fromJson(value, ChallengeItemBean.class);
+                    }
+                    if (challengeItemBean != null) {
+                        values.get(localeString).add(challengeItemBean);
+                    }
+                }
+                return new ChallengeValue(values);
             }
-            if (challengeItemBean != null) {
-                values.get(localeString).add(challengeItemBean);
-            }
-        }
-        return new ChallengeValue(values);
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -169,4 +184,23 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
         return new ChallengeItemBean(challengeText, minLength, maxLength, adminDefined);
     }
 
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (final String localeKey : values.keySet()) {
+                final List<ChallengeItemBean> challengeItems = values.get(localeKey);
+                sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
+                for (ChallengeItemBean challengeItemBean : challengeItems) {
+                    sb.append(" ChallengeItem: [AdminDefined: ").append(challengeItemBean.isAdminDefined());
+                    sb.append(" MinLength:").append(challengeItemBean.getMinLength());
+                    sb.append(" MaxLength:").append(challengeItemBean.getMaxLength());
+                    sb.append("]\n");
+                    sb.append("  Text:").append(challengeItemBean.getText()).append("\n");
+                }
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeMap(values);
+        }
+    }
 }

@@ -220,7 +220,7 @@ public class CaptchaServlet extends PwmServlet {
             String destURL = ssBean.getPreCaptchaRequestURL();
             ssBean.setPreCaptchaRequestURL(null);
 
-            if (destURL == null || destURL.contains(PwmConstants.URL_SERVLET_LOGIN)) { // fallback, shouldnt need to be used.
+            if (destURL == null || destURL.contains(PwmConstants.URL_SERVLET_LOGIN)) { // fallback, shouldn't need to be used.
                 destURL = pwmRequest.getHttpServletRequest().getContextPath();
             }
 
@@ -240,7 +240,8 @@ public class CaptchaServlet extends PwmServlet {
             pwmRequest.getPwmResponse().writeCookie(
                     SKIP_COOKIE_NAME,
                     cookieValue,
-                    60 * 60 * 24 * 365
+                    60 * 60 * 24 * 365,
+                    true
             );
         }
     }

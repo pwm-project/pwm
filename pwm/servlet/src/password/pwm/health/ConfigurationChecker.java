@@ -223,8 +223,6 @@ public class ConfigurationChecker implements HealthChecker {
             final PwmSetting setting,
             final Profile profile
     ) {
-        return setting.getCategory().getLabel(PwmConstants.DEFAULT_LOCALE)
-                + " -> " + setting.getLabel(PwmConstants.DEFAULT_LOCALE) +
-                (profile != null ? " (" + profile.getDisplayName(PwmConstants.DEFAULT_LOCALE) + ")" : "");
+        return setting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE);
     }
 }

@@ -41,33 +41,41 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
         this.values = values;
     }
 
-    static LocalizedStringArrayValue fromJson(final String input) {
-        if (input == null) {
-            return new LocalizedStringArrayValue(Collections.<String,List<String>>emptyMap());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            Map<String, List<String>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<String>>>() {
-            }.getType());
-            srcMap = srcMap == null ? Collections.<String,List<String>>emptyMap() : new TreeMap<>(srcMap);
-            return new LocalizedStringArrayValue(Collections.unmodifiableMap(srcMap));
-        }
-    }
-
-    static LocalizedStringArrayValue fromXmlElement(final Element settingElement) {
-        final List valueElements = settingElement.getChildren("value");
-        final Map<String, List<String>> values = new TreeMap<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String localeString = loopValueElement.getAttributeValue("locale") == null ? "" : loopValueElement.getAttributeValue("locale");
-            final String value = loopValueElement.getText();
-            List<String> valueList = values.get(localeString);
-            if (valueList == null) {
-                valueList = new ArrayList<>();
-                values.put(localeString, valueList);
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public LocalizedStringArrayValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new LocalizedStringArrayValue(Collections.<String, List<String>>emptyMap());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    Map<String, List<String>> srcMap = gson.fromJson(input, new TypeToken<Map<String, List<String>>>() {
+                    }.getType());
+                    srcMap = srcMap == null ? Collections.<String, List<String>>emptyMap() : new TreeMap<>(srcMap);
+                    return new LocalizedStringArrayValue(Collections.unmodifiableMap(srcMap));
+                }
             }
-            valueList.add(value);
-        }
-        return new LocalizedStringArrayValue(values);
+
+            public LocalizedStringArrayValue fromXmlElement(final Element settingElement, final String key)
+            {
+                final List valueElements = settingElement.getChildren("value");
+                final Map<String, List<String>> values = new TreeMap<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String localeString = loopValueElement.getAttributeValue(
+                            "locale") == null ? "" : loopValueElement.getAttributeValue("locale");
+                    final String value = loopValueElement.getText();
+                    List<String> valueList = values.get(localeString);
+                    if (valueList == null) {
+                        valueList = new ArrayList<>();
+                        values.put(localeString, valueList);
+                    }
+                    valueList.add(value);
+                }
+                return new LocalizedStringArrayValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

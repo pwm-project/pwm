@@ -33,10 +33,11 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final NumberFormat numberFormat = NumberFormat.getInstance(PwmSession.getPwmSession(session).getSessionStateBean().getLocale()); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
-<% final LocalDBLogger localDBLogger = ContextManager.getPwmApplication(session).getLocalDBLogger(); %>
+<% final PwmRequest pwmRequest = PwmRequest.forRequest(request,response); %>
+<% final NumberFormat numberFormat = NumberFormat.getInstance(pwmRequest.getLocale()); %>
+<% final LocalDBLogger localDBLogger = pwmRequest.getPwmApplication().getLocalDBLogger(); %>
 <body class="nihilo">
 <div id="wrapper">
 <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
@@ -51,7 +52,7 @@
             <td class="key" style="border:0">
                 <label for="level">Level</label>
                 <br/>
-                <% final String selectedLevel = PwmRequest.forRequest(request, response).readParameterAsString("level", "INFO");%>
+                <% final String selectedLevel = pwmRequest.readParameterAsString("level", "INFO");%>
                 <select id="level" name="level" style="width: auto;">
                     <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
                     </option>
@@ -70,7 +71,7 @@
             <td class="key" style="border: 0">
                 <label for="type">Type</label>
                 <br/>
-                <% final String selectedType = PwmRequest.forRequest(request, response).readParameterAsString("type", "Both");%>
+                <% final String selectedType = pwmRequest.readParameterAsString("type", "Both");%>
                 <select id="type" name="type" style="width:auto">
                     <option value="User" <%= "User".equals(selectedType) ? "selected=\"selected\"" : "" %>>User</option>
                     <option value="System" <%= "System".equals(selectedType) ? "selected=\"selected\"" : "" %>>System
@@ -82,18 +83,18 @@
                 Username
                 <br/>
                 <input name="username" type="text"
-                       value="<%=PwmRequest.forRequest(request, response).readParameterAsString("username")%>"/>
+                       value="<%=pwmRequest.readParameterAsString("username")%>"/>
             </td>
             <td class="key" style="border: 0">
                 Containing text
                 <br/>
                 <input name="text" type="text"
-                       value="<%=PwmRequest.forRequest(request, response).readParameterAsString("text")%>"/>
+                       value="<%=pwmRequest.readParameterAsString("text")%>"/>
             </td>
             <td class="key" style="border: 0">
                 Max Count
                 <br/>
-                <% final String selectedCount = PwmRequest.forRequest(request, response).readParameterAsString("count");%>
+                <% final String selectedCount = pwmRequest.readParameterAsString("count");%>
                 <select name="count" style="width:auto">
                     <option value="100" <%= "100".equals(selectedCount) ? "selected=\"selected\"" : "" %>>100</option>
                     <option value="500" <%= "500".equals(selectedCount) ? "selected=\"selected\"" : "" %>>500</option>
@@ -110,7 +111,7 @@
             <td class="key" style="border: 0">
                 Max Time
                 <br/>
-                <% final String selectedTime = PwmRequest.forRequest(request, response).readParameterAsString("maxTime");%>
+                <% final String selectedTime = pwmRequest.readParameterAsString("maxTime");%>
                 <select name="maxTime" style="width: auto">
                     <option value="10000" <%= "10000".equals(selectedTime) ? "selected=\"selected\"" : "" %>>10 seconds
                     </option>
@@ -125,7 +126,7 @@
             <td class="key" style="border: 0">
                 <label for="displayText">Display</label>
                 <br/>
-                <% final String displayText = PwmRequest.forRequest(request, response).readParameterAsString("displayText", "Both");%>
+                <% final String displayText = pwmRequest.readParameterAsString("displayText", "Both");%>
                 <select id="displayText" name="displayText" style="width: auto">
                     <option value="false" <%= "false".equals(displayText) ? "selected=\"selected\"" : "" %>>Table</option>
                     <option value="true" <%= "true".equals(displayText) ? "selected=\"selected\"" : "" %>>Text</option>
@@ -143,8 +144,8 @@
     LocalDBLogger.EventType logType = LocalDBLogger.EventType.Both;
     int eventCount = 100;
     long maxTime = 10000;
-    final String username = PwmRequest.forRequest(request, response).readParameterAsString("username");
-    final String text = PwmRequest.forRequest(request, response).readParameterAsString("text");
+    final String username = pwmRequest.readParameterAsString("username");
+    final String text = pwmRequest.readParameterAsString("text");
     final boolean displayAsText = Boolean.parseBoolean(displayText);
     try {
         logLevel = PwmLogLevel.valueOf(PwmRequest.forRequest(request, response).readParameterAsString("level"));

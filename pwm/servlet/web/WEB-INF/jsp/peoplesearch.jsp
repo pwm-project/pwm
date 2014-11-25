@@ -64,7 +64,7 @@
                 </tr>
                 <tr style="border: 0">
                     <td style="border:0">
-                        <input type="search" id="username" name="username" class="inputfield" oninput="PWM_PS.processPeopleSearch()" style="width: 400px" autofocus/>
+                        <input type="search" id="username" name="username" class="inputfield" style="width: 400px" autofocus/>
                     </td>
                     <td style="border:0;">
                         <div id="searchIndicator" style="visibility: hidden">
@@ -84,7 +84,8 @@
             </noscript>
             <br/>
         </div>
-        <div id="grid">
+        <div id="peoplesearch-searchResultsGrid grid">
+            Loading...
         </div>
     </div>
     <div class="push"></div>
@@ -96,6 +97,7 @@
             PWM_VAR['photo_style_attribute'] = '<%=StringUtil.escapeJS(photoStyle)%>';
             PWM_PS.initPeopleSearchPage();
             PWM_MAIN.getObject('username').focus()
+
         });
     </script>
 </pwm:script>

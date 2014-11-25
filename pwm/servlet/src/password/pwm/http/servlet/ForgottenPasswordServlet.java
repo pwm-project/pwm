@@ -245,7 +245,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues(formValues, userLocale);
+            FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, userLocale);
 
             final String searchFilter;
             {

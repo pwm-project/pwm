@@ -56,7 +56,7 @@ TODO: support HOTP
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="goback_button"
                         onclick="PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

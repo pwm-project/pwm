@@ -31,11 +31,13 @@ import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
 import password.pwm.config.UserPermission;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.i18n.Display;
 import password.pwm.util.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class UserPermissionValue extends AbstractValue implements StoredValue {
     final List<UserPermission> values;
@@ -46,40 +48,48 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
         this.values = values;
     }
 
-    static UserPermissionValue fromJson(final String input) {
-        if (input == null) {
-            return new UserPermissionValue(Collections.<UserPermission>emptyList());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            List<UserPermission> srcList = gson.fromJson(input, new TypeToken<List<UserPermission>>() {
-            }.getType());
-            srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
-            srcList.removeAll(Collections.singletonList(null));
-            return new UserPermissionValue(Collections.unmodifiableList(srcList));
-        }
-    }
-
-    static UserPermissionValue fromXmlElement(Element settingElement) throws PwmOperationalException
+    public static StoredValueFactory factory()
     {
-        final boolean newType = "2".equals(settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
-        final Gson gson = JsonUtil.getGson();
-        final List valueElements = settingElement.getChildren("value");
-        final List<UserPermission> values = new ArrayList<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String value = loopValueElement.getText();
-            if (value != null && !value.isEmpty()) {
-                if (newType) {
-                    final UserPermission userPermission = gson.fromJson(value,UserPermission.class);
-                    values.add(userPermission);
+        return new StoredValueFactory() {
+            public UserPermissionValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new UserPermissionValue(Collections.<UserPermission>emptyList());
                 } else {
-                    values.add(new UserPermission(null, value, null));
+                    final Gson gson = JsonUtil.getGson();
+                    List<UserPermission> srcList = gson.fromJson(input, new TypeToken<List<UserPermission>>() {
+                    }.getType());
+                    srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
+                    srcList.removeAll(Collections.singletonList(null));
+                    return new UserPermissionValue(Collections.unmodifiableList(srcList));
                 }
             }
-        }
-        final UserPermissionValue userPermissionValue = new UserPermissionValue(values);
-        userPermissionValue.needsXmlUpdate = !newType;
-        return userPermissionValue;
+
+            public UserPermissionValue fromXmlElement(Element settingElement, final String key)
+                    throws PwmOperationalException
+            {
+                final boolean newType = "2".equals(
+                        settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
+                final Gson gson = JsonUtil.getGson();
+                final List valueElements = settingElement.getChildren("value");
+                final List<UserPermission> values = new ArrayList<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String value = loopValueElement.getText();
+                    if (value != null && !value.isEmpty()) {
+                        if (newType) {
+                            final UserPermission userPermission = gson.fromJson(value, UserPermission.class);
+                            values.add(userPermission);
+                        } else {
+                            values.add(new UserPermission(null, value, null));
+                        }
+                    }
+                }
+                final UserPermissionValue userPermissionValue = new UserPermissionValue(values);
+                userPermissionValue.needsXmlUpdate = !newType;
+                return userPermissionValue;
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -131,5 +141,34 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
     public int currentSyntaxVersion()
     {
         return 2;
+    }
+
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            int counter = 0;
+            for (final UserPermission userPermission : values) {
+                sb.append("UserPermission:");
+                if (values.size() > 1) {
+                    sb.append(counter);
+                }
+                sb.append(" [");
+                sb.append("Profile:").append(userPermission.getLdapProfileID());
+                sb.append(" Base:").append(
+                        userPermission.getLdapBase() == null
+                                ? Display.getLocalizedMessage(locale,"Value_NotApplicable",null)
+                                : userPermission.getLdapBase()
+                );
+                sb.append(" Query:").append(userPermission.getLdapQuery());
+                sb.append("]");
+                counter++;
+                if (counter != values.size()) {
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeCollection(values);
+        }
     }
 }

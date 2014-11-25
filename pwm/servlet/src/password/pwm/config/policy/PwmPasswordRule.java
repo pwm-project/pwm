@@ -31,6 +31,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Set;
 
 /**
@@ -155,6 +156,10 @@ public enum PwmPasswordRule {
 
     public String getLabel(final Locale locale, final Configuration config) {
         final String key = "Rule_" + this.toString();
-        return LocaleHelper.getLocalizedMessage(locale,key,config,Message.class);
+        try {
+            return LocaleHelper.getLocalizedMessage(locale, key, config, Message.class);
+        } catch (MissingResourceException e) {
+            return "MissingKey-" + key;
+        }
     }
 }

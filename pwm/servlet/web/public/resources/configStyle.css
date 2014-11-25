@@ -22,8 +22,9 @@
 
 .setting_outline {
     background-color: #eaeaea;
-    border-radius: 5px;
-    box-shadow: 2px 2px 1px 1px #bfbfbf;
+    border-radius: 3px 3px 5px 5px;
+    /* box-shadow: 2px 2px 1px 1px #bfbfbf; */
+    margin-bottom: 10px;
 }
 
 .setting_title {
@@ -34,11 +35,12 @@
     padding-top: 4px;
     padding-bottom: 3px;
     font-weight: bold;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
 }
 .setting_title.modified {
-/*    background-color: #aa1e08;
+    /*
+    background-color: #aa1e08;
     color: #ffffff;
     text-shadow: none;
     */
@@ -59,10 +61,8 @@
 }
 
 .setting_body.modified {
-    background-color: rgba(170, 30, 8, 0.11)
+    background-color: #efefef;;
 }
-
-
 
 .icon_button {
     float: right;
@@ -76,7 +76,7 @@
 }
 
 .fa-reply {
-    color: #880000;
+    color: #920000;
     visibility: hidden;
     border-bottom-right-radius: 3px;
     box-shadow: 2px 2px 2px 2px #bfbfbf;
@@ -92,45 +92,15 @@
 }
 
 .centerbody-config {
-    width: 600px;
-    min-width: 600px;
+    width: 800px;
+    min-width: 800px;
     padding: 10px;
-    position: relative;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 0;
     clear: both;
     border-radius: 0 0 5px 5px;
     box-shadow: 0;
     background-color: white;
-}
-
-.menu-wrapper {
-    position: fixed;
-    height: 24px;
-    left: 50%;
-    z-index: 10;
-    top:25px;
-    width: 620px;
-}
-
-.menu-bar {
-    position: relative;
-    height: 24px;
-    width: 620px;
-    left: -50%;
-    background-color: white;
-}
-
-.menu-underflow {
-    position: relative;
-    height:15px;
-    left: -50%;
-    background: -moz-linear-gradient(top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    background: -webkit-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
-    background: -o-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
-    background: -ms-linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
-    background: linear-gradient(top, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
 }
 
 .categoryDescription {
@@ -140,15 +110,11 @@
     margin: 10px;
 }
 
-.profileSelectPanel {
-    width: 600px;
-    margin-bottom: 10px;
-    background-color: #ffcd59;
-    border-radius: 4px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    font-weight: bold;
-    text-align: center;
+#header-center {
+    width: 800px;
+    margin: 0 auto;
+    position:relative;
+    padding:4px;
 }
 
 .headerIcon {
@@ -195,6 +161,13 @@
 
 .menubutton.selected {
     box-shadow: none;
+    font-weight: bold;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
+    background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
+}
+
+.text {
+    text-decoration: none;
 }
 
 .menubutton {
@@ -214,3 +187,83 @@
      background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #B2B1B9), color-stop(1, #E8E1F6) );
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
+
+ .tree-noicon {
+     width:0;
+     margin:0;
+     display:none;
+ }
+
+ table {
+     max-width: 100%;
+     font-size: 12px;
+ }
+
+ .modifiedNoticeIcon {
+     color:#d20734;
+     margin-right: 5px;
+ }
+
+ .setting_table_value {
+     max-width: 475px;
+     overflow: auto;
+ }
+
+.delete-row-icon {
+    color: #880000;
+}
+
+#searchResults {
+    border: 1px solid;
+    height: 250px;
+    width: 580px;
+    overflow-y: auto;
+    position: fixed;
+    margin-left: 110px;
+    margin-right: 110px;
+    z-index: 10;
+    background: white;
+}
+
+#configurationNotesTextarea {
+    width:98%;
+    height:400px;
+    resize:none;
+    overflow: auto;
+}
+
+#navigationTreeWrapper {
+    border: 1px solid #bfbfbf;
+    max-height: 85vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 3px 3px 5px 5px;
+    box-shadow: 1px 1px 0px 0px #bfbfbf;
+
+    float: left;
+    width:192px;
+    position:fixed;
+    margin-right: 5px;
+    background-color: white;
+}
+
+#navigationTreeTopMenu {
+    text-align: center;
+    width: 100%;
+    cursor: pointer;
+}
+
+#settingSearchPanel {
+    margin-top: 10px;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    position:fixed;
+    z-index: 2;
+    background: white;
+    width:800px
+}
+
+.setting_item_value_wrapper {
+    border: 2px solid #D4D4D4;
+    margin-bottom: 4px;
+}

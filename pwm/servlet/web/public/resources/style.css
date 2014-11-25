@@ -79,7 +79,7 @@ form {
 table {
     border-collapse: collapse;
     border: 2px solid #D4D4D4;
-    width: 100%;
+    width: 98%;
     margin-left: auto;
     margin-right: auto
 }
@@ -138,6 +138,7 @@ table td.key {
     width: 60%;
     margin: 5px;
     height: 18px;
+    padding-left: 4px;
 }
 
 .noticebar {
@@ -240,6 +241,19 @@ input[type=password]::-ms-reveal{display: none;}
       color: #656565;
 }
 
+.dialogBody {
+    width: 500px;
+    max-width: 500px;
+}
+.dialogBody.narrow {
+    width: 350px;
+    max-width: 350px;
+}
+.dialogBody.wide {
+    width: 95%;
+    max-width: 100%;
+    min-width: 800px;
+}
 
 .WaitDialogBlank {
     height: 46px;
@@ -283,7 +297,7 @@ div.progress-container > div {
 }
 
 #header-center-left {
-    width: 80%;
+    width: auto;
     float: left;
 }
 
@@ -638,4 +652,13 @@ img.qrcodeimage {
 
 #userPhotoImage {
     border: 2px solid #D4D4D4;
+}
+
+#peopleSearch-userDetailWrapper {
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+#peoplesearch-searchResultsGrid {
+
 }

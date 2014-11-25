@@ -24,15 +24,12 @@ package password.pwm.config.value;
 
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.StoredValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
-
-import java.lang.reflect.Method;
 
 public class ValueFactory {
 
@@ -42,11 +39,8 @@ public class ValueFactory {
             throws PwmOperationalException
     {
         try {
-            final Class valueClass = setting.getSyntax().getStoredValueImpl();
-            final Method fromXmlElementMethod = valueClass.getDeclaredMethod("fromJson", String.class);
-            fromXmlElementMethod.setAccessible(true);
-            final Object storedValueInstance = fromXmlElementMethod.invoke(null, input);
-            return (StoredValue)storedValueInstance;
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            return factory.fromJson(input);
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append("error parsing value stored configuration value: ").append(e.getMessage());
@@ -61,16 +55,9 @@ public class ValueFactory {
     public static StoredValue fromXmlValues(final PwmSetting setting, final Element settingElement, final String key)
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        if (setting.getSyntax() == PwmSettingSyntax.PASSWORD) {
-            return PasswordValue.fromXmlValue(settingElement, key);
-        }
-
         try {
-            final Class valueClass = setting.getSyntax().getStoredValueImpl();
-            final Method fromXmlElementMethod = valueClass.getDeclaredMethod("fromXmlElement",Element.class);
-            fromXmlElementMethod.setAccessible(true);
-            final Object storedValueInstance = fromXmlElementMethod.invoke(null,settingElement);
-            return (StoredValue)storedValueInstance;
+            final StoredValue.StoredValueFactory factory = setting.getSyntax().getStoredValueImpl();
+            return factory.fromXmlElement(settingElement, key);
         } catch (Exception e) {
             final StringBuilder errorMsg = new StringBuilder();
             errorMsg.append("error parsing stored configuration value: ").append(e.getMessage());

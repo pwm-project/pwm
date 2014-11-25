@@ -83,7 +83,6 @@ public class SessionStateBean implements PwmSessionBean {
 
     private int intruderAttempts;
     private boolean oauthInProgress;
-    private StringBuilder scriptContents = new StringBuilder();
 
     // settings
     private int sessionVerificationKeyLength;
@@ -324,16 +323,6 @@ public class SessionStateBean implements PwmSessionBean {
     public void setSessionMaximumTimeout(TimeDuration sessionMaximumTimeout)
     {
         this.sessionMaximumTimeout = sessionMaximumTimeout;
-    }
-
-    public StringBuilder getScriptContents()
-    {
-        return scriptContents;
-    }
-
-    public void clearScriptContents()
-    {
-        scriptContents = new StringBuilder();
     }
 
     public void regenerateSessionVerificationKey() {

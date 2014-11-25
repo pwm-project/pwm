@@ -166,7 +166,7 @@ public class GuestRegistrationServlet extends PwmServlet {
                     pwmRequest, formItems, pwmRequest.getLocale());
 
             // see if the values meet form requirements.
-            FormUtility.validateFormValues(formValues, ssBean.getLocale());
+            FormUtility.validateFormValues(config, formValues, ssBean.getLocale());
 
             //read current values from user.
             final ChaiUser theGuest = pwmSession.getSessionManager().getActor(pwmApplication, guBean.getUpdateUserIdentity());
@@ -340,7 +340,7 @@ public class GuestRegistrationServlet extends PwmServlet {
             final Date expirationDate = readExpirationFromRequest(pwmRequest);
 
             // see if the values meet form requirements.
-            FormUtility.validateFormValues(formValues, locale);
+            FormUtility.validateFormValues(config, formValues, locale);
 
             // get new user DN
             final String guestUserDN = determineUserDN(formValues, config);

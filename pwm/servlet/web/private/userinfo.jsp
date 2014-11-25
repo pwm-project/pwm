@@ -101,7 +101,25 @@
                 <pwm:display key="Field_UserEmail"/>
             </td>
             <td>
+                <% if (uiBean.getUserEmailAddress() == null) { %>
+                <pwm:display key="Value_NotApplicable"/>
+                <% } else { %>
                 <%= StringUtil.escapeHtml(uiBean.getUserEmailAddress()) %>
+                <% } %>
+            </td>
+        </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.UserSMS)) { %>
+        <tr>
+            <td class="key">
+                <pwm:display key="Field_UserSMS"/>
+            </td>
+            <td>
+                <% if (uiBean.getUserSmsNumber() == null) { %>
+                <pwm:display key="Value_NotApplicable"/>
+                <% } else { %>
+                <%= StringUtil.escapeHtml(uiBean.getUserSmsNumber()) %>
+                <% } %>
             </td>
         </tr>
         <% } %>

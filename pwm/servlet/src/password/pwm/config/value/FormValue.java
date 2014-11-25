@@ -43,38 +43,47 @@ public class FormValue extends AbstractValue implements StoredValue {
         this.values = values;
     }
 
-    static FormValue fromJson(final String input) {
-        if (input == null) {
-            return new FormValue(Collections.<FormConfiguration>emptyList());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
-            }.getType());
-            srcList = srcList == null ? Collections.<FormConfiguration>emptyList() : srcList;
-            srcList.removeAll(Collections.singletonList(null));
-            return new FormValue(Collections.unmodifiableList(srcList));
-        }
-    }
-
-    static FormValue fromXmlElement(Element settingElement) throws PwmOperationalException {
-        final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
-        final Gson gson = JsonUtil.getGson();
-        final List valueElements = settingElement.getChildren("value");
-        final List<FormConfiguration> values = new ArrayList<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String value = loopValueElement.getText();
-            if (value != null && value.length() > 0 && loopValueElement.getAttribute("locale") == null) {
-                if (oldType) {
-                    values.add(FormConfiguration.parseOldConfigString(value));
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public FormValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new FormValue(Collections.<FormConfiguration>emptyList());
                 } else {
-                    values.add(gson.fromJson(value,FormConfiguration.class));
+                    final Gson gson = JsonUtil.getGson();
+                    List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
+                    }.getType());
+                    srcList = srcList == null ? Collections.<FormConfiguration>emptyList() : srcList;
+                    srcList.removeAll(Collections.singletonList(null));
+                    return new FormValue(Collections.unmodifiableList(srcList));
                 }
             }
-        }
-        final FormValue formValue = new FormValue(values);
-        formValue.needsXmlUpdate = oldType;
-        return formValue;
+
+            public FormValue fromXmlElement(Element settingElement, final String key)
+                    throws PwmOperationalException
+            {
+                final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
+                        settingElement.getAttributeValue("syntax"));
+                final Gson gson = JsonUtil.getGson();
+                final List valueElements = settingElement.getChildren("value");
+                final List<FormConfiguration> values = new ArrayList<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String value = loopValueElement.getText();
+                    if (value != null && value.length() > 0 && loopValueElement.getAttribute("locale") == null) {
+                        if (oldType) {
+                            values.add(FormConfiguration.parseOldConfigString(value));
+                        } else {
+                            values.add(gson.fromJson(value, FormConfiguration.class));
+                        }
+                    }
+                }
+                final FormValue formValue = new FormValue(values);
+                formValue.needsXmlUpdate = oldType;
+                return formValue;
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

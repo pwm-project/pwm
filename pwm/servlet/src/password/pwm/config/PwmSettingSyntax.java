@@ -25,36 +25,36 @@ package password.pwm.config;
 import password.pwm.config.value.*;
 
 public enum PwmSettingSyntax {
-    STRING(StringValue.class),
-    USER_PERMISSION(UserPermissionValue.class),
-    STRING_ARRAY(StringArrayValue.class),
-    TEXT_AREA(StringValue.class),
-    LOCALIZED_STRING(LocalizedStringValue.class),
-    LOCALIZED_TEXT_AREA(LocalizedStringValue.class),
-    LOCALIZED_STRING_ARRAY(LocalizedStringArrayValue.class),
-    PASSWORD(PasswordValue.class),
-    NUMERIC(NumericValue.class),
-    BOOLEAN(BooleanValue.class),
-    SELECT(StringValue.class),
-    FORM(FormValue.class),
-    ACTION(ActionValue.class),
-    EMAIL(EmailValue.class),
-    X509CERT(X509CertificateValue.class),
-    CHALLENGE(ChallengeValue.class),
-    OPTIONLIST(OptionListValue.class),
-    FILE(FileValue.class),
-
-    PROFILE(StringArrayValue.class),
+    STRING(StringValue.factory()),
+    USER_PERMISSION(UserPermissionValue.factory()),
+    STRING_ARRAY(StringArrayValue.factory()),
+    TEXT_AREA(StringValue.factory()),
+    LOCALIZED_STRING(LocalizedStringValue.factory()),
+    LOCALIZED_TEXT_AREA(LocalizedStringValue.factory()),
+    LOCALIZED_STRING_ARRAY(LocalizedStringArrayValue.factory()),
+    PASSWORD(PasswordValue.factory()),
+    NUMERIC(NumericValue.factory()),
+    DURATION(NumericValue.factory()),
+    BOOLEAN(BooleanValue.factory()),
+    SELECT(StringValue.factory()),
+    FORM(FormValue.factory()),
+    ACTION(ActionValue.factory()),
+    EMAIL(EmailValue.factory()),
+    X509CERT(X509CertificateValue.factory()),
+    CHALLENGE(ChallengeValue.factory()),
+    OPTIONLIST(OptionListValue.factory()),
+    FILE(FileValue.factory()),
+    PROFILE(StringArrayValue.factory()),
 
     ;
 
-    private Class storedValueImpl;
+    private StoredValue.StoredValueFactory storedValueImpl;
 
-    private PwmSettingSyntax(Class storedValueImpl) {
+    private PwmSettingSyntax(StoredValue.StoredValueFactory storedValueImpl) {
         this.storedValueImpl = storedValueImpl;
     }
 
-    public Class getStoredValueImpl() {
+    public StoredValue.StoredValueFactory getStoredValueImpl() {
         return storedValueImpl;
     }
 }

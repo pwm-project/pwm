@@ -60,7 +60,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -125,12 +124,6 @@ public class
         } while ((System.currentTimeMillis() - startTime) < sleepTimeMS);
 
         return System.currentTimeMillis() - startTime;
-    }
-
-    public static boolean testEmailAddress(final String address) {
-        final Pattern pattern = Pattern.compile(PwmConstants.EMAIL_REGEX_MATCH);
-        final Matcher matcher = pattern.matcher(address);
-        return matcher.matches();
     }
 
 

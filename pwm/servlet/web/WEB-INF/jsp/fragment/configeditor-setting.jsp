@@ -57,16 +57,14 @@
     }
 %>
 <div class="setting_title" id="title_<%=loopSetting.getKey()%>">
-    <% if (showDescription) { %>
+    <div class="fa fa-star" title="Setting has been modified" id="modifiedNoticeIcon-<%=loopSetting.getKey()%>" style="display: none; color:#d20734"></div>
     <span class="text"><%=title%></span>
-    <% } else { %>
-    <span class="text" onclick="PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{})"><%=title%></span>
-    <% } %>
-    <% if (!showDescription) { %>
-    <div class="fa fa-question icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>" onclick="PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{})"></div>
-    <% } %>
+    <%--<% if (!showDescription) { %>--%>
+    <div class="fa fa-question-circle icon_button" title="Help" id="helpButton-<%=loopSetting.getKey()%>"></div>
+    <%--<% } %>--%>
     <div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-<%=loopSetting.getKey()%>" onclick="handleResetClick('<%=loopSetting.getKey()%>')" ></div>
 </div>
+<%--
 <div id="helpDiv_<%=loopSetting.getKey()%>" class="helpDiv" style="display: none">
     <pwm:script>
     <script type="text/javascript">
@@ -77,6 +75,27 @@
     </script>
     </pwm:script>
 </div>
+--%>
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('helpButton-<%=loopSetting.getKey()%>','click',function(){
+                PWM_MAIN.showDialog({
+                    text:PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'],
+                    title:PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['label'],
+                    width:550
+                });
+            });
+            PWM_MAIN.showTooltip({
+                id: "modifiedNoticeIcon-<%=loopSetting.getKey()%>",
+                text: 'Setting has been modified from the default value'
+            });
+            //PWM_MAIN.getObject('helpDiv_<%=loopSetting.getKey()%>').innerHTML = PWM_SETTINGS['settings']['<%=loopSetting.getKey()%>']['description'];
+            //PWM_CFGEDIT.toggleHelpDisplay('<%=loopSetting.getKey()%>',{force:'<%=showDescription ? "show":"hide"%>'});
+        });
+    </script>
+</pwm:script>
+
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -142,8 +161,8 @@
     </script>
     </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.USER_PERMISSION) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
-    </table>
+    <div id="table_setting_<%=loopSetting.getKey()%>">
+    </div>
     <div style="width: 100%; text-align: center">
     <button id="<%=loopSetting.getKey()%>_ViewMatchesButton" data-dojo-type="dijit.form.Button">View Matches</button>
     </div>
@@ -160,8 +179,8 @@
     </script>
     </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.FORM) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
-    </table>
+    <div id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+    </div>
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -170,8 +189,8 @@
     </script>
     </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.OPTIONLIST) { %>
-    <table id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
-    </table>
+    <div id="table_setting_<%=loopSetting.getKey()%>" style="border:0 none">
+    </div>
     <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
@@ -325,7 +344,7 @@
     </pwm:script>
     <% } else if (loopSetting.getSyntax() == PwmSettingSyntax.PASSWORD) { %>
     <div id="<%=loopSetting.getKey()%>_parentDiv">
-        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.init('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
+        <button data-dojo-type="dijit.form.Button" onclick="ChangePasswordHandler.popup('<%=loopSetting.getKey()%>','<%=loopSetting.getLabel(locale)%>')">Store Password</button>
         <button id="clearButton_<%=loopSetting.getKey()%>" data-dojo-type="dijit.form.Button" onclick="PWM_MAIN.showConfirmDialog({text:'Clear password for setting <%=loopSetting.getLabel(locale)%>?',okAction:function() {PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');PWM_MAIN.showInfo('<%=loopSetting.getLabel(locale)%> password cleared')}})">Clear Password</button>
     </div>
     <pwm:script>

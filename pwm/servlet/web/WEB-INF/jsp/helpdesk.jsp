@@ -78,13 +78,14 @@
 <form action="<pwm:url url='Helpdesk'/>" id="loadDetailsForm" name="loadDetailsForm" method="post" enctype="application/x-www-form-urlencoded">
     <input type="hidden" name="processAction" value="detail"/>
     <input type="hidden" name="userKey" id="userKey" value=""/>
+    <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
 </form>
 <pwm:script>
 <script>
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_VAR['helpdesk_search_columns'] = <%=JsonUtil.serializeMap(helpdeskBean.getSearchColumnHeaders())%>;
+        PWM_MAIN.getObject('username').focus();
         PWM_HELPDESK.initHelpdeskSearchPage();
-        PWM_MAIN.getObject('username').focus()
     });
 </script>
 </pwm:script>

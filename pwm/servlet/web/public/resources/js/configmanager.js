@@ -47,6 +47,8 @@ PWM_CONFIG.lockConfiguration=function() {
 };
 
 PWM_CONFIG.waitForRestart=function(options) {
+    PWM_VAR['cancelHeartbeatCheck'] = true;
+
     options = options === undefined ? {} : options;
     console.log("beginning request to determine application status: ");
     var loadFunction = function(data) {
@@ -332,11 +334,52 @@ PWM_CONFIG.showHeaderHealth = function() {
 };
 
 PWM_CONFIG.downloadLocalDB = function () {
-    PWM_MAIN.showDialog({title:PWM_MAIN.showString("Display_PleaseWait"),text:PWM_CONFIG.showString("Warning_DownloadLocalDBInProgress"),
-        loadFunction:function(){
-            PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+    PWM_MAIN.showConfirmDialog({
+        text:PWM_CONFIG.showString("Warning_DownloadLocal"),
+        okAction:function(){
+            PWM_MAIN.showWaitDialog({
+                loadFunction:function(){
+                    PWM_MAIN.goto('ConfigManager?processAction=exportLocalDB',{addFormID:true,hideDialog:true});
+                    setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
+                }
+            });
+
         }
     });
+};
+
+PWM_CONFIG.downloadConfig = function () {
+    PWM_MAIN.showConfirmDialog({
+        text:PWM_CONFIG.showString("Warning_DownloadConfiguration"),
+        okAction:function(){
+            PWM_MAIN.showWaitDialog({
+                loadFunction:function(){
+                    PWM_MAIN.goto('ConfigManager?processAction=downloadConfig',{addFormID:true,hideDialog:true});
+                    setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
+                }
+            });
+
+        }
+    });
+};
+
+PWM_CONFIG.downloadSupportBundle = function() {
+    if (PWM_VAR['config_localDBLogLevel'] != 'TRACE') {
+        PWM_MAIN.showDialog({title: PWM_MAIN.showString('Title_Error'), text: PWM_CONFIG.showString("Warning_MakeSupportZipNoTrace")});
+    } else {
+        PWM_MAIN.showConfirmDialog({
+            text:PWM_CONFIG.showString("Warning_DownloadSupportZip"),
+            okAction:function(){
+                PWM_MAIN.showWaitDialog({
+                    loadFunction:function(){
+                        PWM_MAIN.goto('ConfigManager?processAction=generateSupportZip',{addFormID:true,hideDialog:true});
+                        setTimeout(function(){PWM_MAIN.closeWaitDialog()},5000);
+                    }
+                });
+
+            }
+        });
+    }
 };
 
 PWM_CONFIG.uploadFile = function(options) {
@@ -352,17 +395,19 @@ PWM_CONFIG.uploadFile = function(options) {
     var uploadUrl = 'url' in options ? options['url'] : currentUrl;
     uploadUrl = PWM_MAIN.addPwmFormIDtoURL(uploadUrl);
 
+    var nextFunction = 'nextFunction' in options ? options['nextFunction'] : function(){PWM_MAIN.goto(currentUrl)};
+
     var title = 'title' in options ? options['title'] : 'Upload File';
 
     var completeFunction = function(data){
         if (data['error'] == true) {
             var errorText = 'The file upload has failed.  Please try again or check the server logs for error information.';
             PWM_MAIN.showErrorDialog(data,{text:errorText,okAction:function(){
-                PWM_MAIN.goto(currentUrl);
+                nextFunction();
             }});
         } else {
             PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Success"), text: data['successMessage'],okAction:function(){
-                PWM_MAIN.goto(currentUrl);
+                nextFunction();
             }});
         }
     };
@@ -432,3 +477,36 @@ PWM_CONFIG.uploadFile = function(options) {
         }});
     });
 };
+
+
+PWM_CONFIG.heartbeatCheck = function() {
+    if (PWM_VAR['cancelHeartbeatCheck']) {
+        return;
+    }
+    console.log('beginning config-editor heartbeat check');
+    var handleErrorFunction = function(message) {
+        console.log('config-editor heartbeat failed');
+        PWM_MAIN.showErrorDialog('There has been a problem communicating with the application server, please refresh your browser to continue.<br/><br/>' + message,{
+            showOk:false
+        });
+    };
+    var loadFunction = function(data) {
+        try {
+            var serverStartTime = data['data']['PWM_GLOBAL']['startupTime'];
+            if (serverStartTime != PWM_GLOBAL['startupTime']) {
+                var message = "Application appears to have be restarted.";
+                handleErrorFunction(message);
+            } else {
+                setTimeout(PWM_CFGEDIT.heartbeatCheck,5000);
+            }
+        } catch (e) {
+            handleErrorFunction('Error reading server status.');
+        }
+    };
+    var errorFunction = function(e) {
+        handleErrorFunction('I/O error communicating with server.');
+    };
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/client?checkForHealtbeat=true";
+    PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
+};
+

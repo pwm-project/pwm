@@ -62,6 +62,8 @@ public class ConfigGuideServlet extends PwmServlet {
 
     public static final String PARAM_TEMPLATE_NAME = "template-name";
 
+    public static final String PARAM_APP_SITEURL = "app-siteurl";
+
     public static final String PARAM_LDAP_HOST = "ldap-server-ip";
     public static final String PARAM_LDAP_PORT = "ldap-server-port";
     public static final String PARAM_LDAP_SECURE = "ldap-server-secure";
@@ -81,16 +83,23 @@ public class ConfigGuideServlet extends PwmServlet {
 
 
     public enum ConfigGuideAction implements PwmServlet.ProcessAction {
-        ldapHealth,
-        updateForm,
-        gotoStep,
-        useConfiguredCerts,
-        uploadConfig,
+        ldapHealth(HttpMethod.GET),
+        updateForm(HttpMethod.POST),
+        gotoStep(HttpMethod.POST),
+        useConfiguredCerts(HttpMethod.POST),
+        uploadConfig(HttpMethod.POST),
         ;
 
-        public Collection<PwmServlet.HttpMethod> permittedMethods()
+        private final HttpMethod method;
+
+        ConfigGuideAction(HttpMethod method)
         {
-            return Collections.singletonList(PwmServlet.HttpMethod.POST);
+            this.method = method;
+        }
+
+        public Collection<HttpMethod> permittedMethods()
+        {
+            return Collections.singletonList(method);
         }
     }
 
@@ -158,6 +167,12 @@ public class ConfigGuideServlet extends PwmServlet {
             LOGGER.error(pwmSession, errorInformation.toDebugStr());
             pwmRequest.respondWithError(errorInformation);
             return;
+        }
+
+        if (!configGuideBean.getFormData().containsKey(PARAM_APP_SITEURL)) {
+            final URI uri = URI.create(pwmRequest.getHttpServletRequest().getRequestURL().toString());
+            final String newUri = uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort() + pwmRequest.getContextPath();
+            configGuideBean.getFormData().put(PARAM_APP_SITEURL,newUri);
         }
 
         pwmSession.setSessionTimeout(
@@ -311,7 +326,7 @@ public class ConfigGuideServlet extends PwmServlet {
                         } else {
                             final StringBuilder sb = new StringBuilder();
                             sb.append("<ul>");
-                            for (final UserIdentity user : results.keySet()) {
+                            for (final UserIdentity user : new TreeSet<>(results.keySet())) {
                                 sb.append("<li>");
                                 sb.append(user.getUserDN());
                                 sb.append("</li>");
@@ -379,7 +394,7 @@ public class ConfigGuideServlet extends PwmServlet {
 
         final RestResultBean restResultBean = new RestResultBean();
         pwmRequest.outputJsonResult(restResultBean);
-        updateLdapInfo(storedConfiguration, configGuideBean.getFormData(), incomingFormData);
+        convertFormToConfiguration(storedConfiguration, configGuideBean.getFormData(), incomingFormData);
         //LOGGER.info("config: " + storedConfiguration.toString());
     }
 
@@ -421,10 +436,10 @@ public class ConfigGuideServlet extends PwmServlet {
         }
     }
 
-    public static void updateLdapInfo(
+    public static void convertFormToConfiguration(
             final StoredConfiguration storedConfiguration,
-            final Map<String,String> ldapForm,
-            final Map<String,String> incomingLdapForm
+            final Map<String, String> ldapForm,
+            final Map<String, String> incomingLdapForm
     )
             throws PwmUnrecoverableException
     {
@@ -442,7 +457,7 @@ public class ConfigGuideServlet extends PwmServlet {
             final String ldapAdminDN = ldapForm.get(PARAM_LDAP_ADMIN_DN);
             final String ldapAdminPW = ldapForm.get(PARAM_LDAP_ADMIN_PW);
             storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_DN, LDAP_PROFILE_KEY, new StringValue(ldapAdminDN), null);
-            final PasswordValue passwordValue = new PasswordValue(new PasswordData(ldapAdminPW));
+            final PasswordValue passwordValue = new PasswordValue(PasswordData.forStringValue(ldapAdminPW));
             storedConfiguration.writeSetting(PwmSetting.LDAP_PROXY_USER_PASSWORD, LDAP_PROFILE_KEY, passwordValue, null);
         }
 
@@ -472,6 +487,12 @@ public class ConfigGuideServlet extends PwmServlet {
             final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(null, ldapAdminQuery, null));
             storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue(userPermissions), null);
         }
+
+        // set context based on ldap dn
+        if (incomingLdapForm.containsKey(PARAM_APP_SITEURL)) {
+            ldapForm.put(PARAM_APP_SITEURL, incomingLdapForm.get(PARAM_APP_SITEURL));
+        }
+        storedConfiguration.writeSetting(PwmSetting.PWM_SITE_URL, new StringValue(ldapForm.get(PARAM_APP_SITEURL)), null);
     }
 
     private void writeConfig(
@@ -507,7 +528,7 @@ public class ConfigGuideServlet extends PwmServlet {
 
         try {
             // add a random security key
-            final PasswordValue newSecurityKey = new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(512)));
+            final PasswordValue newSecurityKey = new PasswordValue(new PasswordData(PwmRandom.getInstance().alphaNumericString(1024)));
             storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, newSecurityKey, null);
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
@@ -537,6 +558,6 @@ public class ConfigGuideServlet extends PwmServlet {
     }
 
     public enum STEP {
-        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, CR_STORAGE, PASSWORD, END, FINISH
+        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, CR_STORAGE, APP, PASSWORD, END, FINISH
     }
 }

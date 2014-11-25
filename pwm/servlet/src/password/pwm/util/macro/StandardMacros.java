@@ -60,6 +60,7 @@ public abstract class StandardMacros {
         defaultMacros.add(InstanceIDMacro.class);
         defaultMacros.add(CurrentTimeMacro.class);
         defaultMacros.add(CurrentTimeDefaultMacro.class);
+        defaultMacros.add(DefaultEmailFromAddressMacro.class);
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
@@ -344,6 +345,21 @@ public abstract class StandardMacros {
                 final MacroRequestInfo macroRequestInfo
         ) {
             return macroRequestInfo.getPwmApplication().getConfig().readSettingAsString(PwmSetting.PWM_SITE_URL);
+        }
+    }
+
+    public static class DefaultEmailFromAddressMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@DefaultEmailFromAddress@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        ) {
+            return macroRequestInfo.getPwmApplication().getConfig().readSettingAsString(PwmSetting.EMAIL_DEFAULT_FROM_ADDRESS);
         }
     }
 

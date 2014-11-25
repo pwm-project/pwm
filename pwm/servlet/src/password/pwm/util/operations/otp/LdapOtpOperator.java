@@ -139,12 +139,12 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             } else {
                 errorMsg = "error writing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + ex.getMessage();
             }
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;
         } catch (PwmOperationalException ex) {
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, ex.getMessage());
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, ex.getMessage());
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(ex);
             throw pwmOE;
@@ -183,7 +183,7 @@ public class LdapOtpOperator extends AbstractOtpOperator {
             } else {
                 errorMsg = "error clearing OTP secret to ldap attribute '" + ldapStorageAttribute + "': " + e.getMessage();
             }
-            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_RESPONSES, errorMsg);
+            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET, errorMsg);
             final PwmUnrecoverableException pwmOE = new PwmUnrecoverableException(errorInfo);
             pwmOE.initCause(e);
             throw pwmOE;

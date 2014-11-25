@@ -30,46 +30,51 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.util.JsonUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringArrayValue extends AbstractValue implements StoredValue {
-    final List<String> value;
+    final List<String> values;
 
     public StringArrayValue(final List<String> values) {
-        this.value = values;
+        this.values = values;
     }
 
-    static StringArrayValue fromJson(final String input) {
-        if (input == null) {
-            return new StringArrayValue(Collections.<String>emptyList());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
-            }.getType());
-            srcList = srcList == null ? Collections.<String>emptyList() : srcList;
-            srcList.removeAll(Collections.singletonList(null));
-            return new StringArrayValue(Collections.unmodifiableList(srcList));
-        }
-    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public StringArrayValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new StringArrayValue(Collections.<String>emptyList());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
+                    }.getType());
+                    srcList = srcList == null ? Collections.<String>emptyList() : srcList;
+                    srcList.removeAll(Collections.singletonList(null));
+                    return new StringArrayValue(Collections.unmodifiableList(srcList));
+                }
+            }
 
-    static StringArrayValue fromXmlElement(final Element settingElement) {
-        final List valueElements = settingElement.getChildren("value");
-        final List<String> values = new ArrayList<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String value = loopValueElement.getText();
-            values.add(value);
-        }
-        return new StringArrayValue(values);
+            public StringArrayValue fromXmlElement(final Element settingElement, final String key)
+            {
+                final List valueElements = settingElement.getChildren("value");
+                final List<String> values = new ArrayList<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String value = loopValueElement.getText();
+                    values.add(value);
+                }
+                return new StringArrayValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        for (final String value : this.value) {
+        for (final String value : this.values) {
             final Element valueElement = new Element(valueElementName);
             valueElement.addContent(new CDATA(value));
             returnList.add(valueElement);
@@ -78,18 +83,18 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
     }
 
     public List<String> toNativeObject() {
-        return Collections.unmodifiableList(value);
+        return Collections.unmodifiableList(values);
     }
 
     public List<String> validateValue(PwmSetting pwmSetting) {
         if (pwmSetting.isRequired()) {
-            if (value == null || value.size() < 1 || value.get(0).length() < 1) {
+            if (values == null || values.size() < 1 || values.get(0).length() < 1) {
                 return Collections.singletonList("required value missing");
             }
         }
 
         final Pattern pattern = pwmSetting.getRegExPattern();
-        for (final String loopValue : value) {
+        for (final String loopValue : values) {
             final Matcher matcher = pattern.matcher(loopValue);
             if (loopValue != null && loopValue.length() > 0 && !matcher.matches()) {
                 return Collections.singletonList("incorrect value format for value '" + loopValue + "'");
@@ -97,5 +102,20 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
         }
 
         return Collections.emptyList();
+    }
+
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (Iterator valueIterator = values.iterator() ; valueIterator.hasNext();) {
+                sb.append(valueIterator.next());
+                if (valueIterator.hasNext()) {
+                    sb.append("\n");
+                }
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeCollection(values);
+        }
     }
 }

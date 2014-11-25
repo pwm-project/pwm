@@ -292,7 +292,7 @@ public class NewUserServlet extends PwmServlet {
     )
             throws PwmDataValidationException, PwmUnrecoverableException, ChaiUnavailableException
     {
-        FormUtility.validateFormValues(newUserForm.getFormData(), locale);
+        FormUtility.validateFormValues(pwmApplication.getConfig(), newUserForm.getFormData(), locale);
         FormUtility.validateFormValueUniqueness(
                 pwmApplication,
                 newUserForm.getFormData(),

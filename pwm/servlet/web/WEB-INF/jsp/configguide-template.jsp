@@ -48,8 +48,7 @@
         <pwm:display key="Display_ConfigGuideSelectTemplate" bundle="Config"/>
         <br/>
         <form id="configForm" data-dojo-type="dijit/form/Form">
-            <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>"
-                    onchange="formHandler()" data-dojo-type="dijit/form/Select" style="width:300px">
+            <select id="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" name="<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>" style="width:300px">
                 <% if (selectedTemplate == null) { %>
                 <option value="NOTSELECTED" selected="selected">-- Please select a template --</option>
                 <% } %>
@@ -61,19 +60,19 @@
                 <% } %>
             </select>
         </form>
-            <br/>
+        <br/>
 
-            <div id="buttonbar">
-                <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('START');">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
-                    <pwm:display key="Button_Previous" bundle="Config"/>
-                </button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAP');">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:display key="Button_Next" bundle="Config"/>
-                </button>
-            </div>
+        <div id="buttonbar">
+            <button class="btn" id="button_previous">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                <pwm:display key="Button_Previous" bundle="Config"/>
+            </button>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn" id="button_next">
+                <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                <pwm:display key="Button_Next" bundle="Config"/>
+            </button>
+        </div>
     </div>
     <div class="push"></div>
 </div>
@@ -110,15 +109,14 @@
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox","dijit/form/Select"],function(dojoParser){
-                dojoParser.parse();
-                updateNextButton();
-            });
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('START')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP')});
+            PWM_MAIN.addEventHandler('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
         });
     </script>
 </pwm:script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>

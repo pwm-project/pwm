@@ -42,6 +42,7 @@ import password.pwm.config.ChallengeProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.UserAuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.SetupResponsesBean;
@@ -172,7 +173,7 @@ public class SetupResponsesServlet extends PwmServlet {
 
                 case clearExisting:
                     handleClearResponses(pwmRequest, setupResponsesBean);
-                    break;
+                    return;
 
                 case changeResponses:
                     pwmSession.clearSessionBean(SetupResponsesBean.class);
@@ -191,8 +192,7 @@ public class SetupResponsesServlet extends PwmServlet {
             final PwmRequest pwmRequest,
             final SetupResponsesBean setupResponsesBean
     )
-            throws PwmUnrecoverableException, ChaiUnavailableException
-    {
+            throws PwmUnrecoverableException, ChaiUnavailableException, IOException {
         LOGGER.trace(pwmRequest, "request for response clear received");
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -200,9 +200,19 @@ public class SetupResponsesServlet extends PwmServlet {
             final String userGUID = pwmSession.getUserInfoBean().getUserGuid();
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             pwmApplication.getCrService().clearResponses(pwmSession, theUser, userGUID);
-            pwmSession.getUserInfoBean().setResponseInfoBean(null);
+            UserStatusReader userStatusReader = new UserStatusReader(pwmApplication, pwmRequest.getSessionLabel());
+            userStatusReader.populateLocaleSpecificUserInfoBean(pwmSession.getUserInfoBean(),pwmRequest.getLocale());
             pwmSession.clearSessionBean(SetupResponsesBean.class);
-            initializeBean(pwmRequest, setupResponsesBean);
+
+            // mark the event log
+            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+                    AuditEvent.CLEAR_RESPONSES,
+                    pwmSession.getUserInfoBean(),
+                    pwmSession
+            );
+            pwmApplication.getAuditManager().submit(auditRecord);
+
+            pwmRequest.sendRedirect(pwmRequest.getHttpServletRequest().getContextPath() + "/private/" + PwmConstants.URL_SERVLET_SETUP_RESPONSES);
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmSession, e.getErrorInformation());
             pwmRequest.setResponseError(e.getErrorInformation());
@@ -324,7 +334,7 @@ public class SetupResponsesServlet extends PwmServlet {
             return;
         }
 
-        LOGGER.trace(pwmRequest, "new " + (helpdeskMode ? "helpdesk" : "user") + " responses are acceptable");
+        LOGGER.trace(pwmRequest, (helpdeskMode ? "helpdesk" : "user") + " responses are acceptable");
         if (helpdeskMode) {
             setupResponsesBean.getHelpdeskResponseData().setResponseMap(responseMap);
             setupResponsesBean.setHelpdeskResponsesSatisfied(true);

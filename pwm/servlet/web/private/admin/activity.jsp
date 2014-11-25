@@ -53,14 +53,22 @@
                     <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
-                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshActiveSessionGrid()">
+                    <button class="btn" type="button" id="button-activeSessionRefresh">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
+                    <pwm:script>
+                        <script type="text/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('button-activeSessionRefresh','click',function(){
+                                    PWM_ADMIN.refreshActiveSessionGrid()
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
                 </div>
             </div>
-
-
             <% for (RecordType recordType : RecordType.values()) { %>
             <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
             <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>">
@@ -68,7 +76,6 @@
                 </div>
             </div>
             <% } %>
-
             <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>">
                 <div id="auditUserGrid">
                 </div>
@@ -134,11 +141,13 @@
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser,ready){
                 dojoParser.parse(PWM_MAIN.getObject('centerbody'));
-                ready(function(){
-                    PWM_ADMIN.initIntrudersGrid();
-                    PWM_ADMIN.initActiveSessionGrid();
-                    PWM_ADMIN.initAuditGrid();
-                });
+                setTimeout(function(){
+                    ready(function(){
+                        PWM_ADMIN.initIntrudersGrid();
+                        PWM_ADMIN.initActiveSessionGrid();
+                        PWM_ADMIN.initAuditGrid();
+                    });
+                },3000);
             });
         });
     </script>

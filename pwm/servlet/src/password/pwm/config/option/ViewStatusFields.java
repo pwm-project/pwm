@@ -47,4 +47,5 @@ public enum ViewStatusFields implements ConfigurationOption {
     Username,
     UserDN,
     UserEmail,
+    UserSMS,
 }

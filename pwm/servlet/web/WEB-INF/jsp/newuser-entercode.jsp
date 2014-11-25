@@ -62,7 +62,7 @@
                   enctype="application/x-www-form-urlencoded">
                 <input type="hidden" name="processAction" value="reset"/>
                 <button type="submit" name="button" class="btn" id="button_reset">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
                     <pwm:display key="Button_Cancel"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

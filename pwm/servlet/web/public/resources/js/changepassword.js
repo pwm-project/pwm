@@ -210,39 +210,18 @@ PWM_CHANGEPW.showPasswordGuide=function() {
     });
 };
 
-
-PWM_CHANGEPW.showRandomPasswordsDialog=function(randomConfig) {
-
-    var titleString = randomConfig['title'] == null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
-
-    require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(){
-        PWM_MAIN.closeWaitDialog();
-        var theDialog = new dijit.Dialog({
-            title: titleString,
-            style: "width: 300px; border: 2px solid #D4D4D4;",
-            content: randomConfig['dialogBody'],
-            id: "dialogPopup"
-        });
-        theDialog.setAttribute('class','nihilo');
-        theDialog.show();
-        PWM_CHANGEPW.beginFetchRandoms(randomConfig);
-    });
-};
-
 PWM_CHANGEPW.handleChangePasswordSubmit=function() {
     PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PleaseWait'));
     PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
 };
 
 PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
-    if (randomConfig == null) {
-        randomConfig = { };
-    }
+    randomConfig = randomConfig === undefined ? {} : randomConfig;
+    var finishAction = 'finishAction' in randomConfig ? randomConfig['finishAction'] : function(password) {
+        PWM_CHANGEPW.copyToPasswordFields(password)
+    };
 
-    if (randomConfig['finishAction'] == null || randomConfig['finishAction'].length < 1) {
-        randomConfig['finishAction'] = "PWM_CHANGEPW.copyToPasswordFields(PWM_GLOBAL['SelectedRandomPassword'])";
-    }
-
+    var eventHandlers = [];
     var dialogBody = "";
     if (randomConfig['dialog'] != null && randomConfig['dialog'].length > 0) {
         dialogBody += randomConfig['dialog'];
@@ -251,26 +230,58 @@ PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
     }
     dialogBody += "<br/><br/>";
     dialogBody += '<table style="border: 0">';
+
     for (var i = 0; i < 20; i++) {
         dialogBody += '<tr style="border: 0">';
         for (var j = 0; j < 2; j++) {
             i = i + j;
-            var elementID = "randomGen" + i;
-            var clickAction = "PWM_GLOBAL['SelectedRandomPassword'] = PWM_MAIN.getObject('" + elementID + "').firstChild.nodeValue;";
-            clickAction += randomConfig['finishAction'];
-            dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" onclick="' + clickAction + '" id="' + elementID + '">&nbsp;</a></td>';
+            (function(index) {
+                var elementID = "randomGen" + index;
+                dialogBody += '<td style="border: 0; padding-bottom: 5px;" width="20%"><a style="text-decoration:none; color: black" href="#" id="' + elementID + '">&nbsp;</a></td>';
+                eventHandlers.push(function(){
+                    PWM_MAIN.addEventHandler(elementID,'click',function(){
+                        var value = PWM_MAIN.getObject(elementID).innerHTML;
+                        finishAction(value);
+                    });
+                });
+            })(i);
         }
         dialogBody += '</tr>';
     }
     dialogBody += "</table><br/><br/>";
 
     dialogBody += '<table style="border: 0">';
-    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true" onclick="PWM_CHANGEPW.beginFetchRandoms(PWM_GLOBAL[\'lastRandomConfig\'])"><span class="btn-icon fa fa-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
-    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" onclick="PWM_MAIN.clearDijitWidget(\'dialogPopup\')"><span class="btn-icon fa fa-backward"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
+    dialogBody += '<tr style="border: 0"><td style="border: 0"><button class="btn" id="moreRandomsButton" disabled="true"><span class="btn-icon fa fa-refresh"></span>' + PWM_MAIN.showString('Button_More') + '</button></td>';
+    dialogBody += '<td style="border: 0; text-align:right;"><button class="btn" id="cancelRandomsButton"><span class="btn-icon fa fa-times"></span>' + PWM_MAIN.showString('Button_Cancel') + '</button></td></tr>';
     dialogBody += "</table>";
+
     randomConfig['dialogBody'] = dialogBody;
-    PWM_GLOBAL['lastRandomConfig'] = randomConfig;
-    PWM_CHANGEPW.showRandomPasswordsDialog(randomConfig);
+
+    eventHandlers.push(function(){
+        PWM_MAIN.addEventHandler('cancelRandomsButton','click',function(){
+            PWM_MAIN.clearDijitWidget('dialogPopup');
+        });
+        PWM_MAIN.addEventHandler('moreRandomsButton','click',function(){
+            PWM_CHANGEPW.beginFetchRandoms(randomConfig);
+        });
+    });
+
+
+
+    var titleString = randomConfig['title'] == null ? PWM_MAIN.showString('Title_RandomPasswords') : randomConfig['title'];
+    PWM_MAIN.showDialog({
+        title:titleString,
+        dialogClass:'narrow',
+        text:dialogBody,
+        showOk:false,
+        showClose:true,
+        loadFunction:function(){
+            PWM_CHANGEPW.beginFetchRandoms(randomConfig);
+            for (var i = 0; i < eventHandlers.length; i++) {
+                eventHandlers[i]();
+            }
+        }
+    });
 };
 
 PWM_CHANGEPW.beginFetchRandoms=function(randomConfig) {
@@ -344,6 +355,9 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     var autoGenPasswordElement = PWM_MAIN.getObject("autogenerate-icon");
     if (autoGenPasswordElement != null) {
         autoGenPasswordElement.style.visibility = 'visible';
+        PWM_MAIN.addEventHandler(autoGenPasswordElement,'click',function(){
+            PWM_CHANGEPW.doRandomGeneration();
+        });
         PWM_MAIN.showTooltip({
             id: "autogenerate-icon",
             text: PWM_MAIN.showString('Display_AutoGeneratedPassword')
@@ -351,16 +365,13 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     }
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
-    require(["dojo/_base/connect"], function(connect){
-        connect.connect(window, "onbeforeunload", function(){
-            console.log('changepassword-beforeunload handler invoked');
-            if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
-                var message = PWM_MAIN.showString('Display_LeaveDirtyPasswordPage');
-                return message;
-            }
-        });
+    PWM_MAIN.addEventHandler(window,'unload',function(){
+        console.log('changepassword-beforeunload handler invoked');
+        if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
+            var message = PWM_MAIN.showString('Display_LeaveDirtyPasswordPage');
+            return message;
+        }
     });
-
 
     PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
 
@@ -379,11 +390,17 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     });
 
     if (PWM_GLOBAL['passwordGuideText'] && PWM_GLOBAL['passwordGuideText'].length > 0) {
-        try {PWM_MAIN.getObject('password-guide-icon').style.visibility = 'visible';} catch (e) { /* noop */ }
-        PWM_MAIN.showTooltip({
-            id: ["password-guide-icon"],
-            text: PWM_MAIN.showString('Display_ShowPasswordGuide')
-        });
+        var iconElement = PWM_MAIN.getObject('password-guide-icon');
+        if (iconElement) {
+            try {iconElement.style.visibility = 'visible';} catch (e) { /* noop */ }
+            PWM_MAIN.addEventHandler('password-guide-icon','click',function(){
+                PWM_CHANGEPW.showPasswordGuide();
+            });
+            PWM_MAIN.showTooltip({
+                id: ["password-guide-icon"],
+                text: PWM_MAIN.showString('Display_ShowPasswordGuide')
+            });
+        }
     }
 
     setTimeout(function(){

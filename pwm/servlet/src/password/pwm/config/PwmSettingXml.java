@@ -45,7 +45,6 @@ public class PwmSettingXml {
     //private static int counter;
 
     private static Document readXml() {
-        //System.out.println("yep " + counter++);
         //new Exception().printStackTrace();
         if (xmlDocCache == null) {
             //validateXmlSchema();

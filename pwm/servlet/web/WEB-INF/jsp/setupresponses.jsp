@@ -36,7 +36,7 @@
     <div id="centerbody">
         <p><pwm:display key="Display_SetupResponses"/></p>
         <form action="<pwm:url url='SetupResponses'/>" method="post" name="setupResponses"
-              enctype="application/x-www-form-urlencoded" onchange="" id="setupResponses" class="pwm-form">
+              enctype="application/x-www-form-urlencoded" id="setupResponses" class="pwm-form">
             <%@ include file="fragment/message.jsp" %>
             <% request.setAttribute("setupData",responseBean.getResponseData()); %>
             <jsp:include page="fragment/setupresponses-form.jsp"/>
@@ -59,6 +59,9 @@
         PWM_GLOBAL['responseMode'] = "user";
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_RESPONSES.startupResponsesPage();
+
+
+
             document.forms[0].elements[0].focus();
         });
     </script>

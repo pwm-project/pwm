@@ -73,11 +73,11 @@
     <br/>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
     <% } else if (configMode) { %>
-    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
 <pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="application/javascript">
+    <script type="application/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_MAIN.showTooltip({
                 id: ['header-warning-message'],
@@ -89,7 +89,7 @@
     </script>
 </pwm:script>
     <% } else if (adminUser) { %>
-    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME%>"/>
+    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
     <% } %>
     </span>
     <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">
@@ -102,7 +102,7 @@
 </div>
 <% if (healthCheck) { %>
 <pwm:script>
-    <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
+    <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             PWM_CONFIG.showHeaderHealth();
         });

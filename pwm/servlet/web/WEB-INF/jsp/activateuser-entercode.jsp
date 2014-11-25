@@ -57,7 +57,7 @@
                       style="display: inline;">
                     <input type="hidden" name="processAction" value="reset"/>
                     <button type="submit" name="button" class="btn" id="buttonCancel">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span>&nbsp</pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
                     <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>

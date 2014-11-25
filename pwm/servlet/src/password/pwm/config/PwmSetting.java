@@ -61,7 +61,7 @@ public enum PwmSetting {
     PWM_INSTANCE_NAME(
             "pwmInstanceName", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     IDLE_TIMEOUT_SECONDS(
-            "idleTimeoutSeconds", PwmSettingSyntax.NUMERIC, PwmSettingCategory.GENERAL),
+            "idleTimeoutSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL),
     HIDE_CONFIGURATION_HEALTH_WARNINGS(
             "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL),
     KNOWN_LOCALES(
@@ -71,40 +71,39 @@ public enum PwmSetting {
     EVENTS_HEALTH_CHECK_MIN_INTERVAL(
             "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, PwmSettingCategory.GENERAL),
 
-
     // user interface
     INTERFACE_THEME(
-            "interface.theme", PwmSettingSyntax.SELECT, PwmSettingCategory.USER_INTERFACE),
+            "interface.theme", PwmSettingSyntax.SELECT, PwmSettingCategory.UI_WEB),
     DISPLAY_SHOW_HIDE_PASSWORD_FIELDS(
-            "display.showHidePasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.showHidePasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_MASK_PASSWORD_FIELDS(
-            "display.maskPasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.maskPasswordFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_MASK_RESPONSE_FIELDS(
-            "display.maskResponseFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.maskResponseFields", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_CANCEL_BUTTON(
-            "display.showCancelButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.showCancelButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_RESET_BUTTON(
-            "display.showResetButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.showResetButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_SUCCESS_PAGES(
-            "display.showSuccessPage", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.showSuccessPage", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_LOGIN_PAGE_OPTIONS(
-            "display.showLoginPageOptions", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.showLoginPageOptions", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_LOGOUT_BUTTON(
-            "display.logoutButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.logoutButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_HOME_BUTTON(
-            "display.homeButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.homeButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_IDLE_TIMEOUT(
-            "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.USER_INTERFACE),
+            "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_WEB),
     DISPLAY_CSS_CUSTOM_STYLE(
-            "display.css.customStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.USER_INTERFACE),
+            "display.css.customStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.UI_WEB),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
-            "display.css.customMobileStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.USER_INTERFACE),
+            "display.css.customMobileStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.UI_WEB),
     DISPLAY_CSS_EMBED(
-            "display.css.customStyle", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.USER_INTERFACE),
+            "display.css.customStyle", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.UI_WEB),
     DISPLAY_CSS_MOBILE_EMBED(
-            "display.css.customMobileStyle", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.USER_INTERFACE),
+            "display.css.customMobileStyle", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.UI_WEB),
     DISPLAY_CUSTOM_JAVASCRIPT(
-            "display.js.custom", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.USER_INTERFACE),
+            "display.js.custom", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.UI_WEB),
 
     // change password
     QUERY_MATCH_CHANGE_PASSWORD(
@@ -183,7 +182,6 @@ public enum PwmSetting {
             "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
 
 
-
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
@@ -209,99 +207,105 @@ public enum PwmSetting {
 
     // email settings
     EMAIL_SERVER_ADDRESS(
-            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL),
+            "email.smtp.address", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_SERVER_PORT(
-            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL),
+            "email.smtp.port", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS),
+    EMAIL_DEFAULT_FROM_ADDRESS(
+            "email.default.fromAddress", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_USERNAME(
-            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL),
+            "email.smtp.username", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_PASSWORD(
-            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL),
+            "email.smtp.userpassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_USER_MAIL_ATTRIBUTE(
-            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL),
+            "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_MAX_QUEUE_AGE(
-            "email.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL),
+            "email.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_CHANGEPASSWORD(
-            "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_CHANGEPASSWORD_HELPDESK(
-            "email.changePassword.helpdesk", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.changePassword.helpdesk", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_UPDATEPROFILE(
-            "email.updateProfile", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.updateProfile", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_NEWUSER(
-            "email.newUser", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.newUser", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_NEWUSER_VERIFICATION(
-            "email.newUser.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.newUser.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_ACTIVATION(
-            "email.activation", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.activation", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_ACTIVATION_VERIFICATION(
-            "email.activation.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.activation.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_CHALLENGE_TOKEN(
-            "email.challenge.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.challenge.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
+    EMAIL_HELPDESK_TOKEN(
+            "email.helpdesk.token", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_GUEST(
-            "email.guest", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.guest", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_UPDATEGUEST(
-            "email.updateguest", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.updateguest", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_SENDPASSWORD(
-            "email.sendpassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.sendpassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_SEND_USERNAME(
-            "email.sendUsername", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.sendUsername", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_INTRUDERNOTICE(
-            "email.intruderNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL),
+            "email.intruderNotice", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_ADVANCED_SETTINGS(
-            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL),
+            "email.smtp.advancedSettings", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.EMAIL_SETTINGS),
 
     // sms settings
     SMS_USER_PHONE_ATTRIBUTE(
-            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_MAX_QUEUE_AGE(
-            "sms.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS),
+            "sms.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_URL(
-            "sms.gatewayURL", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.gatewayURL", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_USER(
-            "sms.gatewayUser", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.gatewayUser", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_PASSWORD(
-            "sms.gatewayPassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.SMS),
+            "sms.gatewayPassword", PwmSettingSyntax.PASSWORD, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_METHOD(
-            "sms.gatewayMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS),
+            "sms.gatewayMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_AUTHMETHOD(
-            "sms.gatewayAuthMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS),
+            "sms.gatewayAuthMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUEST_DATA(
-            "sms.requestData", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.SMS),
+            "sms.requestData", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUEST_CONTENT_TYPE(
-            "sms.requestContentType", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.requestContentType", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUEST_CONTENT_ENCODING(
-            "sms.requestContentEncoding", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS),
+            "sms.requestContentEncoding", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_REQUEST_HEADERS(
-            "sms.httpRequestHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS),
+            "sms.httpRequestHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     SMS_MAX_TEXT_LENGTH(
-            "sms.maxTextLength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS),
+            "sms.maxTextLength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
     SMS_RESPONSE_OK_REGEX(
-            "sms.responseOkRegex", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS),
+            "sms.responseOkRegex", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
     SMS_SENDER_ID(
-            "sms.senderID", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.senderID", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_PHONE_NUMBER_FORMAT(
-            "sms.phoneNumberFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS),
+            "sms.phoneNumberFormat", PwmSettingSyntax.SELECT, PwmSettingCategory.SMS_GATEWAY),
     SMS_DEFAULT_COUNTRY_CODE(
-            "sms.defaultCountryCode", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS),
+            "sms.defaultCountryCode", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUESTID_CHARS(
-            "sms.requestId.characters", PwmSettingSyntax.STRING, PwmSettingCategory.SMS),
+            "sms.requestId.characters", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_REQUESTID_LENGTH(
-            "sms.requestId.length", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS),
+            "sms.requestId.length", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
     SMS_CHALLENGE_TOKEN_TEXT(
-            "sms.challenge.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.challenge.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_CHALLENGE_NEW_PASSWORD_TEXT(
-            "sms.challenge.newpassword.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.challenge.newpassword.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_NEWUSER_TOKEN_TEXT(
-            "sms.newUser.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.newUser.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
+    SMS_HELPDESK_TOKEN_TEXT(
+            "sms.helpdesk.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_ACTIVATION_VERIFICATION_TEXT(
-            "sms.activation.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.activation.token.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_ACTIVATION_TEXT(
-            "sms.activation.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.activation.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_FORGOTTEN_USERNAME_TEXT(
-            "sms.forgottenUsername.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS),
+            "sms.forgottenUsername.message", PwmSettingSyntax.LOCALIZED_STRING, PwmSettingCategory.SMS_MESSAGES),
     SMS_USE_URL_SHORTENER(
-            "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS),
+            "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS_GATEWAY),
     SMS_SUCCESS_RESULT_CODE(
-            "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS),
+            "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
 
     //global password policy settings
     PASSWORD_POLICY_SOURCE(
@@ -404,43 +408,43 @@ public enum PwmSetting {
 
     // security settings
     PWM_SECURITY_KEY(
-            "pwm.securityKey", PwmSettingSyntax.PASSWORD, PwmSettingCategory.SECURITY),
+            "pwm.securityKey", PwmSettingSyntax.PASSWORD, PwmSettingCategory.APP_SECURITY),
     SECURITY_ENABLE_REQUEST_SEQUENCE(
-            "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "security.page.enableRequestSequence", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_ENABLE_FORM_NONCE(
-            "security.formNonce.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "security.formNonce.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     ENABLE_SESSION_VERIFICATION(
-            "enableSessionVerification", PwmSettingSyntax.SELECT, PwmSettingCategory.SECURITY),
+            "enableSessionVerification", PwmSettingSyntax.SELECT, PwmSettingCategory.WEB_SECURITY),
     DISALLOWED_HTTP_INPUTS(
-            "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SECURITY),
+            "disallowedInputs", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     REQUIRE_HTTPS(
-            "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "pwm.requireHTTPS", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     FORCE_BASIC_AUTH(
-            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "forceBasicAuth", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     USE_X_FORWARDED_FOR_HEADER(
-            "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "useXForwardedForHeader", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     REVERSE_DNS_ENABLE(
-            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "network.reverseDNS.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     MULTI_IP_SESSION_ALLOWED(
-            "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "network.allowMultiIPSession", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     REQUIRED_HEADERS(
-            "network.requiredHttpHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SECURITY),
+            "network.requiredHttpHeaders", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     IP_PERMITTED_RANGE(
-            "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SECURITY),
+            "network.ip.permittedRange", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     SECURITY_PAGE_LEAVE_NOTICE_TIMEOUT(
-            "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SECURITY),
+            "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WEB_SECURITY),
     DISPLAY_SHOW_DETAILED_ERRORS(
-            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
     SSO_AUTH_HEADER_NAME(
-            "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.SECURITY),
+            "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.APP_SECURITY),
     SESSION_MAX_SECONDS(
-            "session.maxSeconds", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SECURITY),
+            "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
     SECURITY_PREVENT_FRAMING(
-            "security.preventFraming", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SECURITY),
+            "security.preventFraming", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.WEB_SECURITY),
     SECURITY_REDIRECT_WHITELIST(
-            "security.redirectUrl.whiteList", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SECURITY),
+            "security.redirectUrl.whiteList", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.WEB_SECURITY),
     SECURITY_CSP_HEADER(
-            "security.cspHeader", PwmSettingSyntax.STRING, PwmSettingCategory.SECURITY),
+            "security.cspHeader", PwmSettingSyntax.STRING, PwmSettingCategory.WEB_SECURITY),
 
     // catpcha
     RECAPTCHA_KEY_PUBLIC(
@@ -458,29 +462,29 @@ public enum PwmSetting {
     INTRUDER_STORAGE_METHOD(
             "intruder.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.INTRUDER),
     INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.user.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_USER_MAX_ATTEMPTS(
             "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
     INTRUDER_USER_CHECK_TIME(
-            "intruder.user.checkTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.user.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_ATTRIBUTE_RESET_TIME(
-            "intruder.attribute.resetTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.attribute.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_ATTRIBUTE_MAX_ATTEMPTS(
             "intruder.attribute.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
     INTRUDER_ATTRIBUTE_CHECK_TIME(
-            "intruder.attribute.checkTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.attribute.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_TOKEN_DEST_RESET_TIME(
-            "intruder.tokenDest.resetTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.tokenDest.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_TOKEN_DEST_MAX_ATTEMPTS(
             "intruder.tokenDest.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
     INTRUDER_TOKEN_DEST_CHECK_TIME(
-            "intruder.tokenDest.checkTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.tokenDest.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.address.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_ADDRESS_MAX_ATTEMPTS(
             "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
     INTRUDER_ADDRESS_CHECK_TIME(
-            "intruder.address.checkTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.address.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
     INTRUDER_SESSION_MAX_ATTEMPTS(
             "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
@@ -494,7 +498,7 @@ public enum PwmSetting {
     TOKEN_LENGTH(
             "token.length", PwmSettingSyntax.NUMERIC, PwmSettingCategory.TOKEN),
     TOKEN_LIFETIME(
-            "token.lifetime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.TOKEN),
+            "token.lifetime", PwmSettingSyntax.DURATION, PwmSettingCategory.TOKEN),
     TOKEN_LDAP_ATTRIBUTE(
             "token.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.TOKEN),
 
@@ -536,26 +540,29 @@ public enum PwmSetting {
 
 
     // auditingsettings
-    EVENTS_AUDIT_MAX_AGE(
-            "events.audit.maxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.AUDITING),
-    AUDIT_EMAIL_SYSTEM_TO(
-            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDITING),
     AUDIT_SYSTEM_EVENTS(
-            "audit.system.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.AUDITING),
-    AUDIT_EMAIL_USER_TO(
-            "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDITING),
+            "audit.system.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.AUDIT_CONFIG),
     AUDIT_USER_EVENTS(
-            "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.AUDITING),
-    AUDIT_SYSLOG_SERVERS(
-            "audit.syslog.servers", PwmSettingSyntax.STRING, PwmSettingCategory.AUDITING),
-    AUDIT_SYSLOG_CERTIFICATES(
-            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDITING),
+            "audit.user.eventList", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.AUDIT_CONFIG),
+    EVENTS_AUDIT_MAX_AGE(
+            "events.audit.maxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.AUDIT_CONFIG),
+
     EVENTS_USER_STORAGE_METHOD(
-            "events.user.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.AUDITING),
+            "events.user.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.USER_HISTORY),
     EVENTS_LDAP_ATTRIBUTE(
-            "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.AUDITING),
+            "events.ldap.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.USER_HISTORY),
     EVENTS_LDAP_MAX_EVENTS(
-            "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, PwmSettingCategory.AUDITING),
+            "events.ldap.maxEvents", PwmSettingSyntax.NUMERIC, PwmSettingCategory.USER_HISTORY),
+
+    AUDIT_EMAIL_SYSTEM_TO(
+            "email.adminAlert.toAddress", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
+    AUDIT_EMAIL_USER_TO(
+            "audit.userEvent.toAddress", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.AUDIT_FORWARD),
+    AUDIT_SYSLOG_SERVERS(
+            "audit.syslog.servers", PwmSettingSyntax.STRING, PwmSettingCategory.AUDIT_FORWARD),
+    AUDIT_SYSLOG_CERTIFICATES(
+            "audit.syslog.certificates", PwmSettingSyntax.X509CERT, PwmSettingCategory.AUDIT_FORWARD),
+
 
     // challenge settings
     CHALLENGE_ENABLE(
@@ -672,7 +679,7 @@ public enum PwmSetting {
     NEWUSER_PASSWORD_POLICY_USER(
             "newUser.passwordPolicy.user", PwmSettingSyntax.STRING, PwmSettingCategory.NEWUSER),
     NEWUSER_MINIMUM_WAIT_TIME(
-            "newUser.minimumWaitTime", PwmSettingSyntax.NUMERIC, PwmSettingCategory.NEWUSER),
+            "newUser.minimumWaitTime", PwmSettingSyntax.DURATION, PwmSettingCategory.NEWUSER),
 
 
     // guest settings
@@ -694,7 +701,7 @@ public enum PwmSetting {
             "guest.editOriginalAdminOnly", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GUEST),
     GUEST_MAX_VALID_DAYS(
             "guest.maxValidDays", PwmSettingSyntax.NUMERIC, PwmSettingCategory.GUEST),
-    GUEST_EXPIRATION_ATTRIBUTE (
+    GUEST_EXPIRATION_ATTRIBUTE(
             "guest.expirationAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.GUEST),
 
     // activation settings
@@ -771,7 +778,7 @@ public enum PwmSetting {
     PEOPLE_SEARCH_PHOTO_STYLE_ATTR(
             "peopleSearch.photo.style", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
-            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PEOPLE_SEARCH),
+            "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH),
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
@@ -831,7 +838,7 @@ public enum PwmSetting {
     HELPDESK_VIEW_STATUS_VALUES(
             "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HELPDESK),
     HELPDESK_IDLE_TIMEOUT_SECONDS(
-            "helpdesk.idleTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.HELPDESK),
+            "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK),
     HELPDESK_CLEAR_RESPONSES(
             "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK),
     HELPDESK_CLEAR_RESPONSES_BUTTON(
@@ -841,11 +848,13 @@ public enum PwmSetting {
     HELPDESK_DELETE_USER_BUTTON(
             "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
     HELPDESK_USE_PROXY(
-            "helpdesk.useProxy",PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
+            "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
     HELPDESK_DETAIL_DISPLAY_NAME(
-            "helpdesk.displayName",PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK),
+            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK),
     HELPDESK_TOKEN_SEND_METHOD(
             "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK),
+    HELPDESK_ENABLE_OTP_VERIFY(
+            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
 
 
     // helpdesk profile
@@ -887,7 +896,7 @@ public enum PwmSetting {
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_JOB_TIME_OFFSET(
-            "reporting.job.timeOffset", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
+            "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
 
     // developer
     HTTP_PROXY_URL(
@@ -937,9 +946,7 @@ public enum PwmSetting {
 
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
-
-    ;
+            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),;
 
 // ------------------------------ STATICS ------------------------------
 
@@ -949,7 +956,7 @@ public enum PwmSetting {
 // ------------------------------ FIELDS ------------------------------
 
     private static class Static {
-        private static final Pattern DEFAULT_REGEX = Pattern.compile(".*",Pattern.DOTALL);
+        private static final Pattern DEFAULT_REGEX = Pattern.compile(".*", Pattern.DOTALL);
     }
 
     private final String key;
@@ -957,7 +964,7 @@ public enum PwmSetting {
     private final PwmSettingCategory category;
     private final Set<Template> templates;
 
-    private final Map<Template,StoredValue> defaultValueCacheMap = new HashMap<>();
+    private final Map<Template, StoredValue> defaultValueCacheMap = new HashMap<>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -1036,7 +1043,8 @@ public enum PwmSetting {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    public StoredValue getDefaultValue(final Template template) throws PwmOperationalException, PwmUnrecoverableException {
+    public StoredValue getDefaultValue(final Template template)
+            throws PwmOperationalException, PwmUnrecoverableException {
         if (!defaultValueCacheMap.containsKey(template)) {
             if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
                 defaultValueCacheMap.put(template, new PasswordValue(null));
@@ -1061,10 +1069,26 @@ public enum PwmSetting {
         return defaultValueCacheMap.get(template);
     }
 
-    public Map<String,String> getOptions() {
+    public Map<Template, String> getDefaultValueDebugStrings(final boolean prettyPrint, final Locale locale)
+            throws PwmOperationalException, PwmUnrecoverableException {
+        final Map<Template, String> returnObj = new LinkedHashMap<>();
+        final String defaultDebugStr = this.getDefaultValue(Template.DEFAULT).toDebugString(prettyPrint, locale);
+        returnObj.put(Template.DEFAULT, defaultDebugStr);
+        for (final Template template : Template.values()) {
+            if (template != Template.DEFAULT) {
+                final String debugStr = this.getDefaultValue(template).toDebugString(prettyPrint, locale);
+                if (!defaultDebugStr.equals(debugStr)) {
+                    returnObj.put(template, debugStr);
+                }
+            }
+        }
+        return returnObj;
+    }
+
+    public Map<String, String> getOptions() {
         final Element settingElement = PwmSettingXml.readSettingXml(this);
         final Element optionsElement = settingElement.getChild("options");
-        final Map<String,String> returnList = new LinkedHashMap<>();
+        final Map<String, String> returnList = new LinkedHashMap<>();
         if (optionsElement != null) {
             final List<Element> optionElements = optionsElement.getChildren("option");
             if (optionElements != null) {
@@ -1072,7 +1096,7 @@ public enum PwmSetting {
                     if (optionElement.getAttribute("value") == null) {
                         throw new IllegalStateException("option element is missing 'value' attribute for key " + this.getKey());
                     }
-                    returnList.put(optionElement.getAttribute("value").getValue(),optionElement.getValue());
+                    returnList.put(optionElement.getAttribute("value").getValue(), optionElement.getValue());
                 }
             }
         }
@@ -1080,13 +1104,24 @@ public enum PwmSetting {
         return Collections.unmodifiableMap(returnList);
     }
 
+    private static final Map<Locale,Map<PwmSetting,String>> CACHE_LABELS = new HashMap<>();
     public String getLabel(final Locale locale) {
-        final Element settingElement = PwmSettingXml.readSettingXml(this);
-        if (settingElement == null) {
-            throw new IllegalStateException("missing Setting value for setting " + this.getKey());
+        Map<PwmSetting,String> localeCache = CACHE_LABELS.get(locale);
+        if (localeCache == null) {
+            CACHE_LABELS.put(locale,new HashMap<PwmSetting,String>());
+            localeCache = CACHE_LABELS.get(locale);
         }
-        final Element labelElement = settingElement.getChild("label");
-        return labelElement.getText();
+        String labelText = localeCache.get(this);
+        if (labelText == null) {
+            final Element settingElement = PwmSettingXml.readSettingXml(this);
+            if (settingElement == null) {
+                throw new IllegalStateException("missing Setting value for setting " + this.getKey());
+            }
+            final Element labelElement = settingElement.getChild("label");
+            labelText = labelElement.getText();
+            localeCache.put(this,labelText);
+        }
+        return labelText;
     }
 
     public String getDescription(final Locale locale) {
@@ -1129,8 +1164,8 @@ public enum PwmSetting {
             return Pattern.compile(regexNode.getText());
         } catch (PatternSyntaxException e) {
             final String errorMsg = "error compiling regex constraints for setting " + this.toString() + ", error: " + e.getMessage();
-            LOGGER.error(errorMsg,e);
-            throw new IllegalStateException(errorMsg,e);
+            LOGGER.error(errorMsg, e);
+            throw new IllegalStateException(errorMsg, e);
         }
     }
 
@@ -1138,8 +1173,7 @@ public enum PwmSetting {
         NOVL,
         AD,
         ORACLE_DS,
-        DEFAULT,
-        ;
+        DEFAULT,;
 
         public String getLabel(final Locale locale) {
             Element categoryElement = PwmSettingXml.readTemplateXml(this);
@@ -1149,12 +1183,15 @@ public enum PwmSetting {
 
     }
 
-    public static Map<PwmSettingCategory, List<PwmSetting>> valuesByFilter(final Template template, final PwmSettingCategory.Type categoryType, final int level) {
+    public static Map<PwmSettingCategory, List<PwmSetting>> valuesByFilter(
+            final Template template,
+            final PwmSettingCategory parent,
+            final int level) {
         final List<PwmSetting> settingList = new ArrayList<>(Arrays.asList(PwmSetting.values()));
 
-        for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext();) {
+        for (Iterator<PwmSetting> iter = settingList.iterator(); iter.hasNext(); ) {
             final PwmSetting loopSetting = iter.next();
-            if (categoryType != null && loopSetting.getCategory().getType() != categoryType) {
+            if (parent != null && loopSetting.getCategory().getParent() != parent) {
                 iter.remove();
             } else if (level >= 0 && loopSetting.getLevel() > level) {
                 iter.remove();
@@ -1168,12 +1205,12 @@ public enum PwmSetting {
         final Map<PwmSettingCategory, List<PwmSetting>> returnMap = new TreeMap<>();
         for (final PwmSetting loopSetting : settingList) {
             if (!returnMap.containsKey(loopSetting.getCategory())) {
-                returnMap.put(loopSetting.getCategory(),new ArrayList<PwmSetting>());
+                returnMap.put(loopSetting.getCategory(), new ArrayList<PwmSetting>());
             }
             returnMap.get(loopSetting.getCategory()).add(loopSetting);
         }
         for (final PwmSettingCategory category : returnMap.keySet()) {
-            returnMap.put(category,Collections.unmodifiableList(returnMap.get(category)));
+            returnMap.put(category, Collections.unmodifiableList(returnMap.get(category)));
         }
 
         return Collections.unmodifiableMap(returnMap);
@@ -1188,6 +1225,23 @@ public enum PwmSetting {
         return null;
     }
 
+    public String toMenuLocationDebug(
+            final Profile profile,
+            final Locale locale
+    ) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.getLabel(locale));
+        if (profile != null) {
+            sb.append(" (").append(profile.getDisplayName(locale)).append(")");
+        }
 
+        PwmSettingCategory nextCategory = this.getCategory();
+        while (nextCategory != null) {
+            sb.insert(0, nextCategory.getLabel(locale) + " -> ");
+            nextCategory = nextCategory.getParent();
+        }
+
+        return sb.toString();
+    }
 }
 

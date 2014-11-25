@@ -140,4 +140,12 @@ public class PasswordData {
         }
         return super.equals(obj);
     }
+
+    public static PasswordData forStringValue(final String input)
+            throws PwmUnrecoverableException
+    {
+        return input == null || input.isEmpty()
+                ? null
+                : new PasswordData(input);
+    }
 }

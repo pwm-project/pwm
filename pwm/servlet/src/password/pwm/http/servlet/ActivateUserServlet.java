@@ -34,6 +34,7 @@ import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.AuditRecord;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ActivateUserBean;
@@ -149,8 +150,7 @@ public class ActivateUserServlet extends PwmServlet {
                     break;
 
                 case agree:
-                    LOGGER.debug(pwmSession.getLabel(), "user accepted activate user agreement");
-                    activateUserBean.setAgreementPassed(true);
+                    handleAgreeRequest(pwmRequest, activateUserBean);
                     advanceToNextStage(pwmRequest);
                     break;
             }
@@ -188,7 +188,7 @@ public class ActivateUserServlet extends PwmServlet {
             final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues(formValues, ssBean.getLocale());
+            FormUtility.validateFormValues(config, formValues, ssBean.getLocale());
 
             final String searchFilter = figureLdapSearchFilter(pwmRequest);
 
@@ -230,6 +230,27 @@ public class ActivateUserServlet extends PwmServlet {
         // redirect user to change password screen.
         advanceToNextStage(pwmRequest);
     }
+
+    private void handleAgreeRequest(
+            final PwmRequest pwmRequest,
+            final ActivateUserBean activateUserBean
+    )
+            throws ServletException, IOException, PwmUnrecoverableException, ChaiUnavailableException
+    {
+        LOGGER.debug(pwmRequest, "user accepted agreement");
+
+        if (!activateUserBean.isAgreementPassed()) {
+            activateUserBean.setAgreementPassed(true);
+            AuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+                    AuditEvent.AGREEMENT_PASSED,
+                    pwmRequest.getUserInfoIfLoggedIn(),
+                    pwmRequest.getSessionLabel(),
+                    "ActivateUser"
+            );
+            pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
+        }
+    }
+
 
     private void advanceToNextStage(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException

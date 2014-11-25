@@ -131,10 +131,17 @@ public class PwmIfTag extends BodyTagSupport {
         shortcutsEnabled(new BooleanPwmSettingTest(PwmSetting.SHORTCUT_ENABLE)),
         peopleSearchEnabled(new BooleanPwmSettingTest(PwmSetting.PEOPLE_SEARCH_ENABLE)),
         accountInfoEnabled(new BooleanPwmSettingTest(PwmSetting.ACCOUNT_INFORMATION_ENABLED)),
+
+        forgottenPasswordEnabled(new BooleanPwmSettingTest(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)),
+        forgottenUsernameEnabled(new BooleanPwmSettingTest(PwmSetting.FORGOTTEN_USERNAME_ENABLE)),
+        activateUserEnabled(new BooleanPwmSettingTest(PwmSetting.ACTIVATE_USER_ENABLE)),
+        newUserRegistrationEnabled(new BooleanPwmSettingTest(PwmSetting.NEWUSER_ENABLE)),
+
         booleanSetting(new BooleanPwmSettingTest(null)),
         stripInlineJavascript(new BooleanAppPropertyTest(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT)),
         forcedPageView(new ForcedPageViewTest()),
         showErrorDetail(new ShowErrorDetailTest()),
+        forwardUrlDefined(new ForwardUrlDefinedTest()),
 
         ;
 
@@ -285,6 +292,17 @@ public class PwmIfTag extends BodyTagSupport {
                 throws ChaiUnavailableException, PwmUnrecoverableException
         {
             return Helper.determineIfDetailErrorMsgShown(pwmRequest.getPwmApplication());
+        }
+    }
+
+    private static class ForwardUrlDefinedTest implements Test {
+        public boolean test(
+                PwmRequest pwmRequest,
+                String... args
+        )
+                throws ChaiUnavailableException, PwmUnrecoverableException
+        {
+            return pwmRequest.hasForwardUrl();
         }
     }
 }

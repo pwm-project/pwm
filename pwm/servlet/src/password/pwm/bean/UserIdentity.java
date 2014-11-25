@@ -35,7 +35,7 @@ import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.util.StringTokenizer;
 
-public class UserIdentity implements Serializable {
+public class UserIdentity implements Serializable, Comparable {
     private static final String CRYPO_HEADER = "ui_C-";
     private static final String DELIM_SEPARATOR = "|";
 
@@ -104,7 +104,7 @@ public class UserIdentity implements Serializable {
             final String input = key.substring(CRYPO_HEADER.length(),key.length());
             final SecretKey secretKey = configuration.getSecurityKey();
             final String jsonValue = SecureHelper.decryptStringValue(input, secretKey, true);
-            return JsonUtil.getGson().fromJson(jsonValue,UserIdentity.class);
+            return JsonUtil.deserialize(jsonValue,UserIdentity.class);
         } catch (Exception e) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"unexpected error reversing obfuscated user key: " + e.getMessage()));
         }
@@ -158,5 +158,14 @@ public class UserIdentity implements Serializable {
         int result = userDN.hashCode();
         result = 31 * result + ldapProfile.hashCode();
         return result;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        String thisStr = (ldapProfile == null ? "_" : ldapProfile) + userDN;
+        UserIdentity otherIdentity = (UserIdentity)o;
+        String otherStr = (otherIdentity.ldapProfile == null ? "_" : otherIdentity.ldapProfile) + otherIdentity.userDN;
+
+        return thisStr.compareTo(otherStr);
     }
 }

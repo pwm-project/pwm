@@ -22,18 +22,13 @@
 
 package password.pwm.bean;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.PwmSettingCategory;
 
 import java.io.Serializable;
 
 public class ConfigEditorCookie implements Serializable {
     private int level = 1;
-    private boolean showDesc = true;
-    private EDIT_MODE editMode = EDIT_MODE.SETTINGS;
-    private PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle = PwmConstants.EDITABLE_LOCALE_BUNDLES.DISPLAY;
     private PwmSettingCategory category;
-    private boolean notesSeen;
     private String profile = "";
     private String setting = "";
 
@@ -48,21 +43,6 @@ public class ConfigEditorCookie implements Serializable {
         this.level = level;
     }
 
-    public EDIT_MODE getEditMode() {
-        return editMode;
-    }
-
-    public boolean isShowDesc() {
-        return showDesc;
-    }
-
-    public void setShowDesc(boolean showDesc) {
-        this.showDesc = showDesc;
-    }
-
-    public void setEditMode(EDIT_MODE editMode) {
-        this.editMode = editMode;
-    }
 
     public PwmSettingCategory getCategory() {
         return category;
@@ -70,29 +50,6 @@ public class ConfigEditorCookie implements Serializable {
 
     public void setCategory(PwmSettingCategory category) {
         this.category = category;
-    }
-
-    public PwmConstants.EDITABLE_LOCALE_BUNDLES getLocaleBundle() {
-        return localeBundle;
-    }
-
-    public void setLocaleBundle(final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle) {
-        this.localeBundle = localeBundle;
-    }
-
-    public boolean isNotesSeen() {
-        return notesSeen;
-    }
-
-    public void setNotesSeen(boolean notesSeen) {
-        this.notesSeen = notesSeen;
-    }
-
-    public static enum EDIT_MODE {
-        SETTINGS,
-        LOCALEBUNDLE,
-        PROFILE,
-        APPPROPERTIES,
     }
 
     public String getProfile()

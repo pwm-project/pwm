@@ -77,7 +77,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final List<UserPermission> queryMatchString = (List<UserPermission>)storedConfiguration.readSetting(setting,profile).toNativeObject();
         final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, SessionLabel.SYSTEM_LABEL);
 
-        final Map<UserIdentity, Map<String, String>> results = new HashMap<>();
+        final Map<UserIdentity, Map<String, String>> results = new TreeMap<>();
         for (final UserPermission userPermission : queryMatchString) {
             if ((maxResultSize + 1) - results.size() > 0) {
                 final UserSearchEngine.SearchConfiguration searchConfiguration = new UserSearchEngine.SearchConfiguration();

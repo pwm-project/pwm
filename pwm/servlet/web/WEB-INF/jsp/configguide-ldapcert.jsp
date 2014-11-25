@@ -34,8 +34,6 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -88,7 +86,7 @@
                         <button id="button_defaultTrustStore">Enabled</button> (Import/remove certificate manually into Java keystore to change)
                     </div>
                     <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_ADMIN_PW%>" style="padding-left: 5px; padding-top: 5px">
-                        Use application configuration to manage certificate(s) and import certificates into configuration file
+                        Use application to manage certificate(s) and automatically import certificates into configuration file
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
                         <button id="button_useConfig">Enabled</button>
@@ -124,12 +122,12 @@
         <% } %>
         <br/>
         <div id="buttonbar">
-            <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP');">
+            <button class="btn" id="button_next">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" onclick="PWM_GUIDE.gotoStep('LDAP2');"<%=enableNext?"":" disabled=\"disabled\""%>>
+            <button class="btn" id="button_previous" <%=enableNext?"":" disabled=\"disabled\""%>>
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:display key="Button_Next" bundle="Config"/>
             </button>
@@ -143,9 +141,14 @@
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
+
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP2')});
     });
 </script>
 </pwm:script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE);%>
 <%@ include file="fragment/footer.jsp" %>
 </body>

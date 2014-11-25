@@ -249,7 +249,7 @@ PWM_MAIN.applyFormAttributes = function() {
             query("a"),
             function(linkElement){
                 var hrefValue = linkElement.getAttribute('href');
-                if (hrefValue) {
+                if (hrefValue && hrefValue.charAt(0) != '#') {
                     on(linkElement, "click", function (event) {
                         event.preventDefault();
                         PWM_MAIN.showWaitDialog({loadFunction: function () {
@@ -535,7 +535,7 @@ PWM_MAIN.trimString = function(sInString) {
 };
 
 PWM_MAIN.showTooltip = function(options){
-    options = options || {};
+    options = options === undefined ? {} : options;
 
     if (!options['id']) {
         return;
@@ -706,8 +706,8 @@ PWM_MAIN.showWaitDialog = function(options) {
             });
         };
         options['title'] = options['title'] || PWM_MAIN.showString('Display_PleaseWait');
-        options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>'
-        options['width'] = 350;
+        options['text'] = options['text'] || '<div id="progressBar" style="margin: 8px; width: 100%"/>';
+        options['dialogClass'] = 'narrow';
         options['showOk'] = false;
 
         /*
@@ -721,16 +721,17 @@ PWM_MAIN.showWaitDialog = function(options) {
 };
 
 PWM_MAIN.showDialog = function(options) {
-    options = options || {};
+    options = options === undefined ? {} : options;
     var title = options['title'] || 'DialogTitle';
     var text = 'text' in options ? options['text'] : 'DialogBody';
-    var width = 'width' in options ? options['width'] : 350;
     var closeOnOk = 'closeOnOk' in options ? options['closeOnOk'] : true;
     var showOk = 'showOk' in options ? options['showOk'] : true;
     var showCancel = 'showCancel' in options ? options['showCancel'] : false;
     var showClose = 'showClose' in options ? options['showClose'] : false;
     var allowMove = 'allowMove' in options ? options['allowMove'] : false;
     var idName = 'id' in options ? options['id'] : 'dialogPopup';
+    var dialogClass = 'dialogClass' in options ? options['dialogClass'] : null;
+
     var okAction = function(){
         if (closeOnOk) {
             PWM_MAIN.closeWaitDialog(idName);
@@ -749,8 +750,6 @@ PWM_MAIN.showDialog = function(options) {
         console.log('no-dialog-loadfunction')
     };
 
-    PWM_VAR['dialog_okAction'] = okAction;
-    PWM_VAR['dialog_cancelAction'] = cancelAction;
     PWM_VAR['dialog_loadFunction'] = loadFunction;
 
     var bodyText = '';
@@ -759,19 +758,23 @@ PWM_MAIN.showDialog = function(options) {
         bodyText += '<br/><br/>';
     }
     if (showOk) {
-        bodyText += '<button class="btn" onclick="PWM_VAR[\'dialog_okAction\']()" id="dialog_ok_button">'
+        bodyText += '<button class="btn" id="dialog_ok_button">'
             + '<span class="btn-icon fa fa-forward"></span>'
             + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
     if (showCancel) {
-        bodyText += '<button class="btn" onclick="PWM_VAR[\'dialog_cancelAction\']()" id="dialog_cancel_button">'
-            + '<span class="btn-icon fa fa-backward"></span>'
+        bodyText += '<button class="btn" id="dialog_cancel_button">'
+            + '<span class="btn-icon fa fa-times"></span>'
             + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
     }
 
-    if (width > 0) {
-        bodyText = '<div style="max-width: ' + (width+5) + 'px; width: ' + width + 'px">' + bodyText + '</div>';
+    var dialogClassText = 'dialogBody';
+    if (dialogClass) {
+        dialogClassText += ' ' + dialogClass;
     }
+
+    bodyText = '<div class="' + dialogClassText + '">' + bodyText + '</div>';
+
     require(["dojo","dijit/Dialog"],function(dojo,Dialog){
         PWM_MAIN.clearDijitWidget(idName);
         var theDialog = new Dialog({
@@ -785,6 +788,12 @@ PWM_MAIN.showDialog = function(options) {
             dojo.style(theDialog.closeButtonNode, "display", "none");
         }
         dojo.connect(theDialog,"onShow",null,function(){
+            if (showOk) {
+                PWM_MAIN.addEventHandler('dialog_ok_button','click',function(){okAction()});
+            }
+            if (showCancel) {
+                PWM_MAIN.addEventHandler('dialog_cancel_button','click',function(){cancelAction()});
+            }
             loadFunction();
         });
         theDialog.show();
@@ -1499,84 +1508,7 @@ PWM_MAIN.IdleTimeoutHandler.calcSecondsRemaining = function() {
 };
 
 PWM_MAIN.IdleTimeoutHandler.makeIdleDisplayString = function(amount) {
-    if (amount < 1) {
-        return "";
-    }
-
-    var output = "";
-
-    var days = Math.floor(amount / 86400);
-
-    amount = amount % 86400;
-    var hours = Math.floor(amount / 3600);
-
-    amount = amount % 3600;
-    var mins = Math.floor(amount / 60);
-
-    amount = amount % 60;
-    var secs = Math.floor(amount);
-
-    // write number of days
-    var positions = 0;
-    if (days != 0) {
-        output += days + " ";
-        if (days != 1) {
-            output += PWM_MAIN.showString('Display_Days');
-        } else {
-            output += PWM_MAIN.showString('Display_Day');
-        }
-        positions++;
-    }
-
-    // write number of hours
-    if (days != 0 || hours != 0) {
-        if (output.length > 0) {
-            output += ", ";
-        }
-
-        output += hours + " ";
-        if (hours != 1) {
-            output += PWM_MAIN.showString('Display_Hours');
-        } else {
-            output += PWM_MAIN.showString('Display_Hour');
-        }
-        positions ++;
-    }
-
-    // write number of minutes
-    if (positions < 2) {
-        if (days != 0 || hours != 0 || mins != 0) {
-            if (output.length > 0) {
-                output += ", ";
-            }
-            output += mins + " ";
-            if (mins != 1) {
-                output += PWM_MAIN.showString('Display_Minutes');
-            } else {
-                output += PWM_MAIN.showString('Display_Minute');
-            }
-            positions++;
-        }
-    }
-
-
-    // write number of seconds
-    if (positions < 2) {
-        if (mins < 4) {
-            if (output.length > 0) {
-                output += ", ";
-            }
-
-            output += secs + " ";
-
-            if (secs != 1) {
-                output += PWM_MAIN.showString('Display_Seconds');
-            } else {
-                output += PWM_MAIN.showString('Display_Second');
-            }
-        }
-    }
-
+    var output = PWM_MAIN.convertSecondsToDisplayTimeDuration(amount);
     output = PWM_MAIN.showString('Display_IdleTimeout') + " " + output;
     return output;
 };
@@ -1722,13 +1654,12 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
         loadFunction = loadFunction != undefined ? loadFunction : function(data){alert('missing load function, return results:' + dojo.toJson(data))};
         url = PWM_MAIN.addPwmFormIDtoURL(url);
-        url = PWM_MAIN.addParamToUrl(url,'preventCache',Date.now());
+        url = PWM_MAIN.addParamToUrl(url,'preventCache',(new Date).valueOf());
         var postOptions = {
             headers: requestHeaders,
             //encoding: "utf-8",
             method: method,
             preventCache: false,
-            //dataType: "json",
             handleAs: "json",
             timeout: ajaxTimeout
         };
@@ -1741,5 +1672,85 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     });
 };
 
+PWM_MAIN.convertSecondsToDisplayTimeDuration = function(amount, fullLength) {
+    if (amount < 1) {
+        return "";
+    }
+
+    var output = "";
+
+    var days = Math.floor(amount / 86400);
+
+    amount = amount % 86400;
+    var hours = Math.floor(amount / 3600);
+
+    amount = amount % 3600;
+    var mins = Math.floor(amount / 60);
+
+    amount = amount % 60;
+    var secs = Math.floor(amount);
+
+    // write number of days
+    var positions = 0;
+    if (days != 0) {
+        output += days + " ";
+        if (days != 1) {
+            output += PWM_MAIN.showString('Display_Days');
+        } else {
+            output += PWM_MAIN.showString('Display_Day');
+        }
+        positions++;
+    }
+
+    // write number of hours
+    if (days != 0 || hours != 0) {
+        if (output.length > 0) {
+            output += ", ";
+        }
+
+        output += hours + " ";
+        if (hours != 1) {
+            output += PWM_MAIN.showString('Display_Hours');
+        } else {
+            output += PWM_MAIN.showString('Display_Hour');
+        }
+        positions ++;
+    }
+
+    // write number of minutes
+    if (positions < 2 || fullLength) {
+        if (days != 0 || hours != 0 || mins != 0 || fullLength) {
+            if (output.length > 0) {
+                output += ", ";
+            }
+            output += mins + " ";
+            if (mins != 1) {
+                output += PWM_MAIN.showString('Display_Minutes');
+            } else {
+                output += PWM_MAIN.showString('Display_Minute');
+            }
+            positions++;
+        }
+    }
+
+    // write number of seconds
+    if (positions < 2 || fullLength) {
+        if (mins < 4 || fullLength) {
+            if (output.length > 0) {
+                output += ", ";
+            }
+
+            output += secs + " ";
+
+            if (secs != 1) {
+                output += PWM_MAIN.showString('Display_Seconds');
+            } else {
+                output += PWM_MAIN.showString('Display_Second');
+            }
+        }
+    }
+
+    return output;
+};
 
 PWM_MAIN.pageLoadHandler();

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2014 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,66 +23,60 @@
 package password.pwm.util;
 
 public class PasswordCharCounter {
-    private final CharSequence password;
+    private final String password;
     private final int passwordLength;
 
-    public PasswordCharCounter(final CharSequence password) {
+    public PasswordCharCounter(final String password) {
         this.password = password;
         this.passwordLength = password.length();
     }
 
-    public int getNumericChars() {
-        int numberOfNumericChars = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (Character.isDigit(password.charAt(i)))
-                numberOfNumericChars++;
-
-        return numberOfNumericChars;
+    public int getNumericCharCount() {
+        return getNumericChars().length();
     }
 
-    public int getUpperChars() {
-        int numberOfUpperChars = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (Character.isUpperCase(password.charAt(i)))
-                numberOfUpperChars++;
-
-        return numberOfUpperChars;
+    public String getNumericChars() {
+        return returnCharsOfType(password, CharType.NUMBER);
     }
 
-    public int getAlphaChars() {
-        int numberOfAlphaChars = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (Character.isLetter(password.charAt(i)))
-                numberOfAlphaChars++;
-
-        return numberOfAlphaChars;
+    public int getUpperCharCount() {
+        return getUpperChars().length();
     }
 
-    public int getNonAlphaChars() {
-        int numberOfNonAlphaChars = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (!Character.isLetter(password.charAt(i)))
-                numberOfNonAlphaChars++;
-
-        return numberOfNonAlphaChars;
+    public String getUpperChars() {
+        return returnCharsOfType(password, CharType.UPPERCASE);
     }
 
-    public int getLowerChars() {
-        int numberOfLowerChars = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (Character.isLowerCase(password.charAt(i)))
-                numberOfLowerChars++;
-
-        return numberOfLowerChars;
+    public int getAlphaCharCount() {
+        return getAlphaChars().length();
     }
 
-    public int getSpecialChars() {
-        int numberOfSpecial = 0;
-        for (int i = 0; i < passwordLength; i++)
-            if (!Character.isLetterOrDigit(password.charAt(i)))
-                numberOfSpecial++;
+    public String getAlphaChars() {
+        return returnCharsOfType(password, CharType.LETTER);
+    }
 
-        return numberOfSpecial;
+    public int getNonAlphaCharCount() {
+        return getNonAlphaChars().length();
+    }
+
+    public String getNonAlphaChars() {
+        return returnCharsOfType(password, CharType.NON_LETTER);
+    }
+
+    public int getLowerCharCount() {
+        return getLowerChars().length();
+    }
+
+    public String getLowerChars() {
+        return returnCharsOfType(password, CharType.LOWERCASE);
+    }
+
+    public int getSpecialCharsCount() {
+        return getSpecialChars().length();
+    }
+
+    public String getSpecialChars() {
+        return returnCharsOfType(password, CharType.SPECIAL);
     }
 
     public int getRepeatedChars() {
@@ -164,13 +158,12 @@ public class PasswordCharCounter {
         return sb.length();
     }
 
-    public int getOtherLetter() {
-        int numberOfOtherLetter = 0;
-        for (int i = 0, n = passwordLength; i < n; i++) {
-            if (Character.getType(password.charAt(i)) == Character.OTHER_LETTER)
-                numberOfOtherLetter++;
-        }
-        return numberOfOtherLetter;
+    public int getOtherLetterCharCount() {
+        return getOtherLetterChars().length();
+    }
+
+    public String getOtherLetterChars() {
+        return returnCharsOfType(password, CharType.OTHER_LETTER);
     }
 
     public boolean isFirstNumeric() {
@@ -187,5 +180,81 @@ public class PasswordCharCounter {
 
     public boolean isLastSpecial() {
         return password.length() > 0 && !Character.isLetterOrDigit(password.charAt(password.length() - 1));
+    }
+
+    private static String returnCharsOfType(final String input, final CharType charType) {
+        final int passwordLength = input.length();
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < passwordLength; i++) {
+            final char nextChar = input.charAt(i);
+            if (charType.getCharTester().isType(nextChar)) {
+                sb.append(nextChar);
+            }
+        }
+        return sb.toString();
+    }
+
+    private enum CharType {
+        UPPERCASE(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return Character.isUpperCase(character);
+            }
+        }),
+        LOWERCASE(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return Character.isLowerCase(character);
+            }
+        }),
+        SPECIAL(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return !Character.isLetterOrDigit(character);
+            }
+        }),
+        NUMBER(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return Character.isDigit(character);
+            }
+        }),
+        LETTER(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return Character.isLetter(character);
+            }
+        }),
+        NON_LETTER(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return !Character.isLetter(character);
+            }
+        }),
+        OTHER_LETTER(new CharTester() {
+            public boolean isType(final char character)
+            {
+                return Character.getType(character) == Character.OTHER_LETTER;
+            }
+        }),
+
+
+        ;
+
+        private final CharTester charTester;
+
+        CharType(CharTester charClassType)
+        {
+            this.charTester = charClassType;
+        }
+
+        public CharTester getCharTester()
+        {
+            return charTester;
+        }
+    }
+
+    private interface CharTester {
+        boolean isType(final char character);
     }
 }

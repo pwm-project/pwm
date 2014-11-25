@@ -80,7 +80,7 @@ this is handled this way so on browsers where hiding fields is not possible, the
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <pwm:if test="showCancel">
                     <button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel" onclick="handleCancelClick()">
-                        <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
                         <pwm:display key="Button_Cancel"/>
                     </button>
                 </pwm:if>

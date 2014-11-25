@@ -99,8 +99,6 @@ public class CommandServlet extends PwmServlet {
             processViewLog(pwmRequest);
         } else if (action.equalsIgnoreCase("clearIntruderTable")) {
             processClearIntruderTable(pwmRequest);
-        } else if (action.equalsIgnoreCase("scriptContents")) {
-            outputSessionScriptContents(pwmRequest);
         } else {
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"unknown command sent to CommandServlet: " + action);
             LOGGER.debug(pwmSession, errorInformation);
@@ -305,16 +303,6 @@ public class CommandServlet extends PwmServlet {
                 writer.close();
             }
         }
-    }
-
-    private void outputSessionScriptContents(final PwmRequest pwmRequest)
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
-    {
-        final StringBuilder sb = pwmRequest.getPwmSession().getSessionStateBean().getScriptContents();
-        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.javascript);
-        final PrintWriter writer = pwmRequest.getPwmResponse().getWriter();
-        writer.print(sb.toString());
-        writer.close();
     }
 
     private static void redirectToForwardURL(final PwmRequest pwmRequest)

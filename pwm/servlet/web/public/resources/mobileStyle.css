@@ -40,6 +40,13 @@ html, body {
     width: 100%;
 }
 
+#header-center {
+    width: 100%;
+    margin: 0;
+    position:relative;
+    padding:2px;
+}
+
 
 #header-page {
     width: auto;

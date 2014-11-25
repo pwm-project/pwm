@@ -62,6 +62,7 @@ public enum Message implements DisplayBundleMarker {
     EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
 
     EVENT_LOG_AUTHENTICATE("EventLog_Authenticate"),
+    EVENT_LOG_AGREEMENT_PASSED("EventLog_AgreementPassed"),
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
     EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),
@@ -79,6 +80,7 @@ public enum Message implements DisplayBundleMarker {
     EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET("EventLog_HelpdeskClearOtpSecret"),
     EVENT_LOG_HELPDESK_ACTION("EventLog_HelpdeskAction"),
     EVENT_LOG_HELPDESK_DELETE_USER("EventLog_HelpdeskDeleteUser"),
+    EVENT_LOG_HELPDESK_VIEW_DETAIL("EventLog_HelpdeskViewDetail"),
 
     REQUIREMENT_MINLENGTH("Requirement_MinLength"),
     REQUIREMENT_MINLENGTHPLURAL("Requirement_MinLengthPlural"),
@@ -158,5 +160,4 @@ public enum Message implements DisplayBundleMarker {
     public String getLocalizedMessage(final Locale locale, final Configuration config, final String... fieldValue) {
         return Message.getLocalizedMessage(locale, this, config, fieldValue);
     }
-
 }

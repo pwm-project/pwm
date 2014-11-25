@@ -123,9 +123,20 @@ public class ServletHelper {
             final boolean includeXInstance = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XINSTANCE));
             final boolean includeXSessionID = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XSESSIONID));
             final boolean includeXVersion = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XVERSION));
+            final boolean includeXContentTypeOptions = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XCONTENTTYPEOPTIONS));
+            final boolean includeXXSSProtection = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_HEADER_SEND_XXSSPROTECTION));
+
+
             final boolean includeXFrameDeny = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.SECURITY_PREVENT_FRAMING);
             final boolean sendNoise = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(
                     AppProperty.HTTP_HEADER_SEND_XNOISE));
+
+            if (sendNoise) {
+                resp.setHeader(
+                        PwmConstants.HttpHeader.XNoise,
+                        PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
+                );
+            }
 
             if (fromServlet && includeXAmb) {
                 resp.setHeader(PwmConstants.HttpHeader.XAmb, PwmConstants.X_AMB_HEADER[PwmRandom.getInstance().nextInt(PwmConstants.X_AMB_HEADER.length)]);
@@ -133,6 +144,14 @@ public class ServletHelper {
 
             if (includeXVersion) {
                 resp.setHeader(PwmConstants.HttpHeader.XVersion, PwmConstants.SERVLET_VERSION);
+            }
+
+            if (includeXContentTypeOptions) {
+                resp.setHeader(PwmConstants.HttpHeader.XContentTypeOptions, "nosniff");
+            }
+
+            if (includeXXSSProtection) {
+                resp.setHeader(PwmConstants.HttpHeader.XXSSProtection, "1");
             }
 
             if (includeXInstance) {
@@ -143,16 +162,10 @@ public class ServletHelper {
                 resp.setHeader(PwmConstants.HttpHeader.XSessionID, pwmSession.getSessionStateBean().getSessionID());
             }
 
-            if (includeXFrameDeny && fromServlet) {
+            if (includeXFrameDeny) {
                 resp.setHeader(PwmConstants.HttpHeader.XFrameOptions, "DENY");
             }
 
-            if (sendNoise && fromServlet) {
-                resp.setHeader(
-                        PwmConstants.HttpHeader.XNoise,
-                        PwmRandom.getInstance().alphaNumericString(PwmRandom.getInstance().nextInt(100)+10)
-                );
-            }
 
             if (fromServlet) {
                 resp.setHeader(PwmConstants.HttpHeader.Cache_Control, "no-cache, no-store, must-revalidate, proxy-revalidate");

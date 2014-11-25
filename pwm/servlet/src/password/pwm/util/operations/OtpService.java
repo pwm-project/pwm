@@ -75,7 +75,7 @@ public class OtpService implements PwmService {
             final String userInput,
             final boolean allowRecoveryCodes
     )
-            throws PwmOperationalException, ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmOperationalException, PwmUnrecoverableException
     {
         boolean otpCorrect = false;
         try {
@@ -106,7 +106,11 @@ public class OtpService implements PwmService {
                     }
 
                     code.setUsed(true);
-                    pwmApplication.getOtpService().writeOTPUserConfiguration(null, userIdentity, otpUserRecord);
+                    try {
+                        pwmApplication.getOtpService().writeOTPUserConfiguration(null, userIdentity, otpUserRecord);
+                    } catch (ChaiUnavailableException e) {
+                        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_WRITING_OTP_SECRET,e.getMessage()));
+                    }
                     otpCorrect = true;
                 }
             }

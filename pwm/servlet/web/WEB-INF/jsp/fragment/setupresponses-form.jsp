@@ -1,6 +1,4 @@
 <%@ page import="com.novell.ldapchai.cr.Challenge" %>
-<%@ page import="password.pwm.bean.SessionStateBean" %>
-<%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.http.bean.SetupResponsesBean" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%--
@@ -29,7 +27,6 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
     final SetupResponsesBean.SetupData setupData = (SetupResponsesBean.SetupData)request.getAttribute("setupData");
-    final SessionStateBean ssBean = PwmSession.getPwmSession(session).getSessionStateBean();
 %>
 <%-------------------------------- display fields for REQUIRED challenges ----------------------------------------------%>
 <% if (!setupData.getChallengeSet().getRequiredChallenges().isEmpty()) { %>
@@ -46,7 +43,7 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit/form/Textarea" style="width: 70%"
-          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"></textarea>
+          class="inputfield"></textarea>
 <pwm:script>
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
@@ -60,8 +57,7 @@
 <p>
     <span class="fa fa-chevron-circle-right"></span>
     <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255"
-           id="PwmResponse_R_<%=indexKey%>" required="required"
-           onkeyup="PWM_RESPONSES.validateResponses();"/>
+           id="PwmResponse_R_<%=indexKey%>" required="required"/>
 </p>
 <% } %>
 <% } %>
@@ -98,8 +94,7 @@
 <p>
     <span class="fa fa-chevron-circle-right"></span>
     <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_Random_<%=index%>" class="inputfield passwordfield" maxlength="255" type="text"
-           id="PwmResponse_R_Random_<%=index%>" required="required"
-           onkeyup="PWM_RESPONSES.validateResponses()"/>
+           id="PwmResponse_R_Random_<%=index%>" required="required"/>
 </p>
 <% } %>
 <pwm:script>
@@ -140,12 +135,11 @@
 <% } else { %>
 <label for="PwmResponse_Q_<%=indexKey%>"><pwm:display key="Field_User_Supplied_Question"/>:</label>&nbsp;
 <textarea name="PwmResponse_Q_<%=indexKey%>" id="PwmResponse_Q_<%=indexKey%>" data-dojo-type="dijit.form.Textarea" style="width: 70%"
-          class="inputfield" onkeyup="PWM_RESPONSES.validateResponses();"></textarea>
+          class="inputfield"></textarea>
 <% } %>
 <p>
     <span class="fa fa-chevron-circle-right"></span>
-    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"
-           onkeyup="PWM_RESPONSES.validateResponses();"/>
+    <input type="<pwm:value name="responseFieldType"/>" name="PwmResponse_R_<%=indexKey%>" class="inputfield passwordfield" maxlength="255" id="PwmResponse_R_<%=indexKey%>"/>
 </p>
 <% } %>
 <% } %>

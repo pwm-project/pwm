@@ -171,7 +171,7 @@ public class FormUtility {
                 if (NEGATIVE_CACHE_HIT.equals(cacheValue)) {
                     return;
                 } else {
-                    final ErrorInformation errorInformation = JsonUtil.getGson().fromJson(cacheValue,ErrorInformation.class);
+                    final ErrorInformation errorInformation = JsonUtil.deserialize(cacheValue,ErrorInformation.class);
                     throw new PwmDataValidationException(errorInformation);
                 }
             }
@@ -260,6 +260,7 @@ public class FormUtility {
      *                             if an unexpected error occurs
      */
     public static void validateFormValues(
+            final Configuration configuration,
             final Map<FormConfiguration, String> formValues,
             final Locale locale
     )
@@ -267,7 +268,7 @@ public class FormUtility {
     {
         for (final FormConfiguration formItem : formValues.keySet()) {
             final String value = formValues.get(formItem);
-            formItem.checkValue(value,locale);
+            formItem.checkValue(configuration,value,locale);
         }
     }
 

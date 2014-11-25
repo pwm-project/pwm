@@ -120,7 +120,7 @@ public class ForgottenUsernameServlet extends PwmServlet {
             pwmApplication.getIntruderManager().convenience().checkAttributes(formValues);
 
             // see if the values meet the configured form requirements.
-            FormUtility.validateFormValues(formValues, ssBean.getLocale());
+            FormUtility.validateFormValues(pwmRequest.getConfig(), formValues, ssBean.getLocale());
 
             final String searchFilter;
             {

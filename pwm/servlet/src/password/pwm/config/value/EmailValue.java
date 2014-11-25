@@ -29,6 +29,7 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
 
 import java.util.*;
@@ -40,97 +41,120 @@ public class EmailValue extends AbstractValue implements StoredValue {
         this.values = values;
     }
 
-    static EmailValue fromJson(final String input) {
-        if (input == null) {
-            return new EmailValue(Collections.<String,EmailItemBean>emptyMap());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            Map<String,EmailItemBean> srcList = gson.fromJson(input, new TypeToken<Map<String,EmailItemBean>>() {
-            }.getType());
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public EmailValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new EmailValue(Collections.<String, EmailItemBean>emptyMap());
+                } else {
+                    final Gson gson = JsonUtil.getGson();
+                    Map<String, EmailItemBean> srcList = gson.fromJson(input,
+                            new TypeToken<Map<String, EmailItemBean>>() {
+                            }.getType());
 
-            srcList = srcList == null ? Collections.<String,EmailItemBean>emptyMap() : srcList;
-            srcList.remove(null);
-            return new EmailValue(Collections.unmodifiableMap(srcList));
-        }
-    }
-
-    static EmailValue fromXmlElement(Element settingElement) throws PwmOperationalException {
-        final Map<String,EmailItemBean> values = new HashMap<>();
-        final Gson gson = JsonUtil.getGson();
-        {
-            final List valueElements = settingElement.getChildren("value");
-            for (final Object loopValue : valueElements) {
-                final Element loopValueElement = (Element) loopValue;
-                final String value = loopValueElement.getText();
-                if (value != null && value.length() > 0) {
-                    String localeValue = loopValueElement.getAttribute("locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
-                    values.put(localeValue, gson.fromJson(value, EmailItemBean.class));
+                    srcList = srcList == null ? Collections.<String, EmailItemBean>emptyMap() : srcList;
+                    srcList.remove(null);
+                    return new EmailValue(Collections.unmodifiableMap(srcList));
                 }
             }
-        }
-        // read old format values.  can be removed someday....      this code iterates through the entire settings xml document to find old format versions
-        {
-            final Map<String,String> fromMap = new HashMap<>();
-            final Map<String,String> subjectMap = new HashMap<>();
-            final Map<String,String> bodyPlainMap = new HashMap<>();
-            final Map<String,String> bodyHtmlMap = new HashMap<>();
-            for (final Object loopSettingObj : settingElement.getParentElement().getChildren()) {
-                Element loopSetting = (Element)loopSettingObj;
-                if (loopSetting.getAttribute("key") != null) {
-                    if (loopSetting.getAttribute("key").getValue().equals(settingElement.getAttribute("key").getValue() + ".from")) {
-                        final List valueElements = loopSetting.getChildren("value");
-                        for (final Object loopValue : valueElements) {
-                            final Element loopValueElement = (Element) loopValue;
-                            final String value = loopValueElement.getText();
-                            if (value != null && value.length() > 0) {
-                                String localeValue = settingElement.getAttribute("locale") == null ? "" : settingElement.getAttribute("locale").getValue();
-                                fromMap.put(localeValue, value);
-                            }
-                        }
-                    }
-                    if (loopSetting.getAttribute("key").getValue().equals(settingElement.getAttribute("key").getValue() + ".subject")) {
-                        final List valueElements = loopSetting.getChildren("value");
-                        for (final Object loopValue : valueElements) {
-                            final Element loopValueElement = (Element) loopValue;
-                            final String value = loopValueElement.getText();
-                            if (value != null && value.length() > 0) {
-                                String localeValue = settingElement.getAttribute("locale") == null ? "" : settingElement.getAttribute("locale").getValue();
-                                subjectMap.put(localeValue, value);
-                            }
-                        }
-                    }
-                    if (loopSetting.getAttribute("key").getValue().equals(settingElement.getAttribute("key").getValue() + ".plainBody")) {
-                        final List valueElements = loopSetting.getChildren("value");
-                        for (final Object loopValue : valueElements) {
-                            final Element loopValueElement = (Element) loopValue;
-                            final String value = loopValueElement.getText();
-                            if (value != null && value.length() > 0) {
-                                String localeValue = settingElement.getAttribute("locale") == null ? "" : settingElement.getAttribute("locale").getValue();
-                                bodyPlainMap.put(localeValue, value);
-                            }
-                        }
-                    }
-                    if (loopSetting.getAttribute("key").getValue().equals(settingElement.getAttribute("key").getValue() + ".htmlBody")) {
-                        final List valueElements = loopSetting.getChildren("value");
-                        for (final Object loopValue : valueElements) {
-                            final Element loopValueElement = (Element) loopValue;
-                            final String value = loopValueElement.getText();
-                            if (value != null && value.length() > 0) {
-                                String localeValue = settingElement.getAttribute("locale") == null ? "" : settingElement.getAttribute("locale").getValue();
-                                bodyHtmlMap.put(localeValue, value);
-                            }
+
+            public EmailValue fromXmlElement(
+                    Element settingElement,
+                    final String input
+            )
+                    throws PwmOperationalException
+            {
+                final Map<String, EmailItemBean> values = new HashMap<>();
+                final Gson gson = JsonUtil.getGson();
+                {
+                    final List valueElements = settingElement.getChildren("value");
+                    for (final Object loopValue : valueElements) {
+                        final Element loopValueElement = (Element) loopValue;
+                        final String value = loopValueElement.getText();
+                        if (value != null && value.length() > 0) {
+                            String localeValue = loopValueElement.getAttribute(
+                                    "locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
+                            values.put(localeValue, gson.fromJson(value, EmailItemBean.class));
                         }
                     }
                 }
-            }
-            final Set<String> seenLocales = new HashSet<>();
-            seenLocales.addAll(fromMap.keySet());
-            seenLocales.addAll(subjectMap.keySet());
-            seenLocales.addAll(bodyPlainMap.keySet());
-            seenLocales.addAll(bodyHtmlMap.keySet());
-            //final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
-            //final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
-            //final EmailItemBean defaultBean = defaultList.get("");
+                // read old format values.  can be removed someday....      this code iterates through the entire settings xml document to find old format versions
+                {
+                    final Map<String, String> fromMap = new HashMap<>();
+                    final Map<String, String> subjectMap = new HashMap<>();
+                    final Map<String, String> bodyPlainMap = new HashMap<>();
+                    final Map<String, String> bodyHtmlMap = new HashMap<>();
+                    for (final Object loopSettingObj : settingElement.getParentElement().getChildren()) {
+                        Element loopSetting = (Element) loopSettingObj;
+                        if (loopSetting.getAttribute("key") != null) {
+                            if (loopSetting.getAttribute("key").getValue().equals(
+                                    settingElement.getAttribute("key").getValue() + ".from")) {
+                                final List valueElements = loopSetting.getChildren("value");
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element) loopValue;
+                                    final String value = loopValueElement.getText();
+                                    if (value != null && value.length() > 0) {
+                                        String localeValue = settingElement.getAttribute(
+                                                "locale") == null ? "" : settingElement.getAttribute(
+                                                "locale").getValue();
+                                        fromMap.put(localeValue, value);
+                                    }
+                                }
+                            }
+                            if (loopSetting.getAttribute("key").getValue().equals(
+                                    settingElement.getAttribute("key").getValue() + ".subject")) {
+                                final List valueElements = loopSetting.getChildren("value");
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element) loopValue;
+                                    final String value = loopValueElement.getText();
+                                    if (value != null && value.length() > 0) {
+                                        String localeValue = settingElement.getAttribute(
+                                                "locale") == null ? "" : settingElement.getAttribute(
+                                                "locale").getValue();
+                                        subjectMap.put(localeValue, value);
+                                    }
+                                }
+                            }
+                            if (loopSetting.getAttribute("key").getValue().equals(
+                                    settingElement.getAttribute("key").getValue() + ".plainBody")) {
+                                final List valueElements = loopSetting.getChildren("value");
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element) loopValue;
+                                    final String value = loopValueElement.getText();
+                                    if (value != null && value.length() > 0) {
+                                        String localeValue = settingElement.getAttribute(
+                                                "locale") == null ? "" : settingElement.getAttribute(
+                                                "locale").getValue();
+                                        bodyPlainMap.put(localeValue, value);
+                                    }
+                                }
+                            }
+                            if (loopSetting.getAttribute("key").getValue().equals(
+                                    settingElement.getAttribute("key").getValue() + ".htmlBody")) {
+                                final List valueElements = loopSetting.getChildren("value");
+                                for (final Object loopValue : valueElements) {
+                                    final Element loopValueElement = (Element) loopValue;
+                                    final String value = loopValueElement.getText();
+                                    if (value != null && value.length() > 0) {
+                                        String localeValue = settingElement.getAttribute(
+                                                "locale") == null ? "" : settingElement.getAttribute(
+                                                "locale").getValue();
+                                        bodyHtmlMap.put(localeValue, value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    final Set<String> seenLocales = new HashSet<>();
+                    seenLocales.addAll(fromMap.keySet());
+                    seenLocales.addAll(subjectMap.keySet());
+                    seenLocales.addAll(bodyPlainMap.keySet());
+                    seenLocales.addAll(bodyHtmlMap.keySet());
+                    //final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
+                    //final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
+                    //final EmailItemBean defaultBean = defaultList.get("");
             /*
             for (final String localeStr : seenLocales) {
                 values.put(localeStr,new EmailItemBean(
@@ -142,8 +166,10 @@ public class EmailValue extends AbstractValue implements StoredValue {
                         ));
             }
             */
-        }
-        return new EmailValue(values);
+                }
+                return new EmailValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -196,7 +222,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
             final StringBuilder sb = new StringBuilder();
             for (final String localeKey : values.keySet()) {
                 final EmailItemBean emailItemBean = values.get(localeKey);
-                sb.append("EmailItem ").append(localeKey).append(": \n");
+                sb.append("EmailItem ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append(": \n");
                 sb.append("  To:").append(emailItemBean.getTo()).append("\n");
                 sb.append("From:").append(emailItemBean.getFrom()).append("\n");
                 sb.append("Subj:").append(emailItemBean.getSubject()).append("\n");
@@ -208,5 +234,4 @@ public class EmailValue extends AbstractValue implements StoredValue {
             return JsonUtil.serializeMap(values);
         }
     }
-
 }

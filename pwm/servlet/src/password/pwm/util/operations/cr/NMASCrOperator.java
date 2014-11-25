@@ -57,12 +57,12 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.Helper;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -524,6 +524,23 @@ public class NMASCrOperator implements CrOperator {
                     }
                 }
             }
+
+            public int awaitRetCode() {
+                final Date startTime = new Date();
+                boolean done = this.isNmasDone();
+                Date lastLogTime = new Date();
+                while (!done && TimeDuration.fromCurrent(startTime).isShorterThan(maxThreadIdleTime)) {
+                    LOGGER.trace("attempt to read return code, but isNmasDone=false, will await completion");
+                    Helper.pause(10);
+                    done = this.isNmasDone();
+                    if (TimeDuration.SECOND.isLongerThan(TimeDuration.fromCurrent(lastLogTime))) {
+                        LOGGER.trace("waiting for return code: " + TimeDuration.fromCurrent(startTime).asCompactString());
+                        lastLogTime = new Date();
+                    }
+                }
+                LOGGER.debug("read return code in " + TimeDuration.fromCurrent(startTime).asCompactString());
+                return this.getNmasRetCode();
+            }
         }
     }
 
@@ -534,7 +551,7 @@ public class NMASCrOperator implements CrOperator {
         private volatile NMASThreadState loginState = NMASThreadState.NEW;
         private volatile boolean loginResultReady = false;
         private volatile NMASLoginResult loginResult = null;
-        private volatile CallbackHandler callbackHandler = null;
+        private volatile NMASResponseSession.ChalRespCallbackHandler callbackHandler = null;
         private volatile LDAPConnection ldapConn = null;
         private volatile String loginDN = null;
         private final NMASResponseSession nmasResponseSession;
@@ -583,7 +600,13 @@ public class NMASCrOperator implements CrOperator {
             return this.loginResult;
         }
 
-        public void startLogin(String userDN, LDAPConnection ldapConnection, CallbackHandler paramCallbackHandler) throws PwmUnrecoverableException {
+        public void startLogin(
+                String userDN,
+                LDAPConnection ldapConnection,
+                NMASResponseSession.ChalRespCallbackHandler  paramCallbackHandler
+        )
+                throws PwmUnrecoverableException
+        {
             if (sessionMonitorThreads.size() > maxThreadCount) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOO_MANY_THREADS,"NMASSessionMonitor maximum thread count (" + maxThreadCount + ") exceeded"));
             }
@@ -650,7 +673,7 @@ public class NMASCrOperator implements CrOperator {
 
                 setLoginState(NMASThreadState.COMPLETED);
                 lastActivityTimestamp = new Date();
-                setLoginResult(new NMASLoginResult(((NMASCallbackHandler)this.callbackHandler).getNmasRetCode(), this.ldapConn));
+                setLoginResult(new NMASLoginResult(this.callbackHandler.awaitRetCode(), this.ldapConn));
                 lastActivityTimestamp = new Date();
             }
             catch (LDAPException e)
@@ -665,7 +688,7 @@ public class NMASCrOperator implements CrOperator {
                     LOGGER.error("NMASLoginMonitor: LDAPException " + e.toString());
                 }
                 setLoginState(NMASThreadState.COMPLETED);
-                final NMASLoginResult localNMASLoginResult = new NMASLoginResult(((NMASCallbackHandler)this.callbackHandler).getNmasRetCode(), e);
+                final NMASLoginResult localNMASLoginResult = new NMASLoginResult(this.callbackHandler.awaitRetCode(), e);
                 setLoginResult(localNMASLoginResult);
             }
             lastActivityTimestamp = new Date();

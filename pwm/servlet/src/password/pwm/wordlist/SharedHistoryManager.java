@@ -408,7 +408,7 @@ public class SharedHistoryManager implements Wordlist {
             try {
                 this.salt = SecureHelper.hash(
                         new ByteArrayInputStream(securityKey.getStringValue().getBytes(PwmConstants.DEFAULT_CHARSET)),
-                        SecureHelper.HashAlgorithm.SHA512);
+                        SecureHelper.DEFAULT_HASH_ALGORITHM);
             } catch (PwmUnrecoverableException e) {
                 LOGGER.info(
                         "unable to create hash-derived salt value from security key, will remain closed; error: " + e.getMessage());

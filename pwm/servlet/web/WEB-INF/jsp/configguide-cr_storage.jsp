@@ -45,13 +45,13 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form">
+        <form id="configForm">
             <%--<input type="text" id="value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" value="v1">q</input>--%>
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <pwm:display key="Display_ConfigGuideSelectCrStorage" bundle="Config"/>
             <br/>
             <select id="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>" name="<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>"
-                    onchange="handleFormActivity()" data-dojo-type="dijit/form/Select" style="width:300px">
+                    style="width:300px">
                 <% final String current = configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_CR_STORAGE_PREF);%>
                 <option value="LDAP"<% if ("LDAP".equals(current)) { %> selected="selected"<% } %>>
                     LDAP
@@ -60,7 +60,7 @@
                     Remote Database
                 </option>
                 <option value="LOCALDB"<% if ("LOCALDB".equals(current)) { %> selected="selected"<% } %>>
-                    Local Embedded Database (Testing only)
+                    LocalDB (Testing only)
                 </option>
             </select>
             <br/>
@@ -77,16 +77,16 @@
             the documentation for more information.
         </p>
         <p>
-            <b>LocalDB</b>: This server has it's own embedded LocalDB that is capable of storing user challenge/responses.  This option should never be used in a production
+            <b>LocalDB (Testing only)</b>: This server has it's own embedded local database (LocalDB) that is capable of storing user challenge/responses.  This option should never be used in a production
             environment and is provided only for testing purposes.  User challenge/response's stored in the LocalDB are server specific..
         </p>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('LDAP3');">
+            <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('PASSWORD');">
+            <button class="btn" id="button_next">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:display key="Button_Next" bundle="Config"/>
             </button>
@@ -96,23 +96,22 @@
 </div>
 <pwm:script>
 <script type="text/javascript">
-    function handleFormActivity() {
-        //PWM_MAIN.getObject("value_<%=ConfigGuideServlet.PARAM_CR_STORAGE_PREF%>").value = PWM_MAIN.getObject("prefSelect").value;
-        PWM_GUIDE.updateForm();
-    }
-
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox","dijit/form/Select"],function(dojoParser){
-            dojoParser.parse();
-        });
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('APP')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP3')});
 
-        handleFormActivity();
+            PWM_MAIN.addEventHandler('configForm','input',function(){
+                PWM_GUIDE.updateForm();
+            });
+        });
     });
 </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

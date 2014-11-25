@@ -63,6 +63,13 @@
                         </td>
                     </tr>
                     <tr>
+                        <td><b>Site URL</b>
+                        </td>
+                        <td>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL))%>
+                        </td>
+                    </tr>
+                    <tr>
                         <td><b>LDAP Server Hostname</b>
                         </td>
                         <td>
@@ -136,12 +143,12 @@
         </div>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('PASSWORD');">
+            <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('FINISH');">
+            <button class="btn" id="button_next">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-save"></span></pwm:if>
                 Save Configuration
             </button>
@@ -152,12 +159,16 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('FINISH')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PASSWORD')});
+
         });
     </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

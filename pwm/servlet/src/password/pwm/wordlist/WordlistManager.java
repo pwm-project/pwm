@@ -27,12 +27,14 @@ import password.pwm.PwmConstants;
 import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmException;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 
 /**
@@ -53,7 +55,12 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
 
 
     protected Map<String,String> getWriteTxnForValue(final String value) {
-        return Collections.singletonMap(value,"");
+        final Map<String,String> returnSet = new TreeMap<>();
+        final Set<String> chunkedWords = chunkWord(value,this.wordlistConfiguration.getCheckSize());
+        for (final String word : chunkedWords) {
+            returnSet.put(word,"");
+        }
+        return returnSet;
     }
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
@@ -84,5 +91,11 @@ public class WordlistManager extends AbstractWordlist implements Wordlist {
         }, Helper.makeThreadName(pwmApplication, WordlistManager.class));
 
         t.start();
+    }
+
+    @Override
+    protected String makeVersionString()
+    {
+        return VALUE_VERSION + JsonUtil.serialize(wordlistConfiguration);
     }
 }

@@ -230,4 +230,11 @@ public class LocaleHelper {
 
         return Collections.unmodifiableMap(returnObj);
     }
+
+    public static String debugLabel(Locale locale) {
+        if (locale == null || PwmConstants.DEFAULT_LOCALE.equals(locale)) {
+            return "default";
+        }
+        return locale.toLanguageTag();
+    }
 }

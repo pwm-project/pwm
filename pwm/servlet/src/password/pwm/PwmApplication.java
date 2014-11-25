@@ -138,7 +138,6 @@ public class PwmApplication {
             TokenService.class,
             VersionChecker.class,
             IntruderManager.class,
-            CrService.class,
             ReportService.class,
             CrService.class,
             OtpService.class,

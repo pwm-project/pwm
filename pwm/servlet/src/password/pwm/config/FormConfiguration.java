@@ -22,15 +22,16 @@
 
 package password.pwm.config;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.error.*;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -246,7 +247,7 @@ public class FormConfiguration implements Serializable {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public void checkValue(final String value, final Locale locale)
+    public void checkValue(final Configuration config, final String value, final Locale locale)
             throws PwmDataValidationException, PwmUnrecoverableException {
         //check if value is missing and required.
         if (required && (value == null || value.length() < 1)) {
@@ -269,7 +270,7 @@ public class FormConfiguration implements Serializable {
 
             case email:
                 if (value != null && value.length() > 0) {
-                    if (!Helper.testEmailAddress(value)) {
+                    if (!testEmailAddress(config, value)) {
                         final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_INVALID_EMAIL, null, new String[]{getLabel(locale)});
                         throw new PwmDataValidationException(error);
                     }
@@ -306,5 +307,12 @@ public class FormConfiguration implements Serializable {
             returnList.add(formConfiguration.getName());
         }
         return returnList;
+    }
+
+    public static boolean testEmailAddress(final Configuration config, final String address) {
+        final String patternStr = config.readAppProperty(AppProperty.FORM_EMAIL_REGEX);
+        final Pattern pattern = Pattern.compile(patternStr);
+        final Matcher matcher = pattern.matcher(address);
+        return matcher.matches();
     }
 }

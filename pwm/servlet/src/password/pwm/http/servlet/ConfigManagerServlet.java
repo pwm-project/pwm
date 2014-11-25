@@ -69,7 +69,7 @@ public class ConfigManagerServlet extends PwmServlet {
     public enum ConfigManagerAction implements ProcessAction {
         lockConfiguration(HttpMethod.POST),
         startEditing(HttpMethod.POST),
-        generateXml(HttpMethod.POST),
+        downloadConfig(HttpMethod.GET),
         exportLocalDB(HttpMethod.GET),
         generateSupportZip(HttpMethod.GET),
         uploadConfig(HttpMethod.POST),
@@ -124,8 +124,8 @@ public class ConfigManagerServlet extends PwmServlet {
                     doStartEditing(pwmRequest);
                     break;
 
-                case generateXml:
-                    doGenerateXml(pwmRequest);
+                case downloadConfig:
+                    doDownloadConfig(pwmRequest);
                     break;
 
                 case exportLocalDB:
@@ -260,12 +260,12 @@ public class ConfigManagerServlet extends PwmServlet {
             persistentLoginValue = SecureHelper.hash(
                     storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
                             + pwmSession.getUserInfoBean().getUserIdentity().toDeliminatedKey(),
-                    SecureHelper.HashAlgorithm.SHA512);
+                    SecureHelper.DEFAULT_HASH_ALGORITHM);
 
         } else {
             persistentLoginValue = SecureHelper.hash(
                     storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH),
-                    SecureHelper.HashAlgorithm.SHA512);
+                    SecureHelper.DEFAULT_HASH_ALGORITHM);
         }
 
         boolean persistentLoginAccepted = false;
@@ -332,7 +332,8 @@ public class ConfigManagerServlet extends PwmServlet {
                     pwmRequest.getPwmResponse().writeCookie(
                             PwmConstants.COOKIE_PERSISTENT_CONFIG_LOGIN,
                             cookieValue,
-                            persistentSeconds
+                            persistentSeconds,
+                            true
                     );
                     LOGGER.debug(pwmRequest, "set persistent config login cookie (expires "
                                     + PwmConstants.DEFAULT_DATETIME_FORMAT.format(expirationDate)
@@ -458,7 +459,7 @@ public class ConfigManagerServlet extends PwmServlet {
         pwmRequest.sendRedirect(url);
     }
 
-    private void doGenerateXml(final PwmRequest pwmRequest)
+    private void doDownloadConfig(final PwmRequest pwmRequest)
             throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
@@ -466,7 +467,7 @@ public class ConfigManagerServlet extends PwmServlet {
 
         try {
             final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
-            final Writer responseWriter = resp.getWriter();
+            final OutputStream responseWriter = resp.getOutputStream();
             resp.setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=" + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME);
             resp.setContentType(PwmConstants.ContentTypeValue.xml);
             storedConfiguration.toXml(responseWriter);
@@ -523,15 +524,21 @@ public class ConfigManagerServlet extends PwmServlet {
             healthThread.setDaemon(true);
             healthThread.start();
         }
+        final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
+        storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
-            final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
             storedConfiguration.resetAllPasswordValues("value removed from " + PwmConstants.PWM_APP_NAME + "-Support configuration export");
 
-            final StringWriter writer = new StringWriter();
-            storedConfiguration.toXml(writer);
-            final String output = writer.toString();
-            zipOutput.write(output.getBytes(PwmConstants.DEFAULT_CHARSET));
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            storedConfiguration.toXml(outputStream);
+            zipOutput.write(outputStream.toByteArray());
+            zipOutput.closeEntry();
+            zipOutput.flush();
+        }
+        {
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "configuration-debug.txt"));
+            zipOutput.write(storedConfiguration.toString(true).getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
         }

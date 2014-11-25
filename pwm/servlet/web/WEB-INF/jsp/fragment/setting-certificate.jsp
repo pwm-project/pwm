@@ -44,25 +44,27 @@
     <tr><td>Serial Number</td><td><span style="font-family: 'Courier New', monospace; word-wrap: break-word"><%=serialNum%></span></td></tr>
     <tr><td>Validity</td><td>From <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></span><br/>To <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></span></td></tr>
     <tr><td colspan="2" class="key" style="text-align: center; font-size: smaller">
-        <a href="#" onclick="showCert_<%=md5sum%>()">details</a>
+        <a href="#" id="button-showCert_<%=md5sum%>">details</a>
     </td></tr>
 </table>
 <pwm:script>
 <script type="text/javascript">
-    function showCert_<%=md5sum%>() {
-        var body = '<pre style="white-space: pre-wrap; word-wrap: break-word; max-width: 640px">';
-        body += 'md5sum: <%=md5sum%>\n';
-        body += 'sha1sum: <%=sha1sum%>\n';
-        body += '<%=StringUtil.escapeJS(certificate.toString())%>';
-        body += '</pre>'
-        PWM_MAIN.showDialog({
-            title: "Certificate Detail",
-            text: body,
-            showClose: true,
-            showOk: false,
-            width:650
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_MAIN.addEventHandler('button-showCert_<%=md5sum%>','click',function(){
+            var body = '<pre style="white-space: pre-wrap; word-wrap: break-word; max-width: 640px">';
+            body += 'md5sum: <%=md5sum%>\n';
+            body += 'sha1sum: <%=sha1sum%>\n';
+            body += '<%=StringUtil.escapeJS(certificate.toString())%>';
+            body += '</pre>';
+            PWM_MAIN.showDialog({
+                title: "Certificate Detail",
+                text: body,
+                showClose: true,
+                showOk: false,
+                dialogClass:'wide'
+            });
         });
-    }
+    });
 </script>
 </pwm:script>
 <% } %>
@@ -86,6 +88,8 @@
                 <% } %>
             },'<%=loopSetting.getKey()%>_AutoImportButton');
         });
+
+        PWM_CFGEDIT.readSetting('<%=loopSetting.getKey()%>',function(){});
     });
 </script>
 </pwm:script>

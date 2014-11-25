@@ -99,6 +99,12 @@ public class FileValue extends AbstractValue implements StoredValue {
             return SecureHelper.md5sum(new ByteArrayInputStream(contents));
         }
 
+        public String sha1sum()
+                throws PwmUnrecoverableException
+        {
+            return SecureHelper.hash(new ByteArrayInputStream(contents), SecureHelper.HashAlgorithm.SHA1);
+        }
+
         public int size()
         {
             return contents.length;
@@ -110,35 +116,47 @@ public class FileValue extends AbstractValue implements StoredValue {
         this.values = values;
     }
 
-    static FileValue fromXmlElement(Element settingElement)
-            throws PwmOperationalException
+    public static StoredValueFactory factory()
     {
-        final Gson gson = JsonUtil.getGson();
-        final List valueElements = settingElement.getChildren("value");
-        final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
+        return new StoredValueFactory() {
 
-            final Element loopFileInformation = loopValueElement.getChild("FileInformation");
-            if (loopFileInformation != null) {
-                final String loopFileInformationJson = loopFileInformation.getText();
-                final FileInformation fileInformation = gson.fromJson(loopFileInformationJson, FileInformation.class);
+            public FileValue fromXmlElement(Element settingElement, final String input)
+                    throws PwmOperationalException
+            {
+                final Gson gson = JsonUtil.getGson();
+                final List valueElements = settingElement.getChildren("value");
+                final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
 
-                final Element loopFileContentElement = loopValueElement.getChild("FileContent");
-                if (loopFileContentElement != null) {
-                    final String fileContentString = loopFileContentElement.getText();
-                    final FileContent fileContent;
-                    try {
-                        fileContent = FileContent.fromEncodedString(fileContentString);
-                        values.put(fileInformation, fileContent);
-                    } catch (IOException e) {
-                        LOGGER.error("error reading file contents item: " + e.getMessage());
-                        e.printStackTrace();
+                    final Element loopFileInformation = loopValueElement.getChild("FileInformation");
+                    if (loopFileInformation != null) {
+                        final String loopFileInformationJson = loopFileInformation.getText();
+                        final FileInformation fileInformation = gson.fromJson(loopFileInformationJson,
+                                FileInformation.class);
+
+                        final Element loopFileContentElement = loopValueElement.getChild("FileContent");
+                        if (loopFileContentElement != null) {
+                            final String fileContentString = loopFileContentElement.getText();
+                            final FileContent fileContent;
+                            try {
+                                fileContent = FileContent.fromEncodedString(fileContentString);
+                                values.put(fileInformation, fileContent);
+                            } catch (IOException e) {
+                                LOGGER.error("error reading file contents item: " + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
+                return new FileValue(values);
             }
-        }
-        return new FileValue(values);
+
+            public StoredValue fromJson(String input)
+            {
+                throw new IllegalStateException("not implemented");
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName)
@@ -207,5 +225,27 @@ public class FileValue extends AbstractValue implements StoredValue {
             output.add(details);
         }
         return output;
+    }
+
+    public List<Map<String,Object>> toInfoMap() {
+        if (values == null) {
+            return Collections.emptyList();
+        }
+        final List<Map<String,Object>> returnObj = new ArrayList<>();
+        for (FileValue.FileInformation fileInformation : this.values.keySet()) {
+            final FileContent fileContent = this.values.get(fileInformation);
+            final LinkedHashMap<String, Object> loopInfo = new LinkedHashMap<>();
+            loopInfo.put("name", fileInformation.getFilename());
+            loopInfo.put("type", fileInformation.getFiletype());
+            loopInfo.put("size", fileContent.size());
+            try {
+                loopInfo.put("md5sum", fileContent.md5sum());
+                loopInfo.put("sha1sum", fileContent.sha1sum());
+            } catch (PwmUnrecoverableException e) {
+                LOGGER.warn("error generating hash for certificate: " + e.getMessage());
+            }
+            returnObj.add(loopInfo);
+        }
+        return Collections.unmodifiableList(returnObj);
     }
 }

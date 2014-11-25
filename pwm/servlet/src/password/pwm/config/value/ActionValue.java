@@ -41,39 +41,53 @@ public class ActionValue extends AbstractValue implements StoredValue {
         this.values = Collections.unmodifiableList(values);
     }
 
-    static ActionValue fromJson(final String input) {
-        if (input == null) {
-            return new ActionValue(Collections.<ActionConfiguration>emptyList());
-        } else {
-            final Gson gson = JsonUtil.getGson();
-            List<ActionConfiguration> srcList = gson.fromJson(input, new TypeToken<List<ActionConfiguration>>() {
-            }.getType());
 
-            srcList = srcList == null ? Collections.<ActionConfiguration>emptyList() : srcList;
-            srcList.removeAll(Collections.singletonList(null));
-            return new ActionValue(Collections.unmodifiableList(srcList));
-        }
-    }
-
-    static ActionValue fromXmlElement(Element settingElement) throws PwmOperationalException {
-        final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(settingElement.getAttributeValue("syntax"));
-        final Gson gson = JsonUtil.getGson();
-        final List valueElements = settingElement.getChildren("value");
-        final List<ActionConfiguration> values = new ArrayList<>();
-        for (final Object loopValue : valueElements) {
-            final Element loopValueElement = (Element) loopValue;
-            final String value = loopValueElement.getText();
-            if (value != null && value.length() > 0) {
-                if (oldType) {
-                    if (loopValueElement.getAttribute("locale") == null) {
-                        values.add(ActionConfiguration.parseOldConfigString(value));
-                    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public ActionValue fromJson(final String input)
+            {
+                if (input == null) {
+                    return new ActionValue(Collections.<ActionConfiguration>emptyList());
                 } else {
-                    values.add(gson.fromJson(value,ActionConfiguration.class));
+                    final Gson gson = JsonUtil.getGson();
+                    List<ActionConfiguration> srcList = gson.fromJson(input,
+                            new TypeToken<List<ActionConfiguration>>() {
+                            }.getType());
+
+                    srcList = srcList == null ? Collections.<ActionConfiguration>emptyList() : srcList;
+                    srcList.removeAll(Collections.singletonList(null));
+                    return new ActionValue(Collections.unmodifiableList(srcList));
                 }
             }
-        }
-        return new ActionValue(values);
+
+            public ActionValue fromXmlElement(
+                    Element settingElement,
+                    final String input
+            )
+                    throws PwmOperationalException
+            {
+                final boolean oldType = PwmSettingSyntax.STRING_ARRAY.toString().equals(
+                        settingElement.getAttributeValue("syntax"));
+                final Gson gson = JsonUtil.getGson();
+                final List valueElements = settingElement.getChildren("value");
+                final List<ActionConfiguration> values = new ArrayList<>();
+                for (final Object loopValue : valueElements) {
+                    final Element loopValueElement = (Element) loopValue;
+                    final String value = loopValueElement.getText();
+                    if (value != null && value.length() > 0) {
+                        if (oldType) {
+                            if (loopValueElement.getAttribute("locale") == null) {
+                                values.add(ActionConfiguration.parseOldConfigString(value));
+                            }
+                        } else {
+                            values.add(gson.fromJson(value, ActionConfiguration.class));
+                        }
+                    }
+                }
+                return new ActionValue(values);
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {

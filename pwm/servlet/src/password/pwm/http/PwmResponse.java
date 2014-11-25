@@ -130,9 +130,10 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         sendRedirect(loginServletURL);
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds) {
+    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final boolean httpOnly) {
         final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
         theCookie.setMaxAge(seconds);
+        theCookie.setHttpOnly(httpOnly);
         this.getHttpServletResponse().addCookie(theCookie);
     }
 

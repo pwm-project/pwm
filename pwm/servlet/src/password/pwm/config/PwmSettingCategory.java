@@ -25,58 +25,87 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Locale;
 
 public enum PwmSettingCategory {
-    GENERAL             (Type.SETTING),
-    LDAP_GLOBAL         (Type.SETTING),
-    LDAP_PROFILE        (Type.PROFILE),
-    USER_INTERFACE      (Type.SETTING),
-    PASSWORD_GLOBAL     (Type.SETTING),
-    CHALLENGE           (Type.SETTING),
-    EMAIL               (Type.SETTING),
-    SMS                 (Type.SETTING),
-    SECURITY            (Type.SETTING),
-    CAPTCHA             (Type.SETTING),
-    INTRUDER            (Type.SETTING),
-    TOKEN               (Type.SETTING),
-    OTP                 (Type.SETTING),
-    LOGGING             (Type.SETTING),
-    AUDITING            (Type.SETTING),
-    EDIRECTORY          (Type.SETTING),
-    ACTIVE_DIRECTORY    (Type.SETTING),
-    ORACLE_DS           (Type.SETTING),
-    DATABASE            (Type.SETTING),
-    REPORTING           (Type.SETTING),
-    MISC                (Type.SETTING),
-    OAUTH               (Type.SETTING),
 
-    PASSWORD_POLICY     (Type.PROFILE),
-    CHALLENGE_POLICY    (Type.PROFILE),
-    HELPDESK_PROFILE    (Type.PROFILE),
+    SETTINGS(null),
+    PROFILES(null),
+    MODULES(null),
 
-    CHANGE_PASSWORD     (Type.MODULE),
-    ACCOUNT_INFO        (Type.MODULE),
-    RECOVERY            (Type.MODULE),
-    FORGOTTEN_USERNAME  (Type.MODULE),
-    NEWUSER             (Type.MODULE),
-    GUEST               (Type.MODULE),
-    ACTIVATION          (Type.MODULE),
-    UPDATE              (Type.MODULE),
-    SHORTCUT            (Type.MODULE),
-    PEOPLE_SEARCH       (Type.MODULE),
-    HELPDESK            (Type.MODULE),
+    GENERAL             (SETTINGS),
+    LDAP                (SETTINGS),
+
+    LDAP_GLOBAL         (LDAP),
+    EDIRECTORY          (LDAP),
+    ACTIVE_DIRECTORY    (LDAP),
+    ORACLE_DS           (LDAP),
+
+    USER_INTERFACE      (SETTINGS),
+    UI_FEATURES         (USER_INTERFACE),
+    UI_WEB              (USER_INTERFACE),
+
+    PASSWORD_GLOBAL     (SETTINGS),
+    CHALLENGE           (SETTINGS),
+
+    EMAIL               (SETTINGS),
+    EMAIL_SETTINGS      (EMAIL),
+    EMAIL_TEMPLATES     (EMAIL),
+
+    SMS                 (SETTINGS),
+    SMS_GATEWAY         (SMS),
+    SMS_MESSAGES        (SMS),
+
+    SECURITY            (SETTINGS),
+    APP_SECURITY        (SECURITY),
+    WEB_SECURITY        (SECURITY),
+
+    CAPTCHA             (SETTINGS),
+    INTRUDER            (SETTINGS),
+    TOKEN               (SETTINGS),
+    OTP                 (SETTINGS),
+    LOGGING             (SETTINGS),
+
+    AUDITING            (SETTINGS),
+    AUDIT_CONFIG        (AUDITING),
+    USER_HISTORY        (AUDITING),
+    AUDIT_FORWARD       (AUDITING),
+
+
+    DATABASE            (SETTINGS),
+    REPORTING           (SETTINGS),
+    MISC                (SETTINGS),
+    OAUTH               (SETTINGS),
+
+    LDAP_PROFILE        (PROFILES),
+    PASSWORD_POLICY     (PROFILES),
+    CHALLENGE_POLICY    (PROFILES),
+    HELPDESK_PROFILE    (PROFILES),
+
+    CHANGE_PASSWORD     (MODULES),
+    ACCOUNT_INFO        (MODULES),
+    RECOVERY            (MODULES),
+    FORGOTTEN_USERNAME  (MODULES),
+    NEWUSER             (MODULES),
+    GUEST               (MODULES),
+    ACTIVATION          (MODULES),
+    UPDATE              (MODULES),
+    SHORTCUT            (MODULES),
+    PEOPLE_SEARCH       (MODULES),
+    HELPDESK            (MODULES),
 
     ;
 
-    public enum Type {
-        SETTING, MODULE, PROFILE
+    private final PwmSettingCategory parent;
+
+    PwmSettingCategory(PwmSettingCategory parent) {
+        this.parent = parent;
     }
 
-    private final Type type;
-
-    PwmSettingCategory(final Type type) {
-        this.type = type;
+    public PwmSettingCategory getParent() {
+        return parent;
     }
 
     public String getKey() {
@@ -119,10 +148,6 @@ public enum PwmSettingCategory {
         return description.getText();
     }
 
-    public Type getType() {
-        return type;
-    }
-
     public int getLevel() {
         final Element settingElement = PwmSettingXml.readCategoryXml(this);
         final Attribute levelAttribute = settingElement.getAttribute("level");
@@ -133,5 +158,39 @@ public enum PwmSettingCategory {
         final Element settingElement = PwmSettingXml.readCategoryXml(this);
         final Attribute requiredAttribute = settingElement.getAttribute("hidden");
         return requiredAttribute != null && "true".equalsIgnoreCase(requiredAttribute.getValue());
+    }
+
+    public boolean isTopCategory() {
+        return getParent() == null;
+    }
+
+    public Collection<PwmSettingCategory> getParents() {
+        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
+        PwmSettingCategory currentCategory = this.getParent();
+        while (currentCategory != null) {
+            returnObj.add(0,currentCategory);
+            currentCategory = currentCategory.getParent();
+        }
+        return returnObj;
+    }
+
+    public Collection<PwmSettingCategory> getChildCategories() {
+        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
+        for (final PwmSettingCategory category : values()) {
+            if (this == category.getParent()) {
+                returnObj.add(category);
+            }
+        }
+        return returnObj;
+    }
+
+    public static Collection<PwmSettingCategory> topCategories() {
+        final ArrayList<PwmSettingCategory> returnObj = new ArrayList<>();
+        for (final PwmSettingCategory category : values()) {
+            if (category.isTopCategory()) {
+                returnObj.add(category);
+            }
+        }
+        return returnObj;
     }
 }

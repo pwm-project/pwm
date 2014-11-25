@@ -22,7 +22,6 @@
 
 package password.pwm.ws.server;
 
-import com.google.gson.GsonBuilder;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
@@ -156,8 +155,7 @@ public class RestResultBean implements Serializable {
     }
 
     public String toJson() {
-        final GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping();
-        return JsonUtil.getGson(gsonBuilder).toJson(this);
+        return JsonUtil.serialize(this);
     }
 
     public Response asJsonResponse() {

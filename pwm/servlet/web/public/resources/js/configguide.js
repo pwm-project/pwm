@@ -74,52 +74,31 @@ PWM_GUIDE.gotoStep = function(step) {
     PWM_MAIN.showWaitDialog({loadFunction:function(){
         //preload in case of server restart
         PWM_MAIN.preloadAll(function(){
-            require(["dojo"],function(dojo){
-                dojo.xhrGet({
-                    url: "ConfigGuide?processAction=gotoStep&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&step=" + step,
-                    headers: {"Accept":"application/json"},
-                    contentType: "application/json;charset=utf-8",
-                    encoding: "utf-8",
-                    handleAs: "json",
-                    dataType: "json",
-                    preventCache: true,
-                    error: function(errorObj) {
-                        PWM_MAIN.closeWaitDialog();
-                        PWM_MAIN.showError("error while selecting step: " + errorObj);
-                    },
-                    load: function(result) {
-                        if (result['data']) {
-                            if (result['data']['serverRestart']) {
-                                PWM_CONFIG.waitForRestart();
-                                return;
-                            }
-                        }
-                        var redirectLocation = "ConfigGuide";
-                        window.location = redirectLocation;
+            var url =  "ConfigGuide?processAction=gotoStep&step=" + step;
+            var loadFunction = function(result) {
+                if (result['data']) {
+                    if (result['data']['serverRestart']) {
+                        PWM_CONFIG.waitForRestart();
+                        return;
                     }
-                });
-            });
+                }
+                PWM_MAIN.goto('ConfigGuide');
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
         });
     }});
 };
 
 PWM_GUIDE.setUseConfiguredCerts = function(value) {
     PWM_MAIN.showWaitDialog({title:'Loading...',loadFunction:function() {
-        require(["dojo"], function (dojo) {
-            dojo.xhrGet({
-                url: "ConfigGuide?processAction=useConfiguredCerts&pwmFormID=" + PWM_GLOBAL['pwmFormID'] + "&value=" + value,
-                preventCache: true,
-                error: function (errorObj) {
-                    PWM_MAIN.showError("error starting configuration editor: " + errorObj);
-                },
-                load: function (result) {
-                    if (!result['error']) {
-                        window.location = "ConfigGuide";
-                    } else {
-                        PWM_MAIN.showError(result['errorDetail']);
-                    }
-                }
-            });
-        });
+        var url = "ConfigGuide?processAction=useConfiguredCerts&value=" + value;
+        var loadFunction = function(result) {
+            if (!result['error']) {
+                PWM_MAIN.goto("ConfigGuide");
+            } else {
+                PWM_MAIN.showError(result['errorDetail']);
+            }
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction);
     }});
 };

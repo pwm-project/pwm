@@ -137,6 +137,13 @@ public abstract class PwmHttpRequestWrapper {
         return readParameterAsString(name, maxLength);
     }
 
+    public boolean readParameterAsBoolean(final String name)
+            throws PwmUnrecoverableException
+    {
+        final String strValue = readParameterAsString(name);
+        return strValue != null && Boolean.parseBoolean(strValue);
+    }
+
     public List<String> readParameterAsStrings(
             final String name,
             final int maxLength

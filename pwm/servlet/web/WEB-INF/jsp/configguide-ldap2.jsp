@@ -35,9 +35,6 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configeditor.js"/>"></script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <div id="wrapper">
     <div id="header">
         <div id="header-center">
@@ -50,7 +47,7 @@
         </div>
     </div>
     <div id="centerbody">
-        <form id="configForm" data-dojo-type="dijit/form/Form" onkeyup="handleFormActivity()">
+        <form id="configForm">
             <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
             <br/>
             <div class="setting_outline">
@@ -120,18 +117,18 @@
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:1px; margin:0; padding:0; max-height: 150px; overflow-y: auto" onclick="loadHealth();">
+        <div id="healthBody" style="border:1px; margin:0; padding:0; max-height: 300px; overflow-y: auto">
             <div style="text-align: center">
                 <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
             </div>
         </div>
         <div id="buttonbar">
-            <button class="btn" id="button_previous" onclick="PWM_GUIDE.gotoStep('LDAPCERT');">
+            <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_next" onclick="PWM_GUIDE.gotoStep('LDAP3');">
+            <button class="btn" id="button_next">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:display key="Button_Next"  bundle="Config"/>
             </button>
@@ -159,6 +156,12 @@
             dojoParser.parse();
         });
         checkIfNextEnabled();
+
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP3')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAPCERT')});
+
+        PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
+        PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
     });
 
     function checkIfNextEnabled() {
@@ -184,6 +187,9 @@
 </script>
 </pwm:script>
 <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_LOCALE); %>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/admin.js"/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

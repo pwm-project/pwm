@@ -30,7 +30,6 @@ import password.pwm.util.PwmRandom;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Collections;
 
 public class ConfigNewCommand extends AbstractCliCommand {
@@ -50,7 +49,7 @@ public class ConfigNewCommand extends AbstractCliCommand {
                 StoredConfiguration.ConfigProperty.PROPERTY_KEY_SETTING_CHECKSUM, storedConfiguration.settingChecksum());
 
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
-        storedConfiguration.toXml(new OutputStreamWriter(new FileOutputStream(outputFile, false),StoredConfiguration.STORAGE_CHARSET));
+        storedConfiguration.toXml(new FileOutputStream(outputFile, false));
         out("success");
     }
 

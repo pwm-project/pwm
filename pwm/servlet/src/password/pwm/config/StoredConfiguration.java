@@ -24,9 +24,6 @@ package password.pwm.config;
 
 import com.google.gson.GsonBuilder;
 import org.jdom2.*;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 import password.pwm.AppProperty;
@@ -37,14 +34,13 @@ import password.pwm.config.value.PasswordValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
-import password.pwm.util.BCrypt;
-import password.pwm.util.JsonUtil;
-import password.pwm.util.SecureHelper;
-import password.pwm.util.TimeDuration;
+import password.pwm.util.*;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -113,8 +109,6 @@ public class StoredConfiguration implements Serializable {
     public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
     public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
 
-    public static final Charset STORAGE_CHARSET = Charset.forName("UTF8");
-
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
 
@@ -137,24 +131,12 @@ public class StoredConfiguration implements Serializable {
     public static StoredConfiguration fromXml(final InputStream xmlData)
             throws PwmUnrecoverableException
     {
-        return fromXml(new InputStreamReader(xmlData, STORAGE_CHARSET));
-    }
-
-    public static StoredConfiguration fromXml(final Reader xmlData)
-            throws PwmUnrecoverableException
-    {
         final Date startTime = new Date();
         //validateXmlSchema(xmlData);
 
-        final SAXBuilder builder = new SAXBuilder();
-        final Document inputDocument;
-        try {
-            inputDocument = builder.build(xmlData);
-        } catch (Exception e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,"error parsing xml data: " + e.getMessage()));
-        }
-
+        final Document inputDocument = XmlUtil.parseXml(xmlData);
         final StoredConfiguration newConfiguration = StoredConfiguration.getDefaultConfiguration();
+
         try {
             newConfiguration.document = inputDocument;
             newConfiguration.createTime(); // verify create time;
@@ -467,17 +449,11 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public void toXml(final Writer outputWriter)
+    public void toXml(final OutputStream outputStream)
             throws IOException, PwmUnrecoverableException
     {
         fixupMandatoryElements(document);
-
-        final Format format = Format.getPrettyFormat();
-        format.setEncoding(STORAGE_CHARSET.toString());
-        final XMLOutputter outputter = new XMLOutputter();
-        outputter.setFormat(format);
-
-        outputter.output(document, outputWriter);
+        XmlUtil.outputDocument(document, outputStream);
     }
 
     public List<String> profilesForSetting(final PwmSetting pwmSetting) {
@@ -628,11 +604,18 @@ public class StoredConfiguration implements Serializable {
                 return true;
             }
         }
+        {
+            final String menuLocationString = setting.toMenuLocationDebug(null,locale);
+            if (menuLocationString.toLowerCase().contains(searchTerm.toLowerCase())) {
+                return true;
+            }
+        }
+
         if (setting.isConfidential()) {
             return false;
         }
         {
-            final String valueDebug = value.toDebugString(false, null);
+            final String valueDebug = value.toDebugString(true, locale);
             if (valueDebug.toLowerCase().contains(searchTerm.toLowerCase())) {
                 return true;
             }
@@ -737,14 +720,8 @@ public class StoredConfiguration implements Serializable {
             final StoredValue value,
             final UserIdentity userIdentity
     ) {
-        final Class correctClass = setting.getSyntax().getStoredValueImpl();
-
         if (profileID != null && !setting.getCategory().hasProfiles()) {
             throw new IllegalArgumentException("cannot specify profile for non-profile setting");
-        }
-
-        if (!correctClass.equals(value.getClass())) {
-            throw new IllegalArgumentException("value must be of class " + correctClass.getName() + " for setting " + setting.toString());
         }
 
         preModifyActions();

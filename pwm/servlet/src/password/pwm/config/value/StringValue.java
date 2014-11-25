@@ -30,6 +30,7 @@ import password.pwm.util.JsonUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,14 +44,21 @@ public class StringValue extends AbstractValue implements StoredValue {
         this.value = value == null ? "" : value;
     }
 
-    static StringValue fromJson(final String input) {
-        final String newValue = JsonUtil.getGson().fromJson(input, String.class);
-        return new StringValue(newValue);
-    }
+    public static StoredValueFactory factory()
+    {
+        return new StoredValueFactory() {
+            public StringValue fromJson(final String input)
+            {
+                final String newValue = JsonUtil.getGson().fromJson(input, String.class);
+                return new StringValue(newValue);
+            }
 
-    static StringValue fromXmlElement(final Element settingElement) {
-        final Element valueElement = settingElement.getChild("value");
-        return new StringValue(valueElement == null ? "" : valueElement.getText());
+            public StringValue fromXmlElement(final Element settingElement, final String key)
+            {
+                final Element valueElement = settingElement.getChild("value");
+                return new StringValue(valueElement == null ? "" : valueElement.getText());
+            }
+        };
     }
 
     public List<Element> toXmlValues(final String valueElementName) {
@@ -79,5 +87,14 @@ public class StringValue extends AbstractValue implements StoredValue {
         }
 
         return Collections.emptyList();
+    }
+
+    @Override
+    public String toDebugString(
+            boolean prettyFormat,
+            Locale locale
+    )
+    {
+        return value == null ? "" : value;
     }
 }

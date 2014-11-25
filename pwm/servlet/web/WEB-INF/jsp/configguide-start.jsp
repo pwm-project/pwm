@@ -47,7 +47,7 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_GUIDE.gotoStep('TEMPLATE');}); } else {PWM_GUIDE.gotoStep('TEMPLATE');};">
+                    <a class="menubutton" id="button-startConfigGuide">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-rocket"></span></pwm:if>
                         <pwm:display key="MenuItem_StartConfigGuide" bundle="Config"/>
                     </a>
@@ -58,7 +58,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){skipWizard();}); } else {skipWizard();}">
+                    <a class="menubutton" id="button-manualConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-cogs"></span></pwm:if>
                         <pwm:display key="MenuItem_ManualConfig" bundle="Config"/>
                     </a>
@@ -69,7 +69,7 @@
             </tr>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" href="#" onclick="if (PWM_GLOBAL['setting-displayEula']) {PWM_MAIN.showEula(true,function(){PWM_CONFIG.uploadConfigDialog();}); } else {PWM_CONFIG.uploadConfigDialog();};">
+                    <a class="menubutton" id="button-uploadConfig">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-upload"></span></pwm:if>
                         <pwm:display key="MenuItem_UploadConfig" bundle="Config"/>
                     </a>
@@ -83,13 +83,44 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    function skipWizard() {
-        PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-            PWM_GUIDE.gotoStep('FINISH');
-        }});
-    }
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function() {
+            PWM_MAIN.addEventHandler('button-startConfigGuide', 'click', function () {
+                if (PWM_GLOBAL['setting-displayEula']) {
+                    PWM_MAIN.showEula(true, function () {
+                        PWM_GUIDE.gotoStep('TEMPLATE');
+                    });
+                } else {
+                    PWM_GUIDE.gotoStep('TEMPLATE');
+                }
+            });
+            PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
+                if (PWM_GLOBAL['setting-displayEula']) {
+                    PWM_MAIN.showEula(true,function(){
+                        skipWizard();
+                    });
+                } else {
+                    skipWizard();
+                }
+            });
+            PWM_MAIN.addEventHandler('button-uploadConfig', 'click', function () {
+                if (PWM_GLOBAL['setting-displayEula']) {
+                    PWM_MAIN.showEula(true,function(){
+                        PWM_CONFIG.uploadConfigDialog();
+                    });
+                } else {
+                    PWM_CONFIG.uploadConfigDialog();
+                }
+            });
+
+        });
+
+        function skipWizard() {
+            PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
+                PWM_GUIDE.gotoStep('FINISH');
+            }});
+        }
+    </script>
 </pwm:script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configguide.js"/>"></script>
 <script type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>

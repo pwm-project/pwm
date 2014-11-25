@@ -144,7 +144,7 @@ PWM_ADMIN.initReportDataGrid=function() {
             PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
             PWM_ADMIN.refreshReportDataGrid();
         });
-}
+};
 
 PWM_ADMIN.refreshReportDataGrid=function() {
     require(["dojo"],function(dojo){
@@ -412,8 +412,11 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
         var loadFunction = function(data) {
             PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
             PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+            PWM_VAR['auditUserGrid'].resize();
+
             PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
             PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+            PWM_VAR['auditSystemGrid'].resize();
 
             var detailView = function(evt, headers, grid){
                 var row = grid.row(evt);
@@ -443,7 +446,7 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
             PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){
                 detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
             });
-            PWM_VAR['auditSystemGrid'].on(".grid-row:click", function(evt){
+            PWM_VAR['auditSystemGrid'].on(".dgrid-row:click", function(evt){
                 detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
             });
 
@@ -461,7 +464,7 @@ PWM_ADMIN.refreshAuditGridData=function(maximum) {
 };
 
 PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
-    var options = options || {};
+    options = options === undefined ? {} : options;
     var doRefresh = options['refreshTime']
         ? function(){setTimeout(function(){PWM_ADMIN.showStatChart(statName,days,divName,options);},options['refreshTime']);}
         : function(){};

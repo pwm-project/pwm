@@ -22,10 +22,8 @@
 
 package password.pwm.http.tag;
 
-import password.pwm.AppProperty;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
-import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,28 +43,23 @@ public class PwmScriptTag extends BodyTagSupport {
     public int doStartTag()
             throws JspException
     {
-        try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(),(HttpServletResponse)pageContext.getResponse());
-            final boolean stripJsInline = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT));
-            return stripJsInline ? super.doStartTag() : EVAL_BODY_INCLUDE;
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
-        }
-        return super.doStartTag();
+        return EVAL_BODY_BUFFERED;
     }
 
     public int doAfterBody() {
         try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest)pageContext.getRequest(),(HttpServletResponse)pageContext.getResponse());
-            final PwmSession pwmSession = pwmRequest.getPwmSession();
-            final boolean stripJsInline = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.SECURITY_STRIP_INLINE_JAVASCRIPT));
-            if (stripJsInline) {
-                final BodyContent bc = getBodyContent();
+            final PwmRequest pwmRequest = PwmRequest.forRequest((HttpServletRequest) pageContext.getRequest(), (HttpServletResponse) pageContext.getResponse());
+            final BodyContent bc = getBodyContent();
+            if (bc != null) {
                 final String tagBody = bc.getString();
                 final String strippedTagBody = stripHtmlScriptTags(tagBody);
-                pwmSession.getSessionStateBean().getScriptContents().append(strippedTagBody);
-                bc.clearBody();
+                    final String output = "<script type=\"text/javascript\" nonce=\"" + pwmRequest.getCspNonce() + "\">"
+                            + strippedTagBody
+                            + "</script>";
+                    getPreviousOut().write(output);
             }
+        } catch (IOException e) {
+            LOGGER.error("IO error while processing PwmScriptTag: " + e.getMessage());
         } catch (PwmUnrecoverableException e) {
             LOGGER.error("error while processing PwmScriptTag: " + e.getMessage());
         }

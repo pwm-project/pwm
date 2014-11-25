@@ -413,7 +413,7 @@ public class Configuration implements Serializable {
     }
 
     public long readSettingAsLong(final PwmSetting setting) {
-        if (PwmSettingSyntax.NUMERIC != setting.getSyntax()) {
+        if (PwmSettingSyntax.NUMERIC != setting.getSyntax() && PwmSettingSyntax.DURATION != setting.getSyntax()) {
             throw new IllegalArgumentException("may not read NUMERIC value for setting: " + setting.toString());
         }
 

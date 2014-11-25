@@ -131,13 +131,12 @@ public class StatisticsBundle {
                 return valueMap.containsKey(statistic) ? valueMap.get(statistic) : "0";
 
             case AVERAGE:
-                final Gson gson = JsonUtil.getGson();
                 final String avgStrValue = valueMap.get(statistic);
 
                 AverageBean avgBean = new AverageBean();
                 if (avgStrValue != null && avgStrValue.length() > 0) {
                     try {
-                        avgBean = gson.fromJson(avgStrValue, AverageBean.class);
+                        avgBean = JsonUtil.deserialize(avgStrValue, AverageBean.class);
                     } catch (Exception e) {
                         LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
                     }

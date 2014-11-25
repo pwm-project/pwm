@@ -46,7 +46,6 @@
         instanceID = pwmRequestHeader.getPwmApplication().getInstanceID();
         jspFileName = this.getClass().getSimpleName().replaceAll("_", ".");
 
-        pwmRequestHeader.getPwmSession().getSessionStateBean().clearScriptContents();
         if (!pwmRequestHeader.isFlag(PwmRequest.Flag.NO_REQ_COUNTER)) {
             pwmRequestHeader.getPwmSession().getSessionManager().incrementRequestCounterKey();
         }
@@ -66,14 +65,16 @@
     <link rel="icon" type="image/x-icon" href="<pwm:url url='/public/resources/favicon.ico' addContext="true"/>"/>
     <link rel="stylesheet" type="text/css" href="<pwm:url url='/public/resources/font/font-awesome.css' addContext="true"/>"/>
     <link href="<pwm:url url='/public/resources/style.css' addContext="true"/>" rel="stylesheet" type="text/css" media="screen"/>
-    <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
     <% if (showTheme) { %>
     <link href="<pwm:url url="%THEME_URL%"/>" rel="stylesheet" type="text/css" media="screen"/>
+    <% } %>
+    <link media="only screen and (max-width: 600px)" href="<pwm:url url='/public/resources/mobileStyle.css' addContext="true"/>" type="text/css" rel="stylesheet"/><%-- iphone css --%>
+    <% if (showTheme) { %>
     <link media="only screen and (max-width: 600px)" href="<pwm:url url="%MOBILE_THEME_URL%"/>" type="text/css" rel="stylesheet"/><%-- mobile css --%>
     <% } %>
     <link href="<pwm:url url='/public/resources/dojo/dijit/themes/nihilo/nihilo.css' addContext="true"/>" rel="stylesheet" type="text/css"/>
     <pwm:script>
-        <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript">
+        <script type="text/javascript">
             var PWM_GLOBAL = PWM_GLOBAL || {}; PWM_GLOBAL['startupFunctions'] = [];
         </script>
     </pwm:script>

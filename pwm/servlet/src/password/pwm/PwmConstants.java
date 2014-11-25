@@ -185,9 +185,6 @@ public abstract class PwmConstants {
         CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
-        CONFIG_MANAGER_EDITOR_SETTINGS("fragment/configeditor-settings.jsp"),
-        CONFIG_MANAGER_EDITOR_LOCALEBUNDLE("fragment/configeditor-localeBundle.jsp"),
-        CONFIG_MANAGER_EDITOR_PROFILE("fragment/configeditor-profiles.jsp"),
         CONFIG_MANAGER_LOGVIEW("logview.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
@@ -242,7 +239,6 @@ public abstract class PwmConstants {
     public static final String COOKIE_PERSISTENT_CONFIG_LOGIN = "persistentConfigLogin";
 
     public static final String VALUE_REPLACEMENT_USERNAME = "%USERNAME%";
-    public static final String EMAIL_REGEX_MATCH = readPwmConstantsBundle("emailRegexMatch");
 
     // don't worry.  look over there.
     public static final String[] X_AMB_HEADER = new String[]{
@@ -361,6 +357,8 @@ public abstract class PwmConstants {
         Authorization("Authorization"),
 
         XFrameOptions("X-Frame-Options"),
+        XContentTypeOptions("X-Content-Type-Options"),
+        XXSSProtection("X-XSS-Protection"),
 
         XAmb("X-" + PwmConstants.PWM_APP_NAME + "-Amb"),
         XVersion("X-" + PwmConstants.PWM_APP_NAME + "-Version"),

@@ -23,6 +23,7 @@
 package password.pwm.config;
 
 import org.jdom2.Element;
+import password.pwm.error.PwmException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,9 +36,19 @@ public interface StoredValue extends Serializable {
 
     List<String> validateValue(PwmSetting pwm);
 
-    String toDebugString(boolean prettyFormat, Locale locale);
+    String toDebugString(
+            boolean prettyFormat,
+            Locale locale
+    );
 
     boolean requiresStoredUpdate();
 
     int currentSyntaxVersion();
+
+    interface StoredValueFactory {
+        StoredValue fromJson(final String input);
+
+        StoredValue fromXmlElement(final Element settingElement, final String key)
+                throws PwmException;
+    }
 }

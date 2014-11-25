@@ -242,12 +242,13 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         LOGGER.trace("checking version number stored in LocalDB");
 
         final Object versionInDB = localDB.get(META_DB, KEY_VERSION);
-        final boolean result = VALUE_VERSION.equals(versionInDB);
+        final String currentVersion = makeVersionString();
+        final boolean result = currentVersion.equals(versionInDB);
 
         if (!result) {
-            LOGGER.info("existing db version does not match current db version db=(" + versionInDB + ")  pwm=(" + VALUE_VERSION + "), clearing db");
+            LOGGER.info("existing db version does not match current db version db=(" + versionInDB + ")  current=(" + currentVersion + "), clearing db");
         } else {
-            LOGGER.trace("existing db version matches current db version db=(" + versionInDB + ")  pwm=(" + VALUE_VERSION + ")");
+            LOGGER.trace("existing db version matches current db version db=(" + versionInDB + ")  current=(" + currentVersion + ")");
         }
 
         return result;
@@ -255,14 +256,14 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     private void resetDB(final String checksum)
             throws Exception {
-        localDB.put(META_DB, KEY_VERSION, VALUE_VERSION + "_ClearInProgress");
+        localDB.put(META_DB, KEY_VERSION, makeVersionString() + "_ClearInProgress");
 
         for (final LocalDB.DB db : new LocalDB.DB[]{META_DB, WORD_DB}) {
             LOGGER.debug("clearing " + db);
             localDB.truncate(db);
         }
 
-        localDB.put(META_DB, KEY_VERSION, VALUE_VERSION);
+        localDB.put(META_DB, KEY_VERSION, makeVersionString());
         localDB.put(META_DB, KEY_CHECKSUM, checksum);
     }
 
@@ -277,16 +278,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
             return false;
         }
 
-        int checkSize = this.wordlistConfiguration.getCheckSize();
-        checkSize = checkSize == 0 || checkSize > testWord.length() ? testWord.length() : checkSize;
-        final TreeSet<String> testWords = new TreeSet<>();
-        while (checkSize <= testWord.length()) {
-            for (int i = 0; i + checkSize <= testWord.length(); i++) {
-                final String loopWord = testWord.substring(i,i + checkSize);
-                testWords.add(loopWord);
-            }
-            checkSize++;
-        }
+
+        final Set<String> testWords = chunkWord(testWord, this.wordlistConfiguration.getCheckSize());
 
         final Date startTime = new Date();
         try {
@@ -363,6 +356,8 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
 
     protected abstract Map<String, String> getWriteTxnForValue(String value);
 
+    protected abstract String makeVersionString();
+
 // -------------------------- ENUMERATIONS --------------------------
 
     static enum VALUE_STATUS {
@@ -402,5 +397,19 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
         } else {
             return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
         }
+    }
+
+    protected Set<String> chunkWord(final String input, final int size) {
+        int checkSize = size == 0 || size > input.length() ? input.length() : size;
+        final TreeSet<String> testWords = new TreeSet<>();
+        while (checkSize <= input.length()) {
+            for (int i = 0; i + checkSize <= input.length(); i++) {
+                final String loopWord = input.substring(i,i + checkSize);
+                testWords.add(loopWord);
+            }
+            checkSize++;
+        }
+
+        return testWords;
     }
 }

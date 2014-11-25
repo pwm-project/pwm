@@ -24,7 +24,8 @@
 <%@ page import="password.pwm.bean.PasswordStatus" %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final PasswordStatus passwordStatus = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordState(); %>
+<% final PwmRequest changepassword_pwmRequest = PwmRequest.forRequest(request,response); %>
+<% final PasswordStatus passwordStatus = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordState(); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -42,7 +43,7 @@
                 <pwm:DisplayPasswordRequirements separator="</li>" prepend="<li>"/>
             </ul>
         </div>
-        <% final String passwordPolicyChangeMessage = PwmSession.getPwmSession(session).getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage(); %>
+        <% final String passwordPolicyChangeMessage = changepassword_pwmRequest.getPwmSession().getUserInfoBean().getPasswordPolicy().getRuleHelper().getChangeMessage(); %>
         <% if (passwordPolicyChangeMessage.length() > 1) { %>
         <p><%= passwordPolicyChangeMessage %></p>
         <% } %>
@@ -57,10 +58,10 @@
                                 <label style="" for="password1"><pwm:display key="Field_NewPassword"/></label>
                             </h2>
                             &nbsp;&nbsp;
-                            <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.showPasswordGuide()" ></div>
+                            <div class="fa fa-question-circle icon_button" id="password-guide-icon" style="cursor: pointer; visibility: hidden"></div>
                             <pwm:if test="showRandomPasswordGenerator">
                             &nbsp;&nbsp;
-                            <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" onclick="PWM_CHANGEPW.doRandomGeneration();" ></div>
+                            <div class="fa fa-retweet icon_button" id="autogenerate-icon" style="cursor: pointer; visibility: hidden" ></div>
                             </pwm:if>
                         </div>
                         <input type="<pwm:value name="passwordFieldType"/>" name="password1" id="password1" class="changepasswordfield passwordfield" autofocus/>
@@ -119,7 +120,7 @@
     });
 </script>
 </pwm:script>
-<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
+<script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/changepassword.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

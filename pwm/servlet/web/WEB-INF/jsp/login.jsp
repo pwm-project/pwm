@@ -26,6 +26,7 @@
 <%@ taglib uri="pwm" prefix="pwm" %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
+<% final PwmRequest login_pwmRequest = PwmRequest.forRequest(request,response); %>
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="fragment/header-body.jsp">
@@ -50,87 +51,89 @@
                 </button>
                 <%@ include file="/WEB-INF/jsp/fragment/button-reset.jsp" %>
                 <input type="hidden" name="processAction" value="login">
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                <pwm:if test="forwardUrlDefined">
+                    <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
+                </pwm:if>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </div>
         </form>
         <br/>
         <pwm:if test="showLoginOptions">
             <table style="border:0">
-                <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
-                <tr style="border:0">
-                    <td style="border:0" class="menubutton_key">
-                        <a class="menubutton" id="Title_ForgottenPassword" onclick="PWM_MAIN.showWaitDialog()" href="<pwm:context/><pwm:url url='/public/ForgottenPassword'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:display key="Title_ForgottenPassword"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
-                    </td>
-                </tr>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
-                <tr style="border:0">
-                    <td style="border:0" class="menubutton_key">
-                        <a class="menubutton" id="Title_ForgottenUsername" onclick="PWM_MAIN.showWaitDialog()" href="<pwm:context/><pwm:url url='/public/ForgottenUsername'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
-                            <pwm:display key="Title_ForgottenUsername"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
-                    </td>
-                </tr>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
-                <tr style="border:0">
-                    <td style="border:0" class="menubutton_key">
-                        <a class="menubutton" id="Title_ActivateUser" onclick="PWM_MAIN.showWaitDialog()" href="<pwm:context/><pwm:url url='/public/ActivateUser'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
-                            <pwm:display key="Title_ActivateUser"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_ActivateUser"/></p>
-                    </td>
-                </tr>
-                <% } %>
-                <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
-                <tr style="border:0">
-                    <td style="border:0" class="menubutton_key">
-                        <a class="menubutton" id="Title_NewUser" onclick="PWM_MAIN.showWaitDialog()" href="<pwm:context/><pwm:url url='/public/NewUser'/>">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
-                            <pwm:display key="Title_NewUser"/>
-                        </a>
-                    </td>
-                    <td style="border: 0">
-                        <p><pwm:display key="Long_Title_NewUser"/></p>
-                    </td>
-                </tr>
-                <% } %>
+                <pwm:if test="forgottenPasswordEnabled">
+                    <tr style="border:0">
+                        <td style="border:0" class="menubutton_key">
+                            <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:context/><pwm:url url='/public/ForgottenPassword'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                                <pwm:display key="Title_ForgottenPassword"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+                <pwm:if test="forgottenUsernameEnabled">
+                    <tr style="border:0">
+                        <td style="border:0" class="menubutton_key">
+                            <a class="menubutton" id="Title_ForgottenUsername" href="<pwm:context/><pwm:url url='/public/ForgottenUsername'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                                <pwm:display key="Title_ForgottenUsername"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+                <pwm:if test="activateUserEnabled">
+                    <tr style="border:0">
+                        <td style="border:0" class="menubutton_key">
+                            <a class="menubutton" id="Title_ActivateUser" href="<pwm:context/><pwm:url url='/public/ActivateUser'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
+                                <pwm:display key="Title_ActivateUser"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_ActivateUser"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
+                <pwm:if test="newUserRegistrationEnabled">
+                    <tr style="border:0">
+                        <td style="border:0" class="menubutton_key">
+                            <a class="menubutton" id="Title_NewUser" href="<pwm:context/><pwm:url url='/public/NewUser'/>">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
+                                <pwm:display key="Title_NewUser"/>
+                            </a>
+                        </td>
+                        <td style="border: 0">
+                            <p><pwm:display key="Long_Title_NewUser"/></p>
+                        </td>
+                    </tr>
+                </pwm:if>
             </table>
         </pwm:if>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript" nonce="<pwm:value name="cspNonce"/>">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        if (PWM_MAIN.getObject('username').value.length < 1) {
-            PWM_MAIN.getObject('username').focus();
-        } else {
-            PWM_MAIN.getObject('password').focus();
-        }
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            if (PWM_MAIN.getObject('username').value.length < 1) {
+                PWM_MAIN.getObject('username').focus();
+            } else {
+                PWM_MAIN.getObject('password').focus();
+            }
 
-        require(["dojo/on"], function(on){
-            var loginFormElement = PWM_MAIN.getObject('login');
-            on(loginFormElement, "submit", function(event){
-                PWM_MAIN.handleLoginFormSubmit(loginFormElement,event)
+            require(["dojo/on"], function(on){
+                var loginFormElement = PWM_MAIN.getObject('login');
+                on(loginFormElement, "submit", function(event){
+                    PWM_MAIN.handleLoginFormSubmit(loginFormElement,event)
+                });
             });
         });
-    });
-</script>
+    </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

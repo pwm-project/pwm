@@ -84,6 +84,8 @@ public enum Statistic {
     PEOPLESEARCH_DETAILS                (Type.INCREMENTOR, "PeopleSearchDetails", new ConfigSettingDetail(PwmSetting.PEOPLE_SEARCH_ENABLE)),
     HELPDESK_PASSWORD_SET               (Type.INCREMENTOR, "HelpdeskPasswordSet", null),
     HELPDESK_USER_LOOKUP                (Type.INCREMENTOR, "HelpdeskUserLookup", null),
+    HELPDESK_TOKENS_SENT                (Type.INCREMENTOR, "HelpdeskTokenSent", null),
+    HELPDESK_UNLOCK                     (Type.INCREMENTOR, "HelpdeskUnlock", null),
     REST_STATUS                         (Type.INCREMENTOR, "RestStatus", null),
     REST_CHECKPASSWORD                  (Type.INCREMENTOR, "RestCheckPassword", null),
     REST_SETPASSWORD                    (Type.INCREMENTOR, "RestSetPassword", null),

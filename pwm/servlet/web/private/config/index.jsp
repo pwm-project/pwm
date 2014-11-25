@@ -20,14 +20,26 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
+<!DOCTYPE html>
+<%@ page language="java" session="true" isThreadSafe="true"
+         contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<html dir="<pwm:LocaleOrientation/>">
+<jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
+<body>
+<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/config/ConfigManager"/>"/>
+<div id="wrapper">
+    <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
+        <jsp:param name="pwm.PageName" value="Configuration"/>
+    </jsp:include>
+    <div id="content">
+        <div id="centerbody">
+            <pwm:display key="Display_PleaseWait"/> <a href="<pwm:context/><pwm:url url="/private/config/ConfigManage"/>"><pwm:display bundle="Admin" key="MenuItem_ConfigManager"/></a>
+        </div>
+    </div>
+    <br class="clear"/>
+</div>
+<%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
+</body>
+</html>
 
-<pwm:if test="showCancel">
-<pwm:if test="forcedPageView" negate="true">
-<button style="visibility:hidden;" type="button" name="button" class="btn" id="button_cancel">
-    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
-    <pwm:display key="Button_Cancel"/>
-</button>
-</pwm:if>
-</pwm:if>

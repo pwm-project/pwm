@@ -448,6 +448,15 @@ public class AuthenticationFilter extends PwmFilter {
             }
         }
 
+        // if change password in progress and req is for ChangePassword servlet, then allow request as is
+        if (pwmURL.isChangePasswordURL()) {
+            final PasswordChangeProgressChecker.ProgressTracker progressTracker = pwmSession.getChangePasswordBean().getChangeProgressTracker();
+            if (progressTracker != null && progressTracker.getBeginTime() != null) {
+                return false;
+            }
+        }
+
+
         if (uiBean.isRequiresResponseConfig()) {
             if (!pwmURL.isSetupResponsesURL()) {
                 LOGGER.debug(pwmRequest, "user is required to setup responses, redirecting to setup responses servlet");
