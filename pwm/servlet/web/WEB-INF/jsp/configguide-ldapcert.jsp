@@ -1,6 +1,11 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.util.SecureHelper" %>
+<%@ page import="password.pwm.util.StringUtil" %>
+<%@ page import="password.pwm.util.X509Utils" %>
+<%@ page import="java.io.ByteArrayInputStream" %>
+<%@ page import="java.security.cert.X509Certificate" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
@@ -64,9 +69,41 @@
                     Please verify these certificates match your LDAP server.
                     <div>
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_LDAP_HOST%>" style="padding-left: 5px; padding-top: 5px">
-                            <% request.setAttribute("certificate",configGuideBean.getLdapCertificates()); %>
-                            <% request.setAttribute("hideActions","true"); %>
-                            <jsp:include page="fragment/setting-certificate.jsp"/>
+                            <% int counter=0;for (X509Certificate certificate : configGuideBean.getLdapCertificates()) {%>
+                            <% final String md5sum = SecureHelper.hash(new ByteArrayInputStream(certificate.getEncoded()), SecureHelper.HashAlgorithm.MD5); %>
+                            <% final String sha1sum = SecureHelper.hash(new ByteArrayInputStream(certificate.getEncoded()), SecureHelper.HashAlgorithm.SHA1); %>
+                            <table style="width:100%" id="table_certificate0">
+                                <tr><td colspan="2" class="key" style="text-align: center">
+                                    Certificate <%=counter%>&nbsp;<a style="font-size: smaller" href="#" id="button-showCert_<%=md5sum%>">(details)</a>
+                                </td></tr>
+                                <tr><td>Subject Name</td><td><div class="setting_table_value"><%=certificate.getSubjectX500Principal().getName()%></div></td></tr>
+                                <tr><td>Issuer Name</td><td><div class="setting_table_value"><%=certificate.getIssuerX500Principal().getName()%></div></td></tr>
+                                <% final String serialNum = X509Utils.hexSerial(certificate); %>
+                                <tr><td>Serial Number</td><td><div class="setting_table_value"><%=serialNum%></div></td></tr>
+                                <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></div></td></tr>
+                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></div></td></tr>
+                            </table>
+                            <pwm:script>
+                                <script type="text/javascript">
+                                    PWM_GLOBAL['startupFunctions'].push(function(){
+                                        PWM_MAIN.addEventHandler('button-showCert_<%=md5sum%>','click',function(){
+                                            var body = '<pre style="white-space: pre-wrap; word-wrap: break-word">';
+                                            body += 'md5sum: <%=md5sum%>\n';
+                                            body += 'sha1sum: <%=sha1sum%>\n';
+                                            body += '<%=StringUtil.escapeJS(certificate.toString())%>';
+                                            body += '</pre>';
+                                            PWM_MAIN.showDialog({
+                                                title: "Certificate <%=counter%> Detail",
+                                                text: body,
+                                                showClose: true,
+                                                showOk: false,
+                                                dialogClass:'wide'
+                                            });
+                                        });
+                                    });
+                                </script>
+                            </pwm:script>
+                            <% counter++; } %>
                         </div>
                     </div>
                 </div>

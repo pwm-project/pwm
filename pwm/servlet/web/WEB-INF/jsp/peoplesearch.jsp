@@ -56,22 +56,22 @@
     <div id="centerbody" class="wide">
         <div id="searchControlPanel" style="position: relative; margin-left: auto; margin-right: auto; width: 100%; text-align: center">
             <br/>
-            <table style="border: 0; margin-left: auto; margin-right: auto; max-width: 450px">
-                <tr style="border: 0">
-                    <td style="border:0" colspan="10">
+            <table class="noborder" style="; margin-left: auto; margin-right: auto; width:100px" >
+                <tr>
+                    <td colspan="10">
                         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
                     </td>
                 </tr>
-                <tr style="border: 0">
-                    <td style="border:0">
-                        <input type="search" id="username" name="username" class="inputfield" style="width: 400px" autofocus/>
+                <tr>
+                    <td>
+                        <input type="search" id="username" name="username" class="peoplesearch-input-username" autofocus autocomplete="off"/>
                     </td>
-                    <td style="border:0;">
+                    <td style="width:100px">
                         <div id="searchIndicator" style="visibility: hidden">
                             <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                         </div>
                     </td>
-                    <td style="border:0;">
+                    <td>
                         <div id="maxResultsIndicator" style="visibility: hidden;">
                             <span style="color: #ffcd59;" class="fa fa-lg fa-exclamation-circle"></span>
                         </div>
@@ -84,8 +84,7 @@
             </noscript>
             <br/>
         </div>
-        <div id="peoplesearch-searchResultsGrid grid">
-            Loading...
+        <div id="peoplesearch-searchResultsGrid" class="grid">
         </div>
     </div>
     <div class="push"></div>
@@ -96,8 +95,6 @@
             PWM_VAR['peoplesearch_search_columns'] = <%=JsonUtil.serializeMap(searchColumns)%>;
             PWM_VAR['photo_style_attribute'] = '<%=StringUtil.escapeJS(photoStyle)%>';
             PWM_PS.initPeopleSearchPage();
-            PWM_MAIN.getObject('username').focus()
-
         });
     </script>
 </pwm:script>

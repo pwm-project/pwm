@@ -86,7 +86,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                         var reference = userReferences[refIterInner];
                         var userKey = reference['userKey'];
                         var displayValue = reference['display'];
-                        htmlBody += '<a onclick="PWM_PS.showUserDetail(\'' + userKey + '\')">';
+                        htmlBody += '<a id="link-' + userKey + '-' + reference + '">';
                         htmlBody += displayValue;
                         htmlBody += "</a><br/>";
                     })(refIter);
@@ -104,6 +104,29 @@ PWM_PS.convertDetailResultToHtml = function(data) {
     htmlBody += '</table></div>';
     return htmlBody;
 };
+
+PWM_PS.applyEventHandlersToDetailView = function(data) {
+    for (var iter in data['detail']) {
+        (function(iterCount){
+            var attributeData = data['detail'][iterCount];
+            var type = attributeData['type'];
+            if (type == 'userDN') {
+                var userReferences = attributeData['userReferences'];
+                for (var refIter in userReferences) {
+                    (function(refIterInner){
+                        var reference = userReferences[refIterInner];
+                        var userKey = reference['userKey'];
+                        PWM_MAIN.addEventHandler('link-' + userKey + '-' + reference,'click',function(){
+                            PWM_PS.showUserDetail(userKey);
+                        });
+                    })(refIter);
+                }
+            }
+        })(iter);
+    }
+};
+
+
 
 PWM_PS.showUserDetail = function(userKey) {
     console.log('beginning showUserDetail, userKey=' + userKey);
@@ -123,7 +146,6 @@ PWM_PS.showUserDetail = function(userKey) {
                 var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
                 PWM_MAIN.showDialog({
                     title:data['data']['displayName'],
-                    width:550,
                     allowMove:true,
                     text:htmlBody,
                     showClose:true,
@@ -132,6 +154,7 @@ PWM_PS.showUserDetail = function(userKey) {
                         if (photoURL) {
                             PWM_PS.loadPicture(PWM_MAIN.getObject("userPhotoParentDiv"),photoURL);
                         }
+                        PWM_PS.applyEventHandlersToDetailView(data['data']);
                         setTimeout(function() {
                             try {PWM_MAIN.getObject('dialog_ok_button').focus(); } catch (e) { /*noop */}
                         },1000);
@@ -147,13 +170,13 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
     require(["dojo/domReady!"],function(){
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
             function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
-                PWM_MAIN.getObject('grid').innerHTML = '';
+                PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
 
                 var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
 
                 PWM_VAR['peoplesearch_search_grid'] = new CustomGrid({
                     columns: PWM_VAR['peoplesearch_search_columns']
-                }, "grid");
+                }, "peoplesearch-searchResultsGrid");
 
                 if (nextFunction) {
                     nextFunction();
@@ -167,6 +190,7 @@ PWM_PS.initPeopleSearchPage = function() {
         PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_PS.processPeopleSearch();
         });
+        PWM_MAIN.getObject('username').focus()
     });
 };
 

@@ -118,7 +118,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
                 if (value.size() > 1) {
                     sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
                 }
-                sb.append(value.get(localeKey)).append("\n");
+                sb.append(" ").append(value.get(localeKey)).append("\n");
             }
             return sb.toString();
         } else {

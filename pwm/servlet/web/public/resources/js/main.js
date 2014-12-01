@@ -44,9 +44,10 @@ PWM_MAIN.pageLoadHandler = function() {
         }
         if (typeof PWM_CONFIG !== 'undefined') {
             PWM_GLOBAL['localeBundle'].push('Config');
-
+        }
+        if (typeof PWM_SETTINGS !== 'undefined' && typeof PWM_CFGEDIT !== 'undefined') {
             var clientConfigLoadDeferred = new Deferred();
-            PWM_CONFIG.initConfigPage(function(){clientConfigLoadDeferred.resolve()});
+            PWM_CFGEDIT.initConfigSettingsDefinition(function(){clientConfigLoadDeferred.resolve()});
             promises.push(clientConfigLoadDeferred.promise);
         }
         if (typeof PWM_ADMIN !== 'undefined') {
@@ -72,7 +73,6 @@ PWM_MAIN.pageLoadHandler = function() {
             PWM_MAIN.initPage();
         });
     });
-
 };
 
 PWM_MAIN.loadClientData=function(completeFunction) {
@@ -147,6 +147,9 @@ PWM_MAIN.initPage = function() {
     }
     if (PWM_MAIN.getObject('header_openLogViewerButton')) {
         PWM_MAIN.addEventHandler('header_openLogViewerButton','click',function(){PWM_CONFIG.openLogViewer(null)});
+    }
+    if (PWM_MAIN.getObject('select-updateLoginContexts')) {
+        PWM_MAIN.addEventHandler('select-updateLoginContexts','click',function(){PWM_MAIN.updateLoginContexts()});
     }
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
@@ -1007,9 +1010,10 @@ PWM_MAIN.createCSSClass = function(selector, style) {
 
 PWM_MAIN.flashDomElement = function(flashColor,elementName,durationMS) {
     if (!PWM_MAIN.getObject(elementName)) {
+        console.log('cant flash non-existing element id ' + elementName);
         return;
     }
-
+    console.log('will flash element id ' + elementName);
     require(["dojo","dojo/window","dojo/domReady!"],function(dojo) {
         var originalBGColor = PWM_MAIN.getRenderedStyle(elementName,'background-color');
         PWM_MAIN.getObject(elementName).style.backgroundColor = flashColor;

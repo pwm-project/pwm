@@ -83,7 +83,7 @@
                     <input name="maxAuditUserResults" id="maxAuditUserResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
-                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value)">
+                    <button class="btn" type="button" id="button-refreshAuditUser">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
@@ -104,7 +104,7 @@
                     <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
                            data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
                     Rows
-                    <button class="btn" type="button" onclick="PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value)">
+                    <button class="btn" type="button" id="button-refreshSystemAudit">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
@@ -146,6 +146,13 @@
                         PWM_ADMIN.initIntrudersGrid();
                         PWM_ADMIN.initActiveSessionGrid();
                         PWM_ADMIN.initAuditGrid();
+                    });
+
+                    PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
+                        PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value);
+                    });
+                    PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
+                        PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value);
                     });
                 },3000);
             });

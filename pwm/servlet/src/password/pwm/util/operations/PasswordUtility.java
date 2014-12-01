@@ -37,10 +37,7 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.*;
-import password.pwm.config.ActionConfiguration;
-import password.pwm.config.Configuration;
-import password.pwm.config.PwmSetting;
-import password.pwm.config.UserPermission;
+import password.pwm.config.*;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.policy.PwmPasswordPolicy;
@@ -360,7 +357,7 @@ public class PasswordUtility {
         }
 
         //update the current last password update field in ldap
-        LdapOperationsHelper.updateLastPasswordUpdateAttribute(pwmApplication, pwmSession.getLabel(), proxiedUser);
+        LdapOperationsHelper.updateLastPasswordUpdateAttribute(pwmApplication, pwmSession.getLabel(), uiBean.getUserIdentity());
     }
 
     public static void helpdeskSetUserPassword(
@@ -505,7 +502,7 @@ public class PasswordUtility {
             try {
                 loopProvider = ChaiProviderFactory.createProvider(loopConfiguration);
                 final ChaiUser loopUser = ChaiFactory.createChaiUser(userIdentity.getUserDN(), loopProvider);
-                final Date lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, loopUser);
+                final Date lastModifiedDate = determinePwdLastModified(pwmApplication, sessionLabel, userIdentity);
                 returnValue.put(loopReplicaUrl, lastModifiedDate);
             } catch (ChaiUnavailableException e) {
                 LOGGER.error(sessionLabel, "unreachable server during replica password sync check");
@@ -940,13 +937,14 @@ public class PasswordUtility {
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-        return determinePwdLastModified(pwmApplication, sessionLabel, theUser);
+        return determinePwdLastModified(pwmApplication, sessionLabel, theUser, userIdentity);
     }
 
     private static Date determinePwdLastModified(
             final PwmApplication pwmApplication,
-            final SessionLabel sesionLabel,
-            final ChaiUser theUser
+            final SessionLabel sessionLabel,
+            final ChaiUser theUser,
+            final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
@@ -954,25 +952,26 @@ public class PasswordUtility {
         try {
             final Date chaiReadDate = theUser.readPasswordModificationDate();
             if (chaiReadDate != null) {
-                LOGGER.trace(sesionLabel, "read last user password change timestamp (via chai) as: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(chaiReadDate));
+                LOGGER.trace(sessionLabel, "read last user password change timestamp (via chai) as: " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(chaiReadDate));
                 return chaiReadDate;
             }
         } catch (ChaiOperationException e) {
-            LOGGER.error(sesionLabel, "unexpected error reading password last modified timestamp: " + e.getMessage());
+            LOGGER.error(sessionLabel, "unexpected error reading password last modified timestamp: " + e.getMessage());
         }
 
-        final String pwmLastSetAttr = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
+        final String pwmLastSetAttr = ldapProfile.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
         if (pwmLastSetAttr != null && pwmLastSetAttr.length() > 0) {
             try {
                 final Date pwmPwdLastModified = theUser.readDateAttribute(pwmLastSetAttr);
-                LOGGER.trace(sesionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
+                LOGGER.trace(sessionLabel, "read pwmPasswordChangeTime as: " + (pwmPwdLastModified == null ? "n/a" : PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwmPwdLastModified)));
                 return pwmPwdLastModified;
             } catch (ChaiOperationException e) {
-                LOGGER.error(sesionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error parsing password last modified PWM password value for user " + theUser.getEntryDN() + "; error: " + e.getMessage());
             }
         }
 
-        LOGGER.debug(sesionLabel, "unable to determine time of user's last password modification");
+        LOGGER.debug(sessionLabel, "unable to determine time of user's last password modification");
         return null;
     }
 

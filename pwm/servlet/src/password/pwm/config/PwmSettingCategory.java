@@ -25,9 +25,7 @@ package password.pwm.config;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Locale;
+import java.util.*;
 
 public enum PwmSettingCategory {
 
@@ -64,6 +62,9 @@ public enum PwmSettingCategory {
 
     CAPTCHA             (SETTINGS),
     INTRUDER            (SETTINGS),
+    INTRUDER_SETTINGS   (INTRUDER),
+    INTRUDER_TIMEOUTS   (INTRUDER),
+
     TOKEN               (SETTINGS),
     OTP                 (SETTINGS),
     LOGGING             (SETTINGS),
@@ -72,7 +73,6 @@ public enum PwmSettingCategory {
     AUDIT_CONFIG        (AUDITING),
     USER_HISTORY        (AUDITING),
     AUDIT_FORWARD       (AUDITING),
-
 
     DATABASE            (SETTINGS),
     REPORTING           (SETTINGS),
@@ -99,6 +99,7 @@ public enum PwmSettingCategory {
     ;
 
     private final PwmSettingCategory parent;
+    private static final Map<PwmSettingCategory,PwmSetting> CACHE_PROFILE_SETTING = new HashMap<>();
 
     PwmSettingCategory(PwmSettingCategory parent) {
         this.parent = parent;
@@ -114,16 +115,10 @@ public enum PwmSettingCategory {
 
     public PwmSetting getProfileSetting()
     {
-        final Element categoryElement = PwmSettingXml.readCategoryXml(this);
-        final Element profileElement = categoryElement.getChild("profile");
-        if (profileElement != null) {
-            final String settingKey = profileElement.getAttributeValue("setting");
-            if (settingKey != null) {
-                return PwmSetting.forKey(settingKey);
-            }
+        if (!CACHE_PROFILE_SETTING.containsKey(this)) {
+            CACHE_PROFILE_SETTING.put(this, readProfileSettingFromXml());
         }
-
-        return null;
+        return CACHE_PROFILE_SETTING.get(this);
     }
 
     public boolean hasProfiles() {
@@ -192,5 +187,19 @@ public enum PwmSettingCategory {
             }
         }
         return returnObj;
+    }
+
+    private PwmSetting readProfileSettingFromXml()
+    {
+        final Element categoryElement = PwmSettingXml.readCategoryXml(this);
+        final Element profileElement = categoryElement.getChild("profile");
+        if (profileElement != null) {
+            final String settingKey = profileElement.getAttributeValue("setting");
+            if (settingKey != null) {
+                return PwmSetting.forKey(settingKey);
+            }
+        }
+
+        return null;
     }
 }

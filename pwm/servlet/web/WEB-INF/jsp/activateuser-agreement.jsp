@@ -42,9 +42,10 @@
         <div id="buttonbar">
             <form action="<pwm:url url='ActivateUser'/>" method="post" enctype="application/x-www-form-urlencoded" class="pwm-form" style="display: inline;">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
-                       onchange="updateContinueButton()"/>
-                    &nbsp;&nbsp;<label for="agreeCheckBox"><pwm:display key="Button_Agree"/></label>
+                <label class="checkboxWrapper">
+                    <input type="checkbox" id="agreeCheckBox"/>
+                    <pwm:display key="Button_Agree"/>
+                </label>
                 <input type="hidden" name="processAction" value="agree"/>
                 <button type="submit" name="button" class="btn" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -63,25 +64,23 @@
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    function updateContinueButton() {
-        var checkBox = PWM_MAIN.getObject("agreeCheckBox");
-        var continueButton = PWM_MAIN.getObject("submitBtn");
-        if (checkBox != null && continueButton != null) {
-            if (checkBox.checked) {
-                continueButton.removeAttribute('disabled');
-            } else {
-                continueButton.disabled = "disabled";
+    <script type="text/javascript">
+        function updateContinueButton() {
+            var checkBox = PWM_MAIN.getObject("agreeCheckBox");
+            var continueButton = PWM_MAIN.getObject("submitBtn");
+            if (checkBox != null && continueButton != null) {
+                if (checkBox.checked) {
+                    continueButton.removeAttribute('disabled');
+                } else {
+                    continueButton.disabled = "disabled";
+                }
             }
         }
-    }
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
             updateContinueButton();
         });
-    });
-</script>
+    </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

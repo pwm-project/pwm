@@ -38,6 +38,7 @@ html, body {
 
 #centerbody.wide {
     width: 100%;
+    min-width: 100%;
 }
 
 #header-center {
@@ -68,4 +69,11 @@ html, body {
     width:auto;
 }
 
+.peoplesearch-input-username {
+    width:200px;
+}
 
+.dialogBody {
+    width: 100%;
+    max-width: 100%;
+}

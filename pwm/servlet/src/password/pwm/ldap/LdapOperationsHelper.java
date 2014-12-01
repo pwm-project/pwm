@@ -437,7 +437,7 @@ public class LdapOperationsHelper {
      * Update the user's "lastUpdated" attribute. By default this is
      * "pwmLastUpdate" attribute
      *
-     * @param theUser ldap user to operate on
+     * @param userIdentity ldap user to operate on
      * @return true if successful;
      * @throws com.novell.ldapchai.exception.ChaiUnavailableException if the
      * directory is unavailable
@@ -445,13 +445,15 @@ public class LdapOperationsHelper {
     public static boolean updateLastPasswordUpdateAttribute(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
-            final ChaiUser theUser
+            final UserIdentity userIdentity
     )
             throws ChaiUnavailableException, PwmUnrecoverableException
     {
+        final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
         boolean success = false;
 
-        final String updateAttribute = pwmApplication.getConfig().readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
+        final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(userIdentity.getLdapProfileID());
+        final String updateAttribute = ldapProfile.readSettingAsString(PwmSetting.PASSWORD_LAST_UPDATE_ATTRIBUTE);
 
         if (updateAttribute != null && updateAttribute.length() > 0) {
             try {

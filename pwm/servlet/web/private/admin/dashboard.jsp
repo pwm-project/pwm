@@ -541,7 +541,7 @@
     </table>
     <% } else { %>
     <div style="text-align:center; width:100%; border: 0">
-        <a style="cursor: pointer" onclick="PWM_MAIN.goto('dashboard.jsp?showLocalDBCounts=true')">Show LocalDB record counts</a> (may be slow to load)
+        <a style="cursor: pointer" id="button-showLocalDBCounts">Show LocalDB record counts</a> (may be slow to load)
     </div>
     <% } %>
 </div>
@@ -751,6 +751,10 @@
                 ready(function(){
                     PWM_ADMIN.showStatChart('PASSWORD_CHANGES',14,'statsChart',{refreshTime:11*1000});
                     PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
+
+                    PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
+                        PWM_MAIN.goto('dashboard.jsp?showLocalDBCounts=true')
+                    });
                 });
             });
         });

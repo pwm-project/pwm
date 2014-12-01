@@ -98,6 +98,7 @@ public enum AppProperty {
     INTRUDER_MAX_DELAY_PENALTY_MS                   ("intruder.maximumDelayPenaltyMS"),
     INTRUDER_DELAY_PER_COUNT_MS                     ("intruder.delayPerCountMS"),
     INTRUDER_DELAY_MAX_JITTER_MS                    ("intruder.delayMaxJitterMS"),
+    HEALTH_MIN_CHECK_INTERVAL_SECONDS               ("health.minimumCheckIntervalSeconds"),
     HEALTH_CERTIFICATE_WARN_SECONDS                 ("health.certificate.warnSeconds"),
     HEALTH_LDAP_CAUTION_DURATION_MS                 ("health.ldap.cautionDurationMS"),
     HEALTH_JAVA_MAX_THREADS                         ("health.java.maxThreads"),

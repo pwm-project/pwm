@@ -61,8 +61,8 @@ LocalizedStringValueHandler.draw = function(keyName) {
         for (var i in resultValue) {
             LocalizedStringValueHandler.addLocaleTableRow(parentDiv, keyName, i, resultValue[i], regExPattern, syntax)
         }
-        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, function() {
-            LocalizedStringValueHandler.addLocaleSetting(keyName, parentDiv, regExPattern, syntax);
+        PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, function(localeKey) {
+            LocalizedStringValueHandler.addLocaleSetting(keyName, localeKey);
         });
 
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -78,53 +78,58 @@ LocalizedStringValueHandler.addLocaleTableRow = function(parentDiv, settingKey, 
 
     var newTableRow = document.createElement("tr");
     newTableRow.setAttribute("style", "border-width: 0");
-    {
-        var td1 = document.createElement("td");
-        td1.setAttribute("style", "border-width: 0; width: 15px");
 
-        if (localeString == null || localeString.length < 1) {
-            td1.innerHTML = "";
-        } else {
-            td1.innerHTML = localeString;
-        }
-        newTableRow.appendChild(td1);
 
+    var td1 = document.createElement("td");
+    td1.setAttribute("style", "border-width: 0; width: 15px");
+
+    if (localeString == null || localeString.length < 1) {
+        td1.innerHTML = "";
+    } else {
+        td1.innerHTML = localeString;
     }
-    {
-        var td2 = document.createElement("td");
-        td2.setAttribute("style", "border-width: 0");
-        if (syntax == 'LOCALIZED_TEXT_AREA') {
-            var textAreaElement = document.createElement("textarea");
-            textAreaElement.setAttribute("id", inputID);
-            textAreaElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
-            textAreaElement.setAttribute("onchange", "LocalizedStringValueHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
-            textAreaElement.setAttribute("style", "width: 510px; max-width:510px; max-height: 300px; overflow: auto; white-space: nowrap");
-            textAreaElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
-            textAreaElement.setAttribute("value", value);
-            td2.appendChild(textAreaElement);
-        } else {
-            var inputElement = document.createElement("input");
-            inputElement.setAttribute("id", inputID);
-            inputElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
-            inputElement.setAttribute("onchange", "LocalizedStringValueHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
-            inputElement.setAttribute("style", "width: 510px;");
-            inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
-            inputElement.setAttribute("regExp", regExPattern);
-            inputElement.setAttribute("value", value);
-            td2.appendChild(inputElement);
-        }
-        newTableRow.appendChild(td2);
+    newTableRow.appendChild(td1);
 
-        if (localeString != null && localeString.length > 0) {
-            var imgElement = document.createElement("img");
-            imgElement.setAttribute("style", "width: 10px; height: 10px");
-            imgElement.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-            imgElement.setAttribute("onclick", "LocalizedStringValueHandler.removeLocaleSetting('" + settingKey + "','" + localeString + "','" + parentDiv + "','" + regExPattern + "','" + syntax + "')");
-            td2.appendChild(imgElement);
-        }
+
+    var td2 = document.createElement("td");
+    td2.setAttribute("style", "border-width: 0");
+    if (syntax == 'LOCALIZED_TEXT_AREA') {
+        var textAreaElement = document.createElement("textarea");
+        textAreaElement.setAttribute("id", inputID);
+        textAreaElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
+        textAreaElement.setAttribute("onchange", "LocalizedStringValueHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+        textAreaElement.setAttribute("style", "width: 510px; max-width:510px; max-height: 300px; overflow: auto; white-space: nowrap");
+        textAreaElement.setAttribute("data-dojo-type", "dijit.form.Textarea");
+        textAreaElement.setAttribute("value", value);
+        td2.appendChild(textAreaElement);
+    } else {
+        var inputElement = document.createElement("input");
+        inputElement.setAttribute("id", inputID);
+        inputElement.setAttribute("value", PWM_MAIN.showString('Display_PleaseWait'));
+        inputElement.setAttribute("onchange", "LocalizedStringValueHandler.writeLocaleSetting('" + settingKey + "','" + localeString + "',this.value)");
+        inputElement.setAttribute("style", "width: 510px;");
+        inputElement.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
+        inputElement.setAttribute("regExp", regExPattern);
+        inputElement.setAttribute("value", value);
+        td2.appendChild(inputElement);
     }
+    newTableRow.appendChild(td2);
+
+    if (localeString != null && localeString.length > 0) {
+        var imgElement = document.createElement("div");
+        imgElement.setAttribute("style", "width: 10px; height: 10px;");
+        imgElement.setAttribute("class", "delete-row-icon action-icon fa fa-times");
+        imgElement.setAttribute("id", "button-" + settingKey + '-' + localeString + "-deleteRow");
+        imgElement.setAttribute("onclick", "LocalizedStringValueHandler.removeLocaleSetting('" + settingKey + "','" + localeString + "','" + parentDiv + "','" + regExPattern + "','" + syntax + "')");
+        td2.appendChild(imgElement);
+    }
+
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
+
+    PWM_MAIN.addEventHandler("button-" + settingKey + '-' + localeString + "-deleteRow","click",function(){
+        LocalizedStringValueHandler.removeLocaleSetting(settingKey, localeString);
+    });
 };
 
 LocalizedStringValueHandler.writeLocaleSetting = function(settingKey, locale, value) {
@@ -148,18 +153,17 @@ LocalizedStringValueHandler.removeLocaleSetting = function(keyName, locale, pare
     LocalizedStringValueHandler.draw(keyName);
 };
 
-LocalizedStringValueHandler.addLocaleSetting = function(keyName, parentDiv, regExPattern, syntax) {
-    require(["dijit/registry"],function(registry){
-        var inputValue = registry.byId(keyName + '-addLocaleValue').value;
-        try {
-            var existingElementForLocale = PWM_MAIN.getObject('value-' + keyName + '-' + inputValue);
-            if (existingElementForLocale == null) {
-                LocalizedStringValueHandler.writeLocaleSetting(keyName, inputValue, '');
-                LocalizedStringValueHandler.draw(keyName);
-            }
-        } finally {
+LocalizedStringValueHandler.addLocaleSetting = function(keyName, inputValue) {
+    try {
+        var existingElementForLocale = PWM_MAIN.getObject('value-' + keyName + '-' + inputValue);
+        if (existingElementForLocale == null) {
+            PWM_VAR['clientSettingCache'][keyName][inputValue] = [];
+            PWM_CFGEDIT.writeSetting(keyName, PWM_VAR['clientSettingCache'][keyName]);
+            //LocalizedStringValueHandler.writeLocaleSetting(keyName, inputValue, '');
+            LocalizedStringValueHandler.draw(keyName);
         }
-    });
+    } finally {
+    }
 };
 
 
@@ -231,12 +235,15 @@ StringArrayValueHandler.draw = function(settingKey) {
     var addItemButton = document.createElement("button");
     addItemButton.setAttribute("type", "button");
     addItemButton.setAttribute("class","btn");
-    addItemButton.setAttribute("onclick", "StringArrayValueHandler.valueHandler('" + settingKey + "',-1);");
+    addItemButton.setAttribute("id","button-" + settingKey + "-addItem");
     addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>' + (syntax == 'PROFILE' ? "Add Profile" : "Add Value");
     parentDivElement.appendChild(addItemButton);
 
     require(["dojo/parser","dijit/form/Button","dijit/form/ValidationTextBox"],function(dojoParser){
         dojoParser.parse(parentDiv);
+        PWM_MAIN.addEventHandler('button-' + settingKey + '-addItem','click',function(){
+            StringArrayValueHandler.valueHandler(settingKey,-1);
+        });
     });
 };
 
@@ -251,51 +258,56 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     var valueRow = document.createElement("tr");
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
-    {
-        var td1 = document.createElement("td");
-        td1.setAttribute("width", "100%");
-        //td1.setAttribute("style", "border: 1px solid black");
 
-        var inputElement = document.createElement("div");
-        inputElement.setAttribute("id", inputID);
-        inputElement.innerHTML = value;
-        if (syntax != 'PROFILE') {
-            inputElement.setAttribute("onclick", "StringArrayValueHandler.valueHandler('" + settingKey + "'," + iteration + ")");
-        }
-        td1.appendChild(inputElement);
-        valueRow.appendChild(td1);
+    var rowHtml = '<td style="width:100%"><div id="' + inputID + '">' + value + '</div></td>';
 
-        var moveDownColumn = document.createElement("td");
-        if (itemCount > 1 && iteration != (itemCount -1)) {
-            var moveDownButton = document.createElement("span");
-            moveDownButton.setAttribute("class", "action-icon fa fa-chevron-down");
-            moveDownButton.setAttribute("onclick", "StringArrayValueHandler.move('" + settingKey + "',false,'" + iteration + "')");
-            moveDownColumn.appendChild(moveDownButton);
-        }
-        moveDownColumn.setAttribute("style", "border-width: 0;");
-        valueRow.appendChild(moveDownColumn);
-
-        var moveUpColumn = document.createElement("td");
-        if (itemCount > 1 && iteration != 0) {
-            var moveUpButton = document.createElement("span");
-            moveUpButton.setAttribute("class", "action-icon fa fa-chevron-up");
-            moveUpButton.setAttribute("onclick", "StringArrayValueHandler.move('" + settingKey + "',true,'" + iteration + "')");
-            moveUpColumn.appendChild(moveUpButton);
-        }
-        moveUpColumn.setAttribute("style", "border-width: 0;");
-        valueRow.appendChild(moveUpColumn);
-
-        var deleteColumn = document.createElement("td");
-        if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
-            var deleteButton = document.createElement("span");
-            deleteButton.setAttribute("class", "delete-row-icon action-icon fa fa-times");
-            deleteButton.setAttribute("onclick", "StringArrayValueHandler.removeValue('" + settingKey + "','" + iteration + "')");
-            deleteColumn.appendChild(deleteButton);
-        }
-        deleteColumn.setAttribute("style", "border-width: 0;");
-        valueRow.appendChild(deleteColumn);
+    var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
+    rowHtml += '<td style="border:0">';
+    if (itemCount > 1 && iteration != (itemCount -1)) {
+        rowHtml += '<span id="' + downButtonID + '" class="action-icon fa fa-chevron-down"></span>';
     }
+    rowHtml += '</td>';
+
+    var upButtonID = 'button-' + settingKey + '-' + iteration + '-moveUp';
+    rowHtml += '<td style="border:0">';
+    if (itemCount > 1 && iteration != 0) {
+        rowHtml += '<span id="' + upButtonID + '" class="action-icon fa fa-chevron-up"></span>';
+    }
+    rowHtml += '</td>';
+
+    var deleteButtonID = 'button-' + settingKey + '-' + iteration + '-delete';
+    rowHtml += '<td style="border:0">';
+    if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
+        rowHtml += '<span id="' + deleteButtonID + '" class="delete-row-icon action-icon fa fa-times"></span>';
+    }
+    rowHtml += '</td>';
+
+    valueRow.innerHTML = rowHtml;
     parentDivElement.appendChild(valueRow);
+
+    setTimeout(function(){
+        if (syntax != 'PROFILE') {
+            PWM_MAIN.addEventHandler(inputID,'click',function(){
+                StringArrayValueHandler.valueHandler(settingKey,iteration);
+            });
+        }
+
+        if (itemCount > 1 && iteration != (itemCount -1)) {
+            PWM_MAIN.addEventHandler(downButtonID,'click',function(){StringArrayValueHandler.move(settingKey,false,iteration)});
+        }
+
+        if (itemCount > 1 && iteration != 0) {
+            PWM_MAIN.addEventHandler(upButtonID,'click',function(){StringArrayValueHandler.move(settingKey,true,iteration)});
+        }
+
+        if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
+            PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){StringArrayValueHandler.removeValue(settingKey,iteration)});
+        }
+
+
+    },100);
+
+
 };
 
 StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
@@ -1850,14 +1862,11 @@ EmailTableHandler.draw = function(keyName) {
                 var parentDivElement = PWM_MAIN.getObject(parentDiv);
                 parentDivElement.appendChild(newTableRow);
             } else {
-                var addLocaleFunction = function() {
-                    require(["dijit/registry"],function(registry){
-                        var localeValue = registry.byId(keyName + "-addLocaleValue").value;
-                        if (!PWM_VAR['clientSettingCache'][keyName][localeValue]) {
-                            PWM_VAR['clientSettingCache'][keyName][localeValue] = {};
-                            EmailTableHandler.writeSetting(keyName,true);
-                        }
-                    });
+                var addLocaleFunction = function(localeValue) {
+                    if (!PWM_VAR['clientSettingCache'][keyName][localeValue]) {
+                        PWM_VAR['clientSettingCache'][keyName][localeValue] = {};
+                        EmailTableHandler.writeSetting(keyName,true);
+                    }
                 };
                 PWM_CFGEDIT.addAddLocaleButtonRow(parentDiv, keyName, addLocaleFunction);
             }
@@ -1948,18 +1957,24 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
             }
 
             if (localeName != '' || PWM_MAIN.itemCount(PWM_VAR['clientSettingCache'][keyName])){ // add remove locale x
-                var imgElement2 = document.createElement("img");
-                imgElement2.setAttribute("style", "width: 12px; height: 12px;");
-                imgElement2.setAttribute("src", PWM_GLOBAL['url-resources'] + "/redX.png");
-                imgElement2.setAttribute("onclick", "delete PWM_VAR['clientSettingCache']['" + keyName + "']['" + localeName + "'];EmailTableHandler.writeSetting('" + keyName + "',true)");
+                var imgElement2 = document.createElement("div");
+                imgElement2.setAttribute("style", "width: 10px; height: 10px;");
+                imgElement2.setAttribute("class", "delete-row-icon action-icon fa fa-times");
+                imgElement2.setAttribute("id", "button-" + keyName + "-" + localeName + "-deleteRow");
+                //imgElement2.setAttribute("onclick", "delete PWM_VAR['clientSettingCache']['" + keyName + "']['" + localeName + "'];EmailTableHandler.writeSetting('" + keyName + "',true)");
                 var tdElement = document.createElement("td");
                 tdElement.setAttribute("style", "border-width: 0; text-align: left; vertical-align: top");
 
                 localeTableRow.appendChild(tdElement);
                 tdElement.appendChild(imgElement2);
             }
+
+            PWM_MAIN.addEventHandler("button-" + keyName + "-" + localeName + "-deleteRow","click",function(){
+                delete PWM_VAR['clientSettingCache'][keyName][localeName];
+                EmailTableHandler.writeSetting(keyName,true);
+            });
         });
-}
+};
 
 
 EmailTableHandler.popupEditor = function(keyName, localeName) {
@@ -2068,7 +2083,7 @@ ChallengeSettingHandler.draw = function(keyName) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     var bodyText = '';
-    bodyText += '<table style="border:1px grey solid; cursor: pointer;">';
+    bodyText += '<table style="cursor: pointer;" class="noborder">';
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
     for (var localeName in resultValue) {
         (function(localeKey) {
@@ -2077,30 +2092,36 @@ ChallengeSettingHandler.draw = function(keyName) {
             var rowCount = PWM_MAIN.itemCount(multiValues);
             var editJsText = 'ChallengeSettingHandler.editLocale(\'' + keyName + '\',\'' + localeKey + '\')';
 
-            bodyText += '<tr><td rowspan="' + (rowCount+1) + '" style="border:1px grey solid" onclick="' + editJsText + '">';
+            bodyText += '<tr><td style="" onclick="' + editJsText + '">';
             bodyText += isDefaultLocale ? "Default" : localeKey;
             bodyText += '</td>';
 
+            bodyText += '<td style="border:1px grey solid; cursor:pointer" onclick="' + editJsText + '"> ';
             if (rowCount > 0) {
-                bodyText += '</tr>';
-
                 for (var iteration in multiValues) {
                     (function (rowKey) {
                         var questionText = multiValues[rowKey]['text'];
                         var adminDefined = multiValues[rowKey]['adminDefined'];
 
-                        bodyText += '<tr><td style="border:1px grey solid" onclick="' + editJsText + '">';
                         bodyText += adminDefined ? questionText : '[User Defined]';
-                        bodyText += '</td></tr>';
+                        bodyText += "<br/>";
                     }(iteration));
                 }
             } else {
-                bodyText += '<td style="border:1px grey solid" onclick="' + editJsText + '">';
                 bodyText += '[No Questions]';
-                bodyText += '</td>';
-                bodyText += '</tr>';
             }
+            bodyText += '</td><td style="border:0; vertical-align: top">';
+            if (!isDefaultLocale) {
+                bodyText += '<span id="button-' + keyName + '-' + localeKey + '-deleteRow" style="top:0" class="delete-row-icon action-icon fa fa-times"/>';
+            }
+            bodyText += '</td></tr>';
+            bodyText += '<tr><td>&nbsp;</td></tr>';
+
             parentDivElement.innerHTML = bodyText;
+
+            PWM_MAIN.addEventHandler('button-' + keyName + '-' + localeKey + '-deleteRow','click',function(){
+                ChallengeSettingHandler.deleteLocale(keyName)
+            });
         }(localeName));
     }
     bodyText += '</table>';
@@ -2447,6 +2468,7 @@ OptionListHandler.draw = function(keyName) {
                 PWM_MAIN.clearDijitWidget(buttonID);
                 var toggleButton = new ToggleButton({
                     id: buttonID,
+                    style: "min-width:180px;",
                     iconClass:'dijitCheckBoxIcon',
                     checked: checked
                 },buttonID);
@@ -2520,8 +2542,8 @@ DurationValueHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    parentDivElement.innerHTML = '<input id="value_' + settingKey + '" name="setting_' + settingKey + '"/>'
-    + PWM_MAIN.showString('Display_Seconds') + '<span style="margin-left:50px" id="display-' + settingKey + '-duration"></span>';
+    parentDivElement.innerHTML = '<input id="value_' + settingKey + '" name="setting_' + settingKey + '"/> '
+        + PWM_MAIN.showString('Display_Seconds') + '<span style="margin-left:50px" id="display-' + settingKey + '-duration"></span>';
 
     PWM_MAIN.clearDijitWidget("value_" + settingKey);
     require(["dijit","dijit/form/NumberSpinner"],function(dijit,NumberSpinner){
@@ -2533,13 +2555,16 @@ DurationValueHandler.init = function(settingKey) {
                 DurationValueHandler.updateDisplay(settingKey, this.value);
             },
             onClick: function() {
+                PWM_CFGEDIT.writeSetting(settingKey, this.value);
                 DurationValueHandler.updateDisplay(settingKey, this.value);
             },
             onKeyUp: function() {
+                PWM_CFGEDIT.writeSetting(settingKey, this.value);
                 DurationValueHandler.updateDisplay(settingKey, this.value);
             },
             value: PWM_MAIN.showString('Display_PleaseWait'),
             disabled: false,
+            constraints: {pattern:'#'},
             id: "value_" + settingKey
         }, "value_" + settingKey);
         numberInput._mouseWheeled = function(){};
@@ -2764,9 +2789,9 @@ FileValueHandler.draw = function(keyName) {
         htmlBody = '<table><tr><td>No File Present</td></tr></table>';
     }
 
-    htmlBody += '<button class="btn" id="button-uploadFile-' + keyName + '">Upload File</button>';
+    htmlBody += '<button class="btn" id="button-uploadFile-' + keyName + '"><span class="btn-icon fa fa-upload"></span>Upload File</button>';
     if (!PWM_MAIN.isEmpty(resultValue)) {
-        htmlBody += '<button class="btn" id="button-removeFile-' + keyName + '">Remove File</button>';
+        htmlBody += '<button class="btn" id="button-removeFile-' + keyName + '"><span class="btn-icon fa fa-trash-o"></span>Remove File</button>';
     }
 
     parentDivElement.innerHTML = htmlBody;
@@ -2777,7 +2802,7 @@ FileValueHandler.draw = function(keyName) {
 
     PWM_MAIN.addEventHandler('button-removeFile-' + keyName,'click',function(){
         PWM_MAIN.showConfirmDialog({text:'Are you sure you want to remove the currently stored file?',okAction:function(){
-            PWM_CFGEDIT.resetSetting('<%=loopSetting.getKey()%>');
+            PWM_CFGEDIT.resetSetting(keyName);
             PWM_MAIN.showWaitDialog({loadFunction:function(){
                 FileValueHandler.init(keyName);
                 PWM_MAIN.closeWaitDialog();

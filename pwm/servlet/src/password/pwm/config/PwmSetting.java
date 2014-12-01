@@ -68,8 +68,6 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
-    EVENTS_HEALTH_CHECK_MIN_INTERVAL(
-            "events.healthCheck.minInterval", PwmSettingSyntax.NUMERIC, PwmSettingCategory.GENERAL),
 
     // user interface
     INTERFACE_THEME(
@@ -93,7 +91,7 @@ public enum PwmSetting {
     DISPLAY_HOME_BUTTON(
             "display.homeButton", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_IDLE_TIMEOUT(
-            "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_WEB),
+            "display.idleTimeout", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.UI_FEATURES),
     DISPLAY_CSS_CUSTOM_STYLE(
             "display.css.customStyleLocation", PwmSettingSyntax.STRING, PwmSettingCategory.UI_WEB),
     DISPLAY_CSS_CUSTOM_MOBILE_STYLE(
@@ -104,6 +102,8 @@ public enum PwmSetting {
             "display.css.customMobileStyle", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.UI_WEB),
     DISPLAY_CUSTOM_JAVASCRIPT(
             "display.js.custom", PwmSettingSyntax.TEXT_AREA, PwmSettingCategory.UI_WEB),
+    DISPLAY_CUSTOM_RESOURCE_BUNDLE(
+            "display.custom.resourceBundle", PwmSettingSyntax.FILE, PwmSettingCategory.UI_WEB),
 
     // change password
     QUERY_MATCH_CHANGE_PASSWORD(
@@ -180,13 +180,13 @@ public enum PwmSetting {
             "ldap.profile.enabled", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LDAP_PROFILE),
     LDAP_NAMING_ATTRIBUTE(
             "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+    PASSWORD_LAST_UPDATE_ATTRIBUTE(
+            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
 
 
     // ldap global settings
     LDAP_PROFILE_LIST(
             "ldap.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
-    PASSWORD_LAST_UPDATE_ATTRIBUTE(
-            "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_GLOBAL),
     LDAP_IDLE_TIMEOUT(
             "ldap.idleTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.LDAP_GLOBAL),
     DEFAULT_OBJECT_CLASSES(
@@ -459,36 +459,39 @@ public enum PwmSetting {
             "captcha.skip.cookie", PwmSettingSyntax.STRING, PwmSettingCategory.CAPTCHA),
 
     // intruder detection
+    INTRUDER_ENABLE(
+            "intruder.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.INTRUDER_SETTINGS),
     INTRUDER_STORAGE_METHOD(
-            "intruder.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.INTRUDER),
-    INTRUDER_USER_RESET_TIME(
-            "intruder.user.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_USER_MAX_ATTEMPTS(
-            "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
-    INTRUDER_USER_CHECK_TIME(
-            "intruder.user.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_ATTRIBUTE_RESET_TIME(
-            "intruder.attribute.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_ATTRIBUTE_MAX_ATTEMPTS(
-            "intruder.attribute.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
-    INTRUDER_ATTRIBUTE_CHECK_TIME(
-            "intruder.attribute.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_TOKEN_DEST_RESET_TIME(
-            "intruder.tokenDest.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_TOKEN_DEST_MAX_ATTEMPTS(
-            "intruder.tokenDest.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
-    INTRUDER_TOKEN_DEST_CHECK_TIME(
-            "intruder.tokenDest.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_ADDRESS_RESET_TIME(
-            "intruder.address.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_ADDRESS_MAX_ATTEMPTS(
-            "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
-    INTRUDER_ADDRESS_CHECK_TIME(
-            "intruder.address.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER),
-    INTRUDER_SESSION_MAX_ATTEMPTS(
-            "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER),
+            "intruder.storageMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.INTRUDER_SETTINGS),
     SECURITY_SIMULATE_LDAP_BAD_PASSWORD(
-            "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.INTRUDER),
+            "security.ldap.simulateBadPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.INTRUDER_SETTINGS),
+
+    INTRUDER_USER_RESET_TIME(
+            "intruder.user.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_USER_MAX_ATTEMPTS(
+            "intruder.user.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_USER_CHECK_TIME(
+            "intruder.user.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ATTRIBUTE_RESET_TIME(
+            "intruder.attribute.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ATTRIBUTE_MAX_ATTEMPTS(
+            "intruder.attribute.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ATTRIBUTE_CHECK_TIME(
+            "intruder.attribute.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_TOKEN_DEST_RESET_TIME(
+            "intruder.tokenDest.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_TOKEN_DEST_MAX_ATTEMPTS(
+            "intruder.tokenDest.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_TOKEN_DEST_CHECK_TIME(
+            "intruder.tokenDest.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ADDRESS_RESET_TIME(
+            "intruder.address.resetTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ADDRESS_MAX_ATTEMPTS(
+            "intruder.address.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_ADDRESS_CHECK_TIME(
+            "intruder.address.checkTime", PwmSettingSyntax.DURATION, PwmSettingCategory.INTRUDER_TIMEOUTS),
+    INTRUDER_SESSION_MAX_ATTEMPTS(
+            "intruder.session.maxAttempts", PwmSettingSyntax.NUMERIC, PwmSettingCategory.INTRUDER_TIMEOUTS),
 
     // token settings
     TOKEN_STORAGEMETHOD(
@@ -779,6 +782,10 @@ public enum PwmSetting {
             "peopleSearch.photo.style", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_MAX_CACHE_SECONDS(
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
+            "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH),
+
+
 
     // edirectory settings
     EDIRECTORY_ENABLE_NMAS(
@@ -964,7 +971,9 @@ public enum PwmSetting {
     private final PwmSettingCategory category;
     private final Set<Template> templates;
 
-    private final Map<Template, StoredValue> defaultValueCacheMap = new HashMap<>();
+    private final Map<Template, StoredValue>    CACHE_DEFAULT_VALUES = new HashMap<>();
+    private final Map<Locale,String>            CACHE_LABELS = new HashMap<>();
+
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -1045,9 +1054,9 @@ public enum PwmSetting {
 
     public StoredValue getDefaultValue(final Template template)
             throws PwmOperationalException, PwmUnrecoverableException {
-        if (!defaultValueCacheMap.containsKey(template)) {
+        if (!CACHE_DEFAULT_VALUES.containsKey(template)) {
             if (this.getSyntax() == PwmSettingSyntax.PASSWORD) {
-                defaultValueCacheMap.put(template, new PasswordValue(null));
+                CACHE_DEFAULT_VALUES.put(template, new PasswordValue(null));
             } else {
                 final Element settingElement = PwmSettingXml.readSettingXml(this);
                 final XPathFactory xpfac = XPathFactory.instance();
@@ -1063,10 +1072,10 @@ public enum PwmSetting {
                 if (defaultElement == null) {
                     throw new IllegalStateException("no default value for setting " + this.getKey());
                 }
-                defaultValueCacheMap.put(template, ValueFactory.fromXmlValues(this, defaultElement, this.getKey()));
+                CACHE_DEFAULT_VALUES.put(template, ValueFactory.fromXmlValues(this, defaultElement, this.getKey()));
             }
         }
-        return defaultValueCacheMap.get(template);
+        return CACHE_DEFAULT_VALUES.get(template);
     }
 
     public Map<Template, String> getDefaultValueDebugStrings(final boolean prettyPrint, final Locale locale)
@@ -1104,24 +1113,17 @@ public enum PwmSetting {
         return Collections.unmodifiableMap(returnList);
     }
 
-    private static final Map<Locale,Map<PwmSetting,String>> CACHE_LABELS = new HashMap<>();
     public String getLabel(final Locale locale) {
-        Map<PwmSetting,String> localeCache = CACHE_LABELS.get(locale);
-        if (localeCache == null) {
-            CACHE_LABELS.put(locale,new HashMap<PwmSetting,String>());
-            localeCache = CACHE_LABELS.get(locale);
-        }
-        String labelText = localeCache.get(this);
-        if (labelText == null) {
+        if (!CACHE_LABELS.containsKey(locale)) {
             final Element settingElement = PwmSettingXml.readSettingXml(this);
             if (settingElement == null) {
                 throw new IllegalStateException("missing Setting value for setting " + this.getKey());
             }
             final Element labelElement = settingElement.getChild("label");
-            labelText = labelElement.getText();
-            localeCache.put(this,labelText);
+            String labelText = labelElement.getText();
+            CACHE_LABELS.put(locale,labelText);
         }
-        return labelText;
+        return CACHE_LABELS.get(locale);
     }
 
     public String getDescription(final Locale locale) {

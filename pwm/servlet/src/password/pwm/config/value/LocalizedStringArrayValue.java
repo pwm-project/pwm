@@ -28,6 +28,7 @@ import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.util.JsonUtil;
 
 import java.util.*;
@@ -118,4 +119,23 @@ public class LocalizedStringArrayValue extends AbstractValue implements StoredVa
 
         return Collections.emptyList();
     }
+
+    @Override
+    public String toDebugString(boolean prettyFormat, Locale locale) {
+        if (prettyFormat && values != null && !values.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            for (final String localeKey : values.keySet()) {
+                if (!values.get(localeKey).isEmpty()) {
+                    sb.append("Locale: ").append(LocaleHelper.debugLabel(LocaleHelper.parseLocaleString(localeKey))).append("\n");
+                    for (final String value : values.get(localeKey)) {
+                        sb.append("  ").append(value).append("\n");
+                    }
+                }
+            }
+            return sb.toString();
+        } else {
+            return JsonUtil.serializeMap(values);
+        }
+    }
+
 }

@@ -81,20 +81,20 @@ public class NewUserServlet extends PwmServlet {
         complete(PwmServlet.HttpMethod.GET),
         processForm(PwmServlet.HttpMethod.POST),
         validate(PwmServlet.HttpMethod.POST),
-        enterCode(PwmServlet.HttpMethod.POST),
+        enterCode(PwmServlet.HttpMethod.POST, HttpMethod.GET),
         reset(PwmServlet.HttpMethod.POST),
         agree(PwmServlet.HttpMethod.POST),;
 
-        private final PwmServlet.HttpMethod method;
+        private final Collection<PwmServlet.HttpMethod> method;
 
-        NewUserAction(PwmServlet.HttpMethod method)
+        NewUserAction(PwmServlet.HttpMethod... method)
         {
-            this.method = method;
+            this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
         public Collection<PwmServlet.HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(method);
+            return method;
         }
     }
 

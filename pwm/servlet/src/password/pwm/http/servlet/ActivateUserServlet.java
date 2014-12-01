@@ -72,22 +72,22 @@ public class ActivateUserServlet extends PwmServlet {
 
     public enum ActivateUserAction implements PwmServlet.ProcessAction {
         activate(PwmServlet.HttpMethod.POST),
-        enterCode(PwmServlet.HttpMethod.POST),
+        enterCode(PwmServlet.HttpMethod.POST, HttpMethod.GET),
         reset(PwmServlet.HttpMethod.POST),
         agree(PwmServlet.HttpMethod.POST),
 
         ;
 
-        private final PwmServlet.HttpMethod method;
+        private final Collection<PwmServlet.HttpMethod> method;
 
-        ActivateUserAction(PwmServlet.HttpMethod method)
+        ActivateUserAction(PwmServlet.HttpMethod... method)
         {
-            this.method = method;
+            this.method = Collections.unmodifiableList(Arrays.asList(method));
         }
 
         public Collection<PwmServlet.HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(method);
+            return method;
         }
     }
 

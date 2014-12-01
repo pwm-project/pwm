@@ -28,6 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.value.FileValue;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -58,6 +59,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class ResourceFileServlet extends HttpServlet {
 
@@ -71,15 +73,15 @@ public class ResourceFileServlet extends HttpServlet {
     private boolean setting_enablePathNonce = false;
     private long setting_maxCacheBytes = 1024;
 
-    private final Map<String,ZipFile> zipResources = new HashMap<>();
+    private final Map<String, ZipFile> zipResources = new HashMap<>();
+    private final Map<String, FileResource> customFileBundle = new HashMap<>();
     private Pattern noncePattern;
     private String nonceValue;
     private boolean pwmApplicationInitialized = false;
 
     public void init()
-            throws ServletException
-    {
-        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG,new EventRateMeter.MovingAverage(60 * 60 * 1000));
+            throws ServletException {
+        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG, new EventRateMeter.MovingAverage(60 * 60 * 1000));
 
         final String zipFileResourceParam = this.getInitParameter("zipFileResources");
         if (zipFileResourceParam != null) {
@@ -113,21 +115,34 @@ public class ResourceFileServlet extends HttpServlet {
         setting_enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
         setting_maxCacheBytes = Long.parseLong(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_MAX_CACHE_BYTES));
 
-        final String noncePrefix =  pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
+        final String noncePrefix = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
         noncePattern = Pattern.compile(noncePrefix + "[^/]*?/");
         nonceValue = pwmApplication.getInstanceNonce();
 
         final ConcurrentMap<CacheKey, CacheEntry> newCacheMap = new ConcurrentLinkedHashMap.Builder<CacheKey, CacheEntry>()
                 .maximumWeightedCapacity(setting_maxCacheItems)
                 .build();
-        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE,newCacheMap);
+        this.getServletContext().setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE, newCacheMap);
+
+        final Map<FileValue.FileInformation, FileValue.FileContent> files = pwmApplication.getConfig().readSettingAsFile(PwmSetting.DISPLAY_CUSTOM_RESOURCE_BUNDLE);
+        if (files != null && !files.isEmpty()) {
+            final FileValue.FileInformation fileInformation = files.keySet().iterator().next();
+            final FileValue.FileContent fileContent = files.get(fileInformation);
+            try {
+                final Map<String,FileResource> customFiles = makeMemoryFileMapFromZipInput(fileContent.getContents());
+                customFileBundle.clear();
+                customFileBundle.putAll(customFiles);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         pwmApplicationInitialized = true;
     }
 
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        processRequest(req,resp);
+        processRequest(req, resp);
     }
 
     @Override
@@ -135,16 +150,16 @@ public class ResourceFileServlet extends HttpServlet {
         processRequest(req, resp);
     }
 
-    private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext)  {
-        Map<CacheKey,CacheEntry> cacheMap = (Map)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
+    private static Map<CacheKey, CacheEntry> getCache(final ServletContext servletContext) {
+        Map<CacheKey, CacheEntry> cacheMap = (Map) servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_CACHE);
         return cacheMap == null ? new HashMap() : cacheMap;
     }
 
-    private static EventRateMeter.MovingAverage getCacheHitRatio(final ServletContext servletContext)  {
-        EventRateMeter.MovingAverage cacheHitRatio = (EventRateMeter.MovingAverage)servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG);
+    private static EventRateMeter.MovingAverage getCacheHitRatio(final ServletContext servletContext) {
+        EventRateMeter.MovingAverage cacheHitRatio = (EventRateMeter.MovingAverage) servletContext.getAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG);
         if (cacheHitRatio == null) {
             final EventRateMeter.MovingAverage newCacheHitRatio = new EventRateMeter.MovingAverage(60 * 60 * 1000);
-            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG,newCacheHitRatio);
+            servletContext.setAttribute(PwmConstants.CONTEXT_ATTR_RESOURCE_HIT_AVG, newCacheHitRatio);
             return newCacheHitRatio;
         }
         return cacheHitRatio;
@@ -157,7 +172,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
-    public void processRequest (
+    public void processRequest(
             final HttpServletRequest request,
             final HttpServletResponse response
     )
@@ -189,11 +204,13 @@ public class ResourceFileServlet extends HttpServlet {
 
         final FileResource file;
         try {
-            file = resolveRequestedFile(this.getServletContext(), requestURI, request, zipResources);
+            file = resolveRequestedFile(this.getServletContext(), requestURI, request, zipResources, customFileBundle);
         } catch (PwmUnrecoverableException e) {
-            response.sendError(500,e.getMessage());
+            response.sendError(500, e.getMessage());
             if (pwmRequest != null) {
-                try { pwmRequest.debugHttpRequestToLog("returning HTTP 500 status"); } catch (PwmUnrecoverableException e2) { /* noop */ }
+                try {
+                    pwmRequest.debugHttpRequestToLog("returning HTTP 500 status");
+                } catch (PwmUnrecoverableException e2) { /* noop */ }
             }
             return;
         }
@@ -201,7 +218,9 @@ public class ResourceFileServlet extends HttpServlet {
         if (file == null || !file.exists()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             if (pwmRequest != null) {
-                try { pwmRequest.debugHttpRequestToLog("returning HTTP 404 status"); } catch (PwmUnrecoverableException e) { /* noop */ }
+                try {
+                    pwmRequest.debugHttpRequestToLog("returning HTTP 404 status");
+                } catch (PwmUnrecoverableException e) { /* noop */ }
             }
             return;
         }
@@ -236,7 +255,9 @@ public class ResourceFileServlet extends HttpServlet {
                 response.setStatus(304);
                 ServletHelper.addPwmResponseHeaders(pwmRequest, false);
                 if (pwmRequest != null) {
-                    try { pwmRequest.debugHttpRequestToLog("returning HTTP 304 status"); } catch (PwmUnrecoverableException e2) { /* noop */ }
+                    try {
+                        pwmRequest.debugHttpRequestToLog("returning HTTP 304 status");
+                    } catch (PwmUnrecoverableException e2) { /* noop */ }
                 }
                 return;
             }
@@ -246,7 +267,7 @@ public class ResourceFileServlet extends HttpServlet {
         response.reset();
         response.setBufferSize(BUFFER_SIZE);
         response.setDateHeader("Expires", System.currentTimeMillis() + (setting_expireSeconds * 1000l));
-        response.setHeader("Cache-Control","public, max-age=" + setting_expireSeconds);
+        response.setHeader("Cache-Control", "public, max-age=" + setting_expireSeconds);
         response.setHeader("ETag", nonceValue);
         response.setContentType(contentType);
 
@@ -292,8 +313,8 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     public static long bytesInCache(final ServletContext servletContext) {
-        final Map<CacheKey,CacheEntry> responseCache = getCache(servletContext);
-        final Map<CacheKey,CacheEntry> cacheCopy = new HashMap<>();
+        final Map<CacheKey, CacheEntry> responseCache = getCache(servletContext);
+        final Map<CacheKey, CacheEntry> cacheCopy = new HashMap<>();
         cacheCopy.putAll(responseCache);
         long cacheByteCount = 0;
         for (final CacheKey cacheKey : cacheCopy.keySet()) {
@@ -306,14 +327,14 @@ public class ResourceFileServlet extends HttpServlet {
     }
 
     public static int itemsInCache(final ServletContext servletContext) {
-        final Map<CacheKey,CacheEntry> responseCache = getCache(servletContext);
+        final Map<CacheKey, CacheEntry> responseCache = getCache(servletContext);
         return responseCache.size();
     }
 
     public static Percent cacheHitRatio(final ServletContext servletContext) {
         final BigDecimal numerator = BigDecimal.valueOf(getCacheHitRatio(servletContext).getAverage());
         final BigDecimal denominator = BigDecimal.ONE;
-        return new Percent(numerator,denominator);
+        return new Percent(numerator, denominator);
     }
 
     private boolean handleCacheableResponse(
@@ -321,9 +342,8 @@ public class ResourceFileServlet extends HttpServlet {
             final FileResource file,
             final boolean acceptsGzip
     ) throws
-            UncacheableResourceException, IOException
-    {
-        final Map<CacheKey,CacheEntry> responseCache = getCache(getServletContext());
+            UncacheableResourceException, IOException {
+        final Map<CacheKey, CacheEntry> responseCache = getCache(getServletContext());
 
         if (file.length() > setting_maxCacheBytes) {
             throw new UncacheableResourceException("file to large to cache");
@@ -333,7 +353,7 @@ public class ResourceFileServlet extends HttpServlet {
         final CacheKey cacheKey = new CacheKey(file, acceptsGzip);
         CacheEntry cacheEntry = responseCache.get(cacheKey);
         if (cacheEntry == null) {
-            final Map<String,String> headers = new HashMap<>();
+            final Map<String, String> headers = new HashMap<>();
             final ByteArrayOutputStream output = new ByteArrayOutputStream(BUFFER_SIZE);
             final InputStream input = file.getInputStream();
 
@@ -341,10 +361,10 @@ public class ResourceFileServlet extends HttpServlet {
                 if (acceptsGzip) {
                     final GZIPOutputStream gzipOutputStream = new GZIPOutputStream(output, BUFFER_SIZE);
                     headers.put("Content-Encoding", "gzip");
-                    copy (input,gzipOutputStream);
+                    copy(input, gzipOutputStream);
                     close(gzipOutputStream);
                 } else {
-                    copy(input,output);
+                    copy(input, output);
                 }
             } finally {
                 close(input);
@@ -358,7 +378,7 @@ public class ResourceFileServlet extends HttpServlet {
             fromCache = true;
         }
 
-        responseCache.put(cacheKey,cacheEntry);
+        responseCache.put(cacheKey, cacheEntry);
         for (final String key : cacheEntry.getHeaderStrings().keySet()) {
             response.setHeader(key, cacheEntry.getHeaderStrings().get(key));
         }
@@ -377,8 +397,7 @@ public class ResourceFileServlet extends HttpServlet {
             final HttpServletResponse response,
             final FileResource file,
             final boolean acceptsGzip
-    ) throws IOException
-    {
+    ) throws IOException {
         // Prepare streams.
         OutputStream output = null;
         InputStream input = null;
@@ -462,7 +481,8 @@ public class ResourceFileServlet extends HttpServlet {
             final ServletContext servletContext,
             final String requestURI,
             final HttpServletRequest request,
-            final Map<String,ZipFile> zipResources
+            final Map<String, ZipFile> zipResources,
+            final Map<String, FileResource> customResources
     )
             throws UnsupportedEncodingException, PwmUnrecoverableException
     {
@@ -477,9 +497,17 @@ public class ResourceFileServlet extends HttpServlet {
             filename = filename.substring(0, filename.indexOf(";"));
         }
 
+        for (final String customFileName : customResources.keySet()) {
+            final String testName = request.getContextPath() + "/public/resources/" + customFileName;
+            if (testName.equals(requestURI)) {
+                return customResources.get(customFileName);
+            }
+        }
+
+        // check zip files.
         for (final String path : zipResources.keySet()) {
             if (filename.startsWith(path)) {
-                final String zipSubPath = filename.substring(path.length() + 1,filename.length());
+                final String zipSubPath = filename.substring(path.length() + 1, filename.length());
                 final ZipFile zipFile = zipResources.get(path);
                 final ZipEntry zipEntry = zipFile.getEntry(zipSubPath);
                 if (zipEntry != null) {
@@ -509,7 +537,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         LOGGER.warn("attempt to access file outside of servlet path " + file.getAbsolutePath());
-        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"illegal file path request"));
+        throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "illegal file path request"));
     }
 
     private boolean handleSpecialURIs(
@@ -542,10 +570,10 @@ public class ResourceFileServlet extends HttpServlet {
         try {
             response.setContentType("text/css");
             response.setDateHeader("Expires", System.currentTimeMillis() + (setting_expireSeconds * 1000l));
-            response.setHeader("Cache-Control","public, max-age=" + setting_expireSeconds);
+            response.setHeader("Cache-Control", "public, max-age=" + setting_expireSeconds);
             if (bodyText != null && bodyText.length() > 0) {
                 response.setIntHeader("Content-Length", bodyText.length());
-                copy(new ByteArrayInputStream(bodyText.getBytes()),response.getOutputStream());
+                copy(new ByteArrayInputStream(bodyText.getBytes()), response.getOutputStream());
             } else {
                 response.setIntHeader("Content-Length", 0);
             }
@@ -562,9 +590,9 @@ public class ResourceFileServlet extends HttpServlet {
 
     private static final class CacheEntry implements Serializable {
         final private byte[] entity;
-        final private Map<String,String> headerStrings;
+        final private Map<String, String> headerStrings;
 
-        private CacheEntry(final byte[] entity, final Map<String,String> headerStrings) {
+        private CacheEntry(final byte[] entity, final Map<String, String> headerStrings) {
             this.entity = entity;
             this.headerStrings = headerStrings;
         }
@@ -573,7 +601,7 @@ public class ResourceFileServlet extends HttpServlet {
             return entity;
         }
 
-        public Map<String,String> getHeaderStrings() {
+        public Map<String, String> getHeaderStrings() {
             return headerStrings;
         }
     }
@@ -613,9 +641,13 @@ public class ResourceFileServlet extends HttpServlet {
 
     static interface FileResource {
         InputStream getInputStream() throws IOException;
+
         long length();
+
         long lastModified();
+
         boolean exists();
+
         String getName();
     }
 
@@ -629,8 +661,7 @@ public class ResourceFileServlet extends HttpServlet {
         }
 
         public InputStream getInputStream()
-                throws IOException
-        {
+                throws IOException {
             return zipFile.getInputStream(zipEntry);
         }
 
@@ -679,6 +710,38 @@ public class ResourceFileServlet extends HttpServlet {
         }
     }
 
+    private static class MemoryFileResource implements FileResource {
+        private final String name;
+        private final byte[] contents;
+        private final long lastModified;
+
+        private MemoryFileResource(String name, byte[] contents, long lastModified) {
+            this.name = name;
+            this.contents = contents;
+            this.lastModified = lastModified;
+        }
+
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(contents);
+        }
+
+        public long length() {
+            return contents.length;
+        }
+
+        public long lastModified() {
+            return lastModified;
+        }
+
+        public boolean exists() {
+            return true;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
     private String stripNonceFromURI(final String uriString) {
         if (!setting_enablePathNonce) {
             return uriString;
@@ -693,14 +756,42 @@ public class ResourceFileServlet extends HttpServlet {
         return uriString;
     }
 
-    public static String makeResourcePathNonce(final PwmApplication pwmApplication)
-    {
+    public static String makeResourcePathNonce(final PwmApplication pwmApplication) {
         final boolean enablePathNonce = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_ENABLE_PATH_NONCE));
-        final String noncePrefix =  pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
+        final String noncePrefix = pwmApplication.getConfig().readAppProperty(AppProperty.HTTP_RESOURCES_NONCE_PATH_PREFIX);
         if (enablePathNonce) {
             return '/' + noncePrefix + pwmApplication.getInstanceNonce();
         } else {
             return "";
         }
+    }
+
+    private static Map<String, FileResource> makeMemoryFileMapFromZipInput(byte[] content)
+            throws IOException
+    {
+        final ZipInputStream stream = new ZipInputStream(new ByteArrayInputStream(content));
+        final Map<String, FileResource> memoryMap = new HashMap<>();
+        final byte[] buffer = new byte[1024];
+
+        ZipEntry entry;
+        while ((entry = stream.getNextEntry()) != null) {
+            if (!entry.isDirectory()) {
+                final String name = entry.getName();
+                final long lastModified = entry.getTime();
+                ByteArrayOutputStream byteArrayOutputStream = null;
+                try {
+                    byteArrayOutputStream = new ByteArrayOutputStream();
+                    int len;
+                    while ((len = stream.read(buffer)) > 0) {
+                        byteArrayOutputStream.write(buffer, 0, len);
+                    }
+                } finally {
+                    if (byteArrayOutputStream != null) byteArrayOutputStream.close();
+                }
+                final byte[] contents = byteArrayOutputStream.toByteArray();
+                memoryMap.put(name,new MemoryFileResource(name,contents,lastModified));
+            }
+        }
+        return memoryMap;
     }
 }

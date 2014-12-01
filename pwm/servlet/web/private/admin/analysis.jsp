@@ -79,7 +79,7 @@
                         <input name="maxResults" id="maxReportDataResults" value="1000" data-dojo-type="dijit.form.NumberSpinner" style="width: 70px"
                                data-dojo-props="constraints:{min:10,max:50000,pattern:'#'},smallDelta:100"/>
                         Rows
-                        <button class="btn" type="button" onclick="PWM_ADMIN.refreshReportDataGrid()">
+                        <button class="btn" type="button" id="button-refreshReportDataGrid">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                             <pwm:display key="Button_Refresh" bundle="Admin"/>
                         </button>
@@ -119,17 +119,17 @@
                     </table>
                     <table style="width:400px;">
                         <tr><td style="text-align: center; text-decoration: no-underline; cursor: pointer">
-                            <button id="reportStartButton" class="btn" onclick="PWM_ADMIN.reportAction('start')">
+                            <button id="reportStartButton" class="btn">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-play">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Start" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
-                            <button id="reportStopButton" class="btn" onclick="PWM_ADMIN.reportAction('stop')">
+                            <button id="reportStopButton" class="btn">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-stop">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Stop" bundle="Admin"/>
                             </button>
                             &nbsp;&nbsp;
-                            <button id="reportClearButton" class="btn" onclick="PWM_ADMIN.reportAction('clear')">
+                            <button id="reportClearButton" class="btn">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-trash-o">&nbsp;</span></pwm:if>
                                 <pwm:display key="Button_Report_Clear" bundle="Admin"/>
                             </button>
@@ -184,8 +184,7 @@
                         </table>
                     </div>
                     <div style="text-align: center">
-
-                        <button type="button" onclick="downloadCsv()" name="statisticsDownloadButton" class="btn">
+                        <button type="button" id="statisticsDownloadButton" class="btn">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-download" >&nbsp;</span></pwm:if>
                             Download as CSV
                         </button>
@@ -203,7 +202,7 @@
                             </select>
                             <label for="statsChartDays" style="padding-left: 10px">Days</label>
                             <input id="statsChartDays" value="30" data-dojo-type="dijit.form.NumberSpinner" style="width: 60px"
-                                   data-dojo-props="constraints:{min:7,max:120}" onclick="refreshChart()"/>
+                                   data-dojo-props="constraints:{min:7,max:120}"/>
                         </div>
                         <div id="statsChart">
                         </div>
@@ -241,11 +240,20 @@
                     PWM_ADMIN.refreshReportDataStatus(5 * 1000);
                 });
 
-                <%
-                for (Statistic loopStat : Statistic.sortedValues(locale)) {
-                %>
+                <% for (Statistic loopStat : Statistic.sortedValues(locale)) { %>
                 PWM_MAIN.showTooltip({id:'Statistic_Key_<%=loopStat.getKey()%>',width:400,position:'above',text:PWM_ADMIN.showString("Statistic_Description.<%=loopStat.getKey()%>")});
                 <% } %>
+
+                PWM_MAIN.addEventHandler('button-refreshReportDataGrid','click',function(){
+                    PWM_ADMIN.refreshReportDataGrid();
+                });
+                PWM_MAIN.addEventHandler('reportStartButton','click',function(){ PWM_ADMIN.reportAction('start') });
+                PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('stop') });
+                PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('clear') });
+
+                PWM_MAIN.addEventHandler('statisticsDownloadButton','click',function(){
+                    downloadCsv()
+                });
             });
         });
     </script>

@@ -253,7 +253,7 @@ public class RestAppDataServer extends AbstractRestServer {
     }
 
     @GET
-    @Path("/client-config")
+    @Path("/client-configsettings")
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetClientConfigData(
     ) throws ChaiUnavailableException, PwmUnrecoverableException {

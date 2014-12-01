@@ -22,9 +22,9 @@
 
 package password.pwm.health;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
-import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.util.logging.PwmLogger;
@@ -105,7 +105,7 @@ public class HealthMonitor implements PwmService {
     public void init(PwmApplication pwmApplication) throws PwmException {
         status = STATUS.OPENING;
         this.pwmApplication = pwmApplication;
-        this.intervalSeconds = (int) pwmApplication.getConfig().readSettingAsLong(PwmSetting.EVENTS_HEALTH_CHECK_MIN_INTERVAL);
+        this.intervalSeconds = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.HEALTH_MIN_CHECK_INTERVAL_SECONDS));
 
         if (intervalSeconds < MIN_INTERVAL_SECONDS) {
             intervalSeconds = MIN_INTERVAL_SECONDS;

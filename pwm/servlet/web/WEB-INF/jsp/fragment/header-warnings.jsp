@@ -76,29 +76,41 @@
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
     <% } else if (configMode) { %>
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
-<pwm:script>
-    <script type="application/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.showTooltip({
-                id: ['header-warning-message'],
-                position: ['below','above'],
-                text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
-                width: 500
+    <pwm:script>
+        <script type="application/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.showTooltip({
+                    id: ['header-warning-message'],
+                    position: ['below','above'],
+                    text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
+                    width: 500
+                });
             });
-        });
-    </script>
-</pwm:script>
+        </script>
+    </pwm:script>
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
     <% } %>
     </span>
-    <div id="headerHealthData" onclick="PWM_MAIN.goto('/private/config/ConfigManager')" style="cursor: pointer">
+    <div id="headerHealthData" style="cursor: pointer">
     </div>
     <div style="position: absolute; top: 3px; right: 3px;">
-        <span onclick="PWM_MAIN.getObject('header-warning').style.display = 'none';" style="cursor: pointer">
+        <span id="button-closeHeader" style="cursor: pointer">
             <span class="fa fa-caret-up"></span>&nbsp;
         </span>
     </div>
+    <pwm:script>
+        <script type="application/javascript">
+            PWM_GLOBAL['startupFunctions'].push(function(){
+                PWM_MAIN.addEventHandler('headerHealthData','click',function(){
+                    PWM_MAIN.goto('/private/config/ConfigManager');
+                });
+                PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
+                    PWM_MAIN.getObject('header-warning').style.display = 'none';
+                });
+            });
+        </script>
+    </pwm:script>
 </div>
 <% if (healthCheck) { %>
 <pwm:script>

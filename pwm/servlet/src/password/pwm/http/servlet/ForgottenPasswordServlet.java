@@ -84,18 +84,25 @@ public class ForgottenPasswordServlet extends PwmServlet {
     private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
 
     public enum ForgottenPasswordAction implements PwmServlet.ProcessAction {
-        search,
-        checkResponses,
-        enterCode,
-        enterOtp,
-        reset,
-        actionChoice,
-        tokenChoice,
+        search(HttpMethod.POST),
+        checkResponses(HttpMethod.POST),
+        enterCode(HttpMethod.POST, HttpMethod.GET),
+        enterOtp(HttpMethod.POST),
+        reset(HttpMethod.POST),
+        actionChoice(HttpMethod.POST),
+        tokenChoice(HttpMethod.POST),
         ;
+
+        private final Collection<PwmServlet.HttpMethod> method;
+
+        ForgottenPasswordAction(PwmServlet.HttpMethod... method)
+        {
+            this.method = Collections.unmodifiableList(Arrays.asList(method));
+        }
 
         public Collection<PwmServlet.HttpMethod> permittedMethods()
         {
-            return Collections.singletonList(HttpMethod.POST);
+            return method;
         }
     }
 

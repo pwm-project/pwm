@@ -22,7 +22,6 @@
 
 "use strict";
 
-var PWM_SETTINGS = PWM_SETTINGS || {};
 var PWM_CONFIG = PWM_CONFIG || {};
 var PWM_GLOBAL = PWM_GLOBAL || {};
 
@@ -257,34 +256,6 @@ PWM_CONFIG.uploadLocalDB=function() {
 
 };
 
-PWM_CONFIG.initConfigPage=function(nextFunction) {
-    require(["dojo"],function(dojo){
-        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-config";
-        dojo.xhrGet({
-            url: clientConfigUrl,
-            handleAs: 'json',
-            timeout: PWM_MAIN.ajaxTimeout,
-            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            load: function(data) {
-                if (data['error'] == true) {
-                    console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
-                } else {
-                    for (var settingKey in data['data']) {
-                        PWM_SETTINGS[settingKey] = data['data'][settingKey];
-                    }
-                }
-                console.log('loaded client-config data');
-                if (nextFunction) nextFunction();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to read config settings app-data: ' + error;
-                console.log(errorMsg);
-                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
-                if (nextFunction) nextFunction();
-            }
-        });
-    });
-};
 
 PWM_CONFIG.showString=function (key, options) {
     options = options === undefined ? {} : options;
@@ -481,8 +452,14 @@ PWM_CONFIG.uploadFile = function(options) {
 
 PWM_CONFIG.heartbeatCheck = function() {
     if (PWM_VAR['cancelHeartbeatCheck']) {
+        console.log('heartbeat check cancelled');
         return;
     }
+
+    require(["dojo","dijit/Dialog"],function() {
+        /* make sure dialog js is loaded, server may not be available to load lazy */
+    });
+
     console.log('beginning config-editor heartbeat check');
     var handleErrorFunction = function(message) {
         console.log('config-editor heartbeat failed');
@@ -497,7 +474,7 @@ PWM_CONFIG.heartbeatCheck = function() {
                 var message = "Application appears to have be restarted.";
                 handleErrorFunction(message);
             } else {
-                setTimeout(PWM_CFGEDIT.heartbeatCheck,5000);
+                setTimeout(PWM_CONFIG.heartbeatCheck,5000);
             }
         } catch (e) {
             handleErrorFunction('Error reading server status.');

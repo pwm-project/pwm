@@ -54,8 +54,7 @@ TODO: support HOTP
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_CheckCode"/>
                 </button>
-                <button type="submit" name="testOtpSecret" class="btn" id="goback_button"
-                        onclick="PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))">
+                <button type="submit" name="testOtpSecret" class="btn" id="button-goback">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
@@ -74,6 +73,7 @@ TODO: support HOTP
 <script type="text/javascript">
     PWM_GLOBAL['responseMode'] = "user";
     PWM_GLOBAL['startupFunctions'].push(function() {
+        PWM_MAIN.addEventHandler('button-goback','click',function(){PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('goBackForm'))});
         document.getElementById("<%= PwmConstants.PARAM_OTP_TOKEN%>").focus();
     });
 </script>

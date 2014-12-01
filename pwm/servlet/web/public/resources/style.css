@@ -152,9 +152,9 @@ table td.key {
     border: 0;
     border-collapse: collapse;
 } .noborder td {
-    border: 0;
-    border-collapse: collapse;
-}
+      border: 0;
+      border-collapse: collapse;
+  }
 
 /* disable ie password reveal */
 input[type=password]::-ms-reveal{display: none;}
@@ -238,8 +238,8 @@ input[type=password]::-ms-reveal{display: none;}
     background: #3e374c;
     cursor: pointer;
 }.btn:disabled {
-      color: #656565;
-}
+     color: #656565;
+ }
 
 .dialogBody {
     width: 500px;
@@ -661,4 +661,16 @@ img.qrcodeimage {
 
 #peoplesearch-searchResultsGrid {
 
+}
+
+.peoplesearch-input-username {
+    width:400px;
+}
+
+.checkboxWrapper {
+    border: 0;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #DBDBDB;
+    display: inline;
 }

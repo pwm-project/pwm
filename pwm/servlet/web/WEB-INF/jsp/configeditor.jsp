@@ -69,14 +69,16 @@
                         <span id="settingSearchIcon" class="fa fa-search"></span>
                     </td>
                     <td style="width:580px">
-                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" style="width: 580px" autofocus/>
+                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" style="width: 570px; margin-left:auto; margin-right: auto" autofocus/>
                     </td>
-                    <td style="width:10px">
+                    <td style="min-width:10px;max-width:10px;display: inline-block">
+                        <div style="margin-top:5px">
                         <div id="searchIndicator" style="display: none">
                             <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
                         </div>
                         <div id="noSearchResultsIndicator" style="display: none;">
                             <span style="color: #ffcd59;" class="fa fa-lg fa-ban"></span>
+                        </div>
                         </div>
                     </td>
                 </tr>

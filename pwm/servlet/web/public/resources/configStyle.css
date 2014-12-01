@@ -188,26 +188,26 @@
      background:linear-gradient(to bottom, #B2B1B9 5%, #E8E1F6 100% );
  }
 
- .tree-noicon {
-     width:0;
-     margin:0;
-     display:none;
- }
+.tree-noicon {
+    width:0;
+    margin:0;
+    display:none;
+}
 
- table {
-     max-width: 100%;
-     font-size: 12px;
- }
+table {
+    max-width: 100%;
+    font-size: 12px;
+}
 
- .modifiedNoticeIcon {
-     color:#d20734;
-     margin-right: 5px;
- }
+.modifiedNoticeIcon {
+    color:#d20734;
+    margin-right: 5px;
+}
 
- .setting_table_value {
-     max-width: 475px;
-     overflow: auto;
- }
+.setting_table_value {
+    max-width: 475px;
+    overflow: auto;
+}
 
 .delete-row-icon {
     color: #880000;
@@ -266,4 +266,14 @@
 .setting_item_value_wrapper {
     border: 2px solid #D4D4D4;
     margin-bottom: 4px;
+}
+
+select {
+    padding:0;
+    margin: 0;
+    border-radius:2px;
+    border-color: #bfbfbf;
+    font-size: 9pt;
+    background: #f8f8f8;
+    display: inline-block;
 }

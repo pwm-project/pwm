@@ -185,65 +185,36 @@ PWM_CFGEDIT.addValueButtonRow = function(parentDiv, keyName, addFunction) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
     newTableRow.appendChild(newTableData);
-
-    /*
-    PWM_MAIN.clearDijitWidget(keyName + '-addValueButton');
-    require(["dijit/form/Select","dijit/form/Button"],function(Select,Button) {
-        new Button({
-            id: buttonId,
-            onClick: addFunction
-        }, buttonId);
-    });
-    */
 };
 
 PWM_CFGEDIT.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction) {
-    var newTableRow = document.createElement("tr");
-    newTableRow.setAttribute("style", "border-width: 0");
+    var availableLocales = PWM_GLOBAL['localeInfo'];
 
-    var td1 = document.createElement("td");
-    td1.setAttribute("style", "border-width: 0");
-    td1.setAttribute("colspan", "5");
+    var tableRowElement = document.createElement('tr');
+    tableRowElement.setAttribute("style","border-width: 0");
 
-    var selectElement = document.createElement("select");
-    selectElement.setAttribute('id', keyName + '-addLocaleValue');
-    td1.appendChild(selectElement);
-
-    var addButton = document.createElement("button");
-    addButton.setAttribute('id', keyName + '-addLocaleButton');
-    addButton.setAttribute("type", "button");
-    addButton.setAttribute("class", "btn");
-    addButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Locale';
-    td1.appendChild(addButton);
-
-    newTableRow.appendChild(td1);
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-    parentDivElement.appendChild(newTableRow);
-
-    require(["dijit/form/Select"],function(Select){
-        var availableLocales = PWM_GLOBAL['localeInfo'];
-
-        var localeMenu = [];
-        for (var localeIter in availableLocales) {
-            if (localeIter != PWM_GLOBAL['defaultLocale']) {
-                var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
-                localeMenu.push({label: labelText, value: localeIter})
-            }
+    var bodyHtml = '';
+    bodyHtml += '<td style="border-width: 0" colspan="5">';
+    bodyHtml += '<select id="' + keyName + '-addLocaleValue">';
+    for (var localeIter in availableLocales) {
+        if (localeIter != PWM_GLOBAL['defaultLocale']) {
+            var labelText = availableLocales[localeIter] + " (" + localeIter + ")";
+            bodyHtml += '<option value="' + localeIter + '">' + labelText + '</option>';
         }
+    }
+    bodyHtml += '</select>';
 
-        PWM_MAIN.clearDijitWidget(keyName + '-addLocaleValue');
-        new Select({
-            id: keyName + '-addLocaleValue',
-            options: localeMenu,
-            style: 'width: 175px'
-        }, keyName + '-addLocaleValue');
+    bodyHtml += '<button type="button" class="btn" id="' + keyName + '-addLocaleButton"><span class="btn-icon fa fa-plus-square"></span>Add Locale</button>'
 
-        PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
-            addFunction();
-        });
+    bodyHtml += '</td>';
+    tableRowElement.innerHTML = bodyHtml;
+    PWM_MAIN.getObject(parentDiv).appendChild(tableRowElement);
 
-        return newTableRow;
+    PWM_MAIN.addEventHandler(keyName + '-addLocaleButton','click',function(){
+        var value = PWM_MAIN.getObject(keyName + "-addLocaleValue").value;
+        addFunction(value);
     });
+
 };
 
 
@@ -413,9 +384,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         PWM_CFGEDIT.showMacroHelp();
     });
 
-    require(["dojo","dijit/Dialog"],function() {
-        setTimeout(PWM_CONFIG.heartbeatCheck,5000);
-    });
+    setTimeout(PWM_CONFIG.heartbeatCheck,5000);
 
     PWM_CFGEDIT.loadMainPageBody();
 
@@ -489,6 +458,13 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
     }});
 };
 
+PWM_CFGEDIT.handleSearchFieldInput = function() {
+    var searchTerm = PWM_MAIN.getObject('homeSettingSearch').value;
+    PWM_CFGEDIT.processSettingSearch(
+        searchTerm,
+        PWM_MAIN.getObject('searchResults')
+    );
+};
 
 PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
     var url = "ConfigEditor?processAction=search";
@@ -496,6 +472,11 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
 
     destinationDiv.style.visibility = 'hidden';
     PWM_MAIN.getObject('noSearchResultsIndicator').style.display = 'none';
+
+    if (!searchValue || searchValue.length < 1) {
+        PWM_MAIN.getObject('searchIndicator').style.display = 'none';
+        return;
+    }
 
     var loadFunction = function(data) {
         if (!data) {
@@ -517,16 +498,9 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
                     for (var settingIter in category) {
                         var setting = category[settingIter];
                         var profileID = setting['profile'];
-                        var functionText;
-                        if (profileID) {
-                            functionText = 'PWM_CFGEDIT.gotoSetting(\'' + setting['category'] + '\',\'' + settingIter + '\',\'' + profileID + '\')';
-                        } else {
-                            functionText = 'PWM_CFGEDIT.gotoSetting(\'' + setting['category'] + '\',\'' + settingIter + '\')';
-                        }
-
-                        bodyText += '<span>&nbsp;&nbsp;</span>';
+                        var linkID = 'link-' + setting['category'] + '-' + settingIter + (profileID ? profileID : '');
                         var settingID = "search_" + (profileID ? profileID + '_' : '') + settingIter;
-                        bodyText += '<span id="' + settingID + '" style="text-indent: 1.5em; margin-left 10px; cursor: pointer; text-decoration: underline" onclick="' + functionText + '">';
+                        bodyText += '<span id="' + linkID + '" style="text-indent: 1.5em; margin-left 10px; cursor: pointer; text-decoration: underline">';
                         bodyText += PWM_SETTINGS['settings'][settingIter]['label'];
                         bodyText += '</span>&nbsp;<span id="' + settingID + '_popup" class="btn-icon fa fa-info-circle"></span>';
                         if (!setting['default']) {
@@ -538,19 +512,18 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
                 }
                 destinationDiv.style.visibility = 'visible';
                 destinationDiv.innerHTML = bodyText;
-                PWM_MAIN.flashDomElement('#000000', destinationDiv.id, 300);
-                (function () {
-                    for (var categoryIter in data['data']) {
-                        var category = data['data'][categoryIter];
-                        for (var settingIter in category) {
-                            var setting = category[settingIter];
+                for (var categoryIter in data['data']) {
+                    var category = data['data'][categoryIter];
+                    for (var iter in category) {
+                        (function (settingKey) {
+                            var setting = category[settingKey];
                             var profileID = setting['profile'];
-                            var settingID = "search_" + (profileID ? profileID + '_' : '') + settingIter;
+                            var settingID = "search_" + (profileID ? profileID + '_' : '') + settingKey;
                             var value = setting['value'];
                             var toolBody = '<span style="font-weight: bold">Setting</span>';
-                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingIter]['label'] + '<br/><br/>';
+                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['label'] + '<br/><br/>';
                             toolBody += '<span style="font-weight: bold">Description</span>';
-                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingIter]['description'] + '<br/><br/>';
+                            toolBody += '<br/>' + PWM_SETTINGS['settings'][settingKey]['description'] + '<br/><br/>';
                             toolBody += '<span style="font-weight: bold">Value</span>';
                             toolBody += '<br/>' + value.replace('\n', '<br/>') + '<br/>';
                             PWM_MAIN.showTooltip({
@@ -558,9 +531,13 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
                                 text: toolBody,
                                 width: 500
                             });
-                        }
+                            var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
+                            PWM_MAIN.addEventHandler(linkID ,'click',function(){
+                                PWM_CFGEDIT.gotoSetting(setting['category'],settingKey,profileID);
+                            });
+                        }(iter));
                     }
-                }());
+                }
             }
         }
     };
@@ -580,7 +557,7 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
 
 
 PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
-    console.log('going to setting...');
+    console.log('going to setting... category=' + category + " settingKey=" + settingKey + " profile=" + profile);
     PWM_VAR['preferences']['category'] = category;
     PWM_VAR['preferences']['setting'] = settingKey ? settingKey : '';
     if (profile) {
@@ -596,9 +573,10 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
 
     if (settingKey) {
         setTimeout(function(){
-            location.href = "#setting-"+settingKey;
+            console.log('navigating and highlighting setting ' + settingKey);
+            location.href = "#setting-" + settingKey;
             PWM_MAIN.flashDomElement('red','outline_' + settingKey,5000);
-        },1000);
+        },3000);
     }
 };
 
@@ -1103,14 +1081,6 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
     checkForFinishFunction();
 };
 
-PWM_CFGEDIT.handleSearchFieldInput = function() {
-    var searchTerm = PWM_MAIN.getObject('homeSettingSearch').value;
-    PWM_CFGEDIT.processSettingSearch(
-        searchTerm,
-        PWM_MAIN.getObject('searchResults')
-    );
-};
-
 PWM_CFGEDIT.drawHomePage = function() {
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
     settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
@@ -1175,3 +1145,31 @@ PWM_CFGEDIT.readLocalStorage = function(dataUpdate) {
     }
 };
 
+PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
+    require(["dojo"],function(dojo){
+        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-configsettings";
+        dojo.xhrGet({
+            url: clientConfigUrl,
+            handleAs: 'json',
+            timeout: PWM_MAIN.ajaxTimeout,
+            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
+            load: function(data) {
+                if (data['error'] == true) {
+                    console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+                } else {
+                    for (var settingKey in data['data']) {
+                        PWM_SETTINGS[settingKey] = data['data'][settingKey];
+                    }
+                }
+                console.log('loaded client-configsettings data');
+                if (nextFunction) nextFunction();
+            },
+            error: function(error) {
+                var errorMsg = 'unable to read config settings app-data: ' + error;
+                console.log(errorMsg);
+                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
+                if (nextFunction) nextFunction();
+            }
+        });
+    });
+};

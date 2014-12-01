@@ -47,7 +47,10 @@
             <br class="clear"/>
             <input type="<pwm:value name="passwordFieldType"/>" class="inputfield passwordfield" name="password" id="password" autofocus/>
             <div id="buttonbar">
-                <input type="checkbox" id="remember" name="remember">Remember Password for 1 Hour</input>
+                <label class="checkboxWrapper">
+                    <input type="checkbox" id="remember" name="remember"/>
+                    Remember Password for 1 Hour
+                </label>
                 <br>
                 <button type="submit" class="btn" name="button" id="submitBtn">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>

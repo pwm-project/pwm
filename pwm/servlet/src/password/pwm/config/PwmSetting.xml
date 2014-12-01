@@ -190,7 +190,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="display.showResetButton" level="0" required="true">
+    <setting key="display.showResetButton" level="0" required="true" hidden="true">
         <label>Show Clear Button</label>
         <description><![CDATA[Where appropriate, show a "Clear" button to user.  Pressing the clear button will clear the form field values to their original values.]]></description>
         <default>
@@ -325,6 +325,13 @@
     <setting key="display.js.custom" level="1">
         <label>Embedded JavaScript</label>
         <description><![CDATA[Contents of this setting will be injected into all pages inside a <script></script> html tag near the bottom of the page.]]></description>
+        <default>
+            <value />
+        </default>
+    </setting>
+    <setting key="display.custom.resourceBundle" level="1">
+        <label>Custom Resource Bundle</label>
+        <description><![CDATA[A custom ZIP file containing HTTP resources to be served by the application from the HTTP path <code>/public/resources/</code>.  The maximum zip file size is 10MB.]]></description>
         <default>
             <value />
         </default>
@@ -548,7 +555,7 @@
     </setting>
     <setting key="ldap.guidAttribute" level="0" required="true">
         <label>LDAP GUID Attribute</label>
-        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto-Add GUID Value" option to true.]]></description>
+        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto Add GUID Value" option to true.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[VENDORGUID]]></value>
@@ -576,7 +583,7 @@
         </default>
     </setting>
     <setting key="ldap.guid.autoAddValue" level="1" required="true">
-        <label>Auto-Add GUID Value</label>
+        <label>Auto Add GUID Value</label>
         <description><![CDATA[If true, A unique GUID value will be created and assigned for any user attempting to authenticate that does not have a value.  The value will be written to the attribute named in the LDAP GUID Attribute setting.]]></description>
         <default>
             <value>false</value>
@@ -1485,6 +1492,13 @@
             <value>300</value>
         </default>
     </setting>
+    <setting key="intruder.enable" level="0" required="true">
+        <label>Intruder Detection Enabled</label>
+        <description><![CDATA[Enable the application level intruder detection system.  Your LDAP directory intruder detection settings will function independently of this setting.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
     <setting key="intruder.storageMethod" level="0" required="true">
         <label>Intruder Record Storage Location</label>
         <description><![CDATA[Data store used for Intruder Records.  If <i>Database</i> is used, all application instances will share a common view of intruder status.  If <i>LocalDB</i> is used, each instance has it's own intruder state.  LocalDB is likely to have less performance overhead and having a consistent intruder state across all application instances may not be important.  Auto Configure will use a database if configured, if not the LocalDB will be used.]]></description>
@@ -1781,7 +1795,7 @@
         </options>
     </setting>
     <setting key="audit.syslog.servers" level="0" required="false">
-        <label>Syslog Audit Servers</label>
+        <label>Syslog Audit Server</label>
         <description><![CDATA[Syslog audit server.  When configured, all audit events will be forwarded to the specified syslog server.  The format is <b>&lt;protocol&gt;</b>,<b>&lt;address&gt;</b>,<b>&lt;port&gt;</b>.  The value for <b>&lt;protocol&gt;</b> can be either <i>udp</i> or <i>tcp</i>.<br/><br/>Examples:<table><tr><td>Protocol</td><td>Address</td><td>Port</td><td>Setting</td><tr><tr><td>UDP</td><td>127.0.0.1</td><td>514</td><td>udp,127.0.0.1,514</td><tr><tr><td>TCP</td><td>central-syslog.example.com</td><td>514</td><td>tcp,central-syslog.example.com,514</td><tr></table>]]></description>
         <default>
             <value/>
@@ -1789,7 +1803,7 @@
         <regex>^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
     </setting>
     <setting key="audit.syslog.certificates" level="0" required="false">
-        <label>Syslog Audit Certificates</label>
+        <label>Syslog Audit Server Certificates</label>
         <description><![CDATA[]]></description>
         <default/>
     </setting>
@@ -1940,13 +1954,6 @@
         <description><![CDATA[User Identifier.  Macros are available.]]></description>
         <default>
             <value><![CDATA[@User:Email@]]></value>
-        </default>
-    </setting>
-    <setting key="events.healthCheck.minInterval" level="0">
-        <label>Health Check Frequency</label>
-        <description><![CDATA[Frequency (in seconds) at which a self-health check is performed.  Default is two minutes.Health Checks only occur when the health check results are being viewed.]]></description>
-        <default>
-            <value>120</value>
         </default>
     </setting>
     <setting key="events.java.stdoutLevel" level="0">
@@ -2965,6 +2972,13 @@
             <value>3600</value>
         </default>
     </setting>
+    <setting key="peopleSearch.photo.queryFilter" level="1">
+        <label>PeopleSearch Photo Display Permission</label>
+        <description><![CDATA[Permission filter to control photo visibility.  This permission is applied to the user being looked up, and if not passed the user's photo will not be displayed.]]></description>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+        </default>
+    </setting>
     <setting key="ldap.edirectory.enableNmas" level="0" required="true">
         <label>Enable NMAS Extensions</label>
         <description><![CDATA[When connecting to a NetIQ eDirectory LDAP directory, this parameter will control if NMAS extensions will be used when connecting to the ldap directory.  Enabling nmas results in:<ul><li>better error messages when using universal password policies</li><li>better error handling during certain change password scenarios</li></ul>Unless you are using an older version of eDirectory (pre 8.8 or before), it is generally best to set this to true.<br/><br/>All NMAS operations require an SSL connection to the directory.]]></description>
@@ -3893,6 +3907,14 @@ sms    </setting>
     <category key="INTRUDER">
         <label>Intruder Detection</label>
         <description><![CDATA[This application has built in intruder detection independent of what your LDAP directory may provide.  Because this application may be exposed directly to the internet, this additional layer of detection helps protect against direct attacks.  The LDAP directory's own internal intruder detection (if enabled) will always be honored as well.  The goal for this intruder detection system isn't to watch for human intruders, it is designed to stop robot or automatic attacks.  It is recommended that the triggers be sufficiently high so that normal user usage will not cause an application-level intruder detection.]]></description>
+    </category>
+    <category key="INTRUDER_SETTINGS">
+        <label>Intruder Settings</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="INTRUDER_TIMEOUTS">
+        <label>Intruder Timeouts</label>
+        <description><![CDATA[]]></description>
     </category>
     <category key="TOKEN">
         <label>Tokens</label>

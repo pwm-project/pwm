@@ -26,7 +26,7 @@
 
 #centerbody {
     background-color: white;
-    box-shadow: 0 9px 0px 0px white, 0 -9px 0px 0px white, 12px 0 15px -4px #e4e4e4, -12px 0 15px -4px #e4e4e4;
+    box-shadow: 0 9px 0 0 white, 0 -9px 0 0 white, 9px 0 12px -4px #e4e4e4, -9px 0 12px -4px #e4e4e4;
     border-radius: 4px;
 }
 
