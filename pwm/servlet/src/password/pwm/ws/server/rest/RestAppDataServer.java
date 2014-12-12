@@ -29,7 +29,10 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
 import password.pwm.config.option.SelectableContextMode;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
@@ -74,39 +77,6 @@ public class RestAppDataServer extends AbstractRestServer {
         public Map<String,Object> PWM_GLOBAL;
     }
 
-    public static class SettingInfo implements Serializable {
-        public String key;
-        public String label;
-        public String description;
-        public PwmSettingCategory category;
-        public PwmSettingSyntax syntax;
-        public boolean hidden;
-        public boolean required;
-        public Map<String,String> options;
-        public String pattern;
-        public String placeholder;
-    }
-
-    public static class CategoryInfo implements Serializable {
-        public int level;
-        public String key;
-        public String description;
-        public String label;
-        public PwmSettingSyntax syntax;
-        public String parent;
-        public boolean hidden;
-    }
-
-    public static class LocaleInfo implements Serializable {
-        public String description;
-        public String key;
-        public boolean adminOnly;
-    }
-
-    public static class TemplateInfo implements Serializable {
-        public String description;
-        public String key;
-    }
 
 
     @GET
@@ -251,41 +221,6 @@ public class RestAppDataServer extends AbstractRestServer {
         return restResultBean.asJsonResponse();
 
     }
-
-    @GET
-    @Path("/client-configsettings")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
-    public Response doGetClientConfigData(
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
-
-        final RestRequestBean restRequestBean;
-        try {
-            final ServicePermissions servicePermissions = new ServicePermissions();
-            servicePermissions.setAdminOnly(true);
-            servicePermissions.setAuthRequired(true);
-            servicePermissions.setBlockExternal(true);
-            servicePermissions.setPublicDuringConfig(true);
-            restRequestBean = RestServerHelper.initializeRestRequest(request, response, servicePermissions, null);
-        } catch (PwmUnrecoverableException e) {
-            return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
-        }
-
-        final String eTagValue = restRequestBean.getPwmApplication().getInstanceNonce();
-
-        // check the incoming header;
-        final String ifNoneMatchValue = request.getHeader("If-None-Match");
-
-        if (ifNoneMatchValue != null && ifNoneMatchValue.equals(eTagValue)) {
-            return Response.notModified().build();
-        }
-
-        response.setHeader("ETag",eTagValue);
-
-        final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setData(makeClientConfigData(restRequestBean));
-        return restResultBean.asJsonResponse();
-    }
-
 
     @GET
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
@@ -503,67 +438,6 @@ public class RestAppDataServer extends AbstractRestServer {
         return settingMap;
     }
 
-    private static LinkedHashMap<String,Object> makeClientConfigData(final RestRequestBean restRequestBean) {
-        final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
-        final Locale locale = restRequestBean.getPwmSession().getSessionStateBean().getLocale();
-        {
-            final LinkedHashMap<String,Object> settingMap = new LinkedHashMap<>();
-            for (final PwmSetting setting : PwmSetting.values()) {
-                final SettingInfo settingInfo = new SettingInfo();
-                settingInfo.key = setting.getKey();
-                settingInfo.description = setting.getDescription(locale);
-                settingInfo.label = setting.getLabel(locale);
-                settingInfo.syntax = setting.getSyntax();
-                settingInfo.category = setting.getCategory();
-                settingInfo.required = setting.isRequired();
-                settingInfo.hidden = setting.isHidden();
-                settingInfo.options = setting.getOptions();
-                settingInfo.pattern = setting.getRegExPattern().toString();
-                settingInfo.placeholder = setting.getPlaceholder(locale);
-                settingMap.put(setting.getKey(),settingInfo);
-            }
-            returnMap.put("settings",settingMap);
-        }
-        {
-            final LinkedHashMap<String,Object> categoryMap = new LinkedHashMap<>();
-            for (final PwmSettingCategory category : PwmSettingCategory.values()) {
-                final CategoryInfo categoryInfo = new CategoryInfo();
-                categoryInfo.key = category.getKey();
-                categoryInfo.level = category.getLevel();
-                categoryInfo.description = category.getDescription(locale);
-                categoryInfo.label = category.getLabel(locale);
-                categoryInfo.hidden = category.isHidden();
-                if (category.getParent() != null) {
-                    categoryInfo.parent = category.getParent().getKey();
-                }
-                categoryMap.put(category.getKey(),categoryInfo);
-            }
-            returnMap.put("categories",categoryMap);
-        }
-        {
-            final LinkedHashMap<String,Object> labelMap = new LinkedHashMap<>();
-            for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) {
-                final LocaleInfo localeInfo = new LocaleInfo();
-                localeInfo.description = localeBundle.getTheClass().getSimpleName();
-                localeInfo.key = localeBundle.toString();
-                localeInfo.adminOnly = localeBundle.isAdminOnly();
-                labelMap.put(localeBundle.getTheClass().getSimpleName(),localeInfo);
-            }
-            returnMap.put("locales",labelMap);
-        }
-        {
-            final LinkedHashMap<String,Object> templateMap = new LinkedHashMap<>();
-            for (final PwmSetting.Template template : PwmSetting.Template.values()) {
-                final TemplateInfo templateInfo = new TemplateInfo();
-                templateInfo.description = template.getLabel(locale);
-                templateInfo.key = template.toString();
-                templateMap.put(template.toString(),templateInfo);
-            }
-            returnMap.put("templates",templateMap);
-        }
-
-        return returnMap;
-    }
 
     public static String makeClientEtag(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException

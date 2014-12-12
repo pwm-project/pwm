@@ -30,10 +30,6 @@ import password.pwm.util.logging.PwmLogger;
 import java.util.Locale;
 
 /**
- * Utility class for managing messages returned by the servlet for inclusion in UI screens.
- * This class contains a set of constants that match a corresponding properties file which
- * follows ResourceBundle rules for structure and internationalization.
- *
  * @author Jason D. Rivard
  */
 public enum PwmError {
@@ -79,6 +75,7 @@ public enum PwmError {
     PASSWORD_EXPIRED("Password_Expired", 4040, false, ChaiError.PASSWORD_EXPIRED),
     PASSWORD_CUSTOM_ERROR("Password_CustomError", 4041, false),
     PASSWORD_NOT_ENOUGH_GROUPS("Password_NotEnoughGroups", 4042, false, (ChaiError[]) null),
+    PASSWORD_TOO_MANY_CONSECUTIVE("Password_TooManyConsecutive", 4043, false),
 
     ERROR_WRONGPASSWORD("Error_WrongPassword", 5001, false, ChaiError.FAILED_AUTHENTICATION),
     ERROR_INCORRECT_RESPONSE("Error_WrongResponse", 5002, false),

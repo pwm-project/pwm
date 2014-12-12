@@ -173,7 +173,7 @@ public class StoredConfiguration implements Serializable {
         for (final PwmSettingCategory category : PwmSettingCategory.values()) {
             if (category.hasProfiles()) {
                 for (final String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
-                    for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
+                    for (final PwmSetting profileSetting : category.getSettings()) {
                         final StoredValue value = storedConfiguration.readSetting(profileSetting, profileID);
                         if (value.requiresStoredUpdate()) {
                             storedConfiguration.writeSetting(profileSetting, profileID, value, null);
@@ -425,7 +425,7 @@ public class StoredConfiguration implements Serializable {
                     final TreeMap<String,Object> profiles = new TreeMap<>();
                     for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
                         final TreeMap<String,String> profileObject = new TreeMap<>();
-                        for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
+                        for (final PwmSetting profileSetting : category.getSettings()) {
                             if (!isDefaultValue(profileSetting, profileID)) {
                                 final StoredValue value = readSetting(profileSetting, profileID);
                                 profileObject.put(profileSetting.getKey(), value.toDebugString(false, null));
@@ -591,6 +591,12 @@ public class StoredConfiguration implements Serializable {
     private boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
         if (setting.isHidden() || setting.getLevel() > 1 || setting.getCategory().isHidden()) {
             return false;
+        }
+        {
+            final String key = setting.getKey();
+            if (key.toLowerCase().contains(searchTerm.toLowerCase())) {
+                return true;
+            }
         }
         {
             final String label = setting.getLabel(locale);
@@ -770,7 +776,7 @@ public class StoredConfiguration implements Serializable {
         for (final PwmSettingCategory category : PwmSettingCategory.values()) {
             if (category.hasProfiles()) {
                 for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
-                    for (final PwmSetting profileSetting : PwmSetting.getSettings(category)) {
+                    for (final PwmSetting profileSetting : category.getSettings()) {
                         if (!isDefaultValue(profileSetting, profileID)) {
                             final StoredValue value = readSetting(profileSetting, profileID);
                             sb.append(profileSetting.getKey()).append(profileID).append(JsonUtil.serialize(value));
@@ -1236,7 +1242,7 @@ public class StoredConfiguration implements Serializable {
             for (final PwmSettingCategory category : PwmSettingCategory.values()) {
                 if (category.hasProfiles()) {
                     for (final String profileID : profilesForSetting(category.getProfileSetting())) {
-                        for (final PwmSetting setting : PwmSetting.getSettings(category)) {
+                        for (final PwmSetting setting : category.getSettings()) {
                             if (includeDefaults || !isDefaultValue(setting,profileID)) {
                                 SettingValueRecord settingValueRecord = new SettingValueRecord(setting, profileID, null);
                                 settingQueue.add(settingValueRecord);

@@ -33,68 +33,72 @@ public enum PwmSettingCategory {
     PROFILES(null),
     MODULES(null),
 
-    GENERAL             (SETTINGS),
-    LDAP                (SETTINGS),
+    GENERAL                     (SETTINGS),
+    LDAP                        (SETTINGS),
 
-    LDAP_GLOBAL         (LDAP),
-    EDIRECTORY          (LDAP),
-    ACTIVE_DIRECTORY    (LDAP),
-    ORACLE_DS           (LDAP),
+    LDAP_GLOBAL                 (LDAP),
+    EDIRECTORY                  (LDAP),
+    ACTIVE_DIRECTORY            (LDAP),
+    ORACLE_DS                   (LDAP),
 
-    USER_INTERFACE      (SETTINGS),
-    UI_FEATURES         (USER_INTERFACE),
-    UI_WEB              (USER_INTERFACE),
+    USER_INTERFACE              (SETTINGS),
+    UI_FEATURES                 (USER_INTERFACE),
+    UI_WEB                      (USER_INTERFACE),
 
-    PASSWORD_GLOBAL     (SETTINGS),
-    CHALLENGE           (SETTINGS),
+    PASSWORD_GLOBAL             (SETTINGS),
+    CHALLENGE                   (SETTINGS),
 
-    EMAIL               (SETTINGS),
-    EMAIL_SETTINGS      (EMAIL),
-    EMAIL_TEMPLATES     (EMAIL),
+    EMAIL                       (SETTINGS),
+    EMAIL_SETTINGS              (EMAIL),
+    EMAIL_TEMPLATES             (EMAIL),
 
-    SMS                 (SETTINGS),
-    SMS_GATEWAY         (SMS),
-    SMS_MESSAGES        (SMS),
+    SMS                         (SETTINGS),
+    SMS_GATEWAY                 (SMS),
+    SMS_MESSAGES                (SMS),
 
-    SECURITY            (SETTINGS),
-    APP_SECURITY        (SECURITY),
-    WEB_SECURITY        (SECURITY),
+    SECURITY                    (SETTINGS),
+    APP_SECURITY                (SECURITY),
+    WEB_SECURITY                (SECURITY),
 
-    CAPTCHA             (SETTINGS),
-    INTRUDER            (SETTINGS),
-    INTRUDER_SETTINGS   (INTRUDER),
-    INTRUDER_TIMEOUTS   (INTRUDER),
+    CAPTCHA                     (SETTINGS),
+    INTRUDER                    (SETTINGS),
+    INTRUDER_SETTINGS           (INTRUDER),
+    INTRUDER_TIMEOUTS           (INTRUDER),
 
-    TOKEN               (SETTINGS),
-    OTP                 (SETTINGS),
-    LOGGING             (SETTINGS),
+    TOKEN                       (SETTINGS),
+    OTP                         (SETTINGS),
+    LOGGING                     (SETTINGS),
 
-    AUDITING            (SETTINGS),
-    AUDIT_CONFIG        (AUDITING),
-    USER_HISTORY        (AUDITING),
-    AUDIT_FORWARD       (AUDITING),
+    AUDITING                    (SETTINGS),
+    AUDIT_CONFIG                (AUDITING),
+    USER_HISTORY                (AUDITING),
+    AUDIT_FORWARD               (AUDITING),
 
-    DATABASE            (SETTINGS),
-    REPORTING           (SETTINGS),
-    MISC                (SETTINGS),
-    OAUTH               (SETTINGS),
+    DATABASE                    (SETTINGS),
+    REPORTING                   (SETTINGS),
+    SSO                         (SETTINGS),
+    OAUTH                       (SSO),
+    MISC                        (SETTINGS),
+    REST_SERVER                 (MISC),
+    REST_CLIENT                 (MISC),
 
-    LDAP_PROFILE        (PROFILES),
-    PASSWORD_POLICY     (PROFILES),
-    CHALLENGE_POLICY    (PROFILES),
-    HELPDESK_PROFILE    (PROFILES),
+    LDAP_PROFILE                (PROFILES),
+    PASSWORD_POLICY             (PROFILES),
+    CHALLENGE_POLICY            (PROFILES),
+    HELPDESK_PROFILE            (PROFILES),
+    RECOVERY_PROFILE(PROFILES),
 
-    CHANGE_PASSWORD     (MODULES),
-    ACCOUNT_INFO        (MODULES),
-    RECOVERY            (MODULES),
-    FORGOTTEN_USERNAME  (MODULES),
-    NEWUSER             (MODULES),
-    GUEST               (MODULES),
-    ACTIVATION          (MODULES),
-    UPDATE              (MODULES),
-    SHORTCUT            (MODULES),
-    PEOPLE_SEARCH       (MODULES),
-    HELPDESK            (MODULES),
+    CHANGE_PASSWORD             (MODULES),
+    ACCOUNT_INFO                (MODULES),
+    RECOVERY                    (MODULES),
+    FORGOTTEN_USERNAME          (MODULES),
+    NEWUSER                     (MODULES),
+    GUEST                       (MODULES),
+    ACTIVATION                  (MODULES),
+    UPDATE                      (MODULES),
+    SHORTCUT                    (MODULES),
+    PEOPLE_SEARCH               (MODULES),
+    HELPDESK                    (MODULES),
 
     ;
 
@@ -201,5 +205,15 @@ public enum PwmSettingCategory {
         }
 
         return null;
+    }
+
+    public List<PwmSetting> getSettings() {
+        final List<PwmSetting> returnList = new ArrayList<>();
+        for (final PwmSetting setting : PwmSetting.values()) {
+            if (setting.getCategory() == this) {
+                returnList.add(setting);
+            }
+        }
+        return Collections.unmodifiableList(returnList);
     }
 }

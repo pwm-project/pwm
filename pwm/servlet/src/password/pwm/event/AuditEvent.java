@@ -46,6 +46,7 @@ public enum AuditEvent {
 
     // user events stored in user event history
     CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD, Type.USER, true),
+    UNLOCK_PASSWORD(Message.EVENT_LOG_UNLOCK_PASSWORD, Type.USER, true),
     RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD, Type.USER, true),
     SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES, Type.USER, true),
     SET_OTP_SECRET(Message.EVENT_LOG_SETUP_OTP_SECRET, Type.USER, true),

@@ -524,7 +524,7 @@ public class PwmPasswordRuleValidator {
             return Collections.emptyList();
         }
 
-        sendData.put("password",password);
+        sendData.put("password",password.getStringValue());
         if (pwmPasswordPolicy != null) {
             final LinkedHashMap<String,Object> policyData = new LinkedHashMap<>();
             for (final PwmPasswordRule rule : PwmPasswordRule.values()) {
@@ -589,151 +589,187 @@ public class PwmPasswordRuleValidator {
             if (passwordMaximumLength > 0 && passwordLength > passwordMaximumLength) {
                 errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_LONG));
             }
-            if (charCounter.getOtherLetterCharCount() < 1) {
-            }
+        }
 
-            //check number of numeric characters
-            {
-                final int numberOfNumericChars = charCounter.getNumericCharCount();
-                if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
-                    if (numberOfNumericChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
-                    }
+        //check number of numeric characters
+        {
+            final int numberOfNumericChars = charCounter.getNumericCharCount();
+            if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowNumeric)) {
+                if (numberOfNumericChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNumeric)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NUM));
+                }
 
-                    final int maxNumeric = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
-                    if (maxNumeric > 0 && numberOfNumericChars > maxNumeric) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
-                    }
+                final int maxNumeric = ruleHelper.readIntValue(PwmPasswordRule.MaximumNumeric);
+                if (maxNumeric > 0 && numberOfNumericChars > maxNumeric) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
+                }
 
-                    if (!ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowFirstCharNumeric) && charCounter.isFirstNumeric()) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_NUMERIC));
-                    }
+                if (!ruleHelper.readBooleanValue(
+                        PwmPasswordRule.AllowFirstCharNumeric) && charCounter.isFirstNumeric()) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_NUMERIC));
+                }
 
-                    if (!ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowLastCharNumeric) && charCounter.isLastNumeric()) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_NUMERIC));
-                    }
-                } else {
-                    if (numberOfNumericChars > 0) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
-                    }
+                if (!ruleHelper.readBooleanValue(
+                        PwmPasswordRule.AllowLastCharNumeric) && charCounter.isLastNumeric()) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_NUMERIC));
+                }
+            } else {
+                if (numberOfNumericChars > 0) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NUMERIC));
                 }
             }
+        }
 
-            //check number of upper characters
-            {
-                final int numberOfUpperChars = charCounter.getUpperCharCount();
-                if (numberOfUpperChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
-                }
-
-                final int maxUpper = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
-                if (maxUpper > 0 && numberOfUpperChars > maxUpper) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
-                }
+        //check number of upper characters
+        {
+            final int numberOfUpperChars = charCounter.getUpperCharCount();
+            if (numberOfUpperChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumUpperCase)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UPPER));
             }
 
-            //check number of alpha characters
-            {
-                final int numberOfAlphaChars = charCounter.getAlphaCharCount();
-                if (numberOfAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_ALPHA));
-                }
+            final int maxUpper = ruleHelper.readIntValue(PwmPasswordRule.MaximumUpperCase);
+            if (maxUpper > 0 && numberOfUpperChars > maxUpper) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
+            }
+        }
 
-                final int maxAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
-                if (maxAlpha > 0 && numberOfAlphaChars > maxAlpha) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_ALPHA));
-                }
+        //check number of alpha characters
+        {
+            final int numberOfAlphaChars = charCounter.getAlphaCharCount();
+            if (numberOfAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumAlpha)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_ALPHA));
             }
 
-            //check number of non-alpha characters
-            {
-                final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
+            final int maxAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumAlpha);
+            if (maxAlpha > 0 && numberOfAlphaChars > maxAlpha) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_ALPHA));
+            }
+        }
 
-                if (numberOfNonAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNonAlpha)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NON_ALPHA));
-                }
+        //check number of non-alpha characters
+        {
+            final int numberOfNonAlphaChars = charCounter.getNonAlphaCharCount();
 
-                final int maxNonAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumNonAlpha);
-                if (maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NON_ALPHA));
-                }
+            if (numberOfNonAlphaChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumNonAlpha)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_NON_ALPHA));
             }
 
-            //check number of lower characters
-            {
-                final int numberOfLowerChars = charCounter.getLowerCharCount();
-                if (numberOfLowerChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase)) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
-                }
+            final int maxNonAlpha = ruleHelper.readIntValue(PwmPasswordRule.MaximumNonAlpha);
+            if (maxNonAlpha > 0 && numberOfNonAlphaChars > maxNonAlpha) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_NON_ALPHA));
+            }
+        }
 
-                final int maxLower = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
-                if (maxLower > 0 && numberOfLowerChars > maxLower) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
-                }
+        //check number of lower characters
+        {
+            final int numberOfLowerChars = charCounter.getLowerCharCount();
+            if (numberOfLowerChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumLowerCase)) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_LOWER));
             }
 
-            //check number of special characters
-            {
-                final int numberOfSpecialChars = charCounter.getSpecialCharsCount();
-                if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
-                    if (numberOfSpecialChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial)) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+            final int maxLower = ruleHelper.readIntValue(PwmPasswordRule.MaximumLowerCase);
+            if (maxLower > 0 && numberOfLowerChars > maxLower) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_UPPER));
+            }
+        }
+
+        //check number of special characters
+        {
+            final int numberOfSpecialChars = charCounter.getSpecialCharsCount();
+            if (ruleHelper.readBooleanValue(PwmPasswordRule.AllowSpecial)) {
+                if (numberOfSpecialChars < ruleHelper.readIntValue(PwmPasswordRule.MinimumSpecial)) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_SPECIAL));
+                }
+
+                final int maxSpecial = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
+                if (maxSpecial > 0 && numberOfSpecialChars > maxSpecial) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
+                }
+
+                if (!ruleHelper.readBooleanValue(
+                        PwmPasswordRule.AllowFirstCharSpecial) && charCounter.isFirstSpecial()) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_SPECIAL));
+                }
+
+                if (!ruleHelper.readBooleanValue(
+                        PwmPasswordRule.AllowLastCharSpecial) && charCounter.isLastSpecial()) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_SPECIAL));
+                }
+            } else {
+                if (numberOfSpecialChars > 0) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
+                }
+            }
+        }
+
+        //Check maximum character repeats (sequential)
+        {
+            final int maxSequentialRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
+            if (maxSequentialRepeat > 0 && charCounter.getSequentialRepeatedChars() > maxSequentialRepeat) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
+            }
+
+            //Check maximum character repeats (overall)
+            final int maxRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumRepeat);
+            if (maxRepeat > 0 && charCounter.getRepeatedChars() > maxRepeat) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
+            }
+        }
+
+        //Check minimum unique character
+        {
+            final int minUnique = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
+            if (minUnique > 0 && charCounter.getUniqueChars() < minUnique) {
+                errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UNIQUE));
+            }
+        }
+
+        // check ad-complexity
+        {
+            final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
+            if (complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008) {
+                final int maxGroupViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
+                errorList.addAll(checkPasswordForADComplexity(complexityLevel, uiBean, password, charCounter,
+                        maxGroupViolations));
+            }
+        }
+
+        // check consecutive characters
+        {
+            final int maximumConsecutive = ruleHelper.readIntValue(PwmPasswordRule.MaximumConsecutive);
+            if (maximumConsecutive > 0 && passwordLength >= maximumConsecutive) {
+                final char[] lowerPassCharArray = password.toLowerCase().toCharArray();
+                boolean violated = false;
+                for (int position = 0; (position+maximumConsecutive <= lowerPassCharArray.length && !violated); position++) {
+                    int violationCharCount = 1;
+                    int direction = 0;
+                    int previousCharPoint = Character.codePointAt(lowerPassCharArray,position);
+
+                    for (int distance = 1; violationCharCount >= 0 && !violated; distance++) {
+                        int nextCharPoint = Character.codePointAt(lowerPassCharArray, position + distance);
+
+                        if ((direction == 0 || direction == 1) && (previousCharPoint == nextCharPoint +1)) {
+                            direction = 1;
+                            violationCharCount++;
+                        } else if ((direction == 0 || direction == -1) && (previousCharPoint == nextCharPoint -1)) {
+                            direction = -1;
+                            violationCharCount++;
+                        } else {
+                            violationCharCount = -1;
+                        }
+
+                        if (violationCharCount > maximumConsecutive) {
+                            violated= true;
+                        } else {
+                            previousCharPoint = nextCharPoint;
+                        }
                     }
-
-                    final int maxSpecial = ruleHelper.readIntValue(PwmPasswordRule.MaximumSpecial);
-                    if (maxSpecial > 0 && numberOfSpecialChars > maxSpecial) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
-                    }
-
-                    if (!ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowFirstCharSpecial) && charCounter.isFirstSpecial()) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_FIRST_IS_SPECIAL));
-                    }
-
-                    if (!ruleHelper.readBooleanValue(
-                            PwmPasswordRule.AllowLastCharSpecial) && charCounter.isLastSpecial()) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_LAST_IS_SPECIAL));
-                    }
-                } else {
-                    if (numberOfSpecialChars > 0) {
-                        errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_SPECIAL));
-                    }
+                }
+                if (violated) {
+                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_CONSECUTIVE));
                 }
             }
 
-            //Check maximum character repeats (sequential)
-            {
-                final int maxSequentialRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumSequentialRepeat);
-                if (maxSequentialRepeat > 0 && charCounter.getSequentialRepeatedChars() > maxSequentialRepeat) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
-                }
-
-                //Check maximum character repeats (overall)
-                final int maxRepeat = ruleHelper.readIntValue(PwmPasswordRule.MaximumRepeat);
-                if (maxRepeat > 0 && charCounter.getRepeatedChars() > maxRepeat) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_TOO_MANY_REPEAT));
-                }
-            }
-
-            //Check minimum unique character
-            {
-                final int minUnique = ruleHelper.readIntValue(PwmPasswordRule.MinimumUnique);
-                if (minUnique > 0 && charCounter.getUniqueChars() < minUnique) {
-                    errorList.add(new ErrorInformation(PwmError.PASSWORD_NOT_ENOUGH_UNIQUE));
-                }
-            }
-
-            // check ad-complexity
-            {
-                final ADPolicyComplexity complexityLevel = ruleHelper.getADComplexityLevel();
-                if (complexityLevel == ADPolicyComplexity.AD2003 || complexityLevel == ADPolicyComplexity.AD2008) {
-                    final int maxGroupViolations = ruleHelper.readIntValue(PwmPasswordRule.ADComplexityMaxViolations);
-                    errorList.addAll(checkPasswordForADComplexity(complexityLevel, uiBean, password, charCounter,
-                            maxGroupViolations));
-                }
-            }
         }
 
         return errorList;

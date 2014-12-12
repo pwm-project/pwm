@@ -23,8 +23,14 @@
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <pwm:if test="showReset">
-<button type="reset" class="btn" name="reset" onclick="PWM_MAIN.handleFormClear();return false">
+  <button type="reset" class="btn" name="reset" id="button-resetForm">
     <pwm:if test="showIcons"><span class="btn-icon fa fa-recycle"></span></pwm:if>
     <pwm:display key="Button_Reset"/>
-</button>
+  </button>
+  <pwm:script>
+    <script type="text/javascript">
+      PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_MAIN.addEventHandler('button-resetForm','click',function(){ PWM_MAIN.handleFormClear();return false; });
+      });
+    </script></pwm:script>
 </pwm:if>

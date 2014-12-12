@@ -33,30 +33,25 @@ import password.pwm.http.PwmURL;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 
-public class CaptchaFilter implements Filter {
+public class CaptchaFilter extends PwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(CaptchaFilter.class);
 
-    public void init(final FilterConfig filterConfig) throws ServletException {
-    }
-
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
+    public void processFilter(
+            final PwmRequest pwmRequest,
+            final PwmFilterChain chain
+    )
             throws IOException, ServletException
     {
-        final HttpServletRequest req = (HttpServletRequest) servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse) servletResponse;
-
         try {
-            final PwmRequest pwmRequest = PwmRequest.forRequest(req,resp);
             final boolean redirectPerformed = performRedirectIfRequired(pwmRequest);
             if (!redirectPerformed) {
-                filterChain.doFilter(req, resp);
+                chain.doFilter();
             }
         } catch (PwmUnrecoverableException e) {
             LOGGER.fatal("unexpected error processing captcha filter: " + e.getMessage(), e );
@@ -149,8 +144,5 @@ public class CaptchaFilter implements Filter {
         final String publicKey = config.readSettingAsString(PwmSetting.RECAPTCHA_KEY_PUBLIC);
 
         return (privateKey != null && publicKey != null && !publicKey.isEmpty());
-    }
-
-    public void destroy() {
     }
 }

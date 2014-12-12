@@ -99,7 +99,7 @@
         </default>
     </setting>
     <setting key="knownLocales" level="1">
-        <label>Known Locales</label>
+        <label>Locales (Languages) and Flags</label>
         <description><![CDATA[List of locales available.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
         <default>
             <value><![CDATA[en::us]]></value>
@@ -113,7 +113,7 @@
             <value><![CDATA[iw::il]]></value>
             <value><![CDATA[it::it]]></value>
             <value><![CDATA[ja::jp]]></value>
-            <value><![CDATA[ko::sk]]></value>
+            <value><![CDATA[ko::kr]]></value>
             <value><![CDATA[nl::nl]]></value>
             <value><![CDATA[no::no]]></value>
             <value><![CDATA[nn::no]]></value>
@@ -331,7 +331,7 @@
     </setting>
     <setting key="display.custom.resourceBundle" level="1">
         <label>Custom Resource Bundle</label>
-        <description><![CDATA[A custom ZIP file containing HTTP resources to be served by the application from the HTTP path <code>/public/resources/</code>.  The maximum zip file size is 10MB.]]></description>
+        <description><![CDATA[<p>This setting allows a custom ZIP file containing static HTTP resources to be served by the application from the HTTP path <code>/public/resources/</code> to be added to the configuration.</p>The maximum zip file size is 10MB.  Files included should be types of html, text, images, etc.  No server side processing will be performed when serving these files.]]></description>
         <default>
             <value />
         </default>
@@ -1040,7 +1040,7 @@
         </default>
     </setting>
     <setting key="password.profile.list" level="0" hidden="true">
-        <label>Password Policiesy Profiles</label>
+        <label>Password Policy Profiles</label>
         <description><![CDATA[List of Password Policy Profiles.  When multiple password policy profiles are configured, all profiles except for the default are evaluated in order to check if the <i>Password Policy Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
         <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default/>
@@ -1325,14 +1325,21 @@
     </setting>
     <setting key="password.sharedHistory.age" level="1" required="true">
         <label>Shared History Age</label>
-        <description><![CDATA[The maximum age of the shared history storage.  Value is specified in seconds.  Default is 4 weeks (60s * 60m * 24h * 7d * 4w = 2419200)]]></description>
+        <description><![CDATA[The maximum age of the shared history storage.  Value is specified in seconds.  Default is 28 days.]]></description>
         <default>
             <value>2419200</value>
         </default>
     </setting>
     <setting key="password.policy.minimumStrength" level="0" required="true">
         <label>Minimum Password Strength</label>
-        <description><![CDATA[Password strengths are judged on a strength on a scale of 0 to 100 irrespective of the password policy.  This setting requires that the user have a password that meets the minimum strength level specified here, regardless of other password policy rules.   45 or better is considered "good" while 70 or better is considered "strong".  A value of 0 disables this check.]]></description>
+        <description><![CDATA[Password strengths are judged on a strength on a scale of 0 to 100 irrespective of other password policy settings.  This setting requires that the user have a password that meets the minimum strength level specified here, regardless of other password policy rules.   45 or better is considered "good" while 70 or better is considered "strong".  A value of 0 disables this check.]]></description>
+        <default>
+            <value>0</value>
+        </default>
+    </setting>
+    <setting key="password.policy.maximumConsecutive" level="0" required="true">
+        <label>Maximum Consecutive Characters</label>
+        <description><![CDATA[Maximum amount of characters in a sequence such as <i>0123456789</i> or <i>abcdefghijk</i>.  More specifically character sequence is defined by unicode character order of each character after the entire value is converted to lowercase.   A value of 0 disables this check.]]></description>
         <default>
             <value>0</value>
         </default>
@@ -1753,6 +1760,7 @@
             <value>AUTHENTICATE</value>
             <value>AGREEMENT_PASSED</value>
             <value>CHANGE_PASSWORD</value>
+            <value>UNLOCK_PASSWORD</value>
             <value>RECOVER_PASSWORD</value>
             <value>SET_RESPONSES</value>
             <value>SET_OTP_SECRET</value>
@@ -1775,6 +1783,7 @@
             <option value="AUTHENTICATE">Authenticate</option>
             <option value="AGREEMENT_PASSED">Agreement Passed</option>
             <option value="CHANGE_PASSWORD">Change Password</option>
+            <option value="UNLOCK_PASSWORD">Unlock Password</option>
             <option value="RECOVER_PASSWORD">Recover Password</option>
             <option value="SET_RESPONSES">Set Responses</option>
             <option value="SET_OTP_SECRET">Set OTP</option>
@@ -2357,21 +2366,6 @@
         <label>Required Attributes</label>
         <description><![CDATA[Required LDAP attributes for forgotten password authentication.  These attributes will be required to be supplied by the user as part of the forgotten password autentication process.   The LDAP Proxy User will require LDAP <i>compare</i> permission to these attributes.]]></description>
         <default />
-    </setting>
-    <setting key="recovery.availableMethods" level="0">
-        <label>Available User Identification Methods</label>
-        <description>Available User Identification Methods</description>
-        <default>
-            <value>CHALLENGE_RESPONSES</value>
-            <value>VALUE</value>
-        </default>
-        <options>
-            <option value="TOKEN">Send Email or SMS token</option>
-            <option value="OTP">Google Authentication</option>
-            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
-            <option value="ATTRIBUTES">LDAP Attributes</option>
-            <option value="REMOTE_RESPONSES">Remote web service responses</option>
-        </options>
     </setting>
     <setting key="challenge.requireResponses" level="0">
         <label>Require Responses</label>
@@ -3306,6 +3300,7 @@
         <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default/>
     </setting>
+
     <setting key="helpdesk.queryMatch" level="0" required="true">
         <label>Helpdesk Profile Match</label>
         <description><![CDATA[Helpdesk Profile Match.]]></description>
@@ -3317,6 +3312,59 @@
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+    </setting>
+    <setting key="recovery.profile.list" level="0" hidden="true">
+        <label>Forgotten Password Profile</label>
+        <description><![CDATA[Forgotten Password Profile List]]></description>
+        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default/>
+    </setting>
+    <setting key="recovery.queryMatch" level="0" required="true">
+        <label>Forgotten Password Profile Match</label>
+        <description><![CDATA[Helpdesk Profile Match.]]></description>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="AD">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="ORACLE_DS">
+            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+    </setting>
+    <setting key="recovery.availableMethods" level="0">
+        <label>Available User Identification Methods</label>
+        <description>Available User Identification Methods</description>
+        <default/>
+        <options>
+            <option value="TOKEN">Send Email or SMS token</option>
+            <option value="OTP">Google Authentication</option>
+            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
+            <option value="ATTRIBUTES">LDAP Attributes</option>
+            <option value="REMOTE_RESPONSES">Remote web service responses</option>
+        </options>
+    </setting>
+    <setting key="recovery.requiredMethods" level="0">
+        <label>Required User Identification Methods</label>
+        <description>Available User Identification Methods</description>
+        <default>
+            <value>CHALLENGE_RESPONSES</value>
+            <value>VALUE</value>
+        </default>
+        <options>
+            <option value="TOKEN">Send Email or SMS token</option>
+            <option value="OTP">Google Authentication</option>
+            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
+            <option value="ATTRIBUTES">LDAP Attributes</option>
+            <option value="REMOTE_RESPONSES">Remote web service responses</option>
+        </options>
+    </setting>
+    <setting key="recovery.minimumAvailableMethods" level="0">
+        <label>Mimumum Available User Identification Methods</label>
+        <description>Miniumum Available User Identification Methods</description>
+        <default>
+            <value>1</value>
         </default>
     </setting>
     <setting key="helpdesk.token.sendMethod" level="0">
@@ -3334,7 +3382,7 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
             <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
-sms    </setting>
+        sms    </setting>
     <setting key="helpdesk.otp.verify" level="0">
         <label>Enable OTP Verification</label>
         <description><![CDATA[Enable OTP Verificaton.]]></description>
@@ -3472,13 +3520,6 @@ sms    </setting>
             <value />
         </default>
     </setting>
-    <setting key="urlshortener.regex" level="1">
-        <label>Regular Expression for Matching URLs</label>
-        <description><![CDATA[Enter a regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class]]></description>
-        <default>
-            <value><![CDATA[(https?://([^:@]+(:[^@]+)?@)?([a-zA-Z0-9.]+|d{1,3}.d{1,3}.d{1,3}.d{1,3}|[[0-9a-fA-F:]+])(:d{1,5})?/*[a-zA-Z0-9/\%_.]*?*[a-zA-Z0-9/\%_.=&#]*)]]></value>
-        </default>
-    </setting>
     <setting key="urlshortener.parameters" level="1">
         <label>Configuration Parameters for URL Shortening Service</label>
         <description><![CDATA[Name/Value settings used to configure the selected URL shortening service, like for example an API key, username, password or domain name. The settings must be in "name=value" format, where name is the key value of a valid service setting.]]></description>
@@ -3520,11 +3561,6 @@ sms    </setting>
         <default syntaxVersion="2" template="ORACLE_DS">
             <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
-    </setting>
-    <setting key="external.webAuth.methods" level="0">
-        <label>External Web Auth Methods</label>
-        <description><![CDATA[External Web Auth Methods]]></description>
-        <default />
     </setting>
     <setting key="external.macros.urls" level="1">
         <label>External Macro REST Server URLs</label>
@@ -3965,11 +4001,23 @@ sms    </setting>
         <description><![CDATA[Options to enable and configure reporting.]]></description>
     </category>
     <category key="MISC" level="1">
-        <label>Integration / Developer</label>
+        <label>Web Services</label>
         <description><![CDATA[Settings that are of interest to developers or component integrators.]]></description>
     </category>
+    <category key="REST_SERVER" level="1">
+        <label>REST Services</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="REST_CLIENT" level="1">
+        <label>REST Clients</label>
+        <description><![CDATA[]]></description>
+    </category>
+    <category key="SSO" level="1">
+        <label>Single Sign On</label>
+        <description><![CDATA[Integration with an OAuth identity server for SSO to this application.]]></description>
+    </category>
     <category key="OAUTH" level="1">
-        <label>OAuth SSO</label>
+        <label>OAuth</label>
         <description><![CDATA[Integration with an OAuth identity server for SSO to this application.]]></description>
     </category>
     <category key="CHANGE_PASSWORD">
@@ -3983,6 +4031,11 @@ sms    </setting>
     <category key="RECOVERY">
         <label>Forgotten Password</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
+    </category>
+    <category key="RECOVERY_PROFILE" profiles="true" hidden="true">
+        <label>Forgotten Password Profile</label>
+        <description><![CDATA[Policies for forgotten password configuration.]]></description>
+        <profile setting="recovery.profile.list"/>
     </category>
     <category key="FORGOTTEN_USERNAME">
         <label>Forgotten Username</label>

@@ -32,6 +32,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.*;
+import password.pwm.config.policy.ChallengeProfile;
 import password.pwm.config.policy.HelpdeskProfile;
 import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.config.policy.PwmPasswordRule;
@@ -353,7 +354,7 @@ public class Configuration implements Serializable {
             return dataCache.challengeProfile.get(profile).get(locale);
         }
 
-        final ChallengeProfile challengeProfile = new ChallengeProfile(profile,locale,storedConfiguration);
+        final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(profile, locale, storedConfiguration);
         dataCache.challengeProfile.get(profile).put(locale,challengeProfile);
         return challengeProfile;
     }

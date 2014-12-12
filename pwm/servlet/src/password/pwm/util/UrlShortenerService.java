@@ -22,6 +22,7 @@
 
 package password.pwm.util;
 
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.Configuration;
@@ -110,7 +111,7 @@ public class UrlShortenerService implements PwmService {
     }
     
     public String shortenUrlInText(String text) {
-        final String urlRegex = pwmApplication.getConfig().readSettingAsString(PwmSetting.URL_SHORTENER_REGEX);
+        final String urlRegex = pwmApplication.getConfig().readAppProperty(AppProperty.URL_SHORTNER_URL_REGEX);
         try {
             final Pattern p = Pattern.compile(urlRegex);
             final Matcher m = p.matcher(text);

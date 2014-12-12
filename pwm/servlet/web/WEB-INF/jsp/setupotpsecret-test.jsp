@@ -63,7 +63,7 @@ TODO: support HOTP
         </form>
     </div>
     <form action="<pwm:url url='SetupOtp'/>" method="post" name="goBackForm"
-          enctype="application/x-www-form-urlencoded" onchange="" id="goBackForm">
+          enctype="application/x-www-form-urlencoded" id="goBackForm">
         <input type="hidden" name="processAction" value="toggleSeen"/>
         <input type="hidden" id="pwmFormID_" name="pwmFormID" value="<pwm:FormID/>"/>
     </form>

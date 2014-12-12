@@ -26,7 +26,6 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ChallengeProfile;
 import password.pwm.config.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.Helper;

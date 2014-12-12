@@ -68,6 +68,8 @@ public enum PwmSetting {
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
+    HTTP_PROXY_URL(
+            "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
 
     // user interface
     INTERFACE_THEME(
@@ -219,7 +221,7 @@ public enum PwmSetting {
     EMAIL_USER_MAIL_ATTRIBUTE(
             "email.userMailAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_MAX_QUEUE_AGE(
-            "email.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.EMAIL_SETTINGS),
+            "email.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.EMAIL_SETTINGS),
     EMAIL_CHANGEPASSWORD(
             "email.changePassword", PwmSettingSyntax.EMAIL, PwmSettingCategory.EMAIL_TEMPLATES),
     EMAIL_CHANGEPASSWORD_HELPDESK(
@@ -255,7 +257,7 @@ public enum PwmSetting {
     SMS_USER_PHONE_ATTRIBUTE(
             "sms.userSmsAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_MAX_QUEUE_AGE(
-            "sms.queueMaxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.SMS_GATEWAY),
+            "sms.queueMaxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_URL(
             "sms.gatewayURL", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
     SMS_GATEWAY_USER(
@@ -315,7 +317,7 @@ public enum PwmSetting {
     PASSWORD_SHAREDHISTORY_ENABLE(
             "password.sharedHistory.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_SHAREDHISTORY_MAX_AGE(
-            "password.sharedHistory.age", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_GLOBAL),
+            "password.sharedHistory.age", PwmSettingSyntax.DURATION, PwmSettingCategory.PASSWORD_GLOBAL),
     WORDLIST_CASE_SENSITIVE(
             "wordlistCaseSensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_GLOBAL),
     PASSWORD_WORDLIST_WORDSIZE(
@@ -394,6 +396,8 @@ public enum PwmSetting {
             "password.policy.disallowedAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_MINIMUM_STRENGTH(
             "password.policy.minimumStrength", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
+    PASSWORD_POLICY_MAXIMUM_CONSECUTIVE(
+            "password.policy.maximumConsecutive", PwmSettingSyntax.NUMERIC, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_CHANGE_MESSAGE(
             "password.policy.changeMessage", PwmSettingSyntax.LOCALIZED_TEXT_AREA, PwmSettingCategory.PASSWORD_POLICY),
     PASSWORD_POLICY_RULE_TEXT(
@@ -535,7 +539,7 @@ public enum PwmSetting {
     EVENTS_PWMDB_MAX_EVENTS(
             "events.pwmDB.maxEvents", PwmSettingSyntax.NUMERIC, PwmSettingCategory.LOGGING),
     EVENTS_PWMDB_MAX_AGE(
-            "events.pwmDB.maxAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.LOGGING),
+            "events.pwmDB.maxAge", PwmSettingSyntax.DURATION, PwmSettingCategory.LOGGING),
     EVENTS_ALERT_DAILY_SUMMARY(
             "events.alert.dailySummary.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.LOGGING),
     EVENTS_JAVA_LOG4JCONFIG_FILE(
@@ -629,8 +633,6 @@ public enum PwmSetting {
             "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
     CHALLENGE_REQUIRED_ATTRIBUTES(
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY),
-    RECOVERY_AVAILABLE_METHODS(
-            "recovery.availableMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.RECOVERY),
     CHALLENGE_REQUIRE_RESPONSES(
             "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
     CHALLENGE_TOKEN_SEND_METHOD(
@@ -645,6 +647,18 @@ public enum PwmSetting {
             "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY),
     FORGOTTEN_PASSWORD_ALLOW_WHEN_LOCKED(
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
+
+    FORGOTTEN_PASSWORD_PROFILE_LIST(
+            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY),
+    FORGOTTEN_PASSWORD_QUERY_MATCH(
+            "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
+    FORGOTTEN_PASSWORD_REQUIRED_METHODS(
+            "recovery.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.RECOVERY_PROFILE),
+    FORGOTTEN_PASSWORD_AVAILABLE_METHODS(
+            "recovery.availableMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.RECOVERY_PROFILE),
+    FORGOTTEN_PASSWORD_MIN_AVAILABLE_METHODS(
+            "recovery.minimumAvailableMethods", PwmSettingSyntax.NUMERIC, PwmSettingCategory.RECOVERY_PROFILE),
+
 
 
     // forgotten username
@@ -895,46 +909,15 @@ public enum PwmSetting {
     REPORTING_SEARCH_FILTER(
             "reporting.ldap.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.REPORTING),
     REPORTING_MAX_CACHE_AGE(
-            "reporting.maxCacheAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
+            "reporting.maxCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
     REPORTING_MIN_CACHE_AGE(
-            "reporting.minCacheAge", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
+            "reporting.minCacheAge", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
     REPORTING_REST_TIME_MS(
             "reporting.reportRestTimeMS", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_MAX_QUERY_SIZE(
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
-
-    // developer
-    HTTP_PROXY_URL(
-            "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    CAS_CLEAR_PASS_URL(
-            "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    URL_SHORTENER_CLASS(
-            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    URL_SHORTENER_REGEX(
-            "urlshortener.regex", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    URL_SHORTENER_PARAMETERS(
-            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
-    ENABLE_EXTERNAL_WEBSERVICES(
-            "external.webservices.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.MISC),
-    ENABLE_WEBSERVICES_READANSWERS(
-            "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.MISC),
-    PUBLIC_HEALTH_STATS_WEBSERVICES(
-            "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.MISC),
-    WEBSERVICES_THIRDPARTY_QUERY_MATCH(
-            "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.MISC),
-    EXTERNAL_WEB_AUTH_METHODS(
-            "external.webAuth.methods", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
-    EXTERNAL_MACROS_DEST_TOKEN_URLS(
-            "external.destToken.urls", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    EXTERNAL_MACROS_REST_URLS(
-            "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
-    EXTERNAL_PWCHECK_REST_URLS(
-            "external.pwcheck.urls", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    CACHED_USER_ATTRIBUTES(
-            "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
-
 
     // OAuth
     OAUTH_ID_LOGIN_URL(
@@ -949,6 +932,36 @@ public enum PwmSetting {
             "oauth.idserver.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.OAUTH),
     OAUTH_ID_DN_ATTRIBUTE_NAME(
             "oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
+
+
+    // developer
+    CAS_CLEAR_PASS_URL(
+            "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
+    URL_SHORTENER_CLASS(
+            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
+    URL_SHORTENER_PARAMETERS(
+            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
+
+
+    ENABLE_EXTERNAL_WEBSERVICES(
+            "external.webservices.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
+    ENABLE_WEBSERVICES_READANSWERS(
+            "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
+    PUBLIC_HEALTH_STATS_WEBSERVICES(
+            "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
+    WEBSERVICES_THIRDPARTY_QUERY_MATCH(
+            "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
+
+    EXTERNAL_MACROS_DEST_TOKEN_URLS(
+            "external.destToken.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_MACROS_REST_URLS(
+            "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_PWCHECK_REST_URLS(
+            "external.pwcheck.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
+    CACHED_USER_ATTRIBUTES(
+            "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
+
+
 
 
     // deprecated.
@@ -1014,41 +1027,6 @@ public enum PwmSetting {
         return templates;
     }
 
-    public boolean showSetting(PwmSettingCategory category, int level) {
-        if (category != this.getCategory()) {
-            return false;
-        }
-
-        if (getLevel() != level) {
-            return false;
-        }
-
-        if (isHidden()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static List<PwmSetting> getSettings(PwmSettingCategory category) {
-        final List<PwmSetting> returnList = new ArrayList<>();
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.getCategory() == category) {
-                returnList.add(setting);
-            }
-        }
-        return Collections.unmodifiableList(returnList);
-    }
-
-    public static List<PwmSetting> getSettings(PwmSettingCategory category, int level) {
-        final List<PwmSetting> returnList = new ArrayList<>();
-        for (final PwmSetting setting : PwmSetting.values()) {
-            if (setting.showSetting(category, level)) {
-                returnList.add(setting);
-            }
-        }
-        return Collections.unmodifiableList(returnList);
-    }
 
     // -------------------------- OTHER METHODS --------------------------
 

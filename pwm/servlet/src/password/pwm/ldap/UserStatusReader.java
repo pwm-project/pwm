@@ -33,6 +33,7 @@ import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
+import password.pwm.config.policy.ChallengeProfile;
 import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.config.policy.PwmPasswordRule;
 import password.pwm.error.ErrorInformation;

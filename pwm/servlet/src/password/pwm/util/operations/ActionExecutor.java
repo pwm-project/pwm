@@ -89,7 +89,7 @@ public class ActionExecutor {
                 break;
         }
 
-        LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully upon user " + actionExecutorSettings.getChaiUser().getEntryDN());
+        LOGGER.info(pwmSession,"action " + actionConfiguration.getName() + " completed successfully");
     }
 
     private void executeLdapAction(final ActionConfiguration actionConfiguration, final ActionExecutorSettings settings)

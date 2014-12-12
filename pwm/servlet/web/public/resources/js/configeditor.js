@@ -81,25 +81,15 @@ PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,content:valueData});
 };
 
-PWM_CFGEDIT.resetSetting=function(keyName) {
-    require(["dojo"],function(dojo){
-        var jsonData = { key:keyName };
-        var jsonString = dojo.toJson(jsonData);
-        dojo.xhrPost({
-            url: "ConfigEditor?processAction=resetSetting&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-            postData: jsonString,
-            contentType: "application/json;charset=utf-8",
-            dataType: "json",
-            handleAs: "json",
-            sync: true,
-            error: function(errorObj) {
-                PWM_MAIN.showError("error resetting setting " + keyName + ", reason: " + errorObj)
-            },
-            load: function() {
-                console.log('reset data for ' + keyName);
-            }
-        });
-    });
+PWM_CFGEDIT.resetSetting=function(keyName, nextAction) {
+    var url = "ConfigEditor?processAction=resetSetting&key=" + keyName;
+    var loadFunction = function() {
+        console.log('reset data for ' + keyName);
+        if (nextAction !== undefined) {
+            nextAction();
+        }
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction);
 };
 
 
@@ -140,6 +130,11 @@ PWM_CFGEDIT.updateSettingDisplay = function(keyName, isDefault) {
             } catch (e) { /* noop */ }
         }
     });
+};
+
+PWM_CFGEDIT.getSettingValueElement = function(settingKey) {
+    var parentDiv = 'table_setting_' + settingKey;
+    return PWM_MAIN.getObject(parentDiv);
 };
 
 PWM_CFGEDIT.clearDivElements = function(parentDiv, showLoading) {
@@ -217,10 +212,7 @@ PWM_CFGEDIT.addAddLocaleButtonRow = function(parentDiv, keyName, addFunction) {
 
 };
 
-
-
-
-function readInitialTextBasedValue(key) {
+PWM_CFGEDIT.readInitialTextBasedValue = function(key) {
     require(["dijit/registry"],function(registry){
         PWM_CFGEDIT.readSetting(key, function(dataValue) {
             PWM_MAIN.getObject('value_' + key).value = dataValue;
@@ -231,9 +223,10 @@ function readInitialTextBasedValue(key) {
             try {registry.byId('value_verify_' + key).validate(false);} catch (e) {}
         });
     });
-}
+};
 
 PWM_CFGEDIT.saveConfiguration = function() {
+    PWM_VAR['cancelHeartbeatCheck'];
     PWM_MAIN.preloadAll(function(){
         var confirmText = PWM_CONFIG.showString('MenuDisplay_SaveConfig');
         var confirmFunction = function(){
@@ -354,15 +347,16 @@ function handleResetClick(settingKey) {
     var titleText = 'Reset ' + label ? label : '';
 
     PWM_MAIN.showConfirmDialog({title:titleText,text:dialogText,okAction:function(){
-        PWM_CFGEDIT.resetSetting(settingKey);
-        PWM_CFGEDIT.loadMainPageBody();
+        PWM_CFGEDIT.resetSetting(settingKey,function(){
+            PWM_CFGEDIT.loadMainPageBody();
+        });
     }});
 }
 
 PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_CFGEDIT.readConfigEditorCookie();
 
-    PWM_MAIN.addEventHandler('homeSettingSearch','input',function(){PWM_CFGEDIT.handleSearchFieldInput();});
+    PWM_MAIN.addEventHandler('homeSettingSearch','input',function(){PWM_CFGEDIT.processSettingSearch(PWM_MAIN.getObject('searchResults'));});
     PWM_MAIN.addEventHandler('button-navigationExpandAll','click',function(){PWM_VAR['navigationTree'].expandAll()});
     PWM_MAIN.addEventHandler('button-navigationCollapseAll','click',function(){PWM_VAR['navigationTree'].collapseAll()});
 
@@ -384,7 +378,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         PWM_CFGEDIT.showMacroHelp();
     });
 
-    setTimeout(PWM_CONFIG.heartbeatCheck,5000);
+    //setTimeout(PWM_CONFIG.heartbeatCheck,5000);
 
     PWM_CFGEDIT.loadMainPageBody();
 
@@ -458,39 +452,51 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
     }});
 };
 
-PWM_CFGEDIT.handleSearchFieldInput = function() {
-    var searchTerm = PWM_MAIN.getObject('homeSettingSearch').value;
-    PWM_CFGEDIT.processSettingSearch(
-        searchTerm,
-        PWM_MAIN.getObject('searchResults')
-    );
-};
+PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
+    var iteration = 'settingSearchIteration' in PWM_VAR ? PWM_VAR['settingSearchIteration'] + 1 : 0;
+    var startTime = new Date().getTime();
+    PWM_VAR['settingSearchIteration'] = iteration;
 
-PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
-    var url = "ConfigEditor?processAction=search";
-    var data = {search:searchValue};
-
-    destinationDiv.style.visibility = 'hidden';
-    PWM_MAIN.getObject('noSearchResultsIndicator').style.display = 'none';
-
-    if (!searchValue || searchValue.length < 1) {
+    var resetDisplay = function() {
+        PWM_MAIN.getObject('noSearchResultsIndicator').style.display = 'none';
         PWM_MAIN.getObject('searchIndicator').style.display = 'none';
-        return;
-    }
+        destinationDiv.style.visibility = 'hidden';
+        destinationDiv.innerHTML = '';
+    };
+
+    var readSearchTerm = function() {
+        if (!PWM_MAIN.getObject('homeSettingSearch') || !PWM_MAIN.getObject('homeSettingSearch') || PWM_MAIN.getObject('homeSettingSearch').value.length < 1) {
+            return null;
+        }
+        return PWM_MAIN.getObject('homeSettingSearch').value;
+    };
+
+    console.log('beginning search #' + iteration);
+    var url = "ConfigEditor?processAction=search";
 
     var loadFunction = function(data) {
-        if (!data) {
+        resetDisplay();
+
+        if (!readSearchTerm()) {
+            resetDisplay();
             return;
         }
+
+        if (!data) {
+            console.log('search #' + iteration + ", no data returned");
+            return;
+        }
+
         if (data['error']) {
+            console.log('search #' + iteration + ", error returned: " + data);
             PWM_MAIN.showErrorDialog(data);
         } else {
             var bodyText = '';
             var resultCount = 0;
+            var elapsedTime = (new Date().getTime()) - startTime;
             if (PWM_MAIN.isEmpty(data['data'])) {
-                if (searchValue) {
-                    PWM_MAIN.getObject('noSearchResultsIndicator').style.display = 'inline';
-                }
+                PWM_MAIN.getObject('noSearchResultsIndicator').style.display = 'inline';
+                console.log('search #' + iteration + ', 0 results, ' + elapsedTime + 'ms');
             } else {
                 for (var categoryIter in data['data']) {
                     var category = data['data'][categoryIter];
@@ -510,6 +516,7 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
                         resultCount++;
                     }
                 }
+                console.log('search #' + iteration + ', ' + resultCount + ' results, ' + elapsedTime + 'ms');
                 destinationDiv.style.visibility = 'visible';
                 destinationDiv.innerHTML = bodyText;
                 for (var categoryIter in data['data']) {
@@ -533,6 +540,7 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
                             });
                             var linkID = 'link-' + setting['category'] + '-' + settingKey + (profileID ? profileID : '');
                             PWM_MAIN.addEventHandler(linkID ,'click',function(){
+                                resetDisplay();
                                 PWM_CFGEDIT.gotoSetting(setting['category'],settingKey,profileID);
                             });
                         }(iter));
@@ -544,15 +552,17 @@ PWM_CFGEDIT.processSettingSearch = function(searchValue, destinationDiv) {
     var validationProps = {};
     validationProps['serviceURL'] = url;
     validationProps['readDataFunction'] = function(){
+        resetDisplay();
         PWM_MAIN.getObject('searchIndicator').style.display = 'inline';
-        return data;
+
+        var value = readSearchTerm();
+        return {search:value,key:value};
     };
     validationProps['completeFunction'] = function() {
         PWM_MAIN.getObject('searchIndicator').style.display = 'none';
     };
     validationProps['processResultsFunction'] = loadFunction;
     PWM_MAIN.pwmFormValidator(validationProps);
-    //PWM_MAIN.ajaxRequest(url,loadFunction,{content:data})
 };
 
 
@@ -568,15 +578,29 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     PWM_CFGEDIT.setConfigEditorCookie();
     PWM_CFGEDIT.displaySettingsCategory(category);
 
-    PWM_MAIN.getObject('homeSettingSearch').value = '';
-    PWM_CFGEDIT.handleSearchFieldInput();
+    if (PWM_SETTINGS['categories'][category]['label']) {
+        PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + PWM_SETTINGS['categories'][category]['label'];
+    }
+
+    var item = {};
+    item['id'] = category;
+    item['type'] = 'category';
+    var storedPreferences = PWM_CFGEDIT.readLocalStorage();
+    storedPreferences['lastSelected'] = item;
+    PWM_CFGEDIT.writeLocalStorage(storedPreferences);
+
 
     if (settingKey) {
         setTimeout(function(){
+            var settingElement = PWM_CFGEDIT.getSettingValueElement(settingKey);
             console.log('navigating and highlighting setting ' + settingKey);
-            location.href = "#setting-" + settingKey;
-            PWM_MAIN.flashDomElement('red','outline_' + settingKey,5000);
-        },3000);
+            //location.href = "#setting-" + settingKey;
+            settingElement.scrollIntoView(true);
+            if (settingElement.getBoundingClientRect().top < 100) {
+                window.scrollBy(0, -100);
+            }
+            PWM_MAIN.flashDomElement('red','title_' + settingKey, 5000);
+        },1000);
     }
 };
 
@@ -674,32 +698,19 @@ PWM_CFGEDIT.showDateTimeFormatHelp = function() {
 
 PWM_CFGEDIT.ldapHealthCheck = function() {
     PWM_MAIN.showWaitDialog({loadFunction:function() {
-        require(["dojo", "dojo/json"], function (dojo, json) {
-            dojo.xhrPost({
-                url: "ConfigEditor?processAction=ldapHealthCheck&pwmFormID=" + PWM_GLOBAL['pwmFormID'],
-                headers: {"Accept": "application/json"},
-                contentType: "application/json;charset=utf-8",
-                encoding: "utf-8",
-                handleAs: "json",
-                dataType: "json",
-                preventCache: true,
-                load: function (data) {
-                    PWM_MAIN.closeWaitDialog();
-                    if (data['error']) {
-                        PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-                    } else {
-                        var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
-                        var profileName = PWM_VAR['preferences']['profile'] && PWM_VAR['preferences']['profile'].length > 0 ? PWM_VAR['preferences']['profile'] : "Default";
-                        var titleText = PWM_MAIN.showString('Field_LdapProfile') + ": " + profileName;
-                        PWM_MAIN.showDialog({width:550,text:bodyText,title:titleText});
-                    }
-                },
-                error: function (errorObj) {
-                    PWM_MAIN.closeWaitDialog();
-                    alert("error executing function: " + errorObj);
-                }
-            });
-        });
+        var url = "ConfigEditor?processAction=ldapHealthCheck";
+        var loadFunction = function(data) {
+            PWM_MAIN.closeWaitDialog();
+            if (data['error']) {
+                PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+            } else {
+                var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
+                var profileName = PWM_VAR['preferences']['profile'] && PWM_VAR['preferences']['profile'].length > 0 ? PWM_VAR['preferences']['profile'] : "Default";
+                var titleText = PWM_MAIN.showString('Field_LdapProfile') + ": " + profileName;
+                PWM_MAIN.showDialog({text:bodyText,title:titleText});
+            }
+        };
+        PWM_MAIN.ajaxRequest(url,loadFunction);
     }});
 };
 
@@ -713,7 +724,7 @@ PWM_CFGEDIT.databaseHealthCheck = function() {
             } else {
                 var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
                 var titleText = 'Database Connection Status';
-                PWM_MAIN.showDialog({width:550,text:bodyText,title:titleText});
+                PWM_MAIN.showDialog({text:bodyText,title:titleText});
             }
         };
         PWM_MAIN.ajaxRequest(url,loadFunction);
@@ -737,7 +748,7 @@ PWM_CFGEDIT.smsHealthCheck = function() {
                     } else {
                         var bodyText = PWM_ADMIN.makeHealthHtml(data['data'],false,false);
                         var titleText = 'SMS Send Message Status';
-                        PWM_MAIN.showDialog({width:550,text:bodyText,title:titleText,showCancel:true});
+                        PWM_MAIN.showDialog({text:bodyText,title:titleText,showCancel:true});
                     }
 
                 };
@@ -787,16 +798,16 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
 
     if (category == 'LDAP_PROFILE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon fa fa-bolt"></span>Test LDAP Profile</button>'
-            + '</div>';
+        + '<button class="btn" id="button-test-LDAP_PROFILE"><span class="btn-icon fa fa-bolt"></span>Test LDAP Profile</button>'
+        + '</div>';
     } else if (category == 'DATABASE') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon fa fa-bolt"></span>Test Database Settings</button>'
-            + '</div>';
+        + '<button class="btn" id="button-test-DATABASE"><span class="btn-icon fa fa-bolt"></span>Test Database Settings</button>'
+        + '</div>';
     } else if (category == 'SMS_GATEWAY') {
         htmlSettingBody += '<div style="width: 100%; text-align: center">'
-            + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
-            + '</div>';
+        + '<button class="btn" id="button-test-SMS"><span class="btn-icon fa fa-bolt"></span>Test SMS Settings</button>'
+        + '</div>';
     }
 
     for (var loopSetting in PWM_SETTINGS['settings']) {
@@ -835,27 +846,41 @@ PWM_CFGEDIT.drawProfileEditorPage = function(settingKey) {
     PWM_CFGEDIT.initSettingDisplay(settingInfo);
 };
 
-PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo) {
+PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
+    options = options === undefined ? {} : options;
     var settingKey = settingInfo['key'];
     var settingLabel = settingInfo['label'];
-    return '<div id="outline_' + settingKey + '" class="setting_outline">'
+    var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<div class="fa fa-star modifiedNoticeIcon" title="Setting has been modified" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>'
-        + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
-        + '<div class="fa fa-question-circle icon_button" title="Help" id="helpButton-' + settingKey + '"></div>'
-        + '<div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-' + settingKey + '"></div>'
-        + '</div>' // close title
-        + '<div id="titlePane_' + settingKey + '" class="setting_body">'
-        + '<div id="table_setting_' + settingKey + '" style="border:0 none">'
-        + '</div>' // close setting;
-        + '</div>' // close body;
-        + '</div>'  // close outline
-        ;
+        + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>';
+
+    if (settingInfo['description']) {
+        htmlBody += '<div class="fa fa-question-circle icon_button" title="Help" id="helpButton-' + settingKey + '"></div>';
+    }
+
+    htmlBody += '<div style="visibility: hidden" class="fa fa-undo icon_button" title="Reset" id="resetButton-' + settingKey + '"></div>'
+    + '</div>' // close title
+    + '<div id="titlePane_' + settingKey + '" class="setting_body">';
+
+    if (settingInfo['description']) {
+        var prefs = PWM_CFGEDIT.readLocalStorage();
+        var expandHelp = 'helpExpanded' in prefs && settingKey in prefs['helpExpanded'];
+        htmlBody += '<div class="pane-help" id="pane-help-' + settingKey + '" style="display:' + (expandHelp ? 'inherit' : 'none') + '">'
+        + settingInfo['description'] + '</div>';
+    }
+
+    htmlBody += '<div class="pane-settingValue" id="table_setting_' + settingKey + '" style="border:0 none">'
+    + '</div>' // close setting;
+    + '</div>' // close body;
+    + '</div>';  // close outline
+
+    return htmlBody;
 };
 
-PWM_CFGEDIT.initSettingDisplay = function(setting) {
+PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
     var settingKey = setting['key'];
-    //console.log('initializing handler for ' + settingKey);
+    options = options === undefined ? {} : options;
 
     PWM_MAIN.showTooltip({
         id: "modifiedNoticeIcon-" + settingKey,
@@ -870,13 +895,12 @@ PWM_CFGEDIT.initSettingDisplay = function(setting) {
         text: PWM_CONFIG.showString('Tooltip_HelpButton')
     });
     PWM_MAIN.addEventHandler('helpButton-' + settingKey, 'click', function () {
-        PWM_MAIN.showDialog({
-            text: setting['description'],
-            title: setting['label'],
-            allowMove: true,
-            showClose: true
-        });
+        PWM_CFGEDIT.displaySettingHelp(settingKey);
     });
+    PWM_MAIN.addEventHandler('setting-' + settingKey, 'click', function () {
+        PWM_CFGEDIT.displaySettingHelp(settingKey);
+    });
+
     PWM_MAIN.addEventHandler('resetButton-' + settingKey, 'click', function () {
         handleResetClick(settingKey);
     });
@@ -963,6 +987,18 @@ PWM_CFGEDIT.initSettingDisplay = function(setting) {
 };
 
 PWM_CFGEDIT.drawNavigationMenu = function() {
+    var detectFirstDisplay = function() {
+        var ca = document.cookie.split(';');
+        for(var i=0; i<ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1);
+            if (c.indexOf('navigationTreeSaveStateCookie') != -1) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     var makeTreeFunction = function(menuTreeData) {
         PWM_MAIN.clearDijitWidget('navigationTree')
         require(["dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
@@ -982,6 +1018,8 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     query: {id: 'ROOT'}
                 });
 
+                var virginNavTree = detectFirstDisplay();
+
                 // Create the Tree.
                 var tree = new Tree({
                     model: model,
@@ -990,12 +1028,22 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                         return 'tree-noicon';
                     },
                     showRoot: false,
-                    //openOnClick: true,
+                    openOnClick: true,
                     id: 'navigationTree',
                     onClick: function(item){
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
                 });
+
+                if (virginNavTree) {
+                    console.log('first time nav menu loaded');
+                    tree.expandAll();
+                    setTimeout(function(){
+                        tree.collapseAll();
+                    },1000);
+                } else {
+                    console.log('detected previous nav menu cookie');
+                }
 
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
@@ -1015,6 +1063,8 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     var type = item['type'];
     if (currentID == 'HOME') {
         PWM_CFGEDIT.drawHomePage();
+    } else if (type == 'navigation') {
+        PWM_CFGEDIT.drawNavigationCategoryPage(currentID);
     } else if (type == 'category') {
         PWM_CFGEDIT.gotoSetting(currentID);
     } else if (type == 'displayText') {
@@ -1030,16 +1080,18 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
 
     var storedPreferences = PWM_CFGEDIT.readLocalStorage();
     storedPreferences['lastSelected'] = item;
-    PWM_CFGEDIT.readLocalStorage(storedPreferences);
+    PWM_CFGEDIT.writeLocalStorage(storedPreferences);
 
-    PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + item['name'];
+    if (item['name']) {
+        PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + item['name'];
+    }
 };
 
 PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
     var remainingLoads = keys.length;
     settingsPanel.innerHTML = '<div id="displaytext-loading-panel" style="width:100%; text-align: center">'
-        + PWM_MAIN.showString('Display_PleaseWait') + '<span id="remainingCount"></div>';
+    + PWM_MAIN.showString('Display_PleaseWait') + '&nbsp;<span id="remainingCount"></div>';
     console.log('drawing displaytext-editor for setting-' + settingKey);
     var htmlBody = '<div id="localetext-editor-wrapper" style="display:none">';
     for (var key in keys) {
@@ -1047,12 +1099,12 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
         var settingInfo = {};
         settingInfo['key'] = displayKey;
         settingInfo['label'] = keys[key];
-        htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo);
+        htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(settingInfo,{showHelp:false});
     }
     settingsPanel.innerHTML = settingsPanel.innerHTML + htmlBody;
     var delayTimeout = 0;
     for (var key in keys) {
-        delayTimeout += 20;
+        delayTimeout += 1;
         (function(keyCounter) {
             setTimeout(function(){
                 var displayKey = 'localeBundle-' + settingKey + '-' + keys[keyCounter];
@@ -1062,7 +1114,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
                 settingInfo['syntax'] = 'LOCALIZED_STRING';
                 PWM_CFGEDIT.initSettingDisplay(settingInfo);
                 remainingLoads--;
-                PWM_MAIN.getObject('remainingCount').innerHTML = remainingLoads;
+                PWM_MAIN.getObject('remainingCount').innerHTML = remainingLoads > 0 ? remainingLoads : '';
             },delayTimeout);
         })(key);
     }
@@ -1073,20 +1125,29 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
                 PWM_MAIN.getObject('displaytext-loading-panel').style.display = 'none';
                 PWM_MAIN.getObject('localetext-editor-wrapper').style.display = 'inherit';
             } else {
-                console.log('nope!');
-                setTimeout(checkForFinishFunction,1000);
+                setTimeout(checkForFinishFunction,100);
             }
-        },1000);
+        },100);
     };
     checkForFinishFunction();
 };
 
 PWM_CFGEDIT.drawHomePage = function() {
+    var htmlBody = '<div style="width:100%; text-align: center; margin-left: auto; margin-right:auto;">';
+
+    htmlBody += '<button class="btn" id="button-macroDoc"><span class="btn-icon fa fa-gears"></span>Macro Reference</button>';
+    htmlBody += '<button class="btn" id="button-referenceDoc"><span class="btn-icon fa fa-book"></span>Configuration Reference</button>';
+    htmlBody += '<button class="btn" id="button-setPassword"><span class="btn-icon fa fa-key"></span>Set Configuration Password</button>';
+
+    htmlBody += '<button class="btn" id="button-save"><span class="btn-icon fa fa-save"></span>Save Changes</button>';
+    htmlBody += '<button class="btn" id="button-cancel"><span class="btn-icon fa fa-times"></span>Cancel Changes</button>';
+    htmlBody += '</div>';
+
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
     settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
 
     var templateSettingBody = '';
-    templateSettingBody += '<div><select onchange="PWM_CFGEDIT.selectTemplate(this.options[this.selectedIndex].value)">';
+    templateSettingBody += '<div><select id="select-template">';
     for (var template in PWM_SETTINGS['templates']) {
         var templateInfo = PWM_SETTINGS['templates'][template];
         templateSettingBody += '<option value="' + templateInfo['key'] + '"';
@@ -1103,7 +1164,8 @@ PWM_CFGEDIT.drawHomePage = function() {
     var templateSelectSetting = {};
     templateSelectSetting['key'] = 'templateSelect';
     templateSelectSetting['label'] = 'Configuration Template';
-    var htmlBody = PWM_CFGEDIT.drawHtmlOutlineForSetting(templateSelectSetting);
+    templateSelectSetting['description'] = PWM_CONFIG.showString('Display_AboutTemplates');
+    htmlBody += PWM_CFGEDIT.drawHtmlOutlineForSetting(templateSelectSetting);
 
     var notesSettings = {};
     notesSettings['key'] = 'configurationNotes';
@@ -1115,8 +1177,24 @@ PWM_CFGEDIT.drawHomePage = function() {
     PWM_MAIN.getObject('table_setting_templateSelect').innerHTML = templateSettingBody;
     PWM_MAIN.getObject('table_setting_configurationNotes').innerHTML = notesSettingBody;
 
-    PWM_MAIN.addEventHandler('helpButton-templateSelect','click',function(){
-        PWM_MAIN.showDialog({text:PWM_CONFIG.showString('Display_AboutTemplates')});
+
+    PWM_MAIN.addEventHandler('button-macroDoc','click',function(){
+        PWM_CFGEDIT.showMacroHelp();
+    });
+    PWM_MAIN.addEventHandler('button-referenceDoc','click',function(){
+        window.open(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','_blank', 'toolbar=0,location=0,menubar=0');
+    });
+    PWM_MAIN.addEventHandler('button-setPassword','click',function(){
+        PWM_CFGEDIT.setConfigurationPassword();
+    });
+    PWM_MAIN.addEventHandler('button-save','click',function(){
+        PWM_CFGEDIT.saveConfiguration();
+    });
+    PWM_MAIN.addEventHandler('button-cancel','click',function(){
+        PWM_CFGEDIT.cancelEditing();
+    });
+    PWM_MAIN.addEventHandler('select-template','change',function(){
+        PWM_CFGEDIT.selectTemplate(PWM_MAIN.getObject('select-template').options[PWM_MAIN.getObject('select-template').selectedIndex].value)
     });
     PWM_MAIN.addEventHandler('configurationNotesTextarea','input',function(){
         var value = PWM_MAIN.getObject('configurationNotesTextarea').value;
@@ -1126,11 +1204,36 @@ PWM_CFGEDIT.drawHomePage = function() {
     });
 };
 
-PWM_CFGEDIT.readLocalStorage = function(dataUpdate) {
-    if(typeof(Storage) !== "undefined") {
-        if (dataUpdate) {
-            localStorage.setItem("ConfigEditor_Storage",JSON.stringify(dataUpdate));
+PWM_CFGEDIT.drawNavigationCategoryPage = function(categoryID) {
+    var htmlBody = '<div style="width:200px; text-align: center; margin-left: auto; margin-right:auto;">';
+
+    for (var loopKey in PWM_SETTINGS['categories']) {
+        var loopCategory = PWM_SETTINGS['categories'][loopKey];
+        if (loopCategory['parent'] == categoryID) {
+            htmlBody += '<button class="btn" id="button-navToCategory-' + loopCategory['key'] + '"><span class="btn-icon fa fa-forward"></span>' + loopCategory['label'] + '</button>';
         }
+    }
+
+    htmlBody += '</div>';
+
+    var settingsPanel = PWM_MAIN.getObject('settingsPanel');
+    settingsPanel.innerHTML = htmlBody;
+
+    for (var loopKey in PWM_SETTINGS['categories']) {
+        var loopCategory = PWM_SETTINGS['categories'][loopKey];
+        (function(loopCategoryInfo){
+            if (loopCategoryInfo['parent'] == categoryID) {
+                PWM_MAIN.addEventHandler('button-navToCategory-' + loopCategoryInfo['key'],'click',function(){
+                    PWM_CFGEDIT.gotoSetting(loopCategoryInfo['key']);
+                });
+            }
+        })(loopCategory);
+    }
+
+};
+
+PWM_CFGEDIT.readLocalStorage = function() {
+    if(typeof(Storage) !== "undefined") {
         var storedStr = localStorage.getItem("ConfigEditor_Storage");
         if (storedStr) {
             try {
@@ -1145,9 +1248,17 @@ PWM_CFGEDIT.readLocalStorage = function(dataUpdate) {
     }
 };
 
+PWM_CFGEDIT.writeLocalStorage = function(dataUpdate) {
+    if(typeof(Storage) !== "undefined") {
+        if (dataUpdate) {
+            localStorage.setItem("ConfigEditor_Storage",JSON.stringify(dataUpdate));
+        }
+    }
+};
+
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
     require(["dojo"],function(dojo){
-        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/client-configsettings";
+        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData";
         dojo.xhrGet({
             url: clientConfigUrl,
             handleAs: 'json',
@@ -1172,4 +1283,48 @@ PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
             }
         });
     });
+};
+
+PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
+    console.log('toggle help for ' + settingKey);
+    var prefs = PWM_CFGEDIT.readLocalStorage();
+    prefs['helpExpanded'] = 'helpExpanded' in prefs ? prefs['helpExpanded'] : {};
+    var element = PWM_MAIN.getObject('pane-help-' + settingKey);
+    if (element) {
+        if (element.style.display == 'none') {
+            element.style.display = 'inherit';
+            prefs['helpExpanded'][settingKey] = true;
+        } else {
+            element.style.display = 'none';
+            delete prefs['helpExpanded'][settingKey];
+        }
+        PWM_CFGEDIT.writeLocalStorage(prefs);
+    }
+    /*
+     var setting = PWM_SETTINGS['settings'][settingKey];
+
+     var body = '<div>' + setting['description'] + '</div><br/><br/>';
+     body += '<div style="cursor:pointer; text-align:center; width: 100%;">';
+     body += '<span id="button-' + settingKey + '-extendHelp" style="color:grey" class="btn-icon fa fa-arrow-circle-down"></span>'
+     body += '</div>';
+     body += '<div style="display:none" id="panel-' + settingKey + '-extendHelp"><table>';
+     body += '<tr><td>Key</td><td>' + setting['key'] + '</td></tr>';
+     body += '<tr><td>Syntax</td><td>' + setting['syntax'] + '</td></tr>';
+     body += '<tr><td>Required</td><td>' + setting['required'] + '</td></tr>';
+     body += '</table></div>';
+
+
+     PWM_MAIN.showDialog({
+     text: body,
+     title: setting['label'],
+     allowMove: true,
+     showClose: true,
+     loadFunction: function(){
+     PWM_MAIN.addEventHandler('button-' + settingKey + '-extendHelp','click',function(){
+     PWM_MAIN.getObject('button-' + settingKey + '-extendHelp').style.visibility = 'hidden';
+     PWM_MAIN.getObject('panel-' + settingKey + '-extendHelp').style.display = 'inline';
+     });
+     }
+     });
+     */
 };

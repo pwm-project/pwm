@@ -30,7 +30,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.ChallengeProfile;
+import password.pwm.config.policy.ChallengeProfile;
 import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.JsonUtil;

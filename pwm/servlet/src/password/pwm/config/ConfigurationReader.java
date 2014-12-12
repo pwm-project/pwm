@@ -59,6 +59,8 @@ public class ConfigurationReader {
 
     private PwmApplication.MODE configMode = PwmApplication.MODE.NEW;
 
+    private volatile boolean saveInProgress;
+
     public ConfigurationReader(final File configFile) {
         this.configFile = configFile;
 
@@ -183,31 +185,35 @@ public class ConfigurationReader {
             }
         }
 
-        LOGGER.trace("generating xml string configuration blob");
-        LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
+        try {
+            LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
+            saveInProgress = true;
 
-        storedConfiguration.toXml(new FileOutputStream(configFile, false));
-        LOGGER.info("saved configuration " + storedConfiguration.toString());
-        if (pwmApplication != null) {
-            final String actualChecksum = storedConfiguration.settingChecksum();
-            pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
-        }
+            storedConfiguration.toXml(new FileOutputStream(configFile, false));
+            LOGGER.info("saved configuration " + storedConfiguration.toString());
+            if (pwmApplication != null) {
+                final String actualChecksum = storedConfiguration.settingChecksum();
+                pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.CONFIG_HASH, actualChecksum);
+            }
 
-        if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
-            final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
-            pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
-                    AuditEvent.MODIFY_CONFIGURATION,
-                    modifyMessage,
-                    pwmApplication.getInstanceID()
-            ));
-        }
+            if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
+                final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
+                pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
+                        AuditEvent.MODIFY_CONFIGURATION,
+                        modifyMessage,
+                        pwmApplication.getInstanceID()
+                ));
+            }
 
-        if (backupDirectory != null) {
-            final String configFileName = configFile.getName();
-            final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
-            final File backupFile = new File(backupFilePath);
-            Helper.rotateBackups(backupFile, backupRotations);
-            storedConfiguration.toXml(new FileOutputStream(backupFile, false));
+            if (backupDirectory != null) {
+                final String configFileName = configFile.getName();
+                final String backupFilePath = backupDirectory.getAbsolutePath() + File.separatorChar + configFileName + "-backup";
+                final File backupFile = new File(backupFilePath);
+                Helper.rotateBackups(backupFile, backupRotations);
+                storedConfiguration.toXml(new FileOutputStream(backupFile, false));
+            }
+        } finally {
+            saveInProgress = false;
         }
     }
 
@@ -251,6 +257,9 @@ public class ConfigurationReader {
         return configFile;
     }
 
+    public boolean isSaveInProgress() {
+        return saveInProgress;
+    }
 }
 
 

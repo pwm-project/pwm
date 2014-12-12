@@ -22,7 +22,7 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.ChallengeProfile;
+import password.pwm.config.policy.ChallengeProfile;
 import password.pwm.config.policy.PwmPasswordPolicy;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.otp.OTPUserRecord;

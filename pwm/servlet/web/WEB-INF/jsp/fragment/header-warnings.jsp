@@ -73,9 +73,9 @@
     <br/>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
     <% if (PwmConstants.TRIAL_MODE) { %>
-    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
+    <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } else if (configMode) { %>
-    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
+    <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <pwm:script>
         <script type="application/javascript">
             PWM_GLOBAL['startupFunctions'].push(function(){
@@ -89,7 +89,7 @@
         </script>
     </pwm:script>
     <% } else if (adminUser) { %>
-    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.SERVLET_VERSION%>"/>
+    <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } %>
     </span>
     <div id="headerHealthData" style="cursor: pointer">

@@ -74,6 +74,8 @@ public abstract class PwmConstants {
     public static final String PWM_URL_HOME = readPwmConstantsBundle("url.pwm-home");
     public static final String PWM_URL_CLOUD = readPwmConstantsBundle("url.pwm-cloud");
 
+    public static final String PWM_APP_NAME_VERSION = PWM_APP_NAME + " " + SERVLET_VERSION;
+
     public static final long VERSION_CHECK_FREQUENCEY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFrequencyMs"));
     public static final long VERSION_CHECK_FAIL_RETRY_MS = Long.parseLong(readPwmConstantsBundle("versionCheckFailRetryMs"));
     public static final long STATISTICS_PUBLISH_FREQUENCY_MS = Long.parseLong(readPwmConstantsBundle("statisticsPublishFrequencyMs"));

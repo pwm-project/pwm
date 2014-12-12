@@ -44,12 +44,10 @@ import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,15 +62,6 @@ public class AuthenticationFilter extends PwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(AuthenticationFilter.class.getName());
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface Filter ---------------------
-
-    public void init(final FilterConfig filterConfig)
-            throws ServletException {
-    }
 
     public void processFilter(
             final PwmRequest pwmRequest,
@@ -110,9 +99,6 @@ public class AuthenticationFilter extends PwmFilter {
             LOGGER.error(e.toString());
             throw new ServletException(e.toString());
         }
-    }
-
-    public void destroy() {
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -175,11 +161,6 @@ public class AuthenticationFilter extends PwmFilter {
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final HttpServletRequest req = pwmRequest.getHttpServletRequest();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
-
-        // attempt external methods;
-        if (processExternalAuthMethods(pwmRequest)) {
-            return;
-        }
 
         //try to authenticate user with basic auth
         if (!pwmSession.getSessionStateBean().isAuthenticated()) {
@@ -275,34 +256,6 @@ public class AuthenticationFilter extends PwmFilter {
         sessionAuthenticator.authUserWithUnknownPassword(basicAuthInfo.getUsername(),AuthenticationType.AUTH_FROM_PUBLIC_MODULE);
 
         pwmSession.getLoginInfoBean().setOriginalBasicAuthInfo(basicAuthInfo);
-    }
-
-    private static boolean processExternalAuthMethods(
-            final PwmRequest pwmRequest
-    )
-            throws IOException, ServletException
-    {
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-        final List<String> externalWebAuthMethods = pwmApplication.getConfig().readSettingAsStringArray(
-                PwmSetting.EXTERNAL_WEB_AUTH_METHODS);
-
-        for (final String classNameString : externalWebAuthMethods) {
-            if (classNameString != null && classNameString.length() > 0) {
-                try {
-                    // load up the class and get an instance.
-                    final Class<?> theClass = Class.forName(classNameString);
-                    final ExternalWebAuthMethod eWebAuthMethod = (ExternalWebAuthMethod) theClass.newInstance();
-                    eWebAuthMethod.authenticate(pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse(), pwmSession);
-                } catch(Exception e) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,"error loading external interface login class: " + e.getMessage());
-                    LOGGER.error(pwmRequest, errorInformation);
-                    pwmRequest.respondWithError(errorInformation);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     static boolean processAuthHeader(

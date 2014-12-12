@@ -83,6 +83,8 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
     private static final String TOKEN_NAME = ForgottenPasswordServlet.class.getName();
 
+
+
     public enum ForgottenPasswordAction implements PwmServlet.ProcessAction {
         search(HttpMethod.POST),
         checkResponses(HttpMethod.POST),
@@ -550,6 +552,10 @@ public class ForgottenPasswordServlet extends PwmServlet {
         try {
             final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
             theUser.unlockPassword();
+
+            // mark the event log
+            pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
+
             pwmRequest.forwardToSuccessPage(Message.SUCCESS_UNLOCK_ACCOUNT);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();

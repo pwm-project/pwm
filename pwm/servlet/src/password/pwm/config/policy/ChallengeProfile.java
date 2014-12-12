@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.policy;
 
 import com.novell.ldapchai.cr.ChaiChallenge;
 import com.novell.ldapchai.cr.ChaiChallengeSet;
@@ -28,6 +28,7 @@ import com.novell.ldapchai.cr.Challenge;
 import com.novell.ldapchai.cr.ChallengeSet;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import password.pwm.PwmConstants;
+import password.pwm.config.*;
 import password.pwm.config.value.ChallengeValue;
 import password.pwm.cr.ChallengeItemBean;
 import password.pwm.i18n.LocaleHelper;
@@ -61,7 +62,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
         this.helpdeskChallengeSet = helpdeskChallengeSet;
     }
 
-    ChallengeProfile(
+    private ChallengeProfile(
             String profileID,
             Locale locale,
             StoredConfiguration storedConfiguration
@@ -90,6 +91,14 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
                 PwmSetting.CHALLENGE_HELPDESK_RANDOM_CHALLENGES,
                 1
         );
+    }
+
+    public static ChallengeProfile createChallengeProfile(
+            String profileID,
+            Locale locale,
+            StoredConfiguration storedConfiguration
+    ) {
+        return new ChallengeProfile(profileID, locale, storedConfiguration);
     }
 
     public ChallengeProfile overrideChallengeSet(final ChallengeSet challengeSet) {

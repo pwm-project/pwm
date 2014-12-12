@@ -64,6 +64,7 @@ public enum Message implements DisplayBundleMarker {
     EVENT_LOG_AUTHENTICATE("EventLog_Authenticate"),
     EVENT_LOG_AGREEMENT_PASSED("EventLog_AgreementPassed"),
     EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
+    EVENT_LOG_UNLOCK_PASSWORD("EventLog_UnlockPassword"),
     EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
     EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),
     EVENT_LOG_SETUP_OTP_SECRET("Eventlog_SetupOtpSecret"),

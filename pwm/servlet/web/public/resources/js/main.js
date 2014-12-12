@@ -607,10 +607,15 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
             });
         } else {
 
-            for (var localeKey in PWM_GLOBAL['localeFlags']) {
-                var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] +  '/public/resources/flags/png/' + PWM_GLOBAL['localeFlags'][localeKey] + '.png)';
-                var cssSelector = '.flagLang_' + localeKey;
-                PWM_MAIN.createCSSClass(cssSelector,cssBody);
+            for (var iter in PWM_GLOBAL['localeFlags']) {
+                (function(localeKey){
+                    var flagCode = PWM_GLOBAL['localeFlags'][localeKey];
+                    if (flagCode && flagCode.length > 0) {
+                        var cssBody = 'background-image: url(' + PWM_GLOBAL['url-context'] + '/public/resources/flags/png/' + flagCode + '.png)';
+                        var cssSelector = '.flagLang_' + localeKey;
+                        PWM_MAIN.createCSSClass(cssSelector, cssBody);
+                    }
+                })(iter);
             }
 
 
@@ -626,18 +631,16 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                     label: localeDisplayName,
                     iconClass: localeIconClass,
                     onClick: function() {
-                        PWM_MAIN.showWaitDialog({loadFunction:function(){
-                            var nextUrl = window.location.toString();
-                            if (window.location.toString().indexOf('?') > 0) {
-                                var params = dojo.queryToObject(window.location.search.substring(1,window.location.search.length));
-                                params['locale'] = localeKey;
-                                nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                                    + dojo.objectToQuery(params);
-                            } else {
-                                nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
-                            }
-                            PWM_MAIN.goto(nextUrl);
-                        }});
+                        var nextUrl = window.location.toString();
+                        if (window.location.toString().indexOf('?') > 0) {
+                            var params = dojo.queryToObject(window.location.search.substring(1,window.location.search.length));
+                            params['locale'] = localeKey;
+                            nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
+                                + dojo.objectToQuery(params);
+                        } else {
+                            nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
+                        }
+                        PWM_MAIN.goto(nextUrl);
                     }
                 }));
             };
@@ -1112,8 +1115,8 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
 
     if (CONSOLE_DEBUG) console.log("pwmFormValidator: beginning...");
     //init vars;
-    if (!PWM_GLOBAL['validationCache']) {
-        PWM_GLOBAL['validationCache'] = {};
+    if (!PWM_VAR['validationCache']) {
+        PWM_VAR['validationCache'] = {};
     }
 
     // check if data is in cache, if it is just process it.
@@ -1122,7 +1125,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     for (var key in formData) {formKey += formData[key] + "-";}
 
     {
-        var cachedResult = PWM_GLOBAL['validationCache'][formKey];
+        var cachedResult = PWM_VAR['validationCache'][formKey];
         if (cachedResult != null) {
             processResultsFunction(cachedResult);
             if (CONSOLE_DEBUG) console.log('pwmFormValidator: processed cached data, exiting');
@@ -1132,11 +1135,11 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     }
 
     if (!reentrant) {
-        PWM_GLOBAL['validationLastType'] = new Date().getTime();
+        PWM_VAR['validationLastType'] = new Date().getTime();
     }
 
     // check to see if user is still typing.  if yes, then come back later.
-    if (new Date().getTime() - PWM_GLOBAL['validationLastType'] < typeWaitTimeMs) {
+    if (new Date().getTime() - PWM_VAR['validationLastType'] < typeWaitTimeMs) {
         if (showMessage) {
             PWM_MAIN.showInfo(PWM_MAIN.showString('Display_TypingWait'));
         }
@@ -1147,16 +1150,16 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
     if (CONSOLE_DEBUG) console.log('pwmFormValidator: user no longer typing, continuing..');
 
     //check to see if a validation is already in progress, if it is then ignore keypress.
-    if (PWM_GLOBAL['validationInProgress'] == true) {
+    if (PWM_VAR['validationInProgress'] == true) {
         if (CONSOLE_DEBUG) console.log('pwmFormValidator: waiting for a previous validation to complete, exiting...');
         return;
     }
-    PWM_GLOBAL['validationInProgress'] = true;
+    PWM_VAR['validationInProgress'] = true;
 
     // show in-progress message if load takes too long.
     if (showMessage) {
         setTimeout(function () {
-            if (PWM_GLOBAL['validationInProgress'] == true) {
+            if (PWM_VAR['validationInProgress'] == true) {
                 PWM_MAIN.showInfo(messageWorking);
             }
         }, 5);
@@ -1166,9 +1169,9 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         var formDataString = dojo.toJson(formData);
         if (CONSOLE_DEBUG) console.log('FormValidator: sending form data to server... ' + formDataString);
         var loadFunction = function(data) {
-            PWM_GLOBAL['validationInProgress'] = false;
-            delete PWM_GLOBAL['validationLastType'];
-            PWM_GLOBAL['validationCache'][formKey] = data;
+            PWM_VAR['validationInProgress'] = false;
+            delete PWM_VAR['validationLastType'];
+            PWM_VAR['validationCache'][formKey] = data;
             if (CONSOLE_DEBUG) console.log('pwmFormValidator: successful read, data added to cache');
             PWM_MAIN.pwmFormValidator(validationProps, true);
         };
@@ -1176,7 +1179,7 @@ PWM_MAIN.pwmFormValidator = function(validationProps, reentrant) {
         options['content'] = formData;
         options['ajaxTimeout'] = ajaxTimeout;
         options['errorFunction'] = function(error) {
-            PWM_GLOBAL['validationInProgress'] = false;
+            PWM_VAR['validationInProgress'] = false;
             if (showMessage) {
                 PWM_MAIN.showInfo(PWM_MAIN.showString('Display_CommunicationError'));
             }

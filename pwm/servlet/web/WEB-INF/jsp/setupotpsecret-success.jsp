@@ -50,7 +50,7 @@
             </tr>
             <tr>
                 <td> Each of these recovery codes can be used exactly one time in the event that you can not access your phone.  Be sure to
-                <a onclick="window.print()">print this page </a> or otherwise copy these codes and and store the print out in a safe place.  Do not
+                <a id="link-print">print this page </a> or otherwise copy these codes and and store the print out in a safe place.  Do not
                 copy and paste these codes on to your computer.</td>
             </tr>
             <tr>
@@ -83,6 +83,7 @@
     PWM_GLOBAL['startupFunctions'].push(function(){
         require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
         });
+        PWM_MAIN.addEventHandler('link-print','click',function(){ window.print(); });
     });
 </script>
 </pwm:script>

@@ -214,8 +214,9 @@ table {
 }
 
 #searchResults {
+    padding:5px;
     border: 1px solid;
-    height: 250px;
+    max-height: 250px;
     width: 580px;
     overflow-y: auto;
     position: fixed;
@@ -268,12 +269,38 @@ table {
     margin-bottom: 4px;
 }
 
-select {
-    padding:0;
-    margin: 0;
-    border-radius:2px;
-    border-color: #bfbfbf;
-    font-size: 9pt;
-    background: #f8f8f8;
+.checkboxWrapper {
+    padding: 2px 5px;
+    border: 1px solid #bfbfbf;
+    border-radius: 3px;
+    background-color: white;
     display: inline-block;
+}
+
+.configStringInput {
+    width: 540px;
+    padding:2px 5px;
+    margin: 0;
+    border: 1px solid #bfbfbf;
+    font-size: 9pt;
+    background: white;
+    display: inline-block;
+}
+
+.configStringInput[pattern]:invalid{
+    color:red;
+}
+
+.pane-help {
+    margin-left: 10px;
+    margin-right: 10px;
+    max-height: 250px;
+    margin-bottom: 15px;
+    overflow-x: auto;
+    border-bottom: 1px solid #bfbfbf;
+}
+
+.pane-settingValue {
+    max-height: 300px;
+    overflow-x: auto;
 }

@@ -37,14 +37,13 @@
         <% final String expandedText = (String)request.getAttribute(PwmConstants.REQUEST_ATTR_AGREEMENT_TEXT); %>
         <div class="agreementText"><%= expandedText %></div>
         <div id="buttonbar">
-            <form action="<pwm:url url='UpdateProfile'/>" method="post"
-                  enctype="application/x-www-form-urlencoded">
+            <form action="<pwm:url url='UpdateProfile'/>" method="post" enctype="application/x-www-form-urlencoded">
                 <%-- remove the next line to remove the "I Agree" checkbox --%>
-                <input type="checkbox" id="agreeCheckBox" onclick="updateContinueButton()" data-dojo-type="dijit.form.CheckBox"
-                       onchange="updateContinueButton()"/>&nbsp;&nbsp;<label for="agreeCheckBox"><pwm:display
-                    key="Button_Agree"/></label>
-                <input type="hidden"
-                       name="processAction"
+                    <label class="checkboxWrapper">
+                        <input type="checkbox" id="agreeCheckBox"/>
+                        <pwm:display key="Button_Agree"/>
+                    </label>
+                <input type="hidden" name="processAction"
                        value="agree"/>
                 <button type="submit" name="button" class="btn" id="button_continue">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -79,10 +78,8 @@
 
 
     PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/form/CheckBox"],function(dojoParser){
-            dojoParser.parse();
+        PWM_MAIN.addEventHandler('agreeCheckBox','click, change',function(){ updateContinueButton() });
             updateContinueButton();
-        });
     });
 </script>
 </pwm:script>

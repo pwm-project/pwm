@@ -61,8 +61,7 @@
         </table>
         <div id="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecretForm" style="display: inline"
-                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecretForm"
-                  onsubmit="confirmContinue();return false">
+                  enctype="application/x-www-form-urlencoded" id="setupOtpSecretForm">
                 <input type="hidden" name="processAction" value="clearOtp"/>
                 <button type="submit" name="Button_Continue" class="btn" id="continue_button">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -77,6 +76,13 @@
 </div>
 <pwm:script>
 <script type="application/javascript">
+    PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_MAIN.addEventHandler('setupOtpSecretForm','submit',function(){
+            confirmContinue();
+            return false;
+        });
+    });
+
     function checkCode() {
         PWM_MAIN.getObject('crossIcon').style.display = 'none';
         PWM_MAIN.getObject('checkIcon').style.display = 'none';

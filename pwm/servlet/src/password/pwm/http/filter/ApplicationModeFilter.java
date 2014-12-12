@@ -39,7 +39,6 @@ public class ApplicationModeFilter extends PwmFilter {
 
     private static final PwmLogger LOGGER = PwmLogger.getLogger(ApplicationModeFilter.class.getName());
 
-
     @Override
     public void processFilter(
             final PwmRequest pwmRequest,
@@ -109,5 +108,4 @@ public class ApplicationModeFilter extends PwmFilter {
 
         return false;
     }
-
 }

@@ -569,10 +569,9 @@ MultiLocaleTableHandler.writeMultiLocaleSetting = function(settingKey, locale, i
 
 var FormTableHandler = {};
 
-FormTableHandler.init = function(keyName,options) {
+FormTableHandler.init = function(keyName) {
     console.log('FormTableHandler init for ' + keyName);
     var parentDiv = 'table_setting_' + keyName;
-    PWM_VAR['clientSettingCache'][keyName + '_options'] = options;
     PWM_CFGEDIT.clearDivElements(parentDiv, true);
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
@@ -670,16 +669,13 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
         }
 
         {
-            var userDNtypeAllowed = PWM_VAR['clientSettingCache'][settingKey + '_options']['type-userDN'] == 'show';
+            var userDNtypeAllowed = PWM_SETTINGS['settings'][settingKey]['options']['type-userDN'] == 'show';
 
             var td3 = document.createElement("td");
             td3.setAttribute("style", "border-width: 0");
             var optionList = PWM_GLOBAL['formTypeOptions'];
             var typeSelect = document.createElement("select");
-            typeSelect.setAttribute("data-dojo-type", "dijit.form.Select");
             typeSelect.setAttribute("id", inputID + "type");
-            typeSelect.setAttribute("style","width: 80px");
-            typeSelect.setAttribute("onchange","PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['type'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
             for (var optionItem in optionList) {
                 var optionElement = document.createElement("option");
                 if (optionList[optionItem] != 'userDN' || userDNtypeAllowed) {
@@ -702,8 +698,6 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             td4.setAttribute("style", "border-width: 0");
             var labelButton = document.createElement("button");
             labelButton.setAttribute("id", inputID + "optionsButton");
-            labelButton.setAttribute("data-dojo-type", "dijit.form.Button");
-            labelButton.setAttribute("onclick","FormTableHandler.showOptionsDialog('" + settingKey + "'," + iteration + ")");
             labelButton.innerHTML = "Options";
             td4.appendChild(labelButton);
             newTableRow.appendChild(td4);
@@ -723,6 +717,16 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     }
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
+
+    PWM_MAIN.addEventHandler(inputID + "optionsButton",'click',function(){
+        FormTableHandler.showOptionsDialog(settingKey,iteration);
+    });
+    PWM_MAIN.addEventHandler(inputID + "type",'click',function(){
+        PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
+        FormTableHandler.writeFormSetting(settingKey);
+    });
+
+
 };
 
 FormTableHandler.writeFormSetting = function(settingKey) {
@@ -768,11 +772,11 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
         bodyText += '</tr><tr>';
         bodyText += '<td style="border:0; text-align: right">Confirm</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
         bodyText += '</tr><tr>';
-        if (PWM_VAR['clientSettingCache'][keyName + '_options']['readonly'] == 'show') {
+        if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
             bodyText += '<td style="border:0; text-align: right">Read Only</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        if (PWM_VAR['clientSettingCache'][keyName + '_options']['unique'] == 'show') {
+        if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
             bodyText += '<td style="border:0; text-align: right">Unique</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
             bodyText += '</tr><tr>';
         }
@@ -829,7 +833,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['confirmationRequired'] = this.checked;FormTableHandler.writeFormSetting(keyName)}
         },inputID + "confirmationRequired");
 
-        if (PWM_VAR['clientSettingCache'][keyName + '_options']['readonly'] == 'show') {
+        if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
             PWM_MAIN.clearDijitWidget(inputID + "readonly");
             new dijit.form.CheckBox({
                 checked: PWM_VAR['clientSettingCache'][keyName][iteration]['readonly'],
@@ -837,7 +841,7 @@ FormTableHandler.showOptionsDialog = function(keyName, iteration) {
             },inputID + "readonly");
         }
 
-        if (PWM_VAR['clientSettingCache'][keyName + '_options']['unique'] == 'show') {
+        if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
             PWM_MAIN.clearDijitWidget(inputID + "unique");
             new dijit.form.CheckBox({
                 checked: PWM_VAR['clientSettingCache'][keyName][iteration]['unique'],
@@ -1199,31 +1203,35 @@ ChangePasswordHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    var htmlBody = '<button id="button-changePassword-' + settingKey + '" class="btn"><span class="btn-icon fa fa-plus-square"></span>Store Password</button>'
-        + '<button id="button-clearPassword-' + settingKey + '" class="btn"><span class="btn-icon fa fa-times"></span>Clear Password</button>';
-
-    parentDivElement.innerHTML = htmlBody;
-
-    PWM_MAIN.addEventHandler('button-changePassword-' + settingKey,'click',function(){
-        ChangePasswordHandler.popup(settingKey,PWM_SETTINGS['settings'][settingKey]['label']);
-    });
-
-    PWM_MAIN.addEventHandler('button-clearPassword-' + settingKey,'click',function(){
-        PWM_MAIN.showConfirmDialog({
-            text:'Clear password for setting ' + PWM_SETTINGS['settings'][settingKey]['label'] + '?',
-            okAction:function() {
-                PWM_CFGEDIT.resetSetting(settingKey);
-                PWM_MAIN.showDialog({
-                    title: 'Success',
-                    text: PWM_SETTINGS['settings'][settingKey]['label'] + ' password cleared.',
-                    okAction: function() {
-                        ChangePasswordHandler.init(settingKey);
-                    }
-
-                });
+    if (parentDivElement) {
+        PWM_CFGEDIT.readSetting(settingKey,function(data){
+            var hasPassword = !data['isDefault'];
+            var htmlBody = '';
+            if (hasPassword) {
+                htmlBody += '<table><tr><td>Value stored.</td></tr></table>';
+                htmlBody += '<button id="button-clearPassword-' + settingKey + '" class="btn"><span class="btn-icon fa fa-times"></span>Clear Value</button>';
+            } else {
+                htmlBody += '<button id="button-changePassword-' + settingKey + '" class="btn"><span class="btn-icon fa fa-plus-square"></span>Store Value</button>';
             }
+
+            parentDivElement.innerHTML = htmlBody;
+
+            PWM_MAIN.addEventHandler('button-changePassword-' + settingKey,'click',function(){
+                ChangePasswordHandler.popup(settingKey,PWM_SETTINGS['settings'][settingKey]['label']);
+            });
+
+            PWM_MAIN.addEventHandler('button-clearPassword-' + settingKey,'click',function(){
+                PWM_MAIN.showConfirmDialog({
+                    text:'Clear password for setting ' + PWM_SETTINGS['settings'][settingKey]['label'] + '?',
+                    okAction:function() {
+                        PWM_CFGEDIT.resetSetting(settingKey,function(){
+                            ChangePasswordHandler.init(settingKey);
+                        });
+                    }
+                });
+            });
         });
-    });
+    }
 
 };
 
@@ -1288,9 +1296,10 @@ ChangePasswordHandler.markConfirmationCheck = function(matchStatus) {
 ChangePasswordHandler.doChange = function(settingKey) {
     var password1 = PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'];
     PWM_MAIN.clearDijitWidget('dialogPopup');
-    PWM_CFGEDIT.writeSetting(settingKey,password1);
-    PWM_MAIN.showInfo(PWM_VAR['clientSettingCache'][settingKey]['settings']['name'] + ' password recorded ');
-    clear(settingKey);
+    PWM_CFGEDIT.writeSetting(settingKey,password1,function(){
+        ChangePasswordHandler.clear(settingKey);
+        ChangePasswordHandler.init(settingKey);
+    });
 };
 
 ChangePasswordHandler.clear = function(settingKey) {
@@ -1376,22 +1385,6 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
                 showClose: true
             });
 
-            /*
-             PWM_MAIN.clearDijitWidget('dialogPopup');
-             var theDialog = new Dialog({
-             id: 'dialogPopup',
-             title: 'Store Password - ' + PWM_VAR['clientSettingCache'][settingKey]['settings']['name'],
-             style: "width: 550px",
-             content: bodyText,
-             hide: function(){
-             PWM_MAIN.clearDijitWidget('dialogPopup');
-             ChangePasswordHandler.clear(settingKey);
-             }
-             });
-             theDialog.show();
-             */
-
-
             registry.byId('show').set('onChange',function(){
                 PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields'] = this.checked;
                 ChangePasswordHandler.changePasswordPopup(settingKey);
@@ -1421,7 +1414,7 @@ ChangePasswordHandler.changePasswordPopup = function(settingKey) {
                     ChangePasswordHandler.validatePasswordPopupFields();
                 },
                 value: p2
-            }
+            };
             if (PWM_VAR['clientSettingCache'][settingKey]['settings']['showFields']) {
                 new Textarea(p1Options,'password1');
                 new Textarea(p2Options,'password2');
@@ -1853,7 +1846,7 @@ EmailTableHandler.draw = function(keyName) {
 
                 var addItemButton = document.createElement("button");
                 addItemButton.setAttribute("type", "[button");
-                addItemButton.setAttribute("onclick", "PWM_CFGEDIT.resetSetting('" + keyName + "');PWM_CFGEDIT.loadMainPageBody()");
+                addItemButton.setAttribute("onclick", "PWM_CFGEDIT.resetSetting('" + keyName + "',function(){PWM_CFGEDIT.loadMainPageBody()});");
                 addItemButton.setAttribute("class", "btn");
                 addItemButton.innerHTML = '<span class="btn-icon fa fa-plus-square"></span>Add Value';
                 newTableData.appendChild(addItemButton);
@@ -1890,7 +1883,7 @@ EmailTableHandler.drawRow = function(keyName, localeName, parentDiv) {
             localeTableRow.appendChild(localeTdContent);
 
             var localeTableElement = document.createElement("table");
-            localeTableElement.setAttribute("style", "border-width: 1px; width:515px; margin:0");
+            localeTableElement.setAttribute("style", "border-width: 0px; width:515px; margin:0");
             localeTdContent.appendChild(localeTableElement);
 
             var idPrefix = "setting_" + localeName + "_" + keyName;
@@ -2031,30 +2024,16 @@ BooleanHandler.init = function(keyName) {
     var parentDiv = 'table_setting_' + keyName;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    parentDivElement.innerHTML = '<input type="hidden" id="value_' + keyName + '" value="false"/>'
-        + '<div id="button_' + keyName + '" type="button">Loading</div>';
+    parentDivElement.innerHTML = '<label class="checkboxWrapper">'
+        + '<input type="checkbox" id="value_' + keyName + '" value="false" disabled/>'
+        + 'Enabled (True)</label>';
 
-    var buttonDiv = 'button_' + keyName;
-    PWM_MAIN.clearDijitWidget(buttonDiv);
-
-    require(["dijit/form/ToggleButton"],function(ToggleButton){
-        var toggleButton = new ToggleButton({
-            id: buttonDiv,
-            iconClass:'dijitCheckBoxIcon',
-            disabled: true,
-            showLabel: 'jason' + PWM_MAIN.showString('Display_PleaseWait')
-        },buttonDiv);
-        PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
-            require(["dijit/registry","dojo/on"],function(registry,on){
-                toggleButton.set('checked',resultValue);
-                toggleButton.set('disabled',false);
-                toggleButton.set('label','Enabled (True)');
-                setTimeout(function(){
-                    on(toggleButton,"change",function(){
-                        BooleanHandler.toggle(keyName,toggleButton);
-                    });
-                },100);
-            });
+    PWM_CFGEDIT.readSetting(keyName,function(data){
+        var checkElement = PWM_MAIN.getObject("value_" + keyName);
+        checkElement.checked = data;
+        checkElement.disabled = false;
+        PWM_MAIN.addEventHandler("value_" + keyName, 'change', function(){
+            PWM_CFGEDIT.writeSetting(keyName,checkElement.checked);
         });
     });
 };
@@ -2439,6 +2418,23 @@ OptionListHandler.defaultItem = [];
 
 OptionListHandler.init = function(keyName) {
     console.log('OptionListHandler init for ' + keyName);
+
+    var parentDiv = 'table_setting_' + keyName;
+    var parentDivElement = PWM_MAIN.getObject(parentDiv);
+
+    var htmlBody = '';
+    var options = PWM_SETTINGS['settings'][keyName]['options'];
+    for (var key in options) {
+        (function (optionKey) {
+            var buttonID = keyName + "_button_" + optionKey;
+            htmlBody += '<label class="checkboxWrapper" style="min-width:180px;">'
+                + '<input type="checkbox" id="' + buttonID + '" disabled/>'
+                + options[optionKey] + '</label>';
+        })(key);
+    }
+    parentDivElement.innerHTML = htmlBody;
+
+
     PWM_CFGEDIT.readSetting(keyName, function(resultValue) {
         PWM_VAR['clientSettingCache'][keyName] = resultValue;
         OptionListHandler.draw(keyName);
@@ -2446,38 +2442,18 @@ OptionListHandler.init = function(keyName) {
 };
 
 OptionListHandler.draw = function(keyName) {
-    // clear the old dijit node (if it exists)
-    var parentDiv = 'table_setting_' + keyName;
-    PWM_CFGEDIT.clearDivElements(parentDiv, false);
-    var parentDivElement = PWM_MAIN.getObject(parentDiv);
-
-    require(["dijit/form/ToggleButton","dojo/_base/array","dojo/on"],function(ToggleButton,array,on){
-        var resultValue = PWM_VAR['clientSettingCache'][keyName];
+    var resultValue = PWM_VAR['clientSettingCache'][keyName];
+    require(["dojo/_base/array"],function(array){
         var options = PWM_SETTINGS['settings'][keyName]['options'];
         for (var key in options) {
             (function (optionKey) {
-                var buttonElement = document.createElement("button");
                 var buttonID = keyName + "_button_" + optionKey;
-                var label = options[optionKey];
-
-                buttonElement.setAttribute("id", buttonID);
-                buttonElement.innerHTML = label;
-                parentDivElement.appendChild(buttonElement);
-
                 var checked = array.indexOf(resultValue,optionKey) > -1;
-                PWM_MAIN.clearDijitWidget(buttonID);
-                var toggleButton = new ToggleButton({
-                    id: buttonID,
-                    style: "min-width:180px;",
-                    iconClass:'dijitCheckBoxIcon',
-                    checked: checked
-                },buttonID);
-
-                setTimeout(function(){
-                    on(toggleButton,"change",function(){
-                        OptionListHandler.toggle(keyName,optionKey);
-                    });
-                },100);
+                PWM_MAIN.getObject(buttonID).checked = checked;
+                PWM_MAIN.getObject(buttonID).disabled = false;
+                PWM_MAIN.addEventHandler(buttonID,'change',function(){
+                    OptionListHandler.toggle(keyName,optionKey);
+                });
             })(key);
         }
     });
@@ -2485,7 +2461,7 @@ OptionListHandler.draw = function(keyName) {
 
 OptionListHandler.toggle = function(keyName,optionKey) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
-    require(["dijit/form/ToggleButton","dojo/_base/array"],function(ToggleButton,array){
+    require(["dojo/_base/array"],function(array){
         var checked = array.indexOf(resultValue,optionKey) > -1;
         if (checked) {
             var index = array.indexOf(resultValue, optionKey);
@@ -2497,15 +2473,7 @@ OptionListHandler.toggle = function(keyName,optionKey) {
             resultValue.push(optionKey);
         }
     });
-    OptionListHandler.write(keyName, true);
-};
-
-
-OptionListHandler.write = function(settingKey,redraw) {
-    PWM_CFGEDIT.writeSetting(settingKey, PWM_VAR['clientSettingCache'][settingKey]);
-    if (redraw) {
-        OptionListHandler.draw(settingKey);
-    }
+    PWM_CFGEDIT.writeSetting(keyName, resultValue);
 };
 
 // -------------------------- numeric value handler ------------------------------------
@@ -2525,12 +2493,15 @@ NumericValueHandler.init = function(settingKey) {
             onChange: function() {
                 PWM_CFGEDIT.writeSetting(settingKey, this.value);
             },
+            onClick: function() {
+                PWM_CFGEDIT.writeSetting(settingKey, this.value);
+            },
             value: PWM_MAIN.showString('Display_PleaseWait'),
             disabled: true,
             id: "value_" + settingKey
         }, "value_" + settingKey);
         numberInput._mouseWheeled = function(){};
-        readInitialTextBasedValue(settingKey);
+        PWM_CFGEDIT.readInitialTextBasedValue(settingKey);
     });
 };
 
@@ -2590,25 +2561,36 @@ StringValueHandler.init = function(settingKey) {
     var parentDiv = 'table_setting_' + settingKey;
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
-    parentDivElement.innerHTML = '<input id="value_' + settingKey + '" name="setting_' + settingKey + '"/>';
+    parentDivElement.innerHTML = '<input class="configStringInput" id="value_' + settingKey + '" name="setting_' + settingKey + '" disabled/>'
+    + '&nbsp;<span id="icon-' + settingKey + '-warning" style="visibility:hidden; color:orange" class="btn-icon fa fa-warning"></span>';
+    PWM_CFGEDIT.readSetting(settingKey,function(data){
+        var inputElement = PWM_MAIN.getObject("value_" + settingKey);
+        inputElement.value = data;
+        if (PWM_SETTINGS['settings'][settingKey]['required']) {
+            inputElement.required = true;
+        }
+        if (PWM_SETTINGS['settings'][settingKey]['pattern']) {
+            inputElement.pattern = PWM_SETTINGS['settings'][settingKey]['pattern'];
+            inputElement.title = PWM_CONFIG.showString('Warning_InvalidFormat');
+            var validateValue = function() {
+                var re = new RegExp(PWM_SETTINGS['settings'][settingKey]['pattern']);
+                var matches = re.test(inputElement.value);
+                PWM_MAIN.getObject('icon-' + settingKey + '-warning').style.visibility = matches ?  'hidden' : 'visible';
+            };
+            PWM_MAIN.addEventHandler("value_" + settingKey,"keyup",function(){
+                validateValue();
+            });
+            validateValue();
+            PWM_MAIN.showTooltip({id:'icon-'+settingKey+'-warning',text:PWM_CONFIG.showString('Warning_InvalidFormat')});
 
-    PWM_MAIN.clearDijitWidget("value_" + settingKey);
-    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-        new ValidationTextBox({
-            regExp: PWM_SETTINGS['settings'][settingKey]['pattern'],
-            required: PWM_SETTINGS['settings'][settingKey]['required'],
-            invalidMessage: PWM_CONFIG.showString('Warning_InvalidFormat'),
-            style: "width: 550px",
-            onChange: function() {
-                console.log('string handler for ' + settingKey + ' seen value: ' + this.value);
-                PWM_CFGEDIT.writeSetting(settingKey, this.value);
-            },
-            placeholder: PWM_SETTINGS['settings'][settingKey]['placeholder'],
-            value: PWM_MAIN.showString('Display_PleaseWait'),
-            disabled: true,
-            id: "value_" + settingKey
-        }, "value_" + settingKey);
-        readInitialTextBasedValue(settingKey);
+        }
+        if (PWM_SETTINGS['settings'][settingKey]['placeholder']) {
+            inputElement.placeholder = PWM_SETTINGS['settings'][settingKey]['placeholder'];
+        }
+        inputElement.disabled = false;
+        PWM_MAIN.addEventHandler("value_" + settingKey,"input,change",function(){
+            PWM_CFGEDIT.writeSetting(settingKey,inputElement.value);
+        });
     });
 };
 
@@ -2636,7 +2618,7 @@ TextAreaValueHandler.init = function(settingKey) {
             disabled: true,
             id: "value_" + settingKey
         }, "value_" + settingKey);
-        readInitialTextBasedValue(settingKey);
+        PWM_CFGEDIT.readInitialTextBasedValue(settingKey);
     });
 };
 
@@ -2772,25 +2754,27 @@ FileValueHandler.draw = function(keyName) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
 
     var htmlBody = '';
-    for (var fileCounter in resultValue) {
-        (function (counter) {
-            var fileInfo = resultValue[counter];
-            htmlBody += '<table style="width:100%" id="table_file' + keyName + '-' + counter + '">';
-            htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">File' + '</td></tr>';
-            htmlBody += '<tr><td>Name</td><td class="setting_table_value">' + fileInfo['name'] + '</td></tr>';
-            htmlBody += '<tr><td>Size</td><td class="setting_table_value">' + fileInfo['size'] + '</td></tr>';
-            htmlBody += '<tr><td>MD5 checksum</td><td class="setting_table_value">' + fileInfo['md5sum'] + '</td></tr>';
-            htmlBody += '<tr><td>SHA1 checksum</td><td class="setting_table_value">' + fileInfo['sha1sum'] + '</td></tr>';
-            htmlBody += '</table>'
-        })(fileCounter);
+
+    if (PWM_MAIN.isEmpty(resultValue)) {
+        htmlBody = '<p>No File Present</p>';
+    } else {
+        for (var fileCounter in resultValue) {
+            (function (counter) {
+                var fileInfo = resultValue[counter];
+                htmlBody += '<table style="width:100%" id="table_file' + keyName + '-' + counter + '">';
+                htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">File' + '</td></tr>';
+                htmlBody += '<tr><td>Name</td><td class="setting_table_value">' + fileInfo['name'] + '</td></tr>';
+                htmlBody += '<tr><td>Size</td><td class="setting_table_value">' + fileInfo['size'] + '</td></tr>';
+                htmlBody += '<tr><td>MD5 checksum</td><td class="setting_table_value">' + fileInfo['md5sum'] + '</td></tr>';
+                htmlBody += '<tr><td>SHA1 checksum</td><td class="setting_table_value">' + fileInfo['sha1sum'] + '</td></tr>';
+                htmlBody += '</table>'
+            })(fileCounter);
+        }
     }
 
     if (PWM_MAIN.isEmpty(resultValue)) {
-        htmlBody = '<table><tr><td>No File Present</td></tr></table>';
-    }
-
-    htmlBody += '<button class="btn" id="button-uploadFile-' + keyName + '"><span class="btn-icon fa fa-upload"></span>Upload File</button>';
-    if (!PWM_MAIN.isEmpty(resultValue)) {
+        htmlBody += '<button class="btn" id="button-uploadFile-' + keyName + '"><span class="btn-icon fa fa-upload"></span>Upload File</button>';
+    } else {
         htmlBody += '<button class="btn" id="button-removeFile-' + keyName + '"><span class="btn-icon fa fa-trash-o"></span>Remove File</button>';
     }
 
@@ -2802,10 +2786,11 @@ FileValueHandler.draw = function(keyName) {
 
     PWM_MAIN.addEventHandler('button-removeFile-' + keyName,'click',function(){
         PWM_MAIN.showConfirmDialog({text:'Are you sure you want to remove the currently stored file?',okAction:function(){
-            PWM_CFGEDIT.resetSetting(keyName);
             PWM_MAIN.showWaitDialog({loadFunction:function(){
-                FileValueHandler.init(keyName);
-                PWM_MAIN.closeWaitDialog();
+                PWM_CFGEDIT.resetSetting(keyName,function(){
+                    FileValueHandler.init(keyName);
+                    PWM_MAIN.closeWaitDialog();
+                });
             }});
         }});
     });

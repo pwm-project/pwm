@@ -36,7 +36,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
     final Set<String> values;
 
     public OptionListValue(final Set<String> values) {
-        this.values = values;
+        this.values = new TreeSet(values);
     }
 
     public static StoredValueFactory factory()
@@ -60,7 +60,7 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
                     throws PwmOperationalException
             {
                 final List valueElements = settingElement.getChildren("value");
-                final Set<String> values = new HashSet<>();
+                final Set<String> values = new TreeSet<>();
                 for (final Object loopValue : valueElements) {
                     final Element loopValueElement = (Element) loopValue;
                     final String value = loopValueElement.getText();

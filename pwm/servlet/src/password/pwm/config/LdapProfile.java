@@ -27,8 +27,7 @@ import password.pwm.PwmConstants;
 import java.util.*;
 
 public class LdapProfile extends AbstractProfile implements Profile {
-    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSetting.getSettings(
-            PwmSettingCategory.LDAP_PROFILE));
+    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSettingCategory.LDAP_PROFILE.getSettings());
 
     protected LdapProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);

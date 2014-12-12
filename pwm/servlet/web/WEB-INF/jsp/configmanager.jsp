@@ -48,7 +48,7 @@
 </jsp:include>
 <div id="centerbody">
 <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-<div id="healthBody" style="border: #808080 1px solid; margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">
+<div id="healthBody" style="margin-top:5px; margin-left: 20px; margin-right: 20px; padding:0; max-height: 300px; overflow-y: auto">
     <div class="WaitDialogBlank"></div>
 </div>
 <pwm:script>

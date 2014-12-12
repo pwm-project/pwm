@@ -83,7 +83,9 @@ public class NewUserServlet extends PwmServlet {
         validate(PwmServlet.HttpMethod.POST),
         enterCode(PwmServlet.HttpMethod.POST, HttpMethod.GET),
         reset(PwmServlet.HttpMethod.POST),
-        agree(PwmServlet.HttpMethod.POST),;
+        agree(PwmServlet.HttpMethod.POST),
+
+        ;
 
         private final Collection<PwmServlet.HttpMethod> method;
 
@@ -539,12 +541,13 @@ public class NewUserServlet extends PwmServlet {
         sessionAuthenticator.authenticateUser(userIdentity, userPassword);
 
         {  // execute configured actions
-            LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
             final List<ActionConfiguration> actions = pwmApplication.getConfig().readSettingAsAction(
                     PwmSetting.NEWUSER_WRITE_ATTRIBUTES);
-            if (actions != null && actions.isEmpty()) {
+            if (actions != null && !actions.isEmpty()) {
+                LOGGER.debug(pwmSession, "executing configured actions to user " + theUser.getEntryDN());
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
+                settings.setMacroMachine(pwmSession.getSessionManager().getMacroMachine(pwmApplication));
                 settings.setUserIdentity(userIdentity);
                 final ActionExecutor actionExecutor = new ActionExecutor(pwmApplication);
                 actionExecutor.executeActions(actions, settings, pwmSession);

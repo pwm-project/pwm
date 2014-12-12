@@ -332,6 +332,11 @@ public class ContextManager implements Serializable {
         }
 
         private void doReinitialize() {
+            if (configReader != null && configReader.isSaveInProgress()) {
+                LOGGER.info("delaying restart request due to in progress file save");
+                return;
+            }
+
             LOGGER.info("beginning application restart");
             try {
                 ResourceFileServlet.clearCache(servletContext);

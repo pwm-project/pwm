@@ -44,10 +44,9 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -60,40 +59,16 @@ import java.util.*;
  *
  * @author Jason D. Rivard
  */
-public class SessionFilter implements Filter {
+public class SessionFilter extends PwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(SessionFilter.class);
 
-    public void init(final FilterConfig filterConfig)
-            throws ServletException
-    {
-    }
-
-    public void doFilter(
-            final ServletRequest servletRequest,
-            final ServletResponse servletResponse,
-            final FilterChain filterChain
+    public void processFilter(
+            final PwmRequest pwmRequest,
+            final PwmFilterChain chain
     )
-            throws IOException, ServletException {
-
-        final HttpServletRequest req = (HttpServletRequest) servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse) servletResponse;
-
-        PwmRequest pwmRequest = null;
-        try {
-            pwmRequest = PwmRequest.forRequest(req, resp);
-            processFilter(pwmRequest,filterChain);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.fatal("unexpected error processing session filter: " + e.getMessage());
-            if (pwmRequest != null) {
-                pwmRequest.respondWithError(e.getErrorInformation(), true);
-            }
-        }
-    }
-
-    private void processFilter(final PwmRequest pwmRequest, final FilterChain filterChain)
-            throws PwmUnrecoverableException, IOException, ServletException
+            throws IOException, ServletException, PwmUnrecoverableException
     {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final Configuration config = pwmRequest.getConfig();
@@ -217,7 +192,7 @@ public class SessionFilter implements Filter {
         }
 
         try {
-            filterChain.doFilter(pwmRequest.getHttpServletRequest(), pwmRequest.getPwmResponse().getHttpServletResponse());
+            chain.doFilter();
         } catch (Exception e) {
             LOGGER.warn(pwmSession, "unhandled exception", e);
             throw new ServletException(e);

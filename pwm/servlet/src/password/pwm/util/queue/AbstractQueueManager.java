@@ -26,10 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.error.*;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.Helper;
@@ -53,12 +50,36 @@ public abstract class AbstractQueueManager implements PwmService {
     protected Timer timerThread;
     protected Settings settings;
 
-    protected HealthRecord lastSendFailure;
-    protected Date lastSendFailureTime;
+    protected Date lastSendTime = new Date();
     private LocalDBStoredQueue sendQueue;
     protected int itemIDCounter;
     protected PwmApplication.AppAttribute itemCountAppAttribute;
     protected String serviceName = AbstractQueueManager.class.getSimpleName();
+
+    protected FailureInfo lastFailure;
+
+    static class FailureInfo {
+        private Date time = new Date();
+        private ErrorInformation errorInformation;
+        private QueueEvent queueEvent;
+
+        public FailureInfo(ErrorInformation errorInformation, QueueEvent queueEvent) {
+            this.errorInformation = errorInformation;
+            this.queueEvent = queueEvent;
+        }
+
+        public Date getTime() {
+            return time;
+        }
+
+        public ErrorInformation getErrorInformation() {
+            return errorInformation;
+        }
+
+        public QueueEvent getQueueEvent() {
+            return queueEvent;
+        }
+    }
 
 
     public STATUS status() {
@@ -154,13 +175,11 @@ public abstract class AbstractQueueManager implements PwmService {
 
         if (localDB == null || localDB.status() != LocalDB.Status.OPEN) {
             status = STATUS.CLOSED;
-            lastSendFailure = HealthRecord.forMessage(HealthMessage.ServiceClosed_LocalDBUnavail,serviceName);
             return;
         }
 
         if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
             status = STATUS.CLOSED;
-            lastSendFailure = HealthRecord.forMessage(HealthMessage.ServiceClosed_AppReadOnly,serviceName);
             return;
         }
 
@@ -227,24 +246,33 @@ public abstract class AbstractQueueManager implements PwmService {
     }
 
     public List<HealthRecord> healthCheck() {
-        if (lastSendFailure == null) {
-            return null;
+        if (pwmApplication.getLocalDB() == null || pwmApplication.getLocalDB().status() != LocalDB.Status.OPEN) {
+            return Collections.singletonList(HealthRecord.forMessage(HealthMessage.ServiceClosed_LocalDBUnavail, serviceName));
         }
 
-        return Collections.singletonList(lastSendFailure);
+        if (pwmApplication.getApplicationMode() == PwmApplication.MODE.READ_ONLY) {
+            return Collections.singletonList(HealthRecord.forMessage(HealthMessage.ServiceClosed_AppReadOnly,serviceName));
+        }
+
+        if (lastFailure != null) {
+            return this.failureToHealthRecord(lastFailure);
+        }
+
+        return Collections.emptyList();
     }
 
     private void processQueue() {
-        if (lastSendFailureTime != null) {
-            final TimeDuration timeSinceFailure = TimeDuration.fromCurrent(lastSendFailureTime);
+        if (lastFailure != null) {
+            final TimeDuration timeSinceFailure = TimeDuration.fromCurrent(lastSendTime);
             if (timeSinceFailure.isShorterThan(settings.getErrorRetryWaitTime())) {
                 return;
             }
         }
 
-        lastSendFailureTime = null;
+        lastSendTime = new Date();
 
-        while (sendQueue.peekFirst() != null && lastSendFailureTime == null) {
+        boolean sendFailure = false;
+        while (sendQueue.peekFirst() != null && !sendFailure) {
             final String jsonEvent = sendQueue.peekFirst();
             if (jsonEvent != null) {
                 final QueueEvent event = JsonUtil.getGson().fromJson(jsonEvent, QueueEvent.class);
@@ -263,17 +291,15 @@ public abstract class AbstractQueueManager implements PwmService {
                             event) + ", queue size: " + sendQueue.size());
 
                     // execute operation
-                    final boolean success = sendItem(item);
-
-                    if (success) {
+                    try {
+                        sendItem(item);
                         sendQueue.pollFirst();
-                        LOGGER.trace(
-                                "queued item successfully sent and removed from queue: " + queueItemToDebugString(
-                                        event) + ", queue size: " + sendQueue.size());
-                    } else {
-                        lastSendFailureTime = new Date();
-                        LOGGER.debug("queued item was not successfully sent, will retry: " + queueItemToDebugString(
-                                event) + ", queue size: " + sendQueue.size());
+                        LOGGER.trace("queued item processed and removed from queue: " + queueItemToDebugString(event) + ", queue size: " + sendQueue.size());
+                        lastFailure = null;
+                    } catch (PwmOperationalException e) {
+                        sendFailure = true;
+                        lastFailure = new FailureInfo(e.getErrorInformation(),event);
+                        LOGGER.debug("queued item was not successfully processed, will retry: " + queueItemToDebugString(event) + ", queue size: " + sendQueue.size());
                     }
                 }
             }
@@ -281,7 +307,9 @@ public abstract class AbstractQueueManager implements PwmService {
     }
 
 
-    abstract boolean sendItem(String item);
+    abstract void sendItem(String item) throws PwmOperationalException;
+
+    abstract List<HealthRecord> failureToHealthRecord(FailureInfo failureInfo);
 
 
     // -------------------------- INNER CLASSES --------------------------

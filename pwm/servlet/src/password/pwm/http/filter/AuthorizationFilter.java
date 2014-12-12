@@ -25,15 +25,12 @@ package password.pwm.http.filter;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.error.PwmError;
-import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.util.logging.PwmLogger;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
 import java.io.IOException;
 
 /**
@@ -42,7 +39,7 @@ import java.io.IOException;
  *
  * @author Jason D. Rivard
  */
-public class AuthorizationFilter implements Filter {
+public class AuthorizationFilter extends PwmFilter {
 // ------------------------------ FIELDS ------------------------------
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(AuthenticationFilter.class);
@@ -56,24 +53,15 @@ public class AuthorizationFilter implements Filter {
             throws ServletException {
     }
 
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain)
-            throws IOException, ServletException {
-        final HttpServletRequest req = (HttpServletRequest) servletRequest;
-        final HttpServletResponse resp = (HttpServletResponse) servletResponse;
-
-        try {
-            processFilter(req,resp,filterChain);
-        } catch (PwmUnrecoverableException e) {
-            LOGGER.fatal("unexpected error processing authorization filter: " + e.getMessage(), e );
-        }
-    }
-
-    private void processFilter(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain filterChain)
-            throws IOException, ServletException, PwmUnrecoverableException
+    public void processFilter(
+            final PwmRequest pwmRequest,
+            final PwmFilterChain chain
+    )
+            throws IOException, ServletException
     {
-        final PwmSession pwmSession = PwmSession.getPwmSession(req);
-        final PwmApplication pwmApplication = ContextManager.getPwmApplication(req);
-        final PwmRequest pwmRequest = PwmRequest.forRequest(req, resp);
+
+        final PwmSession pwmSession = pwmRequest.getPwmSession();
+        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
 
         // if the user is not authenticated as a PWM Admin, redirect to error page.
         boolean hasPermission = false;
@@ -85,7 +73,7 @@ public class AuthorizationFilter implements Filter {
 
         try {
             if (hasPermission) {
-                filterChain.doFilter(req, resp);
+                chain.doFilter();
                 return;
             }
         } catch (Exception e) {

@@ -167,20 +167,22 @@ public class SmsQueueManager extends AbstractQueueManager {
         return true;
     }
 
-    protected boolean sendItem(final String item) {
+    void sendItem(final String item) throws PwmOperationalException {
         final SmsItemBean smsItemBean = (JsonUtil.getGson()).fromJson(item, SmsItemBean.class);
         try {
             for (final String msgPart : splitMessage(smsItemBean.getMessage())) {
                 smsSendEngine.sendSms(smsItemBean.getTo(), msgPart);
             }
-        } catch (PwmUnrecoverableException | PwmOperationalException e) {
-            final ErrorInformation errorInformation = e.getErrorInformation();
-            lastSendFailure = HealthRecord.forMessage(HealthMessage.SMS_SendFailure, errorInformation.toDebugStr());
-            lastSendFailureTime = new Date();
+            StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_SUCCESSES);
+        } catch (PwmUnrecoverableException e) {
             StatisticsManager.incrementStat(pwmApplication, Statistic.SMS_SEND_FAILURES);
-            return e instanceof PwmUnrecoverableException;
+            LOGGER.error("discarding sms message due to permanent failure: " + e.getErrorInformation().toDebugStr());
         }
-        return true;
+    }
+
+    @Override
+    List<HealthRecord> failureToHealthRecord(FailureInfo failureInfo) {
+        return Collections.singletonList(HealthRecord.forMessage(HealthMessage.SMS_SendFailure, failureInfo.getErrorInformation().toDebugStr()));
     }
 
     private List<String> splitMessage(final String input) {
@@ -259,6 +261,7 @@ public class SmsQueueManager extends AbstractQueueManager {
             final Matcher m = p.matcher(resultBody);
             if (m.matches()) {
                 LOGGER.trace("result body matched configured regex match setting: " + regex);
+                return;
             }
         }
 
@@ -357,6 +360,14 @@ public class SmsQueueManager extends AbstractQueueManager {
             this.config = configuration;
         }
 
+
+        /**
+         *
+         * @param to
+         * @param message
+         * @throws PwmUnrecoverableException - If operation failed and a retry is unlikely to succeed
+         * @throws PwmOperationalException - If operation failed and should be retried.
+         */
         protected void sendSms(final String to, final String message)
                 throws PwmUnrecoverableException, PwmOperationalException
         {

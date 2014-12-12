@@ -29,7 +29,9 @@ import password.pwm.bean.EmailItemBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
+import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
+import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
@@ -47,10 +49,7 @@ import javax.mail.MessagingException;
 import javax.mail.Transport;
 import javax.mail.internet.*;
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard
@@ -160,7 +159,7 @@ public class
         }
     }
 
-    boolean sendItem(final String item) {
+    void sendItem(final String item) throws PwmOperationalException {
         final EmailItemBean emailItemBean = JsonUtil.getGson().fromJson(item, EmailItemBean.class);
 
         // create a new MimeMessage object (using the Session created above)
@@ -193,23 +192,24 @@ public class
             LOGGER.debug("successfully sent " + logText + "email: " + emailItemBean.toString());
             StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_SUCCESSES);
 
-            lastSendFailure = null;
-            return true;
         } catch (Exception e) {
-            lastSendFailure = HealthRecord.forMessage(HealthMessage.Email_SendFailure, e.getMessage());
             LOGGER.error("error during email send attempt: " + e);
 
             if (sendIsRetryable(e)) {
                 LOGGER.error("error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", will retry");
                 StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_FAILURES);
-                return false;
+                throw new PwmOperationalException(PwmError.ERROR_UNKNOWN,e.getMessage());
             } else {
                 LOGGER.error(
                         "error sending email (" + e.getMessage() + ") " + emailItemBean.toString() + ", permanent failure, discarding message");
                 StatisticsManager.incrementStat(pwmApplication, Statistic.EMAIL_SEND_DISCARDS);
-                return true;
             }
         }
+    }
+
+    @Override
+    List<HealthRecord> failureToHealthRecord(FailureInfo failureInfo) {
+        return Collections.singletonList(HealthRecord.forMessage(HealthMessage.Email_SendFailure, failureInfo.getErrorInformation().toDebugStr()));
     }
 
     private Message convertEmailItemToMessage(final EmailItemBean emailItemBean, final Configuration config)

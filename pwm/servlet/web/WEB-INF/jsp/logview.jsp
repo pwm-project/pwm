@@ -51,11 +51,11 @@
 <div style="width: 100%; text-align:center; background-color: #eeeeee" id="headerDiv">
     <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a style="cursor: pointer" onclick="PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')}});">refresh</a>
+    <a style="cursor: pointer" id="button-refresh">refresh</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a style="cursor: pointer" onclick="self.close()">close</a>
+    <a style="cursor: pointer" id="button-close">close</a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <select id="level" name="level" style="width: auto;" onchange="var level=this.options[this.selectedIndex].value;PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});">
+    <select id="level" name="level" style="width: auto;" id="select-level">
         <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
         </option>
         <option value="ERROR" <%= "ERROR".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>ERROR
@@ -87,6 +87,16 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['idle_suspendTimeout'] = true;
+        PWM_MAIN.addEventHandler('button-refresh','click',function(){
+            PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer('<%=selectedLevel%>')}});
+        });
+        PWM_MAIN.addEventHandler('button-close','click',function(){
+            self.close();
+        });
+        PWM_MAIN.addEventHandler('select-level','change',function(){
+            var level=this.options[this.selectedIndex].value;
+            PWM_MAIN.showWaitDialog({loadFunction:function(){PWM_CONFIG.openLogViewer(level)}});
+        });
     });
 </script>
 </pwm:script>

@@ -25,29 +25,29 @@ package password.pwm.config.policy;
 import password.pwm.PwmConstants;
 import password.pwm.config.*;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
-public class HelpdeskProfile extends AbstractProfile implements Profile {
-    final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSettingCategory.HELPDESK_PROFILE.getSettings());
+public class ForgottenPasswordProfile extends AbstractProfile {
 
-    protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
+    public ForgottenPasswordProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
+    @Override
+    public String getDisplayName(Locale locale) {
+        return null;
+    }
 
-    public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
+    public static ForgottenPasswordProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : HELPDESK_PROFILE_SETTINGS) {
+        for (final PwmSetting setting : PwmSettingCategory.RECOVERY_PROFILE.getSettings()) {
             final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
             valueMap.put(setting, value);
         }
-        return new HelpdeskProfile(identifier, valueMap);
+        return new ForgottenPasswordProfile(identifier, valueMap);
 
     }
 
-    @Override
-    public String getDisplayName(Locale locale)
-    {
-        return this.getIdentifier();
-    }
 }

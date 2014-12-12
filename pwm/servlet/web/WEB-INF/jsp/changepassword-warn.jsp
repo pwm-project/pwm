@@ -61,7 +61,7 @@
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
             <form action="<pwm:url url='ChangePassword'/>" method="post" name="setupOtpSecret-skip"
-                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret-skip" class="pwm-form">
+                  enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="warnResponse"/>
                 <input type="hidden" name="warnResponse" value="skip"/>
                 <button type="submit" name="skipbutton" class="btn" id="skipbutton">

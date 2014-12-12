@@ -76,8 +76,8 @@ public abstract class PwmFilter implements Filter {
             processFilter(pwmRequest, pwmFilterChain);
         } catch (PwmException e) {
             LOGGER.error(pwmRequest, "unexpected error processing filter chain: " + e.getMessage(), e);
-        } catch (Throwable t) {
-            t.printStackTrace();
+        } catch (IOException e) {
+            LOGGER.debug(pwmRequest, "i/o error processing request: " + e.getMessage());
         }
     }
 

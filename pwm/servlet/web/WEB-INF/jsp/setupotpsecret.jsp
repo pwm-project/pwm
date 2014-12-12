@@ -72,7 +72,7 @@
         </div>
         <div id="buttonbar">
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
-                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret" class="pwm-form">
+                  enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
                 <input type="hidden" name="processAction" value="toggleSeen"/>
                 <button type="submit" name="continue" class="btn" id="continuebutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
@@ -83,7 +83,7 @@
             </form>
             <% if (forceSetupPolicy == ForceSetupPolicy.FORCE_ALLOW_SKIP) { %>
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret-skip"
-                  enctype="application/x-www-form-urlencoded" onchange="" id="setupOtpSecret-skip" class="pwm-form">
+                  enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="skip"/>
                 <button type="submit" name="continue" class="btn" id="skipbutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-fighter-jet"></span></pwm:if>
