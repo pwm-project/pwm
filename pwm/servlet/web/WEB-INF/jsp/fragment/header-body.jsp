@@ -29,10 +29,12 @@
 <%@ page import="password.pwm.http.PwmRequest" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
+    boolean showWarnings = false;
     boolean showLogout = false;
     boolean showHome = false;
     try {
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        showWarnings = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_WARNINGS);
         final boolean showButtons = !pwmRequest.isFlag(PwmRequest.Flag.HIDE_HEADER_BUTTONS) && !pwmRequest.isForcedPageView();
         final boolean loggedIn = pwmRequest.isAuthenticated();
         if (showButtons && loggedIn) {
@@ -44,7 +46,7 @@
     }
 
 %>
-<%@ include file="header-warnings.jsp" %>
+<% if (showWarnings) { %><%@ include file="header-warnings.jsp" %><% } %>
 <div id="header">
     <div id="header-company-logo">
     </div>

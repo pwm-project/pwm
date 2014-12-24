@@ -39,6 +39,7 @@
         configFilePath = file.getParentFile().getAbsolutePath();
     } catch (Exception e) { /* */ }
 %>
+<% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

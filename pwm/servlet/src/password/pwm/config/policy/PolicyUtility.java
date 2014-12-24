@@ -28,7 +28,7 @@ import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.UserPermission;
 import password.pwm.error.PwmUnrecoverableException;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.List;
@@ -58,7 +58,7 @@ public class PolicyUtility {
                 if (queryMatch != null && !queryMatch.isEmpty()) {
                     LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
                     try {
-                        boolean match = Helper.testUserPermissions(pwmApplication, sessionLabel, userIdentity,
+                        boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity,
                                 queryMatch);
                         if (match) {
                             return profile;

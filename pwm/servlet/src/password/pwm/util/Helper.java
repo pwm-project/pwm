@@ -23,10 +23,8 @@
 package password.pwm.util;
 
 import com.novell.ldapchai.ChaiUser;
-import com.novell.ldapchai.exception.ChaiException;
 import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
-import com.novell.ldapchai.provider.ChaiProvider;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -38,11 +36,9 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.SessionStateBean;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.UserPermission;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -447,102 +443,6 @@ public class
         return PwmConstants.PWM_APP_NAME + "-" + instanceName + "-" + theClass.getSimpleName();
     }
 
-    public static boolean testUserPermissions(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final UserIdentity userIdentity,
-            final List<UserPermission> userPermissions
-    )
-            throws PwmUnrecoverableException
-    {
-        if (userPermissions == null) {
-            return false;
-        }
-
-        for (final UserPermission userPermission : userPermissions) {
-            if (testUserPermission(pwmApplication, sessionLabel, userIdentity, userPermission)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean testUserPermission(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final UserIdentity userIdentity,
-            final UserPermission userPermission
-    )
-            throws PwmUnrecoverableException
-    {
-        if (userPermission == null || userIdentity == null) {
-            return false;
-        }
-
-        if (userPermission.getLdapBase() != null && !userPermission.getLdapBase().trim().isEmpty()) {
-            final String permissionBase = userPermission.getLdapBase().trim();
-            final String userDN = userIdentity.getUserDN();
-            if (!userDN.endsWith(permissionBase)) {
-                return false;
-            }
-        }
-
-        boolean performTest = false;
-        if (userPermission.getLdapProfileID() == null
-                || userPermission.getLdapProfileID().isEmpty()
-                || userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_ALL)) {
-            performTest = true;
-        } else if (userIdentity.getLdapProfileID().equals(userPermission.getLdapProfileID())) {
-            performTest = true;
-        } else if (userPermission.getLdapProfileID().equals(PwmConstants.PROFILE_ID_DEFAULT)
-                && userIdentity.getLdapProfileID().equals(PwmConstants.PROFILE_ID_DEFAULT)) {
-            performTest = true;
-        }
-
-        return performTest && testQueryMatch(pwmApplication, sessionLabel, userIdentity, userPermission.getLdapQuery());
-    }
-
-    public static boolean testQueryMatch(
-            final PwmApplication pwmApplication,
-            final SessionLabel pwmSession,
-            final UserIdentity userIdentity,
-            final String filterString
-    )
-            throws PwmUnrecoverableException
-    {
-        if (userIdentity == null) {
-            return false;
-        }
-
-        LOGGER.trace(pwmSession, "begin check for queryMatch for " + userIdentity + " using queryMatch: " + filterString);
-
-        boolean result = false;
-        if (filterString == null || filterString.length() < 1) {
-            LOGGER.trace(pwmSession, "missing queryMatch value, skipping check");
-        } else if ("(objectClass=*)".equalsIgnoreCase(filterString) || "objectClass=*".equalsIgnoreCase(filterString)) {
-            LOGGER.trace(pwmSession, "queryMatch check is guaranteed to be true, skipping ldap query");
-            result = true;
-        } else {
-            try {
-                LOGGER.trace(pwmSession, "checking ldap to see if " + userIdentity + " matches '" + filterString + "'");
-                final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
-                final Map<String, Map<String,String>> results = theUser.getChaiProvider().search(theUser.getEntryDN(), filterString, Collections.<String>emptySet(), ChaiProvider.SEARCH_SCOPE.BASE);
-                if (results.size() == 1 && results.keySet().contains(theUser.getEntryDN())) {
-                    result = true;
-                }
-            } catch (ChaiException e) {
-                LOGGER.warn(pwmSession, "LDAP error during check for " + userIdentity + " using " + filterString + ", error:" + e.getMessage());
-            }
-        }
-
-        if (result) {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is a match for '" + filterString + "'");
-        } else {
-            LOGGER.debug(pwmSession, "user " + userIdentity + " is not a match for '" + filterString + "'");
-        }
-        return result;
-    }
-
     public static void checkUrlAgainstWhitelist(
             final PwmApplication pwmApplication,
             final SessionLabel sessionLabel,
@@ -640,7 +540,7 @@ public class
             return false;
         }
         PwmApplication.MODE mode = pwmApplication.getApplicationMode();
-        if (mode == PwmApplication.MODE.CONFIGURATION) {
+        if (mode == PwmApplication.MODE.CONFIGURATION || mode == PwmApplication.MODE.NEW) {
             return true;
         }
         if (mode == PwmApplication.MODE.RUNNING) {

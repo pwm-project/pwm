@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -65,31 +66,19 @@
                             <b>LDAP Test User DN</b>
                             <br/>
                             <span class="fa fa-chevron-circle-right"></span>
-                            <input id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>"/>
-                            <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                        new ValidationTextBox({
-                                            name: '<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>',
-                                            required: false,
-                                            style: "width: 550px",
-                                            placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>',
-                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER)%>'
-                                        }, "<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>");
-                                    });
-                                });
-                            </script>
-                            </pwm:script>
+                            <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_TEST_USER%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_TEST_USER))%>" autofocus/>
                         </div>
                     </div>
                 </div>
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:0; margin:0; padding:0">
+        <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">
             <div style="text-align: center">
-                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
+                <button class="menubutton" style="margin-left: auto; margin-right: auto">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:display key="Button_CheckSettings" bundle="Config"/>
+                </button>
             </div>
         </div>
         <div id="buttonbar">
@@ -115,18 +104,15 @@
     }
 
     function clearHealthDiv() {
-        var healthBodyObj = PWM_MAIN.getObject('healthBody');
-        var newHtml = '<div style="text-align: center">';
-        newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
-        newHtml += '</div>';
-        healthBodyObj.innerHTML = newHtml;
+        PWM_MAIN.getObject('healthBody').innerHTML = PWM_VAR['originalHealthBody'];
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
         checkIfNextEnabled();
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('CR_STORAGE')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP2')});
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
         PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
         PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});

@@ -81,7 +81,7 @@
                                 <% final String serialNum = X509Utils.hexSerial(certificate); %>
                                 <tr><td>Serial Number</td><td><div class="setting_table_value"><%=serialNum%></div></td></tr>
                                 <tr><td>Issue Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></div></td></tr>
-                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotBefore())%></div></td></tr>
+                                <tr><td>Expire Date</td><td><div class="setting_table_value timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(certificate.getNotAfter())%></div></td></tr>
                             </table>
                             <pwm:script>
                                 <script type="text/javascript">
@@ -159,12 +159,12 @@
         <% } %>
         <br/>
         <div id="buttonbar">
-            <button class="btn" id="button_next">
+            <button class="btn" id="button_previous">
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span></pwm:if>
                 <pwm:display key="Button_Previous" bundle="Config"/>
             </button>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <button class="btn" id="button_previous" <%=enableNext?"":" disabled=\"disabled\""%>>
+            <button class="btn" id="button_next" <%=enableNext?"":" disabled=\"disabled\""%>>
                 <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                 <pwm:display key="Button_Next" bundle="Config"/>
             </button>
@@ -179,8 +179,8 @@
             dojoParser.parse();
         });
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP2')});
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
     });
 </script>
 </pwm:script>

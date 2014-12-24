@@ -109,8 +109,8 @@
         }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('START')});
-            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
             PWM_MAIN.addEventHandler('<%=ConfigGuideServlet.PARAM_TEMPLATE_NAME%>','change',function(){formHandler()});
         });
     </script>

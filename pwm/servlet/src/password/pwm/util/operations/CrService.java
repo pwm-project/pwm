@@ -47,7 +47,7 @@ import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -168,7 +168,7 @@ public class CrService implements PwmService {
                 if (queryMatch != null && !queryMatch.isEmpty()) {
                     LOGGER.debug(sessionLabel, "testing challenge profiles '" + profile + "'");
                     try {
-                        boolean match = Helper.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
+                        boolean match = LdapPermissionTester.testUserPermissions(pwmApplication,sessionLabel,userIdentity,queryMatch);
                         if (match) {
                             return profile;
                         }
@@ -482,12 +482,12 @@ public class CrService implements PwmService {
             return false;
         }
 
-        if (!Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission(PwmSetting.QUERY_MATCH_SETUP_RESPONSE))) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission(PwmSetting.QUERY_MATCH_SETUP_RESPONSE))) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userIdentity + " does not have permission to setup responses");
             return false;
         }
 
-        if (!Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, config.readSettingAsUserPermission(PwmSetting.QUERY_MATCH_CHECK_RESPONSES))) {
             LOGGER.debug(pwmSession, "checkIfResponseConfigNeeded: " + userIdentity + " is not eligible for checkIfResponseConfigNeeded due to query match");
             return false;
         }

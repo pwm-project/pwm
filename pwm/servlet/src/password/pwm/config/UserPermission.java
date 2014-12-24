@@ -25,21 +25,24 @@ package password.pwm.config;
 import password.pwm.PwmConstants;
 
 public class UserPermission {
-    enum Type {
-        ldapQuery
+    public enum Type {
+        ldapQuery,
+        ldapGroup,
     }
 
     private String ldapProfileID = PwmConstants.PROFILE_ID_ALL;
     private String ldapQuery;
     private String ldapBase;
-    private Type type = Type.ldapQuery;
+    private Type type;
 
     public UserPermission(
-            String ldapProfileID,
-            String ldapQuery,
-            String ldapBase
+            final Type type,
+            final String ldapProfileID,
+            final String ldapQuery,
+            final String ldapBase
     )
     {
+        this.type = type;
         this.ldapProfileID = ldapProfileID;
         this.ldapQuery = ldapQuery;
         this.ldapBase = ldapBase;

@@ -39,6 +39,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ActivateUserBean;
 import password.pwm.i18n.Message;
+import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserSearchEngine;
@@ -46,7 +47,6 @@ import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.token.TokenPayload;
 import password.pwm.token.TokenService;
-import password.pwm.util.Helper;
 import password.pwm.util.PostChangePasswordAction;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -207,7 +207,7 @@ public class ActivateUserServlet extends PwmServlet {
             validateParamsAgainstLDAP(pwmRequest, formValues, userIdentity);
 
             final List<UserPermission> userPermissions = config.readSettingAsUserPermission(PwmSetting.ACTIVATE_USER_QUERY_MATCH);
-            if (!Helper.testUserPermissions(pwmApplication, pwmSession.getLabel(), userIdentity, userPermissions)) {
+            if (!LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession.getLabel(), userIdentity, userPermissions)) {
                 final String errorMsg = "user " + userIdentity + " attempted activation, but does not match query string";
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_ACTIVATE_USER_NO_QUERY_MATCH, errorMsg);
                 pwmApplication.getIntruderManager().convenience().markUserIdentity(userIdentity, pwmSession);

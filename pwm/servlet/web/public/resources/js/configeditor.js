@@ -378,7 +378,7 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
         PWM_CFGEDIT.showMacroHelp();
     });
 
-    //setTimeout(PWM_CONFIG.heartbeatCheck,5000);
+    setTimeout(PWM_CONFIG.heartbeatCheck,5000);
 
     PWM_CFGEDIT.loadMainPageBody();
 
@@ -413,7 +413,7 @@ PWM_CFGEDIT.executeSettingFunction = function(setting, name) {
                         }});
                     } else {
                         var msgBody = '<div style="max-height: 400px; overflow-y: auto">' + data['successMessage'] + '</div>';
-                        PWM_MAIN.showDialog({width:700,title: PWM_MAIN.showString("Title_Success"), text: msgBody, okAction: function () {
+                        PWM_MAIN.showDialog({width:700,title: 'Results', text: msgBody, okAction: function () {
                             PWM_CFGEDIT.loadMainPageBody();
                         }});
                     }
@@ -441,9 +441,9 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
                 bodyText += '<br/><div>' + confirmText + '</div>';
             }
             if (confirmFunction == undefined) {
-                PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, width: 650, showClose: true});
+                PWM_MAIN.showDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true});
             } else {
-                PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, width: 650, showClose: true, okAction:confirmFunction});
+                PWM_MAIN.showConfirmDialog({title: "Unsaved Configuration Editor Changes", text: bodyText, dialogClass:'wide', showClose: true, okAction:confirmFunction});
             }
         }
     };
@@ -1257,32 +1257,25 @@ PWM_CFGEDIT.writeLocalStorage = function(dataUpdate) {
 };
 
 PWM_CFGEDIT.initConfigSettingsDefinition=function(nextFunction) {
-    require(["dojo"],function(dojo){
-        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData";
-        dojo.xhrGet({
-            url: clientConfigUrl,
-            handleAs: 'json',
-            timeout: PWM_MAIN.ajaxTimeout,
-            headers: {"Accept":"application/json","X-RestClientKey":PWM_GLOBAL['restClientKey']},
-            load: function(data) {
-                if (data['error'] == true) {
-                    console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
-                } else {
-                    for (var settingKey in data['data']) {
-                        PWM_SETTINGS[settingKey] = data['data'][settingKey];
-                    }
-                }
-                console.log('loaded client-configsettings data');
-                if (nextFunction) nextFunction();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to read config settings app-data: ' + error;
-                console.log(errorMsg);
-                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
-                if (nextFunction) nextFunction();
+    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/private/config/ConfigEditor?processAction=settingData&pwmFormID=" + PWM_GLOBAL['pwmFormID'];
+    var loadFunction = function(data) {
+        if (data['error'] == true) {
+            console.error('unable to load ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+        } else {
+            for (var settingKey in data['data']) {
+                PWM_SETTINGS[settingKey] = data['data'][settingKey];
             }
-        });
-    });
+        }
+        console.log('loaded client-configsettings data');
+        if (nextFunction) nextFunction();
+    };
+    var errorFunction = function(error) {
+        var errorMsg = 'unable to read config settings app-data: ' + error;
+        console.log(errorMsg);
+        if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
+        if (nextFunction) nextFunction();
+    };
+    PWM_MAIN.ajaxRequest(clientConfigUrl, loadFunction, {method:'GET',errorFunction:errorFunction});
 };
 
 PWM_CFGEDIT.displaySettingHelp = function(settingKey) {

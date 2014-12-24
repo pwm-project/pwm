@@ -47,10 +47,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
-import password.pwm.ldap.LdapOperationsHelper;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserStatusReader;
+import password.pwm.ldap.*;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.*;
 import password.pwm.util.cache.CacheService;
@@ -718,7 +715,7 @@ public class PasswordUtility {
                 final List<UserPermission> userPermissions = loopPolicy.getUserPermissions();
                 LOGGER.debug(pwmSession, "testing password policy profile '" + profile + "'");
                 try {
-                    boolean match = Helper.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
+                    boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, pwmSession, userIdentity, userPermissions);
                     if (match) {
                         return loopPolicy;
                     }

@@ -237,4 +237,9 @@ public class LocaleHelper {
         }
         return locale.toLanguageTag();
     }
+
+    public static String booleanString(final boolean input, Locale locale, Configuration configuration) {
+        String key = input ? "Value_True" : "Value_False";
+        return getLocalizedMessage(locale, key, configuration, Display.class);
+    }
 }

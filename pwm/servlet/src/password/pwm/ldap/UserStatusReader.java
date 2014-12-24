@@ -41,7 +41,10 @@ import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
-import password.pwm.util.*;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.PasswordData;
+import password.pwm.util.PwmPasswordRuleValidator;
+import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.operations.CrService;
@@ -476,7 +479,7 @@ public class UserStatusReader {
         }
 
         final List<UserPermission> updateProfilePermission = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_QUERY_MATCH);
-        if (!Helper.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(),updateProfilePermission)) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(),updateProfilePermission)) {
             LOGGER.debug(sessionLabel,
                     "checkProfiles: " + userIdentity.toString() + " is not eligible for checkProfile due to query match");
             return false;
@@ -484,7 +487,7 @@ public class UserStatusReader {
 
         final List<UserPermission> checkProfileQueryMatch = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.UPDATE_PROFILE_CHECK_QUERY_MATCH);
         if (checkProfileQueryMatch != null && !checkProfileQueryMatch.isEmpty()) {
-            if (Helper.testUserPermissions(pwmApplication, sessionLabel, userIdentity, checkProfileQueryMatch)) {
+            if (LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, checkProfileQueryMatch)) {
                 LOGGER.info(sessionLabel, "checkProfiles: " + userIdentity.toString() + " matches 'checkProfiles query match', update profile will be required by user");
                 return true;
             } else {
@@ -537,7 +540,7 @@ public class UserStatusReader {
         }
 
         final List<UserPermission> setupOtpPermission = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.OTP_SETUP_USER_PERMISSION);
-        if (!Helper.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(), setupOtpPermission)) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, uiBean.getUserIdentity(), setupOtpPermission)) {
             LOGGER.debug(sessionLabel,
                     "checkOtp: " + userIdentity.toString() + " is not eligible for checkOtp due to query match");
             return false;
@@ -557,7 +560,7 @@ public class UserStatusReader {
     {
         final List<UserPermission> updateProfilePermission = pwmApplication.getConfig().readSettingAsUserPermission(
                 PwmSetting.QUERY_MATCH_CHANGE_PASSWORD);
-        if (!Helper.testUserPermissions(pwmApplication, sessionLabel, userIdentity, updateProfilePermission)) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, updateProfilePermission)) {
             LOGGER.debug(sessionLabel,
                     "checkPassword: " + userIdentity.toString() + " user does not have permission to change password");
             return false;

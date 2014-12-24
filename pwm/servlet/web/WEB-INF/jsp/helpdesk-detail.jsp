@@ -515,7 +515,7 @@
         <% } %>
         <% if (pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_CLEAR_RESPONSES_BUTTON)) { %>
         <% if (helpdeskBean.getUserInfoBean().getResponseInfoBean() != null) { %>
-        <button id="helpdesk_clearResponsesBtn" class="btn" style="width:150px">>
+        <button id="helpdesk_clearResponsesBtn" class="btn" style="width:150px">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
             <pwm:display key="Button_ClearResponses"/>
         </button>

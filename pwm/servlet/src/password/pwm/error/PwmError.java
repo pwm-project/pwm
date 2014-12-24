@@ -155,6 +155,7 @@ public enum PwmError {
     ERROR_REDIRECT_ILLEGAL("Error_RedirectIllegal", 5075, true),
     ERROR_CRYPT_ERROR("Error_CryptError", 5076, true),
     ERROR_SMS_SEND_ERROR("Error_SmsSendError",5078, true),
+    ERROR_LDAP_DATA_ERROR("Error_LdapDataError",5079, true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

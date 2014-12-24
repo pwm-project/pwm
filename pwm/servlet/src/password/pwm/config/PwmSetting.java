@@ -66,6 +66,8 @@ public enum PwmSetting {
             "display.hideConfigHealthWarnings", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.GENERAL),
     KNOWN_LOCALES(
             "knownLocales", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
+    LOCALE_COOKIE_MAX_AGE(
+            "locale.cookie.age", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL),
     PWMDB_LOCATION(
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     HTTP_PROXY_URL(
@@ -184,6 +186,10 @@ public enum PwmSetting {
             "ldap.namingAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
     PASSWORD_LAST_UPDATE_ATTRIBUTE(
             "passwordLastUpdateAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+    LDAP_USER_GROUP_ATTRIBUTE(
+            "ldap.user.group.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
+    LDAP_GROUP_LABEL_ATTRIBUTE(
+            "ldap.group.label.attribute", PwmSettingSyntax.STRING, PwmSettingCategory.LDAP_PROFILE),
 
 
     // ldap global settings

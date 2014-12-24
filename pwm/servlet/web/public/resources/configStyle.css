@@ -110,7 +110,7 @@
     margin: 10px;
 }
 
-#header-center {
+#header-center-wide {
     width: 800px;
     margin: 0 auto;
     position:relative;
@@ -278,7 +278,7 @@ table {
 }
 
 .configStringInput {
-    width: 540px;
+    width: 500px;
     padding:2px 5px;
     margin: 0;
     border: 1px solid #bfbfbf;
@@ -301,6 +301,8 @@ table {
 }
 
 .pane-settingValue {
+    /*
     max-height: 300px;
     overflow-x: auto;
+    */
 }

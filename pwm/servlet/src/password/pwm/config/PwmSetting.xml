@@ -127,6 +127,21 @@
             <value><![CDATA[zh_TW::tw]]></value>
         </default>
     </setting>
+    <setting key="locale.cookie.age">
+        <label>Locale Cookie Age</label>
+        <description><![CDATA[Duration of time to remember a user's locale preferences.  Anytime a browser's default locale setting is overridden, a cookie will be stored in the browser remembering that setting for the duration of this setting.]]></description>
+        <default>
+            <value>604800</value>
+        </default>
+    </setting>
+
+
+
+    LOCALE_COOKIE_MAX_AGE(
+    "", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL),
+
+
+
     <setting key="interface.theme" level="0" required="true">
         <label>Interface Theme</label>
         <description><![CDATA[Change the look and feel by selecting a theme.  The included themes are provided to mainly to inspiration to those wishing to make customizations.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
@@ -340,7 +355,7 @@
         <label>Change Password Permission</label>
         <description><![CDATA[Permissions used to detect if a user is a permitted to change password.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="logoutAfterPasswordChange" level="0" required="true">
@@ -512,13 +527,13 @@
         <label>Administrator Permission</label>
         <description><![CDATA[Permissions used to determine if a user will be granted administrator rights.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Admins,ou=Groups,o=example"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"CN=Administrators,CN=Builtin,DC=site,DC=example,DC=net"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Admins,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
     </setting>
     <setting key="ldap.usernameSearchFilter" level="0" required="true">
@@ -551,6 +566,27 @@
         </default>
         <default template="ORACLE_DS">
             <value></value>
+        </default>
+    </setting>
+    <setting key="ldap.user.group.attribute" level="1">
+        <label>User Group Attribute</label>
+        <description><![CDATA[Attribute on user entry that references group entries.  The value of this attribute in the directory must be a LDAP DN.]]></description>
+        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <default>
+            <value><![CDATA[groupMembership]]></value>
+        </default>
+        <default template="AD">
+            <value>memberOf</value>
+        </default>
+        <default template="ORACLE_DS">
+            <value>isMemberOf</value>
+        </default>
+    </setting>
+    <setting key="ldap.group.label.attribute" level="1">
+        <label>User Group Entry Label</label>
+        <description><![CDATA[Display value for group entries.  Can include LDAP macros; LDAP macros will resolve to the group entry object.]]></description>
+        <default>
+            <value><![CDATA[@LDAP:DN@]]></value>
         </default>
     </setting>
     <setting key="ldap.guidAttribute" level="0" required="true">
@@ -643,7 +679,7 @@
     <setting key="ldap.username.attr" level="1">
         <label>Attribute to use for Username</label>
         <description><![CDATA[If blank, the LDAP Naming Attribute will be used.  This option allows fields that display or store the <i>Username</i> or <i>UserID</i> of a user to show something other then the LDAP Naming Attribute if appropriate.  It is desirable that this value be unique for this system.]]></description>
-        <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
+        <regex>(^$|^[a-zA-Z][a-zA-Z0-9-]*$)</regex>
         <default>
             <value />
         </default>
@@ -1955,7 +1991,7 @@
         <label>OTP Secret Setup Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to setup an OTP secret.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="otp.secret.identifier" level="1" required="true">
@@ -2231,14 +2267,14 @@
         <label>Save Challenge Permission</label>
         <description><![CDATA[Permission used to determine if a user is a permitted to configure challenges.  The user must be returned during this ldap query or else the user will not be permitted to configure challenges.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="command.checkResponses.queryMatch" level="1" required="true">
         <label>Check Responses Match</label>
         <description><![CDATA[If the command servlet is called with the checkResponses command:<br/><br/><i>/private/CommandServlet?processAction=checkResponses</i><br/><br/>the user is first checked to see if they match the following LDAP query before the user's password responses is checked.  If the user does not match this query, then the user's responses will not be checked, and the user will be redirected to the forward URL.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="challenge.enforceMinimumPasswordLifetime" level="1" required="true">
@@ -2720,10 +2756,10 @@
         <label>Activation Permission</label>
         <description><![CDATA[Only allow users who match this query to be activated.  Generally, you will only allow users who have never been authenticated and are not disabled to activate.  The default example uses the last login time attribute(s) on the user object to determine if the user has never logged in.  It is the responsibility of the administrator to ensure this activation feature works correctly.  Misconfiguration could potentially result in unintended activations being able to take place.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(loginDisabled=TRUE))(!(loginTime=*)))"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(&(objectclass=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(lastLogon=0)(!(lastLogonTimestamp=*))))"}]]></value>
         </default>
     </setting>
     <setting key="activateUser.writePreAttributes" level="0">
@@ -2780,7 +2816,7 @@
         <label>Update Profile Permission</label>
         <description><![CDATA[Only allow users who match this query to be update their profile.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=person)"}]]></value>
         </default>
     </setting>
     <setting key="updateAttributes.writeAttributes" level="0">
@@ -2863,7 +2899,7 @@
         <label>Permitted Users</label>
         <description><![CDATA[Define the users permitted to access the People Search module.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="peopleSearch.searchFilter" level="0" required="true">
@@ -2970,7 +3006,7 @@
         <label>PeopleSearch Photo Display Permission</label>
         <description><![CDATA[Permission filter to control photo visibility.  This permission is applied to the user being looked up, and if not passed the user's photo will not be displayed.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
     <setting key="ldap.edirectory.enableNmas" level="0" required="true">
@@ -3305,13 +3341,13 @@
         <label>Helpdesk Profile Match</label>
         <description><![CDATA[Helpdesk Profile Match.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="recovery.profile.list" level="0" hidden="true">
@@ -3324,13 +3360,13 @@
         <label>Forgotten Password Profile Match</label>
         <description><![CDATA[Helpdesk Profile Match.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="recovery.availableMethods" level="0">
@@ -3553,13 +3589,13 @@
         <label>Web Services Third Party Query String</label>
         <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="external.macros.urls" level="1">

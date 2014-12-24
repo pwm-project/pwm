@@ -32,7 +32,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.util.Helper;
+import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.stats.Statistic;
 
@@ -134,7 +134,7 @@ public class ShortcutServlet extends PwmServlet {
             visibleItems.keySet().retainAll(labelsFromHeader);
         } else {
             for (final ShortcutItem item : configuredItems) {
-                final boolean queryMatch = Helper.testQueryMatch(
+                final boolean queryMatch = LdapPermissionTester.testQueryMatch(
                         pwmRequest.getPwmApplication(),
                         pwmRequest.getSessionLabel(),
                         pwmRequest.getPwmSession().getUserInfoBean().getUserIdentity(),

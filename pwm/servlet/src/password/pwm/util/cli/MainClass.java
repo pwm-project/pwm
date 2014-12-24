@@ -61,6 +61,7 @@ public class MainClass {
         commandList.add(new IntegrityReportCommand());
         commandList.add(new ConfigNewCommand());
         commandList.add(new VersionCommand());
+        commandList.add(new LdapSchemaExtendCommand());
 
         final Map<String,CliCommand> sortedMap = new TreeMap<>();
         for (CliCommand command : commandList) {

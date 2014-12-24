@@ -284,7 +284,8 @@ public abstract class PwmConstants {
             "Roses are #FF0000 , Violets are #0000FF, All your password are belongs to us.",
             "I changed my password to \"incorrect\", so whenever i forget, it will tell me \"your password is incorrect\".",
             "passwords are like underwear, changing underwear regularly is a good thing.", //menno
-            "daisy, daisy, give me your password do..."
+            "daisy, daisy, give me your password do...",
+            "it's a wholesome can of software goodness" // thx krowten
 
     };
 

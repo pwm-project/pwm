@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -55,28 +56,14 @@
                     Site URL
                 </div>
                 <div class="setting_body">
-                    The URL to this application, as seen by users.  The value is used in email macros and other user facing communications.
-                    Example: <b>http://www.example.com/password</b>.  The site URL must use a valid fully qualified hostname.  Do not use a network address.                    <br/><br/>
+                    The URL to this application, as seen by users.  The value is used in email and other user facing communications.
+                    Example: <b>http://www.example.com/password</b>.  The Site URL must use a valid fully qualified hostname.  Do not use a network address.                    <br/><br/>
                     <div class="setting_item">
                         <div id="titlePane_<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" style="padding-left: 5px; padding-top: 5px">
                             <b>Site URL</b>
                             <br/>
                             <span class="fa fa-chevron-circle-right"></span>
-                            <input id="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" name="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" value="<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL)%>"/>
-                            <pwm:script>
-                            <script type="text/javascript">
-                                PWM_GLOBAL['startupFunctions'].push(function(){
-                                    require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                        new ValidationTextBox({
-                                            name: '<%=ConfigGuideServlet.PARAM_APP_SITEURL%>',
-                                            required: false,
-                                            style: "width: 550px",
-                                            value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL)%>'
-                                        }, "<%=ConfigGuideServlet.PARAM_APP_SITEURL%>");
-                                    });
-                                });
-                            </script>
-                            </pwm:script>
+                            <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" name="<%=ConfigGuideServlet.PARAM_APP_SITEURL%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_APP_SITEURL))%>" required autofocus/>
                         </div>
                     </div>
                 </div>
@@ -105,8 +92,8 @@
 
     PWM_GLOBAL['startupFunctions'].push(function(){
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('PASSWORD')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('CR_STORAGE')});
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
         PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
     });

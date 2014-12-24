@@ -1,6 +1,7 @@
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.ConfigGuideBean" %>
 <%@ page import="password.pwm.http.servlet.ConfigGuideServlet" %>
+<%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="java.util.Map" %>
 <%--
   ~ Password Management Servlets (PWM)
@@ -62,23 +63,7 @@
                         <b>LDAP Contextless Login Root</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>"/>
-                        <pwm:script>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>',
-                                        required: true,
-                                        style: "width: 550px",
-                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>',
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>'
-                                    }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>");
-                                });
-                            });
-                        </script>
-                        </pwm:script>
+                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_CONTEXT%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_CONTEXT)%>" required autofocus/>
                     </div>
                 </div>
             </div>
@@ -88,38 +73,28 @@
                     Administrator Search Filter
                 </div>
                 <div class="setting_body">
-                    Enter the LDAP search filter to use for determining if a user should be given administrator access to this system.  Any user
-                    that authenticates and matches this filter will be allowed administrative access.  The example below uses group membership
-                    but any valid LDAP search filter can be used.
+                    Enter the LDAP DN of the group used to determining if a user should be given administrator access to this system.  Any user
+                    that is a member of this group will be granted administrator access.
                     <div class="setting_item">
-                        <b>Administrator Search Filter</b>
+                        <b>Administrator Group DN</b>
                         <br/>
                         <span class="fa fa-chevron-circle-right"></span>
-                        <input id="value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>" name="setting_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>"/>
-                        <pwm:script>
-                        <script type="text/javascript">
-                            PWM_GLOBAL['startupFunctions'].push(function(){
-                                require(["dijit/form/ValidationTextBox"],function(ValidationTextBox){
-                                    new ValidationTextBox({
-                                        id: '<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>',
-                                        name: '<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>',
-                                        required: true,
-                                        style: "width: 550px",
-                                        placeholder: '<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>',
-                                        value: '<%=configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS)%>'
-                                    }, "value_<%=ConfigGuideServlet.PARAM_LDAP2_ADMINS%>");
-                                });
-                            });
-                        </script>
-                        </pwm:script>
+                        <input class="configStringInput" id="<%=ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP%>" name="<%=ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP%>" value="<%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP))%>" placeholder="<%=DEFAULT_FORM.get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP)%>" required/>
+                        <button type="button" id="button-viewAdminMatches" class="btn">
+                            <span class="btn-icon fa fa-eye"></span>
+                            View Matches
+                        </button>
                     </div>
                 </div>
             </div>
         </form>
         <br/>
-        <div id="healthBody" style="border:1px; margin:0; padding:0; max-height: 300px; overflow-y: auto">
+        <div id="healthBody" style="border:0; margin:0; padding:0; cursor: pointer">
             <div style="text-align: center">
-                <a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>
+                <button class="menubutton" style="margin-left: auto; margin-right: auto">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                    <pwm:display key="Button_CheckSettings" bundle="Config"/>
+                </button>
             </div>
         </div>
         <div id="buttonbar">
@@ -144,24 +119,35 @@
     }
 
     function clearHealthDiv() {
-        var healthBodyObj = PWM_MAIN.getObject('healthBody');
-        var newHtml = '<div style="text-align: center">';
-        newHtml += '<a class="menubutton" style="max-width: 100px; margin-left: auto; margin-right: auto">Check Settings</a>';
-        newHtml += '</div>';
-        healthBodyObj.innerHTML = newHtml;
+        PWM_MAIN.getObject('healthBody').innerHTML = PWM_VAR['originalHealthBody'];
     }
 
     PWM_GLOBAL['startupFunctions'].push(function(){
+        PWM_VAR['originalHealthBody'] = PWM_MAIN.getObject('healthBody').innerHTML;
         require(["dojo/parser","dijit/TitlePane","dijit/form/Form","dijit/form/ValidationTextBox","dijit/form/NumberSpinner","dijit/form/CheckBox"],function(dojoParser){
             dojoParser.parse();
         });
         checkIfNextEnabled();
 
-        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('LDAP3')});
-        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAPCERT')});
+        PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('NEXT')});
+        PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
         PWM_MAIN.addEventHandler('configForm','input',function(){handleFormActivity()});
         PWM_MAIN.addEventHandler('healthBody','click',function(){loadHealth()});
+
+        PWM_MAIN.addEventHandler('button-viewAdminMatches','click',function(){
+            PWM_MAIN.showWaitDialog({loadFunction:function(){
+                var url = 'ConfigGuide?processAction=viewAdminMatches';
+                var loadFunction = function(data){
+                    if (data['error']) {
+                        PWM_MAIN.showErrorDialog(data);
+                    } else {
+                        PWM_MAIN.showDialog({title:'Results',text:data['data']});
+                    }
+                };
+                PWM_MAIN.ajaxRequest(url,loadFunction);
+            }});
+        });
     });
 
     function checkIfNextEnabled() {

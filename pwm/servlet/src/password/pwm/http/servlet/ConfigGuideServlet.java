@@ -23,12 +23,16 @@
 package password.pwm.http.servlet;
 
 import com.novell.ldapchai.exception.ChaiUnavailableException;
+import com.novell.ldapchai.provider.ChaiConfiguration;
+import com.novell.ldapchai.provider.ChaiProvider;
+import com.novell.ldapchai.provider.ChaiProviderFactory;
+import com.novell.ldapchai.provider.ChaiSetting;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.*;
+import password.pwm.config.function.UserMatchViewerFunction;
 import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
@@ -36,9 +40,7 @@ import password.pwm.http.ContextManager;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ConfigGuideBean;
-import password.pwm.i18n.Display;
-import password.pwm.i18n.LocaleHelper;
-import password.pwm.ldap.UserSearchEngine;
+import password.pwm.ldap.SchemaExtender;
 import password.pwm.util.PasswordData;
 import password.pwm.util.PwmRandom;
 import password.pwm.util.ServletHelper;
@@ -72,7 +74,7 @@ public class ConfigGuideServlet extends PwmServlet {
 
     public static final String PARAM_LDAP2_CONTEXT = "ldap2-context";
     public static final String PARAM_LDAP2_TEST_USER = "ldap2-testUser";
-    public static final String PARAM_LDAP2_ADMINS = "ldap2-adminsQuery";
+    public static final String PARAM_LDAP2_ADMIN_GROUP = "ldap2-adminGroup";
 
     public static final String PARAM_CR_STORAGE_PREF = "cr_storage-pref";
 
@@ -82,12 +84,41 @@ public class ConfigGuideServlet extends PwmServlet {
     private static final String LDAP_PROFILE_KEY = "";
 
 
+    public enum STEP {
+        START,
+        TEMPLATE,
+        LDAP,
+        LDAPCERT,
+        LDAP2,
+        LDAP3,
+        CR_STORAGE,
+        LDAP_SCHEMA,
+        APP,
+        PASSWORD,
+        END,
+        FINISH,
+
+        ;
+
+        private static final STEP[] enumValues = values();
+
+        public STEP next() {
+            return enumValues[(this.ordinal()+1) % enumValues.length];
+        }
+
+        public STEP previous() {
+            return enumValues[(this.ordinal()-1) % enumValues.length];
+        }
+    }
+
     public enum ConfigGuideAction implements PwmServlet.ProcessAction {
         ldapHealth(HttpMethod.GET),
         updateForm(HttpMethod.POST),
         gotoStep(HttpMethod.POST),
         useConfiguredCerts(HttpMethod.POST),
         uploadConfig(HttpMethod.POST),
+        extendSchema(HttpMethod.POST),
+        viewAdminMatches(HttpMethod.POST),
         ;
 
         private final HttpMethod method;
@@ -132,8 +163,8 @@ public class ConfigGuideServlet extends PwmServlet {
             defaultLdapForm.put(PARAM_LDAP2_TEST_USER, (String)PwmSetting.LDAP_TEST_USER_DN.getDefaultValue(template).toNativeObject());
             {
                 List<UserPermission> userPermissions = (List<UserPermission>)PwmSetting.QUERY_MATCH_PWM_ADMIN.getDefaultValue(template).toNativeObject();
-                final String query = userPermissions != null && userPermissions.size() > 0 ? userPermissions.get(0).getLdapQuery() : "";
-                defaultLdapForm.put(PARAM_LDAP2_ADMINS,query);
+                final String groupDN = userPermissions != null && userPermissions.size() > 0 ? userPermissions.get(0).getLdapBase() : "";
+                defaultLdapForm.put(PARAM_LDAP2_ADMIN_GROUP,groupDN);
             }
 
             defaultLdapForm.put(PARAM_CR_STORAGE_PREF, (String) PwmSetting.FORGOTTEN_PASSWORD_WRITE_PREFERENCE.getDefaultValue(template).toNativeObject());
@@ -208,7 +239,7 @@ public class ConfigGuideServlet extends PwmServlet {
                     return;
 
                 case gotoStep:
-                    restGotoStep(pwmRequest);
+                    restGotoStep(pwmRequest, configGuideBean);
                     return;
 
                 case useConfiguredCerts:
@@ -217,6 +248,14 @@ public class ConfigGuideServlet extends PwmServlet {
 
                 case uploadConfig:
                     restUploadConfig(pwmRequest);
+                    return;
+
+                case extendSchema:
+                    restExtendSchema(pwmRequest, configGuideBean);
+                    return;
+
+                case viewAdminMatches:
+                    restViewAdminMatches(pwmRequest, configGuideBean);
                     return;
             }
         }
@@ -302,53 +341,50 @@ public class ConfigGuideServlet extends PwmServlet {
         final List<HealthRecord> records = new ArrayList<>();
         final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
         switch (configGuideBean.getStep()) {
-            case LDAP:
-                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication,tempConfiguration,ldapProfile,false));
+            case LDAP: {
+                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
                 if (records.isEmpty()) {
                     records.add(password.pwm.health.HealthRecord.forMessage(HealthMessage.LDAP_OK));
                 }
-                break;
+            }
+            break;
 
-            case LDAP2:
+            case LDAP2: {
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, true));
                 if (records.isEmpty()) {
-                    records.add(password.pwm.health.HealthRecord.forMessage(HealthMessage.LDAP_OK));
+                    records.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.LDAP, "LDAP Contextless Login Root validated"));
                 }
-                if (configGuideBean.getFormData().containsKey(PARAM_LDAP2_ADMINS) && configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS).length() > 0) {
-                    final int maxSearchSize = 500;
-                    final UserSearchEngine userSearchEngine = new UserSearchEngine(tempApplication, pwmRequest.getSessionLabel());
-                    final UserSearchEngine.SearchConfiguration searchConfig = new UserSearchEngine.SearchConfiguration();
-                    searchConfig.setFilter(configGuideBean.getFormData().get(PARAM_LDAP2_ADMINS));
-                    try {
-                        final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfig, maxSearchSize, Collections.<String>emptyList());
-                        if (results == null || results.isEmpty()) {
-                            records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,"No admin users are defined with the current Administration Search Filter"));
-                        } else {
-                            final StringBuilder sb = new StringBuilder();
-                            sb.append("<ul>");
-                            for (final UserIdentity user : new TreeSet<>(results.keySet())) {
-                                sb.append("<li>");
-                                sb.append(user.getUserDN());
-                                sb.append("</li>");
-                            }
-                            sb.append("</ul>");
-                            if (results.size() == maxSearchSize) {
-                                sb.append(LocaleHelper.getLocalizedMessage("Display_SearchResultsExceeded",tempConfiguration, Display.class));
-                            }
-                            records.add(new HealthRecord(HealthStatus.GOOD,HealthTopic.Configuration,"Users matching current Administration Search Filter: " + sb.toString()));
-                        }
-                    } catch (Exception e) {
-                        final String errorMsg = "error while attempting to search for Admin users: " + e.getMessage();
-                        LOGGER.warn(pwmRequest, errorMsg);
-                        records.add(new HealthRecord(HealthStatus.WARN,HealthTopic.Configuration,errorMsg));
+                try {
+                    final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
+                    final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
+                            2,
+                            configGuideBean.getStoredConfiguration(),
+                            PwmSetting.QUERY_MATCH_PWM_ADMIN,
+                            null
+                    );
+                    if (results.isEmpty()) {
+                        records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "No matching admin users"));
+                    } else {
+                        records.add(new HealthRecord(HealthStatus.GOOD, HealthTopic.LDAP, "Admin group validated"));
                     }
+                } catch (PwmException e) {
+                    records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getErrorInformation().toDebugStr()));
+                } catch (Exception e) {
+                    records.add(new HealthRecord(HealthStatus.WARN, HealthTopic.LDAP, "Error during admin group validation: " + e.getMessage()));
                 }
-                break;
+            }
+            break;
 
-            case LDAP3:
-                records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
-                records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, ldapProfile, tempApplication));
-                break;
+            case LDAP3: {
+                final String testUserValue = configGuideBean.getFormData().get(PARAM_LDAP2_TEST_USER);
+                if (testUserValue != null && !testUserValue.isEmpty()) {
+                    records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
+                    records.addAll(ldapStatusChecker.doLdapTestUserCheck(tempConfiguration, ldapProfile, tempApplication));
+                } else {
+                    records.add(new HealthRecord(HealthStatus.CAUTION, HealthTopic.LDAP, "No test user specified"));
+                }
+            }
+            break;
         }
 
         HealthData jsonOutput = new HealthData();
@@ -359,6 +395,36 @@ public class ConfigGuideServlet extends PwmServlet {
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(jsonOutput);
         pwmRequest.outputJsonResult(restResultBean);
+    }
+
+    private void restViewAdminMatches(
+            final PwmRequest pwmRequest,
+            final ConfigGuideBean configGuideBean
+    ) throws IOException, ServletException {
+        final UserMatchViewerFunction userMatchViewerFunction = new UserMatchViewerFunction();
+        final int maxResults = 1000;
+        try {
+            final Map<String, List<String>> results = userMatchViewerFunction.discoverMatchingUsers(
+                    1000,
+                    configGuideBean.getStoredConfiguration(),
+                    PwmSetting.QUERY_MATCH_PWM_ADMIN,
+                    null
+            );
+            final String htmlResults = userMatchViewerFunction.convertResultsToHtmlTable(
+                    pwmRequest.getPwmApplication(),
+                    pwmRequest.getLocale(),
+                    results,
+                    maxResults
+            );
+            pwmRequest.outputJsonResult(new RestResultBean(htmlResults));
+        } catch (PwmException e) {
+            LOGGER.error(pwmRequest,e.getErrorInformation());
+            pwmRequest.respondWithError(e.getErrorInformation());
+        } catch (Exception e) {
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, "error while testing matches = " + e.getMessage());
+            LOGGER.error(pwmRequest,errorInformation);
+            pwmRequest.respondWithError(errorInformation);
+        }
     }
 
     private void restUpdateLdapForm(
@@ -398,24 +464,41 @@ public class ConfigGuideServlet extends PwmServlet {
         //LOGGER.info("config: " + storedConfiguration.toString());
     }
 
-    private void restGotoStep(final PwmRequest pwmRequest)
-            throws PwmUnrecoverableException, IOException, ServletException {
+    private void restGotoStep(final PwmRequest pwmRequest, final ConfigGuideBean configGuideBean)
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
         final String requestedStep = pwmRequest.readParameterAsString("step");
         STEP step = null;
         if (requestedStep != null && requestedStep.length() > 0) {
             try {
                 step = STEP.valueOf(requestedStep);
-            } catch (IllegalArgumentException e) {
-                final String errorMsg = "unknown goto step request: " + requestedStep;
-                final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
-                final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
-                LOGGER.error(pwmRequest,errorInformation.toDebugStr());
-                pwmRequest.outputJsonResult(restResultBean);
-                return;
+            } catch (IllegalArgumentException e) { /* */ }
+        }
+
+        final boolean ldapSchemaPermitted = "LDAP".equals(configGuideBean.getFormData().get(PARAM_CR_STORAGE_PREF))
+                && configGuideBean.getSelectedTemplate() == PwmSetting.Template.NOVL;
+
+        if ("NEXT".equals(requestedStep)) {
+            step = configGuideBean.getStep().next();
+            if (step == STEP.LDAP_SCHEMA && !ldapSchemaPermitted) {
+                step = step.next();
+            }
+        } else if ("PREVIOUS".equals(requestedStep)) {
+            step = configGuideBean.getStep().previous();
+            if (step == STEP.LDAP_SCHEMA && !ldapSchemaPermitted) {
+                step = step.previous();
             }
         }
 
-        final ConfigGuideBean configGuideBean = (ConfigGuideBean)pwmRequest.getPwmSession().getSessionBean(ConfigGuideBean.class);
+        if (step == null) {
+            final String errorMsg = "unknown goto step request: " + requestedStep;
+            final ErrorInformation errorInformation = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
+            final RestResultBean restResultBean = RestResultBean.fromError(errorInformation, pwmRequest);
+            LOGGER.error(pwmRequest,errorInformation.toDebugStr());
+            pwmRequest.outputJsonResult(restResultBean);
+            return;
+        }
+
         if (step == STEP.FINISH) {
             final ContextManager contextManager = ContextManager.getContextManager(pwmRequest);
             try {
@@ -483,8 +566,8 @@ public class ConfigGuideServlet extends PwmServlet {
         }
 
         {  // set admin query
-            final String ldapAdminQuery = ldapForm.get(PARAM_LDAP2_ADMINS);
-            final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(null, ldapAdminQuery, null));
+            final String groupDN = ldapForm.get(PARAM_LDAP2_ADMIN_GROUP);
+            final List<UserPermission> userPermissions = Collections.singletonList(new UserPermission(UserPermission.Type.ldapGroup, null, null, groupDN));
             storedConfiguration.writeSetting(PwmSetting.QUERY_MATCH_PWM_ADMIN, new UserPermissionValue(userPermissions), null);
         }
 
@@ -557,7 +640,35 @@ public class ConfigGuideServlet extends PwmServlet {
         servletContext.getRequestDispatcher(destURL).forward(req, pwmRequest.getPwmResponse().getHttpServletResponse());
     }
 
-    public enum STEP {
-        START, TEMPLATE, LDAP, LDAPCERT, LDAP2, LDAP3, CR_STORAGE, APP, PASSWORD, END, FINISH
+    public static SchemaExtender getSchemaExtender(ConfigGuideBean configGuideBean) {
+        final Map<String,String> form = configGuideBean.getFormData();
+        final boolean ldapServerSecure = "true".equalsIgnoreCase(form.get(PARAM_LDAP_SECURE));
+        final String ldapUrl = "ldap" + (ldapServerSecure ? "s" : "") + "://" + form.get(PARAM_LDAP_HOST) + ":" + form.get(PARAM_LDAP_PORT);
+        try {
+            final ChaiConfiguration chaiConfiguration = new ChaiConfiguration(ldapUrl, form.get(PARAM_LDAP_ADMIN_DN), form.get(PARAM_LDAP_ADMIN_PW));
+            chaiConfiguration.setSetting(ChaiSetting.PROMISCUOUS_SSL,"true");
+            final ChaiProvider chaiProvider = ChaiProviderFactory.createProvider(chaiConfiguration);
+            return new SchemaExtender(chaiProvider);
+        } catch (Exception e) {
+            LOGGER.error("unable to create schema extender object: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void restExtendSchema(final PwmRequest pwmRequest, final ConfigGuideBean configGuideBean)
+            throws IOException
+    {
+        try {
+            SchemaExtender schemaExtender = getSchemaExtender(configGuideBean);
+            schemaExtender.extendSchema();
+            pwmRequest.outputJsonResult(new RestResultBean(schemaExtender.getActivityLog()));
+        } catch (PwmException e) {
+            pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(),pwmRequest));
+            LOGGER.error(pwmRequest, e.getErrorInformation());
+        } catch (Exception e) {
+            ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
+            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation, pwmRequest));
+            LOGGER.error(pwmRequest, e.getMessage(), e);
+        }
     }
 }

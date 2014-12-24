@@ -31,6 +31,7 @@
     String pageTitle = LocaleHelper.getLocalizedMessage("Title_ConfigManager", ContextManager.getPwmApplication(request).getConfig(),
             password.pwm.i18n.Config.class);
 %>
+<% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">

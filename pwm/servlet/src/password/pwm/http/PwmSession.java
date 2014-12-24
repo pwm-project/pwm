@@ -375,7 +375,7 @@ public class PwmSession implements Serializable {
             }
             return true;
         } else {
-            LOGGER.error(this, "ignoring unknown locale value set request for locale '" + localeString);
+            LOGGER.error(this, "ignoring unknown locale value set request for locale '" + localeString + "'");
             return false;
         }
     }

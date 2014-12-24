@@ -303,11 +303,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
         if (itemCount > 1 || !PWM_SETTINGS['settings'][settingKey]['required']) {
             PWM_MAIN.addEventHandler(deleteButtonID,'click',function(){StringArrayValueHandler.removeValue(settingKey,iteration)});
         }
-
-
     },100);
-
-
 };
 
 StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
@@ -2025,8 +2021,8 @@ BooleanHandler.init = function(keyName) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     parentDivElement.innerHTML = '<label class="checkboxWrapper">'
-        + '<input type="checkbox" id="value_' + keyName + '" value="false" disabled/>'
-        + 'Enabled (True)</label>';
+    + '<input type="checkbox" id="value_' + keyName + '" value="false" disabled/>'
+    + 'Enabled (True)</label>';
 
     PWM_CFGEDIT.readSetting(keyName,function(data){
         var checkElement = PWM_MAIN.getObject("value_" + keyName);
@@ -2265,7 +2261,8 @@ ChallengeSettingHandler.write = function(keyName) {
 // -------------------------- user permission handler ------------------------------------
 
 var UserPermissionHandler = {};
-UserPermissionHandler.defaultItem = {ldapQuery:"(objectClass=*)",ldapBase:""};
+UserPermissionHandler.defaultFilterValue = {type:'ldapFilter',ldapQuery:"(objectClass=*)",ldapBase:""};
+UserPermissionHandler.defaultGroupValue = {type:'ldapGroup',ldapBase:"cn=exampleGroup,ou=container,o=organization"};
 
 UserPermissionHandler.init = function(keyName) {
     console.log('UserPermissionHandler init for ' + keyName);
@@ -2288,20 +2285,35 @@ UserPermissionHandler.draw = function(keyName) {
     for (var iteration in resultValue) {
         (function(rowKey) {
             var inputID = "value-" + keyName + "-" + rowKey;
-            htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">LDAP Permission ' + rowKey + '</div><table class="noborder">'
-                + '<td id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
-                + '<td><select id="' + inputID + '-profile" disabled></select></td>'
-                + '</tr>'
-                + '<tr>'
+            htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';
+            if (resultValue[rowKey]['type'] == 'ldapGroup') {
+                htmlBody += 'LDAP Group Permission';
+            } else {
+                htmlBody += 'LDAP Filter Permission';
+            }
+
+            htmlBody += '</div><table class="noborder">'
+            + '<td id="' + inputID + '_profileHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Profile') + '</td>'
+            + '<td><select id="' + inputID + '-profile" disabled></select></td>'
+            + '</tr>';
+
+            if (resultValue[rowKey]['type'] != 'ldapGroup') {
+                htmlBody += '<tr>'
                 + '<td><span id="' + inputID + '_FilterHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Filter') + '</span></td>'
                 + '<td><input id="' + inputID + '-query" disabled></input></td>'
-                + '</tr>'
-                + '<tr>'
-                + '<td><span id="' + inputID + '_BaseHeader' + '">' + PWM_CONFIG.showString('Setting_Permission_Base') + '</span></td>'
-                + '<td><input id="' + inputID + '-base" disabled></input></td>'
-                + '</td>'
-                + '</tr>'
-                + '</table></div><div id="button-' + inputID + '-deleteRow" style="float:right" class="delete-row-icon action-icon fa fa-times"></div>';
+                + '</tr>';
+            }
+
+            htmlBody += '<tr>'
+            + '<td><span id="' + inputID + '_BaseHeader' + '">'
+            + PWM_CONFIG.showString((resultValue[rowKey]['type'] == 'ldapGroup') ?  'Setting_Permission_Base-Group' : 'Setting_Permission_Base')
+            + '</span></td>'
+            + '<td><input id="' + inputID + '-base" disabled></input></td>'
+            + '</td>'
+            + '</tr>';
+
+
+            htmlBody += '</table></div><div id="button-' + inputID + '-deleteRow" style="float:right" class="delete-row-icon action-icon fa fa-times"></div>';
         }(iteration));
     }
     parentDivElement.innerHTML = parentDivElement.innerHTML + htmlBody;
@@ -2329,20 +2341,22 @@ UserPermissionHandler.draw = function(keyName) {
                         }
                     },inputID+'-profile');
 
-                    var queryInput = PWM_MAIN.getObject(inputID + "-query");
-                    queryInput.disabled = false;
-                    queryInput.required = true;
+                    if (resultValue[rowKey]['type'] != 'ldapGroup') {
+                        var queryInput = PWM_MAIN.getObject(inputID + "-query");
+                        queryInput.disabled = false;
+                        queryInput.required = true;
 
-                    PWM_MAIN.clearDijitWidget(inputID + "-query");
-                    new ValidationTextBox({
-                        id: inputID + "-query",
-                        value: resultValue[rowKey]['ldapQuery'],
-                        style: 'width:420px',
-                        onChange: function(){
-                            PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = this.value;
-                            UserPermissionHandler.write(keyName);
-                        }
-                    },inputID + "-query");
+                        PWM_MAIN.clearDijitWidget(inputID + "-query");
+                        new ValidationTextBox({
+                            id: inputID + "-query",
+                            value: resultValue[rowKey]['ldapQuery'],
+                            style: 'width:420px',
+                            onChange: function () {
+                                PWM_VAR['clientSettingCache'][keyName][rowKey]['ldapQuery'] = this.value;
+                                UserPermissionHandler.write(keyName);
+                            }
+                        }, inputID + "-query");
+                    }
 
                     var queryInput = PWM_MAIN.getObject(inputID + "-base");
                     queryInput.disabled = false;
@@ -2387,17 +2401,24 @@ UserPermissionHandler.draw = function(keyName) {
         });
     },10);
 
-    parentDivElement.innerHTML = parentDivElement.innerHTML + '<button class="btn" id="button-' + keyName + '-addvalue">'
-        + '<span class="btn-icon fa fa-plus-square"></span>Add Permission</button>'
-        + '<button id="button-' + keyName + '-viewMatches" class="btn">'
-        + '<span class="btn-icon fa fa-eye"></span>View Matches</button>';
+    parentDivElement.innerHTML = parentDivElement.innerHTML + '<button class="btn" id="button-' + keyName + '-addFilterValue">'
+    + '<span class="btn-icon fa fa-plus-square"></span>Add Filter Permission</button>'
+    + '<button class="btn" id="button-' + keyName + '-addGroupValue">'
+    + '<span class="btn-icon fa fa-plus-square"></span>Add Group Permission</button>'
+    + '<button id="button-' + keyName + '-viewMatches" class="btn">'
+    + '<span class="btn-icon fa fa-eye"></span>View Matches</button>';
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-viewMatches','click',function(){
         PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.UserMatchViewerFunction')
     });
 
-    PWM_MAIN.addEventHandler('button-' + keyName + '-addvalue','click',function(){
-        PWM_VAR['clientSettingCache'][keyName].push(UserPermissionHandler.defaultItem);
+    PWM_MAIN.addEventHandler('button-' + keyName + '-addFilterValue','click',function(){
+        PWM_VAR['clientSettingCache'][keyName].push(UserPermissionHandler.defaultFilterValue);
+        UserPermissionHandler.write(keyName, true);
+    });
+
+    PWM_MAIN.addEventHandler('button-' + keyName + '-addGroupValue','click',function(){
+        PWM_VAR['clientSettingCache'][keyName].push(UserPermissionHandler.defaultGroupValue);
         UserPermissionHandler.write(keyName, true);
     });
 };
@@ -2428,8 +2449,8 @@ OptionListHandler.init = function(keyName) {
         (function (optionKey) {
             var buttonID = keyName + "_button_" + optionKey;
             htmlBody += '<label class="checkboxWrapper" style="min-width:180px;">'
-                + '<input type="checkbox" id="' + buttonID + '" disabled/>'
-                + options[optionKey] + '</label>';
+            + '<input type="checkbox" id="' + buttonID + '" disabled/>'
+            + options[optionKey] + '</label>';
         })(key);
     }
     parentDivElement.innerHTML = htmlBody;
@@ -2514,7 +2535,7 @@ DurationValueHandler.init = function(settingKey) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
 
     parentDivElement.innerHTML = '<input id="value_' + settingKey + '" name="setting_' + settingKey + '"/> '
-        + PWM_MAIN.showString('Display_Seconds') + '<span style="margin-left:50px" id="display-' + settingKey + '-duration"></span>';
+    + PWM_MAIN.showString('Display_Seconds') + '<span style="margin-left:50px" id="display-' + settingKey + '-duration"></span>';
 
     PWM_MAIN.clearDijitWidget("value_" + settingKey);
     require(["dijit","dijit/form/NumberSpinner"],function(dijit,NumberSpinner){

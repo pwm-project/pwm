@@ -52,7 +52,7 @@
             <i>Save Configuration</i> to save the configuration and restart the application.</p>
         <br/>
         <div id="outline_ldap-server" class="setting_outline">
-            <div id="titlePaneHeader-ldap-server" class="setting_title">Summary</div>
+            <div id="titlePaneHeader-ldap-server" class="setting_title">Configuration Summary</div>
             <div class="setting_body">
                 <table>
                     <tr>
@@ -113,7 +113,7 @@
                         <td><b>Administrator Search Filter</b>
                         </td>
                         <td>
-                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMINS))%>
+                            <%=StringUtil.escapeHtml(configGuideBean.getFormData().get(ConfigGuideServlet.PARAM_LDAP2_ADMIN_GROUP))%>
                         </td>
                     </tr>
                     <tr>
@@ -159,8 +159,23 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('FINISH')});
-            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PASSWORD')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){
+                var htmlBody = '<p>After saving the configuration, the application will be automatically restarted.</p>'
+                        + '<p>The application will then be in open configuration mode.  While in open configuration mode, the configuration can be accessed '
+                        + 'without LDAP authentication.  Once you have completed any LDAP configuration changes you may wish to make, close the configuration so that '
+                        + 'LDAP authentication will be required. </p>';
+
+                htmlBody += '<br/><br/><table><tr><td colspan="3" class="title">URLs</td></tr>';
+                htmlBody += '<tr><td class="key">Application</td><td> <a href="<pwm:context/>"><pwm:context/></a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration Manager</td><td> <a href="<pwm:context/>/private/config/ConfigManager"><pwm:context/>/private/config/ConfigManager</a></td></tr>';
+                htmlBody += '<tr><td class="key">Configuration Editor</td><td> <a href="<pwm:context/>/private/config/ConfigEditor"><pwm:context/>/private/config/ConfigEditor</a></td></tr>';
+                htmlBody += '</table>';
+
+                PWM_MAIN.showConfirmDialog({text:htmlBody,okAction:function(){
+                    PWM_GUIDE.gotoStep('FINISH');
+                }});
+            });
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
         });
     </script>

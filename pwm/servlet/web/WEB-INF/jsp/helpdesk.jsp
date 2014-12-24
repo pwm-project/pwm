@@ -54,7 +54,7 @@
                     </td>
                     <td style="border:0;">
                         <div id="searchIndicator" style="visibility: hidden">
-                            <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                            <span class="fa fa-lg fa-spin fa-spinner"></span>
                         </div>
                     </td>
                     <td style="border:0;">

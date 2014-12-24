@@ -67,7 +67,6 @@
             <li><a href="#eventStatistics">Event Statistics</a></li>
             <li><a href="#auditEvents">Audit Events</a></li>
             <li><a href="#errors">Errors</a></li>
-            <li><a href="#localizations">Localizations</a></li>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
                 <% for (PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>

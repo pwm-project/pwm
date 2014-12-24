@@ -585,6 +585,9 @@ public class HelpdeskServlet extends PwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
+        final long DELAY_MS = 1000;
+        final Date startTime = new Date();
+        
         if (!pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE_OTP_VERIFY)) {
             pwmRequest.outputJsonResult(RestResultBean.fromError(PwmError.ERROR_SERVICE_NOT_AVAILABLE.toInfo()));
             return;
@@ -601,6 +604,27 @@ public class HelpdeskServlet extends PwmServlet {
                     code,
                     false
             );
+            if (passed) {
+                // mark the event log
+                {
+                    final PwmSession pwmSession = pwmRequest.getPwmSession();
+                    final UserAuditRecord auditRecord = pwmRequest.getPwmApplication().getAuditManager().createUserAuditRecord(
+                            AuditEvent.HELPDESK_VERIFY_OTP,
+                            pwmSession.getUserInfoBean().getUserIdentity(),
+                            null,
+                            helpdeskBean.getUserInfoBean().getUserIdentity(),
+                            pwmSession.getSessionStateBean().getSrcAddress(),
+                            pwmSession.getSessionStateBean().getSrcHostname()
+                    );
+                    pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
+                }
+            }
+
+            // add a delay to prevent continuous checks
+            while (TimeDuration.fromCurrent(startTime).isShorterThan(DELAY_MS)) {
+                Helper.pause(100);
+            }
+
             final RestResultBean restResultBean = new RestResultBean();
             restResultBean.setData(passed);
             pwmRequest.outputJsonResult(restResultBean);

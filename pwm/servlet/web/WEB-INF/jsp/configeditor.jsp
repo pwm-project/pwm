@@ -39,7 +39,7 @@
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper" style="border:1px; height: 100%" >
     <div id="header" style="height: 25px; position: fixed;">
-        <div id="header-center">
+        <div id="header-center-wide">
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
                 <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>

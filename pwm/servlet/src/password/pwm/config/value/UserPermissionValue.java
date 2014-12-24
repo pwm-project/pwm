@@ -81,7 +81,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                             final UserPermission userPermission = gson.fromJson(value, UserPermission.class);
                             values.add(userPermission);
                         } else {
-                            values.add(new UserPermission(null, value, null));
+                            values.add(new UserPermission(UserPermission.Type.ldapQuery, null, value, null));
                         }
                     }
                 }
@@ -153,13 +153,16 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                     sb.append(counter);
                 }
                 sb.append(" [");
-                sb.append("Profile:").append(userPermission.getLdapProfileID());
+                sb.append("Type:").append(userPermission.getType());
+                sb.append(" Profile:").append(userPermission.getLdapProfileID());
                 sb.append(" Base:").append(
                         userPermission.getLdapBase() == null
                                 ? Display.getLocalizedMessage(locale,"Value_NotApplicable",null)
                                 : userPermission.getLdapBase()
                 );
-                sb.append(" Query:").append(userPermission.getLdapQuery());
+                if (userPermission.getLdapQuery() != null) {
+                    sb.append(" Query:").append(userPermission.getLdapQuery());
+                }
                 sb.append("]");
                 counter++;
                 if (counter != values.size()) {

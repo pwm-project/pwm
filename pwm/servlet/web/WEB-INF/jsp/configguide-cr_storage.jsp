@@ -98,8 +98,8 @@
 <script type="text/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
         PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_MAIN.addEventHandler('button_next','click',function(){PWM_GUIDE.gotoStep('APP')});
-            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('LDAP3')});
+            PWM_MAIN.addEventHandler('button_next','click',function(){ PWM_GUIDE.gotoStep('NEXT')});
+            PWM_MAIN.addEventHandler('button_previous','click',function(){PWM_GUIDE.gotoStep('PREVIOUS')});
 
             PWM_MAIN.addEventHandler('configForm','input',function(){
                 PWM_GUIDE.updateForm();

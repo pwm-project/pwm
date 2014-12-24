@@ -329,13 +329,16 @@ public class SessionFilter extends PwmFilter {
         final String localeParamName = config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE);
         final String localeCookieName = config.readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_NAME);
         final String requestedLocale = pwmRequest.readParameterAsString(localeParamName);
+        final int cookieAgeSeconds = (int)pwmRequest.getConfig().readSettingAsLong(PwmSetting.LOCALE_COOKIE_MAX_AGE);
         if (requestedLocale != null && requestedLocale.length() > 0) {
             LOGGER.debug(pwmRequest, "detected locale request parameter " + localeParamName+ " with value " + requestedLocale);
             if (pwmRequest.getPwmSession().setLocale(pwmRequest.getPwmApplication(), requestedLocale)) {
-                final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
-                newCookie.setMaxAge(Integer.parseInt(config.readAppProperty(AppProperty.HTTP_COOKIE_LOCALE_AGE)));
-                newCookie.setPath(pwmRequest.getContextPath() + "/");
-                pwmRequest.getPwmResponse().addCookie(newCookie);
+                if (cookieAgeSeconds > 0) {
+                    final Cookie newCookie = new Cookie(localeCookieName, requestedLocale);
+                    newCookie.setMaxAge(cookieAgeSeconds);
+                    newCookie.setPath(pwmRequest.getContextPath() + "/");
+                    pwmRequest.getPwmResponse().addCookie(newCookie);
+                }
             }
         }
     }

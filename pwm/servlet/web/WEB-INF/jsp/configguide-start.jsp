@@ -85,13 +85,14 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function() {
+            PWM_GLOBAL['idle_suspendTimeout'] = true;
             PWM_MAIN.addEventHandler('button-startConfigGuide', 'click', function () {
                 if (PWM_GLOBAL['setting-displayEula']) {
                     PWM_MAIN.showEula(true, function () {
-                        PWM_GUIDE.gotoStep('TEMPLATE');
+                        PWM_GUIDE.gotoStep('NEXT');
                     });
                 } else {
-                    PWM_GUIDE.gotoStep('TEMPLATE');
+                    PWM_GUIDE.gotoStep('NEXT');
                 }
             });
             PWM_MAIN.addEventHandler('button-manualConfig', 'click', function () {
@@ -117,7 +118,7 @@
 
         function skipWizard() {
             PWM_MAIN.showConfirmDialog({text:'<pwm:display key="Confirm_SkipGuide" bundle="Config"/>',okAction:function() {
-                PWM_GUIDE.gotoStep('FINISH');
+                PWM_GUIDE.gotoStep('NEXT');
             }});
         }
     </script>
@@ -128,6 +129,3 @@
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>
-
-
-

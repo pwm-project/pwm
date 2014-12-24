@@ -102,3 +102,22 @@ PWM_GUIDE.setUseConfiguredCerts = function(value) {
         PWM_MAIN.ajaxRequest(url,loadFunction);
     }});
 };
+
+PWM_GUIDE.extendSchema = function() {
+    PWM_MAIN.showConfirmDialog({text:"Are you sure you want to extend the LDAP schema?",okAction:function(){
+        PWM_MAIN.showWaitDialog({loadFunction:function() {
+            var url = "ConfigGuide?processAction=extendSchema";
+            var loadFunction = function(result) {
+                if (result['error']) {
+                    PWM_MAIN.showError(result['errorDetail']);
+                } else {
+                    var output = '<pre>' + result['data'] + '</pre>';
+                    PWM_MAIN.showDialog({title:"Results",text:output,okAction:function(){
+                        window.location.reload();
+                    }});
+                }
+            };
+            PWM_MAIN.ajaxRequest(url,loadFunction);
+        }});
+    }});
+};

@@ -57,7 +57,6 @@ public enum AppProperty {
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),
     HTTP_COOKIE_THEME_AGE                           ("http.cookie.theme.age"),
     HTTP_COOKIE_LOCALE_NAME                         ("http.cookie.locale.name"),
-    HTTP_COOKIE_LOCALE_AGE                          ("http.cookie.locale.age"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),

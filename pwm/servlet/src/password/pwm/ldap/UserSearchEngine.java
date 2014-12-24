@@ -292,7 +292,7 @@ public class UserSearchEngine {
                     ? StringUtil.escapeLdap(searchConfiguration.getUsername())
                     : searchConfiguration.getUsername();
 
-            if (searchConfiguration.getUsername().split(" ").length > 1) {
+            if (searchConfiguration.getUsername().split("\\s").length > 1) { // split on all whitespace chars
                 final StringBuilder multiSearchFilter = new StringBuilder();
                 multiSearchFilter.append("(&");
                 for (final String queryPart : searchConfiguration.getUsername().split(" ")) {
@@ -305,6 +305,9 @@ public class UserSearchEngine {
             } else {
                 searchFilter = input_searchFilter.replace(PwmConstants.VALUE_REPLACEMENT_USERNAME, inputQuery);
             }
+        } else if (searchConfiguration.getGroupDN() != null) {
+            final String groupAttr = ldapProfile.readSettingAsString(PwmSetting.LDAP_USER_GROUP_ATTRIBUTE);
+            searchFilter = "(" + groupAttr + "=" + searchConfiguration.getGroupDN() + ")";
         } else if (searchConfiguration.getFormValues() != null) {
             searchFilter = figureSearchFilterForParams(searchConfiguration.getFormValues(),input_searchFilter,searchConfiguration.isEnableValueEscaping());
         } else {
@@ -433,6 +436,7 @@ public class UserSearchEngine {
         private String ldapProfile;
         private String filter;
         private String username;
+        private String groupDN;
         private List<String> contexts;
         private Map<FormConfiguration, String> formValues;
         private transient ChaiProvider chaiProvider;
@@ -463,6 +467,14 @@ public class UserSearchEngine {
 
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public String getGroupDN() {
+            return groupDN;
+        }
+
+        public void setGroupDN(String groupDN) {
+            this.groupDN = groupDN;
         }
 
         public List<String> getContexts() {

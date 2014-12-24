@@ -41,11 +41,7 @@ import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
-import password.pwm.ldap.LdapUserDataReader;
-import password.pwm.ldap.UserDataReader;
-import password.pwm.ldap.UserSearchEngine;
-import password.pwm.ldap.UserStatusReader;
-import password.pwm.util.Helper;
+import password.pwm.ldap.*;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.cache.CacheService;
@@ -443,7 +439,7 @@ public class PeopleSearchServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException, ChaiUnavailableException {
         final List<UserPermission> showPhotoPermission = pwmApplication.getConfig().readSettingAsUserPermission(PwmSetting.PEOPLE_SEARCH_PHOTO_QUERY_FILTER);
-        if (!Helper.testUserPermissions(pwmApplication, pwmRequest.getSessionLabel(), userIdentity, showPhotoPermission)) {
+        if (!LdapPermissionTester.testUserPermissions(pwmApplication, pwmRequest.getSessionLabel(), userIdentity, showPhotoPermission)) {
             LOGGER.debug(pwmRequest, "detailed user data lookup for " + userIdentity.toString() + ", failed photo query filter, denying photo view");
             return null;
         }
@@ -618,7 +614,7 @@ public class PeopleSearchServlet extends PwmServlet {
             filterString = filterString.replace("**", "*");
         }
 
-        final boolean match = Helper.testQueryMatch(pwmApplication, pwmSession.getLabel(), userIdentity, filterString);
+        final boolean match = LdapPermissionTester.testQueryMatch(pwmApplication, pwmSession.getLabel(), userIdentity, filterString);
         if (!match) {
             throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, "requested userDN is not available within configured search filter"));
         }
