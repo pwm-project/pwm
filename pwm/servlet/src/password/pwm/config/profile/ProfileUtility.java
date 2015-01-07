@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,25 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.profile;
 
-import java.util.Locale;
-import java.util.Map;
+import password.pwm.util.logging.PwmLogger;
 
-public class RecoveryProfile extends AbstractProfile {
+public class ProfileUtility {
+    private static final PwmLogger LOGGER = PwmLogger.forClass(ProfileUtility.class);
 
 
-    public RecoveryProfile(
-            String identifier,
-            Map<PwmSetting, StoredValue> storedValueMap
-    )
-    {
-        super(identifier, storedValueMap);
-    }
-
-    @Override
-    public String getDisplayName(Locale locale)
-    {
-        return null;
-    }
 }

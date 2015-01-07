@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.util.Helper;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
 
@@ -62,11 +63,11 @@ public class LocalDBFactory {
         if (config == null) {
             className = AppProperty.LOCALDB_IMPLEMENTATION.getDefaultValue();
             final String initStrings = AppProperty.LOCALDB_INIT_STRING.getDefaultValue();
-            initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
+            initParameters = StringUtil.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         } else {
             className = config.readAppProperty(AppProperty.LOCALDB_IMPLEMENTATION);
             final String initStrings = config.readAppProperty(AppProperty.LOCALDB_INIT_STRING);
-            initParameters = Configuration.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
+            initParameters = StringUtil.convertStringListToNameValuePair(Arrays.asList(initStrings.split(";;;")), "=");
         }
 
         final LocalDBProvider dbProvider = createInstance(className);

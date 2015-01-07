@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public class OTPUserRecord implements Serializable {
     private Type type = Type.TOTP;
     private String version = CURRENT_VERSION;
 
-    public static class RecoveryInfo {
+    public static class RecoveryInfo implements Serializable {
         private String salt;
         private String hashMethod;
         private int hashCount;
@@ -81,7 +81,7 @@ public class OTPUserRecord implements Serializable {
         TOTP,
     }
 
-    public static class RecoveryCode {
+    public static class RecoveryCode implements Serializable {
         private String hashCode;
         private boolean used;
 

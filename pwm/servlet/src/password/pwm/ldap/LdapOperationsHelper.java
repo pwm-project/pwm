@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,16 +37,17 @@ import password.pwm.PwmApplication;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.PasswordData;
-import password.pwm.util.PwmRandom;
+import password.pwm.util.StringUtil;
 import password.pwm.util.X509Utils;
 import password.pwm.util.logging.PwmLogger;
+import password.pwm.util.macro.MacroMachine;
 import password.pwm.util.stats.Statistic;
 import password.pwm.util.stats.StatisticsManager;
 
@@ -175,7 +176,7 @@ public class LdapOperationsHelper {
             final String guidAttributeName = ldapProfile.readSettingAsString(PwmSetting.LDAP_GUID_ATTRIBUTE);
 
             if ("DN".equalsIgnoreCase(guidAttributeName)) {
-                return userIdentity.toDeliminatedKey();
+                return userIdentity.toDelimitedKey();
             }
 
             if ("VENDORGUID".equalsIgnoreCase(guidAttributeName)) {
@@ -253,7 +254,7 @@ public class LdapOperationsHelper {
 
             while (attempts < 10 && newGuid == null) {
                 attempts++;
-                newGuid = generateGuidValue();
+                newGuid = generateGuidValue(pwmApplication);
                 if (searchForExistingGuidValue(pwmApplication, sessionLabel, newGuid)) {
                     newGuid = null;
                 }
@@ -278,14 +279,14 @@ public class LdapOperationsHelper {
             }
         }
 
-        private static String generateGuidValue() {
-            final StringBuilder sb = new StringBuilder();
-            sb.append(Long.toHexString(System.currentTimeMillis()).toUpperCase());
-            while (sb.length() < 12) {
-                sb.insert(0, "0");
-            }
-            sb.insert(0, PwmRandom.getInstance().alphaNumericString(20).toUpperCase());
-            return sb.toString();
+        private static String generateGuidValue(
+                final PwmApplication pwmApplication
+        )
+                throws PwmUnrecoverableException
+        {
+            final MacroMachine macroMachine = MacroMachine.forNonUserSpecific(pwmApplication);
+            final String guidPattern = pwmApplication.getConfig().readAppProperty(AppProperty.LDAP_GUID_PATTERN);
+            return macroMachine.expandMacros(guidPattern);
         }
     }
 
@@ -398,7 +399,7 @@ public class LdapOperationsHelper {
         // write out any configured values;
         final String rawValue = config.readAppProperty(AppProperty.LDAP_CHAI_SETTINGS);
         final String[] rawValues = rawValue != null ? rawValue.split(AppProperty.VALUE_SEPARATOR) : new String[0];
-        final Map<String, String> configuredSettings = Configuration.convertStringListToNameValuePair(Arrays.asList(rawValues), "=");
+        final Map<String, String> configuredSettings = StringUtil.convertStringListToNameValuePair(Arrays.asList(rawValues), "=");
         for (final String key : configuredSettings.keySet()) {
             if (key != null && !key.isEmpty()) {
                 final ChaiSetting theSetting = ChaiSetting.forKey(key);

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 
 package password.pwm.util.macro;
 
-import org.h2.util.StringUtils;
 import password.pwm.PwmApplication;
+import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
@@ -34,6 +34,7 @@ import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
 import password.pwm.ldap.UserStatusReader;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
@@ -160,7 +161,7 @@ public class MacroMachine {
 
     private String doReplace(
             final String input,
-            final MacroImplementation configVar,
+            final MacroImplementation macroImplementation,
             final Matcher matcher,
             final StringReplacer stringReplacer,
             final MacroImplementation.MacroRequestInfo macroRequestInfo
@@ -170,7 +171,10 @@ public class MacroMachine {
         final int endPos = matcher.end();
         String replaceStr = "";
         try {
-            replaceStr = configVar.replaceValue(matchedStr, macroRequestInfo);
+            replaceStr = macroImplementation.replaceValue(matchedStr, macroRequestInfo);
+        } catch (MacroParseException e) {
+            LOGGER.debug("macro parse error replacing macro '" + matchedStr + "', error: " + e.getMessage());
+            replaceStr = "[" + e.getErrorInformation().toUserStr(PwmConstants.DEFAULT_LOCALE,macroRequestInfo.getPwmApplication().getConfig()) + "]";
         }  catch (Exception e) {
             LOGGER.error("error while replacing macro '" + matchedStr + "', error: " + e.getMessage());
         }
@@ -183,12 +187,12 @@ public class MacroMachine {
             try {
                 replaceStr = stringReplacer.replace(matchedStr, replaceStr);
             }  catch (Exception e) {
-                LOGGER.error("error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage());
+                LOGGER.error("unexpected error while executing '" + matchedStr + "' during StringReplacer.replace(), error: " + e.getMessage());
             }
         }
 
         if (replaceStr != null && replaceStr.length() > 0) {
-            LOGGER.trace("replaced Macro " + matchedStr + " with value: " + replaceStr);
+            LOGGER.trace("replaced macro " + matchedStr + " with value: " + replaceStr);
         }
         return new StringBuilder(input).replace(startPos, endPos, replaceStr).toString();
     }
@@ -199,7 +203,7 @@ public class MacroMachine {
 
     public static class URLEncoderReplacer implements StringReplacer {
         public String replace(String matchedMacro, String newValue) {
-            return StringUtils.urlEncode(newValue); // make sure replacement values are properly encoded
+            return StringUtil.urlEncode(newValue); // make sure replacement values are properly encoded
         }
     }
 

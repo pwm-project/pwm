@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,14 +37,19 @@ import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.*;
-import password.pwm.config.*;
+import password.pwm.config.ActionConfiguration;
+import password.pwm.config.Configuration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.UserPermission;
 import password.pwm.config.option.HelpdeskClearResponseMode;
 import password.pwm.config.option.MessageSendMethod;
-import password.pwm.config.policy.PwmPasswordPolicy;
-import password.pwm.config.policy.PwmPasswordRule;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
-import password.pwm.event.UserAuditRecord;
+import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.*;
@@ -374,7 +379,8 @@ public class PasswordUtility {
             throw new PwmOperationalException(errorInformation);
         }
 
-        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.HELPDESK)) {
+        final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
+        if (helpdeskProfile == null) {
             final String errorMsg = "attempt to helpdeskSetUserPassword, but user does not have helpdesk permission";
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, errorMsg);
             throw new PwmOperationalException(errorInformation);
@@ -402,7 +408,7 @@ public class PasswordUtility {
 
         // mark the event log
         {
-            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+            final HelpdeskAuditRecord auditRecord = pwmApplication.getAuditManager().createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_SET_PASSWORD,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -431,7 +437,7 @@ public class PasswordUtility {
             LOGGER.debug(sessionLabel, "executing changepassword and helpdesk post password change writeAttributes to user " + userIdentity);
             final List<ActionConfiguration> actions = new ArrayList<>();
             actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.CHANGE_PASSWORD_WRITE_ATTRIBUTES));
-            actions.addAll(pwmApplication.getConfig().readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
+            actions.addAll(helpdeskProfile.readSettingAsAction(PwmSetting.HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES));
             if (!actions.isEmpty()) {
                 final ActionExecutor.ActionExecutorSettings settings = new ActionExecutor.ActionExecutorSettings();
                 settings.setExpandPwmMacros(true);
@@ -442,13 +448,13 @@ public class PasswordUtility {
         }
 
         final HelpdeskClearResponseMode settingClearResponses = HelpdeskClearResponseMode.valueOf(
-                pwmApplication.getConfig().readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
+                helpdeskProfile.readSettingAsString(PwmSetting.HELPDESK_CLEAR_RESPONSES));
         if (settingClearResponses == HelpdeskClearResponseMode.yes) {
             final String userGUID = LdapOperationsHelper.readLdapGuidValue(pwmApplication, sessionLabel, userIdentity, false);
             pwmApplication.getCrService().clearResponses(pwmSession, proxiedUser, userGUID);
 
             // mark the event log
-            final UserAuditRecord auditRecord = pwmApplication.getAuditManager().createUserAuditRecord(
+            final HelpdeskAuditRecord auditRecord = pwmApplication.getAuditManager().createHelpdeskAuditRecord(
                     AuditEvent.HELPDESK_CLEAR_RESPONSES,
                     pwmSession.getUserInfoBean().getUserIdentity(),
                     null,
@@ -463,7 +469,7 @@ public class PasswordUtility {
         sendChangePasswordHelpdeskEmailNotice(pwmSession, pwmApplication, userInfoBean);
 
         // send password
-        final boolean sendPassword = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
+        final boolean sendPassword = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_SEND_PASSWORD);
         if (sendPassword) {
             final UserDataReader userDataReader = new LdapUserDataReader(userIdentity, chaiUser);
             final LoginInfoBean loginInfoBean = new LoginInfoBean();

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import password.pwm.config.FormConfiguration;
 import password.pwm.config.FormUtility;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.RequireCurrentPasswordMode;
-import password.pwm.config.policy.PwmPasswordRule;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.AuditRecord;

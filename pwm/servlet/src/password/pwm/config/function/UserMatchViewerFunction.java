@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import password.pwm.config.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;
 import password.pwm.ldap.LdapPermissionTester;
@@ -142,11 +143,10 @@ public class UserMatchViewerFunction implements SettingUIFunction {
     }
 
     private void testIfLdapDNIsValid(final PwmApplication pwmApplication, final String baseDN, final String profileID)
-            throws PwmOperationalException
-    {
+            throws PwmOperationalException, PwmUnrecoverableException {
         final Set<String> profileIDsToTest = new LinkedHashSet<>();
         if (profileID == null || profileID.isEmpty()) {
-            profileIDsToTest.add(PwmConstants.PROFILE_ID_DEFAULT);
+            profileIDsToTest.add(pwmApplication.getConfig().getDefaultLdapProfile().getIdentifier());
         } else if (profileID.equals(PwmConstants.PROFILE_ID_ALL)) {
             profileIDsToTest.addAll(pwmApplication.getConfig().getLdapProfiles().keySet());
         } else {

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ public enum AppProperty {
     HTTP_COOKIE_THEME_NAME                          ("http.cookie.theme.name"),
     HTTP_COOKIE_THEME_AGE                           ("http.cookie.theme.age"),
     HTTP_COOKIE_LOCALE_NAME                         ("http.cookie.locale.name"),
+    HTTP_COOKIE_MAX_READ_LENGTH                     ("http.cookie.maxReadLength"),
     HTTP_BASIC_AUTH_CHARSET                         ("http.basicAuth.charset"),
     HTTP_BODY_MAXREAD_LENGTH                        ("http.body.maxReadLength"),
     HTTP_ENABLE_GZIP                                ("http.gzip.enable"),
@@ -91,7 +92,13 @@ public enum AppProperty {
     LOCALDB_COMPRESSION_MINSIZE                     ("localdb.compression.minSize"),
     LOCALDB_IMPLEMENTATION                          ("localdb.implementation"),
     LOCALDB_INIT_STRING                             ("localdb.initParameters"),
+    MACRO_RANDOM_CHAR_MAX_LENGTH                    ("macro.randomChar.maxLength"),
+    MACRO_LDAP_ATTR_CHAR_MAX_LENGTH                 ("macro.ldapAttr.maxLength"),
+    
+    /** Time intruder records exist in the intruder table before being deleted. */
     INTRUDER_RETENTION_TIME_MS                      ("intruder.retentionTimeMS"),
+    
+    /** How often to cleanup the intruder table. */
     INTRUDER_CLEANUP_FREQUENCY_MS                   ("intruder.cleanupFrequencyMS"),
     INTRUDER_MIN_DELAY_PENALTY_MS                   ("intruder.minimumDelayPenaltyMS"),
     INTRUDER_MAX_DELAY_PENALTY_MS                   ("intruder.maximumDelayPenaltyMS"),
@@ -109,6 +116,7 @@ public enum AppProperty {
     LDAP_SEARCH_TIMEOUT                             ("ldap.search.timeoutMS"),
     LDAP_PASSWORD_REPLICA_CHECK_INIT_DELAY_MS       ("ldap.password.replicaCheck.initialDelayMS"),
     LDAP_PASSWORD_REPLICA_CHECK_CYCLE_DELAY_MS      ("ldap.password.replicaCheck.cycleDelayMS"),
+    LDAP_GUID_PATTERN                               ("ldap.guid.pattern"),
     LOGGING_PATTERN                                 ("logging.pattern"),
     LOGGING_FILE_MAX_SIZE                           ("logging.file.maxSize"),
     LOGGING_FILE_MAX_ROLLOVER                       ("logging.file.maxRollover"),
@@ -139,10 +147,11 @@ public enum AppProperty {
     QUEUE_SYSLOG_MAX_COUNT                          ("queue.syslog.maxCount"),
     QUEUE_MAX_CLOSE_TIMEOUT_MS                      ("queue.maxCloseTimeoutMs"),
     REPORTING_LDAP_SEARCH_TIMEOUT                   ("reporting.ldap.searchTimeoutMs"),
-    REPORTING_SUMMARY_DAY_INTERVALS                 ("reporting.summary.dayIntervals"),
     SECURITY_STRIP_INLINE_JAVASCRIPT                ("security.html.stripInlineJavascript"),
     SECURITY_HTTP_STRIP_HEADER_REGEX                ("security.http.stripHeaderRegex"),
     SECURITY_RESPONSES_HASH_ITERATIONS              ("security.responses.hashIterations"),
+    SECURITY_INPUT_TRIM                             ("security.input.trim"),
+    SECURITY_INPUT_PASSWORD_TRIM                    ("security.input.password.trim"),
     SECURITY_WS_REST_CLIENT_KEY_LENGTH              ("security.ws.rest.clientKeyLength"),
     SECURITY_SHAREDHISTORY_HASH_ITERATIONS          ("security.sharedHistory.hashIterations"),
     SECURITY_SHAREDHISTORY_HASH_NAME                ("security.sharedHistory.hashName"),
@@ -150,6 +159,8 @@ public enum AppProperty {
     TOKEN_REMOVAL_DELAY_MS                          ("token.removalDelayMS"),
     TOKEN_PURGE_BATCH_SIZE                          ("token.purgeBatchSize"),
     TOKEN_MAX_UNIQUE_CREATE_ATTEMPTS                ("token.maxUniqueCreateAttempts"),
+    
+    /** Regular expression to be used for matching URLs to be shortened by the URL Shortening Service Class. */
     URL_SHORTNER_URL_REGEX                          ("urlshortener.url.regex"),
     WS_REST_CLIENT_PWRULE_HALTONERROR               ("ws.restClient.pwRule.haltOnError"),
 

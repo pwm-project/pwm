@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,22 +32,16 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
     protected String perpetratorID;
     protected String perpetratorDN;
     protected String perpetratorLdapProfile;
-    protected String targetID;
-    protected String targetDN;
-    protected String targetLdapProfile;
     protected String sourceAddress;
     protected String sourceHost;
 
-    private UserAuditRecord(
+    protected UserAuditRecord(
             final Date timestamp,
             final AuditEvent eventCode,
             final String perpetratorID,
             final String perpetratorDN,
             final String perpetratorLdapProfile,
             final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
     ) {
@@ -55,9 +49,6 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
         this.perpetratorID = perpetratorID;
         this.perpetratorDN = perpetratorDN;
         this.perpetratorLdapProfile = perpetratorLdapProfile;
-        this.targetID = targetID;
-        this.targetDN = targetDN;
-        this.targetLdapProfile = targetLdapProfile;
         this.sourceAddress = sourceAddress;
         this.sourceHost = sourceHost;
     }
@@ -68,15 +59,11 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
             final String perpetratorDN,
             final String perpetratorLdapProfile,
             final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
     )
     {
-        return new UserAuditRecord(new Date(), eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
-                targetLdapProfile, sourceAddress, sourceHost);
+        return new UserAuditRecord(new Date(), eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceAddress, sourceHost);
     }
 
     static UserAuditRecord create(
@@ -86,15 +73,11 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
             final String perpetratorDN,
             final String perpetratorLdapProfile,
             final String message,
-            final String targetID,
-            final String targetDN,
-            final String targetLdapProfile,
             final String sourceAddress,
             final String sourceHost
     )
     {
-        return new UserAuditRecord(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, targetID, targetDN,
-                targetLdapProfile, sourceAddress, sourceHost);
+        return new UserAuditRecord(timestamp, eventCode, perpetratorID, perpetratorDN, perpetratorLdapProfile, message, sourceAddress, sourceHost);
     }
 
     public String getPerpetratorID() {
@@ -103,14 +86,6 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
 
     public String getPerpetratorDN() {
         return perpetratorDN;
-    }
-
-    public String getTargetID() {
-        return targetID;
-    }
-
-    public String getTargetDN() {
-        return targetDN;
     }
 
     public String getSourceAddress() {
@@ -124,10 +99,5 @@ public class UserAuditRecord extends AuditRecord implements Serializable {
     public String getPerpetratorLdapProfile()
     {
         return perpetratorLdapProfile;
-    }
-
-    public String getTargetLdapProfile()
-    {
-        return targetLdapProfile;
     }
 }

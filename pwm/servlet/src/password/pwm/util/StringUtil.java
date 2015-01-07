@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class StringUtil {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StringUtil.class);
@@ -69,6 +67,26 @@ public abstract class StringUtil {
             }
         }
         return sb.toString();
+    }
+
+    public static Map<String, String> convertStringListToNameValuePair(final Collection<String> input, final String separator) {
+        if (input == null) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String, String> returnMap = new LinkedHashMap<>();
+        for (final String loopStr : input) {
+            if (loopStr != null && separator != null && loopStr.contains(separator)) {
+                final int separatorLocation = loopStr.indexOf(separator);
+                final String key = loopStr.substring(0, separatorLocation);
+                final String value = loopStr.substring(separatorLocation + separator.length(), loopStr.length());
+                returnMap.put(key, value);
+            } else {
+                returnMap.put(loopStr, "");
+            }
+        }
+
+        return returnMap;
     }
 
     public enum Base64Options {

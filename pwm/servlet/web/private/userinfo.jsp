@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -61,8 +61,8 @@
 </jsp:include>
 <div id="centerbody">
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false">
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserInformation"/>">
-    <table>
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserInformation"/>" class="tabContent">
+    <table class="nomargin">
         <% if (viewStatusFields.contains(ViewStatusFields.Username)) { %>
         <tr>
             <td class="key">
@@ -130,6 +130,23 @@
             </td>
             <td>
                 <%= StringUtil.escapeHtml(uiBean.getUserGuid()) %>
+            </td>
+        </tr>
+        <% } %>
+        <% if (viewStatusFields.contains(ViewStatusFields.AccountExpirationTime)) { %>
+        <tr>
+            <td class="key">
+                <pwm:display key="Field_AccountExpirationTime"/>
+            </td>
+            <% if (uiBean.getAccountExpirationTime() == null) { %>
+            <td>
+                <pwm:display key="Value_NotApplicable"/>
+            </td>
+            <% } else { %>
+            <td class="timestamp">
+                <%= dateFormatter.format(uiBean.getAccountExpirationTime()) %>
+            </td>
+            <% } %>
             </td>
         </tr>
         <% } %>
@@ -310,9 +327,9 @@
         <% } %>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_PasswordPolicy"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
-        <table>
+        <table class="nomargin">
             <tr>
                 <td class="key">
                     <pwm:display key="Title_PasswordPolicy"/>
@@ -328,9 +345,9 @@
 </div>
 <% if (userinfo_pwmRequest != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACCOUNT_INFORMATION_HISTORY)) { %>
 <% if (auditRecords != null && !auditRecords.isEmpty()) { %>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_UserEventHistory"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
-        <table style="border-collapse:collapse;  border: 2px solid #D4D4D4; width:100%">
+        <table class="nomargin">
             <% for (final UserAuditRecord record : auditRecords) { %>
             <tr>
                 <td class="key" style="width:50%">

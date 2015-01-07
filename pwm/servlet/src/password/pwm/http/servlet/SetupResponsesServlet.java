@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.policy.ChallengeProfile;
+import password.pwm.config.profile.ChallengeProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.event.UserAuditRecord;
@@ -499,6 +499,9 @@ public class SetupResponsesServlet extends PwmServlet {
             case CR_DUPLICATE_RESPONSES:
                 return new ErrorInformation(PwmError.ERROR_RESPONSE_DUPLICATE, null, new String[]{e.getFieldName()});
 
+            case CR_TOO_MANY_QUESTION_CHARS:
+                return new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE, null, new String[]{e.getFieldName()});
+
             default:
                 return new ErrorInformation(PwmError.ERROR_UNKNOWN);
         }
@@ -517,7 +520,7 @@ public class SetupResponsesServlet extends PwmServlet {
         final ChallengeProfile challengeProfile = pwmRequest.getPwmSession().getUserInfoBean().getChallengeProfile();
         if (setupResponsesBean.getResponseData() == null) { //setup user challenge data
             final ChallengeSet userChallengeSet = challengeProfile.getChallengeSet();
-            final int minRandomSetup = (int)challengeProfile.readSettingAsLong(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP);
+            final int minRandomSetup = challengeProfile.getMinRandomSetup();
             final SetupResponsesBean.SetupData userSetupData = populateSetupData(userChallengeSet,minRandomSetup);
             setupResponsesBean.setResponseData(userSetupData);
         }
@@ -526,7 +529,7 @@ public class SetupResponsesServlet extends PwmServlet {
             if (helpdeskChallengeSet == null) {
                 setupResponsesBean.setHelpdeskResponseData(new SetupResponsesBean.SetupData());
             } else {
-                final int minRandomHelpdeskSetup = (int)challengeProfile.readSettingAsLong(PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP);
+                final int minRandomHelpdeskSetup = challengeProfile.getMinHelpdeskRandomsSetup();
                 final SetupResponsesBean.SetupData helpdeskSetupData = populateSetupData(helpdeskChallengeSet,minRandomHelpdeskSetup);
                 setupResponsesBean.setHelpdeskResponseData(helpdeskSetupData);
             }

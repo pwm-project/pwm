@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.Configuration;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -119,8 +118,8 @@ public class LoginServlet extends PwmServlet {
     private void processLogin(final PwmRequest pwmRequest, final boolean passwordOnly)
             throws PwmUnrecoverableException, ServletException, IOException, ChaiUnavailableException
     {
-        final String username = pwmRequest.readParameterAsString("username");
-        final PasswordData password = pwmRequest.readParameterAsPassword("password");
+        final String username = pwmRequest.readParameterAsString(PwmConstants.PARAM_USERNAME);
+        final PasswordData password = pwmRequest.readParameterAsPassword(PwmConstants.PARAM_PASSWORD);
         final String context = pwmRequest.readParameterAsString(PwmConstants.PARAM_CONTEXT);
         final String ldapProfile = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
 
@@ -147,12 +146,10 @@ public class LoginServlet extends PwmServlet {
             return;
         }
 
-        final Configuration config = pwmRequest.getConfig();
-        final String username = Validator.sanitizeInputValue(config, valueMap.get("username"), 1024);
-        final PasswordData password = new PasswordData(Validator.sanitizeInputValue(config, valueMap.get("password"), 1024));
-        final String context = Validator.sanitizeInputValue(config, valueMap.get(PwmConstants.PARAM_CONTEXT), 1024);
-        final String ldapProfile = Validator.sanitizeInputValue(config, valueMap.get(PwmConstants.PARAM_LDAP_PROFILE),
-                1024);
+        final String username = valueMap.get(PwmConstants.PARAM_USERNAME);
+        final PasswordData password = new PasswordData(valueMap.get(PwmConstants.PARAM_PASSWORD));
+        final String context = valueMap.get(PwmConstants.PARAM_CONTEXT);
+        final String ldapProfile = valueMap.get(PwmConstants.PARAM_LDAP_PROFILE);
 
         try {
             handleLoginRequest(pwmRequest, username, password, context, ldapProfile, passwordOnly);

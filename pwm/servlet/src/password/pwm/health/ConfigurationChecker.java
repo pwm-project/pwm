@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,14 @@ package password.pwm.health;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
-import password.pwm.config.*;
+import password.pwm.config.Configuration;
+import password.pwm.config.FormConfiguration;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.Profile;
 import password.pwm.error.PwmException;
 import password.pwm.util.PasswordData;
 import password.pwm.util.logging.PwmLogger;
@@ -223,6 +228,7 @@ public class ConfigurationChecker implements HealthChecker {
             final PwmSetting setting,
             final Profile profile
     ) {
-        return setting.toMenuLocationDebug(profile, PwmConstants.DEFAULT_LOCALE);
+        final String profileID = profile == null ? null : profile.getIdentifier();
+        return setting.toMenuLocationDebug(profileID, PwmConstants.DEFAULT_LOCALE);
     }
 }

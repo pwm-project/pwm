@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -215,11 +215,6 @@ StringArrayValueHandler.draw = function(settingKey) {
 
         var defaultProfileRow = document.createElement("tr");
         defaultProfileRow.setAttribute("colspan", "5");
-
-        var defaultProfileRowData = document.createElement("td");
-        defaultProfileRowData.innerHTML = 'Default';
-        defaultProfileRow.appendChild(defaultProfileRowData);
-        tableElement.appendChild(defaultProfileRow);
     }
 
     var counter = 0;
@@ -259,7 +254,7 @@ StringArrayValueHandler.drawRow = function(settingKey, iteration, value, itemCou
     valueRow.setAttribute("style", "border-width: 0");
     valueRow.setAttribute("id",inputID + "_row");
 
-    var rowHtml = '<td style="width:100%"><div id="' + inputID + '">' + value + '</div></td>';
+    var rowHtml = '<td style=""><div style="width:500px; overflow:hidden; text-overflow: ellipsis" id="' + inputID + '">' + value + '</div></td>';
 
     var downButtonID = 'button-' + settingKey + '-' + iteration + '-moveDown';
     rowHtml += '<td style="border:0">';
@@ -347,7 +342,6 @@ StringArrayValueHandler.valueHandler = function(settingKey, iteration) {
         title:PWM_SETTINGS['settings'][settingKey]['label'] + " - " + (iteration > -1 ? "Edit" : "Add") + " Value",
         text:text,
         loadFunction:loadFunction,
-        width:550,
         okAction:okAction,
         showCancel:true,
         showClose: true,
@@ -376,8 +370,8 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var deleteFunction = function() {
         var currentValues = PWM_VAR['clientSettingCache'][settingKey];
-        delete currentValues[iteration];
-        StringArrayValueHandler.writeSetting(settingKey)
+        currentValues.splice(iteration,1);
+        StringArrayValueHandler.writeSetting(settingKey,false);
     };
     if (syntax == 'PROFILE') {
         PWM_MAIN.showConfirmDialog({
@@ -391,13 +385,17 @@ StringArrayValueHandler.removeValue = function(settingKey, iteration) {
     }
 };
 
-StringArrayValueHandler.writeSetting = function(settingKey) {
+StringArrayValueHandler.writeSetting = function(settingKey, reload) {
     var syntax = PWM_SETTINGS['settings'][settingKey]['syntax'];
     var nextFunction = function() {
         if (syntax == 'PROFILE') {
             PWM_CFGEDIT.drawNavigationMenu();
         }
-        StringArrayValueHandler.draw(settingKey);
+        if (reload) {
+            StringArrayValueHandler.init(settingKey);
+        } else {
+            StringArrayValueHandler.draw(settingKey);
+        }
     };
     var currentValues = PWM_VAR['clientSettingCache'][settingKey];
     PWM_CFGEDIT.writeSetting(settingKey, currentValues, nextFunction);
@@ -619,7 +617,7 @@ FormTableHandler.redraw = function(keyName) {
     newTableRow.appendChild(newTableData);
     parentDivElement.appendChild(newTableRow);
 
-    require(["dojo/parser","dijit/form/Button","dijit/form/Select"],function(dojoParser){
+    require(["dojo/parser","dijit/form/Button","dijit/form/Select","dijit/form/ValidationTextBox"],function(dojoParser){
         dojoParser.parse(parentDiv);
     });
 };
@@ -2058,7 +2056,9 @@ ChallengeSettingHandler.draw = function(keyName) {
     var resultValue = PWM_VAR['clientSettingCache'][keyName];
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     var bodyText = '';
-    bodyText += '<table style="cursor: pointer;" class="noborder">';
+    bodyText += '<table style="cursor: pointer; table-layout: fixed" class="noborder">';
+    bodyText += '<col style="width:60px"/>';
+    bodyText += '<col style="width:100%"/>';
     PWM_CFGEDIT.clearDivElements(parentDiv, false);
     for (var localeName in resultValue) {
         (function(localeKey) {
@@ -2071,20 +2071,21 @@ ChallengeSettingHandler.draw = function(keyName) {
             bodyText += isDefaultLocale ? "Default" : localeKey;
             bodyText += '</td>';
 
-            bodyText += '<td style="border:1px grey solid; cursor:pointer" onclick="' + editJsText + '"> ';
+            bodyText += '<td onclick="' + editJsText + '"> ';
+            bodyText += '<div style="border: 1px solid; overflow:auto">';
             if (rowCount > 0) {
                 for (var iteration in multiValues) {
                     (function (rowKey) {
                         var questionText = multiValues[rowKey]['text'];
                         var adminDefined = multiValues[rowKey]['adminDefined'];
 
-                        bodyText += adminDefined ? questionText : '[User Defined]';
-                        bodyText += "<br/>";
+                        bodyText += '<div>' + (adminDefined ? questionText : '[User Defined]') + '</div>';
                     }(iteration));
                 }
             } else {
                 bodyText += '[No Questions]';
             }
+            bodyText += '</div>';
             bodyText += '</td><td style="border:0; vertical-align: top">';
             if (!isDefaultLocale) {
                 bodyText += '<span id="button-' + keyName + '-' + localeKey + '-deleteRow" style="top:0" class="delete-row-icon action-icon fa fa-times"/>';
@@ -2121,7 +2122,7 @@ ChallengeSettingHandler.draw = function(keyName) {
 
 ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
     var localeDisplay = localeKey == "" ? "Default" : localeKey;
-    var dialogBody = '<div id="challengeLocaleDialogDiv" style="">';
+    var dialogBody = '<div id="challengeLocaleDialogDiv" style="max-height:500px; overflow-x: auto">';
 
     var localeName = localeKey;
 
@@ -2143,7 +2144,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     var inputID = "value-" + keyName + "-" + localeName + "-" + rowKey;
                     PWM_MAIN.clearDijitWidget(inputID);
 
-                    dialogBody += '<textarea id="' + inputID + '" style="width: 460px" required="required"';
+                    dialogBody += '<textarea id="' + inputID + '" style="width: 700px" required="required"';
                     dialogBody += ' data-dojo-type="dijit/form/Textarea' + '"';
                     dialogBody += ' onchange="PWM_VAR[\'clientSettingCache\'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'text\'] = this.value"';
                     if (!isAdminDefined) {
@@ -2173,17 +2174,18 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
                     dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
                     dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['maxLength'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
                     dialogBody += ' onchange="PWM_VAR[\'clientSettingCache\'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxLength\'] = this.value"/><br/>Max Length';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['maxQuestionCharsInAnswer'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
+                    dialogBody += ' onchange="PWM_VAR[\'clientSettingCache\'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxQuestionCharsInAnswer\'] = this.value"/><br/> Max Question Chars';
+
+                    dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
+                    var enforceWordlist = multiValues[rowKey]['enforceWordlist'];
+                    dialogBody += '<button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:\'dijitCheckBoxIcon\',showLabel:true,label:\'Enforce Wordlist\',checked:' + enforceWordlist + '"';
+                    dialogBody += ' onchange="PWM_VAR[\'clientSettingCache\'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'enforceWordlist\'] = this.checked"';
+                    dialogBody += '></button>';
+
                     /*
-                     dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
-                     dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['maxQuestionCharsInAnswer'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
-                     dialogBody += ' onchange="PWM_VAR['clientSettingCache'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'maxQuestionCharsInAnswer\'] = this.value"/><br/> Max Question Chars';
-
-                     dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
-                     var applyWordlist = multiValues[rowKey]['applyWordlist'];
-                     dialogBody += '<button data-dojo-type="dijit/form/ToggleButton" data-dojo-props="iconClass:\'dijitCheckBoxIcon\',showLabel:true,label:\'Apply Wordlist\',checked:' + applyWordlist + '"';
-                     dialogBody += ' onchange="PWM_VAR['clientSettingCache'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'applyWordlist\'] = this.checked"';
-                     dialogBody += '></button>';
-
                      dialogBody += '</td><td style="padding-bottom: 15px; border:0">';
                      dialogBody += '<input style="width: 50px" data-dojo-type="dijit/form/NumberSpinner" value="' +multiValues[rowKey]['points'] + '" data-dojo-props="constraints:{min:0,max:255,places:0}""';
                      dialogBody += ' onchange="PWM_VAR['clientSettingCache'][\'' + keyName + '\'][\'' + localeKey + '\'][\'' + rowKey + '\'][\'points\'] = this.value"/><br/>Points';
@@ -2204,7 +2206,7 @@ ChallengeSettingHandler.editLocale = function(keyName, localeKey) {
             }
 
             var dialogTitle = PWM_SETTINGS['settings'][keyName]['label'] + ' - ' + localeDisplay;
-            PWM_MAIN.showDialog({title:dialogTitle,text:dialogBody,showClose:true,loadFunction:function(){
+            PWM_MAIN.showDialog({title:dialogTitle,text:dialogBody,showClose:true,dialogClass:'wide',loadFunction:function(){
                 dojoParser.parse(PWM_MAIN.getObject('challengeLocaleDialogDiv'));
             },okAction:function(){
                 ChallengeSettingHandler.write(keyName );
@@ -2287,9 +2289,9 @@ UserPermissionHandler.draw = function(keyName) {
             var inputID = "value-" + keyName + "-" + rowKey;
             htmlBody += '<div class="setting_item_value_wrapper" style="float:left; width: 570px;"><div style="width:100%; text-align:center">';
             if (resultValue[rowKey]['type'] == 'ldapGroup') {
-                htmlBody += 'LDAP Group Permission';
+                htmlBody += 'LDAP Group';
             } else {
-                htmlBody += 'LDAP Filter Permission';
+                htmlBody += 'LDAP Filter';
             }
 
             htmlBody += '</div><table class="noborder">'
@@ -2401,12 +2403,24 @@ UserPermissionHandler.draw = function(keyName) {
         });
     },10);
 
-    parentDivElement.innerHTML = parentDivElement.innerHTML + '<button class="btn" id="button-' + keyName + '-addFilterValue">'
-    + '<span class="btn-icon fa fa-plus-square"></span>Add Filter Permission</button>'
-    + '<button class="btn" id="button-' + keyName + '-addGroupValue">'
-    + '<span class="btn-icon fa fa-plus-square"></span>Add Group Permission</button>'
-    + '<button id="button-' + keyName + '-viewMatches" class="btn">'
-    + '<span class="btn-icon fa fa-eye"></span>View Matches</button>';
+    var options = PWM_SETTINGS['settings'][keyName]['options'];
+
+    var buttonRowHtml = '<button class="btn" id="button-' + keyName + '-addFilterValue">'
+        + '<span class="btn-icon fa fa-plus-square"></span>Add Filter</button>';
+    
+    var hideGroup = 'hideGroups' in options && options['hideGroups'] == "true";
+    if (!hideGroup) {
+        buttonRowHtml += '<button class="btn" id="button-' + keyName + '-addGroupValue">'
+        + '<span class="btn-icon fa fa-plus-square"></span>Add Group</button>';
+    }
+
+    var hideMatch = 'hideMatch' in options && options['hideMatch'] == "true";
+    if (!hideMatch) {
+        buttonRowHtml += '<button id="button-' + keyName + '-viewMatches" class="btn">'
+        + '<span class="btn-icon fa fa-eye"></span>View Matches</button>';
+    }
+
+    parentDivElement.innerHTML = parentDivElement.innerHTML + buttonRowHtml;
 
     PWM_MAIN.addEventHandler('button-' + keyName + '-viewMatches','click',function(){
         PWM_CFGEDIT.executeSettingFunction(keyName,'password.pwm.config.function.UserMatchViewerFunction')
@@ -2699,7 +2713,7 @@ X509CertificateHandler.draw = function(keyName) {
     for (var certCounter in resultValue) {
         (function (counter) {
             var certificate = resultValue[counter];
-            htmlBody += '<div style="max-width:100%;"><table style="max-width:100%" id="table_certificate' + keyName + '-' + counter + '">';
+            htmlBody += '<div style="max-width:100%; margin-bottom:8px"><table style="max-width:100%" id="table_certificate' + keyName + '-' + counter + '">';
             htmlBody += '<tr><td colspan="2" class="key" style="text-align: center">Certificate ' + counter + '  <a id="certTimestamp-detail-' + keyName + '-' + counter + '">(detail)</a></td></tr>';
             htmlBody += '<tr><td>Subject</td><td><div class="setting_table_value">' + certificate['subject'] + '</div></td></tr>';
             htmlBody += '<tr><td>Issuer</td><td><div class="setting_table_value">' + certificate['issuer'] + '</div></td></tr>';

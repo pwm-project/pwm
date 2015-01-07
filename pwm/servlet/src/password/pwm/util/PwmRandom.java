@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.UUID;
 
 public class PwmRandom {
 
@@ -82,5 +83,9 @@ public class PwmRandom {
     public void nextBytes(byte[] secArray)
     {
         internalRand.nextBytes(secArray);
+    }
+
+    public UUID randomUUID() {
+        return UUID.randomUUID();
     }
 }

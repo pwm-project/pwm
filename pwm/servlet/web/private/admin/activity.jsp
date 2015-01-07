@@ -8,7 +8,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
     <div id="centerbody" class="wide">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">
                 <div id="activeSessionGrid">
                 </div>
                 <div style="text-align: center">
@@ -71,12 +71,12 @@
             </div>
             <% for (RecordType recordType : RecordType.values()) { %>
             <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
-            <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>" class="tabContent">
                 <div id="<%=recordType%>_Grid">
                 </div>
             </div>
             <% } %>
-            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
                 <div id="auditUserGrid">
                 </div>
                 <div style="text-align: center">
@@ -97,7 +97,28 @@
                     </form>
                 </div>
             </div>
-            <div data-dojo-type="dijit/layout/ContentPane" title="Audit Records<br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>">
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
+                <div id="auditHelpdeskGrid">
+                </div>
+                <div style="text-align: center">
+                    <input name="maxAuditHelpdeskResults" id="maxAuditHelpdeskResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
+                           data-dojo-props="constraints:{min:10,max:10000000,pattern:'#'},smallDelta:100"/>
+                    Rows
+                    <button class="btn" type="button" id="button-refreshHelpdeskUser">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
+                        <pwm:display key="Button_Refresh" bundle="Admin"/>
+                    </button>
+                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
+                        <button type="submit" class="btn">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                            Download as CSV
+                        </button>
+                        <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
+                </div>
+            </div>
+            <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
                 <div id="auditSystemGrid">
                 </div>
                 <div style="text-align: center">
@@ -132,29 +153,25 @@
         </div>
         --%>
     </div>
-    <div>
-        <div class="push"></div>
-    </div>
+</div>
+<div>
+    <div class="push"></div>
 </div>
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dijit/form/NumberSpinner"],function(dojoParser,ready){
                 dojoParser.parse(PWM_MAIN.getObject('centerbody'));
-                setTimeout(function(){
-                    ready(function(){
-                        PWM_ADMIN.initIntrudersGrid();
-                        PWM_ADMIN.initActiveSessionGrid();
-                        PWM_ADMIN.initAuditGrid();
-                    });
+                PWM_ADMIN.initIntrudersGrid();
+                PWM_ADMIN.initActiveSessionGrid();
+                PWM_ADMIN.initAuditGrid();
 
-                    PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
-                        PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value);
-                    });
-                    PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
-                        PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value);
-                    });
-                },3000);
+                PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
+                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value);
+                });
+                PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
+                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value);
+                });
             });
         });
     </script>

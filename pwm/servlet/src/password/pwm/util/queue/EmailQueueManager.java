@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import password.pwm.health.HealthMessage;
 import password.pwm.health.HealthRecord;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
@@ -257,7 +258,7 @@ public class
         props.put("mail.smtp.port",(int)config.readSettingAsLong(PwmSetting.EMAIL_SERVER_PORT));
 
         //Specify configured advanced settings.
-        final Map<String, String> advancedSettingValues = Configuration.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
+        final Map<String, String> advancedSettingValues = StringUtil.convertStringListToNameValuePair(config.readSettingAsStringArray(PwmSetting.EMAIL_ADVANCED_SETTINGS), "=");
         for (final String key : advancedSettingValues.keySet()) {
             props.put(key, advancedSettingValues.get(key));
         }

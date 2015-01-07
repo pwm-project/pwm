@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.util.macro;
 
-import java.io.Serializable;
-import java.util.Locale;
+import password.pwm.error.ErrorInformation;
+import password.pwm.error.PwmError;
+import password.pwm.error.PwmException;
 
-public interface Profile extends Serializable {
-    String getIdentifier();
-
-    String getDisplayName(Locale locale);
-
-    boolean isDefault();
+public class MacroParseException extends PwmException {
+    public MacroParseException(String errorMsg) {
+        super(new ErrorInformation(PwmError.ERROR_MACRO_PARSE_ERROR,null,new String[]{errorMsg}));
+    }
 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
             throws PwmUnrecoverableException, ChaiUnavailableException
     {
         // user info
-        final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(auditRecord.getTargetDN());
+        final UserIdentity userIdentity = new UserIdentity(auditRecord.getPerpetratorDN(),auditRecord.getPerpetratorLdapProfile());
         final ChaiUser theUser = pwmApplication.getProxiedChaiUser(userIdentity);
 
         // settings
@@ -300,9 +300,6 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
                     null,
                     userInfoBean.getUserIdentity().getUserDN(),
                     this.getMessage(),
-                    null,
-                    null,
-                    null,
                     this.getSourceAddress(),
                     this.getSourceHost()
             );

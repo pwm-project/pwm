@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ public enum Permission {
     SETUP_OTP_SECRET(PwmSetting.OTP_SETUP_USER_PERMISSION),
     GUEST_REGISTRATION(PwmSetting.GUEST_ADMIN_GROUP),
     PEOPLE_SEARCH(PwmSetting.PEOPLE_SEARCH_QUERY_MATCH),
-    HELPDESK(PwmSetting.HELPDESK_PROFILE_QUERY_MATCH),
     PROFILE_UPDATE(PwmSetting.UPDATE_PROFILE_QUERY_MATCH),
+    WEBSERVICE(PwmSetting.WEBSERVICES_QUERY_MATCH),
     WEBSERVICE_THIRDPARTY(PwmSetting.WEBSERVICES_THIRDPARTY_QUERY_MATCH),
 
     ;

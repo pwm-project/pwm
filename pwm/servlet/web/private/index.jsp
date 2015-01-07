@@ -1,9 +1,11 @@
+<%@ page import="password.pwm.error.PwmException" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,9 +23,16 @@
   --%>
 
 <!DOCTYPE html>
-<%@ page language="java" session="true" isThreadSafe="true"
-         contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    PwmRequest pwmRequest = null;
+    try {
+        pwmRequest = PwmRequest.forRequest(request, response);
+    } catch (PwmException e) {
+        JspUtility.logError(pageContext, "error during page setup: " + e.getMessage());
+    }
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="../WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
@@ -132,8 +141,7 @@
                     </td>
                 </tr>
             </pwm:if>
-            <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_ENABLE)) { %>
-            <pwm:if test="permission" arg1="HELPDESK">
+            <% if (pwmRequest.getPwmSession().getSessionManager().getHelpdeskProfile(pwmRequest.getPwmApplication()) != null) { %>
                 <tr style="border:0">
                     <td class="menubutton_key">
                         <a class="menubutton" href="<pwm:url url='Helpdesk'/>">
@@ -145,7 +153,6 @@
                         <p><pwm:display key="Long_Title_Helpdesk"/></p>
                     </td>
                 </tr>
-            </pwm:if>
             <% } %>
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.GUEST_ENABLE)) { %>
             <pwm:if test="permission" arg1="GUEST_REGISTRATION">

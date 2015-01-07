@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,13 +148,18 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             final StringBuilder sb = new StringBuilder();
             int counter = 0;
             for (final UserPermission userPermission : values) {
-                sb.append("UserPermission:");
+                sb.append("UserPermission");
                 if (values.size() > 1) {
                     sb.append(counter);
                 }
-                sb.append(" [");
-                sb.append("Type:").append(userPermission.getType());
-                sb.append(" Profile:").append(userPermission.getLdapProfileID());
+                sb.append("-");
+                sb.append(userPermission.getType() == null ? UserPermission.Type.ldapQuery.toString() : userPermission.getType().toString());
+                sb.append(": [");
+                sb.append("Profile:").append(
+                        userPermission.getLdapProfileID() == null
+                                ? "All"
+                                : userPermission.getLdapProfileID()
+                );
                 sb.append(" Base:").append(
                         userPermission.getLdapBase() == null
                                 ? Display.getLocalizedMessage(locale,"Value_NotApplicable",null)

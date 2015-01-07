@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.*;
 import password.pwm.config.function.UserMatchViewerFunction;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.value.*;
 import password.pwm.error.*;
 import password.pwm.health.*;
@@ -81,7 +82,7 @@ public class ConfigGuideServlet extends PwmServlet {
     public static final String PARAM_CONFIG_PASSWORD = "config-password";
     public static final String PARAM_CONFIG_PASSWORD_VERIFY = "config-password-verify";
 
-    private static final String LDAP_PROFILE_KEY = "";
+    private static final String LDAP_PROFILE_KEY = "default";
 
 
     public enum STEP {
@@ -331,15 +332,13 @@ public class ConfigGuideServlet extends PwmServlet {
     private void restLdapHealth(
             final PwmRequest pwmRequest,
             final ConfigGuideBean configGuideBean
-
     )
-            throws IOException
-    {
+            throws IOException, PwmUnrecoverableException {
         final Configuration tempConfiguration = new Configuration(configGuideBean.getStoredConfiguration());
         final PwmApplication tempApplication = new PwmApplication(tempConfiguration, PwmApplication.MODE.NEW, null, false, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> records = new ArrayList<>();
-        final LdapProfile ldapProfile = tempConfiguration.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
+        final LdapProfile ldapProfile = tempConfiguration.getDefaultLdapProfile();
         switch (configGuideBean.getStep()) {
             case LDAP: {
                 records.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, tempConfiguration, ldapProfile, false));
@@ -449,7 +448,13 @@ public class ConfigGuideServlet extends PwmServlet {
                     configGuideBean.getFormData().putAll(defaultForm);
                     configGuideBean.setSelectedTemplate(template);
                     storedConfiguration.setTemplate(template);
-                    storedConfiguration.writeAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE, "true");
+                    {   
+                        final String settingValue = AppProperty.LDAP_PROMISCUOUS_ENABLE.getKey() + "=true";
+                                storedConfiguration.writeSetting(
+                                        PwmSetting.APP_PROPERTY_OVERRIDES,
+                                        new StringArrayValue(Collections.singletonList(settingValue)),
+                                null);
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("unknown template set request: " + e.getMessage());
@@ -598,7 +603,7 @@ public class ConfigGuideServlet extends PwmServlet {
             }
         }
 
-        storedConfiguration.writeAppProperty(AppProperty.LDAP_PROMISCUOUS_ENABLE, null);
+        storedConfiguration.readSetting(PwmSetting.APP_PROPERTY_OVERRIDES);
         writeConfig(contextManager, storedConfiguration);
     }
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -246,9 +246,8 @@ class AuthenticationRequest {
         log(PwmLogLevel.INFO, debugMsg);
         pwmApplication.getAuditManager().submit(pwmApplication.getAuditManager().createUserAuditRecord(
                 AuditEvent.AUTHENTICATE,
-                sessionLabel.getUserIdentity(),
+                this.userIdentity,
                 returnAuthType.toString(),
-                sessionLabel.getUserIdentity(),
                 sessionLabel.getSrcAddress(),
                 sessionLabel.getSrcHostname()
         ));

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ public class AuditManager implements PwmService {
     public AuditManager() {
     }
 
-    public UserAuditRecord createUserAuditRecord(
+    public HelpdeskAuditRecord createHelpdeskAuditRecord(
             final AuditEvent eventCode,
             final UserIdentity perpetrator,
             final String message,
@@ -100,7 +100,30 @@ public class AuditManager implements PwmService {
             }
         }
 
-        return UserAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
+        return HelpdeskAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
+                targetLdapProfile, sourceAddress, sourceHost);
+    }
+
+    public UserAuditRecord createUserAuditRecord(
+            final AuditEvent eventCode,
+            final UserIdentity perpetrator,
+            final String message,
+            final String sourceAddress,
+            final String sourceHost
+    )
+    {
+        String perpUserDN = null, perpUserID = null, perpLdapProfile = null, targetUserDN = null, targetUserID = null, targetLdapProfile = null;
+        if (perpetrator != null) {
+            perpUserDN = perpetrator.getUserDN();
+            perpLdapProfile = perpetrator.getLdapProfileID();
+            try {
+                perpUserID = LdapOperationsHelper.readLdapUsernameValue(pwmApplication,perpetrator);
+            } catch (Exception e) {
+                LOGGER.error("unable to read userID for " + perpetrator + ", error: " + e.getMessage());
+            }
+        }
+
+        return HelpdeskAuditRecord.create(eventCode, perpUserID, perpUserDN, perpLdapProfile, message, targetUserID, targetUserDN,
                 targetLdapProfile, sourceAddress, sourceHost);
     }
 
@@ -137,7 +160,6 @@ public class AuditManager implements PwmService {
                 eventCode,
                 perpetrator,
                 message,
-                perpetrator,
                 sessionLabel != null ? sessionLabel.getSrcAddress() : null,
                 sessionLabel != null ? sessionLabel.getSrcHostname() : null
         );
@@ -153,7 +175,6 @@ public class AuditManager implements PwmService {
                 eventCode,
                 userInfoBean.getUserIdentity(),
                 null,
-                userInfoBean.getUserIdentity(),
                 pwmSession.getSessionStateBean().getSrcAddress(),
                 pwmSession.getSessionStateBean().getSrcHostname()
         );
@@ -449,10 +470,18 @@ public class AuditManager implements PwmService {
             if (loopRecord instanceof UserAuditRecord) {
                 lineOutput.add(((UserAuditRecord)loopRecord).getPerpetratorID());
                 lineOutput.add(((UserAuditRecord)loopRecord).getPerpetratorDN());
-                lineOutput.add(((UserAuditRecord)loopRecord).getTargetID());
-                lineOutput.add(((UserAuditRecord)loopRecord).getTargetDN());
+                lineOutput.add("");
+                lineOutput.add("");
                 lineOutput.add(((UserAuditRecord)loopRecord).getSourceAddress());
                 lineOutput.add(((UserAuditRecord)loopRecord).getSourceHost());
+            }
+            if (loopRecord instanceof HelpdeskAuditRecord) {
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getPerpetratorID());
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getPerpetratorDN());
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getTargetID());
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getTargetDN());
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getSourceAddress());
+                lineOutput.add(((HelpdeskAuditRecord)loopRecord).getSourceHost());
             }
             csvPrinter.printRecords(lineOutput);
         }

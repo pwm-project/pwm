@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 <%@ include file="fragment/header.jsp" %>
 <% final PwmRequest configeditor_pwmRequest = PwmRequest.forRequest(request, response); %>
 <% final ConfigManagerBean configManagerBean = configeditor_pwmRequest.getPwmSession().getConfigManagerBean(); %>
-<% final String configNotes = configManagerBean.getConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
+<% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper" style="border:1px; height: 100%" >
@@ -56,7 +56,7 @@
                     <span class="fa fa-book"></span>
                 </div>
                 <div class="headerIcon" style="float: right" id="macroDoc_icon">
-                    <span class="fa fa-gears"></span>
+                    <span class="fa fa-magic"></span>
                 </div>
             </div>
         </div>
@@ -105,10 +105,10 @@
     <script type="text/javascript">
         PWM_GLOBAL['setting_alwaysFloatMessages'] = true;
         var PWM_VAR = PWM_VAR || {};
-        PWM_VAR['currentTemplate'] = '<%=configManagerBean.getConfiguration().getTemplate()%>';
+        PWM_VAR['currentTemplate'] = '<%=configManagerBean.getStoredConfiguration().getTemplate()%>';
         PWM_VAR['configurationNotes'] = '<%=configNotes==null?"":StringUtil.escapeJS(configNotes)%>';
         PWM_VAR['ldapProfileIds'] = [];
-        <% for (final String id : (List<String>)configManagerBean.getConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject()) { %>
+        <% for (final String id : (List<String>)configManagerBean.getStoredConfiguration().readSetting(PwmSetting.LDAP_PROFILE_LIST).toNativeObject()) { %>
         PWM_VAR['ldapProfileIds'].push('<%=StringUtil.escapeJS(id)%>');
         <% } %>
 

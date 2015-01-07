@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,9 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -317,7 +317,7 @@ public class LDAPStatusChecker implements HealthChecker {
                 final ChaiError chaiError = ChaiErrors.getErrorForMessage(e.getMessage());
                 final PwmError pwmError = PwmError.forChaiError(chaiError);
                 final StringBuilder errorString = new StringBuilder();
-                final String profileName = PwmConstants.PROFILE_ID_DEFAULT.equals(ldapProfile.getIdentifier()) ? "Default" : ldapProfile.getIdentifier();
+                final String profileName = ldapProfile.getIdentifier();
                 errorString.append("error connecting to ldap directory (").append(profileName).append("), error: ").append(e.getMessage());
                 if (chaiError != null && chaiError != ChaiError.UNKNOWN) {
                     errorString.append(" (");
@@ -431,7 +431,7 @@ public class LDAPStatusChecker implements HealthChecker {
         if (configuration.getLdapProfiles().isEmpty() || configuration.getLdapProfiles().size() < 2) {
             return TOPIC;
         }
-        return TOPIC + "-" + (PwmConstants.PROFILE_ID_DEFAULT.equals(profileID) ? "Default" : profileID);
+        return TOPIC + "-" + profileID;
     }
 
     private List<HealthRecord> checkVendorSameness(final PwmApplication pwmApplication) {
@@ -546,7 +546,8 @@ public class LDAPStatusChecker implements HealthChecker {
         final PwmApplication tempApplication = new PwmApplication(config, PwmApplication.MODE.NEW, null, false, null);
         final LDAPStatusChecker ldapStatusChecker = new LDAPStatusChecker();
         final List<HealthRecord> profileRecords = new ArrayList<>();
-        final LdapProfile ldapProfile = config.getLdapProfiles().get(profileID == null || profileID.isEmpty() ? PwmConstants.PROFILE_ID_DEFAULT : profileID);
+
+        final LdapProfile ldapProfile = config.getLdapProfiles().get(profileID);
         profileRecords.addAll(ldapStatusChecker.checkBasicLdapConnectivity(tempApplication, config, ldapProfile,
                 testContextless));
         if (fullTest) {

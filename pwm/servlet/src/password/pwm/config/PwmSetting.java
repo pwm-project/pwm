@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,8 @@ public enum PwmSetting {
             "pwmDb.location", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
     HTTP_PROXY_URL(
             "http.proxy.url", PwmSettingSyntax.STRING, PwmSettingCategory.GENERAL),
+    APP_PROPERTY_OVERRIDES(
+            "pwm.appProperty.overrides", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.GENERAL),
 
     // user interface
     INTERFACE_THEME(
@@ -586,12 +588,8 @@ public enum PwmSetting {
             "challenge.showConfirmation", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
     CHALLENGE_CASE_INSENSITIVE(
             "challenge.caseInsensitive", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
-    CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE(
-            "challenge.maxChallengeLengthInResponse", PwmSettingSyntax.NUMERIC, PwmSettingCategory.CHALLENGE),
     CHALLENGE_ALLOW_DUPLICATE_RESPONSES(
             "challenge.allowDuplicateResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
-    CHALLENGE_APPLY_WORDLIST(
-            "challenge.applyWorldlist", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.CHALLENGE),
     QUERY_MATCH_SETUP_RESPONSE(
             "challenge.allowSetup.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.CHALLENGE),
     QUERY_MATCH_CHECK_RESPONSES(
@@ -837,60 +835,61 @@ public enum PwmSetting {
     ORACLE_DS_ALLOW_AUTH_REQUIRE_NEW_PWD(
             "ldap.oracleDS.allowAuth.requireNewPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.ORACLE_DS, Template.ORACLE_DS),
 
-    // helpdesk
-    HELPDESK_ENABLE(
-            "helpdesk.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_SEARCH_FILTER(
-            "helpdesk.filter", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK),
-    HELPDESK_SEARCH_FORM(
-            "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK),
-    HELPDESK_DETAIL_FORM(
-            "helpdesk.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK),
-    HELPDESK_SEARCH_BASE(
-            "helpdesk.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK),
-    HELPDESK_RESULT_LIMIT(
-            "helpdesk.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.HELPDESK),
-    HELPDESK_SET_PASSWORD_MODE(
-            "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK),
-    HELPDESK_SEND_PASSWORD(
-            "helpdesk.sendPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
-            "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK),
-    HELPDESK_ACTIONS(
-            "helpdesk.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK),
-    HELPDESK_ENABLE_UNLOCK(
-            "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_ENFORCE_PASSWORD_POLICY(
-            "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_VIEW_STATUS_VALUES(
-            "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HELPDESK),
-    HELPDESK_IDLE_TIMEOUT_SECONDS(
-            "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK),
-    HELPDESK_CLEAR_RESPONSES(
-            "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK),
-    HELPDESK_CLEAR_RESPONSES_BUTTON(
-            "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_CLEAR_OTP_BUTTON(
-            "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_DELETE_USER_BUTTON(
-            "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_USE_PROXY(
-            "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-    HELPDESK_DETAIL_DISPLAY_NAME(
-            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK),
-    HELPDESK_TOKEN_SEND_METHOD(
-            "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK),
-    HELPDESK_ENABLE_OTP_VERIFY(
-            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK),
-
 
     // helpdesk profile
     HELPDESK_PROFILE_LIST(
-            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.HELPDESK),
+            "helpdesk.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.GENERAL),
     HELPDESK_PROFILE_QUERY_MATCH(
-            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK),
+            "helpdesk.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SEARCH_FORM(
+            "helpdesk.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SEARCH_FILTERS(
+            "helpdesk.search.filters", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SEARCH_FILTER(
+            "helpdesk.filter", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SEARCH_BASE(
+            "helpdesk.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_DETAIL_FORM(
+            "helpdesk.detail.form", PwmSettingSyntax.FORM, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_VIEW_STATUS_VALUES(
+            "helpdesk.viewStatusValues", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_RESULT_LIMIT(
+            "helpdesk.result.limit", PwmSettingSyntax.NUMERIC, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SET_PASSWORD_MODE(
+            "helpdesk.setPassword.mode", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_SEND_PASSWORD(
+            "helpdesk.sendPassword", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_POST_SET_PASSWORD_WRITE_ATTRIBUTES(
+            "helpdesk.setPassword.writeAttributes", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_ACTIONS(
+            "helpdesk.actions", PwmSettingSyntax.ACTION, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_IDLE_TIMEOUT_SECONDS(
+            "helpdesk.idleTimeout", PwmSettingSyntax.DURATION, PwmSettingCategory.HELPDESK_PROFILE),
 
 
+    HELPDESK_ENABLE_UNLOCK(
+            "helpdesk.enableUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_ENFORCE_PASSWORD_POLICY(
+            "helpdesk.enforcePasswordPolicy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_CLEAR_RESPONSES(
+            "helpdesk.clearResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_CLEAR_RESPONSES_BUTTON(
+            "helpdesk.clearResponses.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_CLEAR_OTP_BUTTON(
+            "helpdesk.clearOtp.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_DELETE_USER_BUTTON(
+            "helpdesk.deleteUser.button", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_USE_PROXY(
+            "helpdesk.useProxy", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_DETAIL_DISPLAY_NAME(
+            "helpdesk.displayName", PwmSettingSyntax.STRING, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_TOKEN_SEND_METHOD(
+            "helpdesk.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.HELPDESK_PROFILE),
+    HELPDESK_ENABLE_OTP_VERIFY(
+            "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
+
+    
+    
     // Database
     DATABASE_CLASS(
             "db.classname", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
@@ -924,6 +923,8 @@ public enum PwmSetting {
             "reporting.ldap.maxQuerySize", PwmSettingSyntax.NUMERIC, PwmSettingCategory.REPORTING),
     REPORTING_JOB_TIME_OFFSET(
             "reporting.job.timeOffset", PwmSettingSyntax.DURATION, PwmSettingCategory.REPORTING),
+    REPORTING_SUMMARY_DAY_VALUES(
+            "reporting.summary.dayValues", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REPORTING),
 
     // OAuth
     OAUTH_ID_LOGIN_URL(
@@ -955,21 +956,26 @@ public enum PwmSetting {
             "webservices.enableReadAnswers", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
     PUBLIC_HEALTH_STATS_WEBSERVICES(
             "webservices.healthStats.makePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.REST_SERVER),
+    WEBSERVICES_QUERY_MATCH(
+            "webservices.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
     WEBSERVICES_THIRDPARTY_QUERY_MATCH(
             "webservices.thirdParty.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.REST_SERVER),
+    WEBSERVICES_EXTERNAL_SECRET(
+            "webservices.external.secret", PwmSettingSyntax.PASSWORD, PwmSettingCategory.REST_SERVER),
+
 
     EXTERNAL_MACROS_DEST_TOKEN_URLS(
             "external.destToken.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
-    EXTERNAL_MACROS_REST_URLS(
-            "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
     EXTERNAL_PWCHECK_REST_URLS(
             "external.pwcheck.urls", PwmSettingSyntax.STRING, PwmSettingCategory.REST_CLIENT),
+    EXTERNAL_MACROS_REST_URLS(
+            "external.macros.urls", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
-
-
-
+    
+    
+    
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),;
@@ -1212,20 +1218,24 @@ public enum PwmSetting {
     }
 
     public String toMenuLocationDebug(
-            final Profile profile,
+            final String profileID,
             final Locale locale
     ) {
+        final String SEPARATOR = " -> ";
         final StringBuilder sb = new StringBuilder();
-        sb.append(this.getLabel(locale));
-        if (profile != null) {
-            sb.append(" (").append(profile.getDisplayName(locale)).append(")");
-        }
 
         PwmSettingCategory nextCategory = this.getCategory();
         while (nextCategory != null) {
-            sb.insert(0, nextCategory.getLabel(locale) + " -> ");
+            sb.insert(0, nextCategory.getLabel(locale) + SEPARATOR);
             nextCategory = nextCategory.getParent();
         }
+
+        if (profileID != null) {
+            sb.append(profileID);
+            sb.append(SEPARATOR);
+        }
+
+        sb.append(this.getLabel(locale));
 
         return sb.toString();
     }

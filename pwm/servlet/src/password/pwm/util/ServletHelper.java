@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -446,7 +446,7 @@ public class ServletHelper {
         {
             final List<String> requiredHeaders = pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.REQUIRED_HEADERS);
             if (requiredHeaders != null && !requiredHeaders.isEmpty()) {
-                final Map<String, String> configuredValues  = Configuration.convertStringListToNameValuePair(requiredHeaders, "=");
+                final Map<String, String> configuredValues  = StringUtil.convertStringListToNameValuePair(requiredHeaders, "=");
                 for (final String key : configuredValues.keySet()) {
                     if (key != null && key.length() > 0) {
                         final String requiredValue = configuredValues.get(key);

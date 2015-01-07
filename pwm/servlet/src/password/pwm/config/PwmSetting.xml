@@ -4,7 +4,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -98,6 +98,11 @@
             <value>false</value>
         </default>
     </setting>
+    <setting key="pwm.appProperty.overrides" level="1">
+        <label>App Property Overides</label>
+        <description><![CDATA[Override application properties.  Do not use unless directed to by a support expert.]]></description>
+        <default/>
+    </setting>
     <setting key="knownLocales" level="1">
         <label>Locales (Languages) and Flags</label>
         <description><![CDATA[List of locales available.  The code is in two parts separated by two colons.  The first part is the browser locale code, the second field is the iso country code used for the flag value.]]></description>
@@ -134,14 +139,6 @@
             <value>604800</value>
         </default>
     </setting>
-
-
-
-    LOCALE_COOKIE_MAX_AGE(
-    "", PwmSettingSyntax.DURATION, PwmSettingCategory.GENERAL),
-
-
-
     <setting key="interface.theme" level="0" required="true">
         <label>Interface Theme</label>
         <description><![CDATA[Change the look and feel by selecting a theme.  The included themes are provided to mainly to inspiration to those wishing to make customizations.  If <b>Embedded</b> is selected, the settings <i>User Interface -> Embedded CSS Stylesheet</i> and <i>User Interface -> Embedded Mobile CSS Stylesheet</i> will be used to manage the custom CSS tags.  If <b>Custom</b> is selected, the settings <i>User Interface -> Custom CSS Location</i> and <i>Custom Mobile CSS Location</i>.]]></description>
@@ -258,6 +255,7 @@
             <value>UserSMS</value>
         </default>
         <options>
+            <option value="AccountExpirationTime">Account Expiration Time</option>
             <option value="GUID">GUID</option>
             <option value="ForwardURL">Forward URL</option>
             <option value="LogoutURL">Logout URL</option>
@@ -464,11 +462,13 @@
         <description><![CDATA[Actions to take when after a user change password event occurs.  These actions will be invoked just after writing the password.  Macros can be used within the action and will be expanded based on the logged in user.]]></description>
         <default />
     </setting>
-    <setting key="ldap.profile.list" level="0" hidden="true">
+    <setting key="ldap.profile.list" level="0" hidden="true" required="true">
         <label>LDAP Directory Profiles</label>
-        <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>Authentication will search the Default profile first, then any other profiles in the order shown here.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
-        <default/>
+        <description><![CDATA[List of LDAP profiles.  Each ldap profile should define a unique LDAP data environment.  Depending on the directory type and configuration, this could mean a unique domain, forest, tree or possibly server.  Each profile can have multiple redundant servers defined, however those servers should share the same data.<br/><br/>Be careful when renaming or removing values in this list, if a profile name is removed or renamed the associated settings will be removed as well.<br/><br/>During authentication, each profile will be searched in the order listed here.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
     </setting>
     <setting key="ldap.serverUrls" level="0" required="true">
         <label>LDAP URLs</label>
@@ -591,7 +591,7 @@
     </setting>
     <setting key="ldap.guidAttribute" level="0" required="true">
         <label>LDAP GUID Attribute</label>
-        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto Add GUID Value" option to true.]]></description>
+        <description><![CDATA[This attribute is used to identity and reference unique users in the LDAP directory.  If set to the default value of <i>VENDORGUID</i>, the system will attempt to read the vendor specific ldap GUID.  Alternatively, you can set any string readable attribute as the GUID as long as the directory can be trusted to enforce the uniqueness.  Lastly, you can use a custom attribute, and configure the "Auto Add GUID Value" option to true.  The application defined schema includes the attribute <code>pwmGUID</code> for this usage.]]></description>
         <regex>^[a-zA-Z][a-zA-Z0-9-]*$</regex>
         <default>
             <value><![CDATA[VENDORGUID]]></value>
@@ -876,7 +876,7 @@
     <setting key="sms.gatewayURL" level="0">
         <label>SMS Gateway</label>
         <description><![CDATA[URL for the SMS gateway]]></description>
-        <regex>^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
+        <regex>^$|^https?://[A-Za-z0-9_\.-]{3,}(\:[0-9]{1,5})?(/.*)?</regex>
         <placeholder>https://sms.example.com/service</placeholder>
         <default>
             <value/>
@@ -1078,8 +1078,10 @@
     <setting key="password.profile.list" level="0" hidden="true">
         <label>Password Policy Profiles</label>
         <description><![CDATA[List of Password Policy Profiles.  When multiple password policy profiles are configured, all profiles except for the default are evaluated in order to check if the <i>Password Policy Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
-        <default/>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
     </setting>
     <setting key="password.policy.queryMatch">
         <label>Password Policy Profile Match</label>
@@ -2221,23 +2223,9 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="challenge.maxChallengeLengthInResponse" level="1" required="true">
-        <label>Maximum Characters of Challenge Allowed In Response</label>
-        <description><![CDATA[If greater than zero, then no more of this amount of characters (of a whitespace separated word) will be permitted to appear in the corresponding response.  This prevents a user's response to be the same as the challenge.]]></description>
-        <default>
-            <value>3</value>
-        </default>
-    </setting>
     <setting key="challenge.allowDuplicateResponses" level="1" required="true">
         <label>Allow Duplicate Responses</label>
         <description><![CDATA[Control if each response is required to be unique]]></description>
-        <default>
-            <value>false</value>
-        </default>
-    </setting>
-    <setting key="challenge.applyWorldlist" level="0" required="true">
-        <label>Apply Wordlist</label>
-        <description><![CDATA[Prevent commonly used words from being used as responses.  If true, and a wordlist is configured, then users will not be able to use response values that are in the wordlist.  Administrators are strongly encouraged to leave this setting to true to make passwords a meaningful security method.]]></description>
         <default>
             <value>false</value>
         </default>
@@ -2287,8 +2275,10 @@
     <setting key="challenge.profile.list" level="0" hidden="true">
         <label>Challenge Profile</label>
         <description><![CDATA[List of Challenge Profiles.  When multiple challenge policies are configured, all profiles except for the default are evaluated in order to check if the <i>Challenge Profile Query Match</i> during user authentication matches the user.  If no profiles match, then the Default profile will be used.<p>Profile names have the following requirements:</p><ul><li>Start with a letter (a-Z)</li><li>Contain only letters, numbers and hyphens</li><li>Length between 2 and 15 characters</li></ul>]]></description>
-        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
-        <default/>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <default>
+            <value>default</value>
+        </default>
     </setting>
     <setting key="challenge.policy.queryMatch">
         <label>Challenge Profile Match</label>
@@ -2351,7 +2341,7 @@
     </setting>
     <setting key="recovery.response.writePreference" level="0" required="true">
         <label>Response Write Location</label>
-        <description><![CDATA[<p>Location to write the responses to.  All storage methods will be written to when the user configures their response answers.</p><p><b>WARNING: </b>The LocalDB should never be used to store responses in a production system as there are no methods to make the LocalDB storage redundant, nor are optimal backup methods available for the LocalDB.</p]]></description>
+        <description><![CDATA[<p>Location to write the responses to.  All storage methods will be written to when the user configures their response answers.</p><p><b>WARNING: </b>The LocalDB should never be used to store responses in a production system as there are no methods to make the LocalDB storage redundant, nor are optimal backup methods available for the LocalDB.</p>]]></description>
         <default>
             <value><![CDATA[LDAP]]></value>
         </default>
@@ -2599,9 +2589,9 @@
             <value>false</value>
         </default>
     </setting>
-    <setting key="newUser.passwordPolicy.user" level="0">
+    <setting key="newUser.passwordPolicy.user" required="true">
         <label>New User Password Policy Template</label>
-        <description><![CDATA[User to use as template for password policy.  The user specified here will be used as a 'template' for the new user password policy.  If the value is <i>TESTUSER</i>, the configured test user's password policy will be used. If the value is blank, then the configured local password policy will be used.]]></description>
+        <description><![CDATA[User to use as template for password policy.  The user specified here will be used as a 'template' for the new user password policy.  If the value is <i>TESTUSER</i>, the configured test user's password policy will be used.]]></description>
         <default>
             <value><![CDATA[TESTUSER]]></value>
         </default>
@@ -3059,7 +3049,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="ldap.edirectory.ws.pwdMgtURL" level="0" hidden="false">
+    <setting key="ldap.edirectory.ws.pwdMgtURL" level="0" hidden="true">
         <label>UserApp Password SOAP Service URL</label>
         <description><![CDATA[If supplied, this setting will change the behavior of the forgotten password function. Instead of using the normal mechanism to read the responses stored in ldap, the NetIQ UserApp forgotten password web service will be used to discover the user's stored questions and test the user's responses.  If the forgotten password web service indicates success, then the user will be forwared to the change password screen which operates through LDAP.  The web services's "processChgPwd" method will not be used and instead the user's new password will be set via ldap.<br/><br/><i>Example:</i> https://10.1.1.1:8443/IDM/pwdmgt/service<br/><br/><b>Note:</b> A secure (https) URL should be used for security reasons.  You may need to import the HTTPS certificate into the java keystore.<br/><b>Note:</b> The UserApp Password SOAP service only exists in NetIQ UserApp v3.7 or greater.]]></description>
         <default>
@@ -3255,6 +3245,8 @@
         </default>
         <options>
             <option value="AccountEnabled">Account Enabled</option>
+            <option value="AccountExpired">Account Expired</option>
+            <option value="AccountExpirationTime">Account Expiration Time</option>
             <option value="GUID">GUID</option>
             <option value="IntruderDetect">Intruder Detect</option>
             <option value="LastLoginTime">Last Login Time</option>
@@ -3332,28 +3324,37 @@
     </setting>
     <setting key="helpdesk.profile.list" level="0" hidden="true">
         <label>Helpdesk Profile</label>
-        <description><![CDATA[Helpdesk Profile List]]></description>
-        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <description><![CDATA[List of LDAP Helpdesk profiles.  In most cases, only a single profile is needed.  Only define multiple profiles if different helpdesk users will need different features/permissions.  Each helpdesk profile has a <i>Helpdesk Profile Match</p> setting used to define to whom the profile applies.  If multiple profiles could apply for a user, the first profile in the list defined here will be assigned.]]></description>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default/>
     </setting>
-
     <setting key="helpdesk.queryMatch" level="0" required="true">
         <label>Helpdesk Profile Match</label>
-        <description><![CDATA[Helpdesk Profile Match.]]></description>
+        <description><![CDATA[This setting is used to define the set of users for which this policy applies.  ]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,ou=Groups,o=example"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=Helpdesk,cn=Users,DC=site,DC=example,DC=net"}]]></value>
         </default>
+    </setting>
+    <setting key="helpdesk.search.filters" level="0"  hidden="true">
+        <label>Helpdesk Profile Search Filter</label>
+        <description><![CDATA[.]]></description>
+        <default syntaxVersion="2">
+        </default>
+        <options>
+            <option value="hideGroups">true</option>
+            <option value="hideMatch">true</option>
+        </options>
     </setting>
     <setting key="recovery.profile.list" level="0" hidden="true">
         <label>Forgotten Password Profile</label>
         <description><![CDATA[Forgotten Password Profile List]]></description>
-        <regex>^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
+        <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
         <default/>
     </setting>
     <setting key="recovery.queryMatch" level="0" required="true">
@@ -3516,7 +3517,7 @@
     </setting>
     <setting key="reporting.reportRestTimeMS" level="0">
         <label>Engine User Search Rest Time</label>
-        <description><![CDATA[Milliseconds.  Time between each user read interval.  Having this rest interval will prevent slow performing systems from being overloaded when the report engine runs.  If the default of value of <i>-1</i> is used, the system will compute a value that will result in roughly a 50% slowdown in speed.]]></description>
+        <description><![CDATA[Milliseconds.  Time between each user read interval.  Having this rest interval will prevent slow performing systems from being overloaded when the report engine runs.  If the default of value of <i>-1</i> is used, the system will compute a value that will result in roughly a 50% slowdown in speed.  A value of zero will result in the report process running as quickly as possible but user performance may suffer.]]></description>
         <default>
             <value>-1</value>
         </default>
@@ -3534,6 +3535,22 @@
         <default>
             <value>0</value>
         </default>
+    </setting>
+    <setting key="reporting.summary.dayValues" level="1">
+        <label>Reporting Summary Day Intervals</label>
+        <description><![CDATA[Day intervals to include in report summary data]]></description>
+        <default>
+            <value>-90</value>
+            <value>-60</value>
+            <value>-30</value>
+            <value>-14</value>
+            <value>-7</value>
+            <value>-3</value>
+            <value>30</value>
+            <value>60</value>
+            <value>90</value>
+        </default>
+        <regex>^-?[0-9]{1,2}$</regex>
     </setting>
     <setting key="http.proxy.url" level="0">
         <label>HTTP Proxy</label>
@@ -3572,7 +3589,7 @@
         </default>
     </setting>
     <setting key="webservices.enableReadAnswers" level="0">
-        <label>Allow Web Services Read Answers</label>
+        <label>Allow Web Services to Read Answers</label>
         <description><![CDATA[Allow web services to be used to read stored challenge/response answers of users.  The read responses will be available in whatever hashing method format is being used.]]></description>
         <default>
             <value>false</value>
@@ -3585,17 +3602,37 @@
             <value>false</value>
         </default>
     </setting>
-    <setting key="webservices.thirdParty.queryMatch" level="0">
-        <label>Web Services Third Party Query String</label>
-        <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
+    <setting key="webservices.external.secret" level="0">
+        <label>External Web Service Secret Key</label>
+        <description><![CDATA[If specified, external web service clients will be required to provide this value when invoking web services.  ]]></description>
+        <default>
+            <value/>
+        </default>
+    </setting>
+    <setting key="webservices.queryMatch" level="0">
+        <label>External Web Services Permissions</label>
+        <description><![CDATA[Users permitted to execute REST web services.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=RestUsers,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,ou=Groups,o=example)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=RestUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=WebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+    </setting>
+    <setting key="webservices.thirdParty.queryMatch" level="0">
+        <label>Web Services Third Party Permissions</label>
+        <description><![CDATA[Users permitted to execute REST web services and specify a third party via the 'username' parameter.]]></description>
+        <default syntaxVersion="2">
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,ou=Groups,o=example)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="AD">
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+        </default>
+        <default syntaxVersion="2" template="ORACLE_DS">
+            <value><![CDATA[{"type":"ldapGroup","ldapProfileID":"all","ldapBase":"cn=ThirdPartyWebServiceUsers,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
         </default>
     </setting>
     <setting key="external.macros.urls" level="1">
@@ -3919,7 +3956,7 @@
         <description><![CDATA[]]></description>
     </category>
     <category key="PASSWORD_POLICY">
-        <label>Password Policy Profiles</label>
+        <label>Password Policies</label>
         <description><![CDATA[Settings that define the LDAP directories that are used by the application.  If the user identities are in multiple LDAP directories, configure each directory as an LDAP Directory Profile.  Within each LDAP directory profile definition you can control the individual servers and other settings for each LDAP directory.]]></description>
         <profile setting="password.profile.list"/>
     </category>
@@ -3932,7 +3969,7 @@
         <description><![CDATA[Settings that control challenge/response features.  These global settings apply regardless of the challenge policy.  For profile-specific challenge settings, see Profiles --> Challenge Profiles.]]></description>
     </category>
     <category key="CHALLENGE_POLICY">
-        <label>Challenge Profiles</label>
+        <label>Challenge Policies</label>
         <description><![CDATA[Define the challenge policy users will use for populating response answers.]]></description>
         <profile setting="challenge.profile.list"/>
     </category>
@@ -4101,13 +4138,9 @@
         <label>People Search</label>
         <description>The people search module provides basic white pages or directory lookup functionality to your users.  Customizations alow easy searching and display quick detailed information about your user's colleagues.</description>
     </category>
-    <category key="HELPDESK">
-        <label>Helpdesk</label>
-        <description><![CDATA[Configurations for administrative helpdesk.]]></description>
-    </category>
     <category key="HELPDESK_PROFILE">
         <label>Helpdesk Profile</label>
-        <description><![CDATA[Profile for administrative helpdesk.]]></description>
+        <description><![CDATA[Profile for helpdesk activities..]]></description>
         <profile setting="helpdesk.profile.list"/>
     </category>
     <template key="NOVL">

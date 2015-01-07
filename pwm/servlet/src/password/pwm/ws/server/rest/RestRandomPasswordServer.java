@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -218,7 +219,8 @@ public class RestRandomPasswordServer extends AbstractRestServer {
         if (!jsonInput.noUser && restRequestBean.getPwmSession().getSessionStateBean().isAuthenticated()) {
             final UserIdentity userIdentity = UserIdentity.fromKey(jsonInput.username,restRequestBean.getPwmApplication().getConfig());
             if (userIdentity != null) {
-                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+                final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
+                final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
 
                 final ChaiUser theUser = useProxy
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())

@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.DataStorageMethod" %>
+<%@ page import="password.pwm.config.profile.LdapProfile" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.health.HealthRecord" %>
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -65,8 +65,8 @@
 <div id="centerbody">
 <%@ include file="admin-nav.jsp" %>
 <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-<div data-dojo-type="dijit.layout.ContentPane" title="Status">
-    <table>
+<div data-dojo-type="dijit.layout.ContentPane" title="Status" class="tabContent">
+    <table class="nomargin">
         <tr>
             <td class="key">
                 <pwm:display key="Title_Sessions" bundle="Admin"/>
@@ -83,7 +83,7 @@
             </td>
         </tr>
     </table>
-    <table class="tablemain">
+    <table class="nomargin">
         <tr>
             <td>
             </td>
@@ -118,8 +118,8 @@
     </table>
     <br/>
     <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
-        <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute">
-            <table class="tablemain">
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Minute" class="tabContent">
+            <table class="nomargin">
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
@@ -131,8 +131,8 @@
                 </tr>
             </table>
         </div>
-        <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour">
-            <table class="tablemain">
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Hour" class="tabContent">
+            <table class="nomargin">
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
@@ -144,8 +144,8 @@
                 </tr>
             </table>
         </div>
-        <div data-dojo-type="dijit.layout.ContentPane" title="Last Day">
-            <table class="tablemain">
+        <div data-dojo-type="dijit.layout.ContentPane" title="Last Day" class="tabContent">
+            <table class="nomargin">
                 <tr>
                     <td colspan="10" style="margin:0; padding:0">
                         <div style="max-width: 600px; text-align: center">
@@ -160,7 +160,7 @@
         <div class="noticebar">Events rates are per minute.  <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/></div>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Health">
+<div data-dojo-type="dijit.layout.ContentPane" title="Health" class="tabContent">
     <div id="healthBody">
         <div class="WaitDialogBlank"></div>
     </div>
@@ -170,9 +170,9 @@
         <a href="<pwm:context/>/public/health.jsp"><pwm:context/>/public/health.jsp</a>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>">
+<div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_About" bundle="Admin"/>" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
-        <table>
+        <table class="nomargin">
             <tr>
                 <td class="key">
                     <%=PwmConstants.PWM_APP_NAME%> Version
@@ -263,7 +263,7 @@
                     <%= lastError == null ? Display.getLocalizedMessage(dashboard_pwmSession.getSessionStateBean().getLocale(), "Value_NotApplicable", dashboard_pwmApplication.getConfig()) : dateFormat.format(lastError) %>
                         </span>
                     <% } else { %>
-                    <table>
+                    <table class="nomargin">
                         <% for (LdapProfile ldapProfile : ldapProfiles) { %>
                         <tr>
                             <td><%=ldapProfile.getDisplayName(dashboard_pwmSession.getSessionStateBean().getLocale())%></td>
@@ -313,8 +313,8 @@
         </table>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Services">
-    <table>
+<div data-dojo-type="dijit.layout.ContentPane" title="Services" class="tabContent">
+    <table class="nomargin">
         <tr>
             <th style="font-weight:bold;">
                 Service
@@ -361,9 +361,9 @@
         <% } %>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="LocalDB">
+<div data-dojo-type="dijit.layout.ContentPane" title="LocalDB" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
-        <table class="tablemain">
+        <table class="nomargin">
             <tr>
                 <td class="key">
                     Wordlist Dictionary Size
@@ -517,9 +517,9 @@
         </table>
     </div>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes">
+<div data-dojo-type="dijit.layout.ContentPane" title="LocalDB Sizes" class="tabContent">
     <% if (dashboard_pwmApplication.getLocalDB() != null && dashboard_pwmRequest.readParameterAsBoolean("showLocalDBCounts")) { %>
-    <table class="tablemain">
+    <table class="nomargin">
         <tr>
             <td class="key">
                 Name
@@ -545,8 +545,8 @@
     </div>
     <% } %>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Java">
-    <table>
+<div data-dojo-type="dijit.layout.ContentPane" title="Java" class="tabContent">
+    <table class="nomargin">
         <tr>
             <td class="key">
                 Java Vendor
@@ -636,7 +636,7 @@
             </td>
         </tr>
     </table>
-    <table>
+    <table class="nomargin">
         <tr>
             <td class="key">
                 ResourceFileServlet Cache
@@ -673,9 +673,9 @@
         </tr>
     </table>
 </div>
-<div data-dojo-type="dijit.layout.ContentPane" title="Threads">
+<div data-dojo-type="dijit.layout.ContentPane" title="Threads" class="tabContent">
     <div style="max-height: 400px; overflow: auto;">
-        <table class="tablemain">
+        <table class="nomargin">
             <tr>
                 <td style="font-weight:bold;">
                     Id
@@ -753,7 +753,9 @@
                     PWM_ADMIN.showAppHealth('healthBody', {showRefresh:true,showTimestamp:true});
 
                     PWM_MAIN.addEventHandler('button-showLocalDBCounts','click',function(){
-                        PWM_MAIN.goto('dashboard.jsp?showLocalDBCounts=true')
+                        PWM_MAIN.showWaitDialog({loadFunction:function(){
+                            PWM_MAIN.goto('dashboard.jsp?showLocalDBCounts=true');
+                        }})
                     });
                 });
             });

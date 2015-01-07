@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -204,12 +204,8 @@ public class CommandServlet extends PwmServlet {
 
         final PwmApplication.MODE configMode = pwmRequest.getPwmApplication().getApplicationMode();
         if (configMode != PwmApplication.MODE.CONFIGURATION) {
-            try {
-                if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
-                }
-            } catch (ChaiUnavailableException e) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"error while checking permission for log activity"));
+            if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
             }
         }
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGVIEW);

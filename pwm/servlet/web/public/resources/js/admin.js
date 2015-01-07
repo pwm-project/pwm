@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,12 +102,13 @@ PWM_ADMIN.initAdminOtherMenu=function() {
         });
 };
 
-PWM_ADMIN.initReportDataGrid=function() {
-    var headers = {
+PWM_ADMIN.reportDataHeaders = function() {
+    return {
         "username":PWM_ADMIN.showString("Field_Report_Username"),
         "userDN":PWM_ADMIN.showString("Field_Report_UserDN"),
         "ldapProfile":PWM_ADMIN.showString("Field_Report_LDAP_Profile"),
         "userGUID":PWM_ADMIN.showString("Field_Report_UserGuid"),
+        "accountExpirationTime":PWM_ADMIN.showString("Field_Report_AccountExpireTime"),
         "passwordExpirationTime":PWM_ADMIN.showString("Field_Report_PwdExpireTime"),
         "passwordChangeTime":PWM_ADMIN.showString("Field_Report_PwdChangeTime"),
         "responseSetTime":PWM_ADMIN.showString("Field_Report_ResponseSaveTime"),
@@ -121,19 +122,21 @@ PWM_ADMIN.initReportDataGrid=function() {
         "requiresProfileUpdate":PWM_ADMIN.showString("Field_Report_RequiresProfileUpdate"),
         "cacheTimestamp":PWM_ADMIN.showString("Field_Report_RecordCacheTime")
     };
+};
 
-    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
-        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+PWM_ADMIN.initReportDataGrid=function() {
+    var headers = PWM_ADMIN.reportDataHeaders();
+
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
             var columnHeaders = headers;
 
             // Create a new constructor by mixing in the components
-            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
 
             // Now, create an instance of our custom grid
-            var grid = new CustomGrid({
-                columns: columnHeaders
-            }, "grid");
-            PWM_VAR['reportGrid'] = grid;
+            PWM_VAR['reportGrid'] = new CustomGrid({columns: columnHeaders}, "grid");
+
             // unclick superfluous fields
             PWM_MAIN.getObject('grid-hider-menu-check-cacheTimestamp').click();
             PWM_MAIN.getObject('grid-hider-menu-check-ldapProfile').click();
@@ -143,6 +146,10 @@ PWM_ADMIN.initReportDataGrid=function() {
             PWM_MAIN.getObject('grid-hider-menu-check-userDN').click();
             PWM_MAIN.getObject('grid-hider-menu-check-hasHelpdeskResponses').click();
             PWM_ADMIN.refreshReportDataGrid();
+
+            PWM_VAR['reportGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.reportDataHeaders(), PWM_VAR['reportGrid']);
+            });
         });
 };
 
@@ -176,11 +183,11 @@ PWM_ADMIN.refreshReportDataStatus=function(refreshTime) {
                 }
                 PWM_MAIN.getObject('statusTable').innerHTML = htmlTable;
                 for (var field in fields) {(function(field){
-                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field))
+                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject("report_status_" + field));
                     console.log('called + ' + field);
                 }(field)); }
             }
-            if (data['data']['raw']['inprogress']) {
+            if (data['data']['raw']['inProgress']) {
                 PWM_MAIN.getObject("reportStartButton").disabled = true;
                 PWM_MAIN.getObject("reportStopButton").disabled = false;
                 PWM_MAIN.getObject("reportClearButton").disabled = true;
@@ -251,9 +258,10 @@ PWM_ADMIN.reportAction=function(action) {
     }});
 };
 
-PWM_ADMIN.initActiveSessionGrid=function() {
-    var headers = {
+PWM_ADMIN.webSessionHeaders = function() {
+    return {
         "userID":PWM_ADMIN.showString('Field_Session_UserID'),
+        "ldapProfile":PWM_ADMIN.showString('Field_Session_LdapProfile'),
         "userDN":PWM_ADMIN.showString('Field_Session_UserDN'),
         "createTime":PWM_ADMIN.showString('Field_Session_CreateTime'),
         "lastTime":PWM_ADMIN.showString('Field_Session_LastTime'),
@@ -265,13 +273,17 @@ PWM_ADMIN.initActiveSessionGrid=function() {
         "lastUrl":PWM_ADMIN.showString('Field_Session_LastURL'),
         "intruderAttempts":PWM_ADMIN.showString('Field_Session_IntruderAttempts')
     };
+};
 
-    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
-        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+PWM_ADMIN.initActiveSessionGrid=function() {
+    var headers = PWM_ADMIN.webSessionHeaders();
+
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
             var columnHeaders = headers;
 
             // Create a new constructor by mixing in the components
-            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
 
             // Now, create an instance of our custom grid
             PWM_VAR['activeSessionsGrid'] = new CustomGrid({
@@ -287,13 +299,18 @@ PWM_ADMIN.initActiveSessionGrid=function() {
             PWM_MAIN.getObject('activeSessionGrid-hider-menu-check-intruderAttempts').click();
 
             PWM_ADMIN.refreshActiveSessionGrid();
+
+            PWM_VAR['activeSessionsGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.webSessionHeaders(), PWM_VAR['activeSessionsGrid']);
+            });
         });
-}
+};
 
 PWM_ADMIN.refreshActiveSessionGrid=function() {
     require(["dojo"],function(dojo){
         var grid = PWM_VAR['activeSessionsGrid'];
         grid.refresh();
+
         var maximum = PWM_MAIN.getObject('maxActiveSessionResults').value;
         var url = PWM_GLOBAL['url-restservice'] + "/app-data/session?maximum=" + maximum;
         var loadFunction = function(data) {
@@ -304,29 +321,43 @@ PWM_ADMIN.refreshActiveSessionGrid=function() {
     });
 };
 
-
-PWM_ADMIN.initIntrudersGrid=function() {
-    PWM_VAR['intruderRecordTypes'] = ["ADDRESS","USERNAME","USER_ID","ATTRIBUTE","TOKEN_DEST"];
-    var intruderGridHeaders = {
+PWM_ADMIN.intruderHeaders = function(){
+    return {
         "subject":PWM_ADMIN.showString('Field_Intruder_Subject'),
         "timestamp":PWM_ADMIN.showString('Field_Intruder_Timestamp'),
         "count":PWM_ADMIN.showString('Field_Intruder_Count'),
         "status":PWM_ADMIN.showString('Field_Intruder_Status')
     };
+};
 
-    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
-        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+
+PWM_ADMIN.initIntrudersGrid=function() {
+    PWM_VAR['intruderRecordTypes'] = ["ADDRESS","USERNAME","USER_ID","ATTRIBUTE","TOKEN_DEST"];
+    var intruderGridHeaders = PWM_ADMIN.intruderHeaders();
+
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
             // Create a new constructor by mixing in the components
-            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+
+            // Create a new constructor by mixing in the components
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
 
             // Now, create an instance of our custom grid
             PWM_VAR['intruderGrid'] = {};
             for (var i = 0; i < PWM_VAR['intruderRecordTypes'].length; i++) {
-                var recordType = PWM_VAR['intruderRecordTypes'][i];
-                PWM_VAR['intruderGrid'][recordType] = new CustomGrid({ columns: intruderGridHeaders}, recordType + "_Grid");
+                (function(iter){
+                    var recordType = PWM_VAR['intruderRecordTypes'][iter];
+                    var grid = new CustomGrid({ columns: intruderGridHeaders}, recordType + "_Grid");
+                    PWM_VAR['intruderGrid'][recordType] = grid;
+
+                    grid.on(".dgrid-row:click", function(evt){
+                        PWM_ADMIN.detailView(evt, PWM_ADMIN.intruderHeaders(), grid);
+                    });
+                })(i)
             }
 
             PWM_ADMIN.refreshIntruderGrid();
+
         });
 };
 
@@ -358,6 +389,20 @@ PWM_ADMIN.auditUserHeaders = function() {
         "perpetratorLdapProfile": PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),
         "eventCode": PWM_ADMIN.showString('Field_Audit_EventCode'),
         "message": PWM_ADMIN.showString('Field_Audit_Message'),
+        "sourceAddress": PWM_ADMIN.showString('Field_Audit_SourceAddress'),
+        "sourceHost": PWM_ADMIN.showString('Field_Audit_SourceHost'),
+        "guid": PWM_ADMIN.showString('Field_Audit_GUID')
+    };
+};
+
+PWM_ADMIN.auditHelpdeskHeaders = function() {
+    return {
+        "timestamp": PWM_ADMIN.showString('Field_Audit_Timestamp'),
+        "perpetratorID": PWM_ADMIN.showString('Field_Audit_PerpetratorID'),
+        "perpetratorDN": PWM_ADMIN.showString('Field_Audit_PerpetratorDN'),
+        "perpetratorLdapProfile": PWM_ADMIN.showString('Field_Audit_PerpetratorLdapProfile'),
+        "eventCode": PWM_ADMIN.showString('Field_Audit_EventCode'),
+        "message": PWM_ADMIN.showString('Field_Audit_Message'),
         "targetID": PWM_ADMIN.showString('Field_Audit_TargetID'),
         "targetDN": PWM_ADMIN.showString('Field_Audit_TargetDN'),
         "targetLdapProfile": PWM_ADMIN.showString('Field_Audit_TargetLdapProfile'),
@@ -378,89 +423,70 @@ PWM_ADMIN.auditSystemHeaders = function() {
 };
 
 PWM_ADMIN.initAuditGrid=function() {
-    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider"],
-        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
+    require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dgrid/extensions/DijitRegistry"],
+        function(dojo, declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry){
             // Create a new constructor by mixing in the components
-            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider ]);
+            var CustomGrid = declare([ Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider, DijitRegistry ]);
 
             // Now, create an instance of our custom userGrid
             PWM_VAR['auditUserGrid'] = new CustomGrid({columns: PWM_ADMIN.auditUserHeaders()}, "auditUserGrid");
             PWM_VAR['auditSystemGrid'] = new CustomGrid({columns: PWM_ADMIN.auditSystemHeaders()}, "auditSystemGrid");
+            PWM_VAR['auditHelpdeskGrid'] = new CustomGrid({columns: PWM_ADMIN.auditHelpdeskHeaders()}, "auditHelpdeskGrid");
 
             // unclick superfluous fields
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorDN').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-perpetratorLdapProfile').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-message').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetDN').click();
-            PWM_MAIN.getObject('auditUserGrid-hider-menu-check-targetLdapProfile').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-sourceHost').click();
             PWM_MAIN.getObject('auditUserGrid-hider-menu-check-guid').click();
+
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorDN').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-perpetratorLdapProfile').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-message').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-targetDN').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-targetLdapProfile').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-sourceHost').click();
+            PWM_MAIN.getObject('auditHelpdeskGrid-hider-menu-check-guid').click();
+
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-instance').click();
             PWM_MAIN.getObject('auditSystemGrid-hider-menu-check-guid').click();
             PWM_ADMIN.refreshAuditGridData();
+
+            PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
+            });
+            PWM_VAR['auditSystemGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
+            });
+            PWM_VAR['auditHelpdeskGrid'].on(".dgrid-row:click", function(evt){
+                PWM_ADMIN.detailView(evt, PWM_ADMIN.auditHelpdeskHeaders(), PWM_VAR['auditHelpdeskGrid']);
+            });
         });
 };
 
 PWM_ADMIN.refreshAuditGridData=function(maximum) {
-    require(["dojo"],function(dojo){
-        PWM_VAR['auditUserGrid'].refresh();
-        PWM_VAR['auditSystemGrid'].refresh();
-        if (!maximum) {
-            maximum = 1000;
-        }
-        var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
-        var loadFunction = function(data) {
-            PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
-            PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-            PWM_VAR['auditUserGrid'].resize();
+    PWM_VAR['auditUserGrid'].refresh();
+    PWM_VAR['auditHelpdeskGrid'].refresh();
+    PWM_VAR['auditSystemGrid'].refresh();
+    if (!maximum) {
+        maximum = 1000;
+    }
+    var url = PWM_GLOBAL['url-restservice'] + "/app-data/audit?maximum=" + maximum;
+    var loadFunction = function(data) {
+        PWM_VAR['auditUserGrid'].renderArray(data['data']['user']);
+        PWM_VAR['auditUserGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+        PWM_VAR['auditUserGrid'].resize();
 
-            PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
-            PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
-            PWM_VAR['auditSystemGrid'].resize();
+        PWM_VAR['auditHelpdeskGrid'].renderArray(data['data']['helpdesk']);
+        PWM_VAR['auditHelpdeskGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+        PWM_VAR['auditHelpdeskGrid'].resize();
 
-            var detailView = function(evt, headers, grid){
-                var row = grid.row(evt);
-                var text = '<table>';
-                for (var item in headers) {
-                    (function(key){
-                        var value = key in row.data ? row.data[key] : '';
-                        var label = headers[key];
-                        text += '<tr><td class="key">' + label + '</td>';
-                        text += '<td>';
-                        if (key == 'timestamp') {
-                            text += '<span class="timestamp" id="dialog_timestamp">' + value + '</span>'
-                        } else if (key == 'message') {
-                            text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
-                        } else {
-                            text += value;
-                        }
-                        text += '</td></tr>';
-                    })(item);
-                }
-                text += '</table>';
-                PWM_MAIN.showDialog({title:"Record Detail",text:text,width:500,showClose:true,loadFunction:function(){
-                    PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('dialog_timestamp'));
-                }});
-            };
+        PWM_VAR['auditSystemGrid'].renderArray(data['data']['system']);
+        PWM_VAR['auditSystemGrid'].set("sort", { attribute : 'timestamp', ascending: false, descending: true });
+        PWM_VAR['auditSystemGrid'].resize();
 
-            PWM_VAR['auditUserGrid'].on(".dgrid-row:click", function(evt){
-                detailView(evt, PWM_ADMIN.auditUserHeaders(), PWM_VAR['auditUserGrid']);
-            });
-            PWM_VAR['auditSystemGrid'].on(".dgrid-row:click", function(evt){
-                detailView(evt, PWM_ADMIN.auditSystemHeaders(), PWM_VAR['auditSystemGrid']);
-            });
-
-            /*
-             require(["dojo/query","dojo/_base/array"], function(query,array){
-             var timestampGrids = query(".field-timestamp");
-             array.forEach(timestampGrids, function(entry, i){
-             PWM_MAIN.TimestampHandler.initElement(entry);
-             });
-             });
-             */
-        };
-        PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
-    });
+    };
+    PWM_MAIN.ajaxRequest(url,loadFunction,{method:'GET'});
 };
 
 PWM_ADMIN.showStatChart = function(statName,days,divName,options) {
@@ -618,7 +644,7 @@ PWM_ADMIN.showAppHealth = function(parentDivID, options, refreshNow) {
 
         var loadFunction = function(data) {
             if (data['error']) {
-                throw data['error'];
+                PWM_MAIN.showErrorDialog(data);
             } else {
                 PWM_GLOBAL['pwm-health'] = data['data']['overall'];
                 var htmlBody = PWM_ADMIN.makeHealthHtml(data['data'], showTimestamp, showRefresh);
@@ -700,6 +726,41 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
     return htmlBody;
 };
 
+PWM_ADMIN.detailView = function(evt, headers, grid){
+    var row = grid.row(evt);
+    var text = '<table>';
+    var postExecuteFunctions = [];
+    for (var item in headers) {
+        (function(key){
+            var value = key in row.data ? row.data[key] : '';
+            var label = headers[key];
+            text += '<tr><td class="key">' + label + '</td>';
+            text += '<td>';
+            if (key.toLowerCase().indexOf('time') >= 0) {
+                text += '<span class="timestamp" id="field-detail-' + key + '">' + value + '</span>';
+                PWM_MAIN.TimestampHandler.testIfStringIsTimestamp(value,function(){
+                    postExecuteFunctions.push(function() {
+                        PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('field-detail-' + key));
+                    });
+                });
+            } else if (key == 'message') {
+                text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
+            } else {
+                text += value;
+            }
+            text += '</td></tr>';
+        })(item);
+    }
+    text += '</table>';
+    PWM_MAIN.showDialog({title:"Record Detail",text:text,showClose:true,allowMove:true,loadFunction:function(){
+        for (i = 0; i < postExecuteFunctions.length; i++) {
+            postExecuteFunctions[i]();
+        }
+
+    }});
+};
+
+
 PWM_ADMIN.showString=function (key, options) {
     options = options || {};
     options['bundle'] = 'Admin';
@@ -709,3 +770,4 @@ PWM_ADMIN.showString=function (key, options) {
 PWM_ADMIN.initAdminPage=function(nextFunction) {
     if (nextFunction) nextFunction();
 };
+

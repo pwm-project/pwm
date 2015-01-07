@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,10 +32,12 @@ import password.pwm.Permission;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.policy.ChallengeProfile;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
+import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapOperationsHelper;
@@ -179,7 +181,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 );
                 challengeSet = challengeProfile.getChallengeSet();
                 helpdeskChallengeSet = challengeProfile.getHelpdeskChallengeSet();
-                outputUsername = restRequestBean.getUserIdentity().toDeliminatedKey();
+                outputUsername = restRequestBean.getUserIdentity().toDelimitedKey();
             }
 
             // build output
@@ -311,13 +313,14 @@ public class RestChallengesServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
+        final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
         try {
             if (restRequestBean.getUserIdentity() == null) {
                 if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.SETUP_RESPONSE)) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
                 }
             } else {
-                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(restRequestBean.getPwmApplication(), Permission.HELPDESK)) {
+                if (helpdeskProfile == null) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
                 }
             }
@@ -338,7 +341,7 @@ public class RestChallengesServer extends AbstractRestServer {
                 restRequestBean.getPwmApplication().getAuditManager().submit(auditRecord);
             } else {
                 /* clear 3rd party (helpdesk) */
-                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+                final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
                 chaiUser = useProxy
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
@@ -349,7 +352,7 @@ public class RestChallengesServer extends AbstractRestServer {
                         false);
 
                 // mark the event log
-                final UserAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createUserAuditRecord(
+                final HelpdeskAuditRecord auditRecord = restRequestBean.getPwmApplication().getAuditManager().createHelpdeskAuditRecord(
                         AuditEvent.HELPDESK_CLEAR_RESPONSES,
                         restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity(),
                         null,

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,8 @@
 
 package password.pwm.bean;
 
-import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -84,11 +83,12 @@ public class UserIdentity implements Serializable, Comparable {
         }
     }
 
-    public String toDeliminatedKey() {
-        if (this.getLdapProfileID() == null || this.getLdapProfileID().length() < 1) {
-            return this.getUserDN();
-        }
+    public String toDelimitedKey() {
         return this.getLdapProfileID() + DELIM_SEPARATOR + this.getUserDN();
+    }
+
+    public String toDisplayString() {
+        return this.getUserDN() + ((this.getLdapProfileID() != null && !this.getLdapProfileID().isEmpty()) ? " (" + this.getLdapProfileID() + ")" : "");
     }
 
     public static UserIdentity fromObfuscatedKey(final String key, final Configuration configuration) throws PwmUnrecoverableException {
@@ -117,7 +117,7 @@ public class UserIdentity implements Serializable, Comparable {
 
         final StringTokenizer st = new StringTokenizer(key, DELIM_SEPARATOR);
         if (st.countTokens() < 2) {
-            return new UserIdentity(st.nextToken(), PwmConstants.PROFILE_ID_DEFAULT);
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"not enough tokens while parsing delimited identity key"));
         } else if (st.countTokens() > 2) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"too many string tokens while parsing delimited identity key"));
         }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.value.PasswordValue;
+import password.pwm.config.value.StringArrayValue;
 import password.pwm.config.value.StringValue;
 import password.pwm.config.value.ValueFactory;
 import password.pwm.error.*;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -89,7 +91,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     private static final PwmLogger LOGGER = PwmLogger.forClass(StoredConfiguration.class);
-    private static final String XML_FORMAT_VERSION = "3";
+    private static final String XML_FORMAT_VERSION = "4";
 
     public static final String XML_ELEMENT_ROOT = "PwmConfiguration";
     public static final String XML_ELEMENT_PROPERTIES = "properties";
@@ -108,6 +110,8 @@ public class StoredConfiguration implements Serializable {
     public static final String XML_ATTRIBUTE_MODIFY_TIME = "modifyTime";
     public static final String XML_ATTRIBUTE_MODIFY_USER = "modifyUser";
     public static final String XML_ATTRIBUTE_SYNTAX_VERSION = "syntaxVersion";
+
+    private static final String PROFILE_NAME_PATTERN = "^(?!.*default.*)(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$";
 
     private Document document = new Document(new Element(XML_ELEMENT_ROOT));
     private ChangeLog changeLog = new ChangeLog();
@@ -140,7 +144,7 @@ public class StoredConfiguration implements Serializable {
         try {
             newConfiguration.document = inputDocument;
             newConfiguration.createTime(); // verify create time;
-            fixupMandatoryElements(inputDocument);
+            ConfigurationCleaner.cleanup(newConfiguration);
         } catch (Exception e) {
             final String errorMsg = "error reading configuration file format, error=" + e.getMessage();
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.CONFIG_FORMAT_ERROR,errorMsg);
@@ -202,7 +206,7 @@ public class StoredConfiguration implements Serializable {
 
     public StoredConfiguration()
     {
-        fixupMandatoryElements(document);
+        ConfigurationCleaner.cleanup(this);
         final String createTime = PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
         document.getRootElement().setAttribute(XML_ATTRIBUTE_CREATE_TIME,createTime);
     }
@@ -249,49 +253,6 @@ public class StoredConfiguration implements Serializable {
         }
     }
 
-    public String readAppProperty(final AppProperty propertyName) {
-        domModifyLock.readLock().lock();
-        try {
-            final XPathExpression xp = XPathBuilder.xpathForAppProperty(propertyName);
-            final Element propertyElement = (Element)xp.evaluateFirst(document);
-            return propertyElement == null ? null : propertyElement.getText();
-        } finally {
-            domModifyLock.readLock().unlock();
-        }
-    }
-
-    public void writeAppProperty(final AppProperty appProperty, final String value) {
-        preModifyActions();
-        changeLog.updateChangeLog(appProperty, value);
-
-        domModifyLock.writeLock().lock();
-        try {
-            final XPathExpression xp = XPathBuilder.xpathForAppProperty(appProperty);
-            final List<Element> propertyElements = xp.evaluate(document);
-            for (final Element properElement : propertyElements) {
-                properElement.detach();
-            }
-
-            final Element propertyElement = new Element(XML_ELEMENT_PROPERTY);
-            propertyElement.setAttribute(new Attribute(XML_ATTRIBUTE_KEY,appProperty.getKey()));
-            propertyElement.setContent(new Text(value));
-
-            if (null == XPathBuilder.xpathForAppProperties().evaluateFirst(document)) {
-                Element configProperties = new Element(XML_ELEMENT_PROPERTIES);
-                configProperties.setAttribute(new Attribute(XML_ATTRIBUTE_TYPE,XML_ATTRIBUTE_VALUE_APP));
-                document.getRootElement().addContent(configProperties);
-            }
-
-            final XPathExpression xp2 = XPathBuilder.xpathForAppProperties();
-            final Element propertiesElement = (Element)xp2.evaluateFirst(document);
-            propertyElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            propertiesElement.setAttribute(XML_ATTRIBUTE_MODIFY_TIME,PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
-            propertiesElement.addContent(propertyElement);
-        } finally {
-            domModifyLock.writeLock().unlock();
-        }
-    }
-
     public void lock() {
         locked = true;
     }
@@ -315,6 +276,38 @@ public class StoredConfiguration implements Serializable {
             domModifyLock.readLock().unlock();
         }
         return Collections.emptyMap();
+    }
+
+    public Map<String,Object> toOutputMap(final Locale locale) {
+        final List<Map<String,String>> settingData = new ArrayList<>();
+        for (final StoredConfiguration.SettingValueRecord settingValueRecord : this.modifiedSettings()) {
+            final Map<String,String> recordMap = new HashMap<>();
+            recordMap.put("label", settingValueRecord.getSetting().getLabel(locale));
+            if (settingValueRecord.getProfile() != null) {
+                recordMap.put("profile", settingValueRecord.getProfile());
+            }
+            if (settingValueRecord.getStoredValue() != null) {
+                recordMap.put("value", settingValueRecord.getStoredValue().toDebugString(true,locale));
+            } else {
+                System.out.println(settingValueRecord.getSetting().getKey());
+            }
+            final SettingMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
+            if (settingMetaData != null) {
+                if (settingMetaData.getModifyDate() != null) {
+                    recordMap.put("modifyTime", PwmConstants.DEFAULT_DATETIME_FORMAT.format(settingMetaData.getModifyDate()));
+                }
+                if (settingMetaData.getUserIdentity() != null) {
+                    recordMap.put("modifyUser",settingMetaData.getUserIdentity().toDisplayString());
+                }
+            }
+            settingData.add(recordMap);
+        }
+        
+        final HashMap<String,Object> outputObj = new HashMap<>();
+        outputObj.put("settings",settingData);
+        outputObj.put("template",this.getTemplate().toString());
+        
+        return Collections.unmodifiableMap(outputObj);
     }
 
     public void resetLocaleBundleMap(final String bundleName, final String keyName) {
@@ -406,6 +399,43 @@ public class StoredConfiguration implements Serializable {
         return setting.getKey() + "=" + storedValue.toDebugString(false, null);
     }
 
+    List<SettingValueRecord> modifiedSettings() {
+        final List<SettingValueRecord> returnObj = new ArrayList<>();
+        domModifyLock.readLock().lock();
+        try {
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (setting.getSyntax() != PwmSettingSyntax.PROFILE && !setting.getCategory().hasProfiles()) {
+                    if (!isDefaultValue(setting,null)) {
+                        final StoredValue value = readSetting(setting);
+                        if (value != null) {
+                            returnObj.add(new SettingValueRecord(setting, null, value));
+                        }
+                    }
+                }
+            }
+
+            for (final PwmSettingCategory category : PwmSettingCategory.values()) {
+                if (category.hasProfiles()) {
+                    for (final String profileID : this.profilesForSetting(category.getProfileSetting())) {
+                        for (final PwmSetting profileSetting : category.getSettings()) {
+                            if (!isDefaultValue(profileSetting, profileID)) {
+                                final StoredValue value = readSetting(profileSetting, profileID);
+                                if (value != null) {
+                                    returnObj.add(new SettingValueRecord(profileSetting, profileID, value));
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return returnObj;
+        } finally {
+            domModifyLock.readLock().unlock();
+        }
+    }
+
     public String toString(final boolean linebreaks) {
         domModifyLock.readLock().lock();
         try {
@@ -431,8 +461,7 @@ public class StoredConfiguration implements Serializable {
                                 profileObject.put(profileSetting.getKey(), value.toDebugString(false, null));
                             }
                         }
-                        final String key = "".equals(profileID) ? "default" : profileID;
-                        profiles.put(key,profileObject);
+                        profiles.put(profileID,profileObject);
                     }
                     outputObject.put(category.getProfileSetting().getKey(),profiles);
                 }
@@ -452,7 +481,7 @@ public class StoredConfiguration implements Serializable {
     public void toXml(final OutputStream outputStream)
             throws IOException, PwmUnrecoverableException
     {
-        fixupMandatoryElements(document);
+        ConfigurationCleaner.updateMandatoryElements(document);
         XmlUtil.outputDocument(document, outputStream);
     }
 
@@ -477,7 +506,6 @@ public class StoredConfiguration implements Serializable {
                 iterator.remove();
             }
         }
-        profiles.addFirst("");
         return Collections.unmodifiableList(profiles);
     }
 
@@ -494,7 +522,7 @@ public class StoredConfiguration implements Serializable {
             if (loopSetting.getCategory().hasProfiles()) {
                 errorPrefix.append("-");
                 for (final String profile : profilesForSetting(loopSetting)) {
-                    final String errorAppend = "".equals(profile) ? "Default" : profile;
+                    final String errorAppend = profile;
                     final StoredValue loopValue = readSetting(loopSetting,profile);
 
                     try {
@@ -631,14 +659,16 @@ public class StoredConfiguration implements Serializable {
 
 
     public StoredValue readSetting(final PwmSetting setting) {
-        if (setting.getCategory().hasProfiles()) {
-            throw new IllegalStateException("cannot read setting key " + setting.getKey() + " as non-group setting");
-        }
-
         return readSetting(setting,null);
     }
 
     public StoredValue readSetting(final PwmSetting setting, final String profileID) {
+        if (profileID == null && setting.getCategory().hasProfiles()) {
+            throw new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
+        }
+        if (profileID != null && !setting.getCategory().hasProfiles()) {
+            throw new IllegalStateException("cannot read setting key " + setting.getKey() + " with non-null profileID");
+        }
         domModifyLock.readLock().lock();
         try {
             final XPathExpression xp = XPathBuilder.xpathForSetting(setting, profileID);
@@ -726,6 +756,9 @@ public class StoredConfiguration implements Serializable {
             final StoredValue value,
             final UserIdentity userIdentity
     ) {
+        if (profileID == null && setting.getCategory().hasProfiles()) {
+            throw new IllegalArgumentException("reading of setting " + setting.getKey() + " requires a non-null profileID");
+        }
         if (profileID != null && !setting.getCategory().hasProfiles()) {
             throw new IllegalArgumentException("cannot specify profile for non-profile setting");
         }
@@ -881,75 +914,167 @@ public class StoredConfiguration implements Serializable {
             return xpfac.compile(xpathString);
         }
     }
-
-    private static void fixupMandatoryElements(final Document document) {
-        final Element rootElement = document.getRootElement();
-
-        {
-            final XPathExpression commentXPath = XPathFactory.instance().compile("//comment()[1]");
-            final Comment existingComment = (Comment)commentXPath.evaluateFirst(rootElement);
-            if (existingComment != null) {
-                existingComment.detach();
-            }
-            final Comment comment = new Comment(generateCommentText());
-            rootElement.addContent(0,comment);
+    
+    
+    private static class ConfigurationCleaner {
+        private static void cleanup(final StoredConfiguration configuration) {
+            updateMandatoryElements(configuration.document);
+            profilizeNonProfiledSettings(configuration);
+            stripOrphanedProfileSettings(configuration);
+            migrateAppProperties(configuration);
         }
+        
+        private static void updateMandatoryElements(final Document document) {
+            final Element rootElement = document.getRootElement();
 
-        rootElement.setAttribute("pwmVersion", PwmConstants.BUILD_VERSION);
-        rootElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
-        rootElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
-        rootElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
+            {
+                final XPathExpression commentXPath = XPathFactory.instance().compile("//comment()[1]");
+                final Comment existingComment = (Comment)commentXPath.evaluateFirst(rootElement);
+                if (existingComment != null) {
+                    existingComment.detach();
+                }
+                final Comment comment = new Comment(generateCommentText());
+                rootElement.addContent(0,comment);
+            }
 
-        { // migrate old properties
+            rootElement.setAttribute("pwmVersion", PwmConstants.BUILD_VERSION);
+            rootElement.setAttribute("pwmBuild", PwmConstants.BUILD_NUMBER);
+            rootElement.setAttribute("pwmBuildType", PwmConstants.BUILD_TYPE);
+            rootElement.setAttribute("xmlVersion", XML_FORMAT_VERSION);
 
-            // get correct (new) //properties[@type="config"]
-            final XPathExpression configPropertiesXpath = XPathFactory.instance().compile(
-                    "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]");
-            final Element configPropertiesElement = (Element)configPropertiesXpath.evaluateFirst(rootElement);
+            { // migrate old properties
 
-            // get list of old //properties[not (@type)]/property
-            final XPathExpression nonAttributedProperty = XPathFactory.instance().compile(
-                    "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]/" + XML_ELEMENT_PROPERTY);
-            final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate(rootElement);
+                // get correct (new) //properties[@type="config"]
+                final XPathExpression configPropertiesXpath = XPathFactory.instance().compile(
+                        "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]");
+                final Element configPropertiesElement = (Element)configPropertiesXpath.evaluateFirst(rootElement);
 
-            if (configPropertiesElement != null && nonAttributedProperties != null) {
-                for (Element element : nonAttributedProperties) {
-                    element.detach();
-                    configPropertiesElement.addContent(element);
+                // get list of old //properties[not (@type)]/property
+                final XPathExpression nonAttributedProperty = XPathFactory.instance().compile(
+                        "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]/" + XML_ELEMENT_PROPERTY);
+                final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate(rootElement);
+
+                if (configPropertiesElement != null && nonAttributedProperties != null) {
+                    for (Element element : nonAttributedProperties) {
+                        element.detach();
+                        configPropertiesElement.addContent(element);
+                    }
+                }
+
+                // remove old //properties[not (@type] element
+                final XPathExpression oldPropertiesXpath = XPathFactory.instance().compile(
+                        "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]");
+                final List<Element> oldPropertiesElements = oldPropertiesXpath.evaluate(rootElement);
+                if (oldPropertiesElements != null) {
+                    for (Element element : oldPropertiesElements) {
+                        element.detach();
+                    }
                 }
             }
+        }
+        
+        private static String generateCommentText() {
+            final StringBuilder commentText = new StringBuilder();
+            commentText.append("\t\t").append(" ").append("\n");
+            commentText.append("\t\t").append("This configuration file has been auto-generated by the ").append(PwmConstants.PWM_APP_NAME).append(" password self service application.").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            commentText.append("\t\t").append("WARNING: This configuration file contains sensitive security information, please handle with care!").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            commentText.append("\t\t").append("WARNING: If a server is currently running using this configuration file, it will be restarted").append("\n");
+            commentText.append("\t\t").append("         and the configuration updated immediately when it is modified.").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            commentText.append("\t\t").append("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not").append("\n");
+            commentText.append("\t\t").append("        support UTF-8 encoding.").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            commentText.append("\t\t").append("To edit this file:").append("\n");
+            commentText.append("\t\t").append("   or 1. Edit this file directly by hand, syntax is mostly self-explanatory.").append("\n");
+            commentText.append("\t\t").append("   or 2. Set the property 'configIsEditable' to 'true', note that anyone with access to ").append("\n");
+            commentText.append("\t\t").append("         the application url will be able to edit the configuration while this property is true.").append("\n");
+            commentText.append("\t\t").append("").append("\n");
+            return commentText.toString();
+        }
 
-            // remove old //properties[not (@type] element
-            final XPathExpression oldPropertiesXpath = XPathFactory.instance().compile(
-                    "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]");
-            final List<Element> oldPropertiesElements = oldPropertiesXpath.evaluate(rootElement);
-            if (oldPropertiesElements != null) {
-                for (Element element : oldPropertiesElements) {
-                    element.detach();
+
+        private static void profilizeNonProfiledSettings(final StoredConfiguration storedConfiguration) {
+            final String NEW_PROFILE_NAME = "default";
+            final Document document = storedConfiguration.document;
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (setting.getCategory().hasProfiles()) {
+
+                    final XPathExpression xp = XPathBuilder.xpathForSetting(setting, null);
+                    final Element settingElement = (Element)xp.evaluateFirst(document);
+                    if (settingElement != null) {
+                        LOGGER.info("moving setting " + setting.getKey() + " without profile attribute to profile \"" + NEW_PROFILE_NAME + "\".");
+                        // change setting to "default" profile.
+                        settingElement.setAttribute(XML_ATTRIBUTE_PROFILE, NEW_PROFILE_NAME);
+
+                        final PwmSetting profileSetting = setting.getCategory().getProfileSetting();
+                        final List<String> profileStringDefinitions = new ArrayList<>();
+                        {
+                            final StringArrayValue profileDefinitions = (StringArrayValue) storedConfiguration.readSetting(profileSetting);
+                            if (profileDefinitions != null) {
+                                if (profileDefinitions.toNativeObject() != null) {
+                                    profileStringDefinitions.addAll(profileDefinitions.toNativeObject());
+                                }
+                            }
+                        }
+
+                        if (!profileStringDefinitions.contains(NEW_PROFILE_NAME)) {
+                            profileStringDefinitions.add(0,NEW_PROFILE_NAME);
+                            storedConfiguration.writeSetting(profileSetting,new StringArrayValue(profileStringDefinitions),null);
+                        }
+                    }
                 }
             }
         }
-    }
 
-    private static String generateCommentText() {
-        final StringBuilder commentText = new StringBuilder();
-        commentText.append("\t\t").append(" ").append("\n");
-        commentText.append("\t\t").append("This configuration file has been auto-generated by the ").append(PwmConstants.PWM_APP_NAME).append(" password self service application.").append("\n");
-        commentText.append("\t\t").append("").append("\n");
-        commentText.append("\t\t").append("WARNING: This configuration file contains sensitive security information, please handle with care!").append("\n");
-        commentText.append("\t\t").append("").append("\n");
-        commentText.append("\t\t").append("WARNING: If a server is currently running using this configuration file, it will be restarted").append("\n");
-        commentText.append("\t\t").append("         and the configuration updated immediately when it is modified.").append("\n");
-        commentText.append("\t\t").append("").append("\n");
-        commentText.append("\t\t").append("NOTICE: This file is encoded as UTF-8.  Do not save or edit this file with an editor that does not").append("\n");
-        commentText.append("\t\t").append("        support UTF-8 encoding.").append("\n");
-        commentText.append("\t\t").append("").append("\n");
-        commentText.append("\t\t").append("To edit this file:").append("\n");
-        commentText.append("\t\t").append("   or 1. Edit this file directly by hand, syntax is mostly self-explanatory.").append("\n");
-        commentText.append("\t\t").append("   or 2. Set the property 'configIsEditable' to 'true', note that anyone with access to ").append("\n");
-        commentText.append("\t\t").append("         the application url will be able to edit the configuration while this property is true.").append("\n");
-        commentText.append("\t\t").append("").append("\n");
-        return commentText.toString();
+        private static void stripOrphanedProfileSettings(final StoredConfiguration storedConfiguration) {
+            final Document document = storedConfiguration.document;
+            final XPathFactory xpfac = XPathFactory.instance();
+            for (final PwmSetting setting : PwmSetting.values()) {
+                if (setting.getCategory().hasProfiles()) {
+                    final List<String> validProfiles = storedConfiguration.profilesForSetting(setting);
+                    final String xpathString = "//setting[@key=\"" + setting.getKey() + "\"]";
+                    final XPathExpression xp = xpfac.compile(xpathString);
+                    final List<Element> settingElements = (List<Element>)xp.evaluate(document);
+                    for (final Element settingElement : settingElements) {
+                        final String profileID = settingElement.getAttributeValue(XML_ATTRIBUTE_PROFILE);
+                        if (profileID != null) {
+                            if (!validProfiles.contains(profileID)) {
+                                LOGGER.info("removing setting " + setting.getKey() + " with profile \"" + profileID + "\", profile is not a valid profile");
+                                settingElement.detach();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        private static void migrateAppProperties(final StoredConfiguration storedConfiguration) {
+            final Document document = storedConfiguration.document;
+            final XPathExpression xPathExpression = XPathBuilder.xpathForAppProperties(); 
+            final List<Element> appPropertiesElements = (List<Element>)xPathExpression.evaluate(document);
+            for (final Element element : appPropertiesElements) {
+                final List<Element> properties = element.getChildren();
+                for (final Element property : properties) {
+                    final String key = property.getAttributeValue("key");
+                    final String value = property.getText();
+                    if (key != null && !key.isEmpty() && value != null && !value.isEmpty()) {
+                        LOGGER.info("migrating app-property config element '" + key + "' to setting " + PwmSetting.APP_PROPERTY_OVERRIDES.getKey());
+                        final String newValue = key + "=" + value;
+                        List<String> existingValues = (List<String>)storedConfiguration.readSetting(PwmSetting.APP_PROPERTY_OVERRIDES).toNativeObject();
+                        if (existingValues == null) {
+                            existingValues = new ArrayList<>();
+                        }
+                        existingValues = new ArrayList<>(existingValues);
+                        existingValues.add(newValue);
+                        storedConfiguration.writeSetting(PwmSetting.APP_PROPERTY_OVERRIDES,new StringArrayValue(existingValues),null);
+                    }
+                }
+                //element.detach();
+            }
+            
+        }
     }
 
 
@@ -960,7 +1085,6 @@ public class StoredConfiguration implements Serializable {
 
         public enum RecordType {
             SETTING,
-            APP_PROPERTY,
             LOCALE_BUNDLE,
         }
 
@@ -1042,14 +1166,7 @@ public class StoredConfiguration implements Serializable {
                     case SETTING: {
                         final StoredValue currentValue = readSetting((PwmSetting) configRecordID.recordID, configRecordID.profileID);
                         final PwmSetting pwmSetting = (PwmSetting) configRecordID.recordID;
-                        final StringBuilder keyName = new StringBuilder();
-                        keyName.append(pwmSetting.getCategory().getLabel(locale));
-                        keyName.append(" -> ");
-                        keyName.append(pwmSetting.getLabel(locale));
-                        if (configRecordID.profileID != null && configRecordID.profileID.length() > 0) {
-                            keyName.append(" -> ");
-                            keyName.append(configRecordID.profileID);
-                        }
+                        final String keyName = pwmSetting.toMenuLocationDebug(configRecordID.getProfileID(), locale);
                         final String debugValue = currentValue.toDebugString(asHtml, locale);
                         outputMap.put(keyName.toString(),debugValue);
                     }
@@ -1062,13 +1179,6 @@ public class StoredConfiguration implements Serializable {
                         final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
                         final String debugValue = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(currentValue);
                         outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
-                    }
-                    break;
-
-                    case APP_PROPERTY: {
-                        final AppProperty appProperty = (AppProperty) configRecordID.recordID;
-                        final String debugValue = readAppProperty(appProperty);
-                        outputMap.put("AppProperty" + " -> " + appProperty.getKey(),debugValue);
                     }
                     break;
                 }
@@ -1095,12 +1205,6 @@ public class StoredConfiguration implements Serializable {
                 }
             }
             return output.toString();
-        }
-
-        public void updateChangeLog(final AppProperty appProperty, final String newValue) {
-            final String currentJsonValue = readAppProperty(appProperty);
-            final ConfigRecordID configRecordID = new ConfigRecordID(ConfigRecordID.RecordType.APP_PROPERTY, appProperty, null);
-            updateChangeLog(configRecordID,currentJsonValue,newValue);
         }
 
         public void updateChangeLog(final String bundleName, final String keyName, final Map<String,String> localeValueMap) {
@@ -1160,8 +1264,8 @@ public class StoredConfiguration implements Serializable {
         settingElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         settingsElement.removeAttribute(XML_ATTRIBUTE_MODIFY_USER);
         if (userIdentity != null) {
-            settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDeliminatedKey());
-            settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDeliminatedKey());
+            settingElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDelimitedKey());
+            settingsElement.setAttribute(XML_ATTRIBUTE_MODIFY_USER, userIdentity.toDelimitedKey());
         }
     }
 
@@ -1285,6 +1389,19 @@ public class StoredConfiguration implements Serializable {
             throw new IllegalStateException("missing createTime timestamp");
         }
         return createTimeString;
+    }
+
+    public Date modifyTime() {
+        final Element rootElement = document.getRootElement();
+        final String modifyTimeString = rootElement.getAttributeValue(XML_ATTRIBUTE_MODIFY_TIME);
+        if (modifyTimeString != null) {
+            try {
+                return PwmConstants.DEFAULT_DATETIME_FORMAT.parse(modifyTimeString);
+            } catch (ParseException e) {
+                LOGGER.error("error parsing root last modified timestamp: " + e.getMessage());
+            }
+        }
+        return null;
     }
 
     private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) {

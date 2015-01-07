@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,62 +95,85 @@ PWM_MAIN.loadClientData=function(completeFunction) {
 };
 
 PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
-    require(["dojo"],function(dojo){
-        var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/" + bundleName;
-        dojo.xhrGet({
-            url: clientConfigUrl,
-            handleAs: 'json',
-            timeout: PWM_MAIN.ajaxTimeout,
-            headers: { "Accept": "application/json" },
-            load: function(data) {
-                if (data['error'] == true) {
-                    console.error('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
-                } else {
-                    PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
-                    PWM_GLOBAL['localeStrings'][bundleName] = {};
-                    for (var settingKey in data['data']) {
-                        PWM_GLOBAL['localeStrings'][bundleName][settingKey] = data['data'][settingKey];
-                    }
-                }
-                console.log('loaded locale bundle data for ' + bundleName);
-                if (completeFunction) completeFunction();
-            },
-            error: function(error) {
-                var errorMsg = 'unable to load locale bundle from , please reload page (' + error + ')';
-                console.log(errorMsg);
-                if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
-                if (completeFunction) completeFunction();
+    var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/" + bundleName;
+    var loadFunction = function(data){
+        if (data['error'] == true) {
+            console.error('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
+        } else {
+            PWM_GLOBAL['localeStrings'] = PWM_GLOBAL['localeStrings'] || {};
+            PWM_GLOBAL['localeStrings'][bundleName] = {};
+            for (var settingKey in data['data']) {
+                PWM_GLOBAL['localeStrings'][bundleName][settingKey] = data['data'][settingKey];
             }
-        });
-    });
+        }
+        console.log('loaded locale bundle data for ' + bundleName);
+        if (completeFunction) completeFunction();
+    };
+    var errorFunction = function(){
+        var errorMsg = 'unable to load locale bundle from , please reload page (' + error + ')';
+        console.log(errorMsg);
+        if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
+        if (completeFunction) completeFunction();
+    };
+    PWM_MAIN.ajaxRequest(clientConfigUrl,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
 PWM_MAIN.initPage = function() {
     PWM_MAIN.applyFormAttributes();
 
-    require(["dojo","dojo/on"], function(dojo,on){
-        on(document, "keypress", function(event){
+    require(["dojo", "dojo/on"], function (dojo, on) {
+        on(document, "keypress", function (event) {
             PWM_MAIN.checkForCapsLock(event);
         });
     });
 
     if (PWM_MAIN.getObject('button_cancel')) {
         PWM_MAIN.getObject('button_cancel').style.visibility = 'visible';
-        PWM_MAIN.addEventHandler('button_cancel','click',function(){PWM_MAIN.handleFormCancel()});
+        PWM_MAIN.addEventHandler('button_cancel', 'click', function () {
+            PWM_MAIN.handleFormCancel()
+        });
     }
 
+    // header initialization
     if (PWM_MAIN.getObject('header_configManagerButton')) {
-        PWM_MAIN.addEventHandler('header_configManagerButton','click',function(){PWM_MAIN.goto('/private/config/ConfigManager')});
+        PWM_MAIN.addEventHandler('header_configManagerButton', 'click', function () {
+            PWM_MAIN.goto('/private/config/ConfigManager')
+        });
     }
     if (PWM_MAIN.getObject('header_configEditorButton')) {
-        PWM_MAIN.addEventHandler('header_configEditorButton','click',function(){PWM_CONFIG.startConfigurationEditor()});
+        PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
+            PWM_CONFIG.startConfigurationEditor()
+        });
     }
     if (PWM_MAIN.getObject('header_openLogViewerButton')) {
-        PWM_MAIN.addEventHandler('header_openLogViewerButton','click',function(){PWM_CONFIG.openLogViewer(null)});
+        PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {
+            PWM_CONFIG.openLogViewer(null)
+        });
     }
     if (PWM_MAIN.getObject('select-updateLoginContexts')) {
-        PWM_MAIN.addEventHandler('select-updateLoginContexts','click',function(){PWM_MAIN.updateLoginContexts()});
+        PWM_MAIN.addEventHandler('select-updateLoginContexts', 'click', function () {
+            PWM_MAIN.updateLoginContexts()
+        });
     }
+    PWM_MAIN.showTooltip({
+        id: ['header-warning-message'],
+        position: ['below', 'above'],
+        text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
+        width: 500
+    });
+    if (typeof PWM_CONFIG !== 'undefined') {
+        PWM_CONFIG.showHeaderHealth();
+    }
+    PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
+        PWM_MAIN.goto('/private/config/ConfigManager');
+    });
+    PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
+        PWM_MAIN.closeHeaderWarningPanel();
+    });
+    PWM_MAIN.addEventHandler('button-openHeader','click',function(){
+        PWM_MAIN.openHeaderWarningPanel();
+    });
+    // end header init
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){
@@ -217,6 +240,25 @@ PWM_MAIN.initPage = function() {
     console.log('initPage completed');
 };
 
+
+PWM_MAIN.closeHeaderWarningPanel = function() {
+    console.log('action closeHeader');
+    PWM_MAIN.setStyle('header-warning','display','none');
+    PWM_MAIN.setStyle('button-openHeader','display','inherit');
+    require(["dojo/cookie"], function(cookie){
+        cookie('headerVisibility', 'hide', {});
+    });
+};
+
+PWM_MAIN.openHeaderWarningPanel = function() {
+    console.log('action openHeader');
+    PWM_MAIN.setStyle('header-warning','display','inherit');
+    PWM_MAIN.setStyle('button-openHeader','display','none');
+    require(["dojo/cookie"], function(cookie){
+        cookie('headerVisibility', 'show', {});
+    });
+};
+
 PWM_MAIN.applyFormAttributes = function() {
     require(["dojo/query","dojo/on"], function(query,on){
         var results = query('.pwm-form');
@@ -276,11 +318,11 @@ PWM_MAIN.preloadAll = function(nextFunction) {
 PWM_MAIN.preloadResources = function(nextFunction) {
     var prefix = PWM_GLOBAL['url-resources'] + '/dojo/dijit/themes/';
     var images = [
-            prefix + 'a11y/indeterminate_progress.gif',
-            prefix + 'nihilo/images/progressBarAnim.gif',
-            prefix + 'nihilo/images/progressBarEmpty.png',
-            prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
-            prefix + 'nihilo/images/titleBar.png'
+        prefix + 'a11y/indeterminate_progress.gif',
+        prefix + 'nihilo/images/progressBarAnim.gif',
+        prefix + 'nihilo/images/progressBarEmpty.png',
+        prefix + 'nihilo/images/spriteRoundedIconsSmall.png',
+        prefix + 'nihilo/images/titleBar.png'
     ];
     PWM_MAIN.preloadImages(images);
     if (nextFunction) {
@@ -636,7 +678,7 @@ PWM_MAIN.initLocaleSelectorMenu = function(attachNode) {
                             var params = dojo.queryToObject(window.location.search.substring(1,window.location.search.length));
                             params['locale'] = localeKey;
                             nextUrl = window.location.toString().substring(0, window.location.toString().indexOf('?') + 1)
-                                + dojo.objectToQuery(params);
+                            + dojo.objectToQuery(params);
                         } else {
                             nextUrl = PWM_MAIN.addParamToUrl(nextUrl, 'locale', localeKey)
                         }
@@ -765,13 +807,13 @@ PWM_MAIN.showDialog = function(options) {
     }
     if (showOk) {
         bodyText += '<button class="btn" id="dialog_ok_button">'
-            + '<span class="btn-icon fa fa-forward"></span>'
-            + PWM_MAIN.showString('Button_OK') + '</button>  ';
+        + '<span class="btn-icon fa fa-forward"></span>'
+        + PWM_MAIN.showString('Button_OK') + '</button>  ';
     }
     if (showCancel) {
         bodyText += '<button class="btn" id="dialog_cancel_button">'
-            + '<span class="btn-icon fa fa-times"></span>'
-            + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
+        + '<span class="btn-icon fa fa-times"></span>'
+        + PWM_MAIN.showString('Button_Cancel') + '</button>  ';
     }
 
     var dialogClassText = 'dialogBody';
@@ -800,7 +842,7 @@ PWM_MAIN.showDialog = function(options) {
             if (showCancel) {
                 PWM_MAIN.addEventHandler('dialog_cancel_button','click',function(){cancelAction()});
             }
-            loadFunction();
+            setTimeout(loadFunction,100);
         });
         theDialog.show();
     });
@@ -1057,12 +1099,12 @@ PWM_MAIN.elementInViewport = function(el, includeWidth) {
     var pageX = (typeof(window.pageXOffset)=='number') ? window.pageXOffset : document.documentElement.scrollLeft;
 
     return includeWidth ? (
-        top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
-        left >= pageX &&
-        (left + width) <= (pageX + window.innerWidth)
-        ) : (
-        top >= pageY && (top + height) <= (pageY + window.innerHeight)
-        );
+    top >= pageY && (top + height) <= (pageY + window.innerHeight) &&
+    left >= pageX &&
+    (left + width) <= (pageX + window.innerWidth)
+    ) : (
+    top >= pageY && (top + height) <= (pageY + window.innerHeight)
+    );
 };
 
 PWM_MAIN.messageDivFloatHandler = function() {
@@ -1558,13 +1600,15 @@ PWM_MAIN.TimestampHandler.initAllElements = function() {
 };
 
 PWM_MAIN.TimestampHandler.testIfStringIsTimestamp = function(input, trueFunction) {
-    require(["dojo","dojo/date/stamp"], function(dojo,IsoDate) {
-        input = dojo.trim(input);
-        var dateObj = IsoDate.fromISOString(input);
-        if (dateObj) {
-            trueFunction(dateObj);
-        }
-    });
+    if (input && input.length > 0) {
+        require(["dojo", "dojo/date/stamp"], function (dojo, IsoDate) {
+            input = dojo.trim(input);
+            var dateObj = IsoDate.fromISOString(input);
+            if (dateObj) {
+                trueFunction(dateObj);
+            }
+        });
+    }
 };
 
 PWM_MAIN.TimestampHandler.initElement = function(element) {
@@ -1760,4 +1804,12 @@ PWM_MAIN.convertSecondsToDisplayTimeDuration = function(amount, fullLength) {
     return output;
 };
 
+PWM_MAIN.setStyle = function(elementID, property, value) {
+    var element = PWM_MAIN.getObject(elementID);
+    if (element) {
+        element.style.setProperty(property, value, null);
+    }
+};
+
 PWM_MAIN.pageLoadHandler();
+

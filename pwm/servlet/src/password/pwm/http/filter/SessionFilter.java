@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -275,20 +275,26 @@ public class SessionFilter extends PwmFilter {
         }
         for (final Enumeration paramEnum = req.getParameterNames(); paramEnum.hasMoreElements(); ) {
             final String paramName = (String)paramEnum.nextElement();
-            if (!PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
-                final List<String> paramValues = Arrays.asList(req.getParameterValues(paramName));
 
-                for (final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext();) {
-                    final String value = valueIter.next();
-                    sb.append(paramName).append("=");
-                    sb.append(StringUtil.urlEncode(value));
-                    if (valueIter.hasNext()) {
+            // check to make sure param is in query string
+            if (req.getQueryString() != null && req.getQueryString().contains(StringUtil.urlDecode(paramName))) {
+                if (!PwmConstants.PARAM_VERIFICATION_KEY.equals(paramName)) {
+                    final List<String> paramValues = Arrays.asList(req.getParameterValues(paramName));
+
+                    for (final Iterator<String> valueIter = paramValues.iterator(); valueIter.hasNext(); ) {
+                        final String value = valueIter.next();
+                        sb.append(StringUtil.urlEncode(paramName)).append("=");
+                        sb.append(StringUtil.urlEncode(value));
+                        if (valueIter.hasNext()) {
+                            sb.append("&");
+                        }
+                    }
+                    if (paramEnum.hasMoreElements()) {
                         sb.append("&");
                     }
                 }
-                if (paramEnum.hasMoreElements()) {
-                    sb.append("&");
-                }
+            } else {
+                LOGGER.debug("dropping non-query string (body?) parameter '" + paramName + "' during redirect validation)");
             }
         }
 

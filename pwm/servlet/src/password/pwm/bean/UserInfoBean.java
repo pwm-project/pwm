@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,13 +22,15 @@
 
 package password.pwm.bean;
 
-import password.pwm.config.policy.ChallengeProfile;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.ProfileType;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.http.bean.PwmSessionBean;
 import password.pwm.util.otp.OTPUserRecord;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -58,6 +60,8 @@ public class UserInfoBean implements PwmSessionBean {
     private Map<String,String> cachedPasswordRuleAttributes = Collections.emptyMap();
 
     private Map<String,String> cachedAttributeValues = Collections.emptyMap();
+    
+    private Map<ProfileType,String> profileIDs = new HashMap<>();
 
     private PasswordStatus passwordState = new PasswordStatus();
 
@@ -69,6 +73,7 @@ public class UserInfoBean implements PwmSessionBean {
     private Date passwordExpirationTime;
     private Date passwordLastModifiedTime;
     private Date lastLdapLoginTime;
+    private Date accountExpirationTime;
 
     private boolean requiresNewPassword;
     private boolean requiresResponseConfig;
@@ -232,6 +237,18 @@ public class UserInfoBean implements PwmSessionBean {
     public void setOtpUserRecord(OTPUserRecord otpUserRecord)
     {
         this.otpUserRecord = otpUserRecord;
+    }
+
+    public Date getAccountExpirationTime() {
+        return accountExpirationTime;
+    }
+
+    public void setAccountExpirationTime(Date accountExpirationTime) {
+        this.accountExpirationTime = accountExpirationTime;
+    }
+
+    public Map<ProfileType, String> getProfileIDs() {
+        return profileIDs;
     }
 }
 

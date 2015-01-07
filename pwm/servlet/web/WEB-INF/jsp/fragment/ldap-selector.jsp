@@ -1,5 +1,5 @@
-<%@ page import="password.pwm.config.LdapProfile" %>
 <%@ page import="password.pwm.config.option.SelectableContextMode" %>
+<%@ page import="password.pwm.config.profile.LdapProfile" %>
 <%@ page import="password.pwm.error.PwmException" %>
 <%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmRequest" %>
@@ -11,7 +11,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
         selectedProfileParam = pwmRequest.readParameterAsString(PwmConstants.PARAM_LDAP_PROFILE);
         selectedProfile = pwmRequest.getConfig().getLdapProfiles().containsKey(selectedProfileParam)
                 ? pwmRequest.getConfig().getLdapProfiles().get(selectedProfileParam)
-                : pwmRequest.getConfig().getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT);
+                : pwmRequest.getConfig().getDefaultLdapProfile();
         showContextSelector = selectableContextMode == SelectableContextMode.SHOW_CONTEXTS && selectedProfile != null && selectedProfile.getLoginContexts().size() > 0;
     } catch (PwmException e) {
         /* noop */

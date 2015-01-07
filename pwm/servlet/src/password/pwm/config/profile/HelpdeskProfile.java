@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,25 +20,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.policy;
+package password.pwm.config.profile;
 
-import password.pwm.PwmConstants;
-import password.pwm.config.*;
+import password.pwm.config.PwmSetting;
+import password.pwm.config.PwmSettingCategory;
+import password.pwm.config.StoredConfiguration;
+import password.pwm.config.StoredValue;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class HelpdeskProfile extends AbstractProfile implements Profile {
-    final protected static List<PwmSetting> HELPDESK_PROFILE_SETTINGS = Collections.unmodifiableList(PwmSettingCategory.HELPDESK_PROFILE.getSettings());
 
     protected HelpdeskProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
-
     public static HelpdeskProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : HELPDESK_PROFILE_SETTINGS) {
-            final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
+        for (final PwmSetting setting : PwmSettingCategory.HELPDESK_PROFILE.getSettings()) {
+            final StoredValue value = storedConfiguration.readSetting(setting, identifier);
             valueMap.put(setting, value);
         }
         return new HelpdeskProfile(identifier, valueMap);
@@ -49,5 +51,10 @@ public class HelpdeskProfile extends AbstractProfile implements Profile {
     public String getDisplayName(Locale locale)
     {
         return this.getIdentifier();
+    }
+
+    @Override
+    public ProfileType profileType() {
+        return ProfileType.Helpdesk;
     }
 }

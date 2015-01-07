@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 package password.pwm.util.macro;
 
 import com.novell.ldapchai.exception.ChaiException;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserInfoBean;
@@ -38,14 +39,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class StandardMacros {
     private static final PwmLogger LOGGER = PwmLogger.forClass(StandardMacros.class);
+
+    static final String PATTERN_OPTIONAL_PARAMETER_MATCH = "(:(?:/@|[^@])*)*"; // match param values inside @ and include @ if preceded by /
+    static final String PATTERN_PARAMETER_SPLIT = "(?<![/]):"; //split on : except if preceded by /
+
 
     public static final List<Class<? extends MacroImplementation>> STANDARD_MACROS;
     static {
@@ -59,16 +61,41 @@ public abstract class StandardMacros {
         defaultMacros.add(UserPasswordMacro.class);
         defaultMacros.add(InstanceIDMacro.class);
         defaultMacros.add(CurrentTimeMacro.class);
-        defaultMacros.add(CurrentTimeDefaultMacro.class);
         defaultMacros.add(DefaultEmailFromAddressMacro.class);
         defaultMacros.add(SiteURLMacro.class);
         defaultMacros.add(SiteHostMacro.class);
         defaultMacros.add(RandomCharMacro.class);
+        defaultMacros.add(UUIDMacro.class);
         STANDARD_MACROS = Collections.unmodifiableList(defaultMacros);
     }
 
+    static String stripMacroDelimiters(final String input) {
+        return input.replaceAll("^@|@$",""); // strip leading / trailing @
+    }
+
+    static String unescapeParamValue(final String input) {
+        String result = input;
+        result = result.replace("/:", ":");
+        result = result.replace("/@","@");
+        return result;
+    }
+
+    static List<String> splitMacroParameters(final String input, String... ignoreValues) {
+        final String strippedInput = stripMacroDelimiters(input);
+        final String[] splitInput = strippedInput.split(PATTERN_PARAMETER_SPLIT);
+        final List<String> returnObj = new ArrayList<>();
+        final List<String> ignoreValueList = Arrays.asList(ignoreValues);
+        for (final String value : splitInput) {
+            if (!ignoreValueList.contains(value)) {
+                returnObj.add(unescapeParamValue(value));
+                ignoreValueList.remove(value);
+            }
+        }
+        return returnObj;
+    }
+
     public static class LdapMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@LDAP:.*?@");
+        private static final Pattern PATTERN = Pattern.compile("@LDAP" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -77,33 +104,79 @@ public abstract class StandardMacros {
         public String replaceValue(
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
-        ) {
+        ) throws MacroParseException {
             final UserDataReader userDataReader = macroRequestInfo.getUserDataReader();
 
             if (userDataReader == null) {
                 return "";
             }
 
-            final String ldapAttr = matchValue.substring(6,matchValue.length() -1);
+            final List<String> parameters = splitMacroParameters(matchValue,"LDAP");
 
-            if (ldapAttr.equalsIgnoreCase("dn")) {
-                return userDataReader.getUserDN();
+            final String ldapAttr;
+            if (parameters.size() > 0 && !parameters.get(0).isEmpty()) {
+                ldapAttr = parameters.get(0);
+            } else {
+                throw new MacroParseException("required attribute name parameter is missing");
+            }
+
+            final int length;
+            if (parameters.size() > 1 && !parameters.get(1).isEmpty()) {
+                try {
+                    length = Integer.parseInt(parameters.get(1));
+                } catch (NumberFormatException e) {
+                    throw new MacroParseException("error parsing length parameter: " + e.getMessage());
+                }
+
+                int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_LDAP_ATTR_CHAR_MAX_LENGTH));
+                if (length > maxLengthPermitted) {
+                    throw new MacroParseException("maximum permitted length of LDAP attribute (" + maxLengthPermitted + ") exceeded");
+                } else if (length <= 0) {
+                    throw new MacroParseException("length parameter must be greater than zero");
+                }
+            } else {
+                length = 0;
+            }
+
+            final String paddingChar;
+            if (parameters.size() > 2 && !parameters.get(2).isEmpty()) {
+                paddingChar = parameters.get(2);
+            } else {
+                paddingChar = "";
+            }
+
+            if (parameters.size() > 3) {
+                throw new MacroParseException("too many parameters");
             }
 
             final String ldapValue;
-            try {
-                ldapValue = userDataReader.readStringAttribute(ldapAttr);
-            } catch (ChaiException e) {
-                LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
-                return "";
+            if (ldapAttr.equalsIgnoreCase("dn")) {
+                ldapValue = userDataReader.getUserDN();
+            } else {
+                try {
+                    ldapValue = userDataReader.readStringAttribute(ldapAttr);
+                } catch (ChaiException e) {
+                    LOGGER.trace("could not replace value for '" + matchValue + "', ldap error: " + e.getMessage());
+                    return "";
+                }
+
+                if (ldapValue == null || ldapValue.length() < 1) {
+                    LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
+                    return "";
+                }
             }
 
-            if (ldapValue == null || ldapValue.length() < 1) {
-                LOGGER.trace("could not replace value for '" + matchValue + "', user does not have value for '" + ldapAttr + "'");
-                return "";
+            String returnValue = ldapValue == null ? "" : ldapValue;
+            if (length > 0 && length < returnValue.length()) {
+                returnValue = returnValue.substring(0, length);
+            }
+            if (length > 0 && paddingChar.length() > 0) {
+                while (returnValue.length() < length) {
+                    returnValue += paddingChar;
+                }
             }
 
-            return ldapValue;
+            return returnValue;
         }
     }
 
@@ -130,7 +203,7 @@ public abstract class StandardMacros {
     }
 
     public static class CurrentTimeMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@CurrentTime:.*?@");
+        private static final Pattern PATTERN = Pattern.compile("@CurrentTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -140,41 +213,43 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
 
-        ) {
-            final String datePattern = matchValue.substring(13,matchValue.length() -1);
+        ) throws MacroParseException {
+            final List<String> parameters = splitMacroParameters(matchValue,"CurrentTime");
 
-            if (datePattern.length() > 0) {
+            final DateFormat dateFormat;
+            if (parameters.size() > 0 && !parameters.get(0).isEmpty()) {
                 try {
-                    final DateFormat dateFormat = new SimpleDateFormat(datePattern);
-                    return dateFormat.format(new Date());
+                    dateFormat = new SimpleDateFormat(parameters.get(0));
                 } catch (IllegalArgumentException e) {
-                    LOGGER.error("invalid macro expression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                    throw new MacroParseException(e.getMessage());
                 }
             } else {
-                LOGGER.error("invalid macro expression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
+                dateFormat = new SimpleDateFormat(PwmConstants.DEFAULT_DATETIME_FORMAT_STR);
             }
 
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
-        }
-    }
+            final TimeZone tz;
+            if (parameters.size() > 1 && !parameters.get(1).isEmpty()) {
+                final String desiredTz = parameters.get(1);
+                final List<String> avalibleIDs = Arrays.asList(TimeZone.getAvailableIDs());
+                if (!avalibleIDs.contains(desiredTz)) {
+                    throw new MacroParseException("unknown timezone");
+                }
+                tz = TimeZone.getTimeZone(desiredTz);
+            } else {
+                tz = PwmConstants.DEFAULT_TIMEZONE;
+            }
 
-    public static class CurrentTimeDefaultMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@CurrentTime@");
+            if (parameters.size() > 2) {
+                throw new MacroParseException("too many parameters");
+            }
 
-        public Pattern getRegExPattern() {
-            return PATTERN;
-        }
-
-        public String replaceValue(
-                final String matchValue,
-                final MacroRequestInfo macroRequestInfo
-        ) {
-            return PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date());
+            dateFormat.setTimeZone(tz);
+            return dateFormat.format(new Date());
         }
     }
 
     public static class UserPwExpirationTimeMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@User:PwExpireTime:.*?@");
+        private static final Pattern PATTERN = Pattern.compile("@User:PwExpireTime" + PATTERN_OPTIONAL_PARAMETER_MATCH + "@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -184,7 +259,7 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
 
-        ) {
+        ) throws MacroParseException {
             final UserInfoBean userInfoBean = macroRequestInfo.getUserInfoBean();
 
             if (userInfoBean == null) {
@@ -196,16 +271,14 @@ public abstract class StandardMacros {
                 return "";
             }
 
-            final String datePattern = matchValue.substring(19,matchValue.length() -1);
+            final String datePattern = matchValue.substring(19, matchValue.length() - 1);
             if (datePattern.length() > 0) {
                 try {
                     final DateFormat dateFormat = new SimpleDateFormat(datePattern);
                     return dateFormat.format(pwdExpirationTime);
                 } catch (IllegalArgumentException e) {
-                    LOGGER.error("invalid macro expression: " + matchValue + ", invalid SimpleDateFormat pattern: " + e.getMessage());
+                    throw new MacroParseException(e.getMessage());
                 }
-            } else {
-                LOGGER.error("invalid macro expression: " + matchValue + ", SimpleDatePattern <pattern> expected, using default instead.");
             }
 
             return PwmConstants.DEFAULT_DATETIME_FORMAT.format(pwdExpirationTime);
@@ -334,7 +407,7 @@ public abstract class StandardMacros {
     }
 
     public static class SiteURLMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@SiteURL@");
+        private static final Pattern PATTERN = Pattern.compile("@SiteURL@|@Site:URL@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -364,7 +437,7 @@ public abstract class StandardMacros {
     }
 
     public static class SiteHostMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@SiteHost@");
+        private static final Pattern PATTERN = Pattern.compile("@SiteHost@|@Site:Host@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -386,7 +459,49 @@ public abstract class StandardMacros {
     }
 
     public static class RandomCharMacro extends AbstractMacro {
-        private static final Pattern PATTERN = Pattern.compile("@RandomChar:[0-9]+(:.+)?@");
+        private static final Pattern PATTERN = Pattern.compile("@RandomChar(:[^@]*)?@");
+
+        public Pattern getRegExPattern() {
+            return PATTERN;
+        }
+
+        public String replaceValue(
+                final String matchValue,
+                final MacroRequestInfo macroRequestInfo
+        )
+                throws MacroParseException
+        {
+            if (matchValue == null || matchValue.length() < 1) {
+                return "";
+            }
+
+            final List<String> parameters = splitMacroParameters(matchValue,"RandomChar");
+            int length = 1;
+            if (parameters.size() > 0 && !parameters.get(0).isEmpty()) {
+                int maxLengthPermitted = Integer.parseInt(macroRequestInfo.getPwmApplication().getConfig().readAppProperty(AppProperty.MACRO_RANDOM_CHAR_MAX_LENGTH));
+                try {
+                    length = Integer.parseInt(parameters.get(0));
+                    if (length > maxLengthPermitted) {
+                        throw new MacroParseException("maximum permitted length of RandomChar (" + maxLengthPermitted + ") exceeded");
+                    } else if (length <= 0) {
+                        throw new MacroParseException("length of RandomChar (" + maxLengthPermitted + ") must be greater than zero");
+                    }
+                } catch (NumberFormatException e) {
+                    throw new MacroParseException("error parsing length parameter of RandomChar: " + e.getMessage());
+                }
+            }
+
+            if (parameters.size() > 1 && !parameters.get(1).isEmpty()) {
+                final String chars = parameters.get(1);
+                return PwmRandom.getInstance().alphaNumericString(chars,length);
+            } else {
+                return PwmRandom.getInstance().alphaNumericString(length);
+            }
+        }
+    }
+
+    public static class UUIDMacro extends AbstractMacro {
+        private static final Pattern PATTERN = Pattern.compile("@UUID@");
 
         public Pattern getRegExPattern() {
             return PATTERN;
@@ -396,28 +511,8 @@ public abstract class StandardMacros {
                 final String matchValue,
                 final MacroRequestInfo macroRequestInfo
         ) {
-            if (matchValue == null || matchValue.length() < 1) {
-                return "";
-            }
-
-            final String cleanedMatchValue = matchValue.replaceAll("^@|@$",""); // strip leading / trailing @
-
-            final String[] splitString = cleanedMatchValue.split(":");
-            int length = 1;
-            if (splitString.length > 1) {
-                try {
-                    length = Integer.parseInt(splitString[1]);
-                } catch (NumberFormatException e) {
-                    return "[macro error: unable to parse character quantity from value '" +splitString[1]+ "', error=" + e.getMessage() + "]";
-                }
-            }
-
-            if (splitString.length > 2) {
-                String chars = splitString[2];
-                return PwmRandom.getInstance().alphaNumericString(chars,length);
-            } else {
-                return PwmRandom.getInstance().alphaNumericString(length);
-            }
+            return PwmRandom.getInstance().randomUUID().toString();
         }
     }
+
 }

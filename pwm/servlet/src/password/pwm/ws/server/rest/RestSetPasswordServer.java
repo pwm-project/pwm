@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@ package password.pwm.ws.server.rest;
 import com.novell.ldapchai.ChaiUser;
 import password.pwm.Permission;
 import password.pwm.config.PwmSetting;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -122,6 +123,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
             return RestResultBean.fromError(errorInformation,restRequestBean).asJsonResponse();
         }
 
+        final HelpdeskProfile helpdeskProfile = restRequestBean.getPwmSession().getSessionManager().getHelpdeskProfile(restRequestBean.getPwmApplication());
         try {
             if (restRequestBean.getUserIdentity() == null) {
                 if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(
@@ -130,8 +132,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
                             "actor does not have required permission"));
                 }
             } else {
-                if (!restRequestBean.getPwmSession().getSessionManager().checkPermission(
-                        restRequestBean.getPwmApplication(), Permission.HELPDESK)) {
+                if (helpdeskProfile == null) {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,
                             "actor does not have required permission"));
                 }
@@ -143,7 +144,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
             /* helpdesk set password */
             if (restRequestBean.getUserIdentity() != null) {
 
-                final boolean useProxy = restRequestBean.getPwmApplication().getConfig().readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
+                final boolean useProxy = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY);
                 final ChaiUser chaiUser = useProxy
                         ? restRequestBean.getPwmApplication().getProxiedChaiUser(restRequestBean.getUserIdentity())
                         : restRequestBean.getPwmSession().getSessionManager().getActor(restRequestBean.getPwmApplication(),restRequestBean.getUserIdentity());
@@ -168,7 +169,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
                         newPassword
                 );
                 jsonResultData.password = null;
-                jsonResultData.username = restRequestBean.getUserIdentity().toDeliminatedKey();
+                jsonResultData.username = restRequestBean.getUserIdentity().toDelimitedKey();
             } else {
                 final PasswordData newPassword;
                 if (random) {
@@ -180,7 +181,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
                         newPassword);
                 restRequestBean.getPwmApplication().getAuditManager().submit(AuditEvent.CHANGE_PASSWORD, restRequestBean.getPwmSession().getUserInfoBean(), restRequestBean.getPwmSession());
                 jsonResultData.password = null;
-                jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDeliminatedKey();
+                jsonResultData.username = restRequestBean.getPwmSession().getUserInfoBean().getUserIdentity().toDelimitedKey();
             }
             if (restRequestBean.isExternal()) {
                 StatisticsManager.incrementStat(restRequestBean.getPwmApplication(), Statistic.REST_SETPASSWORD);

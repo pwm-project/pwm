@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,8 +85,7 @@ public enum PwmSettingCategory {
     LDAP_PROFILE                (PROFILES),
     PASSWORD_POLICY             (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
-    HELPDESK_PROFILE            (PROFILES),
-    RECOVERY_PROFILE(PROFILES),
+    RECOVERY_PROFILE            (PROFILES),
 
     CHANGE_PASSWORD             (MODULES),
     ACCOUNT_INFO                (MODULES),
@@ -98,7 +97,7 @@ public enum PwmSettingCategory {
     UPDATE                      (MODULES),
     SHORTCUT                    (MODULES),
     PEOPLE_SEARCH               (MODULES),
-    HELPDESK                    (MODULES),
+    HELPDESK_PROFILE            (MODULES),
 
     ;
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -460,7 +460,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             if (userIdentity != null) {
-                final String subject = userIdentity.toDeliminatedKey();
+                final String subject = userIdentity.toDelimitedKey();
                 mark(RecordType.USER_ID, subject, sessionLabel);
             }
         }
@@ -469,7 +469,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             if (userIdentity != null) {
-                final String subject = userIdentity.toDeliminatedKey();
+                final String subject = userIdentity.toDelimitedKey();
                 mark(RecordType.USER_ID, subject, pwmSession.getLabel());
             }
         }
@@ -478,7 +478,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             if (userIdentity != null) {
-                final String subject = userIdentity.toDeliminatedKey();
+                final String subject = userIdentity.toDelimitedKey();
                 check(RecordType.USER_ID, subject);
             }
         }
@@ -487,7 +487,7 @@ public class IntruderManager implements Serializable, PwmService {
                 throws PwmUnrecoverableException
         {
             if (userIdentity != null) {
-                final String subject = userIdentity.toDeliminatedKey();
+                final String subject = userIdentity.toDelimitedKey();
                 clear(RecordType.USER_ID, subject);
             }
         }

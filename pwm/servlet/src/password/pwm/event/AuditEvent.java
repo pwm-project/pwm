@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,14 +56,14 @@ public enum AuditEvent {
     INTRUDER_USER(Message.EVENT_LOG_INTRUDER_USER, Type.USER, true),
 
     // helpdesk events
-    HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD, Type.USER, true),
-    HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD, Type.USER, true),
-    HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES, Type.USER, true),
-    HELPDESK_CLEAR_OTP_SECRET(Message.EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET, Type.USER, true),
-    HELPDESK_ACTION(Message.EVENT_LOG_HELPDESK_ACTION, Type.USER, true),
-    HELPDESK_DELETE_USER(Message.EVENT_LOG_HELPDESK_DELETE_USER, Type.USER, false),
-    HELPDESK_VIEW_DETAIL(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.USER, false),
-    HELPDESK_VERIFY_OTP(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.USER, false),
+    HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD, Type.HELPDESK, true),
+    HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD, Type.HELPDESK, true),
+    HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES, Type.HELPDESK, true),
+    HELPDESK_CLEAR_OTP_SECRET(Message.EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET, Type.HELPDESK, true),
+    HELPDESK_ACTION(Message.EVENT_LOG_HELPDESK_ACTION, Type.HELPDESK, true),
+    HELPDESK_DELETE_USER(Message.EVENT_LOG_HELPDESK_DELETE_USER, Type.HELPDESK, false),
+    HELPDESK_VIEW_DETAIL(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.HELPDESK, false),
+    HELPDESK_VERIFY_OTP(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.HELPDESK, false),
 
 
     ;
@@ -113,6 +113,7 @@ public enum AuditEvent {
 
     public enum Type {
         USER,
-        SYSTEM
+        SYSTEM,
+        HELPDESK,
     }
 }

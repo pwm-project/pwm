@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -26,29 +26,43 @@
 <%@ page import="password.pwm.PwmConstants" %>
 <%@ page import="password.pwm.http.PwmURL" %>
 <%
-    boolean headerEnabled = false;
+    boolean includeHeader = false;
     boolean adminUser = false;
-    boolean showHeader = false;
-    boolean healthCheck = false;
+    boolean headerVisibility = true;
     boolean configMode = false;
+    boolean showOpenCloseButtons = true;
     try {
-        final PwmRequest pwmRequest = PwmRequest.forRequest(request,response);
-        headerEnabled = Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))
-                && !new PwmURL(request).isConfigManagerURL();
-        if (headerEnabled) {
-            final PwmApplication.MODE mode = pwmRequest.getPwmApplication().getApplicationMode();
-            adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
-            configMode = mode == PwmApplication.MODE.CONFIGURATION;
-            showHeader = configMode || PwmConstants.TRIAL_MODE;
-            healthCheck = mode != PwmApplication.MODE.RUNNING || adminUser;
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
+        configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
+        if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
+            if (!new PwmURL(request).isConfigManagerURL()) {
+                if (configMode || PwmConstants.TRIAL_MODE) {
+                    includeHeader = true;
+                    showOpenCloseButtons = false;
+                } else if (pwmRequest.isAuthenticated()) {
+                    adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
+                    if (adminUser) {
+                        includeHeader = true;
+                        final String headerVisibilityCookie = pwmRequest.readCookie("headerVisibility");
+                        if (headerVisibilityCookie != null) {
+                            if (headerVisibilityCookie.equals("hide")) {
+                                headerVisibility = false;
+                            } else if (headerVisibilityCookie.equals("show")) {
+                                headerVisibility = true;
+                            }
+                        }
+                    }
+                }
+            }
         }
     } catch (Exception e) {
         /* noop */
     }
 %>
-<% if (headerEnabled && (showHeader || healthCheck)) { %>
+<% if (includeHeader) { %>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<div id="header-warning" style="<%=showHeader?"":"display: none"%>">
+<div id="header-warning" style="<%=headerVisibility?"":"display: none"%>">
     <span style="cursor:pointer; white-space: nowrap">
         <a class="btn" id="header_configManagerButton">
             <pwm:if test="showIcons"><span class="btn-icon fa fa-gears"></span></pwm:if>
@@ -76,49 +90,21 @@
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } else if (configMode) { %>
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
-    <pwm:script>
-        <script type="application/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.showTooltip({
-                    id: ['header-warning-message'],
-                    position: ['below','above'],
-                    text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
-                    width: 500
-                });
-            });
-        </script>
-    </pwm:script>
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } %>
     </span>
-    <div id="headerHealthData" style="cursor: pointer">
+    <div id="panel-header-healthData" style="cursor: pointer">
     </div>
-    <div style="position: absolute; top: 3px; right: 3px;">
-        <span id="button-closeHeader" style="cursor: pointer">
-            <span class="fa fa-caret-up"></span>&nbsp;
-        </span>
+    <% if (showOpenCloseButtons) { %>
+    <div id="button-closeHeader">
+        <span class="fa fa-caret-up"></span>
     </div>
-    <pwm:script>
-        <script type="application/javascript">
-            PWM_GLOBAL['startupFunctions'].push(function(){
-                PWM_MAIN.addEventHandler('headerHealthData','click',function(){
-                    PWM_MAIN.goto('/private/config/ConfigManager');
-                });
-                PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
-                    PWM_MAIN.getObject('header-warning').style.display = 'none';
-                });
-            });
-        </script>
-    </pwm:script>
+    <% } %>
 </div>
-<% if (healthCheck) { %>
-<pwm:script>
-    <script type="text/javascript">
-        PWM_GLOBAL['startupFunctions'].push(function(){
-            PWM_CONFIG.showHeaderHealth();
-        });
-    </script>
-</pwm:script>
+<% if (showOpenCloseButtons) { %>
+<div id="button-openHeader" style="<%=headerVisibility?"display: none":""%>">
+    <span class="fa fa-caret-down"></span>
+</div>
 <% } %>
 <% } %>

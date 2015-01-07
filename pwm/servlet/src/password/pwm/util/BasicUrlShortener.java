@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,10 @@
  */
 
 package password.pwm.util;
- 
-import java.util.Properties;
-import password.pwm.util.AbstractUrlShortener;
+
 import password.pwm.PwmApplication;
+
+import java.util.Properties;
 
 public class BasicUrlShortener implements AbstractUrlShortener {
 	private Properties configuration = null;

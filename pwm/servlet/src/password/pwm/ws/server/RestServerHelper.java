@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.PwmSetting;
+import password.pwm.config.profile.HelpdeskProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -38,6 +39,7 @@ import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.BasicAuthInfo;
+import password.pwm.util.PasswordData;
 import password.pwm.util.ServletHelper;
 import password.pwm.util.intruder.RecordType;
 import password.pwm.util.logging.PwmLogger;
@@ -114,8 +116,8 @@ public abstract class RestServerHelper {
             }
         }
 
-        if (servicePermissions.isBlockExternal()) {
-            if (restRequestBean.isExternal()) {
+        if (restRequestBean.isExternal()) {
+            if (servicePermissions.isBlockExternal()) {
                 final boolean allowExternal = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES);
                 if (!allowExternal) {
                     final String errorMsg = "external web services are not enabled";
@@ -123,15 +125,30 @@ public abstract class RestServerHelper {
                     throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE, errorMsg));
                 }
             }
+            
+            if (restRequestBean.isAuthenticated()) {
+                if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE)) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "authenticated user does not have external webservices permission");
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
+            
+            final PasswordData secretKey = pwmApplication.getConfig().readSettingAsPassword(PwmSetting.WEBSERVICES_EXTERNAL_SECRET);
+            if (secretKey != null) {
+                final String headerName = "RestSecretKey";
+                final String headerValue = pwmRequest.readHeaderValueAsString(headerName);
+                if (headerValue == null || headerValue.isEmpty()) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "request is missing security header " + headerName);
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+                if (headerValue.equals(secretKey.getStringValue())) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED, "authenticated user does not have external webservices permission");
+                    throw new PwmUnrecoverableException(errorInformation);
+                }
+            }
         }
 
-        final boolean adminPermission;
-        try {
-            adminPermission = restRequestBean.getPwmSession().getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
-        } catch (ChaiUnavailableException e) {
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE,e.getMessage()));
-        }
-
+        final boolean adminPermission= restRequestBean.getPwmSession().getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN);
         if (servicePermissions.isAdminOnly()) {
             if (!adminPermission) {
                 final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"admin authorization is required");
@@ -162,26 +179,19 @@ public abstract class RestServerHelper {
         pwmApplication.getIntruderManager().check(RecordType.USERNAME,username);
 
         if (isExternal) {
-            try {
-                if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE_THIRDPARTY)) {
-                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match thirdparty webservices query filter");
-                    throw new PwmUnrecoverableException(errorInformation);
-                }
-            } catch (ChaiUnavailableException e) {
-                throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+            if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.WEBSERVICE_THIRDPARTY)) {
+                final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match thirdparty webservices query filter");
+                throw new PwmUnrecoverableException(errorInformation);
             }
         }
 
 
         if (!isExternal) {
             if (servicePermissions.isHelpdeskPermitted()) {
-                try {
-                    if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.HELPDESK)) {
-                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated user does not match third-party webservices query filter");
-                        throw new PwmUnrecoverableException(errorInformation);
-                    }
-                } catch (ChaiUnavailableException e) {
-                    throw new PwmUnrecoverableException(PwmError.ERROR_DIRECTORY_UNAVAILABLE);
+                final HelpdeskProfile helpdeskProfile = pwmSession.getSessionManager().getHelpdeskProfile(pwmApplication);
+                if (helpdeskProfile == null) {
+                    final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"authenticated non-external request for third-party does not match third-party webservices query filter");
+                    throw new PwmUnrecoverableException(errorInformation);
                 }
             } else {
                 final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"web service is not permitted for internal third-party username");

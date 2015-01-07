@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,6 +156,7 @@ public enum PwmError {
     ERROR_CRYPT_ERROR("Error_CryptError", 5076, true),
     ERROR_SMS_SEND_ERROR("Error_SmsSendError",5078, true),
     ERROR_LDAP_DATA_ERROR("Error_LdapDataError",5079, true),
+    ERROR_MACRO_PARSE_ERROR("Error_MacroParseError",5080,true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

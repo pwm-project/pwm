@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,13 +35,10 @@ import password.pwm.PwmService;
 import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.FormConfiguration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DuplicateMode;
-import password.pwm.error.ErrorInformation;
-import password.pwm.error.PwmError;
-import password.pwm.error.PwmOperationalException;
-import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.config.profile.LdapProfile;
+import password.pwm.error.*;
 import password.pwm.http.PwmRequest;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
@@ -107,28 +104,33 @@ public class UserSearchEngine {
     )
             throws ChaiUnavailableException, PwmUnrecoverableException, PwmOperationalException
     {
-        try {
-            //check if username is a key
-            final UserIdentity inputIdentity = UserIdentity.fromKey(username, pwmApplication.getConfig());
-            final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
+        //check if username is a key
+        {
+            UserIdentity inputIdentity = null;
+            try {
+                inputIdentity = UserIdentity.fromKey(username, pwmApplication.getConfig());
+            } catch (PwmException e) { /* input is not a userIdentity */ }
 
-            //see if we need to do a contextless search.
-            if (userSearchEngine.checkIfStringIsDN(inputIdentity.getUserDN())) {
-                if (PwmConstants.PROFILE_ID_DEFAULT.equals(inputIdentity.getLdapProfileID())) {
-                    return userSearchEngine.resolveUserDN(inputIdentity.getUserDN());
-                } else {
+            if (inputIdentity != null) {
+                try {
                     final ChaiUser theUser = pwmApplication.getProxiedChaiUser(inputIdentity);
                     if (theUser.isValid()) {
                         final String canonicalDN;
-                        try {
-                            canonicalDN = theUser.readCanonicalDN();
-                        } catch (ChaiOperationException e) {
-                            throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER,e.getMessage()));
-                        }
+                        canonicalDN = theUser.readCanonicalDN();
                         return new UserIdentity(canonicalDN, inputIdentity.getLdapProfileID());
                     }
+                } catch (ChaiOperationException e) {
+                    throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER, e.getMessage()));
                 }
-                throw new PwmOperationalException(new ErrorInformation(PwmError.ERROR_CANT_MATCH_USER));
+            }
+        }
+
+        final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, sessionLabel);
+
+        try {
+            //see if we need to do a contextless search.
+            if (userSearchEngine.checkIfStringIsDN(username)) {
+                return userSearchEngine.resolveUserDN(username);
             } else {
                 final SearchConfiguration searchConfiguration = new SearchConfiguration();
                 searchConfiguration.setUsername(username);
@@ -345,15 +347,15 @@ public class UserSearchEngine {
         returnMap = new LinkedHashMap<>();
         for (final String loopContext : searchContexts) {
             final Map<UserIdentity,Map<String,String>> singleContextResults;
-                singleContextResults = doSingleContextSearch(
-                        ldapProfile,
-                        searchFilter,
-                        loopContext,
-                        returnAttributes,
-                        maxResults - returnMap.size(),
-                        chaiProvider,
-                        timeLimitMS
-                );
+            singleContextResults = doSingleContextSearch(
+                    ldapProfile,
+                    searchFilter,
+                    loopContext,
+                    returnAttributes,
+                    maxResults - returnMap.size(),
+                    chaiProvider,
+                    timeLimitMS
+            );
             returnMap.putAll(singleContextResults);
             if (returnMap.size() >= maxResults) {
                 break;

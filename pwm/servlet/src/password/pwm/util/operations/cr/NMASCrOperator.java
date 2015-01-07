@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,9 +49,9 @@ import password.pwm.PwmConstants;
 import password.pwm.bean.ResponseInfoBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.config.Configuration;
-import password.pwm.config.LdapProfile;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.profile.LdapProfile;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmException;
@@ -244,7 +244,7 @@ public class NMASCrOperator implements CrOperator {
         }
         final List<Challenge> challenges = new ArrayList<>();
         for (final String question : questions) {
-            challenges.add(new ChaiChallenge(true, question, 1, 256, true));
+            challenges.add(new ChaiChallenge(true, question, 1, 256, true, 0, false));
         }
         return new ChaiChallengeSet(challenges,challenges.size(), PwmConstants.DEFAULT_LOCALE,"NMAS-LDAP ChallengeResponse Set");
     }

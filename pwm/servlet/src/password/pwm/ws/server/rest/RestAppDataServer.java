@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.event.AuditRecord;
+import password.pwm.event.HelpdeskAuditRecord;
 import password.pwm.event.SystemAuditRecord;
 import password.pwm.event.UserAuditRecord;
 import password.pwm.http.ContextManager;
@@ -106,12 +107,15 @@ public class RestAppDataServer extends AbstractRestServer {
 
 
         final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
+        final ArrayList<HelpdeskAuditRecord> helpdeskRecords = new ArrayList<>();
         final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
         final Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readVault();
         while (iterator.hasNext() && userRecords.size() <= maximum) {
             final AuditRecord loopRecord = iterator.next();
             if (loopRecord instanceof SystemAuditRecord) {
                 systemRecords.add((SystemAuditRecord)loopRecord);
+            } else if (loopRecord instanceof HelpdeskAuditRecord) {
+                helpdeskRecords.add((HelpdeskAuditRecord)loopRecord);
             } else if (loopRecord instanceof UserAuditRecord) {
                 userRecords.add((UserAuditRecord)loopRecord);
             }
@@ -121,6 +125,7 @@ public class RestAppDataServer extends AbstractRestServer {
         }
         final HashMap<String,List> outputMap = new HashMap<>();
         outputMap.put("user",userRecords);
+        outputMap.put("helpdesk",helpdeskRecords);
         outputMap.put("system",systemRecords);
 
         final RestResultBean restResultBean = new RestResultBean();
@@ -167,7 +172,8 @@ public class RestAppDataServer extends AbstractRestServer {
                     rowData.put("lastTime", loopSession.getSessionStateBean().getSessionLastAccessedTime());
                     rowData.put("idle", loopSession.getIdleTime().asCompactString());
                     rowData.put("locale", loopSsBean.getLocale() == null ? "" : loopSsBean.getLocale().toString());
-                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().toDeliminatedKey() : "");
+                    rowData.put("ldapProfile", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getLdapProfileID() : "");
+                    rowData.put("userDN", loopSsBean.isAuthenticated() ? loopUiBean.getUserIdentity().getUserDN() : "");
                     rowData.put("userID", loopSsBean.isAuthenticated() ? loopUiBean.getUsername() : "");
                     rowData.put("srcAddress", loopSsBean.getSrcAddress());
                     rowData.put("srcHost", loopSsBean.getSrcHostname());

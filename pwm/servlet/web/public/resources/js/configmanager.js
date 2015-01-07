@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -271,7 +271,10 @@ PWM_CONFIG.openLogViewer=function(level) {
 
 PWM_CONFIG.showHeaderHealth = function() {
     var refreshUrl = PWM_GLOBAL['url-restservice'] + "/health";
-    var parentDiv = PWM_MAIN.getObject('headerHealthData');
+    var parentDiv = PWM_MAIN.getObject('panel-header-healthData');
+    if (!parentDiv) {
+        return;
+    }
     var headerDiv = PWM_MAIN.getObject('header-warning');
     if (parentDiv && headerDiv) {
         var loadFunction = function(data) {
@@ -281,7 +284,13 @@ PWM_CONFIG.showHeaderHealth = function() {
                 for (var i = 0; i < healthRecords.length; i++) {
                     var healthData = healthRecords[i];
                     if (healthData['status'] == 'WARN') {
-                        headerDiv.style.display = 'block';
+                        //require(["dojo/cookie"], function(cookie){
+                        //    var cookieValue = cookie('headerVisibility');
+                        //    if (!cookieValue) {
+                                PWM_MAIN.openHeaderWarningPanel();
+                        //    }
+                        //});
+
                         htmlBody += '<div class="header-error">';
                         htmlBody += healthData['status'];
                         htmlBody += " - ";

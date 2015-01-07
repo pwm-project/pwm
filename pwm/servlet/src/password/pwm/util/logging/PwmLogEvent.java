@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,14 +156,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             if (sessionLabel.getUsername() != null) {
                 sb.append(sessionLabel.getUsername());
             } else if (sessionLabel.getUserIdentity() != null) {
-                sb.append(sessionLabel.getUserIdentity().getUserDN());
-            }
-            if (sessionLabel.getUserIdentity() != null) {
-                final String userLdapProfile = sessionLabel.getUserIdentity().getLdapProfileID();
-                if (!PwmConstants.PROFILE_ID_DEFAULT.equals(userLdapProfile)) {
-                    sb.append("|");
-                    sb.append(userLdapProfile);
-                }
+                sb.append(sessionLabel.getUserIdentity().toDelimitedKey());
             }
         }
         return sb.toString();

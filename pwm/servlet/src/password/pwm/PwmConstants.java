@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +109,6 @@ public abstract class PwmConstants {
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
     public static final String LDAP_AD_PASSWORD_POLICY_CONTROL_ASN = "1.2.840.113556.1.4.2066";
-    public static final String PROFILE_ID_DEFAULT = "default";
     public static final String PROFILE_ID_ALL = "all";
     public static final String DEFAULT_PASSWORD_PROFILE = "";
     public static final String DEFAULT_CHALLENGE_PROFILE = "";
@@ -187,6 +186,7 @@ public abstract class PwmConstants {
         CAPTCHA("captcha.jsp"),
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
+        CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
         CONFIG_MANAGER_LOGVIEW("logview.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
@@ -234,6 +234,8 @@ public abstract class PwmConstants {
     public static final String PARAM_FORM_ID = "pwmFormID";
     public static final String PARAM_OTP_TOKEN = "otpToken";
     public static final String PARAM_TOKEN = readPwmConstantsBundle("paramName.token");
+    public static final String PARAM_USERNAME = "username";
+    public static final String PARAM_PASSWORD = "password";
     public static final String PARAM_CONTEXT = "context";
     public static final String PARAM_LDAP_PROFILE = "ldapProfile";
     public static final String PARAM_SKIP_CAPTCHA = "skipCaptcha";

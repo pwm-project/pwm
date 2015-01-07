@@ -11,7 +11,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -60,11 +60,11 @@
     <div id="centerbody" class="wide">
         <%@ include file="admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
-            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
+            <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
-                <div data-dojo-type="dijit.layout.ContentPane" title="Summary">
-                    <div style="max-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto" id="summaryTableWrapper">
-                        <table id="summaryTable">
+                <div data-dojo-type="dijit.layout.ContentPane" title="Summary" class="tabContent">
+                    <div style="margin-left: auto; margin-right: auto" id="summaryTableWrapper">
+                        <table id="summaryTable" style="max-width:600px">
                             <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                         </table>
                         <div class="noticebar">
@@ -72,7 +72,7 @@
                         </div>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>" class="tabContent">
                     <div id="grid">
                     </div>
                     <div style="text-align: center">
@@ -113,7 +113,7 @@
                         </script>
                     </pwm:script>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_ReportEngineStatus" bundle="Admin"/>" class="tabContent">
                     <table style="width:400px" id="statusTable">
                         <tr><td><pwm:display key="Display_PleaseWait"/></td></tr>
                     </table>
@@ -144,7 +144,7 @@
                 <% } %>
             </div>
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_EventStatistics" bundle="Admin"/>">
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_RawStatistics" bundle="Admin"/>" class="tabContent">
                     <div style="max-height: 350px; overflow-y: auto">
                         <table>
                             <tr>
@@ -190,7 +190,7 @@
                         </button>
                     </div>
                 </div>
-                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>">
+                <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>" class="tabContent">
                     <div style="height:100%; width: 100%">
                         <div id="statsChartOptionsDiv" style="width:580px; text-align: center; margin:0 auto;">
                             <label for="statsChartSelect">Statistic</label>
@@ -209,10 +209,12 @@
                     </div>
 
                 </div>
-            </div>
-            <div class="push"></div>
         </div>
     </div>
+</div>
+</div>
+<div class="push">
+    
 </div>
 <pwm:script>
     <script type="text/javascript">

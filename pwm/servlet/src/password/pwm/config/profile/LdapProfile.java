@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,44 +20,62 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config;
+package password.pwm.config.profile;
 
-import password.pwm.PwmConstants;
+import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.PwmApplication;
+import password.pwm.config.*;
+import password.pwm.error.PwmUnrecoverableException;
+import password.pwm.util.StringUtil;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class LdapProfile extends AbstractProfile implements Profile {
-    final protected static List<PwmSetting> LDAP_SETTINGS = Collections.unmodifiableList(PwmSettingCategory.LDAP_PROFILE.getSettings());
-
     protected LdapProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
 
-    static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String identifier) {
+    public static LdapProfile makeFromStoredConfiguration(final StoredConfiguration storedConfiguration, final String profileID) {
         final Map<PwmSetting,StoredValue> valueMap = new LinkedHashMap<>();
-        for (final PwmSetting setting : LDAP_SETTINGS) {
-            final StoredValue value = storedConfiguration.readSetting(setting, PwmConstants.PROFILE_ID_DEFAULT.equals(identifier) ? "" : identifier);
+        for (final PwmSetting setting : PwmSettingCategory.LDAP_PROFILE.getSettings()) {
+            final StoredValue value = storedConfiguration.readSetting(setting, profileID);
             valueMap.put(setting, value);
         }
-        return new LdapProfile(identifier, valueMap);
+        return new LdapProfile(profileID, valueMap);
 
     }
 
     public Map<String, String> getLoginContexts() {
         final List<String> values = readSettingAsStringArray(PwmSetting.LDAP_LOGIN_CONTEXTS);
-        return Configuration.convertStringListToNameValuePair(values, ":::");
+        return StringUtil.convertStringListToNameValuePair(values, ":::");
     }
 
     @Override
     public String getDisplayName(final Locale locale) {
         final String displayName = readSettingAsLocalizedString(PwmSetting.LDAP_PROFILE_DISPLAY_NAME,locale);
-        final String returnDisplayName = displayName == null || displayName.length() < 1 ? identifier : displayName;
-        return PwmConstants.PROFILE_ID_DEFAULT.equals(returnDisplayName) ? "Default" : returnDisplayName;
+        return displayName == null || displayName.length() < 1 ? identifier : displayName;
     }
 
     public String getUsernameAttribute() {
         final String configUsernameAttr = this.readSettingAsString(PwmSetting.LDAP_USERNAME_ATTRIBUTE);
         final String ldapNamingAttribute = this.readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         return configUsernameAttr != null && configUsernameAttr.length() > 0 ? configUsernameAttr : ldapNamingAttribute;
+    }
+
+    public ChaiProvider getProxyChaiProvider(final PwmApplication pwmApplication) throws PwmUnrecoverableException {
+        return pwmApplication.getProxyChaiProvider(this.getIdentifier());
+    }
+
+    @Override
+    public ProfileType profileType() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<UserPermission> getPermissionMatches() {
+        throw new UnsupportedOperationException();
     }
 }

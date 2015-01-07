@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -308,7 +308,7 @@ public class PasswordChangeProgressChecker {
         }
 
         tracker.lastReplicaCheckTime = new Date();
-        LOGGER.trace(pwmSession, "beginning password replication time check for " + userIdentity.toDeliminatedKey());
+        LOGGER.trace(pwmSession, "beginning password replication time check for " + userIdentity.toDelimitedKey());
 
         try {
             final Map<String,Date> checkResults = PasswordUtility.readIndividualReplicaLastPasswordTimes(pwmApplication,

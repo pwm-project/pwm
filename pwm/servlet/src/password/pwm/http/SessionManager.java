@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,8 @@ import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
+import password.pwm.config.profile.HelpdeskProfile;
+import password.pwm.config.profile.ProfileType;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
@@ -198,7 +200,7 @@ public class SessionManager implements Serializable {
     }
 
     public boolean checkPermission(final PwmApplication pwmApplication, final Permission permission)
-            throws ChaiUnavailableException, PwmUnrecoverableException
+            throws PwmUnrecoverableException
     {
         final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
         if (devDebugMode) {
@@ -215,7 +217,7 @@ public class SessionManager implements Serializable {
         Permission.PERMISSION_STATUS status = pwmSession.getLoginInfoBean().getPermission(permission);
         if (status == Permission.PERMISSION_STATUS.UNCHECKED) {
             if (devDebugMode) {
-                LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDeliminatedKey()));
+                LOGGER.debug(pwmSession.getLabel(), String.format("checking permission %s for user %s", permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey()));
             }
 
             final PwmSetting setting = permission.getPwmSetting();
@@ -224,7 +226,7 @@ public class SessionManager implements Serializable {
             status = result ? Permission.PERMISSION_STATUS.GRANTED : Permission.PERMISSION_STATUS.DENIED;
             pwmSession.getLoginInfoBean().setPermission(permission, status);
             LOGGER.debug(pwmSession.getLabel(), String.format("permission %s for user %s is %s",
-                    permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDeliminatedKey(),
+                    permission.toString(), pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                     status.toString()));
         }
         return status == Permission.PERMISSION_STATUS.GRANTED;
@@ -240,5 +242,13 @@ public class SessionManager implements Serializable {
         return new MacroMachine(pwmApplication, userInfoBean, pwmSession.getLoginInfoBean(), userDataReader);
     }
 
-
+    public HelpdeskProfile getHelpdeskProfile(final PwmApplication pwmApplication) {
+        if (pwmSession.getSessionStateBean().isAuthenticated()) {
+            final String profileID = pwmSession.getUserInfoBean().getProfileIDs().get(ProfileType.Helpdesk);
+            if (profileID != null) {
+                return pwmApplication.getConfig().getHelpdeskProfiles().get(profileID);
+            }
+        }
+        return null;
+    }
 }

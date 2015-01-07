@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,8 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         var resultValue = data['data']['value'];
         valueWriter(resultValue);
         var isDefault = data['data']['isDefault'];
-        PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault)
+        PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault);
+        PWM_CFGEDIT.updateLastModifiedInfo(keyName, data);
     };
     var errorFunction = function(error) {
         PWM_VAR['outstandingOperations']--;
@@ -51,6 +52,29 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         console.log("error loading " + keyName + ", reason: " + error);
     };
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction});
+};
+
+PWM_CFGEDIT.updateLastModifiedInfo = function(keyName, data) {
+    if (PWM_MAIN.getObject('panel-' + keyName + '-modifyTime')) {
+        if (data['data']['modifyTime']) {
+            PWM_MAIN.getObject('panel-' + keyName + '-modifyTime').innerHTML = 'Last Modified '
+            + '<span id="panel-' + keyName + '-modifyTimestamp">' + data['data']['modifyTime'] + '</span>';
+            PWM_MAIN.TimestampHandler.initElement(PWM_MAIN.getObject('panel-' + keyName + '-modifyTimestamp'));
+        } else {
+            PWM_MAIN.getObject('panel-' + keyName + '-modifyTime').innerHTML = '';
+        }
+    }
+    if (PWM_MAIN.getObject('panel-' + keyName + '-modifyUser')) {
+        if (data['data']['modifyUser']) {
+            var output = 'Modified by ' + data['data']['modifyUser']['userDN'];
+            if (data['data']['modifyUser']['ldapProfile'] && data['data']['modifyUser']['ldapProfile'] != "default") {
+                output += ' [' + data['data']['modifyUser']['ldapProfile'] + ']';
+            }
+            PWM_MAIN.getObject('panel-' + keyName + '-modifyUser').innerHTML = output;
+        } else {
+            PWM_MAIN.getObject('panel-' + keyName + '-modifyUser').innerHTML = '';
+        }
+    }
 };
 
 PWM_CFGEDIT.writeSetting = function(keyName, valueData, nextAction) {
@@ -435,7 +459,7 @@ PWM_CFGEDIT.showChangeLog=function(confirmText, confirmFunction) {
             PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
         } else {
             var bodyText = '<div class="changeLogViewBox">';
-            bodyText += data['data'];
+            bodyText += data['data']['html'];
             bodyText += '</div>';
             if (confirmText != undefined) {
                 bodyText += '<br/><div>' + confirmText + '</div>';
@@ -568,6 +592,12 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
 
 PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     console.log('going to setting... category=' + category + " settingKey=" + settingKey + " profile=" + profile);
+    
+    if (!category || (!(category in PWM_SETTINGS['categories']))) {
+        console.log('can\'t process request to display settings category: ' + category );
+        return;
+    }
+
     PWM_VAR['preferences']['category'] = category;
     PWM_VAR['preferences']['setting'] = settingKey ? settingKey : '';
     if (profile) {
@@ -577,7 +607,7 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     }
     PWM_CFGEDIT.setConfigEditorCookie();
     PWM_CFGEDIT.displaySettingsCategory(category);
-
+    
     if (PWM_SETTINGS['categories'][category]['label']) {
         PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + PWM_SETTINGS['categories'][category]['label'];
     }
@@ -604,79 +634,88 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     }
 };
 
-PWM_CFGEDIT.toggleAdvancedSettingsDisplay = function(options) {
-    require(["dojo","dojo/fx","dojo/on"], function(dojo,fx,on) {
-        var advSetElement = PWM_MAIN.getObject('advancedSettings');
-        if (PWM_VAR['advancedSettingsAreVisible']) {
-            console.log("hiding advanced settings");
-            try { PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='block'; } catch(e) {
-                console.log("can't show 'showAdvancedSettingsButton', error: " + e);
-            }
-            try { PWM_MAIN.getObject('hideAdvancedSettingsButton').style.display='none'; } catch(e) {
-                console.log("can't hide 'hideAdvancedSettingsButton', error: " + e);
-            }
-            fx.wipeOut({node:advSetElement }).play();
-            PWM_VAR['preferences']['level'] = 1;
-        } else {
-            console.log("showing advanced settings");
-            try { PWM_MAIN.getObject('showAdvancedSettingsButton').style.display='none';  } catch(e) {
-                console.log("can't hide 'showAdvancedSettingsButton', error: " + e);
-            }
-            try { PWM_MAIN.getObject('hideAdvancedSettingsButton').style.display='block';  } catch(e) {
-                console.log("can't show 'hideAdvancedSettingsButton', error: " + e);
-            }
-            var animChain = fx.wipeIn({node:advSetElement });
-            if (options && options['autoScroll']) {
-                on(animChain, "End", function () {
-                    console.log('scrolling to object id="hideAdvancedSettingsButton"');
-                    window.scrollBy(0, 99999);
-                    PWM_MAIN.getObject('hideAdvancedSettingsButton').scrollIntoView(true);
-                    window.scrollBy(0, -100);
-                });
-            };
-            animChain.play();
-            PWM_VAR['preferences']['level'] = 2;
-        }
-        PWM_CFGEDIT.setConfigEditorCookie();
-        PWM_VAR['advancedSettingsAreVisible'] = !PWM_VAR['advancedSettingsAreVisible'];
-    });
-};
 
 PWM_CFGEDIT.cancelEditing = function() {
     var url =  "ConfigEditor?processAction=readChangeLog";
-    var loadFunction = function(data) {
-        PWM_MAIN.closeWaitDialog();
-        if (data['error']) {
-            PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
-        } else {
-            var bodyText = '<div class="changeLogViewBox">';
-            bodyText += data['data'];
-            bodyText += '</div><br/><div>';
-            bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
-            bodyText += '</div>';
-            PWM_MAIN.showConfirmDialog({width:650,text:bodyText,okAction:
-                function () {
-                    PWM_MAIN.showWaitDialog({loadFunction: function () {
-                        PWM_MAIN.ajaxRequest('ConfigEditor?processAction=cancelEditing',function(){
-                            PWM_MAIN.goto('ConfigManager', {addFormID: true});
-                        });
-                    }});
+    PWM_MAIN.showWaitDialog({loadFunction:function(){
+        var loadFunction = function(data) {
+            if (data['error']) {
+                PWM_MAIN.showDialog({title: PWM_MAIN.showString("Title_Error"), text: data['errorMessage']});
+            } else {
+                if (data['data']['modified'] == true) {
+                    var bodyText = '<div class="changeLogViewBox">';
+                    bodyText += data['data']['html'];
+                    bodyText += '</div><br/><div>';
+                    bodyText += PWM_CONFIG.showString('MenuDisplay_CancelConfig');
+                    bodyText += '</div>';
+                    PWM_MAIN.closeWaitDialog();
+                    PWM_MAIN.showConfirmDialog({dialogClass:'wide',showClose:true,allowMove:true,text:bodyText,okAction:
+                        function () {
+                            PWM_MAIN.showWaitDialog({loadFunction: function () {
+                                PWM_MAIN.ajaxRequest('ConfigEditor?processAction=cancelEditing',function(){
+                                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
+                                });
+                            }});
+                        }
+                    });
+                } else {
+                    PWM_MAIN.goto('ConfigManager', {addFormID: true});
                 }
-            });
-        }
-    };
-    PWM_MAIN.ajaxRequest(url, loadFunction);
+            }
+        };
+        PWM_MAIN.ajaxRequest(url, loadFunction);
+    }});
 };
 
 PWM_CFGEDIT.showMacroHelp = function() {
     require(["dijit/Dialog"],function(Dialog) {
-        var idName = 'dialogPopup';
+        var idName = 'macroPopup';
         PWM_MAIN.clearDijitWidget(idName);
         var theDialog = new Dialog({
             id: idName,
             title: 'Macro Help',
-            style: "width: 650px",
+            style: "width: 750px",
             href: PWM_GLOBAL['url-resources'] + "/text/macroHelp.html"
+        });
+        var attempts = 0;
+        // iframe takes indeterminate amount of time to load, so just retry till it apperas
+        var loadFunction = function() {
+            if (PWM_MAIN.getObject('input-testMacroInput')) {
+                console.log('connected to macroHelpDiv');
+                setTimeout(function(){
+                    PWM_MAIN.getObject('input-testMacroInput').focus();
+                },500);
+                PWM_MAIN.addEventHandler('button-testMacro','click',function(){
+                    PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+                    var sendData = {};
+                    sendData['input'] = PWM_MAIN.getObject('input-testMacroInput').value;
+                    var url = "ConfigEditor?processAction=testMacro";
+                    var loadFunction = function(data) {
+                        PWM_MAIN.getObject('panel-testMacroOutput').innerHTML = data['data'];
+                    };
+                    PWM_MAIN.ajaxRequest(url,loadFunction,{content:sendData});
+                });
+            } else {
+                if (attempts < 50) {
+                    attempts++;
+                    setTimeout(loadFunction,100);
+                }
+            }
+        };
+        theDialog.show();
+        loadFunction();
+    });
+};
+
+PWM_CFGEDIT.showTimezoneList = function() {
+    require(["dijit/Dialog"],function(Dialog) {
+        var idName = 'timezonePopup';
+        PWM_MAIN.clearDijitWidget(idName);
+        var theDialog = new Dialog({
+            id: idName,
+            title: 'Timezones',
+            style: "width: 750px",
+            href: PWM_GLOBAL['url-context'] + "/public/timezones.jsp"
         });
         theDialog.show();
     });
@@ -872,7 +911,9 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
 
     htmlBody += '<div class="pane-settingValue" id="table_setting_' + settingKey + '" style="border:0 none">'
     + '</div>' // close setting;
-    + '</div>' // close body;
+    + '</div>' // close body
+    + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyTime"></span></div>'
+    + '<div class="footnote" style="width:100%"><span id="panel-' + settingKey + '-modifyUser"></span></div>'
     + '</div>';  // close outline
 
     return htmlBody;

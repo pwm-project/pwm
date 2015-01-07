@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package password.pwm.config.policy;
+package password.pwm.config.profile;
 
 import com.novell.ldapchai.ChaiPasswordPolicy;
 import com.novell.ldapchai.ChaiPasswordRule;
 import com.novell.ldapchai.util.DefaultChaiPasswordPolicy;
 import com.novell.ldapchai.util.PasswordRuleHelper;
 import com.novell.ldapchai.util.StringHelper;
-import password.pwm.PwmConstants;
-import password.pwm.config.Profile;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.util.logging.PwmLogger;
@@ -378,8 +376,12 @@ public class PwmPasswordPolicy implements Profile,Serializable {
     }
 
     @Override
-    public boolean isDefault()
-    {
-        return PwmConstants.PROFILE_ID_DEFAULT.equals(this.getIdentifier());
+    public ProfileType profileType() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<UserPermission> getPermissionMatches() {
+        throw new UnsupportedOperationException();
     }
 }

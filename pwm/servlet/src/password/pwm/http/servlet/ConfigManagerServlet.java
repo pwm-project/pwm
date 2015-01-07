@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,8 @@ public class ConfigManagerServlet extends PwmServlet {
         generateSupportZip(HttpMethod.GET),
         uploadConfig(HttpMethod.POST),
         importLocalDB(HttpMethod.POST),
-
+        summary(HttpMethod.GET),
+        
         ;
 
         private final HttpMethod method;
@@ -142,6 +143,10 @@ public class ConfigManagerServlet extends PwmServlet {
 
                 case importLocalDB:
                     restUploadLocalDB(pwmRequest);
+                    return;
+
+                case summary:
+                    restSummary(pwmRequest);
                     return;
             }
             return;
@@ -259,7 +264,7 @@ public class ConfigManagerServlet extends PwmServlet {
         if (PwmApplication.MODE.RUNNING == pwmRequest.getPwmApplication().getApplicationMode()) {
             persistentLoginValue = SecureHelper.hash(
                     storedConfig.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_PASSWORD_HASH)
-                            + pwmSession.getUserInfoBean().getUserIdentity().toDeliminatedKey(),
+                            + pwmSession.getUserInfoBean().getUserIdentity().toDelimitedKey(),
                     SecureHelper.DEFAULT_HASH_ALGORITHM);
 
         } else {
@@ -665,5 +670,16 @@ public class ConfigManagerServlet extends PwmServlet {
             return password;
         }
     }
+
+
+    private void restSummary(final PwmRequest pwmRequest)
+            throws IOException, ServletException, PwmUnrecoverableException
+    {
+        final StoredConfiguration storedConfiguration = readCurrentConfiguration(pwmRequest);
+        final Map<String,Object> outputMap = storedConfiguration.toOutputMap(pwmRequest.getLocale());
+        pwmRequest.setAttribute("outputData",outputMap);
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
+    }
+
 }
 

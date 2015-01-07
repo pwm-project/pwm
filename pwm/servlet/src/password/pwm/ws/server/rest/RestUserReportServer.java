@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import password.pwm.util.ClosableIterator;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.report.ReportService;
+import password.pwm.util.report.ReportStatusInfo;
 import password.pwm.util.report.UserCacheRecord;
 import password.pwm.ws.server.RestRequestBean;
 import password.pwm.ws.server.RestResultBean;
@@ -168,13 +169,13 @@ public class RestUserReportServer extends AbstractRestServer {
     {
 
         final LinkedHashMap<String,Object> returnMap = new LinkedHashMap<>();
-        final ReportService.ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
+        final ReportStatusInfo reportInfo = reportService.getReportStatusInfo();
         returnMap.put("raw",reportInfo);
 
         final LinkedHashMap<String,Object> presentableMap = new LinkedHashMap<>();
         final NumberFormat numberFormat = NumberFormat.getInstance();
-        presentableMap.put("Job Engine",reportInfo.isInprogress() ? "Running" : "Not Running");
-        presentableMap.put("Users Processed",(reportInfo.isInprogress() && reportInfo.getTotal() == 0)
+        presentableMap.put("Job Engine",reportInfo.isInProgress() ? "Running" : "Not Running");
+        presentableMap.put("Users Processed",(reportInfo.isInProgress() && reportInfo.getTotal() == 0)
                 ? "Counting..."
                 : numberFormat.format(reportInfo.getCount()) + " of " + numberFormat.format(
                 reportInfo.getTotal()));
@@ -196,7 +197,7 @@ public class RestUserReportServer extends AbstractRestServer {
         if (reportInfo.getStartDate() != null && reportInfo.getFinishDate() != null) {
             presentableMap.put("Total Time",new TimeDuration(reportInfo.getStartDate(),reportInfo.getFinishDate()).asCompactString());
         }
-        if (reportInfo.isInprogress() && reportInfo.getCount() > 0) {
+        if (reportInfo.isInProgress() && reportInfo.getCount() > 0) {
             final BigDecimal eventRate = reportInfo.getEventRateMeter().readEventRate().setScale(2,RoundingMode.UP);
             presentableMap.put("Users/Second",eventRate);
             if (!eventRate.equals(BigDecimal.ZERO)) {

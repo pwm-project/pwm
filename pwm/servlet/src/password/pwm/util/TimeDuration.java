@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * An immutable class representing a time period.  The internal value of the time period is
@@ -339,7 +338,12 @@ public class TimeDuration implements Comparable, Serializable {
         return new TimeDuration(Math.abs(this.getTotalMilliseconds() - duration.getTotalMilliseconds()));
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    @Override
+    public String toString() {
+        return "TimeDuration[" + this.asCompactString() + "]";
+    }
+
+    // -------------------------- INNER CLASSES --------------------------
 
     private static class TimeDetail implements Serializable {
         private final long milliseconds;

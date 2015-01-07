@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@ package password.pwm.http.tag;
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
 import password.pwm.config.option.ADPolicyComplexity;
-import password.pwm.config.policy.PwmPasswordPolicy;
-import password.pwm.config.policy.PwmPasswordRule;
+import password.pwm.config.profile.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordRule;
 import password.pwm.http.ContextManager;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.Display;

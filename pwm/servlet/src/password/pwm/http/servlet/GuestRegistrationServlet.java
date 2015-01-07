@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import password.pwm.bean.SessionStateBean;
 import password.pwm.bean.UserIdentity;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.*;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -470,7 +470,7 @@ public class GuestRegistrationServlet extends PwmServlet {
     private static String determineUserDN(final Map<FormConfiguration, String> formValues, final Configuration config)
             throws PwmUnrecoverableException
     {
-        final String namingAttribute = config.getLdapProfiles().get(PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(
+        final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(
                 PwmSetting.LDAP_NAMING_ATTRIBUTE);
         for (final FormConfiguration formItem : formValues.keySet()) {
             if (namingAttribute.equals(formItem.getName())) {
@@ -520,8 +520,7 @@ public class GuestRegistrationServlet extends PwmServlet {
     private static void checkConfiguration(final Configuration configuration)
             throws PwmUnrecoverableException
     {
-        final String namingAttribute = configuration.getLdapProfiles().get(
-                PwmConstants.PROFILE_ID_DEFAULT).readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+        final String namingAttribute = configuration.getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
         final List<FormConfiguration> formItems = configuration.readSettingAsForm(PwmSetting.GUEST_FORM);
 
         {

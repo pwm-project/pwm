@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@ import password.pwm.config.Configuration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.UserPermission;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.policy.ChallengeProfile;
-import password.pwm.config.policy.PwmPasswordPolicy;
+import password.pwm.config.profile.ChallengeProfile;
+import password.pwm.config.profile.PwmPasswordPolicy;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
 import password.pwm.http.PwmSession;
@@ -125,6 +125,22 @@ public class CrService implements PwmService {
                         LOGGER.debug(sessionLabel,"no nmas c/r policy found for user " + theUser.getEntryDN());
                     } else {
                         LOGGER.debug(sessionLabel,"using nmas c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+                        
+                        final String challengeID = "nmasPolicy-" + userIdentity.toDelimitedKey();
+                        
+                        final ChallengeProfile challengeProfile = ChallengeProfile.createChallengeProfile(
+                                challengeID,
+                                locale,
+                                returnSet,
+                                null,
+                                0,
+                                0
+                        );
+
+                        LOGGER.debug(sessionLabel,"using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+                        LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
+                        
+                        return challengeProfile;
                     }
                 }
             } catch (ChaiException e) {
@@ -136,15 +152,10 @@ public class CrService implements PwmService {
         final String challengeProfileID = determineChallengeProfileForUser(pwmApplication, sessionLabel, userIdentity, locale);
         final ChallengeProfile challengeProfile = config.getChallengeProfile(challengeProfileID, locale);
 
-        if (returnSet == null) {
-            LOGGER.debug(sessionLabel,"no detected c/r policy for user " + theUser.getEntryDN() + " in ldap ");
-            LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
-            return challengeProfile;
-        }
-
-        LOGGER.debug(sessionLabel,"using ldap c/r policy for user " + theUser.getEntryDN() + ": " + returnSet.toString());
+        LOGGER.debug(sessionLabel,"no detected c/r policy for user " + theUser.getEntryDN() + " in ldap ");
         LOGGER.trace(sessionLabel,"readUserChallengeProfile completed in " + TimeDuration.fromCurrent(methodStartTime).asCompactString());
-        return challengeProfile.overrideChallengeSet(returnSet);
+        return challengeProfile;
+
     }
 
     protected static String determineChallengeProfileForUser(
@@ -212,39 +223,16 @@ public class CrService implements PwmService {
 
         final Configuration config = pwmApplication.getConfig();
 
-        { // check that responses are not using the challenge text word.
-            final int maxChallengeLengthInResponse = (int)config.readSettingAsLong(PwmSetting.CHALLENGE_MAX_LENGTH_CHALLENGE_IN_RESPONSE);
-            if (maxChallengeLengthInResponse > 0) {
-                for (final Challenge loopChallenge : responseMap.keySet()) {
-                    final String challengeText = loopChallenge.getChallengeText();
-                    if (challengeText != null && responseMap.containsKey(loopChallenge)) {
-                        final String[] challengeWords = challengeText.split("\\s");
-                        for (final String challengeWord :challengeWords) {
-                            if (challengeWord.length() > maxChallengeLengthInResponse) {
-                                final String responseTextLower = responseMap.get(loopChallenge).toLowerCase();
-                                for (int i = 0; i <= challengeWord.length() - (maxChallengeLengthInResponse + 1); i++ ) {
-                                    final String wordPart = challengeWord.substring(i, i + (maxChallengeLengthInResponse + 1));
-                                    if (responseTextLower.contains(wordPart)) {
-                                        final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_CHALLENGE_IN_RESPONSE,"word '" + challengeWord + "' is in response",new String[]{challengeText});
-                                        throw new PwmDataValidationException(errorInformation);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         { // check responses against wordlist
-            final boolean applyWordlist = pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.CHALLENGE_APPLY_WORDLIST);
             final WordlistManager wordlistManager = pwmApplication.getWordlistManager();
-            if (applyWordlist && wordlistManager.status() == PwmService.STATUS.OPEN) {
+            if (wordlistManager.status() == PwmService.STATUS.OPEN) {
                 for (final Challenge loopChallenge : responseMap.keySet()) {
-                    final String answer = responseMap.get(loopChallenge);
-                    if (wordlistManager.containsWord(answer)) {
-                        final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, new String[]{loopChallenge.getChallengeText()});
-                        throw new PwmDataValidationException(errorInfo);
+                    if (loopChallenge.isEnforceWordlist()) {
+                        final String answer = responseMap.get(loopChallenge);
+                        if (wordlistManager.containsWord(answer)) {
+                            final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_RESPONSE_WORDLIST, null, new String[]{loopChallenge.getChallengeText()});
+                            throw new PwmDataValidationException(errorInfo);
+                        }
                     }
                 }
             }

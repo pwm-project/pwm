@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,7 +178,7 @@ public class CodeIntegrityChecker {
         try {
             final StringArrayValue stringArrayValue = (StringArrayValue)PwmSetting.KNOWN_LOCALES.getDefaultValue(PwmSetting.Template.DEFAULT);
             final List<String> rawValues = stringArrayValue.toNativeObject();
-            final Map<String,String> localeFlagMap = Configuration.convertStringListToNameValuePair(rawValues, "::");
+            final Map<String,String> localeFlagMap = StringUtil.convertStringListToNameValuePair(rawValues, "::");
             for (final String rawValue : localeFlagMap.keySet()) {
                 knownLocales.add(LocaleHelper.parseLocaleString(rawValue));
             }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,9 +33,7 @@ import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.ADPolicyComplexity;
 import password.pwm.config.option.ForceSetupPolicy;
-import password.pwm.config.policy.ChallengeProfile;
-import password.pwm.config.policy.PwmPasswordPolicy;
-import password.pwm.config.policy.PwmPasswordRule;
+import password.pwm.config.profile.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmDataValidationException;
 import password.pwm.error.PwmError;
@@ -375,6 +373,25 @@ public class UserStatusReader {
             uiBean.setLastLdapLoginTime(theUser.readLastLoginTime());
         } catch (ChaiOperationException e) {
             LOGGER.warn(sessionLabel, "error reading user's last ldap login time: " + e.getMessage());
+        }
+
+        try {
+            uiBean.setAccountExpirationTime(theUser.readAccountExpirationDate());
+        } catch (Exception e) {
+            LOGGER.error(sessionLabel, "error reading account expired date for user '" + userIdentity + "', " + e.getMessage());
+        }
+
+        // read authenticated profiles
+        for (final ProfileType profileType : ProfileType.values()) {
+            if (profileType.isAuthenticated()) {
+                final String profileID = config.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, profileType);
+                uiBean.getProfileIDs().put(profileType, profileID);
+                if (profileID != null) {
+                    LOGGER.debug(sessionLabel, "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString());
+                } else {
+                    LOGGER.debug(sessionLabel, profileType.toString() + " has no matching profiles for user " + userIdentity.toDisplayString());
+                }
+            }
         }
 
         // update report engine.
