@@ -773,6 +773,7 @@ public class ConfigEditorServlet extends PwmServlet {
                             profileInfo.put("name", profile.isEmpty() ? "Default" : profile);
                             profileInfo.put("parent", loopCategory.getKey());
                             profileInfo.put("category", loopCategory.getKey());
+                            profileInfo.put("type", "profile");
                             profileInfo.put("menuLocation", loopCategory.toMenuLocationDebug(profile, pwmRequest.getLocale()));
                             navigationData.add(profileInfo);
                         }
