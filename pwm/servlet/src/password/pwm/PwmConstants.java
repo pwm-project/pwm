@@ -31,10 +31,7 @@ import password.pwm.i18n.Message;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Constant values used throughout the servlet.
@@ -105,6 +102,7 @@ public abstract class PwmConstants {
     private static final String SESSION_LABEL_SESSION_ID = "-";
     public static final SessionLabel REPORTING_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"reporting",null,null);
     public static final SessionLabel HEALTH_SESSION_LABEL = new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"health",null,null);
+    public static final SessionLabel CLI_SESSION_LABEL= new SessionLabel(SESSION_LABEL_SESSION_ID ,null,"cli",null,null);
 
     public static final int DATABASE_ACCESSOR_KEY_LENGTH = Integer.parseInt(readPwmConstantsBundle("databaseAccessor.keyLength"));
 
@@ -319,7 +317,7 @@ public abstract class PwmConstants {
 // -------------------------- ENUMERATIONS --------------------------
 
 
-    public static enum EDITABLE_LOCALE_BUNDLES {
+    public static enum PwmLocaleBundle {
         DISPLAY(Display.class, false),
         ERRORS(password.pwm.i18n.Error.class, false),
         MESSAGE(Message.class, false),
@@ -331,8 +329,9 @@ public abstract class PwmConstants {
 
         private final Class theClass;
         private final boolean adminOnly;
-
-        EDITABLE_LOCALE_BUNDLES(final Class theClass, final boolean adminOnly) {
+        private Set<String> keys = null;
+        
+        PwmLocaleBundle(final Class theClass, final boolean adminOnly) {
             this.theClass = theClass;
             this.adminOnly = adminOnly;
         }
@@ -343,6 +342,14 @@ public abstract class PwmConstants {
 
         public boolean isAdminOnly() {
             return adminOnly;
+        }
+
+        public Set<String> getKeys() {
+            if (keys == null) {
+                final ResourceBundle defaultBundle = ResourceBundle.getBundle(this.getTheClass().getName(), PwmConstants.DEFAULT_LOCALE);
+                keys = Collections.unmodifiableSet(new HashSet<>(defaultBundle.keySet()));
+            }
+            return keys;
         }
     }
 

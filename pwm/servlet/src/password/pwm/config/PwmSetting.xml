@@ -1624,7 +1624,7 @@
         </default>
     </setting>
     <setting key="enableSessionVerification" level="0" required="true">
-        <label>Enable Session Verification</label>
+        <label>Session Verification</label>
         <description><![CDATA[If enabled, browser sessions will be verified using an HTTP redirect and verification code.  This verification proves that the browser can correctly establish a session with the server.  Verification proves the browser either supports cookies or URL sessions (if enabled) and the communication channel between browser and application server is 'sticky' when their are multiple server instances.  Additionally it helps prevent some types of XSS attacks.<br/><br/>The pre-load browser cache will show a "please wait" screen to the user during the verification.  This has the added benefit that many of the HTTP resources (javascript, css, images, etc) will be "pre-cached" by the browser before any actual pages are loaded.]]></description>
         <default>
             <value>VERIFY</value>
@@ -1847,7 +1847,7 @@
         <default>
             <value/>
         </default>
-        <regex>^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
+        <regex>^$|^(udp|tcp|sslTcp|tls)\,.+\,[0-9]*$</regex>
     </setting>
     <setting key="audit.syslog.certificates" level="0" required="false">
         <label>Syslog Audit Server Certificates</label>

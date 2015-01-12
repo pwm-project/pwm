@@ -157,6 +157,7 @@ public enum PwmError {
     ERROR_SMS_SEND_ERROR("Error_SmsSendError",5078, true),
     ERROR_LDAP_DATA_ERROR("Error_LdapDataError",5079, true),
     ERROR_MACRO_PARSE_ERROR("Error_MacroParseError",5080,true),
+    ERROR_NO_PROFILE_ASSIGNED("Error_NoProfileAssigned",5081,true),
 
     ERROR_FIELD_REQUIRED("Error_FieldRequired", 5100, false),
     ERROR_FIELD_NOT_A_NUMBER("Error_FieldNotANumber", 5101, false),

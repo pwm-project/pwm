@@ -15,7 +15,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -54,6 +54,12 @@
 <% if (loopConfiguration.getType().equals(FormConfiguration.Type.hidden)) { %>
 <input style="text-align: left;" id="<%=loopConfiguration.getName()%>" type="hidden" class="inputfield"
        name="<%=loopConfiguration.getName()%>" value="<%= currentValue %>"/>
+<% } else if (loopConfiguration.getType().equals(FormConfiguration.Type.checkbox)) { %>
+<br/>
+<label class="checkboxWrapper">
+    <input id="<%=loopConfiguration.getName()%>" name="<%=loopConfiguration.getName()%>" type="checkbox" <% if (!focusSet) { %> autofocus<% }; focusSet = true; %>/>
+    <%=loopConfiguration.getLabel(ssBean.getLocale())%>
+</label>
 <% } else { %>
 <h2>
     <label for="<%=loopConfiguration.getName()%>"><%= loopConfiguration.getLabel(ssBean.getLocale()) %>

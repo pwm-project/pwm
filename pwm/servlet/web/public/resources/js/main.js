@@ -91,11 +91,12 @@ PWM_MAIN.loadClientData=function(completeFunction) {
         if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
         if (completeFunction) completeFunction();
     };
-    PWM_MAIN.ajaxRequest(url, loadFunction, {errorFunction:errorFunction,method:'GET'});
+    PWM_MAIN.ajaxRequest(url, loadFunction, {errorFunction:errorFunction,method:'GET',preventCache:false,addPwmFormID:false});
 };
 
 PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
     var clientConfigUrl = PWM_GLOBAL['url-context'] + "/public/rest/app-data/strings/" + bundleName;
+    clientConfigUrl = PWM_MAIN.addParamToUrl(clientConfigUrl,'etag',PWM_GLOBAL['clientEtag']);
     var loadFunction = function(data){
         if (data['error'] == true) {
             console.error('unable to load locale bundle from ' + clientConfigUrl + ', error: ' + data['errorDetail'])
@@ -115,7 +116,7 @@ PWM_MAIN.loadLocaleBundle = function(bundleName, completeFunction) {
         if (!PWM_VAR['initError']) PWM_VAR['initError'] = errorMsg;
         if (completeFunction) completeFunction();
     };
-    PWM_MAIN.ajaxRequest(clientConfigUrl,loadFunction,{errorFunction:errorFunction,method:'GET'});
+    PWM_MAIN.ajaxRequest(clientConfigUrl,loadFunction,{errorFunction:errorFunction,method:'GET',preventCache:false,addPwmFormID:false});
 };
 
 PWM_MAIN.initPage = function() {
@@ -1694,6 +1695,8 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     var errorFunction = 'errorFunction' in options ? options['errorFunction'] : function(error){
         PWM_MAIN.showErrorDialog(error);
     };
+    var preventCache = 'preventCache' in options ? options['preventCache'] : true;
+    var addPwmFormID = 'addPwmFormID' in options ? options['addPwmFormID'] : true;
     var ajaxTimeout = options['ajaxTimeout'] ? options['ajaxTimeout'] : PWM_GLOBAL['client.ajaxTypingTimeout'];
     var requestHeaders = {};
     requestHeaders['Accept'] = "application/json";
@@ -1703,9 +1706,15 @@ PWM_MAIN.ajaxRequest = function(url,loadFunction,options) {
     }
 
     require(["dojo/request/xhr","dojo","dojo/json"], function (xhr,dojo,dojoJson) {
-        loadFunction = loadFunction != undefined ? loadFunction : function(data){alert('missing load function, return results:' + dojo.toJson(data))};
-        url = PWM_MAIN.addPwmFormIDtoURL(url);
-        url = PWM_MAIN.addParamToUrl(url,'preventCache',(new Date).valueOf());
+        loadFunction = loadFunction != undefined ? loadFunction : function (data) {
+            alert('missing load function, return results:' + dojo.toJson(data))
+        };
+        if (addPwmFormID) {
+            url = PWM_MAIN.addPwmFormIDtoURL(url);
+        }
+        if (preventCache) {
+            url = PWM_MAIN.addParamToUrl(url, 'preventCache', (new Date).valueOf());
+        }
         var postOptions = {
             headers: requestHeaders,
             //encoding: "utf-8",

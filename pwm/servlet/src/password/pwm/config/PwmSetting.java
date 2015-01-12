@@ -888,8 +888,8 @@ public enum PwmSetting {
     HELPDESK_ENABLE_OTP_VERIFY(
             "helpdesk.otp.verify", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.HELPDESK_PROFILE),
 
-    
-    
+
+
     // Database
     DATABASE_CLASS(
             "db.classname", PwmSettingSyntax.STRING, PwmSettingCategory.DATABASE),
@@ -973,9 +973,9 @@ public enum PwmSetting {
     CACHED_USER_ATTRIBUTES(
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
-    
-    
-    
+
+
+
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
             "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),;
@@ -1223,18 +1223,9 @@ public enum PwmSetting {
     ) {
         final String SEPARATOR = " -> ";
         final StringBuilder sb = new StringBuilder();
+        sb.append(this.getCategory().toMenuLocationDebug(profileID, locale));
 
-        PwmSettingCategory nextCategory = this.getCategory();
-        while (nextCategory != null) {
-            sb.insert(0, nextCategory.getLabel(locale) + SEPARATOR);
-            nextCategory = nextCategory.getParent();
-        }
-
-        if (profileID != null) {
-            sb.append(profileID);
-            sb.append(SEPARATOR);
-        }
-
+        sb.append(SEPARATOR);
         sb.append(this.getLabel(locale));
 
         return sb.toString();

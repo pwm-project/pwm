@@ -25,6 +25,9 @@
     border-radius: 3px 3px 5px 5px;
     /* box-shadow: 2px 2px 1px 1px #bfbfbf; */
     margin-bottom: 10px;
+    animation: fadein 1.5s;
+    -moz-animation: fadein 1.5s; /* Firefox */
+    -webkit-animation: fadein 1.5s; /* Safari and Chrome */
 }
 
 .setting_title {
@@ -122,6 +125,7 @@
     margin-left: 5px;
     margin-right: 5px;
     cursor: pointer;
+    float: right;
 }
 
 .changeLogViewBox {
@@ -202,6 +206,7 @@ table {
 .modifiedNoticeIcon {
     color:#d20734;
     margin-right: 5px;
+    margin-left: 5px;
 }
 
 .setting_table_value {
@@ -235,24 +240,48 @@ table {
 
 #navigationTreeWrapper {
     border: 1px solid #bfbfbf;
-    max-height: 85vh;
-    height: 85vh;
     overflow-x: hidden;
     overflow-y: auto;
-    /*border-radius: 3px 3px 5px 5px;*/
+    border-radius: 3px 3px 5px 5px;
     box-shadow: 1px 1px 0px 0px #bfbfbf;
 
     float: left;
+    height:100%;
     width:192px;
-    position:fixed;
     margin-right: 5px;
     background-color: white;
+    animation: fadein 2.5s;
+    -moz-animation: fadein 2.5s; /* Firefox */
+    -webkit-animation: fadein 2.5s; /* Safari and Chrome */
+}
+
+#leftPaneWrapper {
+    margin-top: 57px;
+    max-height: 85vh;
+    height: 85vh;
+    width: 192px;
+    position: fixed;
+}
+
+#navigationTreeFooter {
+    border: 0;
+    max-height: 15px;
+    height: 15px;
+    text-align: center;
+    width:192px;
 }
 
 #navigationTreeTopMenu {
     text-align: center;
     width: 100%;
     cursor: pointer;
+}
+
+#settingsPanel {
+    width:600px;
+    float:right;
+    border:0;
+    margin-top: 57px;
 }
 
 #settingSearchPanel {
@@ -313,3 +342,69 @@ table {
     font-style: italic;
 }
 
+#wrapper {
+    border: 1px;
+    height: 100%
+}
+
+#header {
+    height: 25px;
+    position: fixed;
+}
+
+.settingSearchPanelTable {
+    width:600px;
+    margin-left: auto;
+    margin-right: auto
+}
+
+.settingSearchPanelTable_Col1 {
+    width:10px;
+}
+
+.settingSearchPanelTable_Col2 {
+    width:580px;
+}
+
+.settingSearchPanelTable_Col3 {
+    min-width:10px;
+    max-width:10px;
+    display: inline-block
+}
+
+#homeSettingSearch {
+    width: 570px;
+    margin-left:auto;
+    margin-right: auto
+}
+
+#working_icon {
+    color:orange;
+    float:none;
+}
+
+.modifiedSettingsWrapper {
+    border:0; margin-top:1px
+}
+
+/* using a transparent png so that we can still see grid lines, which are (unfortunately) behind the dijitRowNode that we are hovering over */
+/* .nihilo .dijitTreeNodeHover {
+    background-image: url(images/treeHover.png);
+    background-repeat: repeat;
+    background-color: none !important;
+} */
+
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+@-webkit-keyframes fadein { from { opacity:0 } to { opacity:1 } }
+
+.panel-searchResultItem {
+    text-indent: 1.5em; 
+    margin-left: 10px;
+    cursor: pointer; 
+    text-decoration: underline;
+}
+
+.panel-searchResultCategory {
+    font-weight: bold;
+}

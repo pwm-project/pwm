@@ -32,6 +32,7 @@ PWM_VAR['outstandingOperations'] = 0;
 PWM_VAR['preferences'] = { };
 
 PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
+    var modifiedOnly = PWM_MAIN.getObject('input-modifiedSettingsOnly') && PWM_MAIN.getObject('input-modifiedSettingsOnly').checked;
     PWM_VAR['outstandingOperations']++;
     PWM_CFGEDIT.handleWorkingIcon();
     var url = "ConfigEditor?processAction=readSetting&key=" + keyName;
@@ -42,8 +43,13 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         var resultValue = data['data']['value'];
         valueWriter(resultValue);
         var isDefault = data['data']['isDefault'];
-        PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault);
-        PWM_CFGEDIT.updateLastModifiedInfo(keyName, data);
+        if (modifiedOnly && isDefault) { //hide if not modified
+            PWM_MAIN.setStyle('outline_' + keyName,'display','none');
+        } else {
+            PWM_MAIN.setStyle('outline_' + keyName,'display','inherit');
+            PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault);
+            PWM_CFGEDIT.updateLastModifiedInfo(keyName, data);
+        }
     };
     var errorFunction = function(error) {
         PWM_VAR['outstandingOperations']--;
@@ -398,8 +404,10 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_MAIN.addEventHandler('referenceDoc_icon','click',function(){
         window.open(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','_blank', 'toolbar=0,location=0,menubar=0');
     });
-    PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){
-        PWM_CFGEDIT.showMacroHelp();
+    PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
+    PWM_MAIN.addEventHandler('input-modifiedSettingsOnly','change',function(){
+        PWM_MAIN.getObject('input-modifiedSettingsOnly').disabled = true;
+        PWM_CFGEDIT.loadMainPageBody(); 
     });
 
     setTimeout(PWM_CONFIG.heartbeatCheck,5000);
@@ -524,19 +532,19 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
             } else {
                 for (var categoryIter in data['data']) {
                     var category = data['data'][categoryIter];
-                    bodyText += '<span style="font-weight: bold">' + categoryIter + '</span><br/>';
+                    bodyText += '<div class="panel-searchResultCategory">' + categoryIter + '</div>';
                     for (var settingIter in category) {
                         var setting = category[settingIter];
                         var profileID = setting['profile'];
                         var linkID = 'link-' + setting['category'] + '-' + settingIter + (profileID ? profileID : '');
                         var settingID = "search_" + (profileID ? profileID + '_' : '') + settingIter;
-                        bodyText += '<span id="' + linkID + '" style="text-indent: 1.5em; margin-left 10px; cursor: pointer; text-decoration: underline">';
+                        bodyText += '<div><span id="' + linkID + '" class="panel-searchResultItem">';
                         bodyText += PWM_SETTINGS['settings'][settingIter]['label'];
                         bodyText += '</span>&nbsp;<span id="' + settingID + '_popup" class="btn-icon fa fa-info-circle"></span>';
                         if (!setting['default']) {
-                            bodyText += '<span class="fa fa-star" title="Setting has been modified" style="color:#d20734">&nbsp;</span>';
+                            bodyText += '<span class="fa fa-star modifiedNoticeIcon" title="Setting has been modified">&nbsp;</span>';
                         }
-                        bodyText += '<br/>';
+                        bodyText += '</div>';
                         resultCount++;
                     }
                 }
@@ -592,7 +600,7 @@ PWM_CFGEDIT.processSettingSearch = function(destinationDiv) {
 
 PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     console.log('going to setting... category=' + category + " settingKey=" + settingKey + " profile=" + profile);
-    
+
     if (!category || (!(category in PWM_SETTINGS['categories']))) {
         console.log('can\'t process request to display settings category: ' + category );
         return;
@@ -607,7 +615,7 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     }
     PWM_CFGEDIT.setConfigEditorCookie();
     PWM_CFGEDIT.displaySettingsCategory(category);
-    
+
     if (PWM_SETTINGS['categories'][category]['label']) {
         PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + PWM_SETTINGS['categories'][category]['label'];
     }
@@ -889,10 +897,10 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     options = options === undefined ? {} : options;
     var settingKey = settingInfo['key'];
     var settingLabel = settingInfo['label'];
-    var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline">'
+    var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
-        + '<div class="fa fa-star modifiedNoticeIcon" title="Setting has been modified" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>'
-        + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>';
+        + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
+        + '<div class="fa fa-pencil-square modifiedNoticeIcon" title="Setting has been modified" id="modifiedNoticeIcon-' + settingKey + '" style="display: none" ></div>';
 
     if (settingInfo['description']) {
         htmlBody += '<div class="fa fa-question-circle icon_button" title="Help" id="helpButton-' + settingKey + '"></div>';
@@ -1028,6 +1036,7 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 };
 
 PWM_CFGEDIT.drawNavigationMenu = function() {
+    PWM_MAIN.getObject('navigationTree').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
     var detectFirstDisplay = function() {
         var ca = document.cookie.split(';');
         for(var i=0; i<ca.length; i++) {
@@ -1041,10 +1050,10 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
     };
 
     var makeTreeFunction = function(menuTreeData) {
-        PWM_MAIN.clearDijitWidget('navigationTree')
         require(["dojo/_base/window", "dojo/store/Memory", "dijit/tree/ObjectStoreModel", "dijit/Tree","dijit","dojo/domReady!"],
             function(win, Memory, ObjectStoreModel, Tree)
             {
+                PWM_MAIN.clearDijitWidget('navigationTree');
                 // Create test store, adding the getChildren() method required by ObjectStoreModel
                 var myStore = new Memory({
                     data: menuTreeData,
@@ -1086,14 +1095,20 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     console.log('detected previous nav menu cookie');
                 }
 
+                PWM_MAIN.getObject('navigationTree').innerHTML = '';
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
                 PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
+                PWM_MAIN.getObject('input-modifiedSettingsOnly').disabled = false;
             }
         );
     };
 
-    PWM_MAIN.ajaxRequest('ConfigEditor?processAction=menuTreeData',function(data){
+    var url = 'ConfigEditor?processAction=menuTreeData';
+    if (PWM_MAIN.getObject('input-modifiedSettingsOnly') && PWM_MAIN.getObject('input-modifiedSettingsOnly').checked) {
+        url += '&modifiedSettingsOnly=true';
+    }
+    PWM_MAIN.ajaxRequest(url,function(data){
         var menuTreeData = data['data'];
         makeTreeFunction(menuTreeData);
     },{method:'GET'});
@@ -1105,7 +1120,7 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
     if (currentID == 'HOME') {
         PWM_CFGEDIT.drawHomePage();
     } else if (type == 'navigation') {
-        PWM_CFGEDIT.drawNavigationCategoryPage(currentID);
+        /* not used, nav tree set to auto-expand */
     } else if (type == 'category') {
         PWM_CFGEDIT.gotoSetting(currentID);
     } else if (type == 'displayText') {
@@ -1243,33 +1258,9 @@ PWM_CFGEDIT.drawHomePage = function() {
         var url = "ConfigEditor?processAction=setOption&updateNotesText=true";
         PWM_MAIN.ajaxRequest(url,function(){console.log('saved config notes')},{content:value});
     });
-};
 
-PWM_CFGEDIT.drawNavigationCategoryPage = function(categoryID) {
-    var htmlBody = '<div style="width:200px; text-align: center; margin-left: auto; margin-right:auto;">';
-
-    for (var loopKey in PWM_SETTINGS['categories']) {
-        var loopCategory = PWM_SETTINGS['categories'][loopKey];
-        if (loopCategory['parent'] == categoryID) {
-            htmlBody += '<button class="btn" id="button-navToCategory-' + loopCategory['key'] + '"><span class="btn-icon fa fa-forward"></span>' + loopCategory['label'] + '</button>';
-        }
-    }
-
-    htmlBody += '</div>';
-
-    var settingsPanel = PWM_MAIN.getObject('settingsPanel');
-    settingsPanel.innerHTML = htmlBody;
-
-    for (var loopKey in PWM_SETTINGS['categories']) {
-        var loopCategory = PWM_SETTINGS['categories'][loopKey];
-        (function(loopCategoryInfo){
-            if (loopCategoryInfo['parent'] == categoryID) {
-                PWM_MAIN.addEventHandler('button-navToCategory-' + loopCategoryInfo['key'],'click',function(){
-                    PWM_CFGEDIT.gotoSetting(loopCategoryInfo['key']);
-                });
-            }
-        })(loopCategory);
-    }
+    PWM_MAIN.setStyle('outline_' + templateSelectSetting['key'],'display','inherit');
+    PWM_MAIN.setStyle('outline_' + notesSettings['key'],'display','inherit');
 
 };
 

@@ -246,7 +246,7 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String eTagValue = makeClientEtag(request, restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
 
         // check the incoming header;
         final String ifNoneMatchValue = request.getHeader("If-None-Match");
@@ -281,7 +281,7 @@ public class RestAppDataServer extends AbstractRestServer {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
 
-        final String eTagValue = makeClientEtag(request, restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
+        final String eTagValue = makeClientEtag(restRequestBean.getPwmApplication(), restRequestBean.getPwmSession());
         response.setHeader("ETag",eTagValue);
         response.setDateHeader("Expires", System.currentTimeMillis() + (maxCacheAgeSeconds * 1000));
         response.setHeader("Cache-Control","public, max-age=" + maxCacheAgeSeconds);
@@ -359,8 +359,8 @@ public class RestAppDataServer extends AbstractRestServer {
         settingMap.put("setting-showStrengthMeter",config.readSettingAsBoolean(PwmSetting.PASSWORD_SHOW_STRENGTH_METER));
 
         settingMap.put("MaxInactiveInterval",(pwmSession.getSessionStateBean().getSessionMaximumTimeout() == null) ?
-                request.getSession().getMaxInactiveInterval() :
-                pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalSeconds()
+                        request.getSession().getMaxInactiveInterval() :
+                        pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalSeconds()
         );
         settingMap.put("paramName.locale", config.readAppProperty(AppProperty.HTTP_PARAM_NAME_LOCALE));
         settingMap.put("startupTime",pwmApplication.getStartupTime());
@@ -448,31 +448,28 @@ public class RestAppDataServer extends AbstractRestServer {
     public static String makeClientEtag(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException
     {
-        return makeClientEtag(pwmRequest.getHttpServletRequest(), pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
+        return makeClientEtag(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession());
     }
-    public static String makeClientEtag(final HttpServletRequest request, final PwmApplication pwmApplication, final PwmSession pwmSession)
+
+    public static String makeClientEtag(final PwmApplication pwmApplication, final PwmSession pwmSession)
             throws PwmUnrecoverableException
     {
-        if (pwmSession == null || !pwmSession.getSessionStateBean().isAuthenticated()) {
-            if (pwmApplication == null) {
-                return "errorGeneratingEtag";
-            }
-            return pwmApplication.getInstanceNonce();
-        }
-
         final StringBuilder inputString = new StringBuilder();
         inputString.append(PwmConstants.BUILD_NUMBER);
         inputString.append(pwmApplication.getStartupTime().getTime());
-        inputString.append(pwmSession.getSessionStateBean().getSessionMaximumTimeout());
+        inputString.append(pwmSession.getSessionStateBean().getSessionMaximumTimeout().getTotalMilliseconds());
+        inputString.append(pwmApplication.getInstanceNonce());
 
-        inputString.append(pwmSession.getSessionStateBean().getSessionID());
         if (pwmSession.getSessionStateBean().getLocale() != null) {
             inputString.append(pwmSession.getSessionStateBean().getLocale());
         }
+
+        inputString.append(pwmSession.getSessionStateBean().getSessionID());
         if (pwmSession.getSessionStateBean().isAuthenticated()) {
             inputString.append(pwmSession.getUserInfoBean().getUserGuid());
             inputString.append(pwmSession.getLoginInfoBean().getLocalAuthTime());
         }
-        return SecureHelper.md5sum(inputString.toString());
+
+        return SecureHelper.hash(inputString.toString(), SecureHelper.HashAlgorithm.SHA1).toLowerCase();
     }
 }

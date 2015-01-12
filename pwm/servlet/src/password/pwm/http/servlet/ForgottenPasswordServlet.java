@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import password.pwm.bean.*;
 import password.pwm.config.*;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.RecoveryAction;
+import password.pwm.config.profile.ProfileType;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.http.PwmRequest;
@@ -1005,6 +1006,13 @@ public class ForgottenPasswordServlet extends PwmServlet {
             challengeSet = null;
         }
 
+        final String profileID = pwmApplication.getConfig().discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, ProfileType.ForgottenPassword);
+        if (profileID == null) {
+            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NO_PROFILE_ASSIGNED));
+        }
+        forgottenPasswordBean.setForgottenPassowrdProfileID(profileID);
+        
+        
         final List<FormConfiguration> attributeForm = figureAttributeForm(pwmApplication, sessionLabel, userIdentity);
 
         verifyUserEligibility(pwmApplication, sessionLabel, userInfoBean, responseSet, recoveryFlags);

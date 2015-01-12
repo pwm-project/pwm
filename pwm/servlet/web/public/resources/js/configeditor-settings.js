@@ -640,7 +640,7 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             var nameInput = document.createElement("input");
             nameInput.setAttribute("id", inputID + "name");
             nameInput.setAttribute("value", value['name']);
-            nameInput.setAttribute("onchange","PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['name'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
+            nameInput.setAttribute("onchange", "PWM_VAR['clientSettingCache']['" + settingKey + "'][" + iteration + "]['name'] = this.value;FormTableHandler.writeFormSetting('" + settingKey + "')");
             nameInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
             nameInput.setAttribute("data-dojo-props", "required: true");
 
@@ -655,8 +655,8 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
             labelInput.setAttribute("id", inputID + "label");
             labelInput.setAttribute("value", value['labels']['']);
             labelInput.setAttribute("readonly", "true");
-            labelInput.setAttribute("onclick","FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
-            labelInput.setAttribute("onkeypress","FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
+            labelInput.setAttribute("onclick", "FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
+            labelInput.setAttribute("onkeypress", "FormTableHandler.showLabelDialog('" + settingKey + "'," + iteration + ")");
             labelInput.setAttribute("data-dojo-type", "dijit.form.ValidationTextBox");
             td2.appendChild(labelInput);
             newTableRow.appendChild(td2);
@@ -712,15 +712,13 @@ FormTableHandler.drawRow = function(parentDiv, settingKey, iteration, value) {
     var parentDivElement = PWM_MAIN.getObject(parentDiv);
     parentDivElement.appendChild(newTableRow);
 
-    PWM_MAIN.addEventHandler(inputID + "optionsButton",'click',function(){
-        FormTableHandler.showOptionsDialog(settingKey,iteration);
+    PWM_MAIN.addEventHandler(inputID + "optionsButton", 'click', function () {
+        FormTableHandler.showOptionsDialog(settingKey, iteration);
     });
-    PWM_MAIN.addEventHandler(inputID + "type",'click',function(){
+    PWM_MAIN.addEventHandler(inputID + "type", 'click', function () {
         PWM_VAR['clientSettingCache'][settingKey][iteration]['type'] = PWM_MAIN.getObject(inputID + "type").value;
         FormTableHandler.writeFormSetting(settingKey);
     });
-
-
 };
 
 FormTableHandler.writeFormSetting = function(settingKey) {
@@ -734,60 +732,68 @@ FormTableHandler.removeMultiSetting = function(keyName, iteration) {
     FormTableHandler.redraw(keyName);
 };
 
+FormTableHandler.newRowValue = {
+    name:'',
+    minimumLength:0,
+    maximumLength:255,
+    labels:{'':''},
+    regexErrors:{'':''},
+    selectOptions:{},
+    description:{'':''}
+};
+
 FormTableHandler.addMultiSetting = function(keyName) {
-    var currentSize = 0;
-    for (var loopVar in PWM_VAR['clientSettingCache'][keyName]) {
-        currentSize++;
-    }
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['name'] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['minimumLength'] = '0';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['maximumLength'] = '255';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['labels'] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['labels'][''] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['regexErrors'] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['regexErrors'][''] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['selectOptions'] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['selectOptions'][''] = '';
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['description'] = {};
-    PWM_VAR['clientSettingCache'][keyName][currentSize + 1]['description'][''] = '';
-    FormTableHandler.writeFormSetting(keyName);
-    FormTableHandler.redraw(keyName)
+    var body='Name <input class="configStringInput" id="newFormFieldName" style="width:300px"/>';
+    PWM_MAIN.showConfirmDialog({title:'New Form Field',text:body,showClose:true,loadFunction:function(){
+        PWM_MAIN.getObject('dialog_ok_button').disabled = true;
+        PWM_MAIN.addEventHandler('newFormFieldName','input',function(){
+            PWM_VAR['newFormFieldName'] = PWM_MAIN.getObject('newFormFieldName').value;
+            if (PWM_VAR['newFormFieldName'] && PWM_VAR['newFormFieldName'].length > 1) {
+                PWM_MAIN.getObject('dialog_ok_button').disabled = false;
+            }
+        });
+    },okAction:function(){
+        var newRowValue = FormTableHandler.newRowValue;
+        newRowValue['name'] = PWM_VAR['newFormFieldName'];
+        PWM_VAR['clientSettingCache'][keyName].push(newRowValue);
+        FormTableHandler.writeFormSetting(keyName);
+        FormTableHandler.redraw(keyName)
+    }});
 };
 
 FormTableHandler.showOptionsDialog = function(keyName, iteration) {
     require(["dijit/Dialog","dijit/form/Textarea","dijit/form/CheckBox","dijit/form/NumberSpinner"],function(){
         var inputID = 'value_' + keyName + '_' + iteration + "_";
-        var bodyText = '<table style="border:0">';
+        var bodyText = '<table class="noborder">';
         bodyText += '<tr>';
-        bodyText += '<td style="border:0; text-align: right">Description</td><td style="border:0;"><input type="text" id="' + inputID + 'description' + '"/></td>';
+        bodyText += '<td style="text-align: right">Description</td><td><input type="text" id="' + inputID + 'description' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Required</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
+        bodyText += '<td style="text-align: right">Required</td><td><input type="checkbox" id="' + inputID + 'required' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Confirm</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
+        bodyText += '<td style="text-align: right">Confirm</td><td><input type="checkbox" id="' + inputID + 'confirmationRequired' + '"/></td>';
         bodyText += '</tr><tr>';
         if (PWM_SETTINGS['settings'][keyName]['options']['readonly'] == 'show') {
-            bodyText += '<td style="border:0; text-align: right">Read Only</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
+            bodyText += '<td style="text-align: right">Read Only</td><td><input type="checkbox" id="' + inputID + 'readonly' + '"/></td>';
             bodyText += '</tr><tr>';
         }
         if (PWM_SETTINGS['settings'][keyName]['options']['unique'] == 'show') {
-            bodyText += '<td style="border:0; text-align: right">Unique</td><td style="border:0;"><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
+            bodyText += '<td style="border:0; text-align: right">Unique</td><td><input type="checkbox" id="' + inputID + 'unique' + '"/></td>';
             bodyText += '</tr><tr>';
         }
-        bodyText += '<td style="border:0; text-align: right">Minimum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
+        bodyText += '<td style="text-align: right">Minimum Length</td><td><input type="number" id="' + inputID + 'minimumLength' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Maximum Length</td><td style="border:0;"><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
+        bodyText += '<td style="text-align: right">Maximum Length</td><td><input type="number" id="' + inputID + 'maximumLength' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Regular Expression</td><td style="border:0;"><input type="text" id="' + inputID + 'regex' + '"/></td>';
+        bodyText += '<td style="text-align: right">Regular Expression</td><td><input type="text" id="' + inputID + 'regex' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Regular Expression<br/>Error Message</td><td style="border:0;"><input type="text" id="' + inputID + 'regexErrors' + '"/></td>';
+        bodyText += '<td style="text-align: right">Regular Expression<br/>Error Message</td><td><input type="text" id="' + inputID + 'regexErrors' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">Placeholder</td><td style="border:0;"><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
+        bodyText += '<td style="text-align: right">Placeholder</td><td><input type="text" id="' + inputID + 'placeholder' + '"/></td>';
         bodyText += '</tr><tr>';
-        bodyText += '<td style="border:0; text-align: right">JavaScript</td><td style="border:0;"><input type="text" id="' + inputID + 'javascript' + '"/></td>';
+        bodyText += '<td style="text-align: right">JavaScript</td><td><input type="text" id="' + inputID + 'javascript' + '"/></td>';
         bodyText += '</tr><tr>';
         if (PWM_VAR['clientSettingCache'][keyName][iteration]['type'] == 'select') {
-            bodyText += '<td style="border:0; text-align: right">Select Options</td><td style="border:0;"><input class="menubutton" type="button" id="' + inputID + 'selectOptions' + '" value="Edit" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
+            bodyText += '<td style="text-align: right">Select Options</td><td><input class="menubutton" type="button" id="' + inputID + 'selectOptions' + '" value="Edit" onclick="FormTableHandler.showSelectOptionsDialog(\'' + keyName + '\',\'' + iteration + '\')"/></td>';
             bodyText += '</tr>';
         }
         bodyText += '</table>';
@@ -895,7 +901,7 @@ FormTableHandler.showLabelDialog = function(keyName, iteration) {
         for (var localeName in PWM_VAR['clientSettingCache'][keyName][iteration]['labels']) {
             var value = PWM_VAR['clientSettingCache'][keyName][iteration]['labels'][localeName];
             var localeID = inputID + localeName;
-            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td style="border:0;"><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
+            bodyText += '<td style="border:0; text-align: right">' + localeName + '</td><td><input type="text" value="' + value + '" id="' + localeID + '' + '"/></td>';
             if (localeName != '') {
                 bodyText += '<td style="border:0">';
                 bodyText += '<img id="' + localeID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
@@ -1029,15 +1035,14 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         var bodyText = '';
         bodyText += '<table style="border:0" id="' + inputID + 'table">';
         bodyText += '<tr>';
-        bodyText += '<td style="border:0"><b>Name</b></td><td style="border:0"><b>Display Value</b></td>';
+        bodyText += '<td style="border:1px"><b>Name</b></td><td style="border:1px"><b>Display Value</b></td>';
         bodyText += '</tr><tr>';
         for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
             var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
             var optionID = inputID + optionName;
-            bodyText += '<td style="border:1px">' + optionName + '</td><td style="border:1px">' + value + '</td>';
-            bodyText += '<td style="border:0">';
-            bodyText += '<img id="' + optionID + '-removeButton' + '" alt="crossMark" height="15" width="15" src="' + PWM_GLOBAL['url-resources'] + '/redX.png"';
-            bodyText += ' onclick="FormTableHandler.removeSelectOptionsOption(\'' + keyName + '\',' + iteration + ',\'' + optionName + '\')" />';
+            bodyText += '<td style="border:1px solid grey">' + optionName + '</td><td style="border:1px solid grey">' + value + '</td>';
+            bodyText += '<td style="border:1px">';
+            bodyText += '<span id="' + optionID + '-removeButton" class="delete-row-icon action-icon fa fa-times"></span>';
             bodyText += '</td>';
             bodyText += '</tr><tr>';
         }
@@ -1066,7 +1071,11 @@ FormTableHandler.showSelectOptionsDialog = function(keyName, iteration) {
         for (var optionName in PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions']) {
             var value = PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName];
             var loopID = inputID + optionName;
+            var optionID = inputID + optionName;
             PWM_MAIN.clearDijitWidget(loopID);
+            PWM_MAIN.addEventHandler(optionID + '-removeButton','click',function(){
+                FormTableHandler.removeSelectOptionsOption(keyName,iteration,optionName);
+            });
             new TextBox({
                 onChange: function(){PWM_VAR['clientSettingCache'][keyName][iteration]['selectOptions'][optionName] = this.value;FormTableHandler.writeFormSetting(keyName)}
             },loopID);
@@ -1299,7 +1308,7 @@ ChangePasswordHandler.doChange = function(settingKey) {
 ChangePasswordHandler.clear = function(settingKey) {
     PWM_VAR['clientSettingCache'][settingKey]['settings']['p1'] = '';
     PWM_VAR['clientSettingCache'][settingKey]['settings']['p2'] = '';
-}
+};
 
 ChangePasswordHandler.generateRandom = function(settingKey) {
     ChangePasswordHandler.clear(settingKey);
@@ -2407,7 +2416,7 @@ UserPermissionHandler.draw = function(keyName) {
 
     var buttonRowHtml = '<button class="btn" id="button-' + keyName + '-addFilterValue">'
         + '<span class="btn-icon fa fa-plus-square"></span>Add Filter</button>';
-    
+
     var hideGroup = 'hideGroups' in options && options['hideGroups'] == "true";
     if (!hideGroup) {
         buttonRowHtml += '<button class="btn" id="button-' + keyName + '-addGroupValue">'

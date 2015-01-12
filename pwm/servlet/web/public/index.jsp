@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -35,7 +35,10 @@
         <table style="border:0">
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Button_Login" href="<pwm:context/><pwm:url url='/private'/>"><pwm:display key="Button_Login"/></a>
+                    <a class="menubutton" id="Button_Login" href="<pwm:context/><pwm:url url='/private'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-sign-in"></span></pwm:if>
+                        <pwm:display key="Button_Login"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:display key="Button_Login"/></p>
@@ -44,7 +47,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:context/><pwm:url url='/public/ForgottenPassword'/>"><pwm:display key="Title_ForgottenPassword"/></a>
+                    <a class="menubutton" id="Title_ForgottenPassword" href="<pwm:context/><pwm:url url='/public/ForgottenPassword'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                        <pwm:display key="Title_ForgottenPassword"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:display key="Long_Title_ForgottenPassword"/></p>
@@ -54,7 +60,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.FORGOTTEN_USERNAME_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ForgottenUsername" href="<pwm:context/><pwm:url url='/public/ForgottenUsername'/>"><pwm:display key="Title_ForgottenUsername"/></a>
+                    <a class="menubutton" id="Title_ForgottenUsername" href="<pwm:context/><pwm:url url='/public/ForgottenUsername'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-unlock"></span></pwm:if>
+                        <pwm:display key="Title_ForgottenUsername"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:display key="Long_Title_ForgottenUsername"/></p>
@@ -64,7 +73,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.ACTIVATE_USER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_ActivateUser" href="<pwm:context/><pwm:url url='/public/ActivateUser'/>"><pwm:display key="Title_ActivateUser"/></a>
+                    <a class="menubutton" id="Title_ActivateUser" href="<pwm:context/><pwm:url url='/public/ActivateUser'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-graduation-cap"></span></pwm:if>
+                        <pwm:display key="Title_ActivateUser"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:display key="Long_Title_ActivateUser"/></p>
@@ -74,7 +86,10 @@
             <% if (ContextManager.getPwmApplication(session).getConfig() != null && ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(PwmSetting.NEWUSER_ENABLE)) { %>
             <tr style="border:0">
                 <td style="border:0" class="menubutton_key">
-                    <a class="menubutton" id="Title_NewUser" href="<pwm:context/><pwm:url url='/public/NewUser'/>"><pwm:display key="Title_NewUser"/></a>
+                    <a class="menubutton" id="Title_NewUser" href="<pwm:context/><pwm:url url='/public/NewUser'/>">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-file-text-o"></span></pwm:if>
+                        <pwm:display key="Title_NewUser"/>
+                    </a>
                 </td>
                 <td style="border: 0">
                     <p><pwm:display key="Long_Title_NewUser"/></p>

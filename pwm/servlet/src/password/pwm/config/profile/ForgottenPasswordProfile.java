@@ -26,10 +26,12 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
+import password.pwm.config.option.RecoveryAuthenticationMethod;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
 
@@ -56,4 +58,13 @@ public class ForgottenPasswordProfile extends AbstractProfile {
     public ProfileType profileType() {
         return ProfileType.ForgottenPassword;
     }
+    
+    public Set<RecoveryAuthenticationMethod> requiredRecoveryAuthenticationMethods() {
+        return this.readSettingAsOptionList(PwmSetting.FORGOTTEN_PASSWORD_REQUIRED_METHODS, RecoveryAuthenticationMethod.class);
+    }
+
+    public Set<RecoveryAuthenticationMethod> availableRecoveryAuthenticationMethods() {
+        return this.readSettingAsOptionList(PwmSetting.FORGOTTEN_PASSWORD_AVAILABLE_METHODS,RecoveryAuthenticationMethod.class);
+    }
+
 }

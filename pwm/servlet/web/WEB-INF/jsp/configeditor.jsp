@@ -37,25 +37,25 @@
 <% final String configNotes = configManagerBean.getStoredConfiguration().readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_NOTES);%>
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
-<div id="wrapper" style="border:1px; height: 100%" >
-    <div id="header" style="height: 25px; position: fixed;">
+<div id="wrapper">
+    <div id="header">
         <div id="header-center-wide">
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
-                <span style="visibility: hidden; color: orange" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
-                <div class="headerIcon" style="float: right" id="cancelButton_icon">
+                <span style="visibility: hidden" id="working_icon" class="headerIcon fa fa-cog fa-spin"></span>
+                <div class="headerIcon" id="cancelButton_icon">
                     <span class="fa fa-times"></span>
                 </div>
-                <div class="headerIcon" style="float: right" id="saveButton_icon">
+                <div class="headerIcon" id="saveButton_icon">
                     <span class="fa fa-save"></span>
                 </div>
-                <div class="headerIcon" style="float: right" id="setPassword_icon">
+                <div class="headerIcon" id="setPassword_icon">
                     <span class="fa fa-key"></span>
                 </div>
-                <div class="headerIcon" style="float: right" id="referenceDoc_icon">
+                <div class="headerIcon" id="referenceDoc_icon">
                     <span class="fa fa-book"></span>
                 </div>
-                <div class="headerIcon" style="float: right" id="macroDoc_icon">
+                <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
                 </div>
             </div>
@@ -63,39 +63,53 @@
     </div>
     <div id="centerbody-config" class="centerbody-config">
         <div id="settingSearchPanel">
-            <table style="width:600px; margin-left: auto; margin-right: auto" class="noborder">
+            <table class="noborder settingSearchPanelTable">
+                <colgroup>
+                    <col class="settingSearchPanelTable_Col1">
+                    <col class="settingSearchPanelTable_Col2">
+                    <col class="settingSearchPanelTable_Col3">
+                </colgroup>
                 <tr>
-                    <td style="width:10px">
+                    <td>
                         <span id="settingSearchIcon" class="fa fa-search"></span>
                     </td>
-                    <td style="width:580px">
-                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" style="width: 570px; margin-left:auto; margin-right: auto" autofocus/>
+                    <td>
+                        <input type="search" id="homeSettingSearch" name="homeSettingSearch" class="inputfield" autofocus/>
                     </td>
-                    <td style="min-width:10px;max-width:10px;display: inline-block">
+                    <td>
                         <div style="margin-top:5px">
-                        <div id="searchIndicator" style="display: none">
-                            <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
-                        </div>
-                        <div id="noSearchResultsIndicator" style="display: none;">
-                            <span style="color: #ffcd59;" class="fa fa-lg fa-ban"></span>
-                        </div>
+                            <div id="searchIndicator" style="display: none">
+                                <span style="" class="fa fa-lg fa-spin fa-spinner"></span>
+                            </div>
+                            <div id="noSearchResultsIndicator" style="display: none;">
+                                <span style="color: #ffcd59;" class="fa fa-lg fa-ban"></span>
+                            </div>
                         </div>
                     </td>
                 </tr>
             </table>
             <div id="searchResults" style="visibility: hidden">
+                <%-- search results inserted here --%>
             </div>
         </div>
-        <div id="navigationTreeWrapper" style="margin-top: 57px">
+        <div id="leftPaneWrapper">
             <div id="navigationTreeTopMenu">
                 <span id="button-navigationExpandAll" class="fa fa-plus-square"></span>
                 <span id="button-navigationCollapseAll" class="fa fa-minus-square"></span>
             </div>
-            <div id="navigationTree" style="">
-                <!-- navtree goes here -->
+            <div id="navigationTreeWrapper">
+                <div id="navigationTree">
+                    <%-- navtree goes here --%>
+                </div>
+            </div>
+            <div id="navigationTreeFooter">
+                <label class="checkboxWrapper modifiedSettingsWrapper">
+                    <input type="checkbox" id="input-modifiedSettingsOnly" disabled/>Modified Only
+                </label>
             </div>
         </div>
-        <div id="settingsPanel" style="width:600px;float:right; border:0;margin-top: 57px">
+        <div id="settingsPanel">
+            <%-- settings content goes here --%>
         </div>
     </div>
     <br/><br/>

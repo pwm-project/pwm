@@ -13,7 +13,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@
             <li><a href="#errors">Errors</a></li>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
-                <% for (PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
+                <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
                 <li><a href="#displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a></li>
                 <% } %>
             </ol>
@@ -356,7 +356,7 @@
             <% } %>
         </table>
         <h1><a id="displayStrings">Display Strings</a></h1>
-        <% for (PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) { %>
+        <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
         <h2>
             <a id="displayStrings_<%=bundle.getTheClass().getSimpleName()%>"><%=bundle.getTheClass().getSimpleName()%></a>
             <% if (bundle.isAdminOnly()) { %> (admin-only) <% } %>

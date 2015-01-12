@@ -602,7 +602,7 @@ public class Configuration implements Serializable, SettingReader {
 
                 final PwmPasswordPolicy thePolicy;
                 if (lookupDN == null || lookupDN.isEmpty()) {
-                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"user ldap dn in setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.getKey() + " can not be resolved"));
+                    throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,"user ldap dn in setting " + PwmSetting.NEWUSER_PASSWORD_POLICY_USER.toMenuLocationDebug(null,PwmConstants.DEFAULT_LOCALE) + " can not be resolved"));
                 } else {
                     final ChaiUser chaiUser = ChaiFactory.createChaiUser(lookupDN, pwmApplication.getProxyChaiProvider(getDefaultLdapProfile().getIdentifier()));
                     final UserIdentity userIdentity = new UserIdentity(lookupDN,getDefaultLdapProfile().getIdentifier());
@@ -847,7 +847,16 @@ public class Configuration implements Serializable, SettingReader {
         }
         return returnMap;
     }
-    
+
+    public Map<String,ForgottenPasswordProfile> getForgottenPasswordProfiles() {
+        final Map<String,ForgottenPasswordProfile> returnMap = new LinkedHashMap<>();
+        final Map<String,Profile> profileMap = profileMap(ProfileType.ForgottenPassword);
+        for (final String profileID : profileMap.keySet()) {
+            returnMap.put(profileID, (ForgottenPasswordProfile)profileMap.get(profileID));
+        }
+        return returnMap;
+    }
+
     private Map<String,Profile> profileMap(final ProfileType profileType) {
         if (!dataCache.profileCache.containsKey(profileType)) {
             dataCache.profileCache.put(profileType,new LinkedHashMap<String, Profile>());

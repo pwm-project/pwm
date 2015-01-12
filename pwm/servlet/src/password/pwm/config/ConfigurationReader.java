@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package password.pwm.config;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
+import password.pwm.bean.SessionLabel;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
@@ -150,7 +151,8 @@ public class ConfigurationReader {
 
     public void saveConfiguration(
             final StoredConfiguration storedConfiguration,
-            final PwmApplication pwmApplication
+            final PwmApplication pwmApplication,
+            final SessionLabel sessionLabel
     )
             throws IOException, PwmUnrecoverableException, PwmOperationalException
     {
@@ -173,7 +175,7 @@ public class ConfigurationReader {
                 final BigInteger epochValue = epochStrValue == null || epochStrValue.length() < 0 ? BigInteger.ZERO : new BigInteger(epochStrValue);
                 epochStrValue = epochValue.add(BigInteger.ONE).toString();
             } catch (Exception e) {
-                LOGGER.error("error trying to parse previous config epoch property: " + e.getMessage());
+                LOGGER.error(sessionLabel, "error trying to parse previous config epoch property: " + e.getMessage());
                 epochStrValue = "0";
             }
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_EPOCH, epochStrValue);
@@ -186,7 +188,7 @@ public class ConfigurationReader {
         }
 
         try {
-            LOGGER.info("beginning write to configuration file " + configFile.getAbsoluteFile());
+            LOGGER.info(sessionLabel, "beginning write to configuration file " + configFile.getAbsoluteFile());
             saveInProgress = true;
 
             storedConfiguration.toXml(new FileOutputStream(configFile, false));
@@ -197,7 +199,10 @@ public class ConfigurationReader {
             }
 
             if (pwmApplication != null && pwmApplication.getAuditManager() != null) {
-                final String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
+                String modifyMessage = storedConfiguration.changeLogAsDebugString(PwmConstants.DEFAULT_LOCALE, false);
+                if (sessionLabel != null && sessionLabel.getUserIdentity() != null) {
+                    modifyMessage += " by " + sessionLabel.getUserIdentity().toDisplayString();
+                }
                 pwmApplication.getAuditManager().submit(SystemAuditRecord.create(
                         AuditEvent.MODIFY_CONFIGURATION,
                         modifyMessage,

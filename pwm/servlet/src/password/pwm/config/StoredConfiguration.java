@@ -695,7 +695,7 @@ public class StoredConfiguration implements Serializable {
 
     public void writeLocaleBundleMap(final String bundleName, final String keyName, final Map<String,String> localeMap) {
         ResourceBundle theBundle = null;
-        for (final PwmConstants.EDITABLE_LOCALE_BUNDLES bundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) {
+        for (final PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) {
             if (bundle.getTheClass().getName().equals(bundleName)) {
                 theBundle = ResourceBundle.getBundle(bundleName);
             }

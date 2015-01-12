@@ -455,8 +455,18 @@ public class NewUserServlet extends PwmServlet {
         }
 
         final ChaiUser theUser = ChaiFactory.createChaiUser(newUserDN, chaiProvider);
+        
+        final boolean useTempPw;
+        {
+            final String settingValue = pwmApplication.getConfig().readAppProperty(AppProperty.NEWUSER_LDAP_USE_TEMP_PW);
+            if ("auto".equalsIgnoreCase(settingValue)) {
+                useTempPw = chaiProvider.getDirectoryVendor() == ChaiProvider.DIRECTORY_VENDOR.MICROSOFT_ACTIVE_DIRECTORY;
+            } else {
+                useTempPw = Boolean.parseBoolean(settingValue);
+            }
+        }
 
-        if (Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.NEWUSER_LDAP_USE_TEMP_PW))) {
+        if (useTempPw) {
             LOGGER.trace(pwmSession, "will use temporary password process for new user entry: " + newUserDN);
             final PasswordData temporaryPassword;
             {

@@ -326,10 +326,20 @@
             </tr>
             <tr class="buttonrow">
                 <td class="buttoncell">
-                    <a class="menubutton" href="ConfigManager?processAction=summary">
+                    <a class="menubutton" id="MenuItem_ConfigurationSummary" href="#">
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-files-o"></span></pwm:if>
                         Configuration Summary
                     </a>
+                    <pwm:script>
+                        <script type="application/javascript">
+                            PWM_GLOBAL['startupFunctions'].push(function(){
+                                PWM_MAIN.addEventHandler('MenuItem_ConfigurationSummary','click',function(){
+                                    window.open('ConfigManager?processAction=summary','_blank', 'width=650,toolbar=0,location=0,menubar=0');
+                                });
+                            });
+                        </script>
+                    </pwm:script>
+
                 </td>
             </tr>
         </table>

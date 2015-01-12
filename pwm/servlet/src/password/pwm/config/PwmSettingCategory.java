@@ -215,4 +215,29 @@ public enum PwmSettingCategory {
         }
         return Collections.unmodifiableList(returnList);
     }
+
+    public String toMenuLocationDebug(
+            final String profileID,
+            final Locale locale
+    ) {
+        final String SEPARATOR = " -> ";
+        final StringBuilder sb = new StringBuilder();
+
+        PwmSettingCategory nextCategory = this;
+        while (nextCategory != null) {
+            if (nextCategory != this) {
+                sb.insert(0, nextCategory.getLabel(locale) + SEPARATOR);
+            } else {
+                sb.insert(0, nextCategory.getLabel(locale));
+            }
+            nextCategory = nextCategory.getParent();
+        }
+
+        if (profileID != null) {
+            sb.append(profileID);
+        }
+
+        return sb.toString();
+    }
+
 }

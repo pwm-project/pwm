@@ -447,7 +447,7 @@ public class ConfigManagerServlet extends PwmServlet {
 
         try {
             ContextManager contextManager = ContextManager.getContextManager(pwmRequest.getHttpServletRequest().getSession().getServletContext());
-            contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication());
+            contextManager.getConfigReader().saveConfiguration(storedConfiguration, contextManager.getPwmApplication(), pwmRequest.getSessionLabel());
             contextManager.reinitializePwmApplication();
         } catch (Exception e) {
             final String errorString = "error saving file: " + e.getMessage();

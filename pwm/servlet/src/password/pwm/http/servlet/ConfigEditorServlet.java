@@ -286,7 +286,8 @@ public class ConfigEditorServlet extends PwmServlet {
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
-            throws IOException, PwmUnrecoverableException {
+            throws IOException, PwmUnrecoverableException 
+    {
         final StoredConfiguration storedConfig = configManagerBean.getStoredConfiguration();
 
         final String key = pwmRequest.readParameterAsString("key");
@@ -297,7 +298,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String, String> bundleMap = storedConfig.readLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
             if (bundleMap == null || bundleMap.isEmpty()) {
@@ -388,7 +389,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             final Map<String, String> valueMap = JsonUtil.getGson().fromJson(bodyString,
                     new TypeToken<Map<String, String>>() {
@@ -433,7 +434,7 @@ public class ConfigEditorServlet extends PwmServlet {
         if (key.startsWith("localeBundle")) {
             final StringTokenizer st = new StringTokenizer(key, "-");
             st.nextToken();
-            final PwmConstants.EDITABLE_LOCALE_BUNDLES bundleName = PwmConstants.EDITABLE_LOCALE_BUNDLES.valueOf(st.nextToken());
+            final PwmConstants.PwmLocaleBundle bundleName = PwmConstants.PwmLocaleBundle.valueOf(st.nextToken());
             final String keyName = st.nextToken();
             storedConfig.resetLocaleBundleMap(bundleName.getTheClass().getName(), keyName);
         } else {
@@ -578,10 +579,10 @@ public class ConfigEditorServlet extends PwmServlet {
                     final LinkedHashMap<String, Object> settingData = new LinkedHashMap<>();
                     settingData.put("category", setting.getCategory().toString());
                     settingData.put("value", configManagerBean.getStoredConfiguration().readSetting(setting, recordID.getProfileID()).toDebugString(true, pwmRequest.getLocale()));
-                    settingData.put("navigation", setting.toMenuLocationDebug(null, locale));
+                    settingData.put("navigation", setting.getCategory().toMenuLocationDebug(null, locale));
                     settingData.put("default", configManagerBean.getStoredConfiguration().isDefaultValue(setting, recordID.getProfileID()));
-                    
-                    final String returnCategory = setting.toMenuLocationDebug(recordID.getProfileID(),locale);
+
+                    final String returnCategory = settingData.get("navigation").toString();
                     if (!returnData.containsKey(returnCategory)) {
                         returnData.put(returnCategory, new LinkedHashMap<String, Map<String, Object>>());
                     }
@@ -716,8 +717,11 @@ public class ConfigEditorServlet extends PwmServlet {
             final PwmRequest pwmRequest,
             final ConfigManagerBean configManagerBean
     )
-            throws IOException, PwmUnrecoverableException {
+            throws IOException, PwmUnrecoverableException
+    {
+        final Date startTime = new Date();
         final ArrayList<Map<String, Object>> navigationData = new ArrayList<>();
+        final boolean modifiedSettingsOnly = pwmRequest.readParameterAsBoolean("modifiedSettingsOnly");
 
         { // root node
             final Map<String, Object> categoryInfo = new HashMap<>();
@@ -735,7 +739,7 @@ public class ConfigEditorServlet extends PwmServlet {
         }
 
         for (final PwmSettingCategory loopCategory : PwmSettingCategory.values()) {
-            if (!loopCategory.isHidden()) {
+            if (!loopCategory.isHidden() && (!modifiedSettingsOnly || categoryHasModifiedSettings(loopCategory,configManagerBean.getStoredConfiguration()))) {
                 final Map<String, Object> categoryInfo = new HashMap<>();
                 categoryInfo.put("id", loopCategory.getKey());
                 categoryInfo.put("name", loopCategory.getLabel(pwmRequest.getLocale()));
@@ -769,7 +773,7 @@ public class ConfigEditorServlet extends PwmServlet {
                             profileInfo.put("name", profile.isEmpty() ? "Default" : profile);
                             profileInfo.put("parent", loopCategory.getKey());
                             profileInfo.put("category", loopCategory.getKey());
-                            profileInfo.put("type", "profile");
+                            profileInfo.put("menuLocation", loopCategory.toMenuLocationDebug(profile, pwmRequest.getLocale()));
                             navigationData.add(profileInfo);
                         }
                     }
@@ -789,31 +793,85 @@ public class ConfigEditorServlet extends PwmServlet {
             }
         }
 
-        {
+        boolean includeDisplayText = false;
+        for (final PwmConstants.PwmLocaleBundle localeBundle : PwmConstants.PwmLocaleBundle.values()) {
+            if (!localeBundle.isAdminOnly()) {
+                final Set<String> modifiedKeys = new LinkedHashSet<>();
+                if (modifiedSettingsOnly) {
+                    modifiedKeys.addAll(determineModifiedKeysSettings(localeBundle, pwmRequest.getConfig(), configManagerBean.getStoredConfiguration()));
+                }
+                if (!modifiedSettingsOnly || !modifiedKeys.isEmpty()) {
+                    final Map<String, Object> categoryInfo = new HashMap<>();
+                    categoryInfo.put("id", localeBundle.toString());
+                    categoryInfo.put("name", localeBundle.getTheClass().getSimpleName());
+                    categoryInfo.put("parent", "DISPLAY_TEXT");
+                    categoryInfo.put("type", "displayText");
+                    categoryInfo.put("keys", modifiedSettingsOnly ? modifiedKeys : localeBundle.getKeys());
+                    navigationData.add(categoryInfo);
+                    includeDisplayText = true;
+                }
+            }
+        }
+
+        if (includeDisplayText) {
             final Map<String, Object> categoryInfo = new HashMap<>();
             categoryInfo.put("id", "DISPLAY_TEXT");
             categoryInfo.put("name", "Display Text");
             categoryInfo.put("parent", "ROOT");
             navigationData.add(categoryInfo);
         }
-        for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) {
-            if (!localeBundle.isAdminOnly()) {
-                final Map<String, Object> categoryInfo = new HashMap<>();
-                categoryInfo.put("id", localeBundle.toString());
-                categoryInfo.put("name", localeBundle.getTheClass().getSimpleName());
-                categoryInfo.put("parent", "DISPLAY_TEXT");
-                categoryInfo.put("type", "displayText");
-                final ResourceBundle bundle = ResourceBundle.getBundle(localeBundle.getTheClass().getName());
-                final List<String> keys = new ArrayList<>();
-                for (final String key : new TreeSet<>(Collections.list(bundle.getKeys()))) {
-                    keys.add(key);
+
+        LOGGER.debug(pwmRequest,"completed navigation tree data request in " + TimeDuration.fromCurrent(startTime));
+        pwmRequest.outputJsonResult(new RestResultBean(navigationData));
+    }
+
+    private static Set<String> determineModifiedKeysSettings(
+            final PwmConstants.PwmLocaleBundle bundle,
+            final Configuration config,
+            final StoredConfiguration storedConfiguration
+    ) {
+        final Set<String> modifiedKeys = new LinkedHashSet<>();
+        for (final String key : bundle.getKeys()) {
+            final Map<String,String> storedBundle = storedConfiguration.readLocaleBundleMap(bundle.getTheClass().getName(),key);
+            if (!storedBundle.isEmpty()) {
+                for (final Locale locale : config.getKnownLocales()) {
+                    final ResourceBundle defaultBundle = ResourceBundle.getBundle(bundle.getTheClass().getName(), locale);
+                    final String localeKeyString = PwmConstants.DEFAULT_LOCALE.toString().equals(locale.toString()) ? "" : locale.toString();
+                    if (storedBundle.containsKey(localeKeyString)) {
+                        final String value = storedBundle.get(localeKeyString);
+                        if (value != null && !value.equals(defaultBundle.getString(key))) {
+                            modifiedKeys.add(key);
+                        }
+                    }
                 }
-                categoryInfo.put("keys", keys);
-                navigationData.add(categoryInfo);
+            }
+        }
+        return modifiedKeys;
+    }
+
+    private static boolean categoryHasModifiedSettings(PwmSettingCategory category, StoredConfiguration storedConfiguration) {
+        for (PwmSettingCategory childCategory : category.getChildCategories()) {
+            if (categoryHasModifiedSettings(childCategory, storedConfiguration)) {
+                return true;
             }
         }
 
-        pwmRequest.outputJsonResult(new RestResultBean(navigationData));
+        if (category.hasProfiles()) {
+            for (String profileID : storedConfiguration.profilesForSetting(category.getProfileSetting())) {
+                for (final PwmSetting setting : category.getSettings()) {
+                    if (!storedConfiguration.isDefaultValue(setting,profileID)) {
+                        return true;
+                    }
+                }
+            }
+        } else {
+            for (final PwmSetting setting : category.getSettings()) {
+                if (!storedConfiguration.isDefaultValue(setting)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void restConfigSettingData(final PwmRequest pwmRequest) throws IOException {
@@ -855,7 +913,7 @@ public class ConfigEditorServlet extends PwmServlet {
         }
         {
             final LinkedHashMap<String, Object> labelMap = new LinkedHashMap<>();
-            for (final PwmConstants.EDITABLE_LOCALE_BUNDLES localeBundle : PwmConstants.EDITABLE_LOCALE_BUNDLES.values()) {
+            for (final PwmConstants.PwmLocaleBundle localeBundle : PwmConstants.PwmLocaleBundle.values()) {
                 final LocaleInfo localeInfo = new LocaleInfo();
                 localeInfo.description = localeBundle.getTheClass().getSimpleName();
                 localeInfo.key = localeBundle.toString();

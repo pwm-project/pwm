@@ -620,7 +620,7 @@ public class ConfigGuideServlet extends PwmServlet {
             storedConfiguration.writeSetting(PwmSetting.PWM_SECURITY_KEY, newSecurityKey, null);
 
             storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE, "true");
-            configReader.saveConfiguration(storedConfiguration, pwmApplication);
+            configReader.saveConfiguration(storedConfiguration, pwmApplication, null);
 
             contextManager.reinitializePwmApplication();
         } catch (PwmException e) {
