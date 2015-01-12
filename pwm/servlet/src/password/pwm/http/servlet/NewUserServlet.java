@@ -608,13 +608,33 @@ public class NewUserServlet extends PwmServlet {
         final List<String> configuredNames = config.readSettingAsStringArray(PwmSetting.NEWUSER_USERNAME_DEFINITION);
         final List<String> failedValues = new ArrayList<>();
 
+        final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
+        final String expandedContext = macroMachine.expandMacros(configuredContext);
+
+
+        if (configuredNames == null || configuredNames.isEmpty() || configuredNames.iterator().next().isEmpty()) {
+            final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
+            String namingValue = null;
+            for (final FormConfiguration formConfiguration : formValues.getFormData().keySet()) {
+                if (formConfiguration.getName().equals(namingAttribute)) {
+                    namingValue = formValues.getFormData().get(formConfiguration);
+                }
+            }
+            if (namingValue == null || namingValue.isEmpty()) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE,
+                        "username definition not set, and naming attribute is not present in form"));
+            }
+            final String escapedName = StringUtil.escapeLdap(namingValue);
+            final String generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;
+            LOGGER.debug(pwmSession, "generated dn for new user: " + generatedDN);
+            return generatedDN;
+        }
+
         int attemptCount = 0;
         String generatedDN;
         while (attemptCount < configuredNames.size()) {
             final String expandedName;
-            final String expandedContext;
             {
-
                 {
                     final String configuredName = configuredNames.get(attemptCount);
                     expandedName = macroMachine.expandMacros(configuredName);
@@ -622,8 +642,6 @@ public class NewUserServlet extends PwmServlet {
 
                 if (!testIfEntryNameExists(pwmApplication, pwmSession, expandedName)) {
                     LOGGER.trace(pwmSession, "generated entry name for new user is unique: " + expandedName);
-                    final String configuredContext = config.readSettingAsString(PwmSetting.NEWUSER_CONTEXT);
-                    expandedContext = macroMachine.expandMacros(configuredContext);
                     final String namingAttribute = config.getDefaultLdapProfile().readSettingAsString(PwmSetting.LDAP_NAMING_ATTRIBUTE);
                     final String escapedName = StringUtil.escapeLdap(expandedName);
                     generatedDN = namingAttribute + "=" + escapedName + "," + expandedContext;

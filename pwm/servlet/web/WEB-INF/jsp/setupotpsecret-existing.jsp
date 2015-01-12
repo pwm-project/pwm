@@ -4,7 +4,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -44,18 +44,28 @@
         </p>
         <%@ include file="fragment/message.jsp" %>
         <br/>
-        <h2>Check Existing Code</h2>
-        <table style="width: 130px; border:0; margin-left: 0">
+        <table class="noborder" style="table-layout: fixed; width: 150px">
+            <colgroup>
+                <col style="width:130px;"/>
+                <col style="width:20px;padding-top: 5px"/>
+            </colgroup>
+                
             <tr>
-                <td style="width: 110px; border: 0">
-                    <input type="text" class="inputfield" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" style="width: 100px" oninput="checkCode()">
+                <td>
+                    <input type="text" class="inputfield" style="max-width: 130px; width: 130px" pattern="[0-9].*" id="verifyCodeInput" autofocus maxlength="6" />
                 </td>
-                <td style="border: 0; width: 10px">
+                <td>
                     <span style="display:none;color:green" id="checkIcon" class="btn-icon fa fa-lg fa-check"></span>
                     <span style="display:none;color:red" id="crossIcon" class="btn-icon fa fa-lg fa-times"></span>
+                    <span style="display:none" id="workingIcon" class="fa fa-lg fa-spin fa-spinner"></span>
                 </td>
-                <td style="border: 0; width: 10px">
-                    <span style="visibility: hidden" id="workingIcon" class="fa fa-lg fa-spin fa-spinner"></span>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button type="submit" name="button-verifyCode" class="btn" id="button-verifyCode">
+                        <pwm:if test="showIcons"><span class="btn-icon fa fa-check"></span></pwm:if>
+                        <pwm:display key="Button_CheckCode"/>
+                    </button>
                 </td>
             </tr>
         </table>
@@ -64,8 +74,8 @@
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecretForm">
                 <input type="hidden" name="processAction" value="clearOtp"/>
                 <button type="submit" name="Button_Continue" class="btn" id="continue_button">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
-                    <pwm:display key="Button_Continue"/>
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-recycle"></span></pwm:if>
+                    <pwm:display key="Button_ClearOtpReEnroll"/>
                 </button>
                 <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
@@ -77,49 +87,14 @@
 <pwm:script>
 <script type="application/javascript">
     PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.addEventHandler('setupOtpSecretForm','submit',function(){
-            confirmContinue();
-            return false;
-        });
+        PWM_OTP.initExistingOtpPage();
+        PWM_MAIN.addEventHandler('button-verifyCode','click',function(){
+            PWM_OTP.checkExistingCode();
+        })
     });
-
-    function checkCode() {
-        PWM_MAIN.getObject('crossIcon').style.display = 'none';
-        PWM_MAIN.getObject('checkIcon').style.display = 'none';
-        PWM_MAIN.getObject('workingIcon').style.visibility = 'visible';
-        PWM_MAIN.pwmFormValidator({
-            serviceURL:"SetupOtp?processAction=restValidateCode",
-            readDataFunction:function(){
-                var paramData = { };
-                paramData['code'] = PWM_MAIN.getObject('verifyCodeInput').value;
-                return paramData;
-            },
-            showMessage:false,
-            processResultsFunction:function(result){
-                if (result['data']) {
-                    PWM_MAIN.getObject('checkIcon').style.display = 'inherit';
-                    PWM_MAIN.getObject('crossIcon').style.display = 'none';
-                } else {
-                    PWM_MAIN.getObject('checkIcon').style.display = 'none';
-                    PWM_MAIN.getObject('crossIcon').style.display = 'inherit';
-                }
-            },
-            completeFunction:function(){
-                PWM_MAIN.getObject('workingIcon').style.visibility = 'hidden';
-            }
-        });
-    }
-
-    function confirmContinue() {
-        PWM_MAIN.showConfirmDialog({
-            text: PWM_MAIN.showString("Display_OtpClearWarning"),
-            okAction:function(){
-                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('setupOtpSecretForm'));
-            }
-        });
-    }
 </script>
 </pwm:script>
+<script type="text/javascript" src="<pwm:context/><pwm:url url='/public/resources/js/otpsecret.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>
 </body>
 </html>

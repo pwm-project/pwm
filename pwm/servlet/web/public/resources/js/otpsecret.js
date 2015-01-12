@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,56 +20,45 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// takes response values in the fields, sends an http request to the servlet
-// and then parses (and displays) the response from the servlet.
-function validateResponses() {
-/*
-    require(["dojo/dom-form"], function(domForm){
-        var serviceUrl = PWM_GLOBAL['url-setupresponses'] + "?processAction=validateResponses";
-        if (PWM_GLOBAL['responseMode']) {
-            serviceUrl += "&responseMode=" + PWM_GLOBAL['responseMode'];
-        }
-        var validationProps = {};
-        validationProps['messageWorking'] = PWM_MAIN.showString('Display_CheckingResponses');
-        validationProps['serviceURL'] = serviceUrl;
-        validationProps['readDataFunction'] = function(){
-            return domForm.toObject('setupResponses');
-        };
-        validationProps['processResultsFunction'] = function(data){
-            updateDisplay(data);
-        };
+var PWM_OTP = PWM_OTP || {};
 
-        PWM_MAIN.pwmFormValidator(validationProps);
+PWM_OTP.checkExistingCode = function() {
+    PWM_MAIN.getObject('button-verifyCode').disabled = true;
+    PWM_MAIN.getObject('crossIcon').style.display = 'none';
+    PWM_MAIN.getObject('checkIcon').style.display = 'none';
+    PWM_MAIN.getObject('workingIcon').style.display = 'inherit';
+    PWM_MAIN.pwmFormValidator({
+        serviceURL:"SetupOtp?processAction=restValidateCode",
+        readDataFunction:function(){
+            var paramData = { };
+            paramData['code'] = PWM_MAIN.getObject('verifyCodeInput').value;
+            return paramData;
+        },
+        showMessage:false,
+        processResultsFunction:function(result){
+            if (result['data']) {
+                PWM_MAIN.getObject('checkIcon').style.display = 'inherit';
+                PWM_MAIN.getObject('crossIcon').style.display = 'none';
+            } else {
+                PWM_MAIN.getObject('checkIcon').style.display = 'none';
+                PWM_MAIN.getObject('crossIcon').style.display = 'inherit';
+            }
+        },
+        completeFunction:function(){
+            PWM_MAIN.getObject('button-verifyCode').disabled = false;
+            PWM_MAIN.getObject('workingIcon').style.display = 'none';
+        }
     });
-*/
-}
+};
 
-function updateDisplay(resultInfo)
-{
-    if (resultInfo == null) {
-        PWM_MAIN.getObject("setotpsecret").disabled = false;
-        return;
-    }
-
-    var result = resultInfo["message"];
-
-    if (resultInfo["success"] == true) {
-        PWM_MAIN.getObject("setotpsecret_button").disabled = false;
-        PWM_MAIN.showSuccess(result);
-    } else {
-        PWM_MAIN.getObject("setotpsecret_button").disabled = true;
-        PWM_MAIN.showError(result);
-    }
-}
-
-function startupOtpSecretPage() {
-    var initialPrompt = PWM_MAIN.showString('Display_EnterOneTimePasswordPrompt');
-    if (initialPrompt != null && initialPrompt.length > 1) {
-        var messageElement = PWM_MAIN.getObject("message");
-        if (messageElement.firstChild.nodeValue.length < 2) {
-            PWM_MAIN.showInfo(initialPrompt);
-        }
-    }
-}
-
-
+PWM_OTP.initExistingOtpPage = function() {
+    PWM_MAIN.getObject('continue_button').type = 'button';
+    PWM_MAIN.addEventHandler('continue_button','click',function(){
+        PWM_MAIN.showConfirmDialog({
+            text: PWM_MAIN.showString("Display_OtpClearWarning"),
+            okAction:function(){
+                PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('setupOtpSecretForm'));
+            }
+        });
+    });
+};

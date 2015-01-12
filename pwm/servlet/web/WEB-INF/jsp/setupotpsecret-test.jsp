@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -45,9 +45,11 @@ TODO: support HOTP
         <%@ include file="fragment/message.jsp" %>
         <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret"
               enctype="application/x-www-form-urlencoded" id="setupOtpSecret" class="pwm-form">
-            <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
-                   id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
-                   onkeyup="validateResponses();" autofocus/>
+            <div style="width:100%; text-align: center">
+                <input type="text" pattern="[0-9]*" name="<%= PwmConstants.PARAM_OTP_TOKEN%>" class="inputfield" maxlength="<%= PwmConstants.OTP_TOKEN_LENGTH%>" type="text"
+                       id="<%= PwmConstants.PARAM_OTP_TOKEN%>" required="required" style="max-width: 100px"
+                       autofocus/>
+            </div>
             <div id="buttonbar">
                 <input type="hidden" name="processAction" value="testOtpSecret"/>
                 <button type="submit" name="testOtpSecret" class="btn" id="setotpsecret_button">
@@ -55,7 +57,7 @@ TODO: support HOTP
                     <pwm:display key="Button_CheckCode"/>
                 </button>
                 <button type="submit" name="testOtpSecret" class="btn" id="button-goback">
-                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span>&nbsp</pwm:if>
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-backward"></span>&nbsp</pwm:if>
                     <pwm:display key="Button_GoBack"/>
                 </button>
                 <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>

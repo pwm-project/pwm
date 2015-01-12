@@ -2561,7 +2561,7 @@
             <value>true</value>
         </default>
     </setting>
-    <setting key="newUser.username.definition" level="0" required="true">
+    <setting key="newUser.username.definition" level="0">
         <label>LDAP Entry ID Definition</label>
         <description><![CDATA[
         <p>This setting controls the entry id of the newly created LDAP entry.  In some directories this is often used
@@ -2569,7 +2569,8 @@
         <p>Values can (and usually do) include macros.  In case the first value
         is already existing in the directory, each successive value is tried until a free value is found.  Though the user
         is not yet created when the macros are evaluated, LDAP macros will use the data provided on the new user form.  Other
-        macros may not be useful as there no data yet available on the user.
+        macros may not be useful as there no data yet available on the user.</p>
+        <p>If blank, the username must be present in the form, defined as the LDAP naming attribute value.</p>
           ]]></description>
         <default>
             <value><![CDATA[@RandomChar:16:ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@]]></value>
@@ -3379,7 +3380,7 @@
             <option value="OTP">Google Authentication</option>
             <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
             <option value="ATTRIBUTES">LDAP Attributes</option>
-            <option value="REMOTE_RESPONSES">Remote web service responses</option>
+            <option value="REMOTE_RESPONSES">Remote web service</option>
         </options>
     </setting>
     <setting key="recovery.requiredMethods" level="0">
@@ -3394,7 +3395,7 @@
             <option value="OTP">Google Authentication</option>
             <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
             <option value="ATTRIBUTES">LDAP Attributes</option>
-            <option value="REMOTE_RESPONSES">Remote web service responses</option>
+            <option value="REMOTE_RESPONSES">Remote web service</option>
         </options>
     </setting>
     <setting key="recovery.minimumAvailableMethods" level="0">
@@ -4105,7 +4106,7 @@
         <label>Forgotten Password</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
     </category>
-    <category key="RECOVERY_PROFILE" profiles="true" hidden="true">
+    <category key="RECOVERY_PROFILE" profiles="true" hidden="false">
         <label>Forgotten Password Profile</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
         <profile setting="recovery.profile.list"/>

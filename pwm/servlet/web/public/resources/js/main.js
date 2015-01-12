@@ -126,6 +126,16 @@ PWM_MAIN.initPage = function() {
         on(document, "keypress", function (event) {
             PWM_MAIN.checkForCapsLock(event);
         });
+
+        require(["dojo/query","dojo/on"], function(query,on){
+            var results = query('.pwm-link-print');
+            for (var i = 0; i < results.length; i++) {
+                (function(formIter){
+                    var element = results[formIter];
+                    on(element, "click", function(event){ window.print(); });
+                })(i);
+            }
+        });
     });
 
     if (PWM_MAIN.getObject('button_cancel')) {
@@ -264,8 +274,10 @@ PWM_MAIN.applyFormAttributes = function() {
     require(["dojo/query","dojo/on"], function(query,on){
         var results = query('.pwm-form');
         for (var i = 0; i < results.length; i++) {
-            var element = results[i];
-            on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
+            (function(formIter){
+                var element = results[formIter];
+                on(element, "submit", function(event){ PWM_MAIN.handleFormSubmit(element, event); });
+            })(i);
         }
     });
 

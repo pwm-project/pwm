@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ public enum Message implements DisplayBundleMarker {
     SUCCESS_PASSWORDRESET("Success_PasswordReset"),
     SUCCESS_PASSWORDSEND("Success_PasswordSend"),
     SUCCESS_ACTION("Success_Action"),
+    SUCCESS_OTP_SETUP("Success_OtpSetup"),
 
     EVENT_LOG_STARTUP("EventLog_Startup"),
     EVENT_LOG_SHUTDOWN("EventLog_Shutdown"),

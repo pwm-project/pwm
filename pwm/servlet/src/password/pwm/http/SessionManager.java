@@ -26,7 +26,6 @@ import com.novell.ldapchai.ChaiFactory;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.provider.ChaiProvider;
-import password.pwm.AppProperty;
 import password.pwm.Permission;
 import password.pwm.PwmApplication;
 import password.pwm.bean.SessionStateBean;
@@ -202,7 +201,7 @@ public class SessionManager implements Serializable {
     public boolean checkPermission(final PwmApplication pwmApplication, final Permission permission)
             throws PwmUnrecoverableException
     {
-        final boolean devDebugMode = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+        final boolean devDebugMode = pwmApplication.isDevDebugMode();
         if (devDebugMode) {
             LOGGER.trace(pwmSession.getLabel(), String.format("entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
         }

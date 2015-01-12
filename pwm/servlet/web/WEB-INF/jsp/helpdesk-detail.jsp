@@ -589,7 +589,7 @@
                                 pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.OTP_ENABLED)) { %>
                         <button id="helpdesk_clearOtpSecretBtn" class="btn" style="width:150px">>
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-eraser"></span></pwm:if>
-                            <pwm:display key="Button_ClearOtpSecret"/>
+                            <pwm:display key="Button_HelpdeskClearOtpSecret"/>
                         </button>
                         <pwm:script>
                             <script type="text/javascript">

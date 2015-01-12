@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,10 +27,20 @@
 <%@ page language="java" session="true" isThreadSafe="true"
          contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
-<% final SetupOtpBean otpBean = PwmSession.getPwmSession(session).getSetupOtpBean();%>
 <%
-    final OTPUserRecord otpUserRecord = otpBean.getOtpUserRecord();
-    final ForceSetupPolicy forceSetupPolicy = PwmRequest.forRequest(request,response).getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class);
+    OTPUserRecord otpUserRecord = null;
+    boolean allowSkip = false;
+    boolean forcedPageView = false;
+    try {
+        final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+        final SetupOtpBean setupOtpBean = pwmRequest.getPwmSession().getSetupOtpBean();
+        otpUserRecord = setupOtpBean.getOtpUserRecord();
+        allowSkip = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class) == ForceSetupPolicy.FORCE_ALLOW_SKIP;
+        forcedPageView = pwmRequest.isForcedPageView();
+    } catch (PwmUnrecoverableException e) {
+        /* application must be unavailable */
+    }
+
 %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
@@ -78,34 +88,44 @@
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
                     <pwm:display key="Button_Continue"/>
                 </button>
-                <%@ include file="/WEB-INF/jsp/fragment/button-cancel.jsp" %>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
             </form>
-            <% if (forceSetupPolicy == ForceSetupPolicy.FORCE_ALLOW_SKIP) { %>
             <form action="<pwm:url url='SetupOtp'/>" method="post" name="setupOtpSecret-skip"
                   enctype="application/x-www-form-urlencoded" id="setupOtpSecret-skip" class="pwm-form">
                 <input type="hidden" name="processAction" value="skip"/>
+                <% if (forcedPageView) { %>
+                <% if (allowSkip) { %>
                 <button type="submit" name="continue" class="btn" id="skipbutton">
                     <pwm:if test="showIcons"><span class="btn-icon fa fa-fighter-jet"></span></pwm:if>
                     <pwm:display key="Button_Skip"/>
                 </button>
-                <input type="hidden" id="pwmFormID" name="pwmFormID" value="<pwm:FormID/>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                <% } %>
+                <% } else { %>
+                <pwm:if test="showCancel">
+                    <pwm:if test="forcedPageView" negate="true">
+                        <button type="submit" name="button" class="btn" id="button-cancel">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                            <pwm:display key="Button_Cancel"/>
+                        </button>
+                    </pwm:if>
+                </pwm:if>
+                <% } %>
             </form>
-            <% } %>
         </div>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane","dijit/Dialog","dojo/domReady!"],function(dojoParser,ready){
-            ready(function(){
-                dojoParser.parse();
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            require(["dojo/parser","dojo/ready","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,ready){
+                ready(function(){
+                    dojoParser.parse();
+                });
             });
         });
-    });
-</script>
+    </script>
 </pwm:script>
 <script type="text/javascript" defer="defer" src="<pwm:context/><pwm:url url='/public/resources/js/responses.js'/>"></script>
 <%@ include file="fragment/footer.jsp" %>

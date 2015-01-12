@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -235,12 +235,22 @@ public class SetupOtpServlet extends PwmServlet {
     )
             throws PwmUnrecoverableException, IOException, ServletException, ChaiUnavailableException
     {
-        final ForceSetupPolicy policy = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP,ForceSetupPolicy.class);
-        if (policy == ForceSetupPolicy.FORCE_ALLOW_SKIP) {
+        boolean allowSkip = false;
+        if (!pwmRequest.isForcedPageView()) {
+            allowSkip = true;
+        } else {
+            final ForceSetupPolicy policy = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.OTP_FORCE_SETUP, ForceSetupPolicy.class);
+            if (policy == ForceSetupPolicy.FORCE_ALLOW_SKIP) {
+                allowSkip = true;
+            }
+        }
+        
+        if (allowSkip) {
             pwmRequest.getPwmSession().getUserInfoBean().setRequiresOtpConfig(false);
             pwmRequest.sendRedirectToContinue();
             return;
         }
+        
         this.advanceToNextStage(pwmRequest, otpBean);
     }
 
@@ -442,12 +452,18 @@ public class SetupOtpServlet extends PwmServlet {
     )
             throws IOException, PwmUnrecoverableException
     {
-        final OTPUserRecord otp = setupOtpBean.getOtpUserRecord();
-        final String otptype = otp.getType().toString();
-        final String content = String.format("otpauth://%s/%s?secret=%s", otptype.toLowerCase(), otp.getIdentifier(),
-                otp.getSecret());
-        if (content == null || content.length() == 0) {
-            LOGGER.error(pwmRequest, "unable to produce qrcode image, missing content parameter");
+        final OTPUserRecord otpUserRecord = setupOtpBean.getOtpUserRecord();
+        final String qrCodeContent;
+        {
+            final String otpTypeValue = otpUserRecord.getType().toString().toLowerCase();
+            final String identifier = StringUtil.urlEncode(otpUserRecord.getIdentifier());
+            final String secret = StringUtil.urlEncode(otpUserRecord.getSecret());
+            qrCodeContent = "otpauth://" + otpTypeValue 
+                    + "/" + identifier
+                    + "?secret=" + secret;
+            if (pwmRequest.getPwmApplication().isDevDebugMode()) {
+                LOGGER.trace(pwmRequest, "qrCodeContent: " + qrCodeContent);
+            }
         }
 
         int height = 200;
@@ -465,7 +481,7 @@ public class SetupOtpServlet extends PwmServlet {
 
         final byte[] imageBytes;
         try {
-            final QRCode codeImage = QRCode.from(StringUtil.urlDecode(content)).withCharset(PwmConstants.DEFAULT_CHARSET.toString());
+            final QRCode codeImage = QRCode.from(qrCodeContent).withCharset(PwmConstants.DEFAULT_CHARSET.toString());
             final QRCode sizedImage = codeImage.withSize(width, height);
             imageBytes = sizedImage.to(ImageType.PNG).stream().toByteArray();
         } catch (Exception e) {

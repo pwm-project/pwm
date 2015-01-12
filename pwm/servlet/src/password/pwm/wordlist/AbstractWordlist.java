@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.wordlist;
 
-import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
 import password.pwm.config.option.DataStorageMethod;
@@ -71,7 +70,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        if (Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT))) {
+        if (pwmApplication.isDevDebugMode()) {
             debugTrace = true;
         }
     }
