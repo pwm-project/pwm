@@ -663,10 +663,6 @@ public class PwmApplication {
             LOGGER.error("error retrieving key '" + appAttribute.getKey() + "' installation date from localDB: " + e.getMessage());
         }
     }
-
-    public boolean isDevDebugMode() {
-        return this.getConfig() != null && Boolean.parseBoolean(this.getConfig().readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
-    }
 }
 
 

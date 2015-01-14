@@ -71,7 +71,7 @@ public class
 
         boolean developerDebug = false;
         try {
-            developerDebug = pwmApplication.isDevDebugMode();
+            developerDebug = pwmApplication.getConfig().isDevDebugMode();
         } catch (Exception e) {
             LOGGER.debug("can't read app property for developerDebug mode: " + e.getMessage());
         }

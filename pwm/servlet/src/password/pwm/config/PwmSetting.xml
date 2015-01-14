@@ -2297,6 +2297,10 @@
             <value>true</value>
         </default>
     </setting>
+
+
+
+
     <setting key="recovery.form" level="0" required="true">
         <label>Forgotten Password User Search Form</label>
         <description><![CDATA[Form fields for activate user module.  Each attribute will be required to be entered by the user.  Ideally, the user will be required to enter some personal data that is not publicly known.]]></description>
@@ -2393,13 +2397,6 @@
         <description><![CDATA[Required LDAP attributes for forgotten password authentication.  These attributes will be required to be supplied by the user as part of the forgotten password autentication process.   The LDAP Proxy User will require LDAP <i>compare</i> permission to these attributes.]]></description>
         <default />
     </setting>
-    <setting key="challenge.requireResponses" level="0">
-        <label>Require Responses</label>
-        <description><![CDATA[If enabled, the user will need to supply previously saved responses in order to proceed with forgotten password recovery.]]></description>
-        <default>
-            <value>true</value>
-        </default>
-    </setting>
     <setting key="challenge.token.enable" level="0" required="true">
         <label>Require Email Token</label>
         <description><![CDATA[If enabled, a token will be emailed to the user during the forgotten password process.  The user will be required to type the email token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
@@ -2411,10 +2408,9 @@
         <label>Token Send Method</label>
         <description><![CDATA[Set the method(s) used for sending the token code or new password to the user.]]></description>
         <default>
-            <value><![CDATA[NONE]]></value>
+            <value><![CDATA[EMAILONLY]]></value>
         </default>
         <options>
-            <option value="NONE">None - Token verification will not be performed</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
             <option value="BOTH">Both - Send token to both email and SMS</option>
@@ -2422,13 +2418,6 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
             <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
-    </setting>
-    <setting key="recovery.require.otp" level="0" required="true" hidden="false">
-        <label>Require One Time Password</label>
-        <description><![CDATA[If enabled, a one time password will be required during the forgotten password process.  The user will be required to type the generated token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
-        <default>
-            <value>false</value>
-        </default>
     </setting>
     <setting key="recovery.action" level="0" required="true">
         <label>Forgotten Password Recovery Mode</label>
@@ -3356,53 +3345,89 @@
         <label>Forgotten Password Profile</label>
         <description><![CDATA[Forgotten Password Profile List]]></description>
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
-        <default/>
+        <default>
+            <value>default</value>
+        </default>
     </setting>
     <setting key="recovery.queryMatch" level="0" required="true">
         <label>Forgotten Password Profile Match</label>
         <description><![CDATA[Helpdesk Profile Match.]]></description>
         <default syntaxVersion="2">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(groupMembership=cn=Admins,ou=Groups,o=example)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
         <default syntaxVersion="2" template="AD">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(memberOf=cn=Domain Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
         <default syntaxVersion="2" template="ORACLE_DS">
-            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(isMemberOf=cn=Admins,cn=Users,DC=site,DC=example,DC=net)"}]]></value>
+            <value><![CDATA[{"type":"ldapQuery","ldapProfileID":"all","ldapQuery":"(objectClass=*)"}]]></value>
         </default>
     </setting>
-    <setting key="recovery.availableMethods" level="0">
-        <label>Available User Identification Methods</label>
-        <description>Available User Identification Methods</description>
-        <default/>
-        <options>
-            <option value="TOKEN">Send Email or SMS token</option>
-            <option value="OTP">Google Authentication</option>
-            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
-            <option value="ATTRIBUTES">LDAP Attributes</option>
-            <option value="REMOTE_RESPONSES">Remote web service</option>
-        </options>
-    </setting>
-    <setting key="recovery.requiredMethods" level="0">
-        <label>Required User Identification Methods</label>
-        <description>Available User Identification Methods</description>
+    <setting key="recovery.verification.otp" level="0">
+        <label>OTP Verification</label>
+        <description><![CDATA[]]></description>
         <default>
-            <value>CHALLENGE_RESPONSES</value>
-            <value>VALUE</value>
+            <value><![CDATA[NONE]]></value>
         </default>
         <options>
-            <option value="TOKEN">Send Email or SMS token</option>
-            <option value="OTP">Google Authentication</option>
-            <option value="CHALLENGE_RESPONSES">Challenge/Response Answers</option>
-            <option value="ATTRIBUTES">LDAP Attributes</option>
-            <option value="REMOTE_RESPONSES">Remote web service</option>
+            <option value="NONE">None</option>
+            <option value="OPTIONAL">Optional</option>
+            <option value="REQUIRED">Required</option>
         </options>
     </setting>
-    <setting key="recovery.minimumAvailableMethods" level="0">
-        <label>Mimumum Available User Identification Methods</label>
-        <description>Miniumum Available User Identification Methods</description>
+    <setting key="recovery.verification.attributes" level="0">
+        <label>LDAP Attribute Verification</label>
+        <description><![CDATA[]]></description>
         <default>
-            <value>1</value>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None</option>
+            <option value="OPTIONAL">Optional</option>
+            <option value="REQUIRED">Required</option>
+        </options>
+    </setting>
+    <setting key="recovery.verification.challengeResponse" level="0">
+        <label>Challenge/Response Verification</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None</option>
+            <option value="OPTIONAL">Optional</option>
+            <option value="REQUIRED">Required</option>
+        </options>
+    </setting>
+    <setting key="recovery.verification.token" level="0">
+        <label>SMS/Email Token Verification</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None</option>
+            <option value="OPTIONAL">Optional</option>
+            <option value="REQUIRED">Required</option>
+        </options>
+    </setting>
+    <setting key="recovery.verification.remoteResponses" level="0">
+        <label>Remote Web Service Response Verification</label>
+        <description><![CDATA[]]></description>
+        <default>
+            <value><![CDATA[NONE]]></value>
+        </default>
+        <options>
+            <option value="NONE">None</option>
+            <option value="OPTIONAL">Optional</option>
+            <option value="REQUIRED">Required</option>
+        </options>
+    </setting>
+
+    <setting key="recovery.verification.minOptionalMethods" level="0">
+        <label>Minimum Optional Verification Methods Required</label>
+        <description></description>
+        <default>
+            <value>0</value>
         </default>
     </setting>
     <setting key="helpdesk.token.sendMethod" level="0">
@@ -3412,7 +3437,6 @@
             <value><![CDATA[NONE]]></value>
         </default>
         <options>
-            <option value="NONE">None - Token verification will not be performed</option>
             <option value="EMAILONLY">Email Only - Send to email address</option>
             <option value="SMSONLY">SMS Only - Send via SMS</option>
             <option value="BOTH">Both - Send token to both email and SMS</option>
@@ -3420,7 +3444,7 @@
             <option value="SMSFIRST">SMS First - Try to send token via SMS; if no SMS number is available, send via email</option>
             <option value="CHOICE_SMS_EMAIL">User Choice - If both SMS and email address is available, user decides</option>
         </options>
-        sms    </setting>
+    </setting>
     <setting key="helpdesk.otp.verify" level="0">
         <label>Enable OTP Verification</label>
         <description><![CDATA[Enable OTP Verificaton.]]></description>
@@ -3913,6 +3937,25 @@
             <value>true</value>
         </default>
     </setting>
+    <setting key="recovery.require.otp" level="0" required="true" hidden="true">
+        <label>DEPRECATED-Require One Time Password</label>
+        <description><![CDATA[If enabled, a one time password will be required during the forgotten password process.  The user will be required to type the generated token in order to proceed to recover their password.  If this setting is disabled, then at least one other recovery method must be set to true for forgotten password recovery to operate.]]></description>
+        <default>
+            <value>false</value>
+        </default>
+    </setting>
+    <setting key="challenge.requireResponses" level="0" hidden="true">
+        <label>DEPRECATED-Require Responses</label>
+        <description><![CDATA[If enabled, the user will need to supply previously saved responses in order to proceed with forgotten password recovery.]]></description>
+        <default>
+            <value>true</value>
+        </default>
+    </setting>
+
+    
+    
+    
+    
 
     <category key="SETTINGS">
         <label>Settings</label>
@@ -4106,8 +4149,13 @@
         <label>Forgotten Password</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
     </category>
+    <category key="RECOVERY_SETTINGS">
+        <label>Settings</label>
+        <description><![CDATA[Policies for forgotten password configuration.]]></description>
+    </category>
+
     <category key="RECOVERY_PROFILE" profiles="true" hidden="false">
-        <label>Forgotten Password Profile</label>
+        <label>Profiles</label>
         <description><![CDATA[Policies for forgotten password configuration.]]></description>
         <profile setting="recovery.profile.list"/>
     </category>

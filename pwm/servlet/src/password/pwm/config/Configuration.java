@@ -30,16 +30,17 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.bean.EmailItemBean;
-import password.pwm.bean.SessionLabel;
 import password.pwm.bean.UserIdentity;
-import password.pwm.config.option.*;
+import password.pwm.config.option.ADPolicyComplexity;
+import password.pwm.config.option.DataStorageMethod;
+import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.TokenStorageMethod;
 import password.pwm.config.profile.*;
 import password.pwm.config.value.*;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.LocaleHelper;
-import password.pwm.ldap.LdapPermissionTester;
 import password.pwm.util.PasswordData;
 import password.pwm.util.SecureHelper;
 import password.pwm.util.StringUtil;
@@ -140,7 +141,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     public MessageSendMethod readSettingAsTokenSendMethod(final PwmSetting setting) {
-        return MessageSendMethod.valueOf(readSettingAsString(setting));
+        return readSettingAsEnum(setting,MessageSendMethod.class);
     }
 
     public List<ActionConfiguration> readSettingAsAction(final PwmSetting setting) {
@@ -665,16 +666,6 @@ public class Configuration implements Serializable, SettingReader {
         return Collections.unmodifiableMap(localeFlagMap);
     }
 
-    public RecoveryAction getRecoveryAction() {
-        final String stringValue = readSettingAsString(PwmSetting.FORGOTTEN_PASSWORD_ACTION);
-        try {
-            return RecoveryAction.valueOf(stringValue);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("unknown recovery action value: " + stringValue);
-            return RecoveryAction.RESETPW;
-        }
-    }
-
     public TokenStorageMethod getTokenStorageMethod() {
         try {
             return TokenStorageMethod.valueOf(readSettingAsString(PwmSetting.TOKEN_STORAGEMETHOD));
@@ -813,31 +804,7 @@ public class Configuration implements Serializable, SettingReader {
     }
 
     /* generic profile stuff */
-    private List<String> profileIDsForCategory(final PwmSettingCategory pwmSettingCategory) {
-        final PwmSetting profileSetting = pwmSettingCategory.getProfileSetting();
-        final List<String> profileIDs = readSettingAsStringArray(profileSetting);
-        return profileIDs;
-    }
 
-    public String discoverProfileIDforUser(
-            final PwmApplication pwmApplication,
-            final SessionLabel sessionLabel,
-            final UserIdentity userIdentity,
-            final ProfileType profileType
-    ) 
-            throws PwmUnrecoverableException 
-    {
-        final Map<String,Profile> profileMap = profileMap(profileType);
-        for (final String profileID : profileMap.keySet()) {
-            final Profile profile = profileMap.get(profileID);
-            final List<UserPermission> queryMatches = profile.getPermissionMatches();
-            final boolean match = LdapPermissionTester.testUserPermissions(pwmApplication, sessionLabel, userIdentity, queryMatches);
-            if (match) {
-                return profile.getIdentifier();
-            }
-        }
-        return null;
-    }
     
     public Map<String,HelpdeskProfile> getHelpdeskProfiles() {
         final Map<String,HelpdeskProfile> returnMap = new LinkedHashMap<>();
@@ -857,17 +824,17 @@ public class Configuration implements Serializable, SettingReader {
         return returnMap;
     }
 
-    private Map<String,Profile> profileMap(final ProfileType profileType) {
+    public Map<String,Profile> profileMap(final ProfileType profileType) {
         if (!dataCache.profileCache.containsKey(profileType)) {
             dataCache.profileCache.put(profileType,new LinkedHashMap<String, Profile>());
-            for (final String profileID : profileIDsForCategory(profileType.getCategory())) {
+            for (final String profileID : ProfileUtility.profileIDsForCategory(this, profileType.getCategory())) {
                 final Profile newProfile = newProfileForID(profileType, profileID);
                 dataCache.profileCache.get(profileType).put(profileID, newProfile);
             }
         }
         return dataCache.profileCache.get(profileType);
     }
-            
+
     private Profile newProfileForID(final ProfileType profileType, final String profileID) {
         final Profile newProfile;
         switch (profileType) {
@@ -884,5 +851,9 @@ public class Configuration implements Serializable, SettingReader {
 
         return newProfile;
     }
-    
+
+
+    public boolean isDevDebugMode() {
+        return Boolean.parseBoolean(readAppProperty(AppProperty.LOGGING_DEV_OUTPUT));
+    }
 }

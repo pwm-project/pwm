@@ -461,7 +461,7 @@ public class SetupOtpServlet extends PwmServlet {
             qrCodeContent = "otpauth://" + otpTypeValue 
                     + "/" + identifier
                     + "?secret=" + secret;
-            if (pwmRequest.getPwmApplication().isDevDebugMode()) {
+            if (pwmRequest.getConfig().isDevDebugMode()) {
                 LOGGER.trace(pwmRequest, "qrCodeContent: " + qrCodeContent);
             }
         }

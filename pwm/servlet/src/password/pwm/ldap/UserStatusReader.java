@@ -384,7 +384,7 @@ public class UserStatusReader {
         // read authenticated profiles
         for (final ProfileType profileType : ProfileType.values()) {
             if (profileType.isAuthenticated()) {
-                final String profileID = config.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, profileType);
+                final String profileID = ProfileUtility.discoverProfileIDforUser(pwmApplication, sessionLabel, userIdentity, profileType);
                 uiBean.getProfileIDs().put(profileType, profileID);
                 if (profileID != null) {
                     LOGGER.debug(sessionLabel, "assigned " + profileType.toString() + " profileID \"" + profileID + "\" to " + userIdentity.toDisplayString());

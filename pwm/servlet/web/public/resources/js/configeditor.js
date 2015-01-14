@@ -833,7 +833,7 @@ PWM_CFGEDIT.loadMainPageBody = function() {
 
 PWM_CFGEDIT.displaySettingsCategory = function(category) {
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
-    settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+    settingsPanel.innerHTML = '';
     console.log('loadingSettingsCategory: ' + category);
 
     if (!category) {
@@ -885,7 +885,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
 
 PWM_CFGEDIT.drawProfileEditorPage = function(settingKey) {
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
-    settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+    settingsPanel.innerHTML = '';
     var settingInfo = PWM_SETTINGS['settings'][settingKey];
     console.log('drawing profile-editor for setting-' + settingKey);
 
@@ -1036,7 +1036,7 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 };
 
 PWM_CFGEDIT.drawNavigationMenu = function() {
-    PWM_MAIN.getObject('navigationTree').innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+    PWM_MAIN.getObject('navigationTree').innerHTML = '';
     var detectFirstDisplay = function() {
         var ca = document.cookie.split(';');
         for(var i=0; i<ca.length; i++) {

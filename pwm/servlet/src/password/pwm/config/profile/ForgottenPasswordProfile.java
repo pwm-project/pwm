@@ -26,18 +26,19 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingCategory;
 import password.pwm.config.StoredConfiguration;
 import password.pwm.config.StoredValue;
-import password.pwm.config.option.RecoveryAuthenticationMethod;
+import password.pwm.config.option.RecoveryVerificationMethod;
 
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ForgottenPasswordProfile extends AbstractProfile {
+
+    private Set<RecoveryVerificationMethod> requiredRecoveryVerificationMethods;
+    private Set<RecoveryVerificationMethod> optionalRecoveryVerificationMethods;
 
     public ForgottenPasswordProfile(String identifier, Map<PwmSetting, StoredValue> storedValueMap) {
         super(identifier, storedValueMap);
     }
+
 
     @Override
     public String getDisplayName(Locale locale) {
@@ -59,12 +60,36 @@ public class ForgottenPasswordProfile extends AbstractProfile {
         return ProfileType.ForgottenPassword;
     }
     
-    public Set<RecoveryAuthenticationMethod> requiredRecoveryAuthenticationMethods() {
-        return this.readSettingAsOptionList(PwmSetting.FORGOTTEN_PASSWORD_REQUIRED_METHODS, RecoveryAuthenticationMethod.class);
+    public Set<RecoveryVerificationMethod> requiredRecoveryAuthenticationMethods() {
+        if (requiredRecoveryVerificationMethods == null) {
+            requiredRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationOptionValue.REQUIRED);
+        }
+        return requiredRecoveryVerificationMethods;
     }
 
-    public Set<RecoveryAuthenticationMethod> availableRecoveryAuthenticationMethods() {
-        return this.readSettingAsOptionList(PwmSetting.FORGOTTEN_PASSWORD_AVAILABLE_METHODS,RecoveryAuthenticationMethod.class);
+    public Set<RecoveryVerificationMethod> optionalRecoveryAuthenticationMethods() {
+        if (optionalRecoveryVerificationMethods == null) {
+            optionalRecoveryVerificationMethods = readRecoveryAuthMethods(VerificationOptionValue.OPTIONAL);
+        }
+        return optionalRecoveryVerificationMethods;
+    }
+    
+    private Set<RecoveryVerificationMethod> readRecoveryAuthMethods(final VerificationOptionValue matchValue) {
+        final Set<RecoveryVerificationMethod> result = new LinkedHashSet<>();
+        for (final RecoveryVerificationMethod recoveryVerificationMethod : RecoveryVerificationMethod.values()) {
+            final PwmSetting setting = recoveryVerificationMethod.getAssociatedSetting();
+            final VerificationOptionValue value = this.readSettingAsEnum(setting,VerificationOptionValue.class);
+            if (value != null && value == matchValue) {
+                result.add(recoveryVerificationMethod);
+            }
+        }
+        return result;
+    }
+    
+    public static enum VerificationOptionValue {
+        NONE,
+        OPTIONAL,
+        REQUIRED,
     }
 
 }

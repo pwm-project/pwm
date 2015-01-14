@@ -728,11 +728,6 @@ public class HelpdeskServlet extends PwmServlet {
                     smsMessage,
                     tokenKey
             );
-        } catch (ChaiUnavailableException e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_DIRECTORY_UNAVAILABLE, e.getMessage());
-            LOGGER.error(pwmRequest,errorInformation);
-            pwmRequest.outputJsonResult(RestResultBean.fromError(errorInformation,pwmRequest));
-            return;
         } catch (PwmException e) {
             LOGGER.error(pwmRequest,e.getErrorInformation());
             pwmRequest.outputJsonResult(RestResultBean.fromError(e.getErrorInformation(),pwmRequest));

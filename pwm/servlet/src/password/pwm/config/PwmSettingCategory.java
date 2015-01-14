@@ -85,11 +85,14 @@ public enum PwmSettingCategory {
     LDAP_PROFILE                (PROFILES),
     PASSWORD_POLICY             (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
-    RECOVERY_PROFILE            (PROFILES),
 
     CHANGE_PASSWORD             (MODULES),
     ACCOUNT_INFO                (MODULES),
     RECOVERY                    (MODULES),
+    RECOVERY_SETTINGS           (RECOVERY),
+    RECOVERY_PROFILE            (RECOVERY),
+
+    
     FORGOTTEN_USERNAME          (MODULES),
     NEWUSER                     (MODULES),
     GUEST                       (MODULES),

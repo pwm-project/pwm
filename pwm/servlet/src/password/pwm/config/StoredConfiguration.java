@@ -151,7 +151,6 @@ public class StoredConfiguration implements Serializable {
             throw new PwmUnrecoverableException(errorInfo);
         }
 
-        updateDeprecatedSettings(newConfiguration);
         checkIfXmlRequiresUpdate(newConfiguration);
         final TimeDuration totalDuration = TimeDuration.fromCurrent(startTime);
         LOGGER.debug("successfully loaded configuration (" + totalDuration.asCompactString() + ")");
@@ -302,11 +301,11 @@ public class StoredConfiguration implements Serializable {
             }
             settingData.add(recordMap);
         }
-        
+
         final HashMap<String,Object> outputObj = new HashMap<>();
         outputObj.put("settings",settingData);
         outputObj.put("template",this.getTemplate().toString());
-        
+
         return Collections.unmodifiableMap(outputObj);
     }
 
@@ -914,16 +913,17 @@ public class StoredConfiguration implements Serializable {
             return xpfac.compile(xpathString);
         }
     }
-    
-    
+
+
     private static class ConfigurationCleaner {
         private static void cleanup(final StoredConfiguration configuration) {
             updateMandatoryElements(configuration.document);
             profilizeNonProfiledSettings(configuration);
             stripOrphanedProfileSettings(configuration);
             migrateAppProperties(configuration);
+            updateDeprecatedSettings(configuration);
         }
-        
+
         private static void updateMandatoryElements(final Document document) {
             final Element rootElement = document.getRootElement();
 
@@ -972,7 +972,7 @@ public class StoredConfiguration implements Serializable {
                 }
             }
         }
-        
+
         private static String generateCommentText() {
             final StringBuilder commentText = new StringBuilder();
             commentText.append("\t\t").append(" ").append("\n");
@@ -1049,10 +1049,10 @@ public class StoredConfiguration implements Serializable {
                 }
             }
         }
-        
+
         private static void migrateAppProperties(final StoredConfiguration storedConfiguration) {
             final Document document = storedConfiguration.document;
-            final XPathExpression xPathExpression = XPathBuilder.xpathForAppProperties(); 
+            final XPathExpression xPathExpression = XPathBuilder.xpathForAppProperties();
             final List<Element> appPropertiesElements = (List<Element>)xPathExpression.evaluate(document);
             for (final Element element : appPropertiesElements) {
                 final List<Element> properties = element.getChildren();
@@ -1071,9 +1071,27 @@ public class StoredConfiguration implements Serializable {
                         storedConfiguration.writeSetting(PwmSetting.APP_PROPERTY_OVERRIDES,new StringArrayValue(existingValues),null);
                     }
                 }
-                //element.detach();
+                element.detach();
             }
-            
+        }
+
+        private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) {
+            final UserIdentity actor = new UserIdentity("UpgradeProcessor", null);
+            for (final String profileID : storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY)) {
+                if (!storedConfiguration.isDefaultValue(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID)) {
+                    boolean ad2003Enabled = (boolean) storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY).toNativeObject();
+                    final StoredValue value;
+                    if (ad2003Enabled) {
+                        value = new StringValue(ADPolicyComplexity.AD2003.toString());
+                    } else {
+                        value = new StringValue(ADPolicyComplexity.NONE.toString());
+                    }
+                    LOGGER.warn("converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
+                            + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString());
+                    storedConfiguration.writeSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL, profileID, value, actor);
+                    storedConfiguration.resetSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY, profileID, actor);
+                }
+            }
         }
     }
 
@@ -1402,23 +1420,5 @@ public class StoredConfiguration implements Serializable {
             }
         }
         return null;
-    }
-
-    private static void updateDeprecatedSettings(final StoredConfiguration storedConfiguration) {
-        for (final String profileID : storedConfiguration.profilesForSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY)) {
-            if (!storedConfiguration.isDefaultValue(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID)) {
-                boolean ad2003Enabled = (boolean)storedConfiguration.readSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY).toNativeObject();
-                final StoredValue value;
-                if (ad2003Enabled) {
-                    value = new StringValue(ADPolicyComplexity.AD2003.toString());
-                } else {
-                    value = new StringValue(ADPolicyComplexity.NONE.toString());
-                }
-                LOGGER.warn("converting deprecated non-default setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY.getKey() + "/" + profileID
-                        + " to replacement setting " + PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL + ", value=" + value.toNativeObject().toString());
-                storedConfiguration.writeSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY_LEVEL,profileID,value,null);
-                storedConfiguration.resetSetting(PwmSetting.PASSWORD_POLICY_AD_COMPLEXITY,profileID,null);
-            }
-        }
     }
 }

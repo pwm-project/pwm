@@ -620,51 +620,54 @@ public enum PwmSetting {
 
     // recovery settings
     FORGOTTEN_PASSWORD_ENABLE(
-            "recovery.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
+            "recovery.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_SEARCH_FORM(
-            "recovery.form", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY),
+            "recovery.form", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_SEARCH_FILTER(
-            "recovery.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY),
+            "recovery.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_READ_PREFERENCE(
-            "recovery.response.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
+            "recovery.response.readPreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_PASSWORD_WRITE_PREFERENCE(
-            "recovery.response.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
+            "recovery.response.writePreference", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     CHALLENGE_USER_ATTRIBUTE(
-            "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY),
-    CHALLENGE_ALLOW_UNLOCK(
-            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
+            "challenge.userAttribute", PwmSettingSyntax.STRING, PwmSettingCategory.RECOVERY_SETTINGS),
     CHALLENGE_STORAGE_HASHED(
-            "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
-    CHALLENGE_REQUIRED_ATTRIBUTES(
-            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY),
-    CHALLENGE_REQUIRE_RESPONSES(
-            "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
-    CHALLENGE_TOKEN_SEND_METHOD(
-            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
-    FORGOTTEN_PASSWORD_REQUIRE_OTP(
-            "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
-    FORGOTTEN_PASSWORD_ACTION(
-            "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
-    CHALLENGE_SENDNEWPW_METHOD(
-            "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY),
+            "response.hashMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_SETTINGS),
     FORGOTTEN_USER_POST_ACTIONS(
-            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY),
-    FORGOTTEN_PASSWORD_ALLOW_WHEN_LOCKED(
-            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY),
+            "recovery.postActions", PwmSettingSyntax.ACTION, PwmSettingCategory.RECOVERY_SETTINGS),
 
-    FORGOTTEN_PASSWORD_PROFILE_LIST(
-            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY),
-    FORGOTTEN_PASSWORD_QUERY_MATCH(
+    // recovery profile
+    RECOVERY_PROFILE_LIST(
+            "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY_SETTINGS),
+    RECOVERY_PROFILE_QUERY_MATCH(
             "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
-    FORGOTTEN_PASSWORD_REQUIRED_METHODS(
-            "recovery.requiredMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.RECOVERY_PROFILE),
-    FORGOTTEN_PASSWORD_AVAILABLE_METHODS(
-            "recovery.availableMethods", PwmSettingSyntax.OPTIONLIST, PwmSettingCategory.RECOVERY_PROFILE),
-    FORGOTTEN_PASSWORD_MIN_AVAILABLE_METHODS(
-            "recovery.minimumAvailableMethods", PwmSettingSyntax.NUMERIC, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_ATTRIBUTES(
+            "recovery.verification.attributes", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_CHALLENGE_RESPONSE(
+            "recovery.verification.challengeResponse", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_TOKEN(
+            "recovery.verification.token", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_OTP(
+            "recovery.verification.otp", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_REMOTE_RESPONSES(
+            "recovery.verification.remoteResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_MIN_OPTIONAL_METHODS(
+            "recovery.verification.minOptionalMethods", PwmSettingSyntax.NUMERIC, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_ALLOW_UNLOCK(
+            "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_ACTION(
+            "recovery.action", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_SENDNEWPW_METHOD(
+            "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_ATTRIBUTE_FORM(
+            "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_TOKEN_SEND_METHOD(
+            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_ALLOW_WHEN_LOCKED(
+            "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
 
 
-
+    //
     // forgotten username
     FORGOTTEN_USERNAME_ENABLE(
             "forgottenUsername.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.FORGOTTEN_USERNAME),
@@ -974,11 +977,18 @@ public enum PwmSetting {
             "webservice.userAttributes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.REST_CLIENT),
 
 
-
-
+    
     // deprecated.
     PASSWORD_POLICY_AD_COMPLEXITY(
-            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),;
+            "password.policy.ADComplexity", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PASSWORD_POLICY),
+    CHALLENGE_REQUIRE_RESPONSES(
+            "challenge.requireResponses", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
+    FORGOTTEN_PASSWORD_REQUIRE_OTP(
+            "recovery.require.otp", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_SETTINGS),
+
+    
+    
+    ;
 
 // ------------------------------ STATICS ------------------------------
 

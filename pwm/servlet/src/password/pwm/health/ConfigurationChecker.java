@@ -26,11 +26,9 @@ import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
-import password.pwm.config.FormConfiguration;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.PwmSettingSyntax;
 import password.pwm.config.option.DataStorageMethod;
-import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.profile.LdapProfile;
 import password.pwm.config.profile.Profile;
 import password.pwm.error.PwmException;
@@ -41,7 +39,6 @@ import password.pwm.util.operations.PasswordUtility;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -181,16 +178,18 @@ public class ConfigurationChecker implements HealthChecker {
             }
         }
 
+        /*
         if (config.readSettingAsBoolean(PwmSetting.FORGOTTEN_PASSWORD_ENABLE)) {
             if (!config.readSettingAsBoolean(PwmSetting.CHALLENGE_REQUIRE_RESPONSES)) {
-                if (config.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD) == MessageSendMethod.NONE) {
-                    final Collection<FormConfiguration> formSettings = config.readSettingAsForm(PwmSetting.CHALLENGE_REQUIRED_ATTRIBUTES);
+                if (config.readSettingAsTokenSendMethod(PwmSetting.RECOVERY_TOKEN_SEND_METHOD) == MessageSendMethod.NONE) {
+                    final Collection<FormConfiguration> formSettings = config.readSettingAsForm(PwmSetting.RECOVERY_ATTRIBUTE_FORM);
                     if (formSettings == null || formSettings.isEmpty()) {
                         records.add(HealthRecord.forMessage(HealthMessage.Config_NoRecoveryEnabled));
                     }
                 }
             }
         }
+        */
 
 
         if (!config.hasDbConfigured()) {

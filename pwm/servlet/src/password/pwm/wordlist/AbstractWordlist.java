@@ -70,7 +70,7 @@ abstract class AbstractWordlist implements Wordlist, PwmService {
     }
 
     public void init(final PwmApplication pwmApplication) throws PwmException {
-        if (pwmApplication.isDevDebugMode()) {
+        if (pwmApplication.getConfig().isDevDebugMode()) {
             debugTrace = true;
         }
     }

@@ -132,6 +132,7 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_ORIGINAL_URI = "OriginalUri";
     public static final String REQUEST_ATTR_AGREEMENT_TEXT = "AgreementText";
     public static final String REQUEST_ATTR_COMPLETE_TEXT = "CompleteText";
+    public static final String REQUEST_ATTR_AVAILABLE_AUTH_METHODS = "AvailableAuthMethods";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
@@ -157,7 +158,9 @@ public abstract class PwmConstants {
         PASSWORD_WARN("changepassword-warn.jsp"),
         RECOVER_PASSWORD_SEARCH("forgottenpassword-search.jsp"),
         RECOVER_PASSWORD_RESPONSES("forgottenpassword-responses.jsp"),
+        RECOVER_PASSWORD_ATTRIBUTES("forgottenpassword-attributes.jsp"),
         RECOVER_PASSWORD_ACTION_CHOICE("forgottenpassword-actionchoice.jsp"),
+        RECOVER_PASSWORD_METHOD_CHOICE("forgottenpassword-method.jsp"),
         RECOVER_PASSWORD_TOKEN_CHOICE("forgottenpassword-tokenchoice.jsp"),
         RECOVER_PASSWORD_ENTER_TOKEN("forgottenpassword-entertoken.jsp"),
         RECOVER_PASSWORD_ENTER_OTP("forgottenpassword-enterotp.jsp"),

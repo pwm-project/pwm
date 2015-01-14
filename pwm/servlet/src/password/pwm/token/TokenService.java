@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -448,7 +448,7 @@ public class TokenService implements PwmService {
         }
 
         if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE) &&
-                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.CHALLENGE_TOKEN_SEND_METHOD)) {
+                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.RECOVERY_TOKEN_SEND_METHOD)) {
             return true;
         }
 
@@ -604,40 +604,46 @@ public class TokenService implements PwmService {
                 final String smsMessage,
                 final String tokenKey
         )
-                throws PwmUnrecoverableException, ChaiUnavailableException
+                throws PwmUnrecoverableException
         {
             final boolean success;
-            switch (tokenSendMethod) {
-                case NONE:
-                    // should never get here
-                    LOGGER.error("attempt to send token to destination type 'NONE'");
-                    throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
-                case BOTH:
-                    // Send both email and SMS, success if one of both succeeds
-                    final boolean suc1 = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                    final boolean suc2 = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
-                    success = suc1 || suc2;
-                    break;
-                case EMAILFIRST:
-                    // Send email first, try SMS if email is not available
-                    success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey) ||
-                            sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
-                    break;
-                case SMSFIRST:
-                    // Send SMS first, try email if SMS is not available
-                    success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey) ||
-                            sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                    break;
-                case SMSONLY:
-                    // Only try SMS
-                    success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
-                    break;
-                case EMAILONLY:
-                default:
-                    // Only try email
-                    success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
-                    break;
+
+            try {
+                switch (tokenSendMethod) {
+                    case NONE:
+                        // should never get here
+                        LOGGER.error("attempt to send token to destination type 'NONE'");
+                        throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
+                    case BOTH:
+                        // Send both email and SMS, success if one of both succeeds
+                        final boolean suc1 = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        final boolean suc2 = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        success = suc1 || suc2;
+                        break;
+                    case EMAILFIRST:
+                        // Send email first, try SMS if email is not available
+                        success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey) ||
+                                sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        break;
+                    case SMSFIRST:
+                        // Send SMS first, try email if SMS is not available
+                        success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey) ||
+                                sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        break;
+                    case SMSONLY:
+                        // Only try SMS
+                        success = sendSmsToken(pwmApplication, userInfoBean, macroMachine, smsNumber, smsMessage, tokenKey);
+                        break;
+                    case EMAILONLY:
+                    default:
+                        // Only try email
+                        success = sendEmailToken(pwmApplication, userInfoBean, macroMachine, configuredEmailSetting, emailAddress, tokenKey);
+                        break;
+                }
+            } catch (ChaiUnavailableException e) {
+                throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
             }
+            
             if (!success) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
             }

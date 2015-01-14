@@ -1,9 +1,12 @@
+<%@ page import="password.pwm.http.servlet.ForgottenPasswordServlet" %>
+<%@ page import="java.util.HashSet" %>
+<%@ page import="java.util.Set" %>
 <%--
   ~ Password Management Servlets (PWM)
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,6 +26,10 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
+<%
+    final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
+    final Set<password.pwm.config.option.RecoveryVerificationMethod> methods = new HashSet<password.pwm.config.option.RecoveryVerificationMethod>((Set<password.pwm.config.option.RecoveryVerificationMethod>)pwmRequest.getAttribute(PwmConstants.REQUEST_ATTR_AVAILABLE_AUTH_METHODS));
+%>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -32,60 +39,55 @@
     </jsp:include>
     <div id="centerbody">
         <%@ include file="/WEB-INF/jsp/fragment/message.jsp" %>
-        <p>Which method would you like to use reset your forgotten password??</p>
-        <table style="border: 0">
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
+        <p>
+            <pwm:display key="Display_RecoverVerificationChoice"/>
+        </p>
+        <table class="noborder">
+            <colgroup>
+
+            </colgroup>
+            <% for (password.pwm.config.option.RecoveryVerificationMethod method : methods) { %>
+            <% if (method.isUserSelectable()) { %>
+            <tr>
+                <td>
                     <form action="<pwm:url url='ForgottenPassword'/>" method="post"
                           enctype="application/x-www-form-urlencoded" name="search">
-                        <input type="submit" name="submitBtn" value="    Email a reset code to my email account    "/>
-                        <input type="hidden" name="processAction" value="selectUnlock"/>
+                        <button class="btn" type="submit" name="submitBtn">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-forward"></span></pwm:if>
+                            <%=method.getLabel(pwmRequest.getConfig(),pwmRequest.getLocale())%>
+                        </button>
+                        <input type="hidden" name="choice" value="<%=method.toString()%>"/>
+                        <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.verificationChoice%>"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </td>
-                <td style="border: 0">
-                    Send a code to my email address that I can use to unlock my account.
-                </td>
             </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    &nbsp;
-                </td>
-            </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    <form action="<pwm:url url='ForgottenPassword'/>" method="post"
-                          enctype="application/x-www-form-urlencoded" name="search">
-                        <input type="submit" name="submitBtn" value="   Type in my secret answers  "/>
-                        <input type="hidden" name="processAction" value="selectResetPassword"/>
-                    </form>
-                </td>
-                <td style="border: 0">
-                    <pwm:display key="Display_RecoverChoiceReset"/>
-                </td>
-            </tr>
-            <tr style="border: 0">
-                <td class="key" style="border: 0">
-                    &nbsp;
-                </td>
-            </tr>
+            <% } %>
+            <% } %>
         </table>
+        <br/>
         <div style="text-align:center;">
             <% if (ContextManager.getPwmApplication(session).getConfig().readSettingAsBoolean(password.pwm.config.PwmSetting.DISPLAY_CANCEL_BUTTON)) { %>
-            <button type="button" style="visibility:hidden;" name="button" class="btn" id="button_cancel"
-                    onclick="window.location='<pwm:context/>/public/<pwm:url url='CommandServlet'/>?processAction=continue';return false">
-                <pwm:display key="Button_Cancel"/>
-            </button>
+            <form action="<pwm:url url='ForgottenPassword'/>" method="post"
+                  enctype="application/x-www-form-urlencoded" name="search">
+                <button class="btn" type="submit" name="submitBtn">
+                    <pwm:if test="showIcons"><span class="btn-icon fa fa-times"></span></pwm:if>
+                    <pwm:display key="Button_Cancel"/>
+                </button>
+                <input type="hidden" name="processAction" value="<%=ForgottenPasswordServlet.ForgottenPasswordAction.reset%>"/>
+                <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+            </form>
             <% } %>
         </div>
     </div>
     <div class="push"></div>
 </div>
 <pwm:script>
-<script type="text/javascript">
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        PWM_MAIN.getObject('username').focus();
-    });
-</script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_MAIN.getObject('username').focus();
+        });
+    </script>
 </pwm:script>
 <%@ include file="fragment/footer.jsp" %>
 </body>

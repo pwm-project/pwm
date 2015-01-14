@@ -27,10 +27,10 @@ import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.bean.UserInfoBean;
 import password.pwm.config.FormConfiguration;
 import password.pwm.config.option.MessageSendMethod;
+import password.pwm.config.option.RecoveryVerificationMethod;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * @author Jason D. Rivard
@@ -46,7 +46,7 @@ public class ForgottenPasswordBean implements PwmSessionBean {
     
     private Progress progress = new Progress();
     private RecoveryFlags recoveryFlags = new RecoveryFlags();
-    private String forgottenPassowrdProfileID;
+    private String forgottenPasswordProfileID;
 
     public UserInfoBean getUserInfo()
     {
@@ -119,33 +119,16 @@ public class ForgottenPasswordBean implements PwmSessionBean {
     }
 
     public static class Progress implements Serializable {
-        private boolean responsesSatisfied;
-        private boolean tokenSatisfied;
         private boolean tokenSent;
-        private boolean otpSatisfied;
         private boolean allPassed;
+        private final Set<RecoveryVerificationMethod> satisfiedMethods = new HashSet<>();
 
         private MessageSendMethod tokenSendChoice;
         private String tokenSentAddress;
+        private RecoveryVerificationMethod inProgressVerificationMethod;
 
-        public boolean isResponsesSatisfied()
-        {
-            return responsesSatisfied;
-        }
-
-        public void setResponsesSatisfied(boolean responsesSatisfied)
-        {
-            this.responsesSatisfied = responsesSatisfied;
-        }
-
-        public boolean isTokenSatisfied()
-        {
-            return tokenSatisfied;
-        }
-
-        public void setTokenSatisfied(boolean tokenSatisfied)
-        {
-            this.tokenSatisfied = tokenSatisfied;
+        public Set<RecoveryVerificationMethod> getSatisfiedMethods() {
+            return satisfiedMethods;
         }
 
         public boolean isTokenSent()
@@ -156,16 +139,6 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         public void setTokenSent(boolean tokenSent)
         {
             this.tokenSent = tokenSent;
-        }
-
-        public boolean isOtpSatisfied()
-        {
-            return otpSatisfied;
-        }
-
-        public void setOtpSatisfied(boolean otpSatisfied)
-        {
-            this.otpSatisfied = otpSatisfied;
         }
 
         public boolean isAllPassed()
@@ -197,66 +170,75 @@ public class ForgottenPasswordBean implements PwmSessionBean {
         {
             this.tokenSentAddress = tokenSentAddress;
         }
+
+        public RecoveryVerificationMethod getInProgressVerificationMethod() {
+            return inProgressVerificationMethod;
+        }
+
+        public void setInProgressVerificationMethod(RecoveryVerificationMethod inProgressVerificationMethod) {
+            this.inProgressVerificationMethod = inProgressVerificationMethod;
+        }
     }
 
     public static class RecoveryFlags implements Serializable {
-        private boolean responsesRequired;
-        private boolean tokenRequired;
-        private boolean otpRequired;
-        private boolean attributesRequired;
-        private boolean allowWhenLdapIntruderLocked;
+        private final boolean allowWhenLdapIntruderLocked;
+        private final Set<RecoveryVerificationMethod> requiredAuthMethods;
+        private final Set<RecoveryVerificationMethod> optionalAuthMethods;
+        private final int minimumOptionalAuthMethods;
+        private final MessageSendMethod tokenSendMethod;
 
         public RecoveryFlags()
         {
+            this.requiredAuthMethods = Collections.emptySet();
+            this.optionalAuthMethods = Collections.emptySet();
+            this.allowWhenLdapIntruderLocked = false;
+            this.minimumOptionalAuthMethods = 0;
+            this.tokenSendMethod = MessageSendMethod.NONE;
         }
 
         public RecoveryFlags(
-                boolean responsesRequired,
-                boolean tokenRequired,
-                boolean otpRequired,
-                boolean attributesRequired,
-                boolean allowWhenLdapIntruderLocked
+                final Set<RecoveryVerificationMethod> requiredAuthMethods,
+                final Set<RecoveryVerificationMethod> optionalAuthMethods,
+                final int minimumOptionalAuthMethods,
+                final boolean allowWhenLdapIntruderLocked,
+                final MessageSendMethod tokenSendMethod
         )
         {
-            this.responsesRequired = responsesRequired;
-            this.tokenRequired = tokenRequired;
-            this.otpRequired = otpRequired;
-            this.attributesRequired = attributesRequired;
+            this.requiredAuthMethods = Collections.unmodifiableSet(requiredAuthMethods);
+            this.optionalAuthMethods = Collections.unmodifiableSet(optionalAuthMethods);
+            this.minimumOptionalAuthMethods = minimumOptionalAuthMethods;
             this.allowWhenLdapIntruderLocked = allowWhenLdapIntruderLocked;
+            this.tokenSendMethod = tokenSendMethod;
         }
 
-        public boolean isResponsesRequired()
-        {
-            return responsesRequired;
-        }
-
-        public boolean isTokenRequired()
-        {
-            return tokenRequired;
-        }
-
-        public boolean isOtpRequired()
-        {
-            return otpRequired;
-        }
-
-        public boolean isAttributesRequired()
-        {
-            return attributesRequired;
+        public Set<RecoveryVerificationMethod> getRequiredAuthMethods() {
+            return requiredAuthMethods;
         }
 
         public boolean isAllowWhenLdapIntruderLocked()
         {
             return allowWhenLdapIntruderLocked;
         }
+
+        public MessageSendMethod getTokenSendMethod() {
+            return tokenSendMethod;
+        }
+
+        public Set<RecoveryVerificationMethod> getOptionalAuthMethods() {
+            return optionalAuthMethods;
+        }
+
+        public int getMinimumOptionalAuthMethods() {
+            return minimumOptionalAuthMethods;
+        }
     }
 
-    public String getForgottenPassowrdProfileID() {
-        return forgottenPassowrdProfileID;
+    public String getForgottenPasswordProfileID() {
+        return forgottenPasswordProfileID;
     }
 
-    public void setForgottenPassowrdProfileID(String forgottenPassowrdProfileID) {
-        this.forgottenPassowrdProfileID = forgottenPassowrdProfileID;
+    public void setForgottenPasswordProfileID(String forgottenPasswordProfileID) {
+        this.forgottenPasswordProfileID = forgottenPasswordProfileID;
     }
 }
 

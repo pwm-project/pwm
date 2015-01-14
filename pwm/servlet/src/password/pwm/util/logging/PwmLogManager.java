@@ -197,7 +197,7 @@ public class PwmLogManager {
             final long maxAgeMS,
             final PwmApplication pwmApplication
     ) {
-        final boolean devDebugMode = pwmApplication.isDevDebugMode();
+        final boolean devDebugMode = pwmApplication.getConfig().isDevDebugMode();
         try {
             final LocalDBLogger.Settings settings = new LocalDBLogger.Settings();
             settings.setMaxEvents(maxEvents);

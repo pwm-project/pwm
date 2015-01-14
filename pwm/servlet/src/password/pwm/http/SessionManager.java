@@ -201,7 +201,7 @@ public class SessionManager implements Serializable {
     public boolean checkPermission(final PwmApplication pwmApplication, final Permission permission)
             throws PwmUnrecoverableException
     {
-        final boolean devDebugMode = pwmApplication.isDevDebugMode();
+        final boolean devDebugMode = pwmApplication.getConfig().isDevDebugMode();
         if (devDebugMode) {
             LOGGER.trace(pwmSession.getLabel(), String.format("entering checkPermission(%s, %s, %s)", permission, pwmSession, pwmApplication));
         }

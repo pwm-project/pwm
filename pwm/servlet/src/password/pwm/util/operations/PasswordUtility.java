@@ -75,20 +75,19 @@ public class PasswordUtility {
             final PwmApplication pwmApplication,
             final MacroMachine macroMachine,
             final PasswordData newPassword,
-            final Locale userLocale
+            final Locale userLocale,
+            final MessageSendMethod messageSendMethod
     )
             throws PwmOperationalException, PwmUnrecoverableException
     {
         final Configuration config = pwmApplication.getConfig();
 
-        final MessageSendMethod pref = MessageSendMethod.valueOf(
-                config.readSettingAsString(PwmSetting.CHALLENGE_SENDNEWPW_METHOD));
         final String emailAddress = userInfoBean.getUserEmailAddress();
         final String smsNumber = userInfoBean.getUserSmsNumber();
         String returnToAddress = emailAddress;
 
         ErrorInformation error = null;
-        switch (pref) {
+        switch (messageSendMethod) {
             case BOTH:
                 // Send both email and SMS, success if one of both succeeds
                 final ErrorInformation err1 = sendNewPasswordEmail(userInfoBean, pwmApplication, macroMachine, newPassword, emailAddress, userLocale);
@@ -481,7 +480,8 @@ public class PasswordUtility {
                     pwmApplication,
                     macroMachine,
                     newPassword,
-                    pwmSession.getSessionStateBean().getLocale()
+                    pwmSession.getSessionStateBean().getLocale(),
+                    MessageSendMethod.EMAILONLY
             );
         }
     }
