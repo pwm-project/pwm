@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,14 +62,14 @@ public class CASAuthenticationHelper {
             return false;
         }
 
-        // get CAS assertion out of the header (if it exists);
+        // read CAS assertion out of the header (if it exists);
         final Assertion assertion = (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
         if (assertion == null) {
             LOGGER.trace(pwmSession,"no CAS assertion header present, skipping CAS authentication attempt");
             return false;
         }
 
-        // get cas proxy ticket
+        // read cas proxy ticket
         final String proxyTicket = assertion.getPrincipal().getProxyTicketFor(clearPassUrl);
         if (proxyTicket == null) {
             LOGGER.trace(pwmSession,"no CAS proxy ticket available, skipping CAS authentication attempt");

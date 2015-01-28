@@ -20,7 +20,6 @@
   ~ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   --%>
 
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="password.pwm.util.JsonUtil" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.logging.LocalDBLogger" %>
@@ -41,17 +40,18 @@
 <body class="nihilo">
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
-        <jsp:param name="pwm.PageName" value="Event Log"/>
+        <jsp:param name="pwm.PageName" value="Log Viewer"/>
     </jsp:include>
     <div id="centerbody" style="width: 96%; margin-left: 2%; margin-right: 2%; background: white">
-        <%@ include file="admin-nav.jsp" %>
-        <form action="<pwm:url url='eventlog.jsp'/>" method="get" enctype="application/x-www-form-urlencoded"
+        <%@ include file="fragment/admin-nav.jsp" %>
+        <form action="Administration" method="post" enctype="application/x-www-form-urlencoded"
               name="searchForm" id="searchForm" class="pwm-form">
             <table style="">
                 <tr style="width:0">
                     <td class="key" style="border:0">
                         <label for="level">Level</label>
                         <br/>
+                        <%--
                         <% final String selectedLevel = pwmRequest.readParameterAsString("level", "INFO");%>
                         <select id="level" name="level" style="width: auto;">
                             <option value="FATAL" <%= "FATAL".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>FATAL
@@ -67,6 +67,17 @@
                             <option value="TRACE" <%= "TRACE".equals(selectedLevel) ? "selected=\"selected\"" : "" %>>TRACE
                             </option>
                         </select>
+                        --%>
+                        <% final String selectedLevel = pwmRequest.readParameterAsString("level", "INFO");%>
+                        <% final PwmLogLevel configuredLevel = pwmRequest.getConfig().readSettingAsEnum(PwmSetting.EVENTS_LOCALDB_LOG_LEVEL,PwmLogLevel.class); %>
+                        <select name="level" style="width: auto;" id="select-level">
+                            <% for (final PwmLogLevel level : PwmLogLevel.values()) { %>
+                            <% boolean optionSelected = level.toString().equals(selectedLevel); %>
+                            <% boolean disabled = level.compareTo(configuredLevel) < 0; %>
+                            <option value="<%=level%>" <%=optionSelected ?" selected": ""%><%=disabled ? " disabled" : ""%>  ><%=level%></option>
+                            <% } %>
+                        </select>
+
                     </td>
                     <td class="key" style="border: 0">
                         <label for="type">Type</label>
@@ -188,7 +199,6 @@
             <script type="text/javascript">
                 var data = [];
                 <%
-                    final Gson gson = JsonUtil.getGson();
                     while (searchResults.hasNext()) {
                         final PwmLogEvent event = searchResults.next();
                         try {
@@ -200,7 +210,7 @@
                             rowData.put("component",event.getTopTopic());
                             rowData.put("detail",event.getMessage());
                 %>
-                data.push(<%=gson.toJson(rowData)%>)
+                data.push(<%=JsonUtil.serializeMap(rowData)%>);
                 <%
                         } catch (IllegalStateException e) { /* ignore */ }
                     }

@@ -47,6 +47,7 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.HelpdeskBean;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -251,7 +252,7 @@ public class HelpdeskServlet extends PwmServlet {
                 );
                 pwmRequest.getPwmApplication().getAuditManager().submit(auditRecord);
             }
-            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.SUCCESS_ACTION);
+            final RestResultBean restResultBean = RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Action);
 
             pwmRequest.outputJsonResult(restResultBean);
         } catch (PwmOperationalException e) {
@@ -320,7 +321,7 @@ public class HelpdeskServlet extends PwmServlet {
 
         LOGGER.info(pwmSession, "user " + userIdentity + " has been deleted");
         final RestResultBean restResultBean = new RestResultBean();
-        restResultBean.setSuccessMessage(Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.SUCCESS_UNKNOWN,pwmApplication.getConfig()));
+        restResultBean.setSuccessMessage(Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),Message.Success_Unknown,pwmApplication.getConfig()));
         pwmRequest.outputJsonResult(restResultBean);
     }
 
@@ -496,10 +497,9 @@ public class HelpdeskServlet extends PwmServlet {
             final TimeDuration passwordSetDelta = TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime());
             additionalUserInfo.setPasswordSetDelta(passwordSetDelta.asLongString(pwmRequest.getLocale()));
         } else {
-            additionalUserInfo.setPasswordSetDelta(Display.getLocalizedMessage(pwmRequest.getLocale(),"Value_NotApplicable",pwmRequest.getConfig()));
+            additionalUserInfo.setPasswordSetDelta(LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, pwmRequest));
         }
 
-        final Configuration config = pwmRequest.getConfig();
         final UserDataReader userDataReader = helpdeskProfile.readSettingAsBoolean(PwmSetting.HELPDESK_USE_PROXY)
                 ? LdapUserDataReader.appProxiedReader(pwmRequest.getPwmApplication(), userIdentity)
                 : LdapUserDataReader.selfProxiedReader(pwmRequest.getPwmApplication(), pwmRequest.getPwmSession(), userIdentity);

@@ -288,7 +288,7 @@ class AuthenticationRequest {
 
         boolean bindSucceeded = false;
         try {
-            //get a provider using the user's DN and password.
+            //read a provider using the user's DN and password.
             userProvider = LdapOperationsHelper.createChaiProvider(
                     sessionLabel,
                     userIdentity.getLdapProfile(pwmApplication.getConfig()),

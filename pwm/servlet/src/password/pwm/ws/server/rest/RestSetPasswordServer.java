@@ -191,7 +191,7 @@ public class RestSetPasswordServer extends AbstractRestServer {
             restResultBean.setData(jsonResultData);
             restResultBean.setSuccessMessage(Message.getLocalizedMessage(
                     restRequestBean.getPwmSession().getSessionStateBean().getLocale(),
-                    Message.SUCCESS_PASSWORDCHANGE,
+                    Message.Success_PasswordChange,
                     restRequestBean.getPwmApplication().getConfig()));
             return restResultBean.asJsonResponse();
         } catch (PwmException e) {

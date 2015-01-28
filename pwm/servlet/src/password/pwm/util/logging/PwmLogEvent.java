@@ -22,7 +22,6 @@
 
 package password.pwm.util.logging;
 
-import com.google.gson.Gson;
 import password.pwm.PwmConstants;
 import password.pwm.bean.SessionLabel;
 import password.pwm.util.Base64Util;
@@ -293,8 +292,7 @@ public class PwmLogEvent implements Serializable, Comparable {
             tempMap.put(KEY_THROWABLE, Base64Util.encodeObject(throwable, Base64Util.NO_OPTIONS));
         }
 
-        final Gson gson = JsonUtil.getGson();
-        return gson.toJson(tempMap);
+        return JsonUtil.serializeMap(tempMap);
     }
 
     private String getDebugLabel()
@@ -318,9 +316,15 @@ public class PwmLogEvent implements Serializable, Comparable {
 
     public String toLogString()
     {
+        return toLogString(true);
+    }
+    public String toLogString(final boolean includeTimeStamp)
+    {
         final StringBuilder sb = new StringBuilder();
-        sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.date));
-        sb.append(", ");
+        if (includeTimeStamp) {
+            sb.append(PwmConstants.DEFAULT_DATETIME_FORMAT.format(this.date));
+            sb.append(", ");
+        }
         sb.append(StringUtil.padEndToLength(getLevel().toString(),5,' '));
         sb.append(", ");
         sb.append(shortenTopic(this.topic));

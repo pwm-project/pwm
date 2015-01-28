@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,10 +51,15 @@ PWM_PS.processPeopleSearch = function() {
             grid.refresh();
             grid.renderArray(gridData);
             grid.on(".dgrid-row:click", function(evt){
-                evt.preventDefault();
-                var row = grid.row(evt);
-                var userKey = row.data['userKey'];
-                PWM_PS.showUserDetail(userKey);
+                if (PWM_VAR['detailInProgress'] != true) {
+                    PWM_VAR['detailInProgress'] = true;
+                    evt.preventDefault();
+                    var row = grid.row(evt);
+                    var userKey = row.data['userKey'];
+                    PWM_PS.showUserDetail(userKey);
+                } else {
+                    console.log('ignoring dupe detail request event');
+                }
             });
         }
     };
@@ -76,7 +81,7 @@ PWM_PS.convertDetailResultToHtml = function(data) {
             var attributeData = data['detail'][iterCount];
             var label = attributeData['label'];
             var type = attributeData['type'];
-            htmlBody += '<tr><td class="key">' + label + '</td><td>';
+            htmlBody += '<tr><td class="key">' + label + '</td><td><div style="width:100%">';
 
             if (type == 'userDN') {
                 var userReferences = attributeData['userReferences'];
@@ -96,9 +101,13 @@ PWM_PS.convertDetailResultToHtml = function(data) {
                 var value = attributeData['value'];
                 htmlBody += '<a href="mailto:' + value + '">' + value + '</a>';
             } else {
-                htmlBody += attributeData['value']
+                htmlBody += attributeData['value'];
+                if (attributeData['searchable'] == true) {
+                    var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
+                    htmlBody += '<span id="' + likeSearchID + '" class="icon-likeUserSearch btn-icon fa fa-search"></span>';
+                }
             }
-            htmlBody += '</td>'
+            htmlBody += '</div></td>'
         })(iter);
     }
     htmlBody += '</table></div>';
@@ -109,6 +118,12 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
     for (var iter in data['detail']) {
         (function(iterCount){
             var attributeData = data['detail'][iterCount];
+            if (attributeData['searchable'] == true) {
+                var likeSearchID = 'link-' + attributeData['name'] + '-' + '-likeUserSearch';
+                PWM_MAIN.addEventHandler(likeSearchID,'click',function(){
+                    PWM_PS.submitLikeUserSearch(attributeData['value']);
+                });
+            }
             var type = attributeData['type'];
             if (type == 'userDN') {
                 var userReferences = attributeData['userReferences'];
@@ -126,7 +141,12 @@ PWM_PS.applyEventHandlersToDetailView = function(data) {
     }
 };
 
-
+PWM_PS.submitLikeUserSearch = function(value) {
+    console.log('starting like search for value: ' + value);
+    PWM_MAIN.closeWaitDialog();
+    PWM_MAIN.getObject('username').value = value;
+    PWM_PS.processPeopleSearch();
+};
 
 PWM_PS.showUserDetail = function(userKey) {
     console.log('beginning showUserDetail, userKey=' + userKey);
@@ -137,6 +157,7 @@ PWM_PS.showUserDetail = function(userKey) {
         loadFunction:function(){
             var url = "PeopleSearch?processAction=detail";
             var loadFunction = function(data) {
+                PWM_VAR['detailInProgress'] = false;
                 if (data['error'] == true) {
                     console.error('unable to load people detail, error: ' + data['errorDetail']);
                     PWM_MAIN.showError(data['errorDetail']);
@@ -144,6 +165,7 @@ PWM_PS.showUserDetail = function(userKey) {
                     return;
                 }
                 var htmlBody = PWM_PS.convertDetailResultToHtml(data['data']);
+                PWM_MAIN.closeWaitDialog();
                 PWM_MAIN.showDialog({
                     title:data['data']['displayName'],
                     allowMove:true,
@@ -167,7 +189,6 @@ PWM_PS.showUserDetail = function(userKey) {
 };
 
 PWM_PS.makeSearchGrid = function(nextFunction) {
-    require(["dojo/domReady!"],function(){
         require(["dojo","dojo/_base/declare", "dgrid/Grid", "dgrid/Keyboard", "dgrid/Selection", "dgrid/extensions/ColumnResizer", "dgrid/extensions/ColumnReorder", "dgrid/extensions/ColumnHider", "dojo/domReady!"],
             function(dojo,declare, Grid, Keyboard, Selection, ColumnResizer, ColumnReorder, ColumnHider){
                 PWM_MAIN.getObject('peoplesearch-searchResultsGrid').innerHTML = '';
@@ -182,7 +203,6 @@ PWM_PS.makeSearchGrid = function(nextFunction) {
                     nextFunction();
                 }
             });
-    });
 };
 
 PWM_PS.initPeopleSearchPage = function() {
@@ -190,7 +210,10 @@ PWM_PS.initPeopleSearchPage = function() {
         PWM_MAIN.addEventHandler('username', "keyup, input", function(){
             PWM_PS.processPeopleSearch();
         });
-        PWM_MAIN.getObject('username').focus()
+        PWM_MAIN.getObject('username').focus();
+        if (PWM_MAIN.getObject('username').value && PWM_MAIN.getObject('username').value.length > 0) {
+            PWM_PS.processPeopleSearch();
+        }
     });
 };
 

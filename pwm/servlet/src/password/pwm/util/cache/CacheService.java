@@ -22,208 +22,123 @@
 
 package password.pwm.util.cache;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmService;
-import password.pwm.bean.UserIdentity;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.health.HealthRecord;
-import password.pwm.util.SecureHelper;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 public class CacheService implements PwmService {
     private static PwmLogger LOGGER = PwmLogger.forClass(CacheService.class);
 
-    private transient ConcurrentMap<String,MemoryValueWrapper> memoryCache;
+    private MemoryCacheStore memoryCacheStore;
+    private LocalDBCacheStore localDBCacheStore;
+
     private STATUS status = STATUS.OPENING;
 
     @Override
-    public STATUS status()
-    {
+    public STATUS status() {
         return status;
     }
 
     @Override
     public void init(PwmApplication pwmApplication)
-            throws PwmException
-    {
+            throws PwmException {
+        final boolean enabled = Boolean.parseBoolean(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_ENABLE));
+        if (!enabled) {
+            LOGGER.debug("skipping cache service init due to app property setting");
+            status = STATUS.CLOSED;
+            return;
+        }
+
+
+        status = STATUS.OPENING;
+        final int maxMemItems = Integer.parseInt(pwmApplication.getConfig().readAppProperty(AppProperty.CACHE_MEMORY_MAX_ITEMS));
+        if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
+            localDBCacheStore = new LocalDBCacheStore(pwmApplication);
+        }
+        memoryCacheStore = new MemoryCacheStore(maxMemItems);
         status = STATUS.OPEN;
     }
 
     @Override
-    public void close()
-    {
+    public void close() {
         status = STATUS.CLOSED;
+        localDBCacheStore = null;
     }
 
     @Override
-    public List<HealthRecord> healthCheck()
-    {
+    public List<HealthRecord> healthCheck() {
         return Collections.emptyList();
     }
 
     @Override
-    public ServiceInfo serviceInfo()
-    {
+    public ServiceInfo serviceInfo() {
         return new ServiceInfo(Collections.<DataStorageMethod>emptyList());
     }
 
-    private Map<String, MemoryValueWrapper> getMemoryCache() {
-        if (memoryCache == null) {
-            final ConcurrentMap newCache = new ConcurrentLinkedHashMap.Builder<String, MemoryValueWrapper>()
-                    .maximumWeightedCapacity(100)
-                    .build();
-            memoryCache = newCache;
-            return newCache;
+    public void put(final CacheKey cacheKey, final CachePolicy cachePolicy, final String payload)
+            throws PwmUnrecoverableException {
+        if (status != STATUS.OPEN) {
+            return;
         }
-        return memoryCache;
-    }
-
-    public void put(CacheKey cacheKey, CachePolicy cachePolicy, String payload)
-            throws PwmUnrecoverableException
-    {
         if (cacheKey == null) {
-            return;
+            throw new NullPointerException("cacheKey can not be null");
         }
-        if (cachePolicy == null || cachePolicy.getExpiration() == null) {
-            return;
+        if (cachePolicy == null) {
+            throw new NullPointerException("cachePolicy can not be null");
         }
-        final String key = cacheKey.getKey();
-        final MemoryValueWrapper wrapper = new MemoryValueWrapper(cacheKey, cachePolicy, payload);
-        getMemoryCache().put(key,wrapper);
+        if (payload == null) {
+            throw new NullPointerException("payload can not be null");
+        }
+        final Date expirationDate = cachePolicy.getExpiration();
+        memoryCacheStore.store(cacheKey, expirationDate, payload);
+        if (localDBCacheStore != null) {
+            localDBCacheStore.store(cacheKey, expirationDate, payload);
+        }
     }
 
     public String get(CacheKey cacheKey)
-            throws PwmUnrecoverableException
-    {
+            throws PwmUnrecoverableException {
         if (cacheKey == null) {
             return null;
         }
-        Map<String, MemoryValueWrapper> memCache = getMemoryCache();
-        final String key = cacheKey.getKey();
-        final MemoryValueWrapper memoryValueWrapper = memCache.get(key);
-        if (memoryValueWrapper == null) {
+
+        if (status != STATUS.OPEN) {
             return null;
         }
-        if (!cacheKey.equals(memoryValueWrapper.getCacheKey())) {
-            memCache.remove(key);
-            return null;
-        }
-        if (memoryValueWrapper.getCachePolicy() == null) {
-            memCache.remove(key);
-            return null;
-        }
-        if (memoryValueWrapper.getCachePolicy().getExpiration() == null) {
-            memCache.remove(key);
-            return null;
-        }
-        if (memoryValueWrapper.getCachePolicy().getExpiration().before(new Date())) {
-            memCache.remove(key);
-            return null;
-        }
-        return memoryValueWrapper.getPayload();
-    }
 
-    public static class CachePolicy implements Serializable {
-        private Date expiration;
-
-        public Date getExpiration()
-        {
-            return expiration;
+        String payload = null;
+        if (memoryCacheStore != null) {
+            payload = memoryCacheStore.read(cacheKey);
         }
 
-        public void setExpiration(Date expiration)
-        {
-            this.expiration = expiration;
+        if (payload == null && localDBCacheStore != null) {
+            payload = localDBCacheStore.read(cacheKey);
         }
 
-        public static CachePolicy makePolicy(final Date date) {
-            final CachePolicy policy = new CachePolicy();
-            policy.setExpiration(date);
-            return policy;
+        final StringBuilder traceOutput = new StringBuilder();
+        traceOutput.append("cache ").append(payload == null ? "MISS" : "HIT");
+        if (memoryCacheStore != null) {
+            final CacheStoreInfo info = memoryCacheStore.getCacheStoreInfo();
+            traceOutput.append(", memCache=");
+            traceOutput.append(JsonUtil.serialize(info));
         }
-
-        public static CachePolicy makePolicy(final long expirationMs) {
-            final CachePolicy policy = new CachePolicy();
-            final Date expirationDate = new Date(System.currentTimeMillis() + expirationMs);
-            policy.setExpiration(expirationDate);
-            return policy;
+        if (localDBCacheStore != null) {
+            final CacheStoreInfo info = localDBCacheStore.getCacheStoreInfo();
+            traceOutput.append(", localDbCache=");
+            traceOutput.append(JsonUtil.serialize(info));
         }
-    }
-
-    private static class MemoryValueWrapper implements Serializable {
-        final CacheKey cacheKey;
-        final CachePolicy cachePolicy;
-        final String payload;
-
-        private MemoryValueWrapper(
-                CacheKey cacheKey,
-                CachePolicy cachePolicy,
-                String payload
-        )
-        {
-            this.cacheKey = cacheKey;
-            this.cachePolicy = cachePolicy;
-            this.payload = payload;
-        }
-
-        public CacheKey getCacheKey()
-        {
-            return cacheKey;
-        }
-
-        public CachePolicy getCachePolicy()
-        {
-            return cachePolicy;
-        }
-
-        public String getPayload()
-        {
-            return payload;
-        }
-    }
-
-    public static class CacheKey {
-        final String cacheKey;
-
-        public CacheKey(String cacheKey)
-        {
-            this.cacheKey = cacheKey;
-        }
-
-        private String getKey()
-                throws PwmUnrecoverableException
-        {
-                return SecureHelper.md5sum(this.cacheKey);
-        }
-
-        public static CacheKey makeCacheKey(
-                final Class callingClass,
-                final UserIdentity userIdentity,
-                final String valueID
-        ) {
-            final StringBuilder sb = new StringBuilder();
-            if (callingClass != null) {
-                sb.append(callingClass.getName());
-                sb.append(":");
-            }
-            if (userIdentity != null) {
-                sb.append(userIdentity.toDelimitedKey());
-                sb.append(":");
-            }
-            if (valueID == null) {
-                sb.append(valueID);
-            }
-            return new CacheKey(sb.toString());
-        }
+        LOGGER.trace(traceOutput);
+        return payload;
     }
 }

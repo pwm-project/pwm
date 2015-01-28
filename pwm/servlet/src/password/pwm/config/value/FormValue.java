@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
 import password.pwm.config.FormConfiguration;
@@ -51,11 +50,12 @@ public class FormValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new FormValue(Collections.<FormConfiguration>emptyList());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    List<FormConfiguration> srcList = gson.fromJson(input, new TypeToken<List<FormConfiguration>>() {
-                    }.getType());
+                    List<FormConfiguration> srcList = JsonUtil.deserialize(input, new TypeToken<List<FormConfiguration>>() {
+                    });
                     srcList = srcList == null ? Collections.<FormConfiguration>emptyList() : srcList;
-                    srcList.removeAll(Collections.singletonList(null));
+                    while (srcList.contains(null)) {
+                        srcList.remove(null);
+                    }
                     return new FormValue(Collections.unmodifiableList(srcList));
                 }
             }
@@ -65,7 +65,6 @@ public class FormValue extends AbstractValue implements StoredValue {
             {
                 final boolean oldType = PwmSettingSyntax.LOCALIZED_STRING_ARRAY.toString().equals(
                         settingElement.getAttributeValue("syntax"));
-                final Gson gson = JsonUtil.getGson();
                 final List valueElements = settingElement.getChildren("value");
                 final List<FormConfiguration> values = new ArrayList<>();
                 for (final Object loopValue : valueElements) {
@@ -75,7 +74,7 @@ public class FormValue extends AbstractValue implements StoredValue {
                         if (oldType) {
                             values.add(FormConfiguration.parseOldConfigString(value));
                         } else {
-                            values.add(gson.fromJson(value, FormConfiguration.class));
+                            values.add(JsonUtil.deserialize(value, FormConfiguration.class));
                         }
                     }
                 }
@@ -88,10 +87,9 @@ public class FormValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        final Gson gson = JsonUtil.getGson();
         for (final FormConfiguration value : values) {
             final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(gson.toJson(value));
+            valueElement.addContent(JsonUtil.serialize(value));
             returnList.add(valueElement);
         }
         return returnList;

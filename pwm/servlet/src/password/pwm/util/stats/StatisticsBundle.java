@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,10 @@
 
 package password.pwm.util.stats;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.logging.PwmLogger;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -51,16 +49,12 @@ public class StatisticsBundle {
     }
 
     public String output() {
-        final Gson gson = JsonUtil.getGson();
-        return gson.toJson(valueMap);
+        return JsonUtil.serializeMap(valueMap);
     }
 
     public static StatisticsBundle input(final String inputString) {
         final Map<Statistic, String> srcMap = new HashMap<>();
-        try {
-            final Gson gson = JsonUtil.getGson();
-            final Map<String, String> loadedMap = gson.fromJson(inputString, new TypeToken<Map<String, String>>() {
-            }.getType());
+            final Map<String, String> loadedMap = JsonUtil.deserializeStringMap(inputString);
             for (final String key : loadedMap.keySet()) {
                 try {
                     srcMap.put(Statistic.valueOf(key),loadedMap.get(key));
@@ -68,9 +62,6 @@ public class StatisticsBundle {
                     LOGGER.error("error parsing statistic key '" + key + "', reason: " + e.getMessage());
                 }
             }
-        } catch (JsonParseException e) {
-            LOGGER.error("unable to load statistics bundle: " + e.getMessage());
-        }
         final StatisticsBundle bundle = new StatisticsBundle();
 
         for (final Statistic loopStat : Statistic.values()) {
@@ -109,20 +100,19 @@ public class StatisticsBundle {
             return;
         }
 
-        final Gson gson = JsonUtil.getGson();
         final String avgStrValue = valueMap.get(statistic);
 
         AverageBean avgBean = new AverageBean();
         if (avgStrValue != null && avgStrValue.length() > 0) {
             try {
-                avgBean = gson.fromJson(avgStrValue, AverageBean.class);
+                avgBean = JsonUtil.deserialize(avgStrValue, AverageBean.class);
             } catch (Exception e) {
                 LOGGER.trace("unable to parse statistics value for stat " + statistic.toString() + ", value=" + avgStrValue);
             }
         }
 
         avgBean.appendValue(timeDuration);
-        valueMap.put(statistic, gson.toJson(avgBean));
+        valueMap.put(statistic, JsonUtil.serialize(avgBean));
     }
 
     public String getStatistic(final Statistic statistic) {
@@ -148,7 +138,7 @@ public class StatisticsBundle {
         }
     }
 
-    private static class AverageBean {
+    private static class AverageBean implements Serializable {
         BigInteger total = BigInteger.ZERO;
         BigInteger count = BigInteger.ZERO;
 

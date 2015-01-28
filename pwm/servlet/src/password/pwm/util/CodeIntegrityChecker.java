@@ -22,7 +22,6 @@
 
 package password.pwm.util;
 
-import com.google.gson.GsonBuilder;
 import password.pwm.AppProperty;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
@@ -289,6 +288,6 @@ public class CodeIntegrityChecker {
             }
             outputMap.put("localeHealthChecks", healthBeans);
         }
-        return JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
+        return JsonUtil.serializeMap(outputMap, JsonUtil.Flag.PrettyPrint);
     }
 }

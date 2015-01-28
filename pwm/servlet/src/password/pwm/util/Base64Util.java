@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ package password.pwm.util;
  *   value 01111111, which is an invalid base 64 character but should not
  *   throw an ArrayIndexOutOfBoundsException either. Led to discovery of
  *   mishandling (or potential for better handling) of other bad input
- *   characters. You should now get an IOException if you try decoding
+ *   characters. You should now read an IOException if you try decoding
  *   something that has bad characters in it.</li>
  *  <li>v2.3.6 - Fixed bug when breaking lines and the final byte of the encoded
  *   string ended in the last column; the buffer was not properly shrunk and
@@ -360,7 +360,7 @@ public class Base64Util
 /* ********  O R D E R E D   B A S E 6 4   A L P H A B E T  ******** */
 
     /**
-     * I don't get the point of this technique, but someone requested it,
+     * I don't read the point of this technique, but someone requested it,
      * and it is described here:
      * <a href="http://www.faqs.org/qa/rfcc-1940.html">http://www.faqs.org/qa/rfcc-1940.html</a>.
      */
@@ -964,7 +964,7 @@ public class Base64Util
             //                           + ( (len % 3) > 0 ? 4 : 0 )      // Account for padding
             //                           + (breakLines ? ( len43 / MAX_LINE_LENGTH ) : 0) ]; // New lines
             // Try to determine more precisely how big the array needs to be.
-            // If we get it right, we don't have to do an array copy, and
+            // If we read it right, we don't have to do an array copy, and
             // we save a bunch of memory.
             int encLen = ( len / 3 ) * 4 + ( len % 3 > 0 ? 4 : 0 ); // Bytes needed for actual encoding
             if( breakLines ){
@@ -1729,7 +1729,7 @@ public class Base64Util
         @Override
         public int read() throws java.io.IOException  {
 
-            // Do we need to get data?
+            // Do we need to read data?
             if( position < 0 ) {
                 if( encode ) {
                     byte[] b3 = new byte[3];
@@ -1787,7 +1787,7 @@ public class Base64Util
                     }   // end
 
                 }   // end else: decode
-            }   // end else: get data
+            }   // end else: read data
 
             // Got data?
             if( position >= 0 ) {

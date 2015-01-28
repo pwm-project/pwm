@@ -316,6 +316,11 @@ public enum PwmSetting {
             "sms.useUrlShortener", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.SMS_GATEWAY),
     SMS_SUCCESS_RESULT_CODE(
             "sms.successResultCodes", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+    URL_SHORTENER_CLASS(
+            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.SMS_GATEWAY),
+    URL_SHORTENER_PARAMETERS(
+            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.SMS_GATEWAY),
+
 
     //global password policy settings
     PASSWORD_POLICY_SOURCE(
@@ -447,8 +452,6 @@ public enum PwmSetting {
             "security.page.leaveNoticeTimeout", PwmSettingSyntax.NUMERIC, PwmSettingCategory.WEB_SECURITY),
     DISPLAY_SHOW_DETAILED_ERRORS(
             "display.showDetailedErrors", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.APP_SECURITY),
-    SSO_AUTH_HEADER_NAME(
-            "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.APP_SECURITY),
     SESSION_MAX_SECONDS(
             "session.maxSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.APP_SECURITY),
     SECURITY_PREVENT_FRAMING(
@@ -641,6 +644,8 @@ public enum PwmSetting {
             "recovery.profile.list", PwmSettingSyntax.PROFILE, PwmSettingCategory.RECOVERY_SETTINGS),
     RECOVERY_PROFILE_QUERY_MATCH(
             "recovery.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_VERIFICATION_PREVIOUS_AUTH(
+            "recovery.verification.previousAuthentication", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_VERIFICATION_ATTRIBUTES(
             "recovery.verification.attributes", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_VERIFICATION_CHALLENGE_RESPONSE(
@@ -653,6 +658,8 @@ public enum PwmSetting {
             "recovery.verification.remoteResponses", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_VERIFICATION_MIN_OPTIONAL_METHODS(
             "recovery.verification.minOptionalMethods", PwmSettingSyntax.NUMERIC, PwmSettingCategory.RECOVERY_PROFILE),
+    RECOVERY_TOKEN_SEND_METHOD(
+            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_ALLOW_UNLOCK(
             "challenge.allowUnlock", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_ACTION(
@@ -661,8 +668,6 @@ public enum PwmSetting {
             "recovery.sendNewPassword.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_ATTRIBUTE_FORM(
             "challenge.requiredAttributes", PwmSettingSyntax.FORM, PwmSettingCategory.RECOVERY_PROFILE),
-    RECOVERY_TOKEN_SEND_METHOD(
-            "challenge.token.sendMethod", PwmSettingSyntax.SELECT, PwmSettingCategory.RECOVERY_PROFILE),
     RECOVERY_ALLOW_WHEN_LOCKED(
             "recovery.allowWhenLocked", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.RECOVERY_PROFILE),
 
@@ -781,10 +786,6 @@ public enum PwmSetting {
             "peopleSearch.enable", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_QUERY_MATCH(
             "peopleSearch.queryMatch", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH),
-    PEOPLE_SEARCH_SEARCH_FILTER(
-            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
-    PEOPLE_SEARCH_SEARCH_BASE(
-            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_RESULT_FORM(
             "peopleSearch.result.form", PwmSettingSyntax.FORM, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_DETAIL_FORM(
@@ -805,6 +806,12 @@ public enum PwmSetting {
             "peopleSearch.maxCacheSeconds", PwmSettingSyntax.DURATION, PwmSettingCategory.PEOPLE_SEARCH),
     PEOPLE_SEARCH_PHOTO_QUERY_FILTER(
             "peopleSearch.photo.queryFilter", PwmSettingSyntax.USER_PERMISSION, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_SEARCH_FILTER(
+            "peopleSearch.searchFilter", PwmSettingSyntax.STRING, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_SEARCH_BASE(
+            "peopleSearch.searchBase", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.PEOPLE_SEARCH),
+    PEOPLE_SEARCH_ENABLE_PUBLIC(
+            "peopleSearch.enablePublic", PwmSettingSyntax.BOOLEAN, PwmSettingCategory.PEOPLE_SEARCH),
 
 
 
@@ -943,14 +950,14 @@ public enum PwmSetting {
     OAUTH_ID_DN_ATTRIBUTE_NAME(
             "oauth.idserver.dnAttributeName", PwmSettingSyntax.STRING, PwmSettingCategory.OAUTH),
 
-
-    // developer
+    // CAS SSO
     CAS_CLEAR_PASS_URL(
-            "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    URL_SHORTENER_CLASS(
-            "urlshortener.classname", PwmSettingSyntax.STRING, PwmSettingCategory.MISC),
-    URL_SHORTENER_PARAMETERS(
-            "urlshortener.parameters", PwmSettingSyntax.STRING_ARRAY, PwmSettingCategory.MISC),
+            "cas.clearPassUrl", PwmSettingSyntax.STRING, PwmSettingCategory.CAS_SSO),
+    
+    // http sso
+    SSO_AUTH_HEADER_NAME(
+            "security.sso.authHeaderName", PwmSettingSyntax.STRING, PwmSettingCategory.HTTP_SSO),
+
 
 
     ENABLE_EXTERNAL_WEBSERVICES(

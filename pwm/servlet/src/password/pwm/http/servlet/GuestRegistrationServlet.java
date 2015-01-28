@@ -203,7 +203,7 @@ public class GuestRegistrationServlet extends PwmServlet {
             pwmApplication.getStatisticsManager().incrementValue(Statistic.UPDATED_GUESTS);
 
             //everything good so forward to confirmation page.
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_UPDATE_GUEST);
+            pwmRequest.forwardToSuccessPage(Message.Success_UpdateGuest);
             return;
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmSession, e.getErrorInformation().toDebugStr());
@@ -342,10 +342,10 @@ public class GuestRegistrationServlet extends PwmServlet {
             // see if the values meet form requirements.
             FormUtility.validateFormValues(config, formValues, locale);
 
-            // get new user DN
+            // read new user DN
             final String guestUserDN = determineUserDN(formValues, config);
 
-            // get a chai provider to make the user
+            // read a chai provider to make the user
             final ChaiProvider provider = pwmSession.getSessionManager().getChaiProvider();
 
             // set up the user creation attributes
@@ -412,7 +412,7 @@ public class GuestRegistrationServlet extends PwmServlet {
 
             pwmApplication.getStatisticsManager().incrementValue(Statistic.NEW_USERS);
 
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_CREATE_GUEST);
+            pwmRequest.forwardToSuccessPage(Message.Success_CreateGuest);
         } catch (ChaiOperationException e) {
             final ErrorInformation info = new ErrorInformation(PwmError.ERROR_NEW_USER_FAILURE, "error creating user: " + e.getMessage());
             pwmRequest.setResponseError(info);

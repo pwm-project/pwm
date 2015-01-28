@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -27,14 +27,14 @@
 <html dir="<pwm:LocaleOrientation/>">
 <jsp:include page="/WEB-INF/jsp/fragment/header.jsp"/>
 <body class="nihilo">
-<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/admin/dashboard.jsp"/>"/>
+<meta http-equiv="refresh" content="0;url=<pwm:context/><pwm:url url="/private/admin/Administration"/>"/>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Administration"/>
     </jsp:include>
     <div id="content">
         <div id="centerbody">
-           <a href="<pwm:context/><pwm:url url="/private/admin/dashboard.jsp"/>"> Loading... </a>
+           <a href="<pwm:context/><pwm:url url="/private/admin/Administration"/>"> Loading... </a>
         </div>
     </div>
     <div class="push"></div>

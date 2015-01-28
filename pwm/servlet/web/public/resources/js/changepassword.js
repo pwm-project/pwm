@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -212,7 +212,7 @@ PWM_CHANGEPW.showPasswordGuide=function() {
 
 PWM_CHANGEPW.handleChangePasswordSubmit=function() {
     PWM_MAIN.showInfo(PWM_MAIN.showString('Display_PleaseWait'));
-    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+    PWM_VAR['dirtyPageLeaveFlag'] = false;
 };
 
 PWM_CHANGEPW.doRandomGeneration=function(randomConfig) {
@@ -365,15 +365,21 @@ PWM_CHANGEPW.startupChangePasswordPage=function() {
     }
 
     // add a handler so if the user leaves the page except by submitting the form, then a warning/confirm is shown
-    PWM_MAIN.addEventHandler(window,'unload',function(){
-        console.log('changepassword-beforeunload handler invoked');
-        if (PWM_GLOBAL['dirtyPageLeaveFlag']) {
+    var pageLeaveFunction = function() {
+        if (PWM_VAR['dirtyPageLeaveFlag']) {
             var message = PWM_MAIN.showString('Display_LeaveDirtyPasswordPage');
-            return message;
+            console.log('changepassword-beforeunload handler invoked');
+            if (message.trim().length > 0) {
+                return message;
+            }
+        } else {
+            console.log('changepassword-beforeunload handler skipped');
         }
-    });
+    };
+    window.onbeforeunload=pageLeaveFunction;
 
-    PWM_GLOBAL['dirtyPageLeaveFlag'] = true;
+
+    PWM_VAR['dirtyPageLeaveFlag'] = true;
 
     var messageElement = PWM_MAIN.getObject("message");
     if (messageElement.firstChild.nodeValue.length < 2) {

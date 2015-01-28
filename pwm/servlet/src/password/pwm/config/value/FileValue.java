@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
 import password.pwm.config.StoredValue;
@@ -36,6 +34,7 @@ import password.pwm.util.logging.PwmLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 public class FileValue extends AbstractValue implements StoredValue {
@@ -43,7 +42,7 @@ public class FileValue extends AbstractValue implements StoredValue {
 
     private Map<FileInformation, FileContent> values = new LinkedHashMap<>();
 
-    public static class FileInformation {
+    public static class FileInformation implements Serializable {
         private String filename;
         private String filetype;
 
@@ -123,7 +122,6 @@ public class FileValue extends AbstractValue implements StoredValue {
             public FileValue fromXmlElement(Element settingElement, final String input)
                     throws PwmOperationalException
             {
-                final Gson gson = JsonUtil.getGson();
                 final List valueElements = settingElement.getChildren("value");
                 final Map<FileInformation, FileContent> values = new LinkedHashMap<>();
                 for (final Object loopValue : valueElements) {
@@ -132,7 +130,7 @@ public class FileValue extends AbstractValue implements StoredValue {
                     final Element loopFileInformation = loopValueElement.getChild("FileInformation");
                     if (loopFileInformation != null) {
                         final String loopFileInformationJson = loopFileInformation.getText();
-                        final FileInformation fileInformation = gson.fromJson(loopFileInformationJson,
+                        final FileInformation fileInformation = JsonUtil.deserialize(loopFileInformationJson,
                                 FileInformation.class);
 
                         final Element loopFileContentElement = loopValueElement.getChild("FileContent");
@@ -162,12 +160,11 @@ public class FileValue extends AbstractValue implements StoredValue {
     public List<Element> toXmlValues(final String valueElementName)
     {
         final List<Element> returnList = new ArrayList<>();
-        final Gson gson = JsonUtil.getGson();
         for (final FileInformation fileInformation : values.keySet()) {
             final Element valueElement = new Element(valueElementName);
 
             final Element fileInformationElement = new Element("FileInformation");
-            fileInformationElement.addContent(gson.toJson(fileInformation));
+            fileInformationElement.addContent(JsonUtil.serialize(fileInformation));
             valueElement.addContent(fileInformationElement);
 
             final Element fileContentElement = new Element("FileContent");
@@ -202,12 +199,10 @@ public class FileValue extends AbstractValue implements StoredValue {
             Locale locale
     )
     {
-        final Gson gson = prettyFormat
-                ? JsonUtil.getGson(new GsonBuilder().setPrettyPrinting().disableHtmlEscaping())
-                : JsonUtil.getGson(new GsonBuilder().disableHtmlEscaping());
-
         final List<Map<String, Object>> output = asMetaData();
-        return gson.toJson(output);
+        return prettyFormat
+                ? JsonUtil.serialize((Serializable)output, JsonUtil.Flag.PrettyPrint)
+                : JsonUtil.serialize((Serializable)output);
     }
 
     public List<Map<String, Object>> asMetaData()

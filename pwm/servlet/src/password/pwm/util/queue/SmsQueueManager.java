@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,7 +168,7 @@ public class SmsQueueManager extends AbstractQueueManager {
     }
 
     void sendItem(final String item) throws PwmOperationalException {
-        final SmsItemBean smsItemBean = (JsonUtil.getGson()).fromJson(item, SmsItemBean.class);
+        final SmsItemBean smsItemBean = JsonUtil.deserialize(item, SmsItemBean.class);
         try {
             for (final String msgPart : splitMessage(smsItemBean.getMessage())) {
                 smsSendEngine.sendSms(smsItemBean.getTo(), msgPart);
@@ -337,7 +337,7 @@ public class SmsQueueManager extends AbstractQueueManager {
         final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
-        final SmsItemBean smsItemBean = JsonUtil.getGson().fromJson(queueEvent.getItem(), SmsItemBean.class);
+        final SmsItemBean smsItemBean = JsonUtil.deserialize(queueEvent.getItem(), SmsItemBean.class);
 
         debugOutputMap.put("to", smsItemBean.getTo());
 

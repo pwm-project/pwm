@@ -169,7 +169,7 @@
             <pwm:if test="permission" arg1="PWMADMIN">
                 <tr style="border:0">
                     <td class="menubutton_key">
-                        <a class="menubutton" href="<pwm:url url='admin/dashboard.jsp'/>">
+                        <a class="menubutton" href="<pwm:url url='/private/admin/Administration' addContext="true"/> ">
                             <pwm:if test="showIcons"><span class="btn-icon fa fa-dashboard"></span></pwm:if>
                             <pwm:display key="Title_Admin"/>
                         </a>

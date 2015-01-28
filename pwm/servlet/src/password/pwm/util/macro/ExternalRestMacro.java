@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,9 @@ class ExternalRestMacro extends AbstractMacro {
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication,
                     PwmConstants.DEFAULT_LOCALE, url,
                     requestBody);
-            final Map<String,Object> responseMap = JsonUtil.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
+            final Map<String,Object> responseMap = JsonUtil.deserialize(responseBody, 
+                    new TypeToken<Map<String, Object>>() {}
+            );
             if (responseMap.containsKey("output")) {
                 return responseMap.get("output").toString();
             } else {

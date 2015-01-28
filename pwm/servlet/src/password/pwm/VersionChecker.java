@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,6 @@
 
 package password.pwm;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -45,6 +42,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -71,10 +69,8 @@ public class VersionChecker implements PwmService {
                 final String versionChkInfoJson = pwmApplication.getLocalDB().get(LocalDB.DB.PWM_META,
                         LOCALDB_KEY_VERSION_CHECK_INFO_CACHE);
                 if (versionChkInfoJson != null && versionChkInfoJson.length() > 0) {
-                    versionCheckInfoCache = JsonUtil.getGson().fromJson(versionChkInfoJson, VersionCheckInfoCache.class);
+                    versionCheckInfoCache = JsonUtil.deserialize(versionChkInfoJson, VersionCheckInfoCache.class);
                 }
-            } catch (JsonParseException e) {
-                LOGGER.error("unable to parse stored version check info in LocalDB: " + e.getMessage());
             } catch (LocalDBException e) {
                 LOGGER.error("error reading version check info out of LocalDB: " + e.getMessage());
             }
@@ -91,7 +87,7 @@ public class VersionChecker implements PwmService {
 
     public String currentVersion() {
         if (!pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.VERSION_CHECK_ENABLE)) {
-            return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, "Value_NotApplicable", pwmApplication.getConfig());
+            return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, pwmApplication.getConfig());
         }
 
         try {
@@ -102,7 +98,7 @@ public class VersionChecker implements PwmService {
         } catch (Exception e) {
             LOGGER.error("unable to retrieve current version data from cloud: " + e.toString());
         }
-        return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, "Value_NotApplicable", pwmApplication.getConfig());
+        return Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE, Display.Value_NotApplicable, pwmApplication.getConfig());
     }
 
     public Date lastReadTimestamp() {
@@ -172,9 +168,8 @@ public class VersionChecker implements PwmService {
 
         if (pwmApplication.getLocalDB() != null && pwmApplication.getLocalDB().status() == LocalDB.Status.OPEN) {
             try {
-                final Gson gson = JsonUtil.getGson();
-                final String gsonVersionInfo = gson.toJson(versionCheckInfoCache);
-                pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META, LOCALDB_KEY_VERSION_CHECK_INFO_CACHE,gsonVersionInfo);
+                final String jsonVersionInfo = JsonUtil.serialize(versionCheckInfoCache);
+                pwmApplication.getLocalDB().put(LocalDB.DB.PWM_META, LOCALDB_KEY_VERSION_CHECK_INFO_CACHE,jsonVersionInfo);
             } catch (LocalDBException e) {
                 LOGGER.error("error writing version check info out of LocalDB: " + e.getMessage());
             }
@@ -194,8 +189,7 @@ public class VersionChecker implements PwmService {
             throw new IOException("http response error code: " + httpResponse.getStatusLine().getStatusCode());
         }
         final String responseBody = EntityUtils.toString(httpResponse.getEntity());
-        Gson gson = JsonUtil.getGson();
-        return gson.fromJson(responseBody, new TypeToken<Map<String, String>>() {}.getType());
+        return JsonUtil.deserializeStringMap(responseBody);
     }
 
     public STATUS status() {
@@ -225,7 +219,7 @@ public class VersionChecker implements PwmService {
         return returnRecords;
     }
 
-    private static class VersionCheckInfoCache {
+    private static class VersionCheckInfoCache implements Serializable {
         private Date lastCheckTimestamp;
         private ErrorInformation lastError;
         private String currentVersion;

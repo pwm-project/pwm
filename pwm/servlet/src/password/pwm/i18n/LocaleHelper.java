@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package password.pwm.i18n;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.config.Configuration;
+import password.pwm.http.PwmRequest;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.*;
@@ -43,6 +44,14 @@ public class LocaleHelper {
         } catch (ClassNotFoundException e) {
             return null;
         }
+    }
+
+    public static String getLocalizedMessage(final Locale locale, final PwmDisplayBundle key, final Configuration config) {
+        return getLocalizedMessage(locale, key.getKey(), config, key.getClass());
+    }
+
+    public static String getLocalizedMessage(final PwmDisplayBundle key, final PwmRequest pwmRequest) {
+        return getLocalizedMessage(pwmRequest.getLocale(), key.getKey(), pwmRequest.getConfig(), key.getClass());
     }
 
     public static String getLocalizedMessage(final String key, final Configuration config, final Class bundleClass) {
@@ -91,7 +100,7 @@ public class LocaleHelper {
     }
 
     private static ResourceBundle getMessageBundle(final Locale locale, final Class bundleClass) {
-        if (!DisplayBundleMarker.class.isAssignableFrom(bundleClass)) {
+        if (!PwmDisplayBundle.class.isAssignableFrom(bundleClass)) {
             LOGGER.warn("attempt to resolve locale for non-DisplayBundleMarker class type " + bundleClass.toString());
             return null;
         }
@@ -191,12 +200,12 @@ public class LocaleHelper {
 
     public static class DisplayMaker {
         private final PwmApplication pwmApplication;
-        private final Class<? extends DisplayBundleMarker> bundleClass;
+        private final Class<? extends PwmDisplayBundle> bundleClass;
         private final Locale locale;
 
         public DisplayMaker(
                 Locale locale,
-                Class<? extends DisplayBundleMarker> bundleClass,
+                Class<? extends PwmDisplayBundle> bundleClass,
                 PwmApplication pwmApplication
         )
         {
@@ -212,7 +221,7 @@ public class LocaleHelper {
 
     public static Map<Locale,String> getUniqueLocalizations(
             final PwmApplication pwmApplication,
-            final Class<? extends DisplayBundleMarker> bundleClass,
+            final Class<? extends PwmDisplayBundle> bundleClass,
             final String key,
             final Locale defaultLocale
     )
@@ -239,7 +248,7 @@ public class LocaleHelper {
     }
 
     public static String booleanString(final boolean input, Locale locale, Configuration configuration) {
-        String key = input ? "Value_True" : "Value_False";
-        return getLocalizedMessage(locale, key, configuration, Display.class);
+        Display key = input ? Display.Value_True : Display.Value_False;
+        return Display.getLocalizedMessage(locale, key, configuration);
     }
 }

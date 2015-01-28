@@ -541,7 +541,9 @@ public class PwmPasswordRuleValidator {
         try {
             final String responseBody = RestClientHelper.makeOutboundRestWSCall(pwmApplication, locale, restURL,
                     jsonRequestBody);
-            final Map<String,Object> responseMap = JsonUtil.getGson().fromJson(responseBody,new TypeToken<Map<String, Object>>() {}.getType());
+            final Map<String,Object> responseMap = JsonUtil.deserialize(responseBody, 
+                    new TypeToken<Map<String, Object>>() {}
+            );
             if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR) && Boolean.parseBoolean(responseMap.get(
                     REST_RESPONSE_KEY_ERROR).toString())) {
                 if (responseMap.containsKey(REST_RESPONSE_KEY_ERROR_MSG)) {

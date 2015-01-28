@@ -264,7 +264,7 @@ public class SetupResponsesServlet extends PwmServlet {
             );
             saveResponses(pwmRequest, responses);
             pwmRequest.getPwmSession().clearSessionBean(SetupResponsesBean.class);
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_SETUP_RESPONSES);
+            pwmRequest.forwardToSuccessPage(Message.Success_SetupResponse);
         } catch (PwmOperationalException e) {
             LOGGER.error(pwmRequest.getSessionLabel(), e.getErrorInformation());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -292,7 +292,7 @@ public class SetupResponsesServlet extends PwmServlet {
                 : setupResponsesBean.getResponseData();
 
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.SUCCESS_RESPONSES_MEET_RULES, pwmApplication.getConfig());
+        String userMessage = Message.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(), Message.Success_ResponsesMeetRules, pwmApplication.getConfig());
 
         try {
             // read in the responses from the request
@@ -357,7 +357,7 @@ public class SetupResponsesServlet extends PwmServlet {
         userStatusReader.populateActorUserInfoBean(pwmSession, uiBean.getUserIdentity());
         pwmApplication.getStatisticsManager().incrementValue(Statistic.SETUP_RESPONSES);
         pwmSession.getUserInfoBean().setRequiresResponseConfig(false);
-        pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_SETUP_RESPONSES, null);
+        pwmSession.getSessionStateBean().setSessionSuccess(Message.Success_SetupResponse, null);
         pwmApplication.getAuditManager().submit(AuditEvent.SET_RESPONSES, pwmSession.getUserInfoBean(), pwmSession);
     }
 

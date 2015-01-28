@@ -34,133 +34,123 @@ import java.util.Locale;
  *
  * @author Jason D. Rivard
  */
-public enum Message implements DisplayBundleMarker {
-    SUCCESS_PASSWORDCHANGE("Success_PasswordChange"),
-    SUCCESS_SETUP_RESPONSES("Success_SetupResponse"),
-    SUCCESS_CLEAR_RESPONSES("Success_ClearResponse"),
-    SUCCESS_UNKNOWN("Success_Unknown"),
-    SUCCESS_CREATE_USER("Success_CreateUser"),
-    SUCCESS_NEWUSER_FORM("Success_NewUserForm"),
-    SUCCESS_UPDATE_FORM("Success_UpdateForm"),
-    SUCCESS_CREATE_GUEST("Success_CreateGuest"),
-    SUCCESS_UPDATE_GUEST("Success_UpdateGuest"),
-    SUCCESS_ACTIVATE_USER("Success_ActivateUser"),
-    SUCCESS_UPDATE_ATTRIBUTES("Success_UpdateProfile"),
-    SUCCESS_RESPONSES_MEET_RULES("Success_ResponsesMeetRules"),
-    SUCCESS_UNLOCK_ACCOUNT("Success_UnlockAccount"),
-    SUCCESS_FORGOTTEN_USERNAME("Success_ForgottenUsername"),
-    SUCCESS_CONFIG_UPLOAD("Success_ConfigFileUpload"),
-    SUCCESS_PASSWORDRESET("Success_PasswordReset"),
-    SUCCESS_PASSWORDSEND("Success_PasswordSend"),
-    SUCCESS_ACTION("Success_Action"),
-    SUCCESS_OTP_SETUP("Success_OtpSetup"),
+public enum Message implements PwmDisplayBundle {
+    Success_PasswordChange(),
+    Success_SetupResponse(),
+    Success_ClearResponse(),
+    Success_Unknown(),
+    Success_CreateUser(),
+    Success_NewUserForm(),
+    Success_UpdateForm(),
+    Success_CreateGuest(),
+    Success_UpdateGuest(),
+    Success_ActivateUser(),
+    Success_UpdateProfile(),
+    Success_ResponsesMeetRules(),
+    Success_UnlockAccount(),
+    Success_ForgottenUsername(),
+    Success_ConfigFileUpload(),
+    Success_PasswordReset(),
+    Success_PasswordSend(),
+    Success_Action(),
+    Success_OtpSetup(),
 
-    EVENT_LOG_STARTUP("EventLog_Startup"),
-    EVENT_LOG_SHUTDOWN("EventLog_Shutdown"),
-    EVENT_LOG_FATAL_EVENT("EventLog_FatalEvent"),
-    EVENT_LOG_MODIFY_CONFIGURATION("EventLog_ModifyConfiguration"),
-    EVENT_LOG_INTRUDER_ATTEMPT("EventLog_IntruderAttempt"),
-    EVENT_LOG_INTRUDER_LOCKOUT("EventLog_IntruderLockout"),
+    EventLog_Startup(),
+    EventLog_Shutdown(),
+    EventLog_FatalEvent(),
+    EventLog_ModifyConfiguration(),
+    EventLog_IntruderAttempt(),
+    EventLog_IntruderLockout(),
 
-    EVENT_LOG_AUTHENTICATE("EventLog_Authenticate"),
-    EVENT_LOG_AGREEMENT_PASSED("EventLog_AgreementPassed"),
-    EVENT_LOG_CHANGE_PASSWORD("EventLog_ChangePassword"),
-    EVENT_LOG_UNLOCK_PASSWORD("EventLog_UnlockPassword"),
-    EVENT_LOG_RECOVER_PASSWORD("EventLog_RecoverPassword"),
-    EVENT_LOG_SETUP_RESPONSES("EventLog_SetupResponses"),
-    EVENT_LOG_SETUP_OTP_SECRET("Eventlog_SetupOtpSecret"),
-    EVENT_LOG_ACTIVATE_USER("EventLog_ActivateUser"),
-    EVENT_LOG_CREATE_USER("EventLog_CreateUser"),
-    EVENT_LOG_UPDATE_PROFILE("EventLog_UpdateProfile"),
-    EVENT_LOG_INTRUDER_USER("EventLog_IntruderUser"),
-    EVENT_LOG_TOKEN_ISSUED("EventLog_TokenIssued"),
-    EVENT_LOG_TOKEN_CLAIMED("EventLog_TokenClaimed"),
-    EVENT_LOG_CLEAR_RESPONSES("EventLog_ClearResponses"),
-    EVENT_LOG_HELPDESK_SET_PASSWORD("EventLog_HelpdeskSetPassword"),
-    EVENT_LOG_HELPDESK_UNLOCK_PASSWORD("EventLog_HelpdeskUnlockPassword"),
-    EVENT_LOG_HELPDESK_CLEAR_RESPONSES("EventLog_HelpdeskClearResponses"),
-    EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET("EventLog_HelpdeskClearOtpSecret"),
-    EVENT_LOG_HELPDESK_ACTION("EventLog_HelpdeskAction"),
-    EVENT_LOG_HELPDESK_DELETE_USER("EventLog_HelpdeskDeleteUser"),
-    EVENT_LOG_HELPDESK_VIEW_DETAIL("EventLog_HelpdeskViewDetail"),
-    EVENT_LOG_HELPDESK_VERIFY_OTP("EventLog_HelpdeskVerifyOtp"),
+    EventLog_Authenticate(),
+    EventLog_AgreementPassed(),
+    EventLog_ChangePassword(),
+    EventLog_UnlockPassword(),
+    EventLog_RecoverPassword(),
+    EventLog_SetupResponses(),
+    Eventlog_SetupOtpSecret(),
+    EventLog_ActivateUser(),
+    EventLog_CreateUser(),
+    EventLog_UpdateProfile(),
+    EventLog_IntruderUser(),
+    EventLog_TokenIssued(),
+    EventLog_TokenClaimed(),
+    EventLog_ClearResponses(),
+    EventLog_HelpdeskSetPassword(),
+    EventLog_HelpdeskUnlockPassword(),
+    EventLog_HelpdeskClearResponses(),
+    EventLog_HelpdeskClearOtpSecret(),
+    EventLog_HelpdeskAction(),
+    EventLog_HelpdeskDeleteUser(),
+    EventLog_HelpdeskViewDetail(),
+    EventLog_HelpdeskVerifyOtp(),
 
-    REQUIREMENT_MINLENGTH("Requirement_MinLength"),
-    REQUIREMENT_MINLENGTHPLURAL("Requirement_MinLengthPlural"),
-    REQUIREMENT_MAXLENGTH("Requirement_MaxLength"),
-    REQUIREMENT_MAXLENGTHPLURAL("Requirement_MaxLengthPlural"),
-    REQUIREMENT_MINALPHA("Requirement_MinAlpha"),
-    REQUIREMENT_MINALPHAPLURAL("Requirement_MinAlphaPlural"),
-    REQUIREMENT_MAXALPHA("Requirement_MaxAlpha"),
-    REQUIREMENT_MAXALPHAPLURAL("Requirement_MaxAlphaPlural"),
-    REQUIREMENT_ALLOWNUMERIC("Requirement_AllowNumeric"),
-    REQUIREMENT_MINNUMERIC("Requirement_MinNumeric"),
-    REQUIREMENT_MINNUMERICPLURAL("Requirement_MinNumericPlural"),
-    REQUIREMENT_MAXNUMERIC("Requirement_MaxNumeric"),
-    REQUIREMENT_MAXNUMERICPLURAL("Requirement_MaxNumericPlural"),
-    REQUIREMENT_FIRSTNUMERIC("Requirement_FirstNumeric"),
-    REQUIREMENT_LASTNUMERIC("Requirement_LastNumeric"),
-    REQUIREMENT_ALLOWSPECIAL("Requirement_AllowSpecial"),
-    REQUIREMENT_MINSPECIAL("Requirement_MinSpecial"),
-    REQUIREMENT_MINSPECIALPLURAL("Requirement_MinSpecialPlural"),
-    REQUIREMENT_MAXSPECIAL("Requirement_MaxSpecial"),
-    REQUIREMENT_MAXSPECIALPLURAL("Requirement_MaxSpecialPlural"),
-    REQUIREMENT_FIRSTSPECIAL("Requirement_FirstSpecial"),
-    REQUIREMENT_LASTSPECIAL("Requirement_LastSpecial"),
-    REQUIREMENT_MAXREPEAT("Requirement_MaxRepeat"),
-    REQUIREMENT_MAXREPEATPLURAL("Requirement_MaxRepeatPlural"),
-    REQUIREMENT_MAXSEQREPEAT("Requirement_MaxSeqRepeat"),
-    REQUIREMENT_MAXSEQREPEATPLURAL("Requirement_MaxSeqRepeatPlural"),
-    REQUIREMENT_MINLOWER("Requirement_MinLower"),
-    REQUIREMENT_MINLOWERPLURAL("Requirement_MinLowerPlural"),
-    REQUIREMENT_MAXLOWER("Requirement_MaxLower"),
-    REQUIREMENT_MAXLOWERPLURAL("Requirement_MaxLowerPlural"),
-    REQUIREMENT_MINUPPER("Requirement_MinUpper"),
-    REQUIREMENT_MINUPPERPLURAL("Requirement_MinUpperPlural"),
-    REQUIREMENT_MAXUPPER("Requirement_MaxUpper"),
-    REQUIREMENT_MAXUPPERPLURAL("Requirement_MaxUpperPlural"),
-    REQUIREMENT_MINUNIQUE("Requirement_MinUnique"),
-    REQUIREMENT_MINUNIQUEPLURAL("Requirement_MinUniquePlural"),
-    REQUIREMENT_REQUIREDCHARS("Requirement_RequiredChars"),
-    REQUIREMENT_DISALLOWEDVALUES("Requirement_DisAllowedValues"),
-    REQUIREMENT_DISALLOWEDATTRIBUTES("Requirement_DisAllowedAttributes"),
-    REQUIREMENT_WORDLIST("Requirement_WordList"),
-    REQUIREMENT_OLDCHAR("Requirement_OldChar"),
-    REQUIREMENT_OLDCHARPLURAL("Requirement_OldCharPlural"),
-    REQUIREMENT_CASESENSITIVE("Requirement_CaseSensitive"),
-    REQUIREMENT_NOTCASESENSITIVE("Requirement_NotCaseSensitive"),
-    REQUIREMENT_MINIMUMFREQUENCY("Requirement_MinimumFrequency"),
-    REQUIREMENT_AD_COMPLEXITY("Requirement_ADComplexity"),
-    REQUIREMENT_AD_2008_COMPLEXITY("Requirement_ADComplexity2008"),
-    REQUIREMENT_UNIQUE_REQUIRED("Requirement_UniqueRequired"),
+    Requirement_MinLength(),
+    Requirement_MinLengthPlural(),
+    Requirement_MaxLength(),
+    Requirement_MaxLengthPlural(),
+    Requirement_MinAlpha(),
+    Requirement_MinAlphaPlural(),
+    Requirement_MaxAlpha(),
+    Requirement_MaxAlphaPlural(),
+    Requirement_AllowNumeric(),
+    Requirement_MinNumeric(),
+    Requirement_MinNumericPlural(),
+    Requirement_MaxNumeric(),
+    Requirement_MaxNumericPlural(),
+    Requirement_FirstNumeric(),
+    Requirement_LastNumeric(),
+    Requirement_AllowSpecial(),
+    Requirement_MinSpecial(),
+    Requirement_MinSpecialPlural(),
+    Requirement_MaxSpecial(),
+    Requirement_MaxSpecialPlural(),
+    Requirement_FirstSpecial(),
+    Requirement_LastSpecial(),
+    Requirement_MaxRepeat(),
+    Requirement_MaxRepeatPlural(),
+    Requirement_MaxSeqRepeat(),
+    Requirement_MaxSeqRepeatPlural(),
+    Requirement_MinLower(),
+    Requirement_MinLowerPlural(),
+    Requirement_MaxLower(),
+    Requirement_MaxLowerPlural(),
+    Requirement_MinUpper(),
+    Requirement_MinUpperPlural(),
+    Requirement_MaxUpper(),
+    Requirement_MaxUpperPlural(),
+    Requirement_MinUnique(),
+    Requirement_MinUniquePlural(),
+    Requirement_RequiredChars(),
+    Requirement_DisAllowedValues(),
+    Requirement_DisAllowedAttributes(),
+    Requirement_WordList(),
+    Requirement_OldChar(),
+    Requirement_OldCharPlural(),
+    Requirement_CaseSensitive(),
+    Requirement_NotCaseSensitive(),
+    Requirement_MinimumFrequency(),
+    Requirement_ADComplexity(),
+    Requirement_ADComplexity2008(),
+    Requirement_UniqueRequired(),
 
     ;
 
-// ------------------------------ FIELDS ------------------------------
-
-    private final String resourceKey;
-
-// -------------------------- STATIC METHODS --------------------------
-
     public static String getLocalizedMessage(final Locale locale, final Message message, final Configuration config, final String... fieldValue) {
-        return LocaleHelper.getLocalizedMessage(locale, message.getResourceKey(),config , Message.class, fieldValue);
+        return LocaleHelper.getLocalizedMessage(locale, message.getKey(),config , Message.class, fieldValue);
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    Message(final String resourceKey) {
-        this.resourceKey = resourceKey;
+    Message() {
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-    public String getResourceKey() {
-        return resourceKey;
-    }
-
-// -------------------------- OTHER METHODS --------------------------
 
     public String getLocalizedMessage(final Locale locale, final Configuration config, final String... fieldValue) {
         return Message.getLocalizedMessage(locale, this, config, fieldValue);
+    }
+
+    @Override
+    public String getKey() {
+        return this.toString();
+
     }
 }

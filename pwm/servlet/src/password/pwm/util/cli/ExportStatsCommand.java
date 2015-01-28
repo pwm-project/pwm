@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import password.pwm.util.TimeDuration;
 import password.pwm.util.stats.StatisticsManager;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.util.Collections;
 import java.util.Locale;
 
@@ -45,9 +45,9 @@ public class ExportStatsCommand extends AbstractCliCommand {
         final File outputFile = (File)cliEnvironment.getOptions().get(CliParameters.REQUIRED_NEW_FILE.getName());
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
-        final FileWriter fileWriter = new FileWriter(outputFile,true);
-        final int counter = statsManger.outputStatsToCsv(fileWriter, Locale.getDefault(),false);
-        fileWriter.close();
+        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
+        final int counter = statsManger.outputStatsToCsv(fileOutputStream, Locale.getDefault(),false);
+        fileOutputStream.close();
         out("completed writing " + counter + " rows of stats output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 

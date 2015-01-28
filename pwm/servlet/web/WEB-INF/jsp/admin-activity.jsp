@@ -39,15 +39,29 @@
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="/WEB-INF/jsp/fragment/header.jsp" %>
 <body class="nihilo">
+<style>
+    .analysisGrid {
+        min-height: 55vh;
+    }
+
+    .dgrid-row {
+        max-height: 46px;
+    }
+
+    .dgrid-cell {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
 <div id="wrapper">
     <jsp:include page="/WEB-INF/jsp/fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="User Activity"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <%@ include file="admin-nav.jsp" %>
+        <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit/layout/TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true">
             <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Sessions" bundle="Admin"/>" class="tabContent">
-                <div id="activeSessionGrid">
+                <div id="activeSessionGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
                     <input name="maxResults" id="maxActiveSessionResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
@@ -72,12 +86,12 @@
             <% for (RecordType recordType : RecordType.values()) { %>
             <% String titleName = LocaleHelper.getLocalizedMessage(activity_pwmRequest.getLocale(),"IntruderRecordType_" + recordType.toString(), activity_pwmRequest.getConfig(), Admin.class); %>
             <div data-dojo-type="dijit/layout/ContentPane" title="Intruders<br/><%=titleName%>" class="tabContent">
-                <div id="<%=recordType%>_Grid">
+                <div id="<%=recordType%>_Grid" class="analysisGrid">
                 </div>
             </div>
             <% } %>
             <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditUsers" bundle="Admin"/>" class="tabContent">
-                <div id="auditUserGrid">
+                <div id="auditUserGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
                     <input name="maxAuditUserResults" id="maxAuditUserResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
@@ -87,18 +101,18 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
+                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                            Download as CSV
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
-                        <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </div>
             </div>
             <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditHelpdesk" bundle="Admin"/>" class="tabContent">
-                <div id="auditHelpdeskGrid">
+                <div id="auditHelpdeskGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
                     <input name="maxAuditHelpdeskResults" id="maxAuditHelpdeskResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
@@ -108,18 +122,18 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
+                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                            Download as CSV
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
-                        <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </div>
             </div>
             <div data-dojo-type="dijit/layout/ContentPane" title="<pwm:display key="Title_Audit" bundle="Admin"/><br/><pwm:display key="Title_AuditSystem" bundle="Admin"/>" class="tabContent">
-                <div id="auditSystemGrid">
+                <div id="auditSystemGrid" class="analysisGrid">
                 </div>
                 <div style="text-align: center">
                     <input name="maxAuditSystemResults" id="maxAuditSystemResults" value="1000" data-dojo-type="dijit/form/NumberSpinner" style="width: 70px"
@@ -129,12 +143,12 @@
                         <pwm:if test="showIcons"><span class="btn-icon fa fa-refresh">&nbsp;</span></pwm:if>
                         <pwm:display key="Button_Refresh" bundle="Admin"/>
                     </button>
-                    <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
+                    <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
                         <button type="submit" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                            Download as CSV
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                         </button>
-                        <input type="hidden" name="processAction" value="outputAuditLogCsv"/>
+                        <input type="hidden" name="processAction" value="downloadAuditLogCsv"/>
                         <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                     </form>
                 </div>
@@ -166,8 +180,13 @@
                 PWM_ADMIN.initActiveSessionGrid();
                 PWM_ADMIN.initAuditGrid();
 
+
+
                 PWM_MAIN.addEventHandler('button-refreshAuditUser','click',function(){
                     PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditUserResults').value);
+                });
+                PWM_MAIN.addEventHandler('button-refreshHelpdeskUser','click',function(){
+                    PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditHelpdeskResults').value);
                 });
                 PWM_MAIN.addEventHandler('button-refreshSystemAudit','click',function(){
                     PWM_ADMIN.refreshAuditGridData(PWM_MAIN.getObject('maxAuditSystemResults').value);

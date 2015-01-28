@@ -30,9 +30,11 @@ var PWM_SETTINGS = PWM_SETTINGS || {};
 
 PWM_VAR['outstandingOperations'] = 0;
 PWM_VAR['preferences'] = { };
+PWM_VAR['skippedSettingCount'] = 0;
 
 PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
-    var modifiedOnly = PWM_MAIN.getObject('input-modifiedSettingsOnly') && PWM_MAIN.getObject('input-modifiedSettingsOnly').checked;
+    var modifiedOnly = PWM_CFGEDIT.readNavigationFilters()['modifiedSettingsOnly'];
+    var maxLevel = parseInt(PWM_CFGEDIT.readNavigationFilters()['level']);
     PWM_VAR['outstandingOperations']++;
     PWM_CFGEDIT.handleWorkingIcon();
     var url = "ConfigEditor?processAction=readSetting&key=" + keyName;
@@ -41,14 +43,23 @@ PWM_CFGEDIT.readSetting = function(keyName, valueWriter) {
         PWM_CFGEDIT.handleWorkingIcon();
         console.log('read data for setting ' + keyName);
         var resultValue = data['data']['value'];
-        valueWriter(resultValue);
         var isDefault = data['data']['isDefault'];
-        if (modifiedOnly && isDefault) { //hide if not modified
-            PWM_MAIN.setStyle('outline_' + keyName,'display','none');
-        } else {
+        var settingLevel = 0;
+        if (PWM_SETTINGS['settings'][keyName] && PWM_SETTINGS['settings'][keyName]['level']) {
+            settingLevel = PWM_SETTINGS['settings'][keyName]['level'];
+        }
+        var showSetting = (!modifiedOnly || !isDefault) && (maxLevel < 0 || settingLevel  <= maxLevel );
+        if (showSetting) {
+            valueWriter(resultValue);
             PWM_MAIN.setStyle('outline_' + keyName,'display','inherit');
             PWM_CFGEDIT.updateSettingDisplay(keyName, isDefault);
             PWM_CFGEDIT.updateLastModifiedInfo(keyName, data);
+        } else {
+            PWM_MAIN.setStyle('outline_' + keyName,'display','none');
+            PWM_VAR['skippedSettingCount']++;
+            if (PWM_VAR['skippedSettingCount'] > 0 && PWM_MAIN.getObject('panel-skippedSettingInfo')) {
+                PWM_MAIN.getObject('panel-skippedSettingInfo').innerHTML = "" + PWM_VAR['skippedSettingCount'] + " items are not shown due to filter settings."
+            }
         }
     };
     var errorFunction = function(error) {
@@ -176,17 +187,19 @@ PWM_CFGEDIT.clearDivElements = function(parentDiv, showLoading) {
                 parentDivElement.removeChild(firstChild);
             }
         }
-        if (showLoading) {
-            var newTableRow = document.createElement("tr");
-            newTableRow.setAttribute("style", "border-width: 0");
-            parentDivElement.appendChild(newTableRow);
+        /*
+         if (showLoading) {
+         var newTableRow = document.createElement("tr");
+         newTableRow.setAttribute("style", "border-width: 0");
+         parentDivElement.appendChild(newTableRow);
 
 
-            var newTableData = document.createElement("td");
-            newTableData.setAttribute("style", "border-width: 0");
-            newTableData.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
-            newTableRow.appendChild(newTableData);
-        }
+         var newTableData = document.createElement("td");
+         newTableData.setAttribute("style", "border-width: 0");
+         newTableData.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
+         newTableRow.appendChild(newTableData);
+         }
+         */
     }
 };
 
@@ -402,13 +415,10 @@ PWM_CFGEDIT.initConfigEditor = function(nextFunction) {
     PWM_MAIN.addEventHandler('saveButton_icon','click',function(){PWM_CFGEDIT.saveConfiguration()});
     PWM_MAIN.addEventHandler('setPassword_icon','click',function(){PWM_CFGEDIT.setConfigurationPassword()});
     PWM_MAIN.addEventHandler('referenceDoc_icon','click',function(){
-        window.open(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','_blank', 'toolbar=0,location=0,menubar=0');
+        PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp#settings','referencedoc');
     });
     PWM_MAIN.addEventHandler('macroDoc_icon','click',function(){ PWM_CFGEDIT.showMacroHelp(); });
-    PWM_MAIN.addEventHandler('input-modifiedSettingsOnly','change',function(){
-        PWM_MAIN.getObject('input-modifiedSettingsOnly').disabled = true;
-        PWM_CFGEDIT.loadMainPageBody(); 
-    });
+    PWM_MAIN.addEventHandler('settingFilter_icon','click',function(){ PWM_CFGEDIT.showSettingFilter(); });
 
     setTimeout(PWM_CONFIG.heartbeatCheck,5000);
 
@@ -623,10 +633,6 @@ PWM_CFGEDIT.gotoSetting = function(category,settingKey,profile) {
     var item = {};
     item['id'] = category;
     item['type'] = 'category';
-    var storedPreferences = PWM_CFGEDIT.readLocalStorage();
-    storedPreferences['lastSelected'] = item;
-    PWM_CFGEDIT.writeLocalStorage(storedPreferences);
-
 
     if (settingKey) {
         setTimeout(function(){
@@ -821,14 +827,14 @@ PWM_CFGEDIT.selectTemplate = function(newTemplate) {
 };
 
 PWM_CFGEDIT.loadMainPageBody = function() {
+
+    PWM_CFGEDIT.drawNavigationMenu();
     var storedPreferences = PWM_CFGEDIT.readLocalStorage();
     if (storedPreferences['lastSelected']) {
         PWM_CFGEDIT.dispatchNavigationItem(storedPreferences['lastSelected']);
     } else {
         PWM_CFGEDIT.drawHomePage();
     }
-
-    PWM_CFGEDIT.drawNavigationMenu();
 };
 
 PWM_CFGEDIT.displaySettingsCategory = function(category) {
@@ -857,6 +863,7 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
         + '</div>';
     }
 
+    PWM_VAR['skippedSettingCount'] = 0;
     for (var loopSetting in PWM_SETTINGS['settings']) {
         (function(settingKey) {
             var settingInfo = PWM_SETTINGS['settings'][settingKey];
@@ -865,6 +872,8 @@ PWM_CFGEDIT.displaySettingsCategory = function(category) {
             }
         })(loopSetting);
     }
+    htmlSettingBody += '<div class="footnote" id="panel-skippedSettingInfo">';
+
     settingsPanel.innerHTML = htmlSettingBody;
     for (var loopSetting in PWM_SETTINGS['settings']) {
         (function(settingKey) {
@@ -897,6 +906,9 @@ PWM_CFGEDIT.drawHtmlOutlineForSetting = function(settingInfo, options) {
     options = options === undefined ? {} : options;
     var settingKey = settingInfo['key'];
     var settingLabel = settingInfo['label'];
+    if (settingInfo['level'] && settingInfo['level'] >= 2) {
+        settingLabel += ' (Advanced)';
+    }
     var htmlBody = '<div id="outline_' + settingKey + '" class="setting_outline" style="display:none">'
         + '<div class="setting_title" id="title_' + settingKey + '">'
         + '<a id="setting-' + settingKey + '" class="text">' + settingLabel + '</a>'
@@ -1037,6 +1049,8 @@ PWM_CFGEDIT.initSettingDisplay = function(setting, options) {
 
 PWM_CFGEDIT.drawNavigationMenu = function() {
     PWM_MAIN.getObject('navigationTree').innerHTML = '';
+    PWM_MAIN.setStyle('navigationTreeWrapper','display','none');
+
     var detectFirstDisplay = function() {
         var ca = document.cookie.split(';');
         for(var i=0; i<ca.length; i++) {
@@ -1081,6 +1095,9 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                     openOnClick: true,
                     id: 'navigationTree',
                     onClick: function(item){
+                        var storedPreferences = PWM_CFGEDIT.readLocalStorage();
+                        storedPreferences['lastSelected'] = item;
+                        PWM_CFGEDIT.writeLocalStorage(storedPreferences);
                         PWM_CFGEDIT.dispatchNavigationItem(item);
                     }
                 });
@@ -1099,19 +1116,26 @@ PWM_CFGEDIT.drawNavigationMenu = function() {
                 tree.placeAt(PWM_MAIN.getObject('navigationTree'));
                 tree.startup();
                 PWM_VAR['navigationTree'] = tree; // used for expand/collapse button events;
-                PWM_MAIN.getObject('input-modifiedSettingsOnly').disabled = false;
+                PWM_MAIN.setStyle('navigationTreeWrapper','display','inherit');
             }
         );
     };
 
     var url = 'ConfigEditor?processAction=menuTreeData';
-    if (PWM_MAIN.getObject('input-modifiedSettingsOnly') && PWM_MAIN.getObject('input-modifiedSettingsOnly').checked) {
-        url += '&modifiedSettingsOnly=true';
-    }
+    url = PWM_MAIN.addParamToUrl(url,'modifiedSettingsOnly',PWM_CFGEDIT.readNavigationFilters()['modifiedSettingsOnly']);
+    url = PWM_MAIN.addParamToUrl(url,'level',PWM_CFGEDIT.readNavigationFilters()['level']);
+
     PWM_MAIN.ajaxRequest(url,function(data){
         var menuTreeData = data['data'];
         makeTreeFunction(menuTreeData);
     },{method:'GET'});
+};
+
+PWM_CFGEDIT.readNavigationFilters = function() {
+    var result = {};
+    result['modifiedSettingsOnly'] = 'settingFilter_modifiedSettingsOnly' in PWM_VAR ? PWM_VAR['settingFilter_modifiedSettingsOnly'] : false;
+    result['level'] = 'settingFilter_level' in PWM_VAR ? PWM_VAR['settingFilter_level'] : 2;
+    return result;
 };
 
 PWM_CFGEDIT.dispatchNavigationItem = function(item) {
@@ -1133,11 +1157,7 @@ PWM_CFGEDIT.dispatchNavigationItem = function(item) {
         var profileSettingKey = item['profile-setting'];
         PWM_CFGEDIT.drawProfileEditorPage(profileSettingKey);
     }
-
-    var storedPreferences = PWM_CFGEDIT.readLocalStorage();
-    storedPreferences['lastSelected'] = item;
-    PWM_CFGEDIT.writeLocalStorage(storedPreferences);
-
+    
     if (item['name']) {
         PWM_MAIN.getObject('currentPageDisplay').innerHTML = ' - ' + item['name'];
     }
@@ -1189,15 +1209,7 @@ PWM_CFGEDIT.drawDisplayTextPage = function(settingKey, keys) {
 };
 
 PWM_CFGEDIT.drawHomePage = function() {
-    var htmlBody = '<div style="width:100%; text-align: center; margin-left: auto; margin-right:auto;">';
-
-    htmlBody += '<button class="btn" id="button-macroDoc"><span class="btn-icon fa fa-gears"></span>Macro Reference</button>';
-    htmlBody += '<button class="btn" id="button-referenceDoc"><span class="btn-icon fa fa-book"></span>Configuration Reference</button>';
-    htmlBody += '<button class="btn" id="button-setPassword"><span class="btn-icon fa fa-key"></span>Set Configuration Password</button>';
-
-    htmlBody += '<button class="btn" id="button-save"><span class="btn-icon fa fa-save"></span>Save Changes</button>';
-    htmlBody += '<button class="btn" id="button-cancel"><span class="btn-icon fa fa-times"></span>Cancel Changes</button>';
-    htmlBody += '</div>';
+    var htmlBody = '';
 
     var settingsPanel = PWM_MAIN.getObject('settingsPanel');
     settingsPanel.innerHTML = PWM_MAIN.showString('Display_PleaseWait');
@@ -1234,21 +1246,6 @@ PWM_CFGEDIT.drawHomePage = function() {
     PWM_MAIN.getObject('table_setting_configurationNotes').innerHTML = notesSettingBody;
 
 
-    PWM_MAIN.addEventHandler('button-macroDoc','click',function(){
-        PWM_CFGEDIT.showMacroHelp();
-    });
-    PWM_MAIN.addEventHandler('button-referenceDoc','click',function(){
-        window.open(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','_blank', 'toolbar=0,location=0,menubar=0');
-    });
-    PWM_MAIN.addEventHandler('button-setPassword','click',function(){
-        PWM_CFGEDIT.setConfigurationPassword();
-    });
-    PWM_MAIN.addEventHandler('button-save','click',function(){
-        PWM_CFGEDIT.saveConfiguration();
-    });
-    PWM_MAIN.addEventHandler('button-cancel','click',function(){
-        PWM_CFGEDIT.cancelEditing();
-    });
     PWM_MAIN.addEventHandler('select-template','change',function(){
         PWM_CFGEDIT.selectTemplate(PWM_MAIN.getObject('select-template').options[PWM_MAIN.getObject('select-template').selectedIndex].value)
     });
@@ -1352,4 +1349,66 @@ PWM_CFGEDIT.displaySettingHelp = function(settingKey) {
      }
      });
      */
+};
+
+PWM_CFGEDIT.showSettingFilter = function() {
+    var currentValues = PWM_CFGEDIT.readNavigationFilters();
+
+    var dialogBody = '<div><table class="" style="table-layout: fixed">';
+    dialogBody += '<tr><td>Setting Level</td><td><label>';
+    dialogBody += '<input type="range" min="0" max="2" name="input-settingLevel" id="input-settingLevel" value="' + currentValues['level'] + '" style="width:100px"/>';
+    dialogBody += '<span id="panel-settingLevelDescription"></span></label></td></tr>';
+    dialogBody += '<tr><td>Modified</td><td>';
+    dialogBody += '<input type="radio" name="input-modifiedSettingsOnly" id="input-modifiedSettingsOnly-all" ' + (!currentValues['modifiedSettingsOnly'] ? 'checked' : '') + '>All';
+    dialogBody += '<input type="radio" name="input-modifiedSettingsOnly" id="input-modifiedSettingsOnly-modified" ' + (currentValues['modifiedSettingsOnly'] ? 'checked' : '') + '>Modified';
+    dialogBody += '</td></tr>';
+    dialogBody += '</table></div>';
+    var updateSettingLevelDescription = function() {
+        var value = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
+        var descriptionText = '';
+        switch (value) {
+            case 0:
+                descriptionText = 'Basic';
+                break;
+
+            case 1:
+                descriptionText = 'Standard';
+                break;
+
+            case 2:
+                descriptionText = 'Advanced';
+                break;
+        }
+        PWM_MAIN.getObject('panel-settingLevelDescription').innerHTML = descriptionText;
+    };
+    var updateIcon = function() {
+        var isDefault = PWM_VAR['settingFilter_modifiedSettingsOnly'] == false && PWM_VAR['settingFilter_level'] == 2;
+        if (isDefault) {
+            PWM_MAIN.removeCssClass('settingFilter_icon', "modified");
+        } else {
+            PWM_MAIN.addCssClass('settingFilter_icon', "modified");
+        }
+    };
+
+    var updateVars = function() {
+        PWM_VAR['settingFilter_modifiedSettingsOnly'] = PWM_MAIN.getObject('input-modifiedSettingsOnly-modified').checked;
+        PWM_VAR['settingFilter_level'] = parseInt(PWM_MAIN.getObject('input-settingLevel').value);
+        updateSettingLevelDescription();
+        
+    };
+    PWM_MAIN.showDialog({title:'Setting Filters',text:dialogBody,loadFunction:function(){
+        PWM_MAIN.addEventHandler('input-modifiedSettingsOnly-all','change',function(){
+            updateVars();
+        });
+        PWM_MAIN.addEventHandler('input-modifiedSettingsOnly-modified','change',function(){
+            updateVars();
+        });
+        PWM_MAIN.addEventHandler('input-settingLevel','change',function(){
+            updateVars();
+        });
+        updateSettingLevelDescription();
+    },okAction:function(){
+        updateIcon();
+        PWM_CFGEDIT.loadMainPageBody();
+    }});
 };

@@ -9,7 +9,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
         <jsp:param name="pwm.PageName" value="Token Lookup"/>
     </jsp:include>
     <div id="centerbody">
-        <%@ include file="admin-nav.jsp" %>
+        <%@ include file="fragment/admin-nav.jsp" %>
         <% final String tokenKey = tokenlookup_pwmRequest.readParameterAsString("token");%>
         <% if (tokenKey != null && tokenKey.length() > 0) { %>
         <table>
@@ -160,8 +160,8 @@
         </table>
         <br/>
         <% } %>
-        <form id="tokenForm" action="tokenlookup.jsp" method="post">
-            <textarea name="token" id="token" data-dojo-type="dijit/form/Textarea" style="width: 580px; height: 150px"></textarea>
+        <form id="tokenForm" action="admin-tokenlookup.jsp" method="post">
+            <textarea name="token" id="token" style="width: 580px; height: 150px"></textarea>
             <div id="buttonbar">
                 <input name="submitBtn" class="btn" type="submit" value="Lookup Token"/>
             </div>
@@ -169,16 +169,6 @@
     </div>
     <div class="push"></div>
 </div>
-<pwm:script>
-<script>
-    PWM_GLOBAL['startupFunctions'].push(function(){
-        require(["dojo/parser","dijit/form/Textarea ","dojo/domReady!"],function(dojoParser){
-            dojoParser.parse();
-            initGrid();
-        });
-    });
-</script>
-</pwm:script>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

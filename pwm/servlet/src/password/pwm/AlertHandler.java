@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ public abstract class AlertHandler {
 
         for (final String toAddress : pwmApplication.getConfig().readSettingAsStringArray(PwmSetting.AUDIT_EMAIL_SYSTEM_TO)) {
             final String fromAddress = pwmApplication.getConfig().readAppProperty(AppProperty.AUDIT_EVENTS_EMAILFROM);
-            final String subject = Display.getLocalizedMessage(locale,"Title_Application",pwmApplication.getConfig()) + " - Daily Summary";
+            final String subject = Display.getLocalizedMessage(locale,Display.Title_Application,pwmApplication.getConfig()) + " - Daily Summary";
             final StringBuilder textBody = new StringBuilder();
             final StringBuilder htmlBody = new StringBuilder();
             makeEmailBody(pwmApplication, dailyStatistics, locale, textBody, htmlBody);

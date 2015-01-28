@@ -30,6 +30,7 @@ import com.novell.ldapchai.exception.ChaiOperationException;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import com.novell.ldapchai.exception.ChaiValidationException;
 import com.novell.ldapchai.provider.ChaiProvider;
+import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.Validator;
@@ -46,6 +47,7 @@ import password.pwm.event.AuditEvent;
 import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.bean.ForgottenPasswordBean;
+import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.i18n.Message;
 import password.pwm.ldap.LdapUserDataReader;
 import password.pwm.ldap.UserDataReader;
@@ -548,8 +550,14 @@ public class ForgottenPasswordServlet extends PwmServlet {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_SEARCH);
             return;
         }
-
         
+        if (!progress.getSatisfiedMethods().contains(RecoveryVerificationMethod.PREVIOUS_AUTH)) {
+            if (checkAuthRecord(pwmRequest, forgottenPasswordBean.getUserInfo().getUserGuid())) {
+                LOGGER.debug(pwmRequest, "marking " + RecoveryVerificationMethod.PREVIOUS_AUTH + " method as satisfied");
+                progress.getSatisfiedMethods().add(RecoveryVerificationMethod.PREVIOUS_AUTH);
+            }
+        }
+
         // dispatch required auth methods.
         for (final RecoveryVerificationMethod method : recoveryFlags.getRequiredAuthMethods()) {
             if (!progress.getSatisfiedMethods().contains(method)) {
@@ -557,7 +565,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 return;
             }
         }
-        
+
         // redirect if an verificiation method is in progress
         if (progress.getInProgressVerificationMethod() != null) {
             if (progress.getSatisfiedMethods().contains(progress.getInProgressVerificationMethod())) {
@@ -578,6 +586,14 @@ public class ForgottenPasswordServlet extends PwmServlet {
                     final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_INVALID_CONFIG,errorMsg);
                     LOGGER.error(pwmRequest, errorInformation);
                     throw new PwmUnrecoverableException(errorInformation);
+                } else {
+                    if (remainingAvailableOptionalMethods.size() == 1) {
+                        final RecoveryVerificationMethod remainingMethod = remainingAvailableOptionalMethods.iterator().next();
+                        LOGGER.debug(pwmRequest, "only 1 remaining available optional verification method, will redirect to " + remainingMethod.toString());
+                        forwardUserBasedOnRecoveryMethod(pwmRequest, remainingMethod);
+                        progress.setInProgressVerificationMethod(remainingMethod);
+                        return;
+                    }
                 }
                 processVerificationChoice(pwmRequest);
                 return;
@@ -596,13 +612,13 @@ public class ForgottenPasswordServlet extends PwmServlet {
             StatisticsManager.incrementStat(pwmRequest, Statistic.RECOVERY_SUCCESSES);
         }
         LOGGER.trace(pwmRequest, "all recovery checks passed, proceeding to configured recovery action");
-        
+
         final RecoveryAction recoveryAction = getRecoveryAction(config, forgottenPasswordBean);
         if (recoveryAction == RecoveryAction.SENDNEWPW || recoveryAction == RecoveryAction.SENDNEWPW_AND_EXPIRE) {
             processSendNewPassword(pwmRequest);
             return;
         }
-        
+
         final ForgottenPasswordProfile forgottenPasswordProfile = pwmRequest.getConfig().getForgottenPasswordProfiles().get(forgottenPasswordBean.getForgottenPasswordProfileID());
         if (forgottenPasswordProfile.readSettingAsBoolean(PwmSetting.RECOVERY_ALLOW_UNLOCK)) {
             final PasswordStatus passwordStatus = forgottenPasswordBean.getUserInfo().getPasswordState();
@@ -639,7 +655,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
             // mark the event log
             pwmApplication.getAuditManager().submit(AuditEvent.UNLOCK_PASSWORD, pwmSession.getUserInfoBean(),pwmSession);
 
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_UNLOCK_ACCOUNT);
+            pwmRequest.forwardToSuccessPage(Message.Success_UnlockAccount);
         } catch (ChaiOperationException e) {
             final String errorMsg = "unable to unlock user " + userIdentity + " error: " + e.getMessage();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNLOCK_FAILURE,errorMsg);
@@ -753,7 +769,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
 
             // mark the event log
             pwmApplication.getAuditManager().submit(AuditEvent.RECOVER_PASSWORD, pwmSession.getUserInfoBean(), pwmSession);
-            
+
             final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_SENDNEWPW_METHOD,MessageSendMethod.class);
 
             // send email or SMS
@@ -766,7 +782,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                     messageSendMethod
             );
 
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_PASSWORDSEND, toAddress);
+            pwmRequest.forwardToSuccessPage(Message.Success_PasswordSend, toAddress);
         } catch (PwmException e) {
             LOGGER.warn(pwmSession,"unexpected error setting new password during recovery process for user: " + e.getMessage());
             pwmRequest.respondWithError(e.getErrorInformation());
@@ -1247,7 +1263,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
         final Set<RecoveryVerificationMethod> result = new HashSet<>();
         result.addAll(recoveryFlags.getOptionalAuthMethods());
         result.removeAll(progress.getSatisfiedMethods());
-        
+
         for (final RecoveryVerificationMethod recoveryVerificationMethod : new HashSet<>(result)) {
             try {
                 verifyRequirementsForAuthMethod(forgottenPasswordBean, recoveryVerificationMethod);
@@ -1255,7 +1271,7 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 result.remove(recoveryVerificationMethod);
             }
         }
-        
+
         return Collections.unmodifiableSet(result);
     }
 
@@ -1274,6 +1290,10 @@ public class ForgottenPasswordServlet extends PwmServlet {
         final ForgottenPasswordBean forgottenPasswordBean = pwmRequest.getPwmSession().getForgottenPasswordBean();
         verifyRequirementsForAuthMethod(forgottenPasswordBean,method);
         switch (method) {
+            case PREVIOUS_AUTH: {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNKNOWN,"previous authentication is required, but user has not previously authenticated"));
+            }
+
             case ATTRIBUTES: {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.RECOVER_PASSWORD_ATTRIBUTES);
             }
@@ -1317,6 +1337,29 @@ public class ForgottenPasswordServlet extends PwmServlet {
                 throw new UnsupportedOperationException("unexpected method during forward: " + method.toString());
         }
 
+    }
+
+    private boolean checkAuthRecord(final PwmRequest pwmRequest, final String userGuid)
+            throws PwmUnrecoverableException
+    {
+        try {
+            final String cookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_NAME);
+            if (cookieName == null || cookieName.isEmpty()) {
+                LOGGER.trace(pwmRequest, "skipping auth record cookie read, cookie name parameter is blank");
+                return false;
+            }
+            
+            final AuthenticationFilter.AuthRecord authRecord = pwmRequest.readCookie(cookieName, AuthenticationFilter.AuthRecord.class);
+            if (authRecord != null) {
+                if (authRecord.getGuid() != null && !authRecord.getGuid().isEmpty() && authRecord.getGuid().equals(userGuid)) {
+                    LOGGER.debug(pwmRequest, "auth record cookie validated");
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error(pwmRequest, "unexpected error while examining cookie auth record: " + e.getMessage());
+        }
+        return false;
     }
 }
 

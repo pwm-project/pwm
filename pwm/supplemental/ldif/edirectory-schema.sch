@@ -82,13 +82,13 @@ BEGIN
 -- objectClasses: ( 1.3.6.1.4.1.35015.1.1.1
 --   NAME 'pwmUser' 
 --   AUXILIARY 
---   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken ) )
+--   MAY ( pwmLastPwdUpdate $ pwmEventLog $ pwmResponseSet $ pwmGUID $ pwmToken $ pwmOtpSecret ) )
 
 "pwmUser" OBJECT-CLASS ::=
  { 
 	 Operation 	ADD, 
 	 Flags 	{DS_AUXILIARY_CLASS}, 
-	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID", "pwmToken" },
+	 MayContain 	{ "pwmLastPwdUpdate", "pwmEventLog", "pwmResponseSet", "pwmGUID", "pwmToken", "pwmOtpSecret" },
 	 ASN1ObjID 	{ 1 3 6 1 4 1 35015 1 1 1 } 
  }
 

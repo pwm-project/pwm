@@ -34,6 +34,7 @@
 <%@ page import="password.pwm.config.profile.HelpdeskProfile" %>
 <%@ page import="password.pwm.config.profile.PwmPasswordRule" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.bean.HelpdeskBean" %>
 <%@ page import="password.pwm.http.tag.PasswordRequirementsTag" %>
 <%@ page import="password.pwm.i18n.Display" %>
@@ -435,9 +436,9 @@
                                         </td>
                                         <td>
                                             <%= searchedUserInfo.getPasswordPolicy().getIdentifier() == null
-                                                    ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_NotApplicable",pwmApplication.getConfig())
+                                                    ? JspUtility.getMessage(pageContext, Display.Value_NotApplicable)
                                                     : PwmConstants.DEFAULT_PASSWORD_PROFILE.equalsIgnoreCase(searchedUserInfo.getPasswordPolicy().getIdentifier())
-                                                    ? Display.getLocalizedMessage(pwmSession.getSessionStateBean().getLocale(),"Value_Default",pwmApplication.getConfig())
+                                                    ? JspUtility.getMessage(pageContext,Display.Value_Default)
                                                     : searchedUserInfo.getPasswordPolicy().getIdentifier()
                                             %>
                                         </td>

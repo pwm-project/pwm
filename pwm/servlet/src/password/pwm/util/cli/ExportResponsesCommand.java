@@ -22,7 +22,6 @@
 
 package password.pwm.util.cli;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ResponseSet;
 import password.pwm.PwmApplication;
@@ -59,7 +58,6 @@ public class ExportResponsesCommand extends AbstractCliCommand {
         searchConfiguration.setEnableValueEscaping(false);
         searchConfiguration.setUsername("*");
 
-        final Gson gson = JsonUtil.getGson();
         final String systemRecordDelimiter = System.getProperty("line.separator");
         final Writer writer = new BufferedWriter(new PrintWriter(outputFile, PwmConstants.DEFAULT_CHARSET.toString()));
         final Map<UserIdentity,Map<String,String>> results = userSearchEngine.performMultiUserSearch(searchConfiguration, Integer.MAX_VALUE, Collections.<String>emptyList());
@@ -76,7 +74,7 @@ public class ExportResponsesCommand extends AbstractCliCommand {
                 outputData.helpdeskChallenges = responseSet.asHelpdeskChallengeBeans(true);
                 outputData.minimumRandoms = responseSet.getChallengeSet().minimumResponses();
                 outputData.username = identity.toDelimitedKey();
-                writer.write(gson.toJson(outputData));
+                writer.write(JsonUtil.serialize(outputData));
                 writer.write(systemRecordDelimiter);
             } else {
                 out("skipping '" + user.toString() + "', no stored responses.");

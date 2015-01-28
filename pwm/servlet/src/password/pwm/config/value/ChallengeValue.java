@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
@@ -52,10 +51,9 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new ChallengeValue(Collections.<String, List<ChallengeItemBean>>emptyMap());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    Map<String, List<ChallengeItemBean>> srcMap = gson.fromJson(input,
-                            new TypeToken<Map<String, List<ChallengeItemBean>>>() {
-                            }.getType());
+                    Map<String, List<ChallengeItemBean>> srcMap = JsonUtil.deserialize(input,
+                            new TypeToken<Map<String, List<ChallengeItemBean>>>() {}
+                    );
                     srcMap = srcMap == null ? Collections.<String, List<ChallengeItemBean>>emptyMap() : new TreeMap<>(
                             srcMap);
                     return new ChallengeValue(Collections.unmodifiableMap(srcMap));
@@ -82,7 +80,7 @@ public class ChallengeValue extends AbstractValue implements StoredValue {
                     if (oldStyle) {
                         challengeItemBean = parseOldVersionString(value);
                     } else {
-                        challengeItemBean = JsonUtil.getGson().fromJson(value, ChallengeItemBean.class);
+                        challengeItemBean = JsonUtil.deserialize(value, ChallengeItemBean.class);
                     }
                     if (challengeItemBean != null) {
                         values.get(localeString).add(challengeItemBean);

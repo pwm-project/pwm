@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -53,7 +53,9 @@
         </span>
         <div>
             <% if (footer_pwmRequest.isAuthenticated()) { %>
-            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()%>
+            <% if (footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername() != null) {%>
+            <%= footer_pwmRequest.getPwmSession().getUserInfoBean().getUsername()  %>
+            <% } %>
             <% segmentDisplayed = true; } %>
             <% if (pwmApplicationFooter.getConfig().readSettingAsBoolean(PwmSetting.DISPLAY_IDLE_TIMEOUT)) { %>
             <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_IDLE)) { %>
@@ -67,7 +69,7 @@
             <% } %>
             <% if (!footer_pwmRequest.isFlag(PwmRequest.Flag.HIDE_LOCALE)) { %>
             <% if (segmentDisplayed) { %>&nbsp;&nbsp;&nbsp;&#x2022;&nbsp;&nbsp;&nbsp;<%}%>
-            <span id="localeSelectionMenu" style="white-space: nowrap; cursor: pointer">
+            <span id="localeSelectionMenu">
                 <% String flagFileName = pwmApplicationFooter.getConfig().getKnownLocaleFlagMap().get(userLocaleFooter);%>
                 <% if (flagFileName != null && !flagFileName.isEmpty()) { %>
                 <img src="<pwm:context/><pwm:url url='/public/resources/flags/png/'/><%=flagFileName%>.png"/>

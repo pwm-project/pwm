@@ -582,17 +582,20 @@ public class UserSearchEngine {
             return sizeExceeded;
         }
 
-        public List<Map<String,String>> resultsAsJsonOutput(final PwmApplication pwmApplication)
+        public List<Map<String,Object>> resultsAsJsonOutput(final PwmApplication pwmApplication)
                 throws PwmUnrecoverableException
         {
-            final List<Map<String,String>> outputList = new ArrayList<>();
+            final List<Map<String,Object>> outputList = new ArrayList<>();
+            int idCounter = 0;
             for (final UserIdentity userIdentity : this.getResults().keySet()) {
-                final Map<String,String> rowMap = new LinkedHashMap<>();
+                final Map<String,Object> rowMap = new LinkedHashMap<>();
                 for (final String attribute : this.getHeaderAttributeMap().keySet()) {
                     rowMap.put(attribute,this.getResults().get(userIdentity).get(attribute));
                 }
                 rowMap.put("userKey",userIdentity.toObfuscatedKey(pwmApplication.getConfig()));
+                rowMap.put("id",idCounter);
                 outputList.add(rowMap);
+                idCounter++;
             }
             return outputList;
         }

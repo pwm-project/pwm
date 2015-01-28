@@ -36,13 +36,11 @@ import password.pwm.http.PwmRequest;
 import password.pwm.http.PwmSession;
 import password.pwm.http.filter.AuthenticationFilter;
 import password.pwm.util.logging.PwmLogger;
-import password.pwm.util.report.ReportService;
-import password.pwm.util.stats.StatisticsManager;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -87,16 +85,8 @@ public class CommandServlet extends PwmServlet {
             CheckCommands.processCheckAll(pwmRequest);
         } else if (action.equalsIgnoreCase("continue")) {
             processContinue(pwmRequest);
-        } else if (action.equalsIgnoreCase("outputUserReportCsv")) {
-            outputUserReportCsv(pwmRequest);
-        } else if (action.equalsIgnoreCase("outputAuditLogCsv")) {
-            outputAuditLogCsv(pwmRequest);
-        } else if (action.equalsIgnoreCase("outputStatisticsLogCsv")) {
-            outputStatisticsLogCsv(pwmRequest);
         } else if (action.equalsIgnoreCase("pageLeaveNotice")) {
             processPageLeaveNotice(pwmRequest);
-        } else if (action.equalsIgnoreCase("viewLog")) {
-            processViewLog(pwmRequest);
         } else if (action.equalsIgnoreCase("clearIntruderTable")) {
             processClearIntruderTable(pwmRequest);
         } else {
@@ -147,40 +137,6 @@ public class CommandServlet extends PwmServlet {
         redirectToForwardURL(pwmRequest);
     }
 
-    private void outputUserReportCsv(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
-    {
-        pwmRequest.validatePwmFormID();
-        if (!checkIfUserAuthenticated(pwmRequest)) {
-            return;
-        }
-
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
-            LOGGER.info(pwmSession, "unable to execute output user csv report, user unauthorized");
-            return;
-        }
-
-        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=UserReportService.csv");
-        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
-
-        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getPwmResponse().getOutputStream());
-        final ReportService userReport = pwmApplication.getUserReportService();
-
-        try {
-            userReport.outputToCsv(outputStream, true, pwmSession.getSessionStateBean().getLocale());
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            pwmRequest.respondWithError(errorInformation);
-        }
-
-        outputStream.flush();
-        outputStream.close();
-    }
 
     private void processPageLeaveNotice(final PwmRequest pwmRequest)
             throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
@@ -196,54 +152,6 @@ public class CommandServlet extends PwmServlet {
         }
     }
 
-    private void processViewLog(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException, IOException, ServletException
-    {
-
-        final PwmApplication.MODE configMode = pwmRequest.getPwmApplication().getApplicationMode();
-        if (configMode != PwmApplication.MODE.CONFIGURATION) {
-            if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
-                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
-            }
-        }
-        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_LOGVIEW);
-    }
-
-    private void outputAuditLogCsv(
-            final PwmRequest pwmRequest
-    )
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
-    {
-        pwmRequest.validatePwmFormID();
-        if (!checkIfUserAuthenticated(pwmRequest)) {
-            return;
-        }
-
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
-            LOGGER.info(pwmSession, "unable to execute output audit log csv, user unauthorized");
-            return;
-        }
-
-        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition, "attachment;filename=AuditLog.csv");
-        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
-
-        final OutputStream outputStream = new BufferedOutputStream(pwmRequest.getPwmResponse().getOutputStream());
-
-        try {
-            pwmApplication.getAuditManager().outpuVaultToCsv(new OutputStreamWriter(outputStream, PwmConstants.DEFAULT_CHARSET), pwmSession.getSessionStateBean().getLocale(), true);
-        } catch (Exception e) {
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN,e.getMessage());
-            pwmRequest.respondWithError(errorInformation);
-        }
-
-        outputStream.flush();
-        outputStream.close();
-    }
 
     private void processClearIntruderTable(
             final PwmRequest pwmRequest
@@ -266,40 +174,6 @@ public class CommandServlet extends PwmServlet {
         pwmRequest.outputJsonResult(restResultBean);
     }
 
-    private void outputStatisticsLogCsv(final PwmRequest pwmRequest)
-            throws PwmUnrecoverableException, IOException, ChaiUnavailableException, ServletException
-    {
-        pwmRequest.validatePwmFormID();
-        if (!checkIfUserAuthenticated(pwmRequest)) {
-            return;
-        }
-
-        final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
-        final PwmSession pwmSession = pwmRequest.getPwmSession();
-
-        if (!pwmSession.getSessionManager().checkPermission(pwmApplication, Permission.PWMADMIN)) {
-            LOGGER.info(pwmSession, "unable to execute output statistics log csv, user unauthorized");
-            throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_UNAUTHORIZED,"actor does not have required permission"));
-        }
-
-        pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=statistics.csv");
-        pwmRequest.getPwmResponse().setContentType(PwmConstants.ContentTypeValue.csv);
-
-        Writer writer = null;
-        try {
-            final StatisticsManager statsManager = pwmApplication.getStatisticsManager();
-            writer = pwmRequest.getPwmResponse().getWriter();
-            statsManager.outputStatsToCsv(writer, pwmSession.getSessionStateBean().getLocale(), true);
-        } catch (Exception e) {
-            final String errorMessage = "unexpected error executing web service: " + e.getMessage();
-            final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_UNKNOWN, errorMessage);
-            throw new PwmUnrecoverableException(errorInformation);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-    }
 
     private static void redirectToForwardURL(final PwmRequest pwmRequest)
             throws IOException, PwmUnrecoverableException

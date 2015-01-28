@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package password.pwm.util.cli;
 
 import password.pwm.PwmApplication;
 import password.pwm.config.Configuration;
+import password.pwm.config.ConfigurationReader;
 import password.pwm.util.localdb.LocalDB;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.io.Writer;
 import java.util.Map;
 
 public class CliEnvironment {
+    final ConfigurationReader configurationReader;
     final File configurationFile;
     final Configuration config;
     final File applicationPath;
@@ -40,6 +42,7 @@ public class CliEnvironment {
     final Map<String,Object> options;
 
     public CliEnvironment(
+            ConfigurationReader configurationReader,
             File configurationFile,
             Configuration config,
             File applicationPath,
@@ -49,6 +52,7 @@ public class CliEnvironment {
             Map<String, Object> options
     )
     {
+        this.configurationReader = configurationReader;
         this.configurationFile = configurationFile;
         this.config = config;
         this.applicationPath = applicationPath;
@@ -83,13 +87,12 @@ public class CliEnvironment {
         return options;
     }
 
-    public File getConfigurationFile()
-    {
-        return configurationFile;
-    }
-
     public File getApplicationPath()
     {
         return applicationPath;
+    }
+
+    public ConfigurationReader getConfigurationReader() {
+        return configurationReader;
     }
 }

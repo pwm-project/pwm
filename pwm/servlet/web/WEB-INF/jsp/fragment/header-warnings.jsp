@@ -35,13 +35,13 @@
         final PwmRequest pwmRequest = PwmRequest.forRequest(request, response);
         final PwmApplication.MODE applicationMode = pwmRequest.getPwmApplication().getApplicationMode();
         configMode = applicationMode == PwmApplication.MODE.CONFIGURATION;
+        adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
         if (Boolean.parseBoolean(pwmRequest.getConfig().readAppProperty(AppProperty.CLIENT_WARNING_HEADER_SHOW))) {
             if (!new PwmURL(request).isConfigManagerURL()) {
                 if (configMode || PwmConstants.TRIAL_MODE) {
                     includeHeader = true;
                     showOpenCloseButtons = false;
                 } else if (pwmRequest.isAuthenticated()) {
-                    adminUser = pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN);
                     if (adminUser) {
                         includeHeader = true;
                         final String headerVisibilityCookie = pwmRequest.readCookie("headerVisibility");
@@ -62,6 +62,13 @@
 %>
 <% if (includeHeader) { %>
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
+<pwm:script>
+    <script type="text/javascript">
+        PWM_GLOBAL['startupFunctions'].push(function(){
+            PWM_CONFIG.initConfigHeader();
+        });
+    </script>
+</pwm:script>
 <div id="header-warning" style="<%=headerVisibility?"":"display: none"%>">
     <span style="cursor:pointer; white-space: nowrap">
         <a class="btn" id="header_configManagerButton">
@@ -76,6 +83,7 @@
             <pwm:display key="MenuItem_ConfigEditor" bundle="Admin"/>
         </a>
     </span>
+    <% if (adminUser) { %>
     &nbsp;&nbsp;
     <span style="cursor:pointer; white-space: nowrap">
         <a class="btn" id="header_openLogViewerButton">
@@ -83,6 +91,7 @@
             <pwm:display key="MenuItem_ViewLog" bundle="Config"/>
         </a>
     </span>
+    <% } %>
     <br/>
     <br/>
     <span id="header-warning-message" style="padding-right: 15px; font-weight: bold">
@@ -90,6 +99,7 @@
     <pwm:display key="Header_TrialMode" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } else if (configMode) { %>
     <pwm:display key="Header_ConfigModeActive" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
+    &nbsp;&nbsp;<pwm:if test="showIcons"><span id="icon-configModeHelp" class="btn-icon fa fa-question-circle"></span></pwm:if>
     <% } else if (adminUser) { %>
     <pwm:display key="Header_AdminUser" bundle="Admin" value1="<%=PwmConstants.PWM_APP_NAME_VERSION%>"/>
     <% } %>

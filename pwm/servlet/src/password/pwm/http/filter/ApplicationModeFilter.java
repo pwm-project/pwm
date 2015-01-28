@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class ApplicationModeFilter extends PwmFilter {
     public void processFilter(
             final PwmRequest pwmRequest,
             final PwmFilterChain chain
-        )
+    )
             throws IOException, ServletException
     {
         // add request url to request attribute
@@ -78,9 +78,6 @@ public class ApplicationModeFilter extends PwmFilter {
         final PwmApplication.MODE mode = pwmApplication.getApplicationMode();
 
         final PwmURL pwmURL = pwmRequest.getURL();
-        if (pwmURL.isResourceURL()) {
-            return false;
-        }
 
         if (mode == PwmApplication.MODE.NEW) {
             // check if current request is actually for the config url, if it is, just do nothing.
@@ -105,6 +102,19 @@ public class ApplicationModeFilter extends PwmFilter {
             pwmRequest.respondWithError(rootError);
             return true;
         }
+
+        // block if public request and not running or in trial
+        if (!PwmConstants.TRIAL_MODE) {
+            if (pwmURL.isPublicUrl() && !pwmURL.isLogoutURL()) {
+                if (mode == PwmApplication.MODE.CONFIGURATION) {
+                    pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while configuration is open"));
+                }
+                if (pwmRequest.getPwmApplication().getApplicationMode() != PwmApplication.MODE.RUNNING) {
+                    pwmRequest.respondWithError(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"public services are not available while application is not in running mode"));
+                }
+            }
+        }
+
 
         return false;
     }

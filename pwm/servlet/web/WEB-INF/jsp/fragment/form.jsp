@@ -4,6 +4,7 @@
 <%@ page import="password.pwm.config.PwmSetting" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.ContextManager" %>
+<%@ page import="password.pwm.http.JspUtility" %>
 <%@ page import="password.pwm.http.PwmSession" %>
 <%@ page import="password.pwm.i18n.Display" %>
 <%@ page import="password.pwm.util.StringUtil" %>
@@ -138,7 +139,7 @@
             PWM_GLOBAL['startupFunctions'].push(function(){
                 PWM_MAIN.showTooltip({
                     id: "label_required_password",
-                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{Display.getLocalizedMessage(ssBean.getLocale(),"Field_NewPassword",pwmApplication.getConfig())})%>',
+                    text: '<%=PwmError.ERROR_FIELD_REQUIRED.getLocalizedMessage(ssBean.getLocale(),pwmApplication.getConfig(),new String[]{JspUtility.getMessage(pageContext,Display.Field_NewPassword)})%>',
                     position: ['above']
                 });
             });

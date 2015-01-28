@@ -31,6 +31,9 @@
   --%>
 
 <!DOCTYPE html>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
 <%
@@ -55,7 +58,9 @@
     </jsp:include>
     <div id="centerbody" style="width: 800px">
         <ol>
-            <li><a href="#urls">URLs</a></li>
+            <li><a href="#eventStatistics">Event Statistics</a></li>
+            <li><a href="#auditEvents">Audit Events</a></li>
+            <li><a href="#errors">Errors</a></li>
             <li><a href="#settings">Settings</a></li>
             <ol>
                 <% for (final PwmSettingCategory category : sortedCategories.values()) { %>
@@ -64,9 +69,6 @@
                 <% } %>
                 <% } %>
             </ol>
-            <li><a href="#eventStatistics">Event Statistics</a></li>
-            <li><a href="#auditEvents">Audit Events</a></li>
-            <li><a href="#errors">Errors</a></li>
             <li><a href="#displayStrings">Display Strings</a></li>
             <ol>
                 <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
@@ -75,48 +77,104 @@
             </ol>
         </ol>
         <br/>
-        <h1><a id="urls">URLs</a></h1>
+        <h1><a id="eventStatistics">Event Statistics</a></h1>
         <table>
             <tr>
-                <td>Application</td>
-                <td><a href="<%=request.getContextPath()%>"><%=request.getContextPath()%></a></td>
+                <td>
+                    <h3>Label</h3>
+                </td>
+                <td>
+                    <h3>Key</h3>
+                </td>
+                <td>
+                    <h3>Description</h3>
+                </td>
             </tr>
+            <% for (final Statistic statistic : Statistic.sortedValues(userLocale)) { %>
             <tr>
-                <td>Public Menu</td>
-                <td><a href="<%=request.getContextPath()%>/public"><%=request.getContextPath()%>/private/public</a></td>
+                <td>
+                    <%=statistic.getLabel(userLocale)%>
+                </td>
+                <td>
+                    <%=statistic.getKey()%>
+                </td>
+                <td>
+                    <%=statistic.getDescription(userLocale)%>
+                </td>
             </tr>
+            <% } %>
+        </table>
+        <h1><a id="auditEvents">Audit Events</a></h1>
+        <table>
             <tr>
-                <td>Forgotten Password</td>
-                <td><a href="<%=request.getContextPath()%>/public/ForgottenPassword"><%=request.getContextPath()%>/public/ForgottenPassword</a></td>
+                <td>
+                    <h3>Key</h3>
+                </td>
+                <td>
+                    <h3>Type</h3>
+                </td>
+                <td>
+                    <h3>Stored In User History</h3>
+                </td>
+                <td>
+                    <h3>Resource Key</h3>
+                </td>
+                <td>
+                    <h3>Label</h3>
+                </td>
             </tr>
+            <% for (AuditEvent auditEvent : AuditEvent.values()) { %>
             <tr>
-                <td>Activate User</td>
-                <td><a href="<%=request.getContextPath()%>/public/ActivateUser"><%=request.getContextPath()%>/public/ActivateUser</a></td>
+                <td>
+                    <%= auditEvent.toString() %>
+                </td>
+                <td>
+                    <%= auditEvent.getType() %>
+                </td>
+                <td>
+                    <%= auditEvent.isStoreOnUser() %>
+                </td>
+                <td>
+                    <%= auditEvent.getMessage().getKey() %>
+                </td>
+                <td>
+                    <%= auditEvent.getMessage().getLocalizedMessage(userLocale, null) %>
+                </td>
             </tr>
+            <% } %>
+        </table>
+        <h1><a id="errors">Errors</a></h1>
+        <table class="tablemain">
             <tr>
-                <td>New User Registration</td>
-                <td><a href="<%=request.getContextPath()%>/public/NewUser"><%=request.getContextPath()%>/public/NewUser</a></td>
+                <td>
+                    <h3>Error Number</h3>
+                </td>
+                <td>
+                    <h3>Key</h3>
+                </td>
+                <td>
+                    <h3>Resource Key</h3>
+                </td>
+                <td>
+                    <h3>Message</h3>
+                </td>
             </tr>
+            <% for (PwmError error : PwmError.values()) { %>
             <tr>
-                <td>Logged-In Menu</td>
-                <td><a href="<%=request.getContextPath()%>/private"><%=request.getContextPath()%>/private</a></td>
+                <td>
+                    <%=error.getErrorCode()%>
+                </td>
+                <td >
+                    <%=error.toString()%>
+                </td>
+                <td>
+                    <%=error.getResourceKey()%>
+                </td>
+                <td>
+                    <%=error.getLocalizedMessage(userLocale, null)%>
+                </td>
             </tr>
-            <tr>
-                <td>Change Password</td>
-                <td><a href="<%=request.getContextPath()%>/private/ChangePassword"><%=request.getContextPath()%>/private/ChangePassword</a></td>
-            </tr>
-            <tr>
-                <td>Setup Responses</td>
-                <td><a href="<%=request.getContextPath()%>/private/SetupResponses"><%=request.getContextPath()%>/private/SetupResponses</a></td>
-            </tr>
-            <tr>
-                <td>Helpdesk</td>
-                <td><a href="<%=request.getContextPath()%>/private/Helpdesk"><%=request.getContextPath()%>/private/Helpdesk</a></td>
-            </tr>
-            <tr>
-                <td>People Search</td>
-                <td><a href="<%=request.getContextPath()%>/private/PeopleSearch"><%=request.getContextPath()%>/private/PeopleSearch</a></td>
-            </tr>
+            <% } %>
         </table>
         <h1><a id="settings">Configuration Settings</a></h1>
         <% for (final PwmSettingCategory category : sortedCategories.values()) { %>
@@ -244,117 +302,18 @@
                         <% } %>
                     </td>
                 </tr>
-                <% } %>
                 <tr>
                     <td colspan="2">
                         <%=setting.getDescription(userLocale)%>
                     </td>
                 </tr>
+                <% } %>
             </table>
         </a>
         <br/>
         <% } %>
         <% } %>
         <% } %>
-        <h1><a id="eventStatistics">Event Statistics</a></h1>
-        <table>
-            <tr>
-                <td>
-                    <h3>Label</h3>
-                </td>
-                <td>
-                    <h3>Key</h3>
-                </td>
-                <td>
-                    <h3>Description</h3>
-                </td>
-            </tr>
-            <% for (final Statistic statistic : Statistic.sortedValues(userLocale)) { %>
-            <tr>
-                <td>
-                    <%=statistic.getLabel(userLocale)%>
-                </td>
-                <td>
-                    <%=statistic.getKey()%>
-                </td>
-                <td>
-                    <%=statistic.getDescription(userLocale)%>
-                </td>
-            </tr>
-            <% } %>
-        </table>
-        <h1><a id="auditEvents">Audit Events</a></h1>
-        <table>
-            <tr>
-                <td>
-                    <h3>Key</h3>
-                </td>
-                <td>
-                    <h3>Type</h3>
-                </td>
-                <td>
-                    <h3>Stored In User History</h3>
-                </td>
-                <td>
-                    <h3>Resource Key</h3>
-                </td>
-                <td>
-                    <h3>Label</h3>
-                </td>
-            </tr>
-            <% for (AuditEvent auditEvent : AuditEvent.values()) { %>
-            <tr>
-                <td>
-                    <%= auditEvent.toString() %>
-                </td>
-                <td>
-                    <%= auditEvent.getType() %>
-                </td>
-                <td>
-                    <%= auditEvent.isStoreOnUser() %>
-                </td>
-                <td>
-                    <%= auditEvent.getMessage().getResourceKey() %>
-                </td>
-                <td>
-                    <%= auditEvent.getMessage().getLocalizedMessage(userLocale, null) %>
-                </td>
-            </tr>
-            <% } %>
-        </table>
-        <h1><a id="errors">Errors</a></h1>
-        <table class="tablemain">
-            <tr>
-                <td>
-                    <h3>Error Number</h3>
-                </td>
-                <td>
-                    <h3>Key</h3>
-                </td>
-                <td>
-                    <h3>Resource Key</h3>
-                </td>
-                <td>
-                    <h3>Message</h3>
-                </td>
-            </tr>
-            <% for (PwmError error : PwmError.values()) { %>
-            <tr>
-                <td>
-                    <%=error.getErrorCode()%>
-                </td>
-                <td >
-                    <%=error.toString()%>
-                </td>
-                <td>
-                    <%=error.getResourceKey()%>
-                </td>
-                <td>
-                    <%=error.getLocalizedMessage(userLocale, null)%>
-                </td>
-            </tr>
-            <% } %>
-        </table>
         <h1><a id="displayStrings">Display Strings</a></h1>
         <% for (PwmConstants.PwmLocaleBundle bundle : PwmConstants.PwmLocaleBundle.values()) { %>
         <h2>

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ public class BooleanValue implements StoredValue {
     {
         return new StoredValueFactory() {
             public BooleanValue fromJson(String value) {
-                return new BooleanValue(JsonUtil.getGson().fromJson(value, Boolean.class));
+                return new BooleanValue(JsonUtil.deserialize(value, Boolean.class));
             }
 
             public BooleanValue fromXmlElement(final Element settingElement, final String input)
@@ -79,8 +79,8 @@ public class BooleanValue implements StoredValue {
         locale = locale == null ? PwmConstants.DEFAULT_LOCALE : locale;
         if (prettyFormat) {
             return value
-                    ? Display.getLocalizedMessage(locale,"Value_True",null)
-                    : Display.getLocalizedMessage(locale,"Value_False",null);
+                    ? Display.getLocalizedMessage(locale,Display.Value_True,null)
+                    : Display.getLocalizedMessage(locale,Display.Value_False,null);
         } else {
             return Boolean.toString(value);
         }

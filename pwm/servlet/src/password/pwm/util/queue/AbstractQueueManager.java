@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,13 +93,24 @@ public abstract class AbstractQueueManager implements PwmService {
 
         return this.sendQueue.size();
     }
+    
+    public Date eldestItem() {
+        final String jsonEvent = sendQueue.peekFirst();
+        if (jsonEvent != null) {
+            final QueueEvent event = JsonUtil.deserialize(jsonEvent, QueueEvent.class);
+            if (event != null) {
+                return event.getTimestamp();
+            }
+        }
+        return null;
+    }
 
     protected void add(final Serializable input)
             throws PwmUnrecoverableException
     {
-        final String gsonInput = JsonUtil.serialize(input);
+        final String jsonInput = JsonUtil.serialize(input);
         final int nextItemID = getNextItemCount();
-        final QueueEvent event = new QueueEvent(gsonInput, new Date(), nextItemID);
+        final QueueEvent event = new QueueEvent(jsonInput, new Date(), nextItemID);
 
         if (status != PwmService.STATUS.OPEN) {
             throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_CLOSING));
@@ -275,7 +286,7 @@ public abstract class AbstractQueueManager implements PwmService {
         while (sendQueue.peekFirst() != null && !sendFailure) {
             final String jsonEvent = sendQueue.peekFirst();
             if (jsonEvent != null) {
-                final QueueEvent event = JsonUtil.getGson().fromJson(jsonEvent, QueueEvent.class);
+                final QueueEvent event = JsonUtil.deserialize(jsonEvent, QueueEvent.class);
 
                 if (event == null || event.getTimestamp() == null) {
                     sendQueue.pollFirst();

@@ -127,6 +127,9 @@
     cursor: pointer;
     float: right;
 }
+.headerIcon.modified {
+    color: orange;
+}
 
 .changeLogViewBox {
     white-space: pre-wrap;
@@ -240,41 +243,29 @@ table {
 
 #navigationTreeWrapper {
     border: 1px solid #bfbfbf;
-    overflow-x: hidden;
-    overflow-y: auto;
     border-radius: 3px 3px 5px 5px;
     box-shadow: 1px 1px 0px 0px #bfbfbf;
-
     float: left;
-    height:100%;
-    width:192px;
     margin-right: 5px;
     background-color: white;
+    margin-top: 57px;
+    height: 85vh;
+    width: 192px;
+    position: fixed;
     animation: fadein 2.5s;
     -moz-animation: fadein 2.5s; /* Firefox */
     -webkit-animation: fadein 2.5s; /* Safari and Chrome */
 }
 
-#leftPaneWrapper {
-    margin-top: 57px;
-    max-height: 85vh;
-    height: 85vh;
-    width: 192px;
-    position: fixed;
-}
-
-#navigationTreeFooter {
-    border: 0;
-    max-height: 15px;
-    height: 15px;
-    text-align: center;
-    width:192px;
+#navigationTree {
+    height: 100%;
 }
 
 #navigationTreeTopMenu {
     text-align: center;
     width: 100%;
     cursor: pointer;
+    height: 10px;
 }
 
 #settingsPanel {
@@ -291,7 +282,10 @@ table {
     position:fixed;
     z-index: 2;
     background: white;
-    width:800px
+    width:800px;
+    animation: fadein 3s;
+    -moz-animation: fadein 3s; /* Firefox */
+    -webkit-animation: fadein 3s; /* Safari and Chrome */
 }
 
 .setting_item_value_wrapper {
@@ -317,7 +311,17 @@ table {
     display: inline-block;
 }
 
-.configStringInput[pattern]:invalid{
+.configNumericInput {
+    width: 75px;
+    padding:2px 5px;
+    margin: 0;
+    border: 1px solid #bfbfbf;
+    font-size: 9pt;
+    background: white;
+    display: inline-block;
+}
+
+:invalid{
     color:red;
 }
 
@@ -347,9 +351,9 @@ table {
     height: 100%
 }
 
-#header {
-    height: 25px;
-    position: fixed;
+.configeditor-header {
+    height: 25px !important;
+    position: fixed !important;
 }
 
 .settingSearchPanelTable {
@@ -407,4 +411,10 @@ table {
 
 .panel-searchResultCategory {
     font-weight: bold;
+}
+
+.configNumericLimits {
+    font-size: smaller;
+    color: grey;
+    margin-left: 10px;
 }

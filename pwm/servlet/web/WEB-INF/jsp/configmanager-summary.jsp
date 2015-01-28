@@ -39,8 +39,10 @@
 <!DOCTYPE html>
 <%@ page language="java" session="true" isThreadSafe="true" contentType="text/html; charset=UTF-8" %>
 <%@ taglib uri="pwm" prefix="pwm" %>
- <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
- <% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_THEME); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_BUTTONS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_HEADER_WARNINGS); %>
+<% JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <html dir="<pwm:LocaleOrientation/>">
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
@@ -56,11 +58,13 @@
       </div>
       <div>
         Current Time: <span class="timestamp"><%=PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date())%></span>
-      </div>
       <br/>
-      <div>
         Configuration Template: <%=outputData.get("template")%>
+        <br/>
+        <br/>
+        <span class="footnote">Only settings modified from their default value are shown.</span>
       </div>
+      
     </div>
     <br/>
     <% for (final Map<String,String> record : settingData) { %>
@@ -134,7 +138,6 @@
     });
   </script>
 </pwm:script>
-<% password.pwm.http.JspUtility.setFlag(pageContext, PwmRequest.Flag.HIDE_FOOTER_TEXT); %>
 <%@ include file="/WEB-INF/jsp/fragment/footer.jsp" %>
 </body>
 </html>

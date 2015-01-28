@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ public class SessionStateBean implements PwmSessionBean {
 
     private String requestVerificationKey = "key";
     private String sessionVerificationKey = "key";
+    private String paramPrefixKey = "key";
     private String restClientKey;
 
     private boolean passedCaptcha;
@@ -211,6 +212,11 @@ public class SessionStateBean implements PwmSessionBean {
         return sessionVerificationKey;
     }
 
+
+    public String getParamPrefixKey() {
+        return paramPrefixKey;
+    }
+
     public boolean isSessionVerified() {
         return sessionVerified;
     }
@@ -327,6 +333,7 @@ public class SessionStateBean implements PwmSessionBean {
 
     public void regenerateSessionVerificationKey() {
         sessionVerificationKey = PwmRandom.getInstance().alphaNumericString(sessionVerificationKeyLength) + Long.toHexString(System.currentTimeMillis());
+        paramPrefixKey = PwmRandom.getInstance().alphaNumericString(10);
     }
 
     public boolean isSkippedOtpSetup()

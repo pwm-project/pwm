@@ -22,7 +22,6 @@
 
 package password.pwm.util.operations.cr;
 
-import com.google.gson.GsonBuilder;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 import com.novell.ldapchai.ChaiFactory;
@@ -58,6 +57,7 @@ import password.pwm.error.PwmException;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.ldap.LdapOperationsHelper;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.logging.PwmLogger;
@@ -719,7 +719,7 @@ public class NMASCrOperator implements CrOperator {
             debugInfo.put("loginResultReady",Boolean.toString(this.loginResultReady));
             debugInfo.put("idleTime", TimeDuration.fromCurrent(this.getLastActivityTimestamp()).asCompactString());
 
-            return "NMASSessionThread: " + new GsonBuilder().disableHtmlEscaping().create().toJson(debugInfo);
+            return "NMASSessionThread: " + JsonUtil.serialize(debugInfo);
         }
     }
 

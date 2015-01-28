@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.util.Helper;
 import password.pwm.util.ProgressInfo;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.TransactionSizeCalculator;
@@ -104,10 +105,8 @@ public class LocalDBUtility {
         },30 * 1000, 30 * 1000);
 
 
-        Writer csvWriter = null;
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(new GZIPOutputStream(outputStream));
         try {
-            csvWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(outputStream),PwmConstants.DEFAULT_CHARSET));
-            final CSVPrinter csvPrinter = new CSVPrinter(csvWriter,PwmConstants.DEFAULT_CSV_FORMAT);
             for (LocalDB.DB loopDB : LocalDB.DB.values()) {
                 if (!BACKUP_IGNORE_DBs.contains(loopDB)) {
                     final LocalDB.LocalDBIterator<String> localDBIterator = localDB.iterator(loopDB);
@@ -124,8 +123,8 @@ public class LocalDBUtility {
                 }
             }
         } finally {
-            if (csvWriter != null) {
-                csvWriter.close();
+            if (csvPrinter != null) {
+                csvPrinter.close();
             }
         }
 

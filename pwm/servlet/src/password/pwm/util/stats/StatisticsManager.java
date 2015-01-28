@@ -22,7 +22,6 @@
 
 package password.pwm.util.stats;
 
-import com.google.gson.Gson;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -48,7 +47,7 @@ import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -235,14 +234,13 @@ public class StatisticsManager implements PwmService {
         }
 
         {
-            final Gson gson = JsonUtil.getGson();
             for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                 for (final Statistic.EpsType loopEpsDuration : Statistic.EpsType.values()) {
                     final String key = "EPS-" + loopEpsType.toString() + loopEpsDuration.toString();
                     final String storedValue = localDB.get(LocalDB.DB.PWM_STATS,key);
                     if (storedValue != null && storedValue.length() > 0) {
                         try {
-                            final EventRateMeter eventRateMeter = gson.fromJson(storedValue,EventRateMeter.class);
+                            final EventRateMeter eventRateMeter = JsonUtil.deserialize(storedValue, EventRateMeter.class);
                             epsMeterMap.put(loopEpsType.toString() + loopEpsDuration.toString(),eventRateMeter);
                         } catch (Exception e) {
                             LOGGER.error("unexpected error reading last EPS rate for " + loopEpsType + " from LocalDB: " + e.getMessage());
@@ -313,11 +311,11 @@ public class StatisticsManager implements PwmService {
                 localDB.put(LocalDB.DB.PWM_STATS, DB_KEY_CUMULATIVE, statsCummulative.output());
                 localDB.put(LocalDB.DB.PWM_STATS, currentDailyKey.toString(), statsDaily.output());
 
-                final Gson gson = JsonUtil.getGson();
                 for (final Statistic.EpsType loopEpsType : Statistic.EpsType.values()) {
                     for (final Statistic.EpsDuration loopEpsDuration : Statistic.EpsDuration.values()) {
                         final String key = "EPS-" + loopEpsType.toString();
-                        final String value = gson.toJson(this.epsMeterMap.get(loopEpsType.toString() + loopEpsDuration.toString()));
+                        final String mapKey = loopEpsType.toString() + loopEpsDuration.toString();
+                        final String value = JsonUtil.serialize(this.epsMeterMap.get(mapKey));
                         localDB.put(LocalDB.DB.PWM_STATS, key, value);
                     }
                 }
@@ -501,8 +499,7 @@ public class StatisticsManager implements PwmService {
         }
         final URI requestURI = new URI(PwmConstants.PWM_URL_CLOUD + "/rest/pwm/statistics");
         final HttpPost httpPost = new HttpPost(requestURI.toString());
-        final Gson gson = JsonUtil.getGson();
-        final String jsonDataString = gson.toJson(statsPublishData);
+        final String jsonDataString = JsonUtil.serialize(statsPublishData);
         httpPost.setEntity(new StringEntity(jsonDataString));
         httpPost.setHeader("Accept", PwmConstants.AcceptValue.json.getHeaderValue());
         httpPost.setHeader("Content-Type", PwmConstants.ContentTypeValue.json.getHeaderValue());
@@ -519,14 +516,14 @@ public class StatisticsManager implements PwmService {
         }
     }
 
-    public int outputStatsToCsv(final Writer writer, final Locale locale, final boolean includeHeader)
+    public int outputStatsToCsv(final OutputStream outputStream, final Locale locale, final boolean includeHeader)
             throws IOException
     {
         LOGGER.trace("beginning output stats to csv process");
         final Date startTime = new Date();
 
         final StatisticsManager statsManger = pwmApplication.getStatisticsManager();
-        final CSVPrinter csvPrinter = new CSVPrinter(writer,PwmConstants.DEFAULT_CSV_FORMAT);
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
 
         if (includeHeader) {
             final List<String> headers = new ArrayList<>();
@@ -536,7 +533,7 @@ public class StatisticsManager implements PwmService {
             for (Statistic stat : Statistic.values()) {
                 headers.add(stat.getLabel(locale));
             }
-            csvPrinter.printRecords(headers);
+            csvPrinter.printRecord(headers);
         }
 
         int counter = 0;
@@ -551,9 +548,10 @@ public class StatisticsManager implements PwmService {
             for (final Statistic stat : Statistic.values()) {
                 lineOutput.add(bundle.getStatistic(stat));
             }
-            csvPrinter.printRecords(lineOutput);
+            csvPrinter.printRecord(lineOutput);
         }
-
+        
+        csvPrinter.flush();
         LOGGER.trace("completed output stats to csv process; output " + counter + " records in " + TimeDuration.fromCurrent(
                 startTime).asCompactString());
         return counter;

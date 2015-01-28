@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ public class ActivateUserServlet extends PwmServlet {
 
             final String searchFilter = figureLdapSearchFilter(pwmRequest);
 
-            // get an ldap user object based on the params
+            // read an ldap user object based on the params
             final UserIdentity userIdentity;
             {
                 final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, pwmSession.getLabel());
@@ -300,7 +300,7 @@ public class ActivateUserServlet extends PwmServlet {
 
         try {
             activateUser(pwmRequest, activateUserBean.getUserIdentity());
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_ACTIVATE_USER);
+            pwmRequest.forwardToSuccessPage(Message.Success_ActivateUser);
         } catch (PwmOperationalException e) {
             LOGGER.debug(pwmRequest, e.getErrorInformation());
             pwmApplication.getIntruderManager().convenience().markUserIdentity(activateUserBean.getUserIdentity(),pwmSession);
@@ -355,7 +355,7 @@ public class ActivateUserServlet extends PwmServlet {
             pwmApplication.getAuditManager().submit(AuditEvent.ACTIVATE_USER, pwmSession.getUserInfoBean(), pwmSession);
 
             // set the session success message
-            pwmSession.getSessionStateBean().setSessionSuccess(Message.SUCCESS_ACTIVATE_USER, null);
+            pwmSession.getSessionStateBean().setSessionSuccess(Message.Success_ActivateUser, null);
 
             // update the stats bean
             pwmApplication.getStatisticsManager().incrementValue(Statistic.ACTIVATED_USERS);

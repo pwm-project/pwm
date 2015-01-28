@@ -22,7 +22,6 @@
 
 package password.pwm.config;
 
-import com.google.gson.GsonBuilder;
 import org.jdom2.*;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
@@ -287,8 +286,6 @@ public class StoredConfiguration implements Serializable {
             }
             if (settingValueRecord.getStoredValue() != null) {
                 recordMap.put("value", settingValueRecord.getStoredValue().toDebugString(true,locale));
-            } else {
-                System.out.println(settingValueRecord.getSetting().getKey());
             }
             final SettingMetaData settingMetaData = readSettingMetadata(settingValueRecord.getSetting(), settingValueRecord.getProfile());
             if (settingMetaData != null) {
@@ -465,13 +462,10 @@ public class StoredConfiguration implements Serializable {
                     outputObject.put(category.getProfileSetting().getKey(),profiles);
                 }
             }
-
-            final GsonBuilder gsonBuilder = new GsonBuilder();
-            gsonBuilder.disableHtmlEscaping();
-            if (linebreaks) {
-                gsonBuilder.setPrettyPrinting();
-            }
-            return JsonUtil.getGson(gsonBuilder).toJson(outputObject);
+            
+            return linebreaks 
+                    ? JsonUtil.serialize(outputObject, JsonUtil.Flag.PrettyPrint)
+                    : JsonUtil.serialize(outputObject);
         } finally {
             domModifyLock.readLock().unlock();
         }
@@ -616,7 +610,7 @@ public class StoredConfiguration implements Serializable {
     }
 
     private boolean matchSetting(final PwmSetting setting, final StoredValue value, final String searchTerm, final Locale locale) {
-        if (setting.isHidden() || setting.getLevel() > 1 || setting.getCategory().isHidden()) {
+        if (setting.isHidden() || setting.getCategory().isHidden()) {
             return false;
         }
         {
@@ -820,7 +814,7 @@ public class StoredConfiguration implements Serializable {
 
         sb.append(createTime());
 
-        return SecureHelper.md5sum(sb.toString());
+        return SecureHelper.hash(sb.toString(),SecureHelper.DEFAULT_HASH_ALGORITHM);
     }
 
 
@@ -944,12 +938,12 @@ public class StoredConfiguration implements Serializable {
 
             { // migrate old properties
 
-                // get correct (new) //properties[@type="config"]
+                // read correct (new) //properties[@type="config"]
                 final XPathExpression configPropertiesXpath = XPathFactory.instance().compile(
                         "//" + XML_ELEMENT_PROPERTIES + "[@" + XML_ATTRIBUTE_TYPE + "=\"" + XML_ATTRIBUTE_VALUE_CONFIG + "\"]");
                 final Element configPropertiesElement = (Element)configPropertiesXpath.evaluateFirst(rootElement);
 
-                // get list of old //properties[not (@type)]/property
+                // read list of old //properties[not (@type)]/property
                 final XPathExpression nonAttributedProperty = XPathFactory.instance().compile(
                         "//" + XML_ELEMENT_PROPERTIES + "[not (@" + XML_ATTRIBUTE_TYPE + ")]/" + XML_ELEMENT_PROPERTY);
                 final List<Element> nonAttributedProperties = nonAttributedProperty.evaluate(rootElement);
@@ -1195,7 +1189,7 @@ public class StoredConfiguration implements Serializable {
                         final String bundleName = key.split("!")[0];
                         final String keys = key.split("!")[1];
                         final Map<String,String> currentValue = readLocaleBundleMap(bundleName,keys);
-                        final String debugValue = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(currentValue);
+                        final String debugValue = JsonUtil.serializeMap(currentValue, JsonUtil.Flag.PrettyPrint);
                         outputMap.put("LocaleBundle" + " -> " + bundleName + " " + keys,debugValue);
                     }
                     break;

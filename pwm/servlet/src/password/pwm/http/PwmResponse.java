@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,16 +30,17 @@ import password.pwm.config.PwmSetting;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
-import password.pwm.util.StringUtil;
+import password.pwm.util.JsonUtil;
+import password.pwm.util.SecureHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 
 public class PwmResponse extends PwmHttpResponseWrapper {
     private static final PwmLogger LOGGER = PwmLogger.forClass(PwmResponse.class);
@@ -50,8 +51,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
             HttpServletResponse response,
             PwmRequest pwmRequest,
             Configuration configuration
-    )
-    {
+    ) {
         super(response, configuration);
         this.pwmRequest = pwmRequest;
     }
@@ -59,8 +59,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void forwardToJsp(
             final PwmConstants.JSP_URL jspURL
     )
-            throws ServletException, IOException, PwmUnrecoverableException
-    {
+            throws ServletException, IOException, PwmUnrecoverableException {
         final HttpServletRequest httpServletRequest = pwmRequest.getHttpServletRequest();
         final ServletContext servletContext = httpServletRequest.getSession().getServletContext();
         final String url = jspURL.getPath();
@@ -73,16 +72,14 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     }
 
     public void forwardToSuccessPage(Message message, final String field)
-            throws ServletException, PwmUnrecoverableException, IOException
-    {
+            throws ServletException, PwmUnrecoverableException, IOException {
         pwmRequest.getPwmSession().getSessionStateBean().setSessionSuccess(message, field);
         forwardToSuccessPage();
     }
 
     public void forwardToSuccessPage(
     )
-            throws IOException, ServletException, PwmUnrecoverableException
-    {
+            throws IOException, ServletException, PwmUnrecoverableException {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
         final SessionStateBean ssBean = pwmSession.getSessionStateBean();
@@ -102,7 +99,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
 
         try {
             if (ssBean.getSessionSuccess() == null) {
-                ssBean.setSessionSuccess(Message.SUCCESS_UNKNOWN, null);
+                ssBean.setSessionSuccess(Message.Success_Unknown, null);
             }
 
             forwardToJsp(PwmConstants.JSP_URL.SUCCESS);
@@ -114,8 +111,7 @@ public class PwmResponse extends PwmHttpResponseWrapper {
     public void outputJsonResult(
             final RestResultBean restResultBean
     )
-            throws IOException
-    {
+            throws IOException {
         final HttpServletResponse resp = this.getHttpServletResponse();
         final String outputString = restResultBean.toJson();
         resp.setContentType(PwmConstants.ContentTypeValue.json.getHeaderValue());
@@ -123,18 +119,23 @@ public class PwmResponse extends PwmHttpResponseWrapper {
         resp.getWriter().flush();
     }
 
-    public void forwardToLoginPage(
-    )
-            throws IOException {
+    public void forwardToLoginPage()
+            throws IOException
+    {
         final String loginServletURL = pwmRequest.getContextPath() + "/private/" + PwmConstants.URL_SERVLET_LOGIN;
         sendRedirect(loginServletURL);
     }
 
-    public void writeCookie(final String cookieName, final String cookieValue, final int seconds, final boolean httpOnly) {
-        final Cookie theCookie = new Cookie(cookieName, StringUtil.urlEncode(cookieValue));
-        theCookie.setMaxAge(seconds);
-        theCookie.setHttpOnly(httpOnly);
-        this.getHttpServletResponse().addCookie(theCookie);
+    public void writeCookie(final String cookieName, final Serializable cookieValue, final int seconds, final boolean httpOnly, final String path)
+            throws PwmUnrecoverableException
+    {
+        final String jsonValue = JsonUtil.serialize(cookieValue);
+        final String encryptedValue = SecureHelper.encryptToString(jsonValue, pwmRequest.getConfig().getSecurityKey(), true);
+        pwmRequest.getPwmResponse().writeCookie(cookieName, encryptedValue, seconds, httpOnly, path);
     }
 
+    public void markAsDownload(final PwmConstants.ContentTypeValue contentType, final String filename) {
+        this.setHeader(PwmConstants.HttpHeader.ContentDisposition,"attachment; fileName=" + filename);
+        this.setContentType(contentType);
+    }
 }

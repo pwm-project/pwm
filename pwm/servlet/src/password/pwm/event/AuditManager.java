@@ -22,7 +22,6 @@
 
 package password.pwm.event;
 
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.csv.CSVPrinter;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -43,15 +42,16 @@ import password.pwm.health.HealthTopic;
 import password.pwm.http.PwmSession;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.LdapOperationsHelper;
+import password.pwm.util.Helper;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.TimeDuration;
 import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.*;
 
 public class AuditManager implements PwmService {
@@ -349,8 +349,8 @@ public class AuditManager implements PwmService {
 
         final StringBuilder body = new StringBuilder();
         final String jsonRecord = JsonUtil.serialize(record);
-        final Map<String,Object> mapRecord = JsonUtil.getGson().fromJson(jsonRecord, new TypeToken <Map<String, Object>>() {
-        }.getType());
+        HashMap<String,Serializable> mapRecord = new HashMap<>();
+        mapRecord = JsonUtil.deserialize(jsonRecord,mapRecord.getClass());
 
         for (final String key : mapRecord.keySet()) {
             body.append(key);
@@ -383,25 +383,25 @@ public class AuditManager implements PwmService {
             throws PwmUnrecoverableException
     {
 
-        final String gsonRecord = JsonUtil.serialize(auditRecord);
+        final String jsonRecord = JsonUtil.serialize(auditRecord);
 
         if (status != STATUS.OPEN) {
-            LOGGER.warn("discarding audit event (AuditManager is not open); event=" + gsonRecord);
+            LOGGER.warn("discarding audit event (AuditManager is not open); event=" + jsonRecord);
             return;
         }
 
         if (auditRecord.getEventCode() == null) {
-            LOGGER.error("discarding audit event, missing event type; event=" + gsonRecord);
+            LOGGER.error("discarding audit event, missing event type; event=" + jsonRecord);
             return;
         }
 
         if (!settings.permittedEvents.contains(auditRecord.getEventCode())) {
-            LOGGER.warn("discarding audit event, '" + auditRecord.getEventCode() + "', are being ignored; event=" + gsonRecord);
+            LOGGER.warn("discarding audit event, '" + auditRecord.getEventCode() + "', are being ignored; event=" + jsonRecord);
             return;
         }
 
         // add to debug log
-        LOGGER.info("audit event: " + gsonRecord);
+        LOGGER.info("audit event: " + jsonRecord);
 
         // add to audit db
         if (auditVault != null) {
@@ -427,12 +427,12 @@ public class AuditManager implements PwmService {
     }
 
 
-    public int outpuVaultToCsv(final Writer writer, final Locale locale, final boolean includeHeader)
+    public int outputVaultToCsv(OutputStream outputStream, final Locale locale, final boolean includeHeader)
             throws IOException
     {
         final Configuration config = null;
 
-        final CSVPrinter csvPrinter = new CSVPrinter(new BufferedWriter(writer), PwmConstants.DEFAULT_CSV_FORMAT);
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
 
         csvPrinter.printComment(" " + PwmConstants.PWM_APP_NAME + " audit record output ");
         csvPrinter.printComment(" " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(new Date()));
@@ -442,6 +442,7 @@ public class AuditManager implements PwmService {
             headers.add("Type");
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_EventCode",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Timestamp",config,password.pwm.i18n.Admin.class));
+            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_GUID",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Message",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_Instance",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_PerpetratorID",config,password.pwm.i18n.Admin.class));
@@ -450,8 +451,7 @@ public class AuditManager implements PwmService {
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_TargetDN",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_SourceAddress",config,password.pwm.i18n.Admin.class));
             headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_SourceHost",config,password.pwm.i18n.Admin.class));
-            headers.add(LocaleHelper.getLocalizedMessage(locale,"Field_Audit_GUID",config,password.pwm.i18n.Admin.class));
-            csvPrinter.printRecords(headers);
+            csvPrinter.printRecord(headers);
         }
 
         int counter = 0;
@@ -463,6 +463,7 @@ public class AuditManager implements PwmService {
             lineOutput.add(loopRecord.getEventCode().getType().toString());
             lineOutput.add(loopRecord.getEventCode().toString());
             lineOutput.add(PwmConstants.DEFAULT_DATETIME_FORMAT.format(loopRecord.getTimestamp()));
+            lineOutput.add(loopRecord.getGuid());
             lineOutput.add(loopRecord.getMessage() == null ? "" : loopRecord.getMessage());
             if (loopRecord instanceof SystemAuditRecord) {
                 lineOutput.add(((SystemAuditRecord)loopRecord).getInstance());
@@ -483,7 +484,7 @@ public class AuditManager implements PwmService {
                 lineOutput.add(((HelpdeskAuditRecord)loopRecord).getSourceAddress());
                 lineOutput.add(((HelpdeskAuditRecord)loopRecord).getSourceHost());
             }
-            csvPrinter.printRecords(lineOutput);
+            csvPrinter.printRecord(lineOutput);
         }
         csvPrinter.flush();
 

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2012 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
         super(wsdlLoc, sName);
     }
 
-    // Use to get a proxy class for PasswordManagementPort
+    // Use to read a proxy class for PasswordManagementPort
     private java.lang.String PasswordManagementPort_address = "http://172.17.2.91:8080/IDM/pwdmgt/service";
 
     public java.lang.String getPasswordManagementPortAddress() {
@@ -88,7 +88,7 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
     }
 
     /**
-     * For the given interface, get the stub implementation.
+     * For the given interface, read the stub implementation.
      * If this service has no port for the given interface,
      * then ServiceException is thrown.
      */
@@ -107,7 +107,7 @@ public class PasswordManagementServiceLocator extends org.apache.axis.client.Ser
     }
 
     /**
-     * For the given interface, get the stub implementation.
+     * For the given interface, read the stub implementation.
      * If this service has no port for the given interface,
      * then ServiceException is thrown.
      */

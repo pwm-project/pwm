@@ -270,7 +270,7 @@ public class NewUserServlet extends PwmServlet {
             if (passwordCheckInfo.isPassed() && passwordCheckInfo.getMatch() == PasswordUtility.PasswordCheckInfo.MATCH_STATUS.MATCH) {
                 passwordCheckInfo = new PasswordUtility.PasswordCheckInfo(
                         Message.getLocalizedMessage(locale,
-                                Message.SUCCESS_NEWUSER_FORM, pwmApplication.getConfig()),
+                                Message.Success_NewUserForm, pwmApplication.getConfig()),
                         passwordCheckInfo.isPassed(),
                         passwordCheckInfo.getStrength(),
                         passwordCheckInfo.getMatch(),
@@ -886,7 +886,7 @@ public class NewUserServlet extends PwmServlet {
         }
 
         pwmRequest.getPwmSession().clearSessionBean(NewUserBean.class);
-        pwmRequest.forwardToSuccessPage(Message.SUCCESS_CREATE_USER);
+        pwmRequest.forwardToSuccessPage(Message.Success_CreateUser);
     }
 
     private static MacroMachine createMacroMachineForNewUser(

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import password.pwm.http.PwmSession;
 import password.pwm.http.PwmURL;
 import password.pwm.http.servlet.OAuthConsumerServlet;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.ldap.auth.SessionAuthenticator;
 import password.pwm.util.BasicAuthInfo;
@@ -47,6 +48,8 @@ import password.pwm.util.stats.StatisticsManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,17 +115,17 @@ public class AuthenticationFilter extends PwmFilter {
         final PwmApplication pwmApplication = pwmRequest.getPwmApplication();
         final PwmSession pwmSession = pwmRequest.getPwmSession();
 
-        // get the basic auth info out of the header (if it exists);
+        // read the basic auth info out of the header (if it exists);
         final BasicAuthInfo basicAuthInfo = BasicAuthInfo.parseAuthHeader(pwmApplication, pwmRequest);
 
         final BasicAuthInfo originalBasicAuthInfo = pwmSession.getLoginInfoBean().getOriginalBasicAuthInfo();
 
         //check to make sure basic auth info is same as currently known user in session.
         if (basicAuthInfo != null && originalBasicAuthInfo != null && !(originalBasicAuthInfo.equals(basicAuthInfo))) {
-            // if we get here then user is using basic auth, and header has changed since last request
+            // if we read here then user is using basic auth, and header has changed since last request
             // this means something is screwy, so log out the session
 
-            // get the current user info for logging
+            // read the current user info for logging
             final UserInfoBean uiBean = pwmSession.getUserInfoBean();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_BAD_SESSION,"basic auth header user '" + basicAuthInfo.getUsername() + "' does not match currently logged in user '" + uiBean.getUserIdentity() + "', session will be logged out");
             LOGGER.info(pwmRequest, errorInformation);
@@ -143,12 +146,67 @@ public class AuthenticationFilter extends PwmFilter {
             }
         }
 
+        handleAuthenticationCookie(pwmRequest);
+
         if (forceRequiredRedirects(pwmRequest)) {
             return;
         }
 
         // user session is authed, and session and auth header match, so forward request on.
         chain.doFilter();
+    }
+
+    private static void handleAuthenticationCookie(final PwmRequest pwmRequest) {
+        if (!pwmRequest.isAuthenticated() || pwmRequest.getPwmSession().getLoginInfoBean().getAuthenticationType() != AuthenticationType.AUTHENTICATED) {
+            return;
+        }
+        
+        if (pwmRequest.getPwmSession().getLoginInfoBean().isAuthRecordCookieSet()) {
+            return;
+        }
+        
+        pwmRequest.getPwmSession().getLoginInfoBean().setAuthRecordCookieSet(true);
+        
+        final String cookieName = pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_NAME);
+        if (cookieName == null || cookieName.isEmpty()) {
+            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie name parameter is blank");
+            return;
+        }
+
+        final int cookieAgeSeconds = Integer.parseInt(pwmRequest.getConfig().readAppProperty(AppProperty.HTTP_COOKIE_AUTHRECORD_AGE));
+        if (cookieAgeSeconds < 1) {
+            LOGGER.debug(pwmRequest, "skipping auth record cookie set, cookie age parameter is less than 1");
+            return;
+        }
+
+        final Date authTime = pwmRequest.getPwmSession().getLoginInfoBean().getLocalAuthTime();
+        final String userGuid = pwmRequest.getPwmSession().getUserInfoBean().getUserGuid();
+        final AuthRecord authRecord = new AuthRecord(authTime, userGuid);
+        
+        try {
+            pwmRequest.getPwmResponse().writeCookie(cookieName, authRecord, cookieAgeSeconds, true, pwmRequest.getContextPath());
+            LOGGER.debug(pwmRequest,"wrote auth record cookie to user browser for use during forgotten password");
+        } catch (PwmUnrecoverableException e) {
+            LOGGER.error(pwmRequest, "error while setting authentication record cookie: " + e.getMessage());
+        }
+    }
+
+    public static class AuthRecord implements Serializable {
+        private Date date;
+        private String guid;
+
+        public AuthRecord(Date date, String guid) {
+            this.date = date;
+            this.guid = guid;
+        }
+
+        public Date getDate() {
+            return date;
+        }
+
+        public String getGuid() {
+            return guid;
+        }
     }
 
     private void processUnAuthenticatedSession(
@@ -215,7 +273,7 @@ public class AuthenticationFilter extends PwmFilter {
         }
 
         if (pwmApplication.getConfig().readSettingAsBoolean(PwmSetting.FORCE_BASIC_AUTH)) {
-            final String displayMessage = Display.getLocalizedMessage(ssBean.getLocale(),"Title_Application",pwmApplication.getConfig());
+            final String displayMessage = LocaleHelper.getLocalizedMessage(Display.Title_Application, pwmRequest);
             pwmRequest.getPwmResponse().setHeader(PwmConstants.HttpHeader.WWW_Authenticate,"Basic realm=\"" + displayMessage + "\"");
             pwmRequest.getPwmResponse().setStatus(401);
             return;

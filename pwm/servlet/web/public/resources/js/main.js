@@ -145,22 +145,6 @@ PWM_MAIN.initPage = function() {
         });
     }
 
-    // header initialization
-    if (PWM_MAIN.getObject('header_configManagerButton')) {
-        PWM_MAIN.addEventHandler('header_configManagerButton', 'click', function () {
-            PWM_MAIN.goto('/private/config/ConfigManager')
-        });
-    }
-    if (PWM_MAIN.getObject('header_configEditorButton')) {
-        PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
-            PWM_CONFIG.startConfigurationEditor()
-        });
-    }
-    if (PWM_MAIN.getObject('header_openLogViewerButton')) {
-        PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {
-            PWM_CONFIG.openLogViewer(null)
-        });
-    }
     if (PWM_MAIN.getObject('select-updateLoginContexts')) {
         PWM_MAIN.addEventHandler('select-updateLoginContexts', 'click', function () {
             PWM_MAIN.updateLoginContexts()
@@ -172,19 +156,6 @@ PWM_MAIN.initPage = function() {
         text: '<pwm:display key="HealthMessage_Config_ConfigMode" bundle="Health"/>',
         width: 500
     });
-    if (typeof PWM_CONFIG !== 'undefined') {
-        PWM_CONFIG.showHeaderHealth();
-    }
-    PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
-        PWM_MAIN.goto('/private/config/ConfigManager');
-    });
-    PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
-        PWM_MAIN.closeHeaderWarningPanel();
-    });
-    PWM_MAIN.addEventHandler('button-openHeader','click',function(){
-        PWM_MAIN.openHeaderWarningPanel();
-    });
-    // end header init
 
     if (PWM_GLOBAL['pageLeaveNotice'] > 0) {
         require(["dojo","dojo/on"], function(dojo,on){
@@ -207,14 +178,6 @@ PWM_MAIN.initPage = function() {
 
             on(window, "resize", function(){ PWM_MAIN.messageDivFloatHandler() });
             on(window, "scroll", function(){ PWM_MAIN.messageDivFloatHandler() });
-        });
-    }
-
-    if (PWM_MAIN.getObject('header-warning')) {
-        require(["dojo/dom", "dojo/_base/fx"],function(dom, fx){
-            var args = {node: "header-warning",duration:1000};
-            setInterval(function(){fx.fadeOut(args).play()},15*1000);
-            setTimeout(function(){setInterval(function(){fx.fadeIn(args).play();},15*1000);},2000);
         });
     }
 
@@ -378,14 +341,14 @@ PWM_MAIN.addEventHandler = function(nodeId,eventType,functionToAdd) {
 
 
 PWM_MAIN.goto = function(url,options) {
-    PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+    PWM_VAR['dirtyPageLeaveFlag'] = false;
     options = options === undefined ? {} : options;
-    if (!options['noContext'] && url.indexOf(PWM_GLOBAL['url-context']) != 0) {
+    if (!('noContext' in options) && url.indexOf(PWM_GLOBAL['url-context']) != 0) {
         if (url.substring(0,1) == '/') {
             url = PWM_GLOBAL['url-context'] + url;
         }
     }
-    if (options['addFormID']) {
+    if ('addFormID' in options) {
         if (url.indexOf('pwmFormID') == -1) {
             url += url.indexOf('?') == -1 ? '?' : '&';
             url += "pwmFormID=" + PWM_GLOBAL['pwmFormID'];
@@ -412,6 +375,14 @@ PWM_MAIN.goto = function(url,options) {
             executeGoto();
         }});
     }
+};
+
+PWM_MAIN.postDynamicForm = function(actionUrl, formData) {
+        var bodyElement = document.getElementsByTagName("body")[0];
+        var formElement = document.createElement('form');
+        formElement.id = 'dynamicSubmitForm';
+        formElement.action = 'post';
+        formElement
 };
 
 PWM_MAIN.handleFormCancel = function() {
@@ -755,6 +726,7 @@ PWM_MAIN.showWaitDialog = function(options) {
     require(["dojo","dijit/Dialog","dijit/ProgressBar"],function(dojo,Dialog,ProgressBar){
         options = options || {};
         var requestedLoadFunction = options['loadFunction'];
+        PWM_MAIN.clearDijitWidget('progressBar');
         options['loadFunction'] = function() {
             var progressBar = new ProgressBar({
                 style: '',
@@ -1027,7 +999,7 @@ PWM_MAIN.createCSSClass = function(selector, style) {
             if(document.styleSheets[i].disabled) continue;
             styleSheet = document.styleSheets[i];
         }
-        // get media type
+        // read media type
         var media = styleSheet.media;
         mediaType = typeof media;
     }
@@ -1528,7 +1500,7 @@ PWM_MAIN.IdleTimeoutHandler.pollActivity = function() {
 
     if (secondsRemaining < 0) {
         if (!PWM_GLOBAL['idle_suspendTimeout']) {
-            PWM_GLOBAL['dirtyPageLeaveFlag'] = false;
+            PWM_VAR['dirtyPageLeaveFlag'] = false;
             PWM_GLOBAL['idle_suspendTimeout'] = true;
             window.location = PWM_GLOBAL['url-logout'];
         } else {
@@ -1831,6 +1803,20 @@ PWM_MAIN.setStyle = function(elementID, property, value) {
         element.style.setProperty(property, value, null);
     }
 };
+
+PWM_MAIN.addCssClass = function(elementID, className) {
+    require(["dojo"], function (dojo) { dojo.addClass(elementID, className); });
+};
+
+PWM_MAIN.removeCssClass = function(elementID, className) {
+    require(["dojo"], function (dojo) { dojo.removeClass(elementID, className) });
+};
+
+PWM_MAIN.newWindowOpen=function(windowUrl,windowName) {
+    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
+    var viewLog = window.open(windowUrl,windowName,windowParams).focus();
+};
+
 
 PWM_MAIN.pageLoadHandler();
 

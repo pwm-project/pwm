@@ -30,40 +30,40 @@ import java.util.Locale;
 public enum AuditEvent {
 
     // system events
-    STARTUP(Message.EVENT_LOG_STARTUP, Type.SYSTEM, false),
-    SHUTDOWN(Message.EVENT_LOG_SHUTDOWN, Type.SYSTEM, false),
-    FATAL_EVENT(Message.EVENT_LOG_FATAL_EVENT, Type.SYSTEM, false),
-    MODIFY_CONFIGURATION(Message.EVENT_LOG_MODIFY_CONFIGURATION, Type.SYSTEM, false),
-    INTRUDER_LOCK(Message.EVENT_LOG_INTRUDER_LOCKOUT, Type.SYSTEM, true),
-    INTRUDER_ATTEMPT(Message.EVENT_LOG_INTRUDER_ATTEMPT, Type.SYSTEM, false),
+    STARTUP(Message.EventLog_Startup, Type.SYSTEM, false),
+    SHUTDOWN(Message.EventLog_Shutdown, Type.SYSTEM, false),
+    FATAL_EVENT(Message.EventLog_FatalEvent, Type.SYSTEM, false),
+    MODIFY_CONFIGURATION(Message.EventLog_ModifyConfiguration, Type.SYSTEM, false),
+    INTRUDER_LOCK(Message.EventLog_IntruderLockout, Type.SYSTEM, true),
+    INTRUDER_ATTEMPT(Message.EventLog_IntruderAttempt, Type.SYSTEM, false),
 
     // user events not stored in user event history
-    AUTHENTICATE(Message.EVENT_LOG_AUTHENTICATE, Type.USER, false),
-    AGREEMENT_PASSED(Message.EVENT_LOG_AGREEMENT_PASSED, Type.USER, false),
-    TOKEN_ISSUED(Message.EVENT_LOG_TOKEN_ISSUED, Type.USER, false),
-    TOKEN_CLAIMED(Message.EVENT_LOG_TOKEN_CLAIMED, Type.USER, false),
-    CLEAR_RESPONSES(Message.EVENT_LOG_CLEAR_RESPONSES, Type.USER, false),
+    AUTHENTICATE(Message.EventLog_Authenticate, Type.USER, false),
+    AGREEMENT_PASSED(Message.EventLog_AgreementPassed, Type.USER, false),
+    TOKEN_ISSUED(Message.EventLog_TokenIssued, Type.USER, false),
+    TOKEN_CLAIMED(Message.EventLog_TokenClaimed, Type.USER, false),
+    CLEAR_RESPONSES(Message.EventLog_ClearResponses, Type.USER, false),
 
     // user events stored in user event history
-    CHANGE_PASSWORD(Message.EVENT_LOG_CHANGE_PASSWORD, Type.USER, true),
-    UNLOCK_PASSWORD(Message.EVENT_LOG_UNLOCK_PASSWORD, Type.USER, true),
-    RECOVER_PASSWORD(Message.EVENT_LOG_RECOVER_PASSWORD, Type.USER, true),
-    SET_RESPONSES(Message.EVENT_LOG_SETUP_RESPONSES, Type.USER, true),
-    SET_OTP_SECRET(Message.EVENT_LOG_SETUP_OTP_SECRET, Type.USER, true),
-    ACTIVATE_USER(Message.EVENT_LOG_ACTIVATE_USER, Type.USER, true),
-    CREATE_USER(Message.EVENT_LOG_CREATE_USER, Type.USER, true),
-    UPDATE_PROFILE(Message.EVENT_LOG_UPDATE_PROFILE, Type.USER, true),
-    INTRUDER_USER(Message.EVENT_LOG_INTRUDER_USER, Type.USER, true),
+    CHANGE_PASSWORD(Message.EventLog_ChangePassword, Type.USER, true),
+    UNLOCK_PASSWORD(Message.EventLog_UnlockPassword, Type.USER, true),
+    RECOVER_PASSWORD(Message.EventLog_RecoverPassword, Type.USER, true),
+    SET_RESPONSES(Message.EventLog_SetupResponses, Type.USER, true),
+    SET_OTP_SECRET(Message.Eventlog_SetupOtpSecret, Type.USER, true),
+    ACTIVATE_USER(Message.EventLog_ActivateUser, Type.USER, true),
+    CREATE_USER(Message.EventLog_CreateUser, Type.USER, true),
+    UPDATE_PROFILE(Message.EventLog_UpdateProfile, Type.USER, true),
+    INTRUDER_USER(Message.EventLog_IntruderUser, Type.USER, true),
 
     // helpdesk events
-    HELPDESK_SET_PASSWORD(Message.EVENT_LOG_HELPDESK_SET_PASSWORD, Type.HELPDESK, true),
-    HELPDESK_UNLOCK_PASSWORD(Message.EVENT_LOG_HELPDESK_UNLOCK_PASSWORD, Type.HELPDESK, true),
-    HELPDESK_CLEAR_RESPONSES(Message.EVENT_LOG_HELPDESK_CLEAR_RESPONSES, Type.HELPDESK, true),
-    HELPDESK_CLEAR_OTP_SECRET(Message.EVENT_LOG_HELPDESK_CLEAR_OTP_SECRET, Type.HELPDESK, true),
-    HELPDESK_ACTION(Message.EVENT_LOG_HELPDESK_ACTION, Type.HELPDESK, true),
-    HELPDESK_DELETE_USER(Message.EVENT_LOG_HELPDESK_DELETE_USER, Type.HELPDESK, false),
-    HELPDESK_VIEW_DETAIL(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.HELPDESK, false),
-    HELPDESK_VERIFY_OTP(Message.EVENT_LOG_HELPDESK_VIEW_DETAIL, Type.HELPDESK, false),
+    HELPDESK_SET_PASSWORD(Message.EventLog_HelpdeskSetPassword, Type.HELPDESK, true),
+    HELPDESK_UNLOCK_PASSWORD(Message.EventLog_HelpdeskUnlockPassword, Type.HELPDESK, true),
+    HELPDESK_CLEAR_RESPONSES(Message.EventLog_HelpdeskClearResponses, Type.HELPDESK, true),
+    HELPDESK_CLEAR_OTP_SECRET(Message.EventLog_HelpdeskClearOtpSecret, Type.HELPDESK, true),
+    HELPDESK_ACTION(Message.EventLog_HelpdeskAction, Type.HELPDESK, true),
+    HELPDESK_DELETE_USER(Message.EventLog_HelpdeskDeleteUser, Type.HELPDESK, false),
+    HELPDESK_VIEW_DETAIL(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK, false),
+    HELPDESK_VERIFY_OTP(Message.EventLog_HelpdeskViewDetail, Type.HELPDESK, false),
 
 
     ;
@@ -90,7 +90,7 @@ public enum AuditEvent {
         for (final AuditEvent loopEvent : AuditEvent.values()) {
             final Message message = loopEvent.getMessage();
             if (message != null) {
-                final String resourceKey = message.getResourceKey();
+                final String resourceKey = message.getKey();
                 if (resourceKey.equals(key)) {
                     return loopEvent;
                 }

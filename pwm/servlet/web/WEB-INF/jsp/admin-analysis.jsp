@@ -58,7 +58,7 @@
         <jsp:param name="pwm.PageName" value="Data Analysis"/>
     </jsp:include>
     <div id="centerbody" class="wide">
-        <%@ include file="admin-nav.jsp" %>
+        <%@ include file="fragment/admin-nav.jsp" %>
         <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;"  data-dojo-props="doLayout: false, persist: true" id="analysis-topLevelTab">
             <div data-dojo-type="dijit.layout.TabContainer" style="width: 100%; height: 100%;" data-dojo-props="doLayout: false, persist: true" title="<pwm:display key="Title_DirectoryReporting" bundle="Admin"/>">
                 <% if (analysis_pwmRequest.getConfig().readSettingAsBoolean(PwmSetting.REPORTING_ENABLE)) { %>
@@ -71,6 +71,14 @@
                             <pwm:display key="Notice_DynamicRefresh" bundle="Admin"/>
                         </div>
                     </div>
+                    <form action="<pwm:url url="Administration"/>" method="post">
+                        <button type="submit" class="btn" id="button-downloadUserSummaryCsv">
+                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
+                            <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                        </button>
+                        <input type="hidden" name="processAction" value="downloadUserSummaryCsv"/>
+                        <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                    </form>
                 </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_DataViewer" bundle="Admin"/>" class="tabContent">
                     <div id="grid">
@@ -85,23 +93,23 @@
                         </button>
                     </div>
                     <div style="text-align: center">
-                        <form action="<pwm:context/><pwm:url url="/private/CommandServlet"/>" method="GET">
-                            <button type="submit" class="btn" id="Button_DownloadReportRecords">
+                        <form action="<pwm:url url="Administration"/>" method="post">
+                            <button type="submit" class="btn" id="button-downloadUserReportCsv">
                                 <pwm:if test="showIcons"><span class="btn-icon fa fa-download">&nbsp;</span></pwm:if>
-                                <pwm:display key="Button_DownloadReportRecords" bundle="Admin"/>
+                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
                             </button>
                             <pwm:script>
                                 <script type="application/javascript">
                                     PWM_GLOBAL['startupFunctions'].push(function(){
                                         PWM_MAIN.showTooltip({
-                                            id: 'Button_DownloadReportRecords',
+                                            id: 'button-downloadUserReportCsv',
                                             text: '<pwm:display key="Tooltip_DownloadReportRecords" bundle="Admin"/>',
                                             width: 350
                                         });
                                     });
                                 </script>
                             </pwm:script>
-                            <input type="hidden" name="processAction" value="outputUserReportCsv"/>
+                            <input type="hidden" name="processAction" value="downloadUserReportCsv"/>
                             <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
                         </form>
                     </div>
@@ -184,10 +192,14 @@
                         </table>
                     </div>
                     <div style="text-align: center">
-                        <button type="button" id="statisticsDownloadButton" class="btn">
-                            <pwm:if test="showIcons"><span class="btn-icon fa fa-download" >&nbsp;</span></pwm:if>
-                            Download as CSV
-                        </button>
+                        <form action="Administration" method="post" enctype="application/x-www-form-urlencoded">
+                            <button type="submit" class="btn" id="button-downloadStatisticsLogCsv">
+                                <pwm:if test="showIcons"><span class="btn-icon fa fa-download"></span></pwm:if>
+                                <pwm:display key="Button_DownloadCSV" bundle="Admin"/>
+                            </button>
+                            <input type="hidden" name="processAction" value="downloadStatisticsLogCsv"/>
+                            <input type="hidden" name="pwmFormID" value="<pwm:FormID/>"/>
+                        </form>
                     </div>
                 </div>
                 <div data-dojo-type="dijit.layout.ContentPane" title="<pwm:display key="Title_StatisticsCharts" bundle="Admin"/>" class="tabContent">
@@ -214,7 +226,6 @@
 </div>
 </div>
 <div class="push">
-    
 </div>
 <pwm:script>
     <script type="text/javascript">
@@ -226,9 +237,6 @@
             });
         }
 
-        function downloadCsv() {
-            window.location.href='<pwm:url url="/private/CommandServlet" addContext="true"/>?processAction=outputStatisticsLogCsv&pwmFormID=<pwm:FormID/>';
-        }
 
         PWM_GLOBAL['startupFunctions'].push(function(){
             require(["dojo/parser","dijit/registry","dojo/ready","dijit/form/Select","dijit/form/NumberSpinner","dijit/layout/TabContainer","dijit/layout/ContentPane"],function(dojoParser,registry,ready){
@@ -253,9 +261,6 @@
                 PWM_MAIN.addEventHandler('reportStopButton','click',function(){ PWM_ADMIN.reportAction('stop') });
                 PWM_MAIN.addEventHandler('reportClearButton','click',function(){ PWM_ADMIN.reportAction('clear') });
 
-                PWM_MAIN.addEventHandler('statisticsDownloadButton','click',function(){
-                    downloadCsv()
-                });
             });
         });
     </script>

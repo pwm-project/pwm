@@ -264,9 +264,9 @@ PWM_CONFIG.showString=function (key, options) {
 };
 
 PWM_CONFIG.openLogViewer=function(level) {
-    var windowUrl = PWM_GLOBAL['url-context'] + '/public/CommandServlet?processAction=viewLog' + ((level) ? '&level=' + level : '');
-    var windowParams = 'status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1';
-    var viewLog = window.open(windowUrl,'logViewer',windowParams).focus();
+    var windowUrl = PWM_GLOBAL['url-context'] + '/private/admin/Administration?processAction=viewLogWindow' + ((level) ? '&level=' + level : '');
+    var windowName = 'logViewer';
+    PWM_MAIN.newWindowOpen(windowUrl,windowName);
 };
 
 PWM_CONFIG.showHeaderHealth = function() {
@@ -287,7 +287,7 @@ PWM_CONFIG.showHeaderHealth = function() {
                         //require(["dojo/cookie"], function(cookie){
                         //    var cookieValue = cookie('headerVisibility');
                         //    if (!cookieValue) {
-                                PWM_MAIN.openHeaderWarningPanel();
+                        PWM_MAIN.openHeaderWarningPanel();
                         //    }
                         //});
 
@@ -496,3 +496,31 @@ PWM_CONFIG.heartbeatCheck = function() {
     PWM_MAIN.ajaxRequest(url,loadFunction,{errorFunction:errorFunction,method:'GET'});
 };
 
+PWM_CONFIG.initConfigHeader = function() {
+    // header initialization
+    if (PWM_MAIN.getObject('header_configManagerButton')) {
+        PWM_MAIN.addEventHandler('header_configManagerButton', 'click', function () {
+            PWM_MAIN.goto('/private/config/ConfigManager')
+        });
+    }
+    if (PWM_MAIN.getObject('header_configEditorButton')) {
+        PWM_MAIN.addEventHandler('header_configEditorButton', 'click', function () {
+            PWM_CONFIG.startConfigurationEditor()
+        });
+    }
+    PWM_MAIN.addEventHandler('header_openLogViewerButton', 'click', function () {
+        PWM_CONFIG.openLogViewer(null)
+    });
+    PWM_MAIN.addEventHandler('panel-header-healthData','click',function(){
+        PWM_MAIN.goto('/private/config/ConfigManager');
+    });
+    PWM_MAIN.addEventHandler('button-closeHeader','click',function(){
+        PWM_MAIN.closeHeaderWarningPanel();
+    });
+    PWM_MAIN.addEventHandler('button-openHeader','click',function(){
+        PWM_MAIN.openHeaderWarningPanel();
+    });
+
+    PWM_CONFIG.showHeaderHealth();
+    console.log('initConfigHeader completed');
+};

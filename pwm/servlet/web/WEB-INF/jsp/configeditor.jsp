@@ -38,7 +38,7 @@
 <body class="nihilo">
 <link href="<pwm:context/><pwm:url url='/public/resources/configStyle.css'/>" rel="stylesheet" type="text/css"/>
 <div id="wrapper">
-    <div id="header">
+    <div class="configeditor-header" id="header" >
         <div id="header-center-wide">
             <div id="header-title">
                 <%=PwmConstants.PWM_APP_NAME%> Configuration Editor <span id="currentPageDisplay"></span>
@@ -57,6 +57,9 @@
                 </div>
                 <div class="headerIcon" id="macroDoc_icon">
                     <span class="fa fa-magic"></span>
+                </div>
+                <div class="headerIcon" id="settingFilter_icon">
+                    <span class="fa fa-filter"></span>
                 </div>
             </div>
         </div>
@@ -92,20 +95,13 @@
                 <%-- search results inserted here --%>
             </div>
         </div>
-        <div id="leftPaneWrapper">
+        <div id="navigationTreeWrapper" style="display:none">
+            <div id="navigationTree">
+                <%-- navtree goes here --%>
+            </div>
             <div id="navigationTreeTopMenu">
-                <span id="button-navigationExpandAll" class="fa fa-plus-square"></span>
-                <span id="button-navigationCollapseAll" class="fa fa-minus-square"></span>
-            </div>
-            <div id="navigationTreeWrapper">
-                <div id="navigationTree">
-                    <%-- navtree goes here --%>
-                </div>
-            </div>
-            <div id="navigationTreeFooter">
-                <label class="checkboxWrapper modifiedSettingsWrapper">
-                    <input type="checkbox" id="input-modifiedSettingsOnly" disabled/>Modified Only
-                </label>
+                <span id="button-navigationExpandAll" class="fa fa-plus-square-o"></span>
+                <span id="button-navigationCollapseAll" class="fa fa-minus-square-o"></span>
             </div>
         </div>
         <div id="settingsPanel">

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,61 +36,73 @@ import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 public class JsonUtil {
     private static final PwmLogger LOGGER = PwmLogger.forClass(JsonUtil.class);
 
-    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
-            .registerTypeAdapter(Date.class, new DateTypeAdapter())
-            .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
-            .registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
-            .disableHtmlEscaping();
+    public enum Flag {
+        PrettyPrint,
+        HtmlEscape,
+    }
 
-    private static final Gson GSON_SINGLETON = GSON_BUILDER.create();
+    private static final Gson GENERIC_GSON = registerTypeAdapters(new GsonBuilder())
+            .disableHtmlEscaping()
+            .create();
 
-    public static Gson getGson(GsonBuilder gsonBuilder) {
-        if (gsonBuilder == null) {
-            gsonBuilder = new GsonBuilder();
+    private static Gson getGson(final Flag... flags) {
+        if (flags == null) {
+            return getGson(Collections.<Flag>emptySet());
+        } else {
+            return getGson(new HashSet(Arrays.asList(flags)));
+        }
+    }
+
+    private static Gson getGson(final Set<Flag> flags) {
+        if (flags == null || flags.isEmpty()) {
+            return GENERIC_GSON;
+        }
+
+        final GsonBuilder gsonBuilder = registerTypeAdapters(new GsonBuilder());
+
+        if (!flags.contains(Flag.HtmlEscape)) {
             gsonBuilder.disableHtmlEscaping();
         }
 
-        return gsonBuilder
-                .registerTypeAdapter(Date.class, new DateTypeAdapter())
-                .registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter())
-                .registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
-                .create();
+        if (flags.contains(Flag.PrettyPrint)) {
+            gsonBuilder.setPrettyPrinting();
+        }
+
+        return gsonBuilder.create();
     }
 
-    public static Gson getGson() {
-        return GSON_SINGLETON;
+    public static <T> T deserialize(final String jsonString, final TypeToken typeToken) {
+        return JsonUtil.getGson().fromJson(jsonString, typeToken.getType());
     }
 
-    public static Map<String,Object> deserializeMap(final String jsonString) {
-        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, Object>>() {}.getType());
+    public static List<String> deserializeStringList(final String jsonString) {
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<List<Object>>() {}.getType());
     }
 
     public static Map<String,String> deserializeStringMap(final String jsonString) {
-        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {}.getType());
+        return JsonUtil.getGson().fromJson(jsonString, new TypeToken<Map<String, String>>() {
+        }.getType());
     }
 
     public static <T> T deserialize(final String json, final Class<T> classOfT) {
         return JsonUtil.getGson().fromJson(json, classOfT);
     }
 
-    public static String serialize(final Serializable object) {
-        return JsonUtil.getGson().toJson(object);
+    public static String serialize(final Serializable object, final Flag... flags) {
+        return JsonUtil.getGson(flags).toJson(object);
     }
 
-    public static String serializeMap(final Map object) {
-        return JsonUtil.getGson().toJson(object);
+    public static String serializeMap(final Map object, final Flag... flags) {
+        return JsonUtil.getGson(flags).toJson(object);
     }
 
-    public static String serializeCollection(final Collection object) {
-        return JsonUtil.getGson().toJson(object);
+    public static String serializeCollection(final Collection object, final Flag... flags) {
+        return JsonUtil.getGson(flags).toJson(object);
     }
 
     /**
@@ -180,5 +192,12 @@ public class JsonUtil {
                 throw new JsonParseException(errorMsg,e);
             }
         }
+    }
+
+    private static GsonBuilder registerTypeAdapters(final GsonBuilder gsonBuilder) {
+        gsonBuilder.registerTypeAdapter(Date.class, new DateTypeAdapter());
+        gsonBuilder.registerTypeAdapter(X509Certificate.class, new X509CertificateAdapter());
+        gsonBuilder.registerTypeAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
+        return gsonBuilder;
     }
 }

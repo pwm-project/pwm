@@ -22,8 +22,6 @@
 
 package password.pwm.util.cli;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.novell.ldapchai.ChaiUser;
 import com.novell.ldapchai.cr.ChallengeSet;
 import password.pwm.PwmApplication;
@@ -58,17 +56,11 @@ public class ImportResponsesCommand extends AbstractCliCommand {
 
         int counter = 0;
         String line;
-        final Gson gson = JsonUtil.getGson();
         final long startTime = System.currentTimeMillis();
         while ((line = reader.readLine()) != null) {
             counter++;
             final RestChallengesServer.JsonChallengesData inputData;
-            try {
-                inputData = gson.fromJson(line, RestChallengesServer.JsonChallengesData.class);
-            } catch (JsonSyntaxException e) {
-                out("error parsing line " + counter + ", error: " + e.getMessage());
-                return;
-            }
+                inputData = JsonUtil.deserialize(line, RestChallengesServer.JsonChallengesData.class);
 
             final UserIdentity userIdentity = UserIdentity.fromDelimitedKey(inputData.username);
             final ChaiUser user = pwmApplication.getProxiedChaiUser(userIdentity);

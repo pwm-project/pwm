@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ public class LoginInfoBean implements PwmSessionBean {
 
     private Date oauthExpiration;
     private transient String oauthRefreshToken;
+    
+    private boolean authRecordCookieSet;
 
     public Date getLocalAuthTime()
     {
@@ -150,5 +152,13 @@ public class LoginInfoBean implements PwmSessionBean {
     public void setOauthRefreshToken(String oauthRefreshToken)
     {
         this.oauthRefreshToken = oauthRefreshToken;
+    }
+
+    public boolean isAuthRecordCookieSet() {
+        return authRecordCookieSet;
+    }
+
+    public void setAuthRecordCookieSet(boolean authRecordCookieSet) {
+        this.authRecordCookieSet = authRecordCookieSet;
     }
 }

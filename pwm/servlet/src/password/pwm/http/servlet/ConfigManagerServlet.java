@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.GsonBuilder;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import password.pwm.*;
@@ -75,6 +74,7 @@ public class ConfigManagerServlet extends PwmServlet {
         uploadConfig(HttpMethod.POST),
         importLocalDB(HttpMethod.POST),
         summary(HttpMethod.GET),
+        viewLog(HttpMethod.GET),
         
         ;
 
@@ -209,7 +209,7 @@ public class ConfigManagerServlet extends PwmServlet {
             contextManager.initialize();
         }
 
-        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.SUCCESS_UNKNOWN));
+        pwmRequest.outputJsonResult(RestResultBean.forSuccessMessage(pwmRequest, Message.Success_Unknown));
     }
 
     static boolean checkAuthentication(
@@ -282,9 +282,8 @@ public class ConfigManagerServlet extends PwmServlet {
             if (securityKey != null && cookieStr != null && !cookieStr.isEmpty()) {
                 try {
                     final String jsonStr = SecureHelper.decryptStringValue(cookieStr, securityKey);
-                    final PersistentLoginInfo persistentLoginInfo = JsonUtil.getGson().fromJson(jsonStr,
-                            PersistentLoginInfo.class);
-                    if (persistentLoginInfo != null) {
+                    final PersistentLoginInfo persistentLoginInfo = JsonUtil.deserialize(jsonStr, PersistentLoginInfo.class);
+                    if (persistentLoginInfo != null && persistentLoginValue != null) {
                         if (persistentLoginInfo.getExpireDate().after(new Date())) {
                             if (persistentLoginValue.equals(persistentLoginInfo.getPassword())) {
                                 persistentLoginAccepted = true;
@@ -548,6 +547,21 @@ public class ConfigManagerServlet extends PwmServlet {
             zipOutput.flush();
         }
         {
+            final String aboutJson = JsonUtil.serialize(AdminServlet.makeInfoBean(pwmApplication), JsonUtil.Flag.PrettyPrint);
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "about.json"));
+            zipOutput.write(aboutJson.getBytes(PwmConstants.DEFAULT_CHARSET));
+            zipOutput.closeEntry();
+            zipOutput.flush();
+        }
+        {
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            pwmApplication.getAuditManager().outputVaultToCsv(baos, pwmRequest.getLocale(), true);
+            zipOutput.putNextEntry(new ZipEntry(pathPrefix + "audit.csv"));
+            zipOutput.write(baos.toByteArray());
+            zipOutput.closeEntry();
+            zipOutput.flush();
+        }
+        {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "info.json"));
             final LinkedHashMap<String,Object> outputMap = new LinkedHashMap<>();
 
@@ -567,7 +581,7 @@ public class ConfigManagerServlet extends PwmServlet {
             // java threads
             outputMap.put("threads",Thread.getAllStackTraces());
 
-            final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(outputMap);
+            final String recordJson = JsonUtil.serializeMap(outputMap, JsonUtil.Flag.PrettyPrint);
             zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
@@ -576,7 +590,7 @@ public class ConfigManagerServlet extends PwmServlet {
             try {
                 zipOutput.putNextEntry(new ZipEntry(pathPrefix + "fileMd5sums.json"));
                 final Map<String,String> fileChecksums = BuildChecksumMaker.readDirectorySums(pwmApplication.getApplicationPath());
-                final String json = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(fileChecksums);
+                final String json = JsonUtil.serializeMap(fileChecksums, JsonUtil.Flag.PrettyPrint);
                 zipOutput.write(json.getBytes(PwmConstants.DEFAULT_CHARSET));
                 zipOutput.closeEntry();
                 zipOutput.flush();
@@ -607,14 +621,13 @@ public class ConfigManagerServlet extends PwmServlet {
                 if (counter % 100 == 0) {
                     zipOutput.flush();
                 }
-                System.out.println(counter);
             }
             zipOutput.closeEntry();
         }
         {
             zipOutput.putNextEntry(new ZipEntry(pathPrefix + "health.json"));
             final Set<HealthRecord> records = pwmApplication.getHealthMonitor().getHealthRecords();
-            final String recordJson = JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(records);
+            final String recordJson = JsonUtil.serializeCollection(records, JsonUtil.Flag.PrettyPrint);
             zipOutput.write(recordJson.getBytes(PwmConstants.DEFAULT_CHARSET));
             zipOutput.closeEntry();
             zipOutput.flush();
@@ -680,6 +693,22 @@ public class ConfigManagerServlet extends PwmServlet {
         pwmRequest.setAttribute("outputData",outputMap);
         pwmRequest.forwardToJsp(PwmConstants.JSP_URL.CONFIG_MANAGER_EDITOR_SUMMARY);
     }
+
+    private void processViewLog(
+            final PwmRequest pwmRequest
+    )
+            throws PwmUnrecoverableException, IOException, ServletException
+    {
+
+        final PwmApplication.MODE configMode = pwmRequest.getPwmApplication().getApplicationMode();
+        if (configMode != PwmApplication.MODE.CONFIGURATION) {
+            if (!pwmRequest.getPwmSession().getSessionManager().checkPermission(pwmRequest.getPwmApplication(), Permission.PWMADMIN)) {
+                throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,"admin permission required"));
+            }
+        }
+        pwmRequest.forwardToJsp(PwmConstants.JSP_URL.ADMIN_LOGVIEW_WINDOW);
+    }
+
 
 }
 

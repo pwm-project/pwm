@@ -27,6 +27,7 @@
 <%@ page import="password.pwm.config.option.ViewStatusFields" %>
 <%@ page import="password.pwm.event.UserAuditRecord" %>
 <%@ page import="password.pwm.i18n.Display" %>
+<%@ page import="password.pwm.i18n.LocaleHelper" %>
 <%@ page import="password.pwm.util.StringUtil" %>
 <%@ page import="password.pwm.util.TimeDuration" %>
 <%@ page import="java.text.DateFormat" %>
@@ -212,7 +213,10 @@
                 <pwm:display key="Field_PasswordSetTimeDelta"/>
             </td>
             <td>
-                <%= uiBean.getPasswordLastModifiedTime() != null ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) : Display.getLocalizedMessage(userinfo_pwmRequest.getLocale(),"Value_NotApplicable",userinfo_pwmRequest.getConfig())%>
+                <%= uiBean.getPasswordLastModifiedTime() != null 
+                        ? TimeDuration.fromCurrent(uiBean.getPasswordLastModifiedTime()).asLongString(ssBean.getLocale()) 
+                        : LocaleHelper.getLocalizedMessage(Display.Value_NotApplicable, userinfo_pwmRequest)
+                %>
             </td>
         </tr>
         <tr>

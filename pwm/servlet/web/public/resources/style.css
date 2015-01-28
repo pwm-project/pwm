@@ -671,7 +671,8 @@ img.qrcodeimage {
 }
 
 #peoplesearch-searchResultsGrid {
-
+    min-height: 400px;
+    height: 60vh;
 }
 
 .peoplesearch-input-username {
@@ -716,4 +717,19 @@ select {
     font-style: italic;
     text-align: center;
     font-size: smaller
+}
+
+.icon-likeUserSearch {
+    cursor: pointer;
+    float: right;
+}
+
+#localeSelectionMenu {
+    white-space: nowrap; 
+    cursor: pointer;
+}
+
+.login-wrapper {
+ width:400px;
+    
 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,14 @@ package password.pwm.util;
 import password.pwm.error.ErrorInformation;
 import password.pwm.error.PwmError;
 import password.pwm.error.PwmOperationalException;
+import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.net.ssl.*;
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -164,4 +167,17 @@ public abstract class X509Utils {
         }
         return result;
     }
+    
+    public static String makeDetailText(final X509Certificate x509Certificate)
+            throws CertificateEncodingException, PwmUnrecoverableException 
+    {
+        return x509Certificate.toString() 
+                + "\n:MD5 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.MD5)
+                + "\n:SHA1 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA1)
+                + "\n:SHA2-256 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA256)
+                + "\n:SHA2-512 checksum: " + SecureHelper.hash(new ByteArrayInputStream(x509Certificate.getEncoded()),SecureHelper.HashAlgorithm.SHA512);
+
+
+    }
+    
 }

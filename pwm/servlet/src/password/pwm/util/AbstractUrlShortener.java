@@ -31,7 +31,7 @@ public interface AbstractUrlShortener {
 
 	/**
 	 * {@link URL}. shorten
-	 * This method should be implemented to get a short replacement
+	 * This method should be implemented to read a short replacement
 	 * URL for the input URL.
 	 *
 	 * @param input			the URL to be shortened

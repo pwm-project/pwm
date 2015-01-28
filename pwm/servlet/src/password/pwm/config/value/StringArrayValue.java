@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
@@ -49,11 +47,11 @@ public class StringArrayValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new StringArrayValue(Collections.<String>emptyList());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    List<String> srcList = gson.fromJson(input, new TypeToken<List<String>>() {
-                    }.getType());
+                    List<String> srcList = JsonUtil.deserializeStringList(input);
                     srcList = srcList == null ? Collections.<String>emptyList() : srcList;
-                    srcList.removeAll(Collections.singletonList(null));
+                    while (srcList.contains(null)) {
+                        srcList.remove(null);
+                    }
                     return new StringArrayValue(Collections.unmodifiableList(srcList));
                 }
             }

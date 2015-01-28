@@ -29,12 +29,15 @@ import password.pwm.config.Configuration;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.PasswordData;
+import password.pwm.util.StringUtil;
 import password.pwm.util.logging.PwmLogger;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public abstract class PwmHttpRequestWrapper {
@@ -67,13 +70,22 @@ public abstract class PwmHttpRequestWrapper {
         return readRequestBodyAsString(maxChars);
     }
 
-    public String readRequestBodyAsString(final int maxChars) throws IOException {
+    public String readRequestBodyAsString(final int maxChars) 
+            throws IOException 
+    {
+        final int BUFFER_SIZE = 1024;
         final StringBuilder inputData = new StringBuilder();
-        String line;
         try {
-            final BufferedReader reader = this.getHttpServletRequest().getReader();
-            while (((line = reader.readLine()) != null) && inputData.length() < maxChars) {
-                inputData.append(line);
+            final BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                            this.getHttpServletRequest().getInputStream(), 
+                            Charset.forName("UTF8")
+                    )
+            );
+            final char[] charBuffer = new char[BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = reader.read(charBuffer)) > 0 && inputData.length() < maxChars) {
+                inputData.append(charBuffer, 0, bytesRead);
             }
         } catch (Exception e) {
             LOGGER.error("error reading request body stream: " + e.getMessage());
@@ -162,6 +174,16 @@ public abstract class PwmHttpRequestWrapper {
             throws PwmUnrecoverableException {
         final String strValue = readParameterAsString(name);
         return strValue != null && Boolean.parseBoolean(strValue);
+    }
+
+    public int readParameterAsInt(final String name, final int defaultValue)
+            throws PwmUnrecoverableException {
+        final String strValue = readParameterAsString(name);
+        try {
+            return Integer.parseInt(strValue);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     public List<String> readParameterAsStrings(
@@ -261,7 +283,9 @@ public abstract class PwmHttpRequestWrapper {
         final Cookie[] cookies = this.getHttpServletRequest().getCookies();
         for (final Cookie cookie : cookies) {
             if (cookie.getName() != null && cookie.getName().equals(cookieName)) {
-                return Validator.sanitizeInputValue(configuration, cookie.getValue(), maxChars);
+                final String rawCookieValue = cookie.getValue();
+                final String decodedCookieValue = StringUtil.urlDecode(rawCookieValue);
+                return Validator.sanitizeInputValue(configuration, decodedCookieValue, maxChars);
             }
         }
         return null;

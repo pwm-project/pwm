@@ -100,13 +100,13 @@ public class UserMatchViewerFunction implements SettingUIFunction {
         final Configuration config = pwmApplication.getConfig();
 
         if (sortedMap.isEmpty()) {
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsNone",pwmApplication.getConfig()));
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Display_SearchResultsNone,pwmApplication.getConfig()));
         } else {
             output.append("<table>");
             output.append("<tr><td class=\"title\">");
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Field_LdapProfile",pwmApplication.getConfig()));
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Field_LdapProfile,pwmApplication.getConfig()));
             output.append("</td><td class=\"title\">");
-            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Field_UserDN",pwmApplication.getConfig()));
+            output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Field_UserDN,pwmApplication.getConfig()));
             output.append("</td></tr>");
 
             for (final String loopProfile : sortedMap.keySet()) {
@@ -122,7 +122,7 @@ public class UserMatchViewerFunction implements SettingUIFunction {
             output.append("</table>");
             if (sortedMap.size() >= maxResultSize) {
                 output.append("<br/>");
-                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,"Display_SearchResultsExceeded",pwmApplication.getConfig()));
+                output.append(Display.getLocalizedMessage(PwmConstants.DEFAULT_LOCALE,Display.Display_SearchResultsExceeded,pwmApplication.getConfig()));
             }
         }
 

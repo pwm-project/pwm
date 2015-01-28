@@ -29,20 +29,23 @@ import password.pwm.i18n.Display;
 import java.util.Locale;
 
 public enum RecoveryVerificationMethod implements ConfigurationOption {
-    ATTRIBUTES(         true, PwmSetting.RECOVERY_VERIFICATION_ATTRIBUTES),
-    CHALLENGE_RESPONSES(true, PwmSetting.RECOVERY_VERIFICATION_CHALLENGE_RESPONSE),
-    TOKEN(              true, PwmSetting.RECOVERY_VERIFICATION_TOKEN),
-    OTP(                true, PwmSetting.RECOVERY_VERIFICATION_OTP),
-    REMOTE_RESPONSES(   false,PwmSetting.RECOVERY_VERIFICATION_REMOTE_RESPONSES),
-    
+    PREVIOUS_AUTH(      false,  PwmSetting.RECOVERY_VERIFICATION_PREVIOUS_AUTH,          Display.Field_VerificationMethodPreviousAuth),
+    ATTRIBUTES(         true,   PwmSetting.RECOVERY_VERIFICATION_ATTRIBUTES,             Display.Field_VerificationMethodAttributes),
+    CHALLENGE_RESPONSES(true,   PwmSetting.RECOVERY_VERIFICATION_CHALLENGE_RESPONSE,     Display.Field_VerificationMethodChallengeResponses),
+    TOKEN(              true,   PwmSetting.RECOVERY_VERIFICATION_TOKEN,                  Display.Field_VerificationMethodToken),
+    OTP(                true,   PwmSetting.RECOVERY_VERIFICATION_OTP,                    Display.Field_VerificationMethodOTP),
+    REMOTE_RESPONSES(   false,  PwmSetting.RECOVERY_VERIFICATION_REMOTE_RESPONSES,       Display.Field_VerificationMethodRemoteResponses),
+
     ;
     
     private final boolean userSelectable;
     private final PwmSetting associatedSetting;
+    private final Display displayKey;
 
-    RecoveryVerificationMethod(boolean userSelectable, PwmSetting associatedSetting) {
+    RecoveryVerificationMethod(boolean userSelectable, PwmSetting associatedSetting, Display displayKey) {
         this.userSelectable = userSelectable;
         this.associatedSetting = associatedSetting;
+        this.displayKey = displayKey;
     }
 
     public PwmSetting getAssociatedSetting() {
@@ -53,8 +56,11 @@ public enum RecoveryVerificationMethod implements ConfigurationOption {
         return userSelectable;
     }
     
+    public Display getDisplayKey() {
+        return displayKey;
+    }
+    
     public String getLabel(final Configuration configuration, final Locale locale) {
-        final String key = "Field_VerificationMethod-" + this.toString();
-        return Display.getLocalizedMessage(locale, key, configuration);
+        return Display.getLocalizedMessage(locale, this.getDisplayKey(), configuration);
     }
 }

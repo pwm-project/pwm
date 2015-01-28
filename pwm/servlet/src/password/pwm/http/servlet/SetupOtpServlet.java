@@ -22,7 +22,6 @@
 
 package password.pwm.http.servlet;
 
-import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import net.glxn.qrgen.QRCode;
 import net.glxn.qrgen.image.ImageType;
@@ -280,8 +279,7 @@ public class SetupOtpServlet extends PwmServlet {
         final OtpService otpService = pwmApplication.getOtpService();
 
         final String bodyString = pwmRequest.readRequestBodyAsString();
-        final Map<String, String> clientValues = JsonUtil.getGson().fromJson(bodyString, new TypeToken<Map<String, String>>() {
-        }.getType());
+        final Map<String, String> clientValues = JsonUtil.deserializeStringMap(bodyString);
         final String code = Validator.sanitizeInputValue(pwmApplication.getConfig(), clientValues.get("code"), 1024);
 
         try {

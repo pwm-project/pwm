@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ public class PasswordValue implements StoredValue {
         return new StoredValueFactory() {
             public PasswordValue fromJson(final String value)
             {
-                final String strValue = JsonUtil.getGson().fromJson(value, String.class);
+                final String strValue = JsonUtil.deserialize(value, String.class);
                 if (strValue != null && !strValue.isEmpty()) {
                     try {
                         return new PasswordValue(new PasswordData(strValue));

@@ -630,7 +630,7 @@ public class ChangePasswordServlet extends PwmServlet {
                 pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_COMPLETE);
             } else {
                 pwmRequest.getPwmSession().clearSessionBean(ChangePasswordBean.class);
-                pwmRequest.forwardToSuccessPage(Message.SUCCESS_PASSWORDCHANGE);
+                pwmRequest.forwardToSuccessPage(Message.Success_PasswordChange);
             }
         } else {
             pwmRequest.forwardToJsp(PwmConstants.JSP_URL.PASSWORD_CHANGE_WAIT);

@@ -24,6 +24,7 @@ package password.pwm.util;
 
 import password.pwm.PwmConstants;
 import password.pwm.i18n.Display;
+import password.pwm.i18n.LocaleHelper;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -284,7 +285,7 @@ public class TimeDuration implements Comparable, Serializable {
         if (timeDetail.days > 0) {
             sb.append(timeDetail.days);
             sb.append(" ");
-            sb.append(timeDetail.days == 1 ? Display.getLocalizedMessage(locale,"Display_Day",null) : Display.getLocalizedMessage(locale,"Display_Days",null));
+            sb.append(timeDetail.days == 1 ? LocaleHelper.getLocalizedMessage(locale, Display.Display_Day, null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Days,null));
             sb.append(", ");
         }
 
@@ -292,7 +293,7 @@ public class TimeDuration implements Comparable, Serializable {
         if (timeDetail.hours > 0) {
             sb.append(timeDetail.hours);
             sb.append(" ");
-            sb.append(timeDetail.hours == 1 ? Display.getLocalizedMessage(locale,"Display_Hour",null) : Display.getLocalizedMessage(locale,"Display_Hours",null));
+            sb.append(timeDetail.hours == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Hour,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Hours,null));
             sb.append(", ");
         }
 
@@ -300,7 +301,7 @@ public class TimeDuration implements Comparable, Serializable {
         if (timeDetail.days > 0 || timeDetail.hours > 0 || timeDetail.minutes > 0) {
             sb.append(timeDetail.minutes);
             sb.append(" ");
-            sb.append(timeDetail.minutes == 1 ? Display.getLocalizedMessage(locale,"Display_Minute",null) : Display.getLocalizedMessage(locale,"Display_Minutes",null));
+            sb.append(timeDetail.minutes == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Minute,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Minutes,null));
             sb.append(", ");
         }
 
@@ -308,7 +309,7 @@ public class TimeDuration implements Comparable, Serializable {
         {
             sb.append(timeDetail.seconds);
             sb.append(" ");
-            sb.append(timeDetail.seconds == 1 ? Display.getLocalizedMessage(locale,"Display_Second",null) : Display.getLocalizedMessage(locale,"Display_Seconds",null));
+            sb.append(timeDetail.seconds == 1 ? LocaleHelper.getLocalizedMessage(locale,Display.Display_Second,null) : LocaleHelper.getLocalizedMessage(locale,Display.Display_Seconds,null));
         }
 
         return sb.toString();

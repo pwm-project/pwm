@@ -89,7 +89,7 @@ class DatabaseUserHistory implements UserHistoryStore {
         if (str == null || str.length() < 1) {
             return new StoredHistory();
         }
-        return JsonUtil.getGson().fromJson(str,StoredHistory.class);
+        return JsonUtil.deserialize(str,StoredHistory.class);
     }
 
     private void writeStoredHistory(final String guid, final StoredHistory storedHistory) throws DatabaseException {

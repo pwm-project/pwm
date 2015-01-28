@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +101,8 @@ public class MainClass {
         final File applicationPath = new File(".").getCanonicalFile();
         final File configurationFile = locateConfigurationFile(applicationPath);
 
-        final Configuration config = loadConfiguration(configurationFile);
+        final ConfigurationReader configReader = loadConfiguration(configurationFile);
+        final Configuration config = configReader.getConfiguration();
         final PwmApplication pwmApplication = parameters.needsPwmApplication
                 ? loadPwmApplication(applicationPath,config,configurationFile,parameters.readOnly)
                 : null;
@@ -112,6 +113,7 @@ public class MainClass {
                 : null;
 
         return new CliEnvironment(
+                configReader,
                 configurationFile,
                 config,
                 applicationPath,
@@ -251,7 +253,7 @@ public class MainClass {
         return LocalDBFactory.getInstance(databaseDirectory, readonly, null, config);
     }
 
-    static Configuration loadConfiguration(final File configurationFile) throws Exception {
+    static ConfigurationReader loadConfiguration(final File configurationFile) throws Exception {
         final ConfigurationReader reader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
 
         if (reader.getConfigMode() == PwmApplication.MODE.ERROR) {
@@ -260,7 +262,7 @@ public class MainClass {
             System.exit(-1);
         }
 
-        return reader.getConfiguration();
+        return reader;
     }
 
     static PwmApplication loadPwmApplication(final File applicationPath, final Configuration config, final File configurationFile, final boolean readonly)

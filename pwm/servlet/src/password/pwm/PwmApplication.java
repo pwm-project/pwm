@@ -313,11 +313,11 @@ public class PwmApplication {
         // log the loaded configuration
         LOGGER.info("loaded configuration: \n" + configuration.toString());
 
-        // get the pwm servlet instance id
+        // read the pwm servlet instance id
         instanceID = fetchInstanceID(localDB, this);
         LOGGER.info("using '" + getInstanceID() + "' for instance's ID (instanceID)");
 
-        // get the pwm installation date
+        // read the pwm installation date
         installTime = fetchInstallDate(startupTime);
         LOGGER.debug("this application instance first installed on " + PwmConstants.DEFAULT_DATETIME_FORMAT.format(installTime));
 

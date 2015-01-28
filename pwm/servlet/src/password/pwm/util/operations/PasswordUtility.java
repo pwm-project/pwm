@@ -55,6 +55,8 @@ import password.pwm.http.bean.LoginInfoBean;
 import password.pwm.ldap.*;
 import password.pwm.ldap.auth.AuthenticationType;
 import password.pwm.util.*;
+import password.pwm.util.cache.CacheKey;
+import password.pwm.util.cache.CachePolicy;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.util.macro.MacroMachine;
@@ -782,18 +784,18 @@ public class PasswordUtility {
         int errorCode = 0;
 
         final boolean passwordIsCaseSensitive = userInfoBean.getPasswordPolicy() == null || userInfoBean.getPasswordPolicy().getRuleHelper().readBooleanValue(PwmPasswordRule.CaseSensitive);
-        final CacheService.CachePolicy cachePolicy = CacheService.CachePolicy.makePolicy(30 * 1000);
+        final CachePolicy cachePolicy = CachePolicy.makePolicy(30 * 1000);
 
         if (password == null) {
             userMessage = new ErrorInformation(PwmError.PASSWORD_MISSING).toUserStr(locale, pwmApplication.getConfig());
         } else {
             final CacheService cacheService = pwmApplication.getCacheService();
-            final CacheService.CacheKey cacheKey = user != null && userInfoBean.getUserIdentity() != null
-                    ? CacheService.CacheKey.makeCacheKey(
-                            PasswordUtility.class,
-                            userInfoBean.getUserIdentity(),
-                            user.getEntryDN() + ":" + password
-                    )
+            final CacheKey cacheKey = user != null && userInfoBean.getUserIdentity() != null
+                    ? CacheKey.makeCacheKey(
+                    PasswordUtility.class,
+                    userInfoBean.getUserIdentity(),
+                    user.getEntryDN() + ":" + password
+            )
                     : null;
 
             try {
@@ -804,7 +806,7 @@ public class PasswordUtility {
                             pass = true;
                         } else {
                             LOGGER.trace("cache hit!");
-                            final ErrorInformation errorInformation = JsonUtil.getGson().fromJson(cachedValue, ErrorInformation.class);
+                            final ErrorInformation errorInformation = JsonUtil.deserialize(cachedValue, ErrorInformation.class);
                             throw new PwmDataValidationException(errorInformation);
                         }
                     }

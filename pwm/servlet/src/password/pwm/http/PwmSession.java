@@ -307,8 +307,11 @@ public class PwmSession implements Serializable {
         }
         valid = false;
     }
+    
+    //    public <E extends Enum<E>> E readSettingAsEnum(PwmSetting setting,  Class<E> enumClass) {
 
-    public PwmSessionBean getSessionBean(final Class theClass) {
+
+    public <E extends PwmSessionBean> E getSessionBean(final Class<E> theClass) {
         if (!sessionBeans.containsKey(theClass)) {
             preModifyCheck();
             try {
@@ -319,7 +322,7 @@ public class PwmSession implements Serializable {
             }
 
         }
-        return sessionBeans.get(theClass);
+        return (E)sessionBeans.get(theClass);
     }
 
     public TimeDuration getIdleTime() {

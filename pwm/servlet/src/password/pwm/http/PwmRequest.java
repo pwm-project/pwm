@@ -41,7 +41,9 @@ import password.pwm.error.PwmError;
 import password.pwm.error.PwmUnrecoverableException;
 import password.pwm.i18n.Message;
 import password.pwm.util.Helper;
+import password.pwm.util.JsonUtil;
 import password.pwm.util.PwmRandom;
+import password.pwm.util.SecureHelper;
 import password.pwm.util.logging.PwmLogger;
 import password.pwm.ws.server.RestResultBean;
 
@@ -162,6 +164,8 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     )
             throws IOException, ServletException
     {
+        LOGGER.error(this.getSessionLabel() ,errorInformation);
+
         if (isJsonRequest()) {
             outputJsonResult(RestResultBean.fromError(errorInformation, this));
             return;
@@ -563,4 +567,26 @@ public class PwmRequest extends PwmHttpRequestWrapper implements Serializable {
     {
         return cspNonce;
     }
+    //        public static <E extends Enum<E>> E valueToEnum(final PwmSetting setting, StoredValue value, Class<E> enumClass) {
+
+    public <T extends Serializable> T readCookie(final String cookieName, Class<T> returnClass) 
+            throws PwmUnrecoverableException 
+    {
+        final String strValue = this.readCookie(cookieName);
+
+        if (strValue != null && !strValue.isEmpty()) {
+            final String decryptedCookie = SecureHelper.decryptStringValue(strValue, getConfig().getSecurityKey(), true);
+            return JsonUtil.deserialize(decryptedCookie, returnClass);
+        }
+        
+        return null;
+    }
+    
+    public String toString() {
+        return this.getClass().getSimpleName() + " "
+                + (this.getSessionLabel() == null ? "" : getSessionLabel().toString())
+                + " " + this.getHttpServletRequest().getRequestURI();
+        
+    }
+    
 }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.event;
 
-import com.google.gson.Gson;
 import org.productivity.java.syslog4j.SyslogIF;
 import org.productivity.java.syslog4j.impl.AbstractSyslogConfigIF;
 import org.productivity.java.syslog4j.impl.AbstractSyslogWriter;
@@ -217,11 +216,10 @@ public class SyslogAuditService {
     }
 
     private boolean processEvent(final AuditRecord auditRecord) {
-        final Gson gs = JsonUtil.getGson();
         final StringBuilder sb = new StringBuilder();
         sb.append(PwmConstants.PWM_APP_NAME);
         sb.append(" ");
-        sb.append(gs.toJson(auditRecord));
+        sb.append(JsonUtil.serialize(auditRecord));
 
         final SyslogIF syslogIF = syslogInstance;
         try {

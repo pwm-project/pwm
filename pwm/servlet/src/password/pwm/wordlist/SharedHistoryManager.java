@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,10 +40,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.ByteArrayInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 
 public class SharedHistoryManager implements Wordlist {
@@ -124,12 +121,11 @@ public class SharedHistoryManager implements Wordlist {
         return status;
     }
 
-    public long getOldestEntryAge() {
+    public Date getOldestEntryTime() {
         if (size() > 0) {
-            return System.currentTimeMillis() - oldestEntry;
-        } else {
-            return 0;
+            return new Date(oldestEntry);
         }
+        return null;
     }
 
     public int size() {

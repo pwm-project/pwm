@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 
 package password.pwm.util.db;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import password.pwm.PwmApplication;
 import password.pwm.PwmConstants;
 import password.pwm.PwmService;
@@ -165,11 +163,10 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         try {
-            final Gson gson = JsonUtil.getGson();
             final Map<String,String> tempMap = new HashMap<>();
             tempMap.put("instance",instanceID);
             tempMap.put("date",(new java.util.Date()).toString());
-            this.put(DatabaseTable.PWM_META, DatabaseAccessorImpl.KEY_TEST, gson.toJson(tempMap));
+            this.put(DatabaseTable.PWM_META, DatabaseAccessorImpl.KEY_TEST, JsonUtil.serializeMap(tempMap));
         } catch (PwmException e) {
             returnRecords.add(new HealthRecord(HealthStatus.WARN, HealthTopic.Database, "Error writing to database: " + e.getErrorInformation().toDebugStr()));
             return returnRecords;
@@ -376,11 +373,11 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
+            final Map<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("value",value);
-            LOGGER.trace("put operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("put operation result: " + JsonUtil.serializeMap(debugOutput, JsonUtil.Flag.PrettyPrint));
         }
 
         updateStats(false,true);
@@ -473,12 +470,11 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
     {
         final boolean result = get(table, key) != null;
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
+            final Map<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);
-            LOGGER.trace("contains operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(
-                    debugOutput));
+            LOGGER.trace("contains operation result: " + JsonUtil.serializeMap(debugOutput, JsonUtil.Flag.PrettyPrint));
         }
         updateStats(true,false);
         return result;
@@ -524,7 +520,7 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",returnValue);
-            LOGGER.trace("get operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("get operation result: " + JsonUtil.serializeMap(debugOutput, JsonUtil.Flag.PrettyPrint));
         }
 
         updateStats(true,false);
@@ -571,11 +567,11 @@ public class DatabaseAccessorImpl implements PwmService, DatabaseAccessor {
         }
 
         if (traceLogging) {
-            final LinkedHashMap<String,Object> debugOutput = new LinkedHashMap<>();
+            final Map<String,Object> debugOutput = new LinkedHashMap<>();
             debugOutput.put("table",table);
             debugOutput.put("key",key);
             debugOutput.put("result",result);
-            LOGGER.trace("remove operation result: " + JsonUtil.getGson(new GsonBuilder().setPrettyPrinting()).toJson(debugOutput));
+            LOGGER.trace("remove operation result: " + JsonUtil.serializeMap(debugOutput, JsonUtil.Flag.PrettyPrint));
         }
 
         updateStats(true, false);

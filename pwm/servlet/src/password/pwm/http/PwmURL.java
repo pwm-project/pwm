@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package password.pwm.http;
 
 import password.pwm.PwmConstants;
@@ -79,16 +80,12 @@ public class PwmURL {
         return checkIfStartsWithURL("/public/" + PwmConstants.URL_SERVLET_NEW_USER);
     }
 
-    public boolean isAdminUrl() {
-        return checkIfStartsWithURL("/admin/");
-    }
-
     public boolean isPrivateUrl() {
         return checkIfStartsWithURL("/private/");
     }
 
-    public boolean isMenuURL() {
-        return checkIfMatchesURL("/", "/private/", "/public/");
+    public boolean isPublicUrl() {
+        return checkIfStartsWithURL("/public/");
     }
 
     public boolean isCommandServletURL() {

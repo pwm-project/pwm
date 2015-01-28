@@ -36,7 +36,7 @@
 <%@ include file="fragment/header.jsp" %>
 <body class="nihilo">
 <script nonce="<pwm:value name="cspNonce"/>" type="text/javascript" src="<pwm:context/><pwm:url url="/public/resources/js/configmanager.js"/>"></script>
-<div id="wrapper">
+<div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="<%=pageTitle%>"/>
     </jsp:include>

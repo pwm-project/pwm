@@ -440,7 +440,7 @@ public class CrService implements PwmService {
             throw new PwmOperationalException(errorInfo);
         }
 
-        if (attempts != successes) { // should be impossible to get here, but just in case.
+        if (attempts != successes) { // should be impossible to read here, but just in case.
             final String errorMsg = "response clear partially successful; attempts=" + attempts + ", successes=" + successes;
             final ErrorInformation errorInfo = new ErrorInformation(PwmError.ERROR_CLEARING_RESPONSES, errorMsg);
             throw new PwmOperationalException(errorInfo);

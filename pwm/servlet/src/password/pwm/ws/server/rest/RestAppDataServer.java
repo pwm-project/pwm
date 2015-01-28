@@ -91,7 +91,9 @@ public class RestAppDataServer extends AbstractRestServer {
     @Produces(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     public Response doGetAppAuditData(
             @QueryParam("maximum") int maximum
-    ) throws ChaiUnavailableException, PwmUnrecoverableException {
+    ) 
+            throws ChaiUnavailableException, PwmUnrecoverableException 
+    {
         maximum = maximum > 0 ? maximum : 10 * 1000;
 
         final RestRequestBean restRequestBean;
@@ -104,23 +106,21 @@ public class RestAppDataServer extends AbstractRestServer {
         } catch (PwmUnrecoverableException e) {
             return RestResultBean.fromError(e.getErrorInformation()).asJsonResponse();
         }
-
-
+        
         final ArrayList<UserAuditRecord> userRecords = new ArrayList<>();
         final ArrayList<HelpdeskAuditRecord> helpdeskRecords = new ArrayList<>();
         final ArrayList<SystemAuditRecord> systemRecords = new ArrayList<>();
         final Iterator<AuditRecord> iterator = restRequestBean.getPwmApplication().getAuditManager().readVault();
-        while (iterator.hasNext() && userRecords.size() <= maximum) {
+        int counter = 0;
+        while (iterator.hasNext() && counter <= maximum) {
             final AuditRecord loopRecord = iterator.next();
+            counter++;
             if (loopRecord instanceof SystemAuditRecord) {
                 systemRecords.add((SystemAuditRecord)loopRecord);
             } else if (loopRecord instanceof HelpdeskAuditRecord) {
                 helpdeskRecords.add((HelpdeskAuditRecord)loopRecord);
             } else if (loopRecord instanceof UserAuditRecord) {
                 userRecords.add((UserAuditRecord)loopRecord);
-            }
-            if (userRecords.size() >= maximum) {
-                break;
             }
         }
         final HashMap<String,List> outputMap = new HashMap<>();
@@ -130,6 +130,7 @@ public class RestAppDataServer extends AbstractRestServer {
 
         final RestResultBean restResultBean = new RestResultBean();
         restResultBean.setData(outputMap);
+        LOGGER.debug(restRequestBean.getPwmSession(),"output " + counter + " audit records.");
         return restResultBean.asJsonResponse();
     }
 

@@ -22,7 +22,6 @@
 
 package password.pwm.ldap;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.novell.ldapchai.provider.ChaiProvider;
 import password.pwm.PwmApplication;
@@ -127,12 +126,11 @@ public class LdapConnectionService implements PwmService {
 
     public void setLastLdapFailure(final LdapProfile ldapProfile, final ErrorInformation errorInformation) {
         lastLdapErrors.put(ldapProfile, errorInformation);
-        final Gson gson = JsonUtil.getGson();
-        final HashMap<String,ErrorInformation> jsonMap = new HashMap<>();
+        final HashMap<String,ErrorInformation> outputMap = new HashMap<>();
         for (final LdapProfile loopProfile : lastLdapErrors.keySet()) {
-            jsonMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
+            outputMap.put(loopProfile.getIdentifier(), lastLdapErrors.get(loopProfile));
         }
-        final String jsonString = gson.toJson(jsonMap);
+        final String jsonString = JsonUtil.serialize(outputMap);
         pwmApplication.writeAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR, jsonString);
     }
 
@@ -153,8 +151,7 @@ public class LdapConnectionService implements PwmService {
         try {
             lastLdapFailureStr = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.LAST_LDAP_ERROR);
             if (lastLdapFailureStr != null && lastLdapFailureStr.length() > 0) {
-
-                final Map<String, ErrorInformation> fromJson = JsonUtil.getGson().fromJson(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {}.getType());
+                final Map<String, ErrorInformation> fromJson = JsonUtil.deserialize(lastLdapFailureStr,new TypeToken<Map<String, ErrorInformation>>() {});
                 final Map<LdapProfile, ErrorInformation> returnMap = new HashMap<>();
                 for (final String id : fromJson.keySet()) {
                     final LdapProfile ldapProfile = pwmApplication.getConfig().getLdapProfiles().get(id);

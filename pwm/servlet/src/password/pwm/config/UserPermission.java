@@ -24,7 +24,9 @@ package password.pwm.config;
 
 import password.pwm.PwmConstants;
 
-public class UserPermission {
+import java.io.Serializable;
+
+public class UserPermission implements Serializable {
     public enum Type {
         ldapQuery,
         ldapGroup,

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ import password.pwm.http.PwmRequest;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.util.JsonUtil;
 import password.pwm.util.StringUtil;
+import password.pwm.util.cache.CacheKey;
+import password.pwm.util.cache.CachePolicy;
 import password.pwm.util.cache.CacheService;
 import password.pwm.util.logging.PwmLogger;
 
@@ -162,7 +164,7 @@ public class FormUtility {
         }
 
         final CacheService cacheService = pwmApplication.getCacheService();
-        final CacheService.CacheKey cacheKey = CacheService.CacheKey.makeCacheKey(
+        final CacheKey cacheKey = CacheKey.makeCacheKey(
                 Validator.class, null, "attr_unique_check_" + filter.toString()
         );
         if (cacheService != null) {
@@ -184,7 +186,7 @@ public class FormUtility {
         searchConfiguration.setFilter(filter.toString());
 
         int resultSearchSizeLimit = 1 + (excludeDN == null ? 0 : excludeDN.size());
-        final CacheService.CachePolicy cachePolicy = CacheService.CachePolicy.makePolicy(30 * 1000);
+        final CachePolicy cachePolicy = CachePolicy.makePolicy(30 * 1000);
 
         try {
             final UserSearchEngine userSearchEngine = new UserSearchEngine(pwmApplication, SessionLabel.SYSTEM_LABEL);
@@ -231,7 +233,7 @@ public class FormUtility {
                     }
                 }
 
-                // user didn't match on the compare.. shouldn't get here but just in case
+                // user didn't match on the compare.. shouldn't read here but just in case
                 final ErrorInformation error = new ErrorInformation(PwmError.ERROR_FIELD_DUPLICATE, null);
                 throw new PwmDataValidationException(error);
             }

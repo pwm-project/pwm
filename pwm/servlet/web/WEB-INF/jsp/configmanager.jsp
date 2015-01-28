@@ -296,7 +296,7 @@
                     <pwm:script>
                         <script type="application/javascript">
                             PWM_GLOBAL['startupFunctions'].push(function(){
-                                PWM_MAIN.addEventHandler('MenuItem_Administration','click',function(){PWM_MAIN.goto('/private/admin/dashboard.jsp')});
+                                PWM_MAIN.addEventHandler('MenuItem_Administration','click',function(){PWM_MAIN.goto('/private/admin/')});
                                 makeTooltip('MenuItem_Administration',PWM_MAIN.showString('Long_Title_Admin'));
                             });
                         </script>

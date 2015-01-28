@@ -22,7 +22,6 @@
 
 package password.pwm.token;
 
-import com.google.gson.Gson;
 import com.novell.ldapchai.exception.ChaiUnavailableException;
 import password.pwm.AppProperty;
 import password.pwm.PwmApplication;
@@ -458,8 +457,7 @@ public class TokenService implements PwmService {
     String toEncryptedString(final TokenPayload tokenPayload)
             throws PwmUnrecoverableException, PwmOperationalException
     {
-        final Gson gson = JsonUtil.getGson();
-        final String jsonPayload = gson.toJson(tokenPayload);
+        final String jsonPayload = JsonUtil.serialize(tokenPayload);
         return SecureHelper.encryptToString(jsonPayload, secretKey, true);
     }
 
@@ -469,7 +467,7 @@ public class TokenService implements PwmService {
         final String deWhiteSpacedToken = inputString.replaceAll("\\s","");
         try {
             final String decryptedString = SecureHelper.decryptStringValue(deWhiteSpacedToken, secretKey, true);
-            return JsonUtil.getGson().fromJson(decryptedString,TokenPayload.class);
+            return JsonUtil.deserialize(decryptedString, TokenPayload.class);
         } catch (PwmUnrecoverableException e) {
             final String errorMsg = "unable to decrypt user supplied token value: " + e.getErrorInformation().toDebugStr();
             final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_TOKEN_INCORRECT,errorMsg);
@@ -611,7 +609,7 @@ public class TokenService implements PwmService {
             try {
                 switch (tokenSendMethod) {
                     case NONE:
-                        // should never get here
+                        // should never read here
                         LOGGER.error("attempt to send token to destination type 'NONE'");
                         throw new PwmUnrecoverableException(PwmError.ERROR_UNKNOWN);
                     case BOTH:

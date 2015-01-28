@@ -3,7 +3,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 <%@ include file="fragment/header.jsp" %>
 <% final PwmRequest login_pwmRequest = PwmRequest.forRequest(request,response); %>
 <body class="nihilo">
-<div id="wrapper">
+<div id="wrapper" class="login-wrapper">
     <jsp:include page="fragment/header-body.jsp">
         <jsp:param name="pwm.PageName" value="Title_Login"/>
     </jsp:include>
@@ -120,17 +120,8 @@
 <pwm:script>
     <script type="text/javascript">
         PWM_GLOBAL['startupFunctions'].push(function(){
-            if (PWM_MAIN.getObject('username').value.length < 1) {
-                PWM_MAIN.getObject('username').focus();
-            } else {
-                PWM_MAIN.getObject('password').focus();
-            }
-
-            require(["dojo/on"], function(on){
-                var loginFormElement = PWM_MAIN.getObject('login');
-                on(loginFormElement, "submit", function(event){
-                    PWM_MAIN.handleLoginFormSubmit(loginFormElement,event)
-                });
+            PWM_MAIN.addEventHandler('login','submit',function(){
+                PWM_MAIN.handleLoginFormSubmit(PWM_MAIN.getObject('login'),event);
             });
         });
     </script>

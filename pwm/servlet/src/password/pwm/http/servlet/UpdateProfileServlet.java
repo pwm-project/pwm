@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ public class UpdateProfileServlet extends PwmServlet {
             throws IOException, ServletException, PwmUnrecoverableException, ChaiUnavailableException
     {
         boolean success = true;
-        String userMessage = Message.getLocalizedMessage(pwmRequest.getLocale(), Message.SUCCESS_UPDATE_FORM, pwmRequest.getConfig());
+        String userMessage = Message.getLocalizedMessage(pwmRequest.getLocale(), Message.Success_UpdateForm, pwmRequest.getConfig());
         final Map<FormConfiguration, String> formValues = updateProfileBean.getFormData();
 
         try {
@@ -234,7 +234,7 @@ public class UpdateProfileServlet extends PwmServlet {
             // write the form values
             final ChaiUser theUser = pwmSession.getSessionManager().getActor(pwmApplication);
             doProfileUpdate(pwmRequest, formValues, theUser);
-            pwmRequest.forwardToSuccessPage(Message.SUCCESS_UPDATE_ATTRIBUTES);
+            pwmRequest.forwardToSuccessPage(Message.Success_UpdateProfile);
             return;
         } catch (PwmException e) {
             LOGGER.error(pwmSession, e.getMessage());

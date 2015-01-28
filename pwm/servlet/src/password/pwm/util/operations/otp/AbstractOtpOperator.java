@@ -121,7 +121,7 @@ public abstract class AbstractOtpOperator implements OtpOperator {
         LOGGER.trace(String.format("detecting format from value: %s", value));
         /* - PWM JSON */
         try {
-            otpconfig = JsonUtil.getGson().fromJson(value, OTPUserRecord.class);
+            otpconfig = JsonUtil.deserialize(value, OTPUserRecord.class);
             LOGGER.debug("detected JSON format - returning");
             return otpconfig;
         } catch (JsonSyntaxException ex) {

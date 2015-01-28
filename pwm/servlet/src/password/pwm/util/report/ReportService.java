@@ -37,6 +37,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.error.*;
 import password.pwm.health.HealthRecord;
+import password.pwm.i18n.Display;
 import password.pwm.i18n.LocaleHelper;
 import password.pwm.ldap.UserSearchEngine;
 import password.pwm.ldap.UserStatusReader;
@@ -48,12 +49,12 @@ import password.pwm.util.localdb.LocalDB;
 import password.pwm.util.localdb.LocalDBException;
 import password.pwm.util.logging.PwmLogger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 public class ReportService implements PwmService {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ReportService.class);
@@ -185,7 +186,7 @@ public class ReportService implements PwmService {
         try {
             final String jsonInfo = pwmApplication.readAppAttribute(PwmApplication.AppAttribute.REPORT_STATUS);
             if (jsonInfo != null && !jsonInfo.isEmpty()) {
-                reportStatus = JsonUtil.getGson().fromJson(jsonInfo,ReportStatusInfo.class);
+                reportStatus = JsonUtil.deserialize(jsonInfo,ReportStatusInfo.class);
             }
         } catch (Exception e) {
             LOGGER.error(PwmConstants.REPORTING_SESSION_LABEL,"error loading cached report status info into memory: " + e.getMessage());
@@ -397,10 +398,10 @@ public class ReportService implements PwmService {
             searchConfiguration.setFilter(settings.getSearchFilter());
         }
 
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.getGson()).toJson(searchConfiguration));
+        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"beginning UserReportService user search using parameters: " + (JsonUtil.serialize(searchConfiguration)));
 
         final Map<UserIdentity,Map<String,String>> searchResults = userSearchEngine.performMultiUserSearch(searchConfiguration, settings.getMaxSearchSize(), Collections.<String>emptyList());
-        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"UserReportService user search found " + searchResults.size() + " users for reporting");
+        LOGGER.debug(PwmConstants.REPORTING_SESSION_LABEL,"user search found " + searchResults.size() + " users for reporting");
         final List<UserIdentity> returnList = new ArrayList<>(searchResults.keySet());
         Collections.shuffle(returnList);
         return returnList;
@@ -457,13 +458,28 @@ public class ReportService implements PwmService {
             storageKeyIterator.close();
         }
     }
+    
+    public void outputSummaryToCsv(final OutputStream outputStream, final Locale locale) 
+            throws IOException 
+    {
+        final List<ReportSummaryData.PresentationRow> outputList = summaryData.asPresentableCollection(pwmApplication.getConfig(),locale);
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
+
+        for (final ReportSummaryData.PresentationRow presentationRow : outputList) {
+            final List<String> headerRow = new ArrayList<>();
+            headerRow.add(presentationRow.getLabel());
+            headerRow.add(presentationRow.getCount());
+            headerRow.add(presentationRow.getPct());
+            csvPrinter.printRecord(headerRow);
+        }
+        
+        csvPrinter.close();
+    }
 
     public void outputToCsv(final OutputStream outputStream, final boolean includeHeader, final Locale locale)
             throws IOException, ChaiUnavailableException, ChaiOperationException, PwmUnrecoverableException, PwmOperationalException
     {
-        Writer csvWriter = null;
-        csvWriter = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(outputStream),PwmConstants.DEFAULT_CHARSET));
-        final CSVPrinter csvPrinter = new CSVPrinter(csvWriter, PwmConstants.DEFAULT_CSV_FORMAT);
+        final CSVPrinter csvPrinter = Helper.makeCsvPrinter(outputStream);
         final Configuration config = pwmApplication.getConfig();
         final Class localeClass = password.pwm.i18n.Admin.class;
         if (includeHeader) {
@@ -488,7 +504,7 @@ public class ReportService implements PwmService {
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresResponseUpdate", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RequiresProfileUpdate", config, localeClass));
             headerRow.add(LocaleHelper.getLocalizedMessage(locale, "Field_Report_RecordCacheTime", config, localeClass));
-            csvPrinter.printRecords(headerRow);
+            csvPrinter.printRecord(headerRow);
         }
 
         ClosableIterator<UserCacheRecord> cacheBeanIterator = null;
@@ -504,7 +520,7 @@ public class ReportService implements PwmService {
             }
         }
 
-        csvWriter.flush();
+        csvPrinter.flush();
     }
 
     private void outputRecordRow(
@@ -515,9 +531,9 @@ public class ReportService implements PwmService {
     )
             throws IOException
     {
-        final String trueField = LocaleHelper.getLocalizedMessage(locale, "Value_True", config, password.pwm.i18n.Display.class);
-        final String falseField = LocaleHelper.getLocalizedMessage(locale, "Value_False", config, password.pwm.i18n.Display.class);
-        final String naField = LocaleHelper.getLocalizedMessage(locale, "Value_NotApplicable", config, password.pwm.i18n.Display.class);
+        final String trueField = Display.getLocalizedMessage(locale, Display.Value_True, config);
+        final String falseField = Display.getLocalizedMessage(locale, Display.Value_False, config);
+        final String naField = Display.getLocalizedMessage(locale, Display.Value_NotApplicable, config);
         final List<String> csvRow = new ArrayList<>();
         csvRow.add(userCacheRecord.getUserDN());
         csvRow.add(userCacheRecord.getLdapProfile());
@@ -545,7 +561,7 @@ public class ReportService implements PwmService {
         csvRow.add(userCacheRecord.getCacheTimestamp() == null ? naField : PwmConstants.DEFAULT_DATETIME_FORMAT.format(
                 userCacheRecord.getCacheTimestamp()));
 
-        csvPrinter.printRecords(csvRow);
+        csvPrinter.printRecord(csvRow);
     }
 
     public ReportSummaryData getSummaryData() {

@@ -201,7 +201,7 @@ class LdapXmlUserHistory implements UserHistoryStore, Serializable {
                 if (loopEvent.getAuditEvent() != null) {
                     final Element hrElement = new Element(XML_NODE_RECORD);
                     hrElement.setAttribute(XML_ATTR_TIMESTAMP, String.valueOf(loopEvent.getTimestamp()));
-                    hrElement.setAttribute(XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getResourceKey());
+                    hrElement.setAttribute(XML_ATTR_TRANSACTION, loopEvent.getAuditEvent().getMessage().getKey());
                     if (loopEvent.getSourceAddress() != null && loopEvent.getSourceAddress().length() > 0) {
                         hrElement.setAttribute(XML_ATTR_SRC_IP,loopEvent.getSourceAddress());
                     }

@@ -109,7 +109,7 @@ public class RandomPasswordGenerator {
      *
      * @param sessionLabel A valid pwmSession
      * @param randomGeneratorConfig Policy to be used during generation
-     * @param pwmApplication Used to get configuration, seedmanager and other services.
+     * @param pwmApplication Used to read configuration, seedmanager and other services.
      * @return A randomly generated password value that meets the requirements of this {@code PasswordPolicy}
      * @throws com.novell.ldapchai.exception.ImpossiblePasswordPolicyException
      *          If there is no way to create a password using the configured rules and
@@ -170,7 +170,7 @@ public class RandomPasswordGenerator {
         // initial creation
         password.append(generateNewPassword(seedMachine, randomGeneratorConfig.getMinimumLength()));
 
-        // get a rule validator
+        // read a rule validator
         final PwmPasswordRuleValidator pwmPasswordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, randomGenPolicy);
 
         // modify until it passes all the rules

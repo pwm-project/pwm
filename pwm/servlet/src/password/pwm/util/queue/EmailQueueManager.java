@@ -161,7 +161,7 @@ public class
     }
 
     void sendItem(final String item) throws PwmOperationalException {
-        final EmailItemBean emailItemBean = JsonUtil.getGson().fromJson(item, EmailItemBean.class);
+        final EmailItemBean emailItemBean = JsonUtil.deserialize(item, EmailItemBean.class);
 
         // create a new MimeMessage object (using the Session created above)
         try {
@@ -297,7 +297,7 @@ public class
         final Map<String,Object> debugOutputMap = new LinkedHashMap<>();
         debugOutputMap.put("itemID", queueEvent.getItemID());
         debugOutputMap.put("timestamp", queueEvent.getTimestamp());
-        final EmailItemBean emailItemBean = JsonUtil.getGson().fromJson(queueEvent.getItem(), EmailItemBean.class);
+        final EmailItemBean emailItemBean = JsonUtil.deserialize(queueEvent.getItem(), EmailItemBean.class);
 
         debugOutputMap.put("to", emailItemBean.getTo());
         debugOutputMap.put("from", emailItemBean.getFrom());

@@ -103,7 +103,7 @@ public class UserStatusReader {
                     PwmPasswordRuleValidator passwordRuleValidator = new PwmPasswordRuleValidator(pwmApplication, passwordPolicy);
                     passwordRuleValidator.testPassword(currentPassword, null, userInfoBean, theUser);
                 } catch (PwmDataValidationException | PwmUnrecoverableException e) {
-                    LOGGER.info(sessionLabel, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
+                    LOGGER.debug(sessionLabel, "user " + userDN + " password does not conform to current password policy (" + e.getMessage() + "), marking as requiring change.");
                     passwordStatus.setViolatesPolicy(true);
                 }
             }
@@ -141,10 +141,10 @@ public class UserStatusReader {
                 // now check to see if the user's expire time is within the 'preExpireTime' setting.
                 final long preExpireMs = config.readSettingAsLong(PwmSetting.PASSWORD_EXPIRE_PRE_TIME) * 1000;
                 if (diff > 0 && diff < preExpireMs) {
-                    LOGGER.info(sessionLabel, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as pre-expired");
+                    LOGGER.debug(sessionLabel, "user " + userDN + " password will expire within " + TimeDuration.asCompactString(diff) + ", marking as pre-expired");
                     passwordStatus.setPreExpired(true);
                 } else if (passwordStatus.isExpired()) {
-                    LOGGER.info(sessionLabel, "user " + userDN + " password is expired, marking as pre-expired.");
+                    LOGGER.debug(sessionLabel, "user " + userDN + " password is expired, marking as pre-expired.");
                     passwordStatus.setPreExpired(true);
                 }
 
@@ -154,12 +154,12 @@ public class UserStatusReader {
                 if (!passwordStatus.isExpired() && !passwordStatus.isPreExpired()) {
                     if (!(preWarnMs == 0 || preWarnMs < preExpireMs)) {
                         if (diff > 0 && diff < preWarnMs) {
-                            LOGGER.info(sessionLabel,
+                            LOGGER.debug(sessionLabel,
                                     "user " + userDN + " password will expire within " + TimeDuration.asCompactString(
                                             diff) + ", marking as within warn period");
                             passwordStatus.setWarnPeriod(true);
                         } else if (passwordStatus.isExpired()) {
-                            LOGGER.info(sessionLabel,
+                            LOGGER.debug(sessionLabel,
                                     "user " + userDN + " password is expired, marking as within warn period");
                             passwordStatus.setWarnPeriod(true);
                         }
@@ -470,7 +470,7 @@ public class UserStatusReader {
         }
 
         private Settings copy() {
-            return JsonUtil.getGson().fromJson(JsonUtil.serialize(this),this.getClass());
+            return JsonUtil.deserialize(JsonUtil.serialize(this),this.getClass());
         }
     }
 

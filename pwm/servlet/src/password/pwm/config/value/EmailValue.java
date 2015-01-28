@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
 import password.pwm.bean.EmailItemBean;
@@ -49,10 +48,9 @@ public class EmailValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new EmailValue(Collections.<String, EmailItemBean>emptyMap());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    Map<String, EmailItemBean> srcList = gson.fromJson(input,
-                            new TypeToken<Map<String, EmailItemBean>>() {
-                            }.getType());
+                    Map<String, EmailItemBean> srcList = JsonUtil.deserialize(input,
+                            new TypeToken<Map<String, EmailItemBean>>() {}
+                    );
 
                     srcList = srcList == null ? Collections.<String, EmailItemBean>emptyMap() : srcList;
                     srcList.remove(null);
@@ -67,7 +65,6 @@ public class EmailValue extends AbstractValue implements StoredValue {
                     throws PwmOperationalException
             {
                 final Map<String, EmailItemBean> values = new HashMap<>();
-                final Gson gson = JsonUtil.getGson();
                 {
                     final List valueElements = settingElement.getChildren("value");
                     for (final Object loopValue : valueElements) {
@@ -76,7 +73,7 @@ public class EmailValue extends AbstractValue implements StoredValue {
                         if (value != null && value.length() > 0) {
                             String localeValue = loopValueElement.getAttribute(
                                     "locale") == null ? "" : loopValueElement.getAttribute("locale").getValue();
-                            values.put(localeValue, gson.fromJson(value, EmailItemBean.class));
+                            values.put(localeValue, JsonUtil.deserialize(value, EmailItemBean.class));
                         }
                     }
                 }
@@ -154,15 +151,15 @@ public class EmailValue extends AbstractValue implements StoredValue {
                     seenLocales.addAll(bodyHtmlMap.keySet());
                     //final String defaultJson = PwmSetting.forKey(settingElement.getAttribute("key").getValue()).getDefaultValue(PwmSetting.Template.NOVL);
                     //final Map<String,EmailItemBean> defaultList = gson.fromJson(defaultJson, new TypeToken<Map<String,EmailItemBean>>() {}.getType());
-                    //final EmailItemBean defaultBean = defaultList.get("");
+                    //final EmailItemBean defaultBean = defaultList.read("");
             /*
             for (final String localeStr : seenLocales) {
                 values.put(localeStr,new EmailItemBean(
                         null,
-                        fromMap.containsKey(localeStr) ? fromMap.get(localeStr) : defaultBean.getFrom(),
-                        subjectMap.containsKey(localeStr) ? subjectMap.get(localeStr) : defaultBean.getSubject(),
-                        bodyPlainMap.containsKey(localeStr)? bodyPlainMap.get(localeStr) : defaultBean.getBodyPlain(),
-                        bodyHtmlMap.containsKey(localeStr) ? bodyHtmlMap.get(localeStr) : defaultBean.getBodyHtml()
+                        fromMap.containsKey(localeStr) ? fromMap.read(localeStr) : defaultBean.getFrom(),
+                        subjectMap.containsKey(localeStr) ? subjectMap.read(localeStr) : defaultBean.getSubject(),
+                        bodyPlainMap.containsKey(localeStr)? bodyPlainMap.read(localeStr) : defaultBean.getBodyPlain(),
+                        bodyHtmlMap.containsKey(localeStr) ? bodyHtmlMap.read(localeStr) : defaultBean.getBodyHtml()
                         ));
             }
             */
@@ -174,14 +171,13 @@ public class EmailValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        final Gson gson = JsonUtil.getGson();
         for (final String localeValue : values.keySet()) {
             final EmailItemBean emailItemBean = values.get(localeValue);
             final Element valueElement = new Element(valueElementName);
             if (localeValue.length() > 0) {
                 valueElement.setAttribute("locale",localeValue);
             }
-            valueElement.addContent(gson.toJson(emailItemBean));
+            valueElement.addContent(JsonUtil.serialize(emailItemBean));
             returnList.add(valueElement);
         }
         return returnList;

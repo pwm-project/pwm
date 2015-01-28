@@ -29,6 +29,7 @@ import java.util.*;
 
 public enum PwmSettingCategory {
 
+    LDAP_PROFILE(null),
     SETTINGS(null),
     PROFILES(null),
     MODULES(null),
@@ -76,13 +77,16 @@ public enum PwmSettingCategory {
 
     DATABASE                    (SETTINGS),
     REPORTING                   (SETTINGS),
+    
     SSO                         (SETTINGS),
     OAUTH                       (SSO),
-    MISC                        (SETTINGS),
-    REST_SERVER                 (MISC),
-    REST_CLIENT                 (MISC),
+    HTTP_SSO                    (SSO),
+    CAS_SSO                     (SSO),
 
-    LDAP_PROFILE                (PROFILES),
+    WEB_SERVICES                (SETTINGS),
+    REST_SERVER                 (WEB_SERVICES),
+    REST_CLIENT                 (WEB_SERVICES),
+
     PASSWORD_POLICY             (PROFILES),
     CHALLENGE_POLICY            (PROFILES),
 

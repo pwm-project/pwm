@@ -28,7 +28,8 @@ PWM_ADMIN.initAdminOtherMenu=function() {
     require(["dijit/form/DropDownButton", "dijit/DropDownMenu", "dijit/Menu","dijit/MenuItem", "dijit/PopupMenuItem", "dojo/dom", "dijit/MenuSeparator"],
         function(DropDownButton, DropDownMenu, Menu, MenuItem, PopupMenuItem, dom, MenuSeparator){
             var pMenu = new DropDownMenu({ style: "display: none;"});
-
+            
+            /*
             pMenu.addChild(new MenuItem({
                 label: 'Configuration Manager',
                 onClick: function() {
@@ -42,37 +43,38 @@ PWM_ADMIN.initAdminOtherMenu=function() {
                 }
             }));
             pMenu.addChild(new MenuSeparator());
+            */
 
             pMenu.addChild(new MenuItem({
                 label: 'Event Log',
                 onClick: function() {
-                    PWM_MAIN.goto('/private/admin/eventlog.jsp');
+                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-viewLog'));
                 }
             }));
             pMenu.addChild(new MenuItem({
                 label: 'Token Lookup',
                 onClick: function() {
-                    PWM_MAIN.goto('/private/admin/tokenlookup.jsp');
+                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-tokenLookup'));
                 }
             }));
 
-            pMenu.addChild(new MenuSeparator());
             pMenu.addChild(new MenuItem({
-                label: 'REST Services Reference',
+                label: 'URL Reference',
                 onClick: function() {
-                    PWM_MAIN.goto('/public/rest.jsp');
+                    PWM_MAIN.handleFormSubmit(PWM_MAIN.getObject('form-urlReference'));
                 }
             }));
+            pMenu.addChild(new MenuSeparator());
             pMenu.addChild(new MenuItem({
                 label: 'Software License Reference',
                 onClick: function() {
-                    PWM_MAIN.goto('/public/license.jsp');
+                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/license.jsp','license');
                 }
             }));
             pMenu.addChild(new MenuItem({
-                label: 'Error Code Reference',
+                label: 'Reference',
                 onClick: function() {
-                    PWM_MAIN.goto('/private/admin/error-reference.jsp');
+                    PWM_MAIN.newWindowOpen(PWM_GLOBAL['url-context'] + '/public/referencedoc.jsp','referencedoc');
                 }
             }));
             if (PWM_GLOBAL['setting-displayEula'] == true) {
@@ -84,13 +86,6 @@ PWM_ADMIN.initAdminOtherMenu=function() {
                 }));
             }
 
-            pMenu.addChild(new MenuSeparator());
-            pMenu.addChild(new MenuItem({
-                label: 'Main Menu',
-                onClick: function() {
-                    PWM_MAIN.goto('/');
-                }
-            }));
 
             var dropDownButton = new DropDownButton({
                 label: "More Options",
@@ -715,7 +710,7 @@ PWM_ADMIN.makeHealthHtml = function(healthData, showTimestamp, showRefresh) {
             htmlBody += '</span>&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         if (showRefresh) {
-            htmlBody += '<a title="refresh" href="#"; onclick="PWM_GLOBAL[\'healthRefreshFunction\']()">';
+            htmlBody += '<a title="refresh" href="#" onclick="PWM_GLOBAL[\'healthRefreshFunction\']()">';
             htmlBody += '<span class="fa fa-refresh"></span>';
             htmlBody += '</a>';
         }
@@ -744,7 +739,8 @@ PWM_ADMIN.detailView = function(evt, headers, grid){
                     });
                 });
             } else if (key == 'message') {
-                text += '<pre style="max-height: 400px; overflow: auto; max-width: 400px">' + value + '</pre>'
+                var out = value.replace('\n', '<br/>');
+                text += '<div style="max-height: 200px; overflow: auto; max-width: 400px">' + out + '</div>'
             } else {
                 text += value;
             }
@@ -759,7 +755,6 @@ PWM_ADMIN.detailView = function(evt, headers, grid){
 
     }});
 };
-
 
 PWM_ADMIN.showString=function (key, options) {
     options = options || {};

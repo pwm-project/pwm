@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.Element;
 import password.pwm.config.PwmSetting;
@@ -47,11 +46,11 @@ public class OptionListValue extends AbstractValue  implements StoredValue {
                 if (input == null) {
                     return new OptionListValue(Collections.<String>emptySet());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    Set<String> srcList = gson.fromJson(input, new TypeToken<Set<String>>() {
-                    }.getType());
+                    Set<String> srcList = JsonUtil.deserialize(input, new TypeToken<Set<String>>() {});
                     srcList = srcList == null ? Collections.<String>emptySet() : srcList;
-                    srcList.removeAll(Collections.singletonList(null));
+                    while (srcList.contains(null)) {
+                        srcList.remove(null);
+                    }
                     return new OptionListValue(Collections.unmodifiableSet(srcList));
                 }
             }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jdom2.CDATA;
 import org.jdom2.Element;
@@ -50,9 +49,7 @@ public class LocalizedStringValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new LocalizedStringValue(Collections.<String, String>emptyMap());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    Map<String, String> srcMap = gson.fromJson(input, new TypeToken<Map<String, String>>() {
-                    }.getType());
+                    Map<String, String> srcMap = JsonUtil.deserialize(input, new TypeToken<Map<String, String>>() {});
                     srcMap = srcMap == null ? Collections.<String, String>emptyMap() : new TreeMap(srcMap);
                     return new LocalizedStringValue(Collections.unmodifiableMap(srcMap));
                 }

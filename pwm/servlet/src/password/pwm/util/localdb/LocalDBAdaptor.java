@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,7 +273,7 @@ public class LocalDBAdaptor implements LocalDB {
         }
 
         private int getSizeForDB(final DB db, final LocalDBProvider localDBProvider) throws LocalDBException {
-            // get the cached size out of the cache store
+            // read the cached size out of the cache store
             final Integer cachedSize = sizeCache.get(db);
 
             if (cachedSize != null && cachedSize >= 0) {
@@ -286,7 +286,7 @@ public class LocalDBAdaptor implements LocalDB {
             // mark the cache as population in progress
             sizeCache.put(db, CACHE_WORKING);
 
-            // get the "real" value.  this is the line that might take a long time
+            // read the "real" value.  this is the line that might take a long time
             final int theSize = localDBProvider.size(db);
             final TimeDuration timeDuration = TimeDuration.fromCurrent(beginTime);
 

@@ -64,6 +64,8 @@ public abstract class PwmConstants {
                 ? MISSING_VERSION_STRING
                 : servletVersion;
     }
+    
+    public static final String CHAI_API_VERSION = com.novell.ldapchai.ChaiConstant.CHAI_API_VERSION + " (" + com.novell.ldapchai.ChaiConstant.CHAI_API_BUILD_INFO + ")";
 
     public static final String DEFAULT_CONFIG_FILE_FILENAME = readPwmConstantsBundle("defaultConfigFilename");
 
@@ -133,6 +135,11 @@ public abstract class PwmConstants {
     public static final String REQUEST_ATTR_AGREEMENT_TEXT = "AgreementText";
     public static final String REQUEST_ATTR_COMPLETE_TEXT = "CompleteText";
     public static final String REQUEST_ATTR_AVAILABLE_AUTH_METHODS = "AvailableAuthMethods";
+    
+    public static final String DOWNLOAD_FILENAME_STATISTICS_CSV = "Statistics.csv";
+    public static final String DOWNLOAD_FILENAME_USER_REPORT_SUMMARY_CSV = "UserReportSummary.csv";
+    public static final String DOWNLOAD_FILENAME_USER_REPORT_RECORDS_CSV = "UserReportRecords.csv";
+    public static final String DOWNLOAD_FILENAME_AUDIT_RECORDS_CSV = "AuditRecords.csv";
 
     public static final String DEFAULT_BUILD_CHECKSUM_FILENAME = "BuildChecksum.properties";
 
@@ -144,6 +151,13 @@ public abstract class PwmConstants {
         ERROR("error.jsp"),
         SUCCESS("success.jsp"),
         APP_UNAVAILABLE("application-unavailable.jsp"),
+        ADMIN_DASHBOARD("admin-dashboard.jsp"),
+        ADMIN_ANALYSIS("admin-analysis.jsp"),
+        ADMIN_ACTIVITY("admin-activity.jsp"),
+        ADMIN_TOKEN_LOOKUP("admin-tokenlookup.jsp"),
+        ADMIN_LOGVIEW_WINDOW("admin-logview-window.jsp"),
+        ADMIN_LOGVIEW("admin-logview.jsp"),
+        ADMIN_URLREFERENCE("admin-urlreference.jsp"),
         ACTIVATE_USER("activateuser.jsp"),
         ACTIVATE_USER_AGREEMENT("activateuser-agreement.jsp"),
         ACTIVATE_USER_ENTER_CODE("activateuser-entercode.jsp"),
@@ -188,7 +202,6 @@ public abstract class PwmConstants {
         PEOPLE_SEARCH("peoplesearch.jsp"),
         CONFIG_MANAGER_EDITOR("configeditor.jsp"),
         CONFIG_MANAGER_EDITOR_SUMMARY("configmanager-summary.jsp"),
-        CONFIG_MANAGER_LOGVIEW("logview.jsp"),
         CONFIG_MANAGER_MODE_CONFIGURATION("configmanager.jsp"),
         CONFIG_MANAGER_LOGIN("configmanager-login.jsp"),
         HELPDESK_SEARCH("helpdesk.jsp"),

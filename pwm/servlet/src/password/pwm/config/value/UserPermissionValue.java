@@ -22,7 +22,6 @@
 
 package password.pwm.config.value;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
@@ -56,11 +55,12 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                 if (input == null) {
                     return new UserPermissionValue(Collections.<UserPermission>emptyList());
                 } else {
-                    final Gson gson = JsonUtil.getGson();
-                    List<UserPermission> srcList = gson.fromJson(input, new TypeToken<List<UserPermission>>() {
-                    }.getType());
+                    List<UserPermission> srcList = JsonUtil.deserialize(input, new TypeToken<List<UserPermission>>() {
+                    });
                     srcList = srcList == null ? Collections.<UserPermission>emptyList() : srcList;
-                    srcList.removeAll(Collections.singletonList(null));
+                    while (srcList.contains(null)) {
+                        srcList.remove(null);
+                    }
                     return new UserPermissionValue(Collections.unmodifiableList(srcList));
                 }
             }
@@ -70,7 +70,6 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
             {
                 final boolean newType = "2".equals(
                         settingElement.getAttributeValue(StoredConfiguration.XML_ATTRIBUTE_SYNTAX_VERSION));
-                final Gson gson = JsonUtil.getGson();
                 final List valueElements = settingElement.getChildren("value");
                 final List<UserPermission> values = new ArrayList<>();
                 for (final Object loopValue : valueElements) {
@@ -78,7 +77,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                     final String value = loopValueElement.getText();
                     if (value != null && !value.isEmpty()) {
                         if (newType) {
-                            final UserPermission userPermission = gson.fromJson(value, UserPermission.class);
+                            final UserPermission userPermission = JsonUtil.deserialize(value, UserPermission.class);
                             values.add(userPermission);
                         } else {
                             values.add(new UserPermission(UserPermission.Type.ldapQuery, null, value, null));
@@ -94,10 +93,9 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
 
     public List<Element> toXmlValues(final String valueElementName) {
         final List<Element> returnList = new ArrayList<>();
-        final Gson gson = JsonUtil.getGson();
         for (final UserPermission value : values) {
             final Element valueElement = new Element(valueElementName);
-            valueElement.addContent(gson.toJson(value));
+            valueElement.addContent(JsonUtil.serialize(value));
             returnList.add(valueElement);
         }
         return returnList;
@@ -162,7 +160,7 @@ public class UserPermissionValue extends AbstractValue implements StoredValue {
                 );
                 sb.append(" Base:").append(
                         userPermission.getLdapBase() == null
-                                ? Display.getLocalizedMessage(locale,"Value_NotApplicable",null)
+                                ? Display.getLocalizedMessage(locale,Display.Value_NotApplicable,null)
                                 : userPermission.getLdapBase()
                 );
                 if (userPermission.getLdapQuery() != null) {

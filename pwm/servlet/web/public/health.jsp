@@ -1,4 +1,3 @@
-<%@ page import="password.pwm.config.PwmSettingCategory" %>
 <%@ page import="password.pwm.error.ErrorInformation" %>
 <%@ page import="password.pwm.error.PwmError" %>
 <%@ page import="password.pwm.http.JspUtility" %>
@@ -8,7 +7,7 @@
   ~ http://code.google.com/p/pwm/
   ~
   ~ Copyright (c) 2006-2009 Novell, Inc.
-  ~ Copyright (c) 2009-2014 The PWM Project
+  ~ Copyright (c) 2009-2015 The PWM Project
   ~
   ~ This program is free software; you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -37,7 +36,7 @@
     if (!ContextManager.getPwmApplication(request).getConfig().readSettingAsBoolean(PwmSetting.ENABLE_EXTERNAL_WEBSERVICES)) {
         final Locale locale = PwmSession.getPwmSession(request).getSessionStateBean().getLocale();
         final ErrorInformation errorInformation = new ErrorInformation(PwmError.ERROR_SERVICE_NOT_AVAILABLE,
-                "Configuration setting " + PwmSettingCategory.MISC.getLabel(locale) + " --> " + PwmSetting.ENABLE_EXTERNAL_WEBSERVICES.getLabel(locale) + " must be enabled for this page to function.");
+                "Configuration setting " + PwmSetting.ENABLE_EXTERNAL_WEBSERVICES.toMenuLocationDebug(null,locale) + " must be enabled for this page to function.");
         PwmRequest.forRequest(request,response).respondWithError(errorInformation);
     }
 %>

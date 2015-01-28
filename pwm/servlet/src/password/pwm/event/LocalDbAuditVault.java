@@ -31,7 +31,6 @@ import password.pwm.util.localdb.LocalDBStoredQueue;
 import password.pwm.util.logging.PwmLogger;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -91,7 +90,7 @@ public class LocalDbAuditVault implements AuditVault {
     }
 
     private static AuditRecord deSerializeRecord(final String input) {
-        final Map<String,String> tempMap = JsonUtil.getGson(). fromJson(input, HashMap.class);
+        final Map<String,String> tempMap = JsonUtil.deserializeStringMap(input);
         String errorMsg = "";
         try {
             if (tempMap != null) {
@@ -101,11 +100,11 @@ public class LocalDbAuditVault implements AuditVault {
                     if (event != null) {
                         switch (event.getType()) {
                             case USER:
-                                return JsonUtil.getGson().fromJson(input, UserAuditRecord.class);
+                                return JsonUtil.deserialize(input, UserAuditRecord.class);
                             case SYSTEM:
-                                return JsonUtil.getGson().fromJson(input, SystemAuditRecord.class);
+                                return JsonUtil.deserialize(input, SystemAuditRecord.class);
                             case HELPDESK:
-                                return JsonUtil.getGson().fromJson(input, HelpdeskAuditRecord.class);
+                                return JsonUtil.deserialize(input, HelpdeskAuditRecord.class);
                             default:
                                 throw new IllegalArgumentException("unknown audit record type: " + event.getType());
                         }
@@ -124,8 +123,8 @@ public class LocalDbAuditVault implements AuditVault {
             return;
         }
 
-        final String gsonRecord = JsonUtil.serialize(record);
-        auditDB.addLast(gsonRecord);
+        final String jsonRecord = JsonUtil.serialize(record);
+        auditDB.addLast(jsonRecord);
         trim();
     }
 
@@ -141,7 +140,7 @@ public class LocalDbAuditVault implements AuditVault {
         int workActions = 0;
         while (workActions < MAX_REMOVALS_PER_ADD && !auditDB.isEmpty()) {
             final String stringFirstRecord = auditDB.getFirst();
-            final UserAuditRecord firstRecord = JsonUtil.getGson().fromJson(stringFirstRecord, UserAuditRecord.class);
+            final UserAuditRecord firstRecord = JsonUtil.deserialize(stringFirstRecord, UserAuditRecord.class);
             oldestRecord = firstRecord.getTimestamp();
             if (TimeDuration.fromCurrent(oldestRecord).isLongerThan(settings.getMaxRecordAge())) {
                 auditDB.removeFirst();

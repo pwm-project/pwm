@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 public class Percent {
-    private static final BigDecimal BIG_DECIMAL_ONE_HUNDREAD = new BigDecimal("100");
+    private static final BigDecimal BIG_DECIMAL_ONE_HUNDRED = new BigDecimal("100");
     private static final int DEFAULT_SCALE = 2;
     private static final RoundingMode DEFAULT_ROUNDINGMODE = RoundingMode.UP;
     private final BigDecimal percentage;
@@ -45,7 +45,7 @@ public class Percent {
         if (denominator.compareTo(BigDecimal.ZERO) <= 0) {
             throw new NullPointerException("denominator must be greater than zero");
         }
-        percentage = numerator.divide(denominator, MathContext.DECIMAL32).multiply(BIG_DECIMAL_ONE_HUNDREAD);
+        percentage = numerator.divide(denominator, MathContext.DECIMAL32).multiply(BIG_DECIMAL_ONE_HUNDRED);
     }
 
     public Percent(final BigDecimal numerator, final long denominator) {
@@ -88,6 +88,6 @@ public class Percent {
     }
 
     public boolean isComplete() {
-        return asBigDecimal(DEFAULT_SCALE).compareTo(BIG_DECIMAL_ONE_HUNDREAD) >= 0;
+        return asBigDecimal(DEFAULT_SCALE).compareTo(BIG_DECIMAL_ONE_HUNDRED) >= 0;
     }
 }

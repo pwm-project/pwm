@@ -26,16 +26,18 @@ import password.pwm.PwmConstants;
 import password.pwm.config.ConfigurationReader;
 import password.pwm.config.StoredConfiguration;
 
-import java.io.File;
-
 public class ConfigUnlockCommand extends AbstractCliCommand {
     public void doCommand()
             throws Exception
     {
-        final ConfigurationReader configurationReader = new ConfigurationReader(new File(PwmConstants.DEFAULT_CONFIG_FILE_FILENAME));
+        final ConfigurationReader configurationReader = cliEnvironment.getConfigurationReader();
         final StoredConfiguration storedConfiguration = configurationReader.getStoredConfiguration();
-        storedConfiguration.writeConfigProperty(
-                StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(true));
+        if (Boolean.parseBoolean(storedConfiguration.readConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE))) {
+            out("configuration is already unlocked");
+            return;
+        }
+        
+        storedConfiguration.writeConfigProperty(StoredConfiguration.ConfigProperty.PROPERTY_KEY_CONFIG_IS_EDITABLE,Boolean.toString(true));
         configurationReader.saveConfiguration(storedConfiguration, cliEnvironment.getPwmApplication(), PwmConstants.CLI_SESSION_LABEL);
         out("success");
     }
@@ -46,7 +48,7 @@ public class ConfigUnlockCommand extends AbstractCliCommand {
         CliParameters cliParameters = new CliParameters();
         cliParameters.commandName = "ConfigUnlock";
         cliParameters.description = "Unlock a configuration, allows config to be edited without LDAP authentication.";
-        cliParameters.needsPwmApplication = true;
+        cliParameters.needsPwmApplication = false;
         cliParameters.readOnly = true;
         return cliParameters;
     }

@@ -3,7 +3,7 @@
  * http://code.google.com/p/pwm/
  *
  * Copyright (c) 2006-2009 Novell, Inc.
- * Copyright (c) 2009-2014 The PWM Project
+ * Copyright (c) 2009-2015 The PWM Project
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import password.pwm.util.Helper;
 import password.pwm.util.TimeDuration;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.util.Collections;
 
 public class ExportAuditCommand extends AbstractCliCommand {
@@ -45,9 +45,9 @@ public class ExportAuditCommand extends AbstractCliCommand {
 
         final long startTime = System.currentTimeMillis();
         out("beginning output to " + outputFile.getAbsolutePath());
-        final FileWriter fileWriter = new FileWriter(outputFile,true);
-        final int counter = auditManager.outpuVaultToCsv(fileWriter, PwmConstants.DEFAULT_LOCALE, false);
-        fileWriter.close();
+        final FileOutputStream fileOutputStream = new FileOutputStream(outputFile,true);
+        final int counter = auditManager.outputVaultToCsv(fileOutputStream, PwmConstants.DEFAULT_LOCALE, false);
+        fileOutputStream.close();
         out("completed writing " + counter + " rows of audit output in " + TimeDuration.fromCurrent(startTime).asLongString());
     }
 
