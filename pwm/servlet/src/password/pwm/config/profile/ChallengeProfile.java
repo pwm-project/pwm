@@ -40,7 +40,7 @@ import password.pwm.util.logging.PwmLogger;
 import java.io.Serializable;
 import java.util.*;
 
-public class ChallengeProfile extends AbstractProfile implements Profile, Serializable {
+public class ChallengeProfile implements Profile, Serializable {
     private static final PwmLogger LOGGER = PwmLogger.forClass(ChallengeProfile.class);
 
     private final String profileID;
@@ -61,7 +61,6 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
             final List<UserPermission> userPermissions
     )
     {
-        super(profileID, null);
         this.profileID = profileID;
         this.locale = locale;
         this.challengeSet = challengeSet;
@@ -109,7 +108,7 @@ public class ChallengeProfile extends AbstractProfile implements Profile, Serial
         final int minRandomSetup = (int)Configuration.JavaTypeConverter.valueToLong(storedConfiguration.readSetting(PwmSetting.CHALLENGE_MIN_RANDOM_SETUP, profileID));
         final int minHelpdeskRandomSetup = (int)Configuration.JavaTypeConverter.valueToLong(storedConfiguration.readSetting(PwmSetting.CHALLENGE_HELPDESK_MIN_RANDOM_SETUP, profileID));
         final List<UserPermission> userPermissions = (List<UserPermission>)storedConfiguration.readSetting(PwmSetting.CHALLENGE_POLICY_QUERY_MATCH, profileID).toNativeObject();
-        
+
         return new ChallengeProfile(profileID, locale, readChallengeSet, readHelpdeskChallengeSet, minRandomSetup, minHelpdeskRandomSetup, userPermissions);
     }
 

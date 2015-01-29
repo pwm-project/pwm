@@ -3343,7 +3343,9 @@
         <label>Helpdesk Profile</label>
         <description><![CDATA[List of LDAP Helpdesk profiles.  In most cases, only a single profile is needed.  Only define multiple profiles if different helpdesk users will need different features/permissions.  Each helpdesk profile has a <i>Helpdesk Profile Match</i> setting used to define to whom the profile applies.  If multiple profiles could apply for a user, the first profile in the list defined here will be assigned.]]></description>
         <regex>^(?!.*all.*)([a-zA-Z][a-zA-Z0-9-]{2,15})$</regex>
-        <default/>
+        <default>
+            <value>default</value>
+        </default>
     </setting>
     <setting key="helpdesk.queryMatch" level="1" required="true">
         <label>Helpdesk Profile Match</label>

@@ -33,6 +33,7 @@ import password.pwm.config.PwmSetting;
 import password.pwm.config.option.DataStorageMethod;
 import password.pwm.config.option.MessageSendMethod;
 import password.pwm.config.option.TokenStorageMethod;
+import password.pwm.config.profile.ForgottenPasswordProfile;
 import password.pwm.error.*;
 import password.pwm.event.AuditEvent;
 import password.pwm.health.HealthMessage;
@@ -446,11 +447,14 @@ public class TokenService implements PwmService {
             return true;
         }
 
-        if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE) &&
-                MessageSendMethod.NONE != configuration.readSettingAsTokenSendMethod(PwmSetting.RECOVERY_TOKEN_SEND_METHOD)) {
-            return true;
+        if (configuration.readSettingAsBoolean(PwmSetting.CHALLENGE_ENABLE)) {
+            for (final ForgottenPasswordProfile forgottenPasswordProfile : configuration.getForgottenPasswordProfiles().values()) {
+                final MessageSendMethod messageSendMethod = forgottenPasswordProfile.readSettingAsEnum(PwmSetting.RECOVERY_TOKEN_SEND_METHOD, MessageSendMethod.class);
+                if (messageSendMethod != null && messageSendMethod != MessageSendMethod.NONE) {
+                    return true;
+                }
+            }
         }
-
         return false;
     }
 
@@ -641,7 +645,7 @@ public class TokenService implements PwmService {
             } catch (ChaiUnavailableException e) {
                 throw new PwmUnrecoverableException(PwmError.forChaiError(e.getErrorCode()));
             }
-            
+
             if (!success) {
                 throw new PwmUnrecoverableException(new ErrorInformation(PwmError.ERROR_TOKEN_MISSING_CONTACT));
             }
